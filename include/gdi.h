@@ -64,7 +64,12 @@
 #ifndef _MGUI_GDI_H
     #define _MGUI_GDI_H
 
+#include "common.h"
+
 #include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+
 #include "endianrw.h"
 
 #ifdef __cplusplus
@@ -8384,9 +8389,6 @@ MG_EXPORT int GUIAPI GetTabbedTextExtentPoint (HDC hdc,
                 int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size);
 
 #ifdef _MGCHARSET_UNICODE
-
-#include <stddef.h>
-#include <stdlib.h>
 
 /**
  * \fn int GUIAPI MB2WCEx (PLOGFONT log_font, void* dest, BOOL wc32, \

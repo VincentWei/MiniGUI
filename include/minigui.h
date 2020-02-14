@@ -65,6 +65,7 @@
   #define _MGUI_MINIGUI_H
 
 #include <stdio.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -172,8 +173,6 @@ MG_EXPORT RECT GUIAPI GetScreenRect (void);
      * \defgroup lite_vars MiniGUI-Processes specific variables
      * @{
      */
-
-#include <sys/types.h>
 
 /**
  * \fn BOOL GUIAPI IsServer(void);

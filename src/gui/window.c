@@ -3469,9 +3469,7 @@ BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
 /*************************** Main window creation ****************************/
 #ifdef _MGRM_THREADS
 int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
-        pthread_attr_t* attr,
-        void * (*start_routine)(void *),
-        void * arg)
+        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
 {
     pthread_attr_t new_attr;
     int ret;
@@ -3504,7 +3502,7 @@ int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval)
 
     return pthread_join (th, returnval);
 }
-#endif
+#endif  /* _MGRM_THREADS */
 
 void GUIAPI MainWindowThreadCleanup (HWND hMainWnd)
 {
@@ -3526,7 +3524,7 @@ void GUIAPI MainWindowThreadCleanup (HWND hMainWnd)
 #endif
 
 #ifdef __THREADX__
-    /* to avoid threadx keep pWin's value,which will lead to wrong way */
+    /* to avoid threadx keep pWin's value, which will lead to wrong way */
     memset (pWin, 0xcc, sizeof(MAINWIN));
 #endif
 

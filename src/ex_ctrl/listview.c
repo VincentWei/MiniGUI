@@ -1440,7 +1440,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             {
                 int mouseX = LOSWORD (lParam);
                 int mouseY = HISWORD (lParam);
-                PITEMDATA pi;
+                PITEMDATA pi = NULL;
                 int nCols;
                 PLSTHDR p1;
 
@@ -1511,7 +1511,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
                 RECT rect, rcClient;
                 PLSTHDR p1;
-                PITEMDATA pi;
+                PITEMDATA pi = NULL;
 
                 GetClientRect (hWnd, &rcClient);
 

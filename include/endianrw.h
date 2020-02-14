@@ -69,6 +69,17 @@
 #ifndef _MGUI_ENDIAN_RW_H
 #define _MGUI_ENDIAN_RW_H
 
+/* The macros used to swap values */
+/* Try to use superfast macros on systems that support them */
+#ifdef linux
+#include <endian.h>
+#ifdef __arch__swab16
+#define ArchSwap16  __arch__swab16
+#endif
+#ifdef __arch__swab32
+#define ArchSwap32  __arch__swab32
+#endif
+#endif /* linux */
 
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus
@@ -403,18 +414,6 @@ MG_EXPORT int MGUI_RWgetc (MG_RWops* area);
      * \include endianness.c
      * @{
      */
-
-/* The macros used to swap values */
-/* Try to use superfast macros on systems that support them */
-#ifdef linux
-#include <endian.h>
-#ifdef __arch__swab16
-#define ArchSwap16  __arch__swab16
-#endif
-#ifdef __arch__swab32
-#define ArchSwap32  __arch__swab32
-#endif
-#endif /* linux */
 
 /* Use inline functions for compilers that support them, and static
    functions for those that do not.  Because these functions become

@@ -65,10 +65,6 @@
 #ifndef _MGUI_CONTROL_H
 #define _MGUI_CONTROL_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
 #include "ctrl/ctrlhelper.h"
 
     /**
@@ -165,6 +161,10 @@ extern "C" {
 #ifdef _MGCTRL_ANIMATION
 #include "ctrl/animation.h"
 #endif  /* _MGCTRL_ANIMATION */
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 #ifdef __cplusplus
 }

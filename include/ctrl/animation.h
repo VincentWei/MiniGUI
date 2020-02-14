@@ -62,7 +62,6 @@
 #ifndef EXT_ANIMATION_H
 #define EXT_ANIMATION_H
 
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
