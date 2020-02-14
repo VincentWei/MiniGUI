@@ -116,6 +116,13 @@ typedef struct _CONTROL
     DWORD dwAddData2;       // the second addtional data.
 
     /*
+     * The following members are only implemented for control.
+     */
+    struct _CONTROL* next;      // the next sibling control.
+    struct _CONTROL* prev;      // the prev sibling control.
+    MASKRECT * mask_rects;      // mask rectangles for the control.
+
+    /*
      * Fields for appearance of this control.
      */
     int left, top;          // the position of control in main window's
@@ -176,11 +183,6 @@ typedef struct _CONTROL
     /*
      * The following members are only implemented for control.
      */
-    struct _CONTROL* next;      // the next sibling control.
-    struct _CONTROL* prev;      // the prev sibling control.
-
-    MASKRECT * mask_rects;
-
     /*
      * if a control is has WS_EX_CTRLASMAINWIN,
      * this field is the next control as main window
