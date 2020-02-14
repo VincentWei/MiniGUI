@@ -93,6 +93,7 @@ message_string="no"
 osname="unspecified"
 runtime_mode="procs"
 compositing_schema="no"
+virtual_window="no"
 use_shmopen="no"
 
 incore_res="no"
@@ -835,6 +836,10 @@ if test "x$runtime_mode" == "xprocs"; then
     AC_ARG_ENABLE(compositing,
 [  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=no>],
     compositing_schema=$enableval)
+
+    AC_ARG_ENABLE(virtualwindow,
+[  --enable-virtualwindow   enable virtual window for MiniGUI-Processes runmode <default=no>],
+    virtual_window=$enableval)
 
     AC_ARG_ENABLE(shmopen,
 [  --enable-shmopen         use shm_open <default=no>],
@@ -1717,12 +1722,14 @@ case "$runtime_mode" in
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
         MINIGUI_RUNMODE="sa"
+        virtual_window="no"
     ;;
     ths)
         AC_DEFINE(_MGRM_THREADS, 1,
             [Define if build MiniGUI-Threads])
         CPPFLAGS="$CPPFLAGS -D_REENTRANT"
         MINIGUI_RUNMODE="ths"
+        virtual_window="yes"
     ;;
     *)
         AC_DEFINE(_MGRM_PROCESSES, 1,
@@ -1754,6 +1761,10 @@ if test "x$surface_schema" = "xcompositing"; then
 else
     AC_DEFINE(_MGSCHEMA_SHAREDFB, 1,
             [Define if use legacy schema (shared frame buffer) for the current runmode])
+fi
+
+if test "x$virtual_window" = "xyes"; then
+  AC_DEFINE(_MGHAVE_VIRTUAL_WINDOW, 1, [Define if virtual window enabled])
 fi
 
 if test "x$incore_res" = "xno"; then
@@ -2734,6 +2745,7 @@ AC_MSG_NOTICE([
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
   * Surface schema:     ${surface_schema}
+  * Virtual Window:     ${virtual_window}
   * Use shm_open:       ${use_shmopen}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
