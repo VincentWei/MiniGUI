@@ -257,10 +257,7 @@ ndef __USE_TIMER_THREAD
     return NULL;
 }
 
-/************************** Thread Information  ******************************/
-
-pthread_key_t __mg_threadinfo_key;
-
+/* The following function is moved to src/include/internals.h as inline functions.
 static inline BOOL createThreadInfoKey (void)
 {
     if (pthread_key_create (&__mg_threadinfo_key, NULL))
@@ -273,46 +270,6 @@ static inline void deleteThreadInfoKey (void)
     pthread_key_delete (__mg_threadinfo_key);
 }
 
-MSGQUEUE* mg_InitMsgQueueThisThread (void)
-{
-    MSGQUEUE* pMsgQueue;
-
-    if (!(pMsgQueue = malloc(sizeof(MSGQUEUE))) ) {
-        return NULL;
-    }
-
-    if (!mg_InitMsgQueue(pMsgQueue, 0)) {
-        free (pMsgQueue);
-        return NULL;
-    }
-
-    pthread_setspecific (__mg_threadinfo_key, pMsgQueue);
-    return pMsgQueue;
-}
-
-void mg_FreeMsgQueueThisThread (void)
-{
-    MSGQUEUE* pMsgQueue;
-
-    pMsgQueue = pthread_getspecific (__mg_threadinfo_key);
-#ifdef __VXWORKS__
-    if (pMsgQueue != (void *)0 && pMsgQueue != (void *)-1) {
-#else
-    if (pMsgQueue) {
-#endif
-        mg_DestroyMsgQueue (pMsgQueue);
-        free (pMsgQueue);
-#ifdef __VXWORKS__
-        pthread_setspecific (__mg_threadinfo_key, (void*)-1);
-#else
-        pthread_setspecific (__mg_threadinfo_key, NULL);
-#endif
-    }
-}
-
-/*
-The following function is moved to src/include/internals.h as an inline
-function.
 MSGQUEUE* GetMsgQueueThisThread (void)
 {
     return (MSGQUEUE*) pthread_getspecific (__mg_threadinfo_key);
