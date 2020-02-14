@@ -274,9 +274,6 @@ struct _gvGridDataModal
 };
 typedef struct _gvGridDataModal gvGridDataModal;
 
-gvGridDataModal* GridDataModalArray_new_modal(int row, int col);
-void GridDataModalArray_delete_modal(gvGridDataModal* modal);
-
 typedef struct _gvGridCellDepedence gvGridCellDepedence;
 struct _gvGridCellDepedence
 {
@@ -287,10 +284,6 @@ struct _gvGridCellDepedence
     DWORD dwAddData;
     gvGridCellDepedence* next;
 };
-
-int gvGridCellDep_add_dep(gvGridViewData* view, gvGridCellDepedence* dep);
-int gvGridCellDep_delete_dep(gvGridViewData* view, int id);
-int gvGridCellDep_update_dep(gvGridViewData* view, GRIDCELLS* cells);
 
 struct _gvGridViewData
 {

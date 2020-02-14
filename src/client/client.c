@@ -413,7 +413,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
             /* it is time to check message again. */
             return FALSE;
         }
-        err_sys ("client: select error");
+        __mg_err_sys ("client: select error");
     }
     else if (n == 0) {
         check_live ();
@@ -479,7 +479,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
         if ( (nread = sock_read (conn_fd, &Msg, sizeof (MSG))) < 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
-            err_sys ("client: read error on fd %d", conn_fd);
+            __mg_err_sys ("client: read error on fd %d", conn_fd);
         }
 #else /* use recvmsg */
         struct iovec    iov[1];
@@ -498,13 +498,13 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
         if ((nread = sock_recvmsg (conn_fd, &msg, 0)) < 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
-            err_sys ("client: read error on fd %d", conn_fd);
+            __mg_err_sys ("client: read error on fd %d", conn_fd);
         }
 #endif
         else if (nread == 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
-            err_sys ("client: server closed");
+            __mg_err_sys ("client: server closed");
             close (conn_fd);
         }
         else {           /* process event from server */

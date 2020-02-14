@@ -2432,7 +2432,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         if (sg_old_counter == 0)
             sg_old_counter = __mg_timer_counter;
 
-        mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
+        __mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
         sg_old_counter = __mg_timer_counter;
 
         if (__mg_timer_counter < (blink_counter + 10))
@@ -2506,7 +2506,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
         if (MG_UNLIKELY(sg_old_counter == 0))
             sg_old_counter = __mg_timer_counter;
-        mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
+        __mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
         sg_old_counter = __mg_timer_counter;
 
         if (__mg_timer_counter < (blink_counter + 10))

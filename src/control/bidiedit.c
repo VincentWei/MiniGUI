@@ -163,15 +163,13 @@ static int get_text_achar_index (PBIDISLEDITDATA sled, int text_index)
     return -1;
 }
 
-int get_achar_char_len(PBIDISLEDITDATA sled, int achar_index)
+static inline int get_achar_char_len(PBIDISLEDITDATA sled, int achar_index)
 {
     if (achar_index<0 || achar_index > ACHARSLEN)
         return -1;
 
     return (*(ACHARSMAP + achar_index)).char_len;
 }
-
-
 
 /* Update achar sring and achar map info */
 static void update_achar_info (HWND hWnd, PBIDISLEDITDATA sled)

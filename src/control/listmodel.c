@@ -267,7 +267,7 @@ void mglist_freeze (HWND hWnd, MgList *mglst, BOOL lock)
     }
 }
 
-int mglstSortItems (MgList *mglst, void* pfn, int fn_type)
+static int mglstSortItems (MgList *mglst, void* pfn, int fn_type)
 {
     MgItem *pci, *pci2;
     list_t *me, *me2;

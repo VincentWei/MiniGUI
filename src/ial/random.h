@@ -56,7 +56,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype);
+BOOL ial_InitRandomInput (INPUT* input, const char* mdev, const char* mtype);
 void TermRandomInput (void);
 
 #ifdef __cplusplus

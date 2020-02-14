@@ -375,7 +375,7 @@ static void delete_entry_data(RES_ENTRY* entry)
  727 733 739 743 751 757 761 769 773 787 797 809 811 821 823 827 829 839 853 857
  859 863 877 881 883 887 907 911 919 929 937 941 947 953 967 971 977 983 991 997
 */
-BOOL InitializeResManager(int hash_table_size)
+BOOL mg_InitResManager(int hash_table_size)
 {
     char szpath[MAX_PATH+1];
     char* p = NULL;

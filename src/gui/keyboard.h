@@ -89,51 +89,51 @@ typedef struct kbd_layout_info
     INIT_KBD_LAYOUT init;
 } kbd_layout_info;
 
-void init_default_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_default_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 
 #ifdef _MGKBDLAYOUT_HEBREWPC
-void init_hebrew_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_hebrew_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 
 #ifdef _MGKBDLAYOUT_ARABICPC
-void init_arabic_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_arabic_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 
 #ifdef _MGKBDLAYOUT_FRPC
-void init_frpc_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_frpc_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 
 #ifdef _MGKBDLAYOUT_FR
-void init_fr_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_fr_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 
 #ifdef _MGKBDLAYOUT_DE
-void init_de_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_de_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 
 #ifdef _MGKBDLAYOUT_DELATIN1
-void init_delatin1_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_delatin1_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 
 #ifdef _MGKBDLAYOUT_IT
-void init_it_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_it_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 
 #ifdef _MGKBDLAYOUT_ES
-void init_es_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_es_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 
 #ifdef _MGKBDLAYOUT_ESCP850
-void init_escp850_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_escp850_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                 unsigned int* accent_table_size_p, char*** func_table_p);
 #endif
 

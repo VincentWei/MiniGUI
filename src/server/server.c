@@ -373,7 +373,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
             return FALSE;
         }
 #ifdef _DEBUG
-        err_msg ("select error on server");
+        __mg_err_msg ("select error on server");
 #endif
     }
 
@@ -381,7 +381,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         /* accept new client request */
         if ( (clifd = serv_accept (listenfd, &pid, &uid)) < 0) {
 #ifdef _DEBUG
-            err_msg ("serv_accept error: %d", clifd);
+            __mg_err_msg ("serv_accept error: %d", clifd);
 #endif
             return TRUE;
         }
@@ -399,7 +399,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         if (i > maxi)
             maxi = i;       /* max index in client[] array */
 #ifdef _DEBUG
-        err_msg ("new connection: uid %d, fd %d", uid, clifd);
+        __mg_err_msg ("new connection: uid %d, fd %d", uid, clifd);
 #endif
         return TRUE;
     }
@@ -414,7 +414,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
             if ((nread = sock_read (clifd, &req_id, sizeof (int)))
                             == SOCKERR_IO) {
 #ifdef _DEBUG
-                err_msg ("server: read error on fd %d", clifd);
+                __mg_err_msg ("server: read error on fd %d", clifd);
 #endif
                 if (OnNewDelClient) OnNewDelClient (LCO_DEL_CLIENT, i);
                 __mg_remove_client (i, clifd);

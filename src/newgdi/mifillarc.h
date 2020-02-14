@@ -220,8 +220,7 @@ typedef struct _miArcSlice {
                    ((slw > 1) || (ine != inxk)))
 
 /* extern int miFreeArcCache (void* data, unsigned int id); */
-extern void mg_miFreeArcCache (void);
-extern struct finalSpan *realAllocSpan (void);
+extern void miFreeArcCache (void);
 extern void miFillArcSetup (register miArc* arc, register miFillArcRec* info);
 extern void miFillArcDSetup (register miArc* arc, register miFillArcDRec* info);
 extern void miEllipseAngleToSlope (int angle, int width, int height, int* dxp, int* dyp, double* d_dxp, double* d_dyp);

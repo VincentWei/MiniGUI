@@ -86,11 +86,11 @@ union semun {
 #define MAXLINE             4096        /* max line length */
 
 #ifdef _MGRM_PROCESSES
-void err_dump(const char *, ...);    /* {App misc_source} */
-void err_msg(const char *, ...);
-void err_quit(const char *, ...);
-void err_ret(const char *, ...);
-void err_sys(const char *, ...);
+void __mg_err_dump(const char *, ...);    /* {App misc_source} */
+void __mg_err_msg(const char *, ...);
+void __mg_err_quit(const char *, ...);
+void __mg_err_ret(const char *, ...);
+void __mg_err_sys(const char *, ...);
 #endif
 
 #if 0

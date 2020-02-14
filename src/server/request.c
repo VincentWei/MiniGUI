@@ -762,7 +762,7 @@ static int req_hw_surface (int cli, int clifd, void* buff, size_t len)
 #endif /* IS_SHAREDFB_SCHEMA */
 
 #ifdef _MGHAVE_CLIPBOARD
-extern int clipboard_op (int cli, int clifd, void* buff, size_t len);
+extern int __mg_clipboard_op (int cli, int clifd, void* buff, size_t len);
 #endif
 
 #if IS_COMPOSITING_SCHEMA
@@ -816,7 +816,7 @@ static struct req_request {
     { NULL, 0 },
 #endif
 #ifdef _MGHAVE_CLIPBOARD
-    { clipboard_op, 0 },
+    { __mg_clipboard_op, 0 },
 #else
     { NULL, 0 },
 #endif

@@ -126,7 +126,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     return 0;
 }
 
-BOOL InitDummyInput (INPUT* input, const char* mdev, const char* mtype)
+BOOL ial_InitDummyInput (INPUT* input, const char* mdev, const char* mtype)
 {
     input->update_mouse = mouse_update;
     input->get_mouse_xy = mouse_getxy;

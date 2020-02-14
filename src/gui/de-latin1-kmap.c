@@ -396,7 +396,7 @@ static const unsigned int accent_table_size = 68;
 
 #endif
 
-void init_delatin1_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
+void __mg_init_delatin1_kbd_layout (ushort*** key_maps_p, struct kbdiacr** accent_table_p,
                                 unsigned int* accent_table_size_p, char*** func_table_p)
 {
     *key_maps_p = (ushort**)key_maps;

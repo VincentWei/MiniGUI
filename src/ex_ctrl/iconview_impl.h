@@ -131,21 +131,21 @@ typedef struct _IconviewData
 #define pivscr ((PSCRDATA)pivdata)
 #define hivwnd (pivscr->hSV)
 
-/* ------------------------- external api -------------------------- */
+/* ------------------------- internal funcs -------------------------- */
 
-int     iconview_init               (HWND hWnd, IconviewData* psv);
-void    iconview_destroy            (IconviewData* pivdata);
+static int  iconview_init (HWND hWnd, IconviewData* psv);
+static void iconview_destroy (IconviewData* pivdata);
 
-HITEM   iconview_add_item           (HWND hWnd, IconviewData* pivdata, HITEM hsvi, PIVITEMINFO pii, int *idx);
-HITEM   iconview_add_item_ex        (HWND hWnd, IconviewData* pivdata, HITEM hsvi,
-                                       HITEM nexthsvi, PIVITEMINFO pii, int *idx);
-int     iconview_del_item           (HWND hWnd, IconviewData* pivdata, int nItem, HITEM hsvi);
+static HITEM iconview_add_item (HWND hWnd,
+        IconviewData* pivdata, HITEM hsvi, PIVITEMINFO pii, int *idx);
+static int  iconview_del_item (HWND hWnd,
+        IconviewData* pivdata, int nItem, HITEM hsvi);
 
-void    iconview_reset_content      (HWND hWnd, IconviewData* pivdata);
-int     iconview_is_in_item         (IconviewData* pivdata, int mousex, int mousey, HITEM *phsvi);
-void    iconview_set_ivlist         (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged);
+static void iconview_reset_content (HWND hWnd, IconviewData* pivdata);
+static void iconview_set_ivlist (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged);
 
-int iconview_get_item_pos (IconviewData* pivdata, HITEM hsvi, int *x, int *y);
+static int iconview_get_item_pos (IconviewData* pivdata,
+        HITEM hsvi, int *x, int *y);
 
 static inline void iconview_set_autosort (IconviewData* pivdata)
 {
@@ -207,6 +207,13 @@ static inline HITEM iconview_get_prev_item (IconviewData* pivdata, HITEM hivi)
     return (HITEM)mglist_get_prev_item((MgList *)&pivdata->ivlist, (MgItem *)hivi);
 }
 
+#if 0 /* VW: not used code */
+static HITEM iconview_add_item_ex (HWND hWnd,
+        IconviewData* pivdata, HITEM hsvi,
+        HITEM nexthsvi, PIVITEMINFO pii, int *idx);
+static int  iconview_is_in_item (IconviewData* pivdata,
+        int mousex, int mousey, HITEM *phsvi);
+#endif /* VW: not used code */
 
 #ifdef __cplusplus
 }

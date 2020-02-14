@@ -341,7 +341,7 @@ BOOL mg_InitSystemRes (void)
 #   define _SIZE_RES_HASH_TABLE 71
 #endif
 
-    InitializeResManager(_SIZE_RES_HASH_TABLE);
+    mg_InitResManager(_SIZE_RES_HASH_TABLE);
 
 #undef _SIZE_RES_HASH_TABLE
 

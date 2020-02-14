@@ -457,7 +457,7 @@ int miFreeArcCache (void* data, unsigned int id)
 }
 #endif
 
-void mg_miFreeArcCache (void){
+void miFreeArcCache (void){
     int k;
     arcCacheRec *cent;
 
@@ -2834,11 +2834,13 @@ struct finalSpan {
 
 static struct finalSpan  *freeFinalSpans, *tmpFinalSpan;
 
-# define allocFinalSpan()   (freeFinalSpans ?\
-                                ((tmpFinalSpan = freeFinalSpans), \
-                                 (freeFinalSpans = freeFinalSpans->next), \
-                                 (tmpFinalSpan->next = 0), \
-                                 tmpFinalSpan) : \
+static struct finalSpan *realAllocSpan (void);
+
+# define allocFinalSpan()   (freeFinalSpans ?                               \
+                                ((tmpFinalSpan = freeFinalSpans),           \
+                                 (freeFinalSpans = freeFinalSpans->next),   \
+                                 (tmpFinalSpan->next = 0),                  \
+                                 tmpFinalSpan) :                            \
                              realAllocSpan ())
 
 # define SPAN_CHUNK_SIZE    128
@@ -2850,7 +2852,7 @@ struct finalSpanChunk {
 
 static struct finalSpanChunk* chunks;
 
-struct finalSpan * realAllocSpan (void)
+static struct finalSpan * realAllocSpan (void)
 {
         register struct finalSpanChunk        *newChunk;
         register struct finalSpan        *span;

@@ -56,7 +56,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-BOOL    InitDummyInput (INPUT* input, const char* mdev, const char* mtype);
+BOOL    ial_InitDummyInput (INPUT* input, const char* mdev, const char* mtype);
 void    TermDummyInput (void);
 
 #ifdef __cplusplus

@@ -107,7 +107,7 @@ mObjectClass Class(mObject) = {
     (PClassConstructor)mObjectClassConstructor
 };
 
-mObject * mg_newObject(mObjectClass *_class)
+mObject * mgNewObject(mObjectClass *_class)
 {
     mObject * obj;
 
@@ -123,7 +123,7 @@ mObject * mg_newObject(mObjectClass *_class)
 
 }
 
-mObject * mgNewObject(mObjectClass *_class,DWORD addData){
+mObject * mgNewObjectEx(mObjectClass *_class,DWORD addData){
     mObject * obj = newObject(_class);
     if(!obj)
         return NULL;

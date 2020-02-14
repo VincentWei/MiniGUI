@@ -197,7 +197,7 @@ void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue)
     sem_destroy (&pMsgQueue->sync_msg);
 #endif
 
-    mg_remove_timers_by_msg_queue (pMsgQueue);
+    __mg_remove_timers_by_msg_queue (pMsgQueue);
 
     if (pMsgQueue->msg)
         free (pMsgQueue->msg);

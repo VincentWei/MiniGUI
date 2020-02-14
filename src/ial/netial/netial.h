@@ -54,7 +54,7 @@ extern "C" {
 #endif  /* __cplusplus */
 
 #ifdef _MGIAL_NET
-extern BOOL InitNetInput (INPUT* input, const char* mdev, const char* mtype);
+extern BOOL ial_InitNetInput (INPUT* input, const char* mdev, const char* mtype);
 extern void TermNetInput (void);
 #endif
 

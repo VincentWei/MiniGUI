@@ -1361,7 +1361,7 @@ static void dskAddNewHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
 /*
  * Remove a hosted main window.
  */
-void dskRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
+static void dskRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
 {
     PMAINWIN head, prev;
 
@@ -4305,7 +4305,7 @@ int __kernel_get_window_region (HWND pWin, CLIPRGN* region)
 
         if (!AddClipRect (region, &rc)) {
             nr_mask_rects = -1;
-            goto err_ret;
+            goto __mg_err_ret;
         }
 
         idx = maskrect->next;
@@ -4320,7 +4320,7 @@ int __kernel_get_window_region (HWND pWin, CLIPRGN* region)
             nr_mask_rects = -1;
     }
 
-err_ret:
+__mg_err_ret:
     /* unlock zi for read */
     unlock_zi_for_read (zi);
 
@@ -4453,13 +4453,13 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
         if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
             if (!SubtractClipRect (dst_rgn, &rc)) {
                 nr_mask_rects = -1;
-                goto err_ret;
+                goto __mg_err_ret;
             }
         }
         else {
             if (!AddClipRect (dst_rgn, &rc)) {
                 nr_mask_rects = -1;
-                goto err_ret;
+                goto __mg_err_ret;
             }
         }
 
@@ -4493,7 +4493,7 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
 
                 if (ctxt.status) {
                     nr_mask_rects = -1;
-                    goto err_ret;
+                    goto __mg_err_ret;
                 }
 
                 if (nodes[idx_znode].flags & ZOF_TW_TROUNDCNS) {
@@ -4509,18 +4509,18 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
         if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
             if (!SubtractClipRect (dst_rgn, &rc)) {
                 nr_mask_rects = -1;
-                goto err_ret;
+                goto __mg_err_ret;
             }
         }
         else {
             if (!AddClipRect (dst_rgn, &rc)) {
                 nr_mask_rects = -1;
-                goto err_ret;
+                goto __mg_err_ret;
             }
         }
     }
 
-err_ret:
+__mg_err_ret:
     /* unlock zi for read */
     unlock_zi_for_read (zi);
 
@@ -4576,7 +4576,7 @@ BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
 
             if (ctxt.status) {
                 nr_mask_rects = -1;
-                goto err_ret;
+                goto __mg_err_ret;
             }
 
             rc.top += RADIUS_POPUPMENU_CORNERS;
@@ -4588,17 +4588,17 @@ BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
     if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
         if (!SubtractClipRect (dst_rgn, &rc)) {
             nr_mask_rects = -1;
-            goto err_ret;
+            goto __mg_err_ret;
         }
     }
     else {
         if (!AddClipRect (dst_rgn, &rc)) {
             nr_mask_rects = -1;
-            goto err_ret;
+            goto __mg_err_ret;
         }
     }
 
-err_ret:
+__mg_err_ret:
     /* unlock zi for read */
     unlock_zi_for_read (zi);
 

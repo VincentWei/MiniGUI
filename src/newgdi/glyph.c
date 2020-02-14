@@ -284,7 +284,7 @@ static int  _line_bk_size = 0;
 static BYTE* _scaled_bits = NULL;
 static size_t _scaled_bits_size = 0;
 
-BOOL InitTextBitmapBuffer (void)
+BOOL gdi_InitTextBitmapBuffer (void)
 {
     return TRUE;
 }

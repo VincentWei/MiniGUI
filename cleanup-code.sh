@@ -8,9 +8,12 @@ tab2space() {
     sed -i 's/\s\+$//g' `find . -name '*.h'`
 }
 
+# tab2space
+
 # templates
 # sed -i 's/\<AAA\>/__AAA/g' `grep AAA -rl include/ src/`
 # sed -i 's/\<AAA\>/__mgAAA/g' `grep AAA -rl include/ src/`
+# sed -i 's/\<AAA\>/__gdiAAA/g' `grep AAA -rl include/ src/`
 # sed -i 's/\<AAA\>/__mg_AAA/g' `grep AAA -rl include/ src/`
 # sed -i 's/\<AAA\>/dbg_AAA/g' `grep AAA -rl include/ src/`
 
@@ -49,6 +52,44 @@ tab2space() {
 # sed -i 's/\<sysres_init_inner_resource\>/__sysres_init_inner_resource/g' `grep sysres_init_inner_resource -rl include/ src/`
 # sed -i 's/\<sysres_get_system_res_path\>/__sysres_get_system_res_path/g' `grep sysres_get_system_res_path -rl include/ src/`
 
-tab2space
+# sed -i 's/\<_set_pixel_helper\>/_gdi_set_pixel_helper/g' `grep _set_pixel_helper -rl src/`
+
+# sed -i 's/\<err_dump\>/__mg_err_dump/g' `grep err_dump -rl src/`
+# sed -i 's/\<err_msg\>/__mg_err_msg/g' `grep err_msg -rl src/`
+# sed -i 's/\<err_quit\>/__mg_err_quit/g' `grep err_quit -rl src/`
+# sed -i 's/\<err_ret\>/__mg_err_ret/g' `grep err_ret -rl src/`
+# sed -i 's/\<err_sys\>/__mg_err_sys/g' `grep err_sys -rl src/`
+# sed -i 's/\<mg_dispatch_timer_message\>/__mg_dispatch_timer_message/g' `grep mg_dispatch_timer_message -rl src/`
+# sed -i 's/\<mgDeleteObject\>/mg_DeleteObject/g' `grep mgDeleteObject -rl src/`
+
+# sed -i 's/\<init_arabic_kbd_layout\>/__mg_init_arabic_kbd_layout/g' `grep init_arabic_kbd_layout -rl src/`
+# sed -i 's/\<init_default_kbd_layout\>/__mg_init_default_kbd_layout/g' `grep init_default_kbd_layout -rl src/`
+# sed -i 's/\<init_de_kbd_layout\>/__mg_init_de_kbd_layout/g' `grep init_de_kbd_layout -rl src/`
+# sed -i 's/\<init_delatin1_kbd_layout\>/__mg_init_delatin1_kbd_layout/g' `grep init_delatin1_kbd_layout -rl src/`
+# sed -i 's/\<init_escp850_kbd_layout\>/__mg_init_escp850_kbd_layout/g' `grep init_escp850_kbd_layout -rl src/`
+# sed -i 's/\<init_es_kbd_layout\>/__mg_init_es_kbd_layout/g' `grep init_es_kbd_layout -rl src/`
+# sed -i 's/\<init_fr_kbd_layout\>/__mg_init_fr_kbd_layout/g' `grep init_fr_kbd_layout -rl src/`
+# sed -i 's/\<init_frpc_kbd_layout\>/__mg_init_frpc_kbd_layout/g' `grep init_frpc_kbd_layout -rl src/`
+# sed -i 's/\<init_it_kbd_layout\>/__mg_init_it_kbd_layout/g' `grep init_it_kbd_layout -rl src/`
+# sed -i 's/\<init_hebrew_kbd_layout\>/__mg_init_hebrew_kbd_layout/g' `grep init_hebrew_kbd_layout -rl src/`
+
+# sed -i 's/\<InitAutoInput\>/ial_InitAutoInput/g' `grep InitAutoInput -rl src/`
+# sed -i 's/\<InitDummyInput\>/ial_InitDummyInput/g' `grep InitDummyInput -rl src/`
+# sed -i 's/\<InitLibInput\>/ial_InitLibInput/g' `grep InitLibInput -rl src/`
+# sed -i 's/\<InitNetInput\>/ial_InitNetInput/g' `grep InitNetInput -rl src/`
+# sed -i 's/\<InitPCXVFBInput\>/ial_InitPCXVFBInput/g' `grep InitPCXVFBInput -rl src/`
+# sed -i 's/\<InitRandomInput\>/ial_InitRandomInput/g' `grep InitRandomInput -rl src/`
+
+# sed -i 's/\<InitializeResManager\>/mg_InitResManager/g' `grep InitializeResManager -rl src/`
+# sed -i 's/\<InitTextBitmapBuffer\>/gdi_InitTextBitmapBuffer/g' `grep InitTextBitmapBuffer -rl src/`
+
+# sed -i 's/\<clipboard_op\>/__mg_clipboard_op/g' `grep clipboard_op -rl src/`
+
+# sed -i 's/\<mg_miFreeArcCache\>/miFreeArcCache/g' `grep mg_miFreeArcCache -rl src/`
+# sed -i 's/\<mgNewObject\>/mgNewObjectEx/g' `grep mgNewObject -rl src/`
+# sed -i 's/\<mg_newObject\>/mgNewObject/g' `grep mg_newObject -rl src/`
+# sed -i 's/\<mg_remove_timers_by_msg_queue\>/__mg_remove_timers_by_msg_queue/g' `grep mg_remove_timers_by_msg_queue -rl src/`
+
+sed -i 's/\<mg_DeleteObject\>/mgDeleteObject/g' `grep mg_DeleteObject -rl src/`
 
 exit 0

@@ -3975,7 +3975,7 @@ static void dskOnTimer (void)
     if (sg_old_counter == 0)
         sg_old_counter = SHAREDRES_TIMER_COUNTER;
 
-    mg_dispatch_timer_message (SHAREDRES_TIMER_COUNTER - sg_old_counter);
+    __mg_dispatch_timer_message (SHAREDRES_TIMER_COUNTER - sg_old_counter);
     sg_old_counter = SHAREDRES_TIMER_COUNTER;
 
     if (SHAREDRES_TIMER_COUNTER < (blink_counter + 10))

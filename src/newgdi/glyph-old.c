@@ -15,7 +15,7 @@ static BITMAP char_bmp;
 static void* char_bits;
 static size_t char_bits_size;
 
-BOOL InitTextBitmapBuffer (void)
+BOOL gdi_InitTextBitmapBuffer (void)
 {
     char_bits = NULL;
     char_bmp.bmBits = NULL;

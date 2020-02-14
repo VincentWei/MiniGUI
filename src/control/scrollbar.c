@@ -287,7 +287,7 @@ static int get_mouse_pos(HWND hwnd, PSCROLLBARDATA data, int x, int y)
     return mouse_pos;
 }
 
-int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
+static int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
 {
     int barStart, curPos;
     int thumb_move_range;

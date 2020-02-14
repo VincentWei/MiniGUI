@@ -119,7 +119,7 @@ int _gdi_get_text_extent (PDC pdc, const unsigned char* text, int len,
 int _gdi_get_drawtext_extent (PDC pdc, const unsigned char* text, int len,
                 void* content, SIZE* size);
 
-BOOL InitTextBitmapBuffer (void);
+BOOL gdi_InitTextBitmapBuffer (void);
 void TermTextBitmapBuffer (void);
 
 typedef struct _DRAWTEXTEX2_CTXT

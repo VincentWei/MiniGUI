@@ -89,7 +89,7 @@ scrollwnd_set_container (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
                 pscrdata->nContHeight, TRUE);
 }
 
-int scrollwnd_add_controls (HWND hWnd, PSWDATA pswdata,
+static int scrollwnd_add_controls (HWND hWnd, PSWDATA pswdata,
                              int ctrl_nr, PCTRLDATA pCtrlData)
 {
     int i;
@@ -166,7 +166,7 @@ static int svInitData (HWND hWnd, PSWDATA pswdata)
  * shoulded be called before scrollwnd is used
  * hWnd: the scrolled window
  */
-int scrollwnd_init (HWND hWnd, PSWDATA pswdata)
+static int scrollwnd_init (HWND hWnd, PSWDATA pswdata)
 {
     if (!pswdata)
         return -1;
@@ -188,14 +188,12 @@ int scrollwnd_init (HWND hWnd, PSWDATA pswdata)
 /*
  * destroy a scrollwnd
  */
-void scrollwnd_destroy (PSWDATA pswdata)
+static inline void scrollwnd_destroy (PSWDATA pswdata)
 {
     DestroyWindow (pswdata->hContainer);
 }
 
-/* --------------------------------------------------------------------------------- */
-
-void scrollwnd_reset_content (HWND hWnd, PSWDATA pswdata)
+static void scrollwnd_reset_content (HWND hWnd, PSWDATA pswdata)
 {
     /* delete all container content */
     container_reset_content (pswdata->hContainer, pswdata->pContdata);

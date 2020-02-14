@@ -68,7 +68,7 @@ static void err_doit(int, const char *, va_list);
  * Print a message and return. */
 
 void
-err_ret(const char *fmt, ...)
+__mg_err_ret(const char *fmt, ...)
 {
     va_list ap;
 
@@ -82,7 +82,7 @@ err_ret(const char *fmt, ...)
  * Print a message and terminate. */
 
 void
-err_sys(const char *fmt, ...)
+__mg_err_sys(const char *fmt, ...)
 {
     va_list ap;
 
@@ -96,7 +96,7 @@ err_sys(const char *fmt, ...)
  * Print a message, dump core, and terminate. */
 
 void
-err_dump(const char *fmt, ...)
+__mg_err_dump(const char *fmt, ...)
 {
     va_list ap;
 
@@ -111,7 +111,7 @@ err_dump(const char *fmt, ...)
  * Print a message and return. */
 
 void
-err_msg(const char *fmt, ...)
+__mg_err_msg(const char *fmt, ...)
 {
     va_list ap;
 
@@ -125,7 +125,7 @@ err_msg(const char *fmt, ...)
  * Print a message and terminate. */
 
 void
-err_quit(const char *fmt, ...)
+__mg_err_quit(const char *fmt, ...)
 {
     va_list ap;
 

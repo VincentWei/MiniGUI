@@ -52,10 +52,6 @@
 #ifndef _MGUI_NCSCTRL_OBJECT_H
 #define _MGUI_NCSCTRL_OBJECT_H
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 #ifdef __MINIGUI_LIB__
 #   define ncsInstanceOf _minigui_ncsInstanceOf
 #   define ncsParseConstructParams _minigui_ncsParseConstructParams
@@ -208,8 +204,9 @@ struct _IInterface {
     (piobj)->_vtable->method(INTEFACE_ADJUST(piobj), ##__VA_ARGS__)
 #define _I(piobj)  (piobj)->_vtable
 
-
-
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 typedef struct _mObjectClass mObjectClass;
 typedef struct _mObject mObject;
@@ -356,10 +353,10 @@ static inline int MGGET_ARG_COUNT(va_list va)
 * \return the new pointer of object
 *
 */
-MGNCS_EXPORT mObject * mg_newObject(mObjectClass *_class);
-#define newObject mg_newObject
-MGNCS_EXPORT mObject * mgNewObject(mObjectClass *_class,DWORD addData);
-#define ncsNewObject mgNewObject
+MGNCS_EXPORT mObject * mgNewObject(mObjectClass *_class);
+#define newObject mgNewObject
+MGNCS_EXPORT mObject * mgNewObjectEx(mObjectClass *_class, DWORD addData);
+#define ncsNewObject mgNewObjectEx
 
 
 #define NEWEX(classType, addData)  (classType*)ncsNewObject((mObjectClass*)(void *)(&Class(classType)), addData)
@@ -487,7 +484,6 @@ int ncsParseConstructParams(va_list args, const char* signature, ...);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif
 

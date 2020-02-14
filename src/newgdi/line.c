@@ -110,7 +110,7 @@ void GUIAPI LineTo (HDC hdc, int x, int y)
     pdc->cur_ban = NULL;
     pdc->step = 1;
     if (startx == x && starty == y) {
-        _set_pixel_helper (pdc, x, y);
+        _gdi_set_pixel_helper (pdc, x, y);
         goto ret;
     }
 
@@ -180,7 +180,7 @@ void GUIAPI Rectangle (HDC hdc, int x0, int y0, int x1, int y1)
     pdc->step = 1;
 
     if (x0 == x1 && y0 == y1) {
-        _set_pixel_helper (pdc, x0, y0);
+        _gdi_set_pixel_helper (pdc, x0, y0);
         goto ret;
     }
 
@@ -223,7 +223,7 @@ void GUIAPI FocusRect (HDC hdc, int x0, int y0, int x1, int y1)
     oldrop = SetRasterOperation (hdc, ROP_XOR);
 
     if (x0 == x1 && y0 == y1) {
-        _set_pixel_helper (pdc, x0, y0);
+        _gdi_set_pixel_helper (pdc, x0, y0);
         goto ret;
     }
 
@@ -258,7 +258,7 @@ void GUIAPI DrawHVDotLine (HDC hdc, int x, int y, int w_h, BOOL H_V)
 
     if (w_h == 1) {
         if ((H_V && !(x % 2)) || (!H_V && !(y % 2))) {
-            _set_pixel_helper (pdc, x, y);
+            _gdi_set_pixel_helper (pdc, x, y);
         }
         goto ret;
     }
@@ -287,7 +287,7 @@ ret:
     UNLOCK_GCRINFO (pdc);
 }
 
-void calc_spline (const POINT* points, int npts, POINT* out_pts)
+static void calc_spline (const POINT* points, int npts, POINT* out_pts)
 {
    /* Derivatives of x(t) and y(t). */
    double x, dx, ddx, dddx;

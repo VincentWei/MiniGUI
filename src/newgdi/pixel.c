@@ -68,7 +68,7 @@
 #include "cursor.h"
 
 /*********************** Generl drawing support ******************************/
-void _set_pixel_helper (PDC pdc, int x, int y)
+void _gdi_set_pixel_helper (PDC pdc, int x, int y)
 {
     SetRect (&pdc->rc_output, x - 1, y - 1, x + 1, y + 1);
 
@@ -96,7 +96,7 @@ static void _my_set_pixel (PDC pdc, int x, int y, gal_pixel pixel)
 
     coor_LP2SP (pdc, &x, &y);
     pdc->cur_pixel = pixel;
-    _set_pixel_helper (pdc, x, y);
+    _gdi_set_pixel_helper (pdc, x, y);
 
 no_draw:
     UNLOCK_GCRINFO (pdc);

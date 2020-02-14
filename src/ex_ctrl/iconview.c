@@ -164,18 +164,19 @@ static int isInItem (MgList *mglst, int mouseX, int mouseY,
     return index;
 }
 
-int
-iconview_is_in_item (IconviewData* pivdata,
+#if 0
+int iconview_is_in_item (IconviewData* pivdata,
         int mousex, int mousey, HITEM *phivi)
 {
     return isInItem ((MgList *)&pivdata->ivlist,
             mousex, mousey, (MgItem**)phivi, NULL);
 }
+#endif
 
 /* --------------------------------------------------------------------------------- */
 
-HITEM iconview_add_item (HWND hWnd, IconviewData* pivdata, HITEM prehivi,
-                         PIVITEMINFO pii, int *idx)
+static HITEM iconview_add_item (HWND hWnd, IconviewData* pivdata,
+        HITEM prehivi, PIVITEMINFO pii, int *idx)
 {
     IconviewList* pivlist = &pivdata->ivlist;
     IconviewItem* pci;
@@ -203,9 +204,10 @@ HITEM iconview_add_item (HWND hWnd, IconviewData* pivdata, HITEM prehivi,
     return (HITEM)pci;
 }
 
+#if 0
 //FIXME
-HITEM iconview_add_item_ex (HWND hWnd, IconviewData* pivdata, HITEM prehivi,
-                HITEM nexthivi, PIVITEMINFO pii, int *idx)
+static HITEM iconview_add_item_ex (HWND hWnd, IconviewData* pivdata,
+        HITEM prehivi, HITEM nexthivi, PIVITEMINFO pii, int *idx)
 {
     IconviewList* pivlist = &pivdata->ivlist;
     IconviewItem* pci;
@@ -229,6 +231,7 @@ HITEM iconview_add_item_ex (HWND hWnd, IconviewData* pivdata, HITEM prehivi,
 
     return (HITEM)pci;
 }
+#endif /* not used code */
 
 int iconview_move_item (IconviewData* pivdata, HITEM hivi, HITEM prehivi)
 {
@@ -241,8 +244,8 @@ int iconview_move_item (IconviewData* pivdata, HITEM hivi, HITEM prehivi)
     return 0;
 }
 
-int
-iconview_del_item (HWND hWnd, IconviewData* pivdata, int nItem, HITEM hivi)
+static int iconview_del_item (HWND hWnd, IconviewData* pivdata,
+        int nItem, HITEM hivi)
 {
     IconviewList* pivlist = &pivdata->ivlist;
     IconviewItem* pci;
@@ -317,7 +320,8 @@ iconview_get_item_rect (HWND hWnd, HITEM hivi, RECT *rcItem, BOOL bConv)
     return 0;
 }
 
-int iconview_get_item_pos (IconviewData* pivdata, HITEM hivi, int *x, int *y)
+static int iconview_get_item_pos (IconviewData* pivdata, HITEM hivi,
+        int *x, int *y)
 {
     int index;
     IconviewList *pivlist = &pivdata->ivlist;
@@ -344,7 +348,7 @@ DWORD iconview_get_item_adddata (HITEM hivi)
     return mglist_get_item_adddata (hivi);
 }
 
-void iconview_reset_content (HWND hWnd, IconviewData* pivdata)
+static void iconview_reset_content (HWND hWnd, IconviewData* pivdata)
 {
     /* delete all ivlist content */
     ivlist_reset_content (hivwnd, &pivdata->ivlist);
@@ -416,7 +420,7 @@ static void ivDrawItem (HWND hWnd, GHANDLE hivi, HDC hdc, RECT *rcDraw)
 }
 
 /* adjust the position and size of the ivlist window */
-void iconview_set_ivlist (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
+static void iconview_set_ivlist (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
 {
     IconviewData* pivdata = (IconviewData*) GetWindowAdditionalData2 (hWnd);
 
@@ -478,7 +482,7 @@ static int ivInitData (HWND hWnd, IconviewData* pivdata)
  * hWnd: the scrolled window
  */
 //FIXME, to delete
-int iconview_init (HWND hWnd, IconviewData* pivdata)
+static int iconview_init (HWND hWnd, IconviewData* pivdata)
 {
     if (!pivdata)
         return -1;
@@ -500,12 +504,13 @@ int iconview_init (HWND hWnd, IconviewData* pivdata)
 /*
  * destroy a iconview
  */
-void iconview_destroy (IconviewData* pivdata)
+static void iconview_destroy (IconviewData* pivdata)
 {
     ivlist_reset_content (hivwnd, &pivdata->ivlist);
 }
 
-static LRESULT IconViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT IconViewCtrlProc (HWND hWnd, UINT message,
+        WPARAM wParam, LPARAM lParam)
 {
     IconviewData* pivdata = NULL;
     IconviewList* pivlist = NULL;

@@ -56,7 +56,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-BOOL InitAutoInput (INPUT* input, const char* mdev, const char* mtype);
+BOOL ial_InitAutoInput (INPUT* input, const char* mdev, const char* mtype);
 void TermAutoInput (void);
 
 #ifdef __cplusplus

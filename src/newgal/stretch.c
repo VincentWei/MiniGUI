@@ -142,24 +142,25 @@ static int generate_rowbytes(int src_w, int dst_w, int bpp)
 
 #else
 
-#define DEFINE_COPY_ROW(name, type)            \
-void name(type *src, int src_w, type *dst, int dst_w)    \
-{                            \
-    int i;                        \
-    int pos, inc;                    \
-    type pixel = 0;                    \
-                            \
-    pos = 0x10000;                    \
-    inc = (src_w << 16) / dst_w;            \
-    for ( i=dst_w; i>0; --i ) {            \
-        while ( pos >= 0x10000L ) {        \
-            pixel = *src++;            \
-            pos -= 0x10000L;        \
-        }                    \
-        *dst++ = pixel;                \
-        pos += inc;                \
-    }                        \
+#define DEFINE_COPY_ROW(name, type)                             \
+static void name(type *src, int src_w, type *dst, int dst_w)    \
+{                                                               \
+    int i;                                                      \
+    int pos, inc;                                               \
+    type pixel = 0;                                             \
+                                                                \
+    pos = 0x10000;                                              \
+    inc = (src_w << 16) / dst_w;                                \
+    for ( i=dst_w; i>0; --i ) {                                 \
+        while ( pos >= 0x10000L ) {                             \
+            pixel = *src++;                                     \
+            pos -= 0x10000L;                                    \
+        }                                                       \
+        *dst++ = pixel;                                         \
+        pos += inc;                                             \
+    }                                                           \
 }
+
 DEFINE_COPY_ROW(copy_row1, Uint8)
 DEFINE_COPY_ROW(copy_row2, Uint16)
 DEFINE_COPY_ROW(copy_row4, Uint32)

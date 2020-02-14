@@ -221,7 +221,7 @@ ret:
 void __mg_remove_client (int cli, int clifd)
 {
 #ifdef _DEBUG
-    err_msg ("client closed: uid %d, fd %d", mgClients [cli].uid, clifd);
+    __mg_err_msg ("client closed: uid %d, fd %d", mgClients [cli].uid, clifd);
 #endif
 
     if (OnChangeLayer)

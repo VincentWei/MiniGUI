@@ -58,7 +58,7 @@ BOOL _dc_cliphline (const RECT* cliprc, int* px, int* py, int* pw);
 BOOL _dc_clipvline (const RECT* cliprc, int* px, int* py, int* ph);
 
 void _dc_drawvline (PDC pdc, int h);
-void _set_pixel_helper (PDC pdc, int x, int y);
+void _gdi_set_pixel_helper (PDC pdc, int x, int y);
 
 gal_pixel _dc_get_pixel_cursor (PDC pdc, int x, int y);
 

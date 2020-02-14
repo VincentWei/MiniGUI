@@ -1081,7 +1081,7 @@ static int lvRemoveAllItem (HWND hWnd, PLVDATA plvdata)
     return 0;
 }
 
-void lvDelItem (HWND hWnd, HSVITEM hsvi)
+static void lvDelItem (HWND hWnd, HSVITEM hsvi)
 {
     PITEMDATA pi = LV_GET_ITEM(hsvi);
     PLVDATA plvdata = (PLVDATA)GetWindowAdditionalData2(hWnd);

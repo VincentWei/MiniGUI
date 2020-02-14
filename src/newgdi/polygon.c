@@ -455,7 +455,8 @@ BOOL IsSmall(POLYGON_Int64 *x, POLYGON_Int32 x_off, POLYGON_Int64 *y, POLYGON_In
  *  Polygon helper function: initialises an edge structure for the 2d
  *  rasteriser.
  */
-void _fill_edge_structure (POLYGON_EDGE *edge, const int *i1, const int *i2)
+static void _fill_edge_structure (POLYGON_EDGE *edge,
+        const int *i1, const int *i2)
 {
 #ifdef POLYGON_64_SUPPORT
     POLYGON_Int64 dx64;
@@ -497,7 +498,8 @@ void _fill_edge_structure (POLYGON_EDGE *edge, const int *i1, const int *i2)
 /* _add_edge:
  *  Adds an edge structure to a linked list, returning the new head pointer.
  */
-POLYGON_EDGE *_add_edge (POLYGON_EDGE *list, POLYGON_EDGE *edge, int sort_by_x)
+static POLYGON_EDGE *_add_edge (POLYGON_EDGE *list,
+        POLYGON_EDGE *edge, int sort_by_x)
 {
     POLYGON_EDGE *pos = list;
     POLYGON_EDGE *prev = NULL;
@@ -540,7 +542,7 @@ POLYGON_EDGE *_add_edge (POLYGON_EDGE *list, POLYGON_EDGE *edge, int sort_by_x)
  *  Removes an edge structure from a list, returning the new head pointer.
  */
 
-POLYGON_EDGE *_remove_edge(POLYGON_EDGE *list, POLYGON_EDGE *edge)
+static POLYGON_EDGE *_remove_edge(POLYGON_EDGE *list, POLYGON_EDGE *edge)
 {
     if (edge->next)
         edge->next->prev = edge->prev;

@@ -120,7 +120,7 @@ typedef struct _XVFBShowHideEventData{
 extern int __mg_pcxvfb_server_sockfd;
 extern int __mg_pcxvfb_client_sockfd;
 
-BOOL InitPCXVFBInput (INPUT* input, const char* mdev, const char* mtype);
+BOOL ial_InitPCXVFBInput (INPUT* input, const char* mdev, const char* mtype);
 void TermPCXVFBInput (void);
 
 MG_EXPORT void GUIAPI VFBOpenIME(int bOpen);

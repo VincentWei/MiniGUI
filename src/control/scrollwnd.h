@@ -91,18 +91,6 @@ typedef struct _swdata
 } SWDATA;
 typedef SWDATA *PSWDATA;
 
-int     scrollwnd_init (HWND hWnd, PSWDATA psv);
-void    scrollwnd_destroy (PSWDATA pswdata);
-void    scrollwnd_hscroll (HWND hWnd, PSWDATA pswdata, WPARAM wParam, LPARAM lParam);
-void    scrollwnd_vscroll (HWND hWnd, PSWDATA pswdata, WPARAM wParam, LPARAM lParam);
-void    scrollwnd_reset_content (HWND hWnd, PSWDATA pswdata);
-int     scrollwnd_SetContWidth (HWND hWnd, PSWDATA pswdata, int cont_w);
-void    scrollwnd_set_cont_pos (HWND hWnd, PSWDATA pswdata, int cont_x, int cont_y);
-void    scrollwnd_make_pos_visible (HWND hWnd, PSWDATA pswdata, int pos_x, int pos_y);
-void    scrollwnd_refresh_container (HWND hWnd, PSWDATA pswdata);
-void    scrollwnd_set_scrollval (PSWDATA pswdata, int hval, int vval);
-void    scrollwnd_set_scrollpageval (PSWDATA pswdata, int hval, int vval);
-
 
 static inline int scrollwnd_get_contwidth (PSWDATA pswdata)
 {

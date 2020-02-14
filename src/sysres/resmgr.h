@@ -98,7 +98,7 @@ typedef struct _HASH_TABLE {
 extern "C" {
 #endif  /* __cplusplus */
 
-BOOL InitializeResManager(int hash_table_size);
+BOOL mg_InitResManager(int hash_table_size);
 void TerminateResManager(void);
 
 #ifdef __cplusplus

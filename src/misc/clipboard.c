@@ -163,7 +163,7 @@ int GUIAPI CreateClipBoard (const char* cb_name, size_t size)
 
 #endif
 
-int GUIAPI destroy_clip_board (const char* cb_name)
+static int destroy_clip_board (const char* cb_name)
 {
     int i;
 
@@ -541,7 +541,7 @@ int GUIAPI GetClipBoardByte (const char* cb_name, int index, unsigned char* byte
 #ifdef _MGRM_PROCESSES
 int ServerSendReply (int clifd, const void* reply, int len);
 
-int clipboard_op (int cli, int clifd, void* buff, size_t len)
+int __mg_clipboard_op (int cli, int clifd, void* buff, size_t len)
 {
     REQ_CLIPBOARD* request = (REQ_CLIPBOARD*) buff;
     int ret;

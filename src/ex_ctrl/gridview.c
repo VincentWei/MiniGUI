@@ -69,6 +69,13 @@
 #include "scrolled.h"
 #include "gridview_impl.h"
 
+static gvGridDataModal* GridDataModalArray_new_modal(int row, int col);
+static void GridDataModalArray_delete_modal(gvGridDataModal* modal);
+
+static int gvGridCellDep_add_dep(gvGridViewData* view, gvGridCellDepedence* dep);
+static int gvGridCellDep_delete_dep(gvGridViewData* view, int id);
+static int gvGridCellDep_update_dep(gvGridViewData* view, GRIDCELLS* cells);
+
 static void update_viewport (gvGridViewData *view, int from, int to, int is_row)
 {
     RECT r;
@@ -112,7 +119,7 @@ static BOOL gridview_make_rect_visible(gvGridViewData* view, RECT* rect)
     return TRUE;
 }
 
-void gridview_set_content(HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
+static void gridview_set_content(HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
 {
     gvGridViewData* view = NULL;
     int w, h;
@@ -856,7 +863,7 @@ static int gvGridCellDep_add_dep_to_list(gvGridViewData* view, gvGridCellDepeden
     return new_dep->id;
 }
 
-int gvGridCellDep_add_dep(gvGridViewData* view, gvGridCellDepedence* dep)
+static int gvGridCellDep_add_dep(gvGridViewData* view, gvGridCellDepedence* dep)
 {
     int ret;
     gvGridCellDepedence* head = view->depend_list;
@@ -873,7 +880,7 @@ int gvGridCellDep_add_dep(gvGridViewData* view, gvGridCellDepedence* dep)
     return ret;
 }
 
-int gvGridCellDep_delete_dep(gvGridViewData* view, int id)
+static int gvGridCellDep_delete_dep(gvGridViewData* view, int id)
 {
     int ret = -1;
     gvGridCellDepedence *prev_dep;
@@ -903,7 +910,7 @@ int gvGridCellDep_delete_dep(gvGridViewData* view, int id)
     return ret;
 }
 
-int gvGridCellDep_update_dep(gvGridViewData* view, GRIDCELLS* cells)
+static int gvGridCellDep_update_dep(gvGridViewData* view, GRIDCELLS* cells)
 {
     gvGridCellDepedence* dep = view->depend_list;
     while (dep)
@@ -1578,7 +1585,7 @@ static int GridDataModalArray_delete_col(gvGridViewData* view, int index)
     return 0;
 }
 
-gvGridDataModal* GridDataModalArray_new_modal(int row, int col)
+static gvGridDataModal* GridDataModalArray_new_modal(int row, int col)
 {
     gvGridDataModal* modal;
     GridDataModalArray* array;
@@ -1601,7 +1608,7 @@ gvGridDataModal* GridDataModalArray_new_modal(int row, int col)
     return modal;
 }
 
-void GridDataModalArray_delete_modal(gvGridDataModal* modal)
+static void GridDataModalArray_delete_modal(gvGridDataModal* modal)
 {
     int i;
     GridDataModalArray* array = (GridDataModalArray*)modal->data;

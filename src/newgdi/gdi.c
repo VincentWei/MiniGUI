@@ -326,7 +326,7 @@ void mg_TerminateScreenDC (void)
 #ifndef _MG_MINIMALGDI
 BOOL mg_InitGDI (void)
 {
-    if (!InitTextBitmapBuffer ()) {
+    if (!gdi_InitTextBitmapBuffer ()) {
         _WRN_PRINTF ("Can not initialize text bitmap buffer!\n");
         goto error;
     }

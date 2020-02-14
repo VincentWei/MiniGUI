@@ -72,7 +72,7 @@
 #endif
 
 #if defined(_DEBUG) && defined(_MGRM_PROCESSES)
-#define TIMER_ERR_SYS(text)         err_sys (text)
+#define TIMER_ERR_SYS(text)         __mg_err_sys (text)
 #else
 #define TIMER_ERR_SYS(text)
 #endif
@@ -269,7 +269,7 @@ void mg_TerminateTimer (void)
 }
 
 /************************* Functions run in desktop thread *******************/
-void mg_dispatch_timer_message (DWORD inter)
+void __mg_dispatch_timer_message (DWORD inter)
 {
     int i;
 
@@ -468,7 +468,7 @@ void __mg_remove_timer (TIMER* timer, int slot)
     return;
 }
 
-void mg_remove_timers_by_msg_queue (const MSGQUEUE* msg_que)
+void __mg_remove_timers_by_msg_queue (const MSGQUEUE* msg_que)
 {
     int i;
 

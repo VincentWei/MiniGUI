@@ -89,9 +89,11 @@ extern "C" {
 #endif  /* __cplusplus */
 
 /* polygon helper functions */
-void _fill_edge_structure (POLYGON_EDGE *edge, const int *i1, const int *i2);
-POLYGON_EDGE* _add_edge (POLYGON_EDGE *list, POLYGON_EDGE *edge, int sort_by_x);
-POLYGON_EDGE* _remove_edge (POLYGON_EDGE *list, POLYGON_EDGE *edge);
+static void _fill_edge_structure (POLYGON_EDGE *edge,
+        const int *i1, const int *i2);
+static POLYGON_EDGE* _add_edge (POLYGON_EDGE *list,
+        POLYGON_EDGE *edge, int sort_by_x);
+static POLYGON_EDGE* _remove_edge (POLYGON_EDGE *list, POLYGON_EDGE *edge);
 
 #ifdef __cplusplus
 }

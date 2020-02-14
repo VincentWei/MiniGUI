@@ -85,7 +85,7 @@ void GUIAPI CircleArc (HDC hdc, int sx, int sy, int r, int ang1, int ang2)
     pdc->cur_ban = NULL;
 
     if (r < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 
@@ -119,7 +119,7 @@ void GUIAPI Ellipse (HDC hdc, int sx, int sy, int rx, int ry)
     pdc->cur_ban = NULL;
 
     if (rx < 1 || ry < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 
@@ -150,7 +150,7 @@ void GUIAPI FillEllipse (HDC hdc, int sx, int sy, int rx, int ry)
     pdc->cur_ban = NULL;
 
     if (rx < 1 || ry < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 
@@ -189,7 +189,7 @@ void GUIAPI Circle (HDC hdc, int sx, int sy, int r)
     pdc->cur_ban = NULL;
 
     if (r < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 
@@ -221,7 +221,7 @@ void GUIAPI FillCircle (HDC hdc, int sx, int sy, int r)
     pdc->cur_ban = NULL;
 
     if (r < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 

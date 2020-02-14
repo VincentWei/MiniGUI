@@ -654,8 +654,8 @@ void GUIAPI TerminateGUI (int not_used)
     mg_TerminateGAL ();
 
 #ifdef _MGHAVE_ADV_2DAPI
-    extern void mg_miFreeArcCache (void);
-    mg_miFreeArcCache ();
+    extern void miFreeArcCache (void);
+    miFreeArcCache ();
 #endif
 
     mg_TerminateSliceAllocator();

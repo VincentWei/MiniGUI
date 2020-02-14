@@ -505,33 +505,33 @@ static void handle_scancode_on_keyup (int scancode, key_info* kinfo)
 
 kbd_layout_info __mg_layouts [] =
 {
-    {KBD_LAYOUT_DEFAULT, init_default_kbd_layout},
+    {KBD_LAYOUT_DEFAULT, __mg_init_default_kbd_layout},
 #ifdef _MGKBDLAYOUT_HEBREWPC
-    {KBD_LAYOUT_HEBREW, init_hebrew_kbd_layout},
+    {KBD_LAYOUT_HEBREW, __mg_init_hebrew_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_ARABICPC
-    {KBD_LAYOUT_ARABIC, init_arabic_kbd_layout},
+    {KBD_LAYOUT_ARABIC, __mg_init_arabic_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_FRPC
-    {KBD_LAYOUT_FRPC, init_frpc_kbd_layout},
+    {KBD_LAYOUT_FRPC, __mg_init_frpc_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_FR
-    {KBD_LAYOUT_FR, init_fr_kbd_layout},
+    {KBD_LAYOUT_FR, __mg_init_fr_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_DE
-    {KBD_LAYOUT_DE, init_de_kbd_layout},
+    {KBD_LAYOUT_DE, __mg_init_de_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_DELATIN1
-    {KBD_LAYOUT_DELATIN1, init_delatin1_kbd_layout},
+    {KBD_LAYOUT_DELATIN1, __mg_init_delatin1_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_IT
-    {KBD_LAYOUT_IT, init_it_kbd_layout},
+    {KBD_LAYOUT_IT, __mg_init_it_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_ES
-    {KBD_LAYOUT_ES, init_es_kbd_layout},
+    {KBD_LAYOUT_ES, __mg_init_es_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_ESCP850
-    {KBD_LAYOUT_ESCP850, init_escp850_kbd_layout}
+    {KBD_LAYOUT_ESCP850, __mg_init_escp850_kbd_layout}
 #endif
 
 };

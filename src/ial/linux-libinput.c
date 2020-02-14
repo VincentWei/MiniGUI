@@ -1381,7 +1381,7 @@ static void set_leds (unsigned int leds)
     }
 }
 
-BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
+BOOL ial_InitLibInput (INPUT* input, const char* mdev, const char* mtype)
 {
     if (__mg_linux_tty_enable_vt_switch() == 0) {
         _DBG_PRINTF("IAL>LIBINPUT: vt switch enabled\n");
