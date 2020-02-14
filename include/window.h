@@ -3384,7 +3384,7 @@ BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer,
 
 #endif /* _MGRM_PROCESSES */
 
-#else /* !_MGRM_THREADS */
+#else /* not defined _MGRM_THREADS */
 
 /**
  * \fn LRESULT PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
@@ -3429,7 +3429,7 @@ MG_EXPORT LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, L
  * \sa PostSyncMessage
  */
 MG_EXPORT LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
-#endif
+#endif /* defined _MGRM_THREADS */
 
 /**
  * \fn int SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
@@ -3641,7 +3641,7 @@ MG_EXPORT int GUIAPI ThrowAwayMessages (HWND pMainWnd);
  */
 MG_EXPORT BOOL GUIAPI EmptyMessageQueue (HWND hWnd);
 
-#endif
+#endif /* not defined _MGRM_THREADS */
 
 #ifdef _MGHAVE_MSG_STRING
 
@@ -3680,7 +3680,7 @@ MG_EXPORT const char* GUIAPI Message2Str (UINT message);
 MG_EXPORT void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
                 UINT nMsg, WPARAM wParam, LPARAM lParam);
 
-#endif
+#endif /* defined _MGHAVE_MSG_STRING */
 
     /** @} end of msg_pass_fns */
 
@@ -4400,6 +4400,27 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 #define WE_LFSKIN_TBSLIDER_V            (WE_ATTR_TYPE_RDR | 27)
 #endif
 
+/**
+ * \var typedef int (* WNDPROC)(HWND, int, WPARAM, LPARAM)
+ * \brief Type of the window callback procedure.
+ */
+typedef LRESULT (* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+
+/**
+ * \var typedef void (* NOTIFPROC)(HWND hwnd, LINT id, int nc, DWORD add_data)
+ * \brief Type of the notification callback procedure.
+ *
+ * This is the function type of Notification Callback Procedure.
+ * If you set the Notification Callback Procedure for a control,
+ * when a notification occurred the control will call this callback
+ * procedure.
+ *
+ * \note The type of \a id changed from int to LINT since v3.2.
+ *
+ * \sa SetNotificationCallback
+ */
+typedef void (* NOTIFPROC) (HWND hwnd, LINT id, int nc, DWORD add_data);
+
 /** The window element attributes structure. */
 typedef struct _WINDOW_ELEMENT_ATTR {
     /** The attribute identifier. */
@@ -4980,9 +5001,32 @@ typedef struct _WINDOW_ELEMENT_RENDERER {
 
 /**
  * The window information structure.
+ *
+ * \note The layout of this structure changed since 4.2.0 to
+ *      support virtual window.
  */
 typedef struct _WINDOWINFO
 {
+    unsigned char   _padding1;
+    unsigned char   _padding2;
+    unsigned short  _padding3;
+
+#ifdef _MGRM_THREADS
+    pthread_t       _padding4;
+#endif
+    void*           _padding5;
+
+    /** The window procedure */
+    WNDPROC         WinProc;
+
+    /** The notification callback procedure. */
+    NOTIFPROC       NotifProc;
+
+    /** The first additional data of this window */
+    DWORD           dwAddData;
+    /** The second additional data of this window */
+    DWORD           dwAddData2;
+
     /** The position and size of window.*/
     int left, top;
     int right, bottom;
@@ -4996,8 +5040,9 @@ typedef struct _WINDOWINFO
     /** The extended styles of window.*/
     DWORD dwExStyle;
 
-    /** The foreground pixel value (not used).*/
-    gal_pixel iFgColor;
+    /** The index of znode for this window
+      * (only for a main window and a control as main window. */
+    int idx_znode;
 
     /** The background pixel value of this window. */
     gal_pixel iBkColor;
@@ -5016,7 +5061,7 @@ typedef struct _WINDOWINFO
     PLOGFONT pLogFont;
 
     /** The caption of window.*/
-    char* spCaption;
+    const char* spCaption;
     /** The identifier of window.
       * \note The type changed from int to LINT since v3.2.
       */
@@ -5824,12 +5869,6 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      * \defgroup window_create_fns Window creating/destroying
      * @{
      */
-
-/**
- * \var typedef int (* WNDPROC)(HWND, int, WPARAM, LPARAM)
- * \brief Type of the window callback procedure.
- */
-typedef LRESULT (* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
 
 extern MG_EXPORT HWND __mg_hwnd_desktop;
 
@@ -8656,21 +8695,6 @@ static inline HWND GUIAPI CreateWindowEx (const char* spClassName,
  * \sa CreateWindowEx
  */
 MG_EXPORT BOOL GUIAPI DestroyWindow (HWND hWnd);
-
-/**
- * \var typedef void (* NOTIFPROC)(HWND hwnd, LINT id, int nc, DWORD add_data)
- * \brief Type of the notification callback procedure.
- *
- * This is the function type of Notification Callback Procedure.
- * If you set the Notification Callback Procedure for a control,
- * when a notification occurred the control will call this callback
- * procedure.
- *
- * \note The type of \a id changed from int to LINT since v3.2.
- *
- * \sa SetNotificationCallback
- */
-typedef void (* NOTIFPROC) (HWND hwnd, LINT id, int nc, DWORD add_data);
 
 /**
  * \fn NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd, \

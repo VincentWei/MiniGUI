@@ -69,8 +69,8 @@ typedef struct _CTRLCLASSINFO
 #ifdef _MGSCHEMA_COMPOSITING
     DWORD     dwBkColor;        // control background color.
 #else
-    gal_pixel iFgColor;         // control foreground color.
-    gal_pixel iBkColor;         // control background color.
+    // gal_pixel iFgColor;      // control foreground color; removed since 4.2.0.
+    gal_pixel iBkColor;         // control background color (pixel value)
 #endif
 
     LRESULT (*ControlProc)(HWND, UINT, WPARAM, LPARAM);
@@ -81,13 +81,42 @@ typedef struct _CTRLCLASSINFO
     int nUseCount;              // use count.
     struct _CTRLCLASSINFO*  next;
                                 // next class info
-}CTRLCLASSINFO;
+} CTRLCLASSINFO;
 typedef CTRLCLASSINFO* PCTRLCLASSINFO;
 
-typedef struct tagCONTROL
+typedef struct _CONTROL
 {
     /*
-     * These fields are similiar with MAINWIN struct.
+     * These following fields are similiar with MAINWIN struct.
+     */
+
+    /*
+     * Fields for data type
+     * VM[2020-02-14]: Move these fields back to header.
+     * VM[2018-01-18]: Move these fields from header to here to compatible with
+     *      WINDOWINFO
+     */
+    unsigned char DataType; // the data type
+    unsigned char WinType;  // the window type
+    unsigned short Flags;   // speical runtime flags, such EraseBkGnd flags
+
+    /*
+     * Common fields for both control, virtual window, and main window.
+     * VM[2020-02-14]: Move these fields to here to support virtual window.
+     */
+#ifdef _MGRM_THREADS
+    pthread_t _padding;     // no use, only for padding.
+#endif
+    PCTRLCLASSINFO pcci;    // pointer to Control Class Info struct.
+
+    WNDPROC ControlProc;    // the window procedure of this control.
+    NOTIFPROC notif_proc;   // the notification callback procedure.
+
+    DWORD dwAddData;        // the additional data.
+    DWORD dwAddData2;       // the second addtional data.
+
+    /*
+     * Fields for appearance of this control.
      */
     int left, top;          // the position of control in main window's
     int right, bottom;      // client area.
@@ -98,8 +127,10 @@ typedef struct tagCONTROL
     DWORD dwStyle;          // the styles of child window.
     DWORD dwExStyle;        // the extended styles of child window.
 
-    gal_pixel iFgColor;     // control foreground color.
-    gal_pixel iBkColor;        // control background color.
+    int idx_znode;          // the z-node; only works for control as main window.
+    //gal_pixel iFgColor;   // control foreground color (pixel value).
+    gal_pixel iBkColor;     // control background color (pixel value)
+
     HMENU hMenu;            // handle of menu.
     HACCEL hAccel;          // handle of accelerator table.
     HCURSOR hCursor;        // handle of cursor.
@@ -113,70 +144,46 @@ typedef struct tagCONTROL
     LFSCROLLBARINFO vscroll;   // the vertical scroll bar information.
     LFSCROLLBARINFO hscroll;   // the horizital scroll bar information.
 
-    /** the window renderer */
-    WINDOW_ELEMENT_RENDERER* we_rdr;
+    /*
+     * Fields for window element data.
+     */
+    WINDOW_ELEMENT_RENDERER* we_rdr;    // the window renderer
+    struct _wnd_element_data* wed;      // the data of window elements
 
     HDC   privCDC;          // the private client DC.
     INVRGN InvRgn;          // the invalid region of this control.
 #ifdef _MGSCHEMA_COMPOSITING
-    struct GAL_Surface* surf;  // the shared surface of this main window.
+    struct GAL_Surface* surf;  // the shared surface of the main window.
 #else
     PGCRINFO pGCRInfo;      // pointer to global clip region info struct.
 #endif
 
-    // the Z order node,
-    // only for control with WS_EX_CTRLASMAINWIN.
-    int idx_znode;
-
     PCARETINFO pCaretInfo;  // pointer to system caret info struct.
 
-    DWORD dwAddData;        // the additional data.
-    DWORD dwAddData2;       // the second addtional data.
-
-    LRESULT (*ControlProc) (HWND, UINT, WPARAM, LPARAM);
-
-    PMAINWIN pMainWin;       // the main window that contains this control.
-
-    struct tagCONTROL* pParent;// the parent of this control.
-
     /*
-     * Child windows.
+     * Fields to manage the relationship among main windows and controls.
      */
-    struct tagCONTROL* children;
-                             // the first child control.
-    struct tagCONTROL* active;
-                             // the active child control.
-    struct tagCONTROL* old_under_pointer;
-                             // the old under pointer child control.
-    struct tagCONTROL* primitive;
-                             // the primitive child of mouse event.
+    PMAINWIN pMainWin;      // the main window that contains this control.
 
-    NOTIFPROC notif_proc;    // the notification callback procedure.
+    struct _CONTROL* pParent;   // the parent of this control.
 
-    /*
-     * window element data.
-     */
-    struct _wnd_element_data* wed;
 
-    /*
-     * some internal fields
-     * VM[2018-01-18]: Move these fields from header to here to compatible with WINDOWINFO
-     */
-    unsigned char DataType;         // the data type
-    unsigned char WinType;          // the window type
-    unsigned short Flags;           // speical runtime flags, such EraseBkGnd flags
+    struct _CONTROL* children;            // the first child control.
+    struct _CONTROL* active;              // the active child control.
+    struct _CONTROL* old_under_pointer;   // the old child under pointer.
+    struct _CONTROL* primitive;           // the primitive child of mouse event.
 
     /*
      * The following members are only implemented for control.
      */
-    struct tagCONTROL* next;   // the next sibling control.
-    struct tagCONTROL* prev;   // the prev sibling control.
+    struct _CONTROL* next;      // the next sibling control.
+    struct _CONTROL* prev;      // the prev sibling control.
 
-    PCTRLCLASSINFO pcci;     // pointer to Control Class Info struct.
     MASKRECT * mask_rects;
 
-    //if a control is has WS_EX_CTRLASMAINWIN, this proc is the next control as main window
     /*
+     * if a control is has WS_EX_CTRLASMAINWIN,
+     * this field is the next control as main window
      * MainWindow->hFirstChildAsMainWin --->
      *   control1->next_ctrl_as_main ---->
      *   control2->next_ctrl_as_main ---->
@@ -199,9 +206,8 @@ typedef struct tagCONTROL
      * ITSELF FROM PARENT'S hFirstChildAsMainWin'S LIST
      *
      */
-    struct tagCONTROL* next_ctrl_as_main;
-
-}CONTROL;
+    struct _CONTROL* next_ctrl_as_main;
+} CONTROL;
 typedef CONTROL* PCONTROL;
 
 /* Function definitions */

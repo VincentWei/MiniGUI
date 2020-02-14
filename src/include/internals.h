@@ -77,6 +77,7 @@
     #define TYPE_MAINWIN    0x11
     #define TYPE_CONTROL    0x12
     #define TYPE_ROOTWIN    0x13
+    #define TYPE_VIRTWIN    0x14
 #define TYPE_HMENU          0x02
     #define TYPE_MENUBAR    0x21
     #define TYPE_PPPMENU    0x22
@@ -243,8 +244,7 @@ static inline void SetDskIdleHandler (IDLEHANDLER idle_handler)
 {
     __mg_dsk_msg_queue->OnIdle = idle_handler;
 }
-
-#endif
+#endif /* not defined _MGRM_THREADS */
 
 #ifdef _MGRM_THREADS
 
@@ -263,7 +263,7 @@ static inline void SetDskIdleHandler (IDLEHANDLER idle_handler)
     } \
   } while(0)
 
-#else
+#else /* defined _MGRM_THREADS */
 
   #define MG_MUTEX_INIT(lock)
   #define MG_MUTEX_DESTROY(lock)
@@ -272,7 +272,7 @@ static inline void SetDskIdleHandler (IDLEHANDLER idle_handler)
 
   #define POST_MSGQ(pMsgQueue)
 
-#endif
+#endif /* not defined _MGRM_THREADS */
 
 #define LOCK_MSGQ(pMsgQueue)     MG_MUTEX_LOCK(&(pMsgQueue)->lock)
 #define UNLOCK_MSGQ(pMsgQueue)   MG_MUTEX_UNLOCK(&(pMsgQueue)->lock)
@@ -281,11 +281,63 @@ struct _wnd_element_data;
 
 #define WF_ERASEBKGND    0x01 //flags to erase bkground or not
 
-// this struct is an internal struct
+typedef struct _VIRTWIN
+{
+    /*
+     * Fields for data type
+     */
+    unsigned char DataType; // the data type.
+    unsigned char WinType;  // the window type, always be TYPE_VIRTWIN.
+    unsigned short _padding; // no use, just a padding.
+
+    /*
+     * Fields for both virtual window and main window.
+     */
+#ifdef _MGRM_THREADS
+    pthread_t th;           // the thread which creates this virtual window.
+#endif
+    PMSGQUEUE pMessages;    // the message queue.
+
+    LRESULT (*VirtualWindowProc)(HWND, UINT, WPARAM, LPARAM);
+                            // the address of the virtual window procedure.
+    DWORD dwAddData;        // the additional data.
+    DWORD dwAddData2;       // the second addtional data.
+} VIRTWIN;
+
+// the structure represents a real main window.
 typedef struct _MAINWIN
 {
     /*
-     * These fields are similiar with CONTROL struct.
+     * These following fields are similiar with CONTROL struct.
+     */
+
+    /*
+     * Fields for data type
+     * VM[2020-02-14]: Move these fields back to support virtual main window.
+     * VM[2018-01-18]: Move these fields from header to here to compatible with
+     *      WINDOWINFO
+     */
+    unsigned char DataType; // the data type.
+    unsigned char WinType;  // the window type.
+    unsigned short Flags;   // special runtime flags, such EraseBkGnd flags
+
+    /*
+     * Common fields for both control, virtual window, and main window.
+     * VM[2020-02-14]: Move these fields to header to support virtual window.
+     */
+#ifdef _MGRM_THREADS
+    pthread_t th;           // the thread which creates this main window.
+#endif
+    PMSGQUEUE pMessages;    // the message queue.
+
+    WNDPROC MainWindowProc; // the window procedure of this main window.
+    NOTIFPROC NotifProc;    // the notification callback procedure.
+
+    DWORD dwAddData;        // the additional data.
+    DWORD dwAddData2;       // the second addtional data.
+
+    /*
+     * Fields for appearance of this main window.
      */
     int left, top;      // the position and size of main window.
     int right, bottom;
@@ -296,8 +348,10 @@ typedef struct _MAINWIN
     DWORD dwStyle;      // the styles of main window.
     DWORD dwExStyle;    // the extended styles of main window.
 
-    gal_pixel iFgColor; // the foreground color.
+    int idx_znode;      // the index of the z-node.
+    //gal_pixel iFgColor; // the foreground color.
     gal_pixel iBkColor; // the background color.
+
     HMENU hMenu;        // handle of menu.
     HACCEL hAccel;      // handle of accelerator table.
     HCURSOR hCursor;    // handle of cursor.
@@ -308,86 +362,50 @@ typedef struct _MAINWIN
     char* spCaption;    // the caption of main window.
     LINT   id;          // the identifier of main window.
 
-    LFSCROLLBARINFO vscroll;
-                        // the vertical scroll bar information.
-    LFSCROLLBARINFO hscroll;
-                        // the horizital scroll bar information.
+    LFSCROLLBARINFO vscroll; // the vertical scroll bar information.
+    LFSCROLLBARINFO hscroll; // the horizital scroll bar information.
 
-    /** the window renderer */
-    WINDOW_ELEMENT_RENDERER* we_rdr;
+    /*
+     * Fields for window element data.
+     */
+    WINDOW_ELEMENT_RENDERER* we_rdr;    // the window renderer
+    struct _wnd_element_data* wed;      // the data of window elements
 
     HDC   privCDC;      // the private client DC.
     INVRGN InvRgn;      // the invalid region of this main window.
 #ifdef _MGSCHEMA_COMPOSITING
     struct GAL_Surface* surf;  // the shared surface of this main window.
 #else
-    PGCRINFO pGCRInfo;  // pointer to global clip region info struct.
+    PGCRINFO pGCRInfo;      // pointer to global clip region info struct.
 #endif
 
-    // the Z order node.
-    int idx_znode;
-
-    PCARETINFO pCaretInfo;
-                        // pointer to system caret info struct.
-
-    DWORD dwAddData;    // the additional data.
-    DWORD dwAddData2;   // the second addtional data.
-
-    LRESULT (*MainWindowProc)(HWND, UINT, WPARAM, LPARAM);
-                           // the address of main window procedure.
-
-    struct _MAINWIN* pMainWin;
-                        // the main window that contains this window.
-                        // for main window, always be itself.
-
-    HWND hParent;       // the parent of this window.
-                        // for main window, always be HWND_DESKTOP.
+    PCARETINFO pCaretInfo;  // pointer to system caret info struct.
 
     /*
-     * Child windows.
+     * Fields to manage the relationship among main windows and controls.
      */
-    HWND hFirstChild;    // the handle of first child window.
-    HWND hActiveChild;  // the currently active child window.
+    struct _MAINWIN* pMainWin;  // the main window that contains this window.
+                                // for main window, always be itself.
+    HWND hParent;           // the parent of this window.
+                            // for main window, always be HWND_DESKTOP.
+
+    HWND hFirstChild;       // the handle of first child window.
+    HWND hActiveChild;      // the currently active child window.
     HWND hOldUnderPointer;  // the old child window under pointer.
-    HWND hPrimitive;    // the premitive child of mouse event.
-
-    NOTIFPROC NotifProc;    // the notification callback procedure.
-
-    /*
-     * window element data.
-     */
-    struct _wnd_element_data* wed;
-
-    /*
-     * some internal fields
-     * VM[2018-01-18]: Move these fields from header to here to compatible with WINDOWINFO
-     */
-    unsigned char DataType;     // the data type.
-    unsigned char WinType;      // the window type.
-    unsigned short Flags;       // special runtime flags, such EraseBkGnd flags
+    HWND hPrimitive;        // the premitive child of mouse event.
 
     /*
      * The following members are only implemented for main window.
-     * Main Window hosting.
      */
-    struct _MAINWIN* pHosting;
-                        // the hosting main window.
-    struct _MAINWIN* pFirstHosted;
-                        // the first hosted main window.
-    struct _MAINWIN* pNextHosted;
-                        // the next hosted main window.
-
-    PMSGQUEUE pMessages;
-                        // the message queue.
+    struct _MAINWIN* pHosting;      // the hosting main window.
+    struct _MAINWIN* pFirstHosted;  // the first hosted main window.
+    struct _MAINWIN* pNextHosted;   // the next hosted main window.
 
 #ifndef _MGSCHEMA_COMPOSITING
     GCRINFO GCRInfo;    // the global clip region info struct.
                         // put here to avoid invoking malloc function.
 #endif
 
-#ifdef _MGRM_THREADS
-    pthread_t th;        // the thread which creates this main window.
-#endif
     //the controls as main
     HWND hFirstChildAsMainWin;
 
