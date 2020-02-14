@@ -58,7 +58,8 @@
 /******************* Internal data *******************************************/
 
 /* Internal window message. */
-#if (defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)) && defined(_MGRM_THREADS)
+#if (defined(_MG_ENABLE_SCREENSAVER) || \
+        defined(_MG_ENABLE_WATERMARK)) && defined(_MGRM_THREADS)
 #define MSG_CANCELSCREENSAVER   0x0201
 #endif
 
@@ -181,21 +182,22 @@ struct _MSGQUEUE
     PSYNCMSG pFirstSyncMsg;     // head of the sync message queue
     PSYNCMSG pLastSyncMsg;      // tail of the sync message queue
 #else
-    IDLEHANDLER OnIdle;         // Idle handler
+    IDLEHANDLER OnIdle;         // idle handler
 #endif
 
 #ifdef _MGRM_THREADS
-    PMAINWIN pRootMainWin;      // The root main window of this message queue.
+    PMAINWIN pRootMainWin;      // the root main window of this message queue.
+    int nrWindows;              // the number of main/virtual windows.
 #endif
 
-    MSG* msg;                   /* post message buffer */
-    int len;                    /* buffer len */
-    int readpos, writepos;      /* positions for reading and writing */
+    MSG* msg;                   // post message buffer
+    int len;                    // buffer length
+    int readpos, writepos;      // positions for reading and writing
 
-    int FirstTimerSlot;         /* the first timer slot to be checked */
-    DWORD TimerMask;            /* timer slots mask */
+    int loop_depth;             // message loop depth, for dialog boxes
 
-    int loop_depth;             /* message loop depth, for dialog boxes. */
+    int FirstTimerSlot;         // the first timer slot to be checked
+    DWORD TimerMask;            // timer slots mask
 };
 
 #ifdef __cplusplus
@@ -288,7 +290,7 @@ typedef struct _VIRTWIN
      */
     unsigned char DataType; // the data type.
     unsigned char WinType;  // the window type, always be TYPE_VIRTWIN.
-    unsigned short _padding; // no use, just a padding.
+    unsigned short Flags;   // some flags for this viritual window.
 
     /*
      * Fields for both virtual window and main window.
@@ -298,10 +300,14 @@ typedef struct _VIRTWIN
 #endif
     PMSGQUEUE pMessages;    // the message queue.
 
-    LRESULT (*VirtualWindowProc)(HWND, UINT, WPARAM, LPARAM);
-                            // the address of the virtual window procedure.
+    WNDPROC   WndProc;      // the address of the virtual window procedure.
+
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.
+
+    struct _VIRTWIN* pHosting;      // the hosting virtual window.
+    struct _VIRTWIN* pFirstHosted;  // the first hosted virtual window.
+    struct _VIRTWIN* pNextHosted;   // the next hosted virtual window.
 } VIRTWIN;
 
 // the structure represents a real main window.
@@ -322,7 +328,7 @@ typedef struct _MAINWIN
     unsigned short Flags;   // special runtime flags, such EraseBkGnd flags
 
     /*
-     * Common fields for both control, virtual window, and main window.
+     * Common fields for control, virtual window, and main window.
      * VM[2020-02-14]: Move these fields to header to support virtual window.
      */
 #ifdef _MGRM_THREADS
@@ -335,6 +341,13 @@ typedef struct _MAINWIN
 
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.
+
+    /*
+     * The following members are implemented for main window and virtual window.
+     */
+    struct _MAINWIN* pHosting;      // the hosting main window.
+    struct _MAINWIN* pFirstHosted;  // the first hosted main window.
+    struct _MAINWIN* pNextHosted;   // the next hosted main window.
 
     /*
      * Fields for appearance of this main window.
@@ -397,10 +410,6 @@ typedef struct _MAINWIN
     /*
      * The following members are only implemented for main window.
      */
-    struct _MAINWIN* pHosting;      // the hosting main window.
-    struct _MAINWIN* pFirstHosted;  // the first hosted main window.
-    struct _MAINWIN* pNextHosted;   // the next hosted main window.
-
 #ifndef _MGSCHEMA_COMPOSITING
     GCRINFO GCRInfo;    // the global clip region info struct.
                         // put here to avoid invoking malloc function.
@@ -509,41 +518,44 @@ extern LRESULT SendSyncMessage (HWND hWnd,
 extern unsigned int __mg_csrimgsize;
 extern unsigned int __mg_csrimgpitch;
 #   endif
-#else
+#else /* not defined _MGRM_THREADS */
 extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
 extern pthread_t __mg_desktop, __mg_parsor, __mg_timer;
-#endif
-
+#endif /* defined _MGRM_THREADS */
 
 /* hWnd is a window, including HWND_DESKTOP */
-#define MG_IS_WINDOW(hWnd)              \
-            (hWnd &&                    \
-             hWnd != HWND_INVALID &&    \
-             ((PMAINWIN)hWnd)->DataType == TYPE_HWND)
+#define MG_IS_WINDOW(hWnd)                                  \
+        (hWnd && hWnd != HWND_INVALID &&                    \
+         ((PMAINWIN)hWnd)->DataType == TYPE_HWND)
 
-/* hWnd is a normal window, not including HWND_DESKTOP */
-#define MG_IS_NORMAL_WINDOW(hWnd)       \
+/* hWnd a normal window, not including HWND_DESKTOP */
+#define MG_IS_NORMAL_WINDOW(hWnd)                           \
         (hWnd != HWND_DESKTOP && MG_IS_WINDOW(hWnd))
 
-/* hWnd is a main window */
-#define MG_IS_MAIN_WINDOW(hWnd)         \
-        (MG_IS_WINDOW(hWnd) && ((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN)
+/* Whether hWnd is a main window */
+#define MG_IS_MAIN_WINDOW(hWnd)                             \
+        (MG_IS_WINDOW(hWnd) &&                              \
+         ((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN)
 
-#define MG_IS_NORMAL_MAIN_WINDOW(hWnd)  \
+/* Whether hWnd is a virtual window */
+#define MG_IS_VIRTUAL_WINDOW(hWnd)                          \
+        (MG_IS_WINDOW(hWnd) &&                              \
+         ((PMAINWIN)hWnd)->WinType == TYPE_VIRTWIN)
+
+#define MG_IS_NORMAL_MAIN_WINDOW(hWnd)                      \
         (hWnd != HWND_DESKTOP && MG_IS_MAIN_WINDOW(hWnd))
 
-#define MG_IS_DESTROYED_WINDOW(hWnd)    \
-        (hWnd &&                        \
-         (hWnd != HWND_INVALID) &&      \
-        (((PMAINWIN)hWnd)->DataType == TYPE_WINTODEL))
+#define MG_IS_DESTROYED_WINDOW(hWnd)                        \
+        (hWnd && (hWnd != HWND_INVALID) &&                  \
+         (((PMAINWIN)hWnd)->DataType == TYPE_WINTODEL))
 
 #define MG_GET_WINDOW_PTR(hWnd)   ((PMAINWIN)hWnd)
 #define MG_GET_CONTROL_PTR(hWnd)  ((PCONTROL)hWnd)
 
-#define MG_CHECK_RET(condition, ret) \
+#define MG_CHECK_RET(condition, ret)                        \
             if (!(condition)) return ret
 
-#define MG_CHECK(condition) \
+#define MG_CHECK(condition)                                 \
             if (!(condition)) return
 
 /* get main window pointer of a window, including desktop window */
@@ -557,7 +569,6 @@ static inline PMAINWIN getMainWindowPtr (HWND hWnd)
     return pWin->pMainWin;
 }
 
-/* -------------------------------------------------------------------------- */
 #ifdef _MGRM_THREADS
 
 /* Be careful: does not check validity of hWnd */
@@ -578,47 +589,57 @@ MSGQUEUE* mg_InitMsgQueueThisThread (void);
 void mg_FreeMsgQueueThisThread (void);
 
 extern pthread_key_t __mg_threadinfo_key;
+
+static inline BOOL createThreadInfoKey (void)
+{
+    if (pthread_key_create (&__mg_threadinfo_key, NULL))
+        return FALSE;
+    return TRUE;
+}
+
+static inline void deleteThreadInfoKey (void)
+{
+    pthread_key_delete (__mg_threadinfo_key);
+}
+
 static inline MSGQUEUE* GetMsgQueueThisThread (void)
 {
     MSGQUEUE* pMsgQueue;
 
-    pMsgQueue = (MSGQUEUE*) pthread_getspecific (__mg_threadinfo_key);
+    pMsgQueue = (MSGQUEUE*)pthread_getspecific (__mg_threadinfo_key);
 #ifdef __VXWORKS__
     if (pMsgQueue == (void *)-1) {
         return NULL;
     }
 #endif
+
     return pMsgQueue;
 }
 
-#endif
+#endif  /* defined _MGRM_THREADS */
 
 #ifndef _MGRM_THREADS
-static inline void
-SetDesktopTimerFlag (void)
+static inline void SetDesktopTimerFlag (void)
 {
     __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
 }
-#else
-static inline void
-AlertDesktopTimerEvent (void)
+#else   /* not defined _MGRM_THREADS */
+static inline void AlertDesktopTimerEvent (void)
 {
     if (__mg_dsk_msg_queue) {
         __mg_dsk_msg_queue->TimerMask = 1;
-        POST_MSGQ(__mg_dsk_msg_queue);
+        POST_MSGQ (__mg_dsk_msg_queue);
     }
 }
-#endif
+#endif /* defined _MGRM_THREADS */
 
-static inline void
-SetMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
+static inline void SetMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
     pMsgQueue->TimerMask |= (0x01 << slot);
     POST_MSGQ (pMsgQueue);
 }
 
-static inline void
-RemoveMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
+static inline void RemoveMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
     pMsgQueue->TimerMask &= ~(0x01 << slot);
 }
