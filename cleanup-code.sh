@@ -90,6 +90,12 @@ tab2space() {
 # sed -i 's/\<mg_newObject\>/mgNewObject/g' `grep mg_newObject -rl src/`
 # sed -i 's/\<mg_remove_timers_by_msg_queue\>/__mg_remove_timers_by_msg_queue/g' `grep mg_remove_timers_by_msg_queue -rl src/`
 
-sed -i 's/\<mg_DeleteObject\>/mgDeleteObject/g' `grep mg_DeleteObject -rl src/`
+# sed -i 's/\<mg_DeleteObject\>/mgDeleteObject/g' `grep mg_DeleteObject -rl src/`
+
+# sed -i 's/\<GetMsgQueueThisThread\>/getMsgQueueThisThread/g' `grep GetMsgQueueThisThread -rl src/`
+
+# sed -i 's/\<pMessages\>/pMsgQueue/g' `grep pMessages -rl src/`
+
+sed -i 's/\<mg_InitMsgQueueThisThread\>/mg_AllocMsgQueueThisThread/g' `grep mg_InitMsgQueueThisThread -rl include/ src/`
 
 exit 0

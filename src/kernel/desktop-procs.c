@@ -217,7 +217,7 @@ static void init_desktop_win (void)
 
     pDesktopWin = &desktop_win;
 
-    pDesktopWin->pMessages         = __mg_dsk_msg_queue;
+    pDesktopWin->pMsgQueue         = __mg_dsk_msg_queue;
     pDesktopWin->MainWindowProc    = DesktopWinProc;
 
     pDesktopWin->DataType          = TYPE_HWND;

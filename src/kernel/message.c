@@ -145,15 +145,15 @@ inline static void FreeQMSG (PQMSG pqmsg)
 /****************************** Message Queue Management ************************/
 pthread_key_t __mg_threadinfo_key;
 
-MSGQUEUE* mg_InitMsgQueueThisThread (void)
+MSGQUEUE* mg_AllocMsgQueueThisThread (void)
 {
     MSGQUEUE* pMsgQueue;
 
-    if (!(pMsgQueue = malloc(sizeof(MSGQUEUE)))) {
+    if (!(pMsgQueue = malloc (sizeof(MSGQUEUE)))) {
         return NULL;
     }
 
-    if (!mg_InitMsgQueue(pMsgQueue, 0)) {
+    if (!mg_InitMsgQueue (pMsgQueue, 0)) {
         free (pMsgQueue);
         return NULL;
     }
@@ -253,7 +253,7 @@ PMSGQUEUE kernel_GetMsgQueue (HWND hWnd)
     pWin = getMainWindowPtr(hWnd);
 
     if (pWin)
-        return pWin->pMessages;
+        return pWin->pMsgQueue;
     return NULL;
 }
 
@@ -1079,7 +1079,7 @@ int GUIAPI PostQuitMessage (HWND hWnd)
     if (hWnd && hWnd != HWND_INVALID) {
         PMAINWIN pWin = (PMAINWIN)hWnd;
         if (pWin->DataType == TYPE_HWND || pWin->DataType == TYPE_WINTODEL) {
-            pMsgQueue = pWin->pMainWin->pMessages;
+            pMsgQueue = pWin->pMainWin->pMsgQueue;
         }
     }
 
@@ -1184,7 +1184,7 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     if (hWnd && hWnd != HWND_INVALID) {
         PMAINWIN pWin = (PMAINWIN)hWnd;
         if (pWin->DataType == TYPE_HWND || pWin->DataType == TYPE_WINTODEL) {
-            pMsgQueue = pWin->pMainWin->pMessages;
+            pMsgQueue = pWin->pMainWin->pMsgQueue;
         }
     }
 

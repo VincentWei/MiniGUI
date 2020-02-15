@@ -101,10 +101,10 @@ typedef struct _CONTROL
      * Common fields for both control, virtual window, and main window.
      * VM[2020-02-14]: Move these fields to here to support virtual window.
      */
-#ifdef _MGRM_THREADS
-    pthread_t _padding;     // no use, only for padding.
-#endif
     PCTRLCLASSINFO pcci;    // pointer to Control Class Info struct.
+
+    char* spCaption;        // the caption of control.
+    LINT  id;               // the identifier of child window.
 
     WNDPROC ControlProc;    // the window procedure of this control.
     NOTIFPROC notif_proc;   // the notification callback procedure.
@@ -115,9 +115,11 @@ typedef struct _CONTROL
     /*
      * The following members are only implemented for control.
      */
-    struct _CONTROL* next;      // the next sibling control.
-    struct _CONTROL* prev;      // the prev sibling control.
-    MASKRECT * mask_rects;      // mask rectangles for the control.
+    PMAINWIN pMainWin;      // the main window that contains this control.
+
+    struct _CONTROL* next;  // the next sibling control.
+    struct _CONTROL* prev;  // the prev sibling control.
+    MASKRECT * mask_rects;  // mask rectangles for the control.
 
     /*
      * Fields for appearance of this control.
@@ -142,9 +144,6 @@ typedef struct _CONTROL
     HMENU hSysMenu;         // handle of system menu.
     PLOGFONT pLogFont;      // pointer to logical font.
 
-    char* spCaption;         // the caption of control.
-    LINT  id;                // the identifier of child window.
-
     LFSCROLLBARINFO vscroll;   // the vertical scroll bar information.
     LFSCROLLBARINFO hscroll;   // the horizital scroll bar information.
 
@@ -167,8 +166,6 @@ typedef struct _CONTROL
     /*
      * Fields to manage the relationship among main windows and controls.
      */
-    PMAINWIN pMainWin;      // the main window that contains this control.
-
     struct _CONTROL* pParent;   // the parent of this control.
 
 

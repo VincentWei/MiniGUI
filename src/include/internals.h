@@ -73,6 +73,15 @@
  */
 #define WS_EX_CTRLASMAINWIN     0x20000000L
 
+/* Make sure the internal window extended styles above are ok */
+#define MGUI_COMPILE_TIME_ASSERT(name, x)               \
+       typedef int MGUI_dummy_ ## name[((x)?1:0) * 2 - 1]
+
+MGUI_COMPILE_TIME_ASSERT(ws_ex_int_1, WS_EX_INTERNAL_MASK & WS_EX_MODALDISABLED);
+MGUI_COMPILE_TIME_ASSERT(ws_ex_int_2, WS_EX_INTERNAL_MASK & WS_EX_CTRLASMAINWIN);
+
+#undef MGUI_COMPILE_TIME_ASSERT
+
 /******************** Handle type and child type. ***************************/
 #define TYPE_HWND           0x01
     #define TYPE_MAINWIN    0x11
@@ -151,7 +160,7 @@ typedef QMSG* PQMSG;
 typedef struct _MSGQUEUE MSGQUEUE;
 typedef MSGQUEUE* PMSGQUEUE;
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 typedef struct _SYNCMSG
 {
     MSG              Msg;
@@ -160,9 +169,9 @@ typedef struct _SYNCMSG
     struct _SYNCMSG* pNext;
 } SYNCMSG;
 typedef SYNCMSG* PSYNCMSG;
-#else   /* defined _MGRM_THREADS */
+#endif   /* defined _MGHAVE_VIRTUAL_WINDOW */
+
 typedef BOOL (* IDLEHANDLER) (PMSGQUEUE msg_que);
-#endif  /* not defined _MGRM_THREADS */
 
 // the MSGQUEUE struct is a internal struct.
 // using semaphores to implement message queue.
@@ -170,7 +179,9 @@ struct _MSGQUEUE
 {
     DWORD dwState;              // message queue states
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    pthread_t th;               // the thread identifier this message queue lives
+                                // moved from window structures since 4.2.0.
     pthread_mutex_t lock;       // lock
     sem_t wait;                 // the semaphore for wait message
     sem_t sync_msg;             // the semaphore for sync message
@@ -179,17 +190,17 @@ struct _MSGQUEUE
     PQMSG  pFirstNotifyMsg;     // head of the notify message queue
     PQMSG  pLastNotifyMsg;      // tail of the notify message queue
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     PSYNCMSG pFirstSyncMsg;     // head of the sync message queue
     PSYNCMSG pLastSyncMsg;      // tail of the sync message queue
-#else
-    IDLEHANDLER OnIdle;         // idle handler
 #endif
 
-#ifdef _MGRM_THREADS
+    IDLEHANDLER OnIdle;         // XXX: idle handler
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     PMAINWIN pRootMainWin;      // the root main window of this message queue.
-    int nrWindows;              // the number of main/virtual windows.
 #endif
+    int nrWindows;              // the number of main/virtual windows.
 
     MSG* msg;                   // post message buffer
     int len;                    // buffer length
@@ -209,7 +220,7 @@ BOOL mg_InitFreeQMSGList (void);
 void mg_DestroyFreeQMSGList (void);
 BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen);
 void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue);
-BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg);
+BOOL kernel_QueueMessage (PMSGQUEUE pMsgQueue, PMSG msg);
 
 extern PMSGQUEUE __mg_dsk_msg_queue;
 
@@ -250,7 +261,7 @@ static inline void SetDskIdleHandler (IDLEHANDLER idle_handler)
 }
 #endif /* not defined _MGRM_THREADS */
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 
   #define MG_MUTEX_INIT(lock)      pthread_mutex_init(lock, NULL)
   #define MG_MUTEX_DESTROY(lock)   pthread_mutex_destroy(lock)
@@ -267,7 +278,7 @@ static inline void SetDskIdleHandler (IDLEHANDLER idle_handler)
     } \
   } while(0)
 
-#else /* defined _MGRM_THREADS */
+#else /* defined _MGHAVE_VIRTUAL_WINDOW */
 
   #define MG_MUTEX_INIT(lock)
   #define MG_MUTEX_DESTROY(lock)
@@ -276,14 +287,14 @@ static inline void SetDskIdleHandler (IDLEHANDLER idle_handler)
 
   #define POST_MSGQ(pMsgQueue)
 
-#endif /* not defined _MGRM_THREADS */
+#endif /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
 #define LOCK_MSGQ(pMsgQueue)     MG_MUTEX_LOCK(&(pMsgQueue)->lock)
 #define UNLOCK_MSGQ(pMsgQueue)   MG_MUTEX_UNLOCK(&(pMsgQueue)->lock)
 
 struct _wnd_element_data;
 
-#define WF_ERASEBKGND    0x01 //flags to erase bkground or not
+#define WF_ERASEBKGND    0x01 // flag to erase bkground or not
 
 /* Since 4.2.0 */
 typedef struct _VIRTWIN
@@ -298,10 +309,14 @@ typedef struct _VIRTWIN
     /*
      * Fields for both virtual window and main window.
      */
-#ifdef _MGRM_THREADS
-    pthread_t th;           // the thread which creates this virtual window.
+#ifdef _MGUSE_VIRTUAL_WINDOW
+    //pthread_t th;         // the thread which creates this virtual window.
+                            // moved to message queue structure since 4.2.0.
 #endif
-    PMSGQUEUE pMessages;    // the message queue.
+    PMSGQUEUE pMsgQueue;    // the message queue.
+
+    char* spCaption;        // the caption of main window.
+    LINT  id;               // the identifier of main window.
 
     WNDPROC   WndProc;      // the window procedure of this virtual window.
     NOTIFPROC NotifProc;    // the notification callback procedure (no use).
@@ -309,10 +324,13 @@ typedef struct _VIRTWIN
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.
 
+    struct _VIRTWIN* pMainWin;      // the main window that contains this window.
+                                    // for virtual window, always be itself.
     struct _VIRTWIN* pHosting;      // the hosting virtual window.
     struct _VIRTWIN* pFirstHosted;  // the first hosted virtual window.
     struct _VIRTWIN* pNextHosted;   // the next hosted virtual window.
 } VIRTWIN;
+typedef struct _VIRTWIN* PVIRTWIN;
 
 // the structure represents a real main window.
 typedef struct _MAINWIN
@@ -335,10 +353,14 @@ typedef struct _MAINWIN
      * Common fields for control, virtual window, and main window.
      * VM[2020-02-14]: Move these fields to header to support virtual window.
      */
-#ifdef _MGRM_THREADS
-    pthread_t th;           // the thread which creates this main window.
+#ifdef _MGUSE_VIRTUAL_WINDOW
+    // pthread_t th;        // the thread which creates this main window.
+                            // moved to message queue structure since 4.2.0.
 #endif
-    PMSGQUEUE pMessages;    // the message queue.
+    PMSGQUEUE pMsgQueue;    // the message queue.
+
+    char* spCaption;        // the caption of main window.
+    LINT  id;               // the identifier of main window.
 
     WNDPROC MainWindowProc; // the window procedure of this main window.
     NOTIFPROC NotifProc;    // the notification callback procedure.
@@ -349,6 +371,8 @@ typedef struct _MAINWIN
     /*
      * The following members are implemented for main window and virtual window.
      */
+    struct _MAINWIN* pMainWin;  // the main window that contains this window.
+                                // for main window, always be itself.
     struct _MAINWIN* pHosting;      // the hosting main window.
     struct _MAINWIN* pFirstHosted;  // the first hosted main window.
     struct _MAINWIN* pNextHosted;   // the next hosted main window.
@@ -376,9 +400,6 @@ typedef struct _MAINWIN
     HMENU hSysMenu;     // handle of system menu.
     PLOGFONT pLogFont;  // pointer to logical font.
 
-    char* spCaption;    // the caption of main window.
-    LINT   id;          // the identifier of main window.
-
     LFSCROLLBARINFO vscroll; // the vertical scroll bar information.
     LFSCROLLBARINFO hscroll; // the horizital scroll bar information.
 
@@ -401,8 +422,6 @@ typedef struct _MAINWIN
     /*
      * Fields to manage the relationship among main windows and controls.
      */
-    struct _MAINWIN* pMainWin;  // the main window that contains this window.
-                                // for main window, always be itself.
     HWND hParent;           // the parent of this window.
                             // for main window, always be HWND_DESKTOP.
 
@@ -553,8 +572,10 @@ extern pthread_t __mg_desktop, __mg_parsor, __mg_timer;
         (hWnd && (hWnd != HWND_INVALID) &&                  \
          (((PMAINWIN)hWnd)->DataType == TYPE_WINTODEL))
 
-#define MG_GET_WINDOW_PTR(hWnd)   ((PMAINWIN)hWnd)
-#define MG_GET_CONTROL_PTR(hWnd)  ((PCONTROL)hWnd)
+#define MG_GET_WINDOW_PTR(hWnd)             ((PMAINWIN)hWnd)
+#define MG_GET_MAIN_WINDOW_PTR(hWnd)        ((PMAINWIN)hWnd)
+#define MG_GET_CONTROL_PTR(hWnd)            ((PCONTROL)hWnd)
+#define MG_GET_VIRTUAL_WINDOW_PTR(hWnd)     ((PVIRTWIN)hWnd)
 
 #define MG_CHECK_RET(condition, ret)                        \
             if (!(condition)) return ret
@@ -573,23 +594,23 @@ static inline PMAINWIN getMainWindowPtr (HWND hWnd)
     return pWin->pMainWin;
 }
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 
 /* Be careful: does not check validity of hWnd */
 static inline BOOL BE_THIS_THREAD (HWND hWnd)
 {
     PMAINWIN pMainWin = getMainWindowPtr(hWnd);
 #ifdef WIN32
-    if (pMainWin && pMainWin->th.p == pthread_self().p)
+    if (pMainWin && pMainWin->pMsgQueue->th.p == pthread_self().p)
 #else
-    if (pMainWin && pMainWin->th == pthread_self())
+    if (pMainWin && pMainWin->pMsgQueue->th == pthread_self())
 #endif
         return TRUE;
 
     return FALSE;
 }
 
-MSGQUEUE* mg_InitMsgQueueThisThread (void);
+MSGQUEUE* mg_AllocMsgQueueThisThread (void);
 void mg_FreeMsgQueueThisThread (void);
 
 extern pthread_key_t __mg_threadinfo_key;
@@ -606,7 +627,7 @@ static inline void deleteThreadInfoKey (void)
     pthread_key_delete (__mg_threadinfo_key);
 }
 
-static inline MSGQUEUE* GetMsgQueueThisThread (void)
+static inline MSGQUEUE* getMsgQueueThisThread (void)
 {
     MSGQUEUE* pMsgQueue;
 

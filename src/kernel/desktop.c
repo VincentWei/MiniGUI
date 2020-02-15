@@ -4225,7 +4225,7 @@ void GUIAPI DumpWindow (FILE* fp, HWND hWnd)
         fprintf (fp, "Cursor      -- %#x\n", pWin->hCursor);
         fprintf (fp, "Icon        -- %#x\n", pWin->hIcon);
         fprintf (fp, "SysMenu     -- %#x\n", pWin->hSysMenu);
-        fprintf (fp, "MsgQueue    -- %p\n", pWin->pMessages);
+        fprintf (fp, "MsgQueue    -- %p\n", pWin->pMsgQueue);
     }
     else {
         fprintf (fp, "=============== Control %#x==================\n", hWnd);

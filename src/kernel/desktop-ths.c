@@ -145,8 +145,8 @@ void* __kernel_desktop_main (void* data)
     MSG Msg;
 
     /* init message queue of desktop thread */
-    if (!(__mg_dsk_msg_queue = mg_InitMsgQueueThisThread ()) ) {
-        _WRN_PRINTF ("KERNEL>Desktop: mg_InitMsgQueueThisThread failure!\n");
+    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueThisThread ()) ) {
+        _WRN_PRINTF ("KERNEL>Desktop: mg_AllocMsgQueueThisThread failure!\n");
         return NULL;
     }
 
@@ -198,19 +198,6 @@ void* __kernel_desktop_main (void* data)
     __mg_quiting_stage = _MG_QUITING_STAGE_EVENT;
 
     return NULL;
-}
-
-pthread_t GUIAPI GetMainWinThread(HWND hMainWnd)
-{
-#ifdef WIN32
-    pthread_t ret;
-    memset(&ret, 0, sizeof(pthread_t));
-    MG_CHECK_RET (MG_IS_WINDOW(hMainWnd), ret);
-#else
-    MG_CHECK_RET (MG_IS_WINDOW(hMainWnd), 0);
-#endif
-
-    return ((PMAINWIN)hMainWnd)->th;
 }
 
 #endif /* _MGRM_THREADS */
