@@ -3466,8 +3466,256 @@ BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
     return TRUE;
 }
 
+/************************* Support for virtual window ************************/
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+
+struct _entry_args {
+    void* (*start_routine)(void *);
+    void* arg;
+    sem_t wait;
+    void* msg_queue;
+};
+
+static void* _message_thread_entry (void* arg)
+{
+    struct _entry_args* entry_args = (struct _entry_args*)arg;
+
+    /* create message queue for this thread */
+    if (!(entry_args->msg_queue = mg_AllocMsgQueueThisThread ()))
+        goto failed;
+
+    sem_post (&entry_args->wait);
+
+    /* call start routine of app */
+    entry_args->start_routine (entry_args->arg);
+
+    mg_FreeMsgQueueThisThread ();
+
+    pthread_exit (NULL);
+    return NULL;
+
+failed:
+    sem_post (&entry_args->wait);
+    return NULL;
+}
+
+MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
+        pthread_attr_t* attr, void* (*start_routine)(void *), void* arg,
+        BOOL joinable, size_t stack_size)
+{
+    pthread_attr_t new_attr;
+    struct _entry_args entry_args;
+    int ret;
+
+    pthread_attr_init (&new_attr);
+    if (attr == NULL) {
+        attr = &new_attr;
+        if (joinable)
+            pthread_attr_setdetachstate (attr, PTHREAD_CREATE_JOINABLE);
+        else
+            pthread_attr_setdetachstate (attr, PTHREAD_CREATE_DETACHED);
+
+#ifdef __NOUNIX__
+        if (stack_size <= 4)
+            stack_size = 4;
+
+        /* hope 4KB is enough for a message thread */
+        pthread_attr_setstacksize (attr, stack_size * 1024);
+#endif
+
+    }
+
+    sem_init (&entry_args.wait, 0, 0);
+    ret = pthread_create (thread, attr, _message_thread_entry, &entry_args);
+    sem_wait (&entry_args.wait);
+    sem_destroy (&entry_args.wait);
+
+    pthread_attr_destroy (&new_attr);
+
+    if (ret == 0 && entry_args.msg_queue == NULL) {
+        // failed to create the message queue for the thread.
+        ret = ENOMEM;
+    }
+
+    return ret;
+}
+
+BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread)
+{
+    PMAINWIN pMainWin;
+
+    pMainWin = (PMAINWIN)hWnd;
+
+    if (!MG_IS_WINDOW(hWnd))
+        return FALSE;
+    else {
+        pMainWin = pMainWin->pMainWin;
+    }
+
+    *thread = pMainWin->pMsgQueue->th;
+    return TRUE;
+}
+
+HWND GUIAPI CreateVirtualWindow (HWND hHosting,
+        const char* spCaption, LINT id, WNDPROC WndProc, DWORD dwAddData)
+{
+    PVIRTWIN pVirtWin;
+    PMSGQUEUE pMsgQueue;
+
+    if (!(pMsgQueue = getMsgQueueThisThread())) {
+        _WRN_PRINTF ("Not a message thread!\n");
+        return HWND_INVALID;
+    }
+
+    if (!(pVirtWin = calloc (1, sizeof(VIRTWIN)))) {
+        return HWND_INVALID;
+    }
+
+    pVirtWin->DataType      = TYPE_HWND;
+    pVirtWin->WinType       = TYPE_MAINWIN;
+    pVirtWin->Flags         = 0;
+    pVirtWin->pMsgQueue     = pMsgQueue;
+    pVirtWin->spCaption     = FixStrAlloc (strlen (spCaption));
+    if (spCaption [0])
+        strcpy (pVirtWin->spCaption, spCaption);
+    pVirtWin->id            = id;
+    pVirtWin->WndProc       = WndProc;
+    pVirtWin->NotifProc     = NULL;
+    pVirtWin->dwAddData     = dwAddData;
+    pVirtWin->dwAddData2    = 0;
+
+    pVirtWin->pMainWin      = pVirtWin;
+    if (pMsgQueue->pRootMainWin == NULL) {
+        pMsgQueue->pRootMainWin = (PMAINWIN)pVirtWin;
+    }
+    else if (hHosting == HWND_DESKTOP || hHosting == HWND_NULL) {
+        pVirtWin->pHosting = (PVIRTWIN)pMsgQueue->pRootMainWin;
+    }
+    else {
+        if (pMsgQueue != kernel_GetMsgQueue (hHosting)) {
+            free (pVirtWin);
+            return HWND_INVALID;
+        }
+        else {
+            pVirtWin->pHosting = (PVIRTWIN)hHosting;
+        }
+    }
+
+    pVirtWin->pFirstHosted  = NULL;
+    pVirtWin->pNextHosted   = NULL;
+
+    if (SendMessage ((HWND)pVirtWin, MSG_CREATE, 0, (LPARAM)dwAddData)) {
+        goto err;
+    }
+
+    pMsgQueue->nrWindows++;
+
+    return (HWND)pVirtWin;
+
+err:
+    free (pVirtWin);
+    return HWND_INVALID;
+}
+
+BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
+{
+    PVIRTWIN pVirtWin;
+    PVIRTWIN next;
+    PMSGQUEUE pMsgQueue;
+
+    MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
+    pVirtWin = MG_GET_VIRTUAL_WINDOW_PTR (hVirtWnd);
+
+    if (!(pMsgQueue = getMsgQueueThisThread()) ||
+            pVirtWin->pMsgQueue != pMsgQueue) {
+        return FALSE;
+    }
+
+    /* destroy all hosted virtual windows, main windows, and dialogs here. */
+    next = pVirtWin->pFirstHosted;
+    while (next) {
+
+        if (MG_IS_VIRTUAL_WINDOW ((HWND)next)) {
+            if (DestroyVirtualWindow ((HWND)next)) {
+                VirtualWindowCleanup ((HWND)next);
+            }
+            else
+                goto broken;
+        }
+        else if (MG_IS_MAIN_WINDOW ((HWND)next)) {
+            if (DestroyMainWindow ((HWND)next)) {
+                MainWindowCleanup ((HWND)next);
+            }
+            else
+                goto broken;
+        }
+        else if (IsDialog((HWND)next)) {
+            if (!EndDialog ((HWND)next, IDCANCEL))
+                goto broken;
+        }
+
+        next = next->pNextHosted;
+    }
+
+    if (SendMessage (hVirtWnd, MSG_DESTROY, 0, 0)) {
+        goto broken;
+    }
+
+    /* kill all timers of this window */
+    KillTimer (hVirtWnd, 0);
+
+    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
+    pVirtWin->DataType = TYPE_WINTODEL;
+    ThrowAwayMessages (hVirtWnd);
+
+    if (pVirtWin->spCaption) {
+        FreeFixStr (pVirtWin->spCaption);
+        pVirtWin->spCaption = NULL;
+    }
+
+    return TRUE;
+
+broken:
+    return FALSE;
+}
+
+BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
+{
+    PVIRTWIN pVirtWin;
+    PMSGQUEUE pMsgQueue;
+
+    MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
+    pVirtWin = MG_GET_VIRTUAL_WINDOW_PTR (hVirtWnd);
+
+    if (!(pMsgQueue = getMsgQueueThisThread()) ||
+            pVirtWin->pMsgQueue != pMsgQueue) {
+        return FALSE;
+    }
+
+    _DBG_PRINTF ("window(%p), caption(%s)\n", pVirtWin, pVirtWin->spCaption);
+
+    if (!MG_IS_DESTROYED_WINDOW (hVirtWnd)) {
+        _WRN_PRINTF ("Unexpected call: Window(%p) not destroyed yet! "
+                "Please call DestroyVirtualWindow() first\n", hVirtWnd);
+        return FALSE;
+    }
+
+    mg_FreeMsgQueueThisThread ();
+
+#ifdef __THREADX__
+    /* to avoid threadx keep pVirtWin's value, which will lead to wrong way */
+    memset (pVirtWin, 0xcc, sizeof(VIRTWIN));
+#endif
+
+    pMsgQueue->nrWindows--;
+    free (pVirtWin);
+    return TRUE;
+}
+
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+
 /*************************** Main window creation ****************************/
-#ifdef _MGRM_THREADS
+#if 0
 int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
         pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
 {
@@ -3491,6 +3739,22 @@ int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
     return ret;
 }
 
+pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
+{
+#ifdef WIN32
+    pthread_t ret;
+    memset(&ret, 0, sizeof(pthread_t));
+    MG_CHECK_RET (MG_IS_WINDOW(hMainWnd), ret);
+#else
+    MG_CHECK_RET (MG_IS_WINDOW(hMainWnd), 0);
+#endif
+
+    return ((PMAINWIN)hMainWnd)->th;
+}
+
+#endif /* disable code */
+
+#ifdef _MGRM_THREADS
 int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval)
 {
     pthread_t th;
@@ -3600,24 +3864,24 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         /*
          ** Create thread infomation and message queue for this new main window.
          */
-        if ((pWin->pMessages = GetMsgQueueThisThread ()) == NULL) {
-            if (!(pWin->pMessages = mg_InitMsgQueueThisThread ()) ) {
+        if ((pWin->pMsgQueue = GetMsgQueueThisThread ()) == NULL) {
+            if (!(pWin->pMsgQueue = mg_AllocMsgQueueThisThread ()) ) {
                 free (pWin);
 
                 return HWND_INVALID;
             }
-            pWin->pMessages->pRootMainWin = pWin;
+            pWin->pMsgQueue->pRootMainWin = pWin;
         }
         else {
             /* Already have a top level main window, in case of user have set
                a wrong hosting window */
-            pWin->pHosting = pWin->pMessages->pRootMainWin;
+            pWin->pHosting = pWin->pMsgQueue->pRootMainWin;
         }
     }
     else {
-        pWin->pMessages = GetMsgQueueThisThread ();
-        if (pWin->pMessages != kernel_GetMsgQueue (pCreateInfo->hHosting) ||
-                pWin->pMessages == NULL) {
+        pWin->pMsgQueue = GetMsgQueueThisThread ();
+        if (pWin->pMsgQueue != kernel_GetMsgQueue (pCreateInfo->hHosting) ||
+                pWin->pMsgQueue == NULL) {
             free (pWin);
 
             return HWND_INVALID;
@@ -3632,7 +3896,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     if (pWin->pHosting == NULL)
         pWin->pHosting = __mg_dsk_win;
 
-    pWin->pMessages = __mg_dsk_msg_queue;
+    pWin->pMsgQueue = __mg_dsk_msg_queue;
 #endif
 
     pWin->pMainWin      = pWin;
@@ -3833,7 +4097,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 
 err:
 #ifdef _MGRM_THREADS
-    if (pWin->pMessages && pWin->pHosting == NULL) {
+    if (pWin->pMsgQueue && pWin->pHosting == NULL) {
         mg_FreeMsgQueueThisThread ();
     }
 #endif
