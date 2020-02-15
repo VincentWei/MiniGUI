@@ -56,11 +56,9 @@
 
 typedef struct _CTRLCLASSINFO
 {
-    char      name[MAXLEN_CLASSNAME + 1];
-                                // class name
-    /*
-     * common properties of this class
-     */
+    char      name[MAXLEN_CLASSNAME + 1];   // class name
+
+    /* common properties of this class */
     DWORD     dwStyle;          // Default control styles.
     DWORD     dwExStyle;        // Default control extended styles.
 
@@ -73,14 +71,13 @@ typedef struct _CTRLCLASSINFO
     gal_pixel iBkColor;         // control background color (pixel value)
 #endif
 
-    LRESULT (*ControlProc)(HWND, UINT, WPARAM, LPARAM);
-                                // control procedure.
+    WNDPROC ControlProc;        // window procedure for this control class.
 
     DWORD dwAddData;            // the additional data.
 
     int nUseCount;              // use count.
-    struct _CTRLCLASSINFO*  next;
-                                // next class info
+
+    struct _CTRLCLASSINFO*  next;   // next class info
 } CTRLCLASSINFO;
 typedef CTRLCLASSINFO* PCTRLCLASSINFO;
 

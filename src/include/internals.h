@@ -106,7 +106,7 @@ typedef struct _SCROLLWINDOWINFO
     int iOffy;
     const RECT* rc1;
     const RECT* rc2;
-}SCROLLWINDOWINFO;
+} SCROLLWINDOWINFO;
 typedef SCROLLWINDOWINFO* PSCROLLWINDOWINFO;
 
 typedef struct _CARETINFO {
@@ -128,11 +128,12 @@ typedef struct _CARETINFO {
 
     HWND    hOwner;         // the window owns the caret.
     UINT    uTime;          // the blink time.
-}CARETINFO;
+} CARETINFO;
 typedef CARETINFO* PCARETINFO;
 
 /* ime status info */
-typedef struct _IME_STATUS_INFO {
+typedef struct _IME_STATUS_INFO
+{
     HWND hWnd;
     BYTE bEnabled;
     BYTE bAutoTrack;
@@ -144,7 +145,7 @@ typedef struct _QMSG
 {
     MSG                 Msg;
     struct _QMSG*       next;
-}QMSG;
+} QMSG;
 typedef QMSG* PQMSG;
 
 typedef struct _MSGQUEUE MSGQUEUE;
@@ -157,11 +158,11 @@ typedef struct _SYNCMSG
     LRESULT          retval;
     sem_t*           sem_handle;
     struct _SYNCMSG* pNext;
-}SYNCMSG;
+} SYNCMSG;
 typedef SYNCMSG* PSYNCMSG;
-#else
+#else   /* defined _MGRM_THREADS */
 typedef BOOL (* IDLEHANDLER) (PMSGQUEUE msg_que);
-#endif
+#endif  /* not defined _MGRM_THREADS */
 
 // the MSGQUEUE struct is a internal struct.
 // using semaphores to implement message queue.
@@ -212,17 +213,18 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg);
 
 extern PMSGQUEUE __mg_dsk_msg_queue;
 
-/* Running */
+/* Running stages */
 #define _MG_QUITING_STAGE_RUNNING 1
-/* Try to quit main thread, and for Threads version quit other MainWindow Thread */
+/* Try to quit main thread, and for MiniGUI-Threads, to quit
+   other main window threads */
 #define _MG_QUITING_STAGE_START   (-10)
-/* Force to quit main thread, and other MainWindow Thread */
+/* Force to quit main thread, and other main window threads */
 #define _MG_QUITING_STAGE_FORCE   (-15)
-/* Quit Desktop thread (Threads version only) */
+/* Quit Desktop thread (MiniGUI-Threads only) */
 #define _MG_QUITING_STAGE_DESKTOP (-20)
-/* Quit EventLoop (Threads version only) */
+/* Quit EventLoop (MiniGUI-Threads only) */
 #define _MG_QUITING_STAGE_EVENT   (-30)
-/* Quit TimerEntry (Threads version only) */
+/* Quit TimerEntry (MiniGUI-Threads only) */
 #define _MG_QUITING_STAGE_TIMER   (-40)
 extern int __mg_quiting_stage;
 
@@ -283,6 +285,7 @@ struct _wnd_element_data;
 
 #define WF_ERASEBKGND    0x01 //flags to erase bkground or not
 
+/* Since 4.2.0 */
 typedef struct _VIRTWIN
 {
     /*
@@ -300,7 +303,8 @@ typedef struct _VIRTWIN
 #endif
     PMSGQUEUE pMessages;    // the message queue.
 
-    WNDPROC   WndProc;      // the address of the virtual window procedure.
+    WNDPROC   WndProc;      // the window procedure of this virtual window.
+    NOTIFPROC NotifProc;    // the notification callback procedure (no use).
 
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.
@@ -415,7 +419,7 @@ typedef struct _MAINWIN
                         // put here to avoid invoking malloc function.
 #endif
 
-    //the controls as main
+    // the controls as main window
     HWND hFirstChildAsMainWin;
 
     HDC   secondaryDC;                // the secondary window dc.
