@@ -5996,9 +5996,9 @@ MG_EXPORT BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread);
  *
  * \param hVirtWnd The handle to the virtual window.
  *
- * \sa DestroyVirtualWindow
- *
  * \return TRUE on success, otherwise FALSE.
+ *
+ * \sa DestroyVirtualWindow
  *
  * Since 4.2.0
  */
@@ -6216,11 +6216,11 @@ MG_EXPORT int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval);
 #endif /* defined _MGRM_THREADS */
 
 /**
- * \fn void GUIAPI MainWindowThreadCleanup (HWND hMainWnd)
+ * \fn BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
  * \brief Cleans up system resource associated with a main window.
  *
- * This function cleans up the system resource such as message queue associated
- * with the main window \a hMainWnd. \a DestroyMainWindow does not
+ * This function cleans up the system resource such as the message queue
+ * associated with the main window \a hMainWnd. \a DestroyMainWindow does not
  * destroy all resource used by a main window, therefore, you should call
  * this function after calling \a DestroyMainWindow and skipping out from
  * the message loop. After calling this function, the main window object
@@ -6228,17 +6228,32 @@ MG_EXPORT int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval);
  *
  * \param hMainWnd The handle to the main window.
  *
+ * \return TRUE on success, otherwise FALSE.
+ *
  * \sa DestroyMainWindow
+ *
+ * \note Since 4.2.0, this function returns a BOOL value. If you try
+ *      to clean up a main window in a thread other than it belongs to,
+ *      the function will fail.
  */
-MG_EXPORT void GUIAPI MainWindowThreadCleanup (HWND hMainWnd);
+MG_EXPORT BOOL GUIAPI MainWindowCleanup (HWND hMainWnd);
 
 /**
- * \def MainWindowCleanup (hwnd)
- * \brief Is an alias of \a MainWindowThreadCleanup
+ * \fn BOOL MainWindowThreadCleanup (HWND hMainWnd)
+ * \brief Cleanup the main window.
  *
- * \sa MainWindowThreadCleanup
+ * \param hMainWnd The handle to the main window.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \note Deprecated; please use \a MainWindowCleanup() instead.
+ *
+ * \sa MainWindowCleanup
  */
-#define MainWindowCleanup(hwnd)      MainWindowThreadCleanup(hwnd)
+static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
+{
+    return MainWindowCleanup (hMainWnd);
+}
 
 /* The flags for the surface pixel format */
 #define ST_PIXEL_MASK           0x00FF
