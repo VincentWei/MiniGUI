@@ -837,13 +837,15 @@ if test "x$runtime_mode" == "xprocs"; then
 [  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=no>],
     compositing_schema=$enableval)
 
-    AC_ARG_ENABLE(virtualwindow,
-[  --enable-virtualwindow   enable virtual window for MiniGUI-Processes runmode <default=no>],
-    virtual_window=$enableval)
-
     AC_ARG_ENABLE(shmopen,
 [  --enable-shmopen         use shm_open <default=no>],
     use_shmopen=$enableval)
+fi
+
+if test "x$runtime_mode" != "xths"; then
+    AC_ARG_ENABLE(virtualwindow,
+[  --enable-virtualwindow   enable virtual window for MiniGUI-Processes or MiniGUI-Standalone runmode <default=no>],
+    virtual_window=$enableval)
 fi
 
 dnl Set up the Null video driver.
@@ -1722,7 +1724,6 @@ case "$runtime_mode" in
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
         MINIGUI_RUNMODE="sa"
-        virtual_window="no"
     ;;
     ths)
         AC_DEFINE(_MGRM_THREADS, 1,
@@ -2744,8 +2745,8 @@ AC_MSG_NOTICE([
 ## Global Features:
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
-  * Surface schema:     ${surface_schema}
   * Virtual Window:     ${virtual_window}
+  * Surface schema:     ${surface_schema}
   * Use shm_open:       ${use_shmopen}
   * Incore resource:    ${incore_res}
   * Developer mode:     ${devel_mode}
