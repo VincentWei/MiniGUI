@@ -80,7 +80,7 @@
 DWORD __mg_timer_counter = 0;
 static TIMER *timerstr[DEF_NR_TIMERS];
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 /* lock for protecting timerstr */
 static pthread_mutex_t timerLock;
 #define TIMER_LOCK()   pthread_mutex_lock(&timerLock)
@@ -152,7 +152,7 @@ int __mg_timer_init (void)
     return 0;
 }
 
-#else /* for MiniGUI-Processes and MiniGUI-Standalone */
+#else /* defined _MGRM_THREADS */
 
 #ifdef __NOUNIX__
 
@@ -166,7 +166,7 @@ BOOL mg_UninstallIntervalTimer (void)
     return TRUE;
 }
 
-#else
+#else   /* defined __NOUNIX__ */
 
 #include <signal.h>
 #include <unistd.h>
@@ -222,15 +222,18 @@ BOOL mg_UninstallIntervalTimer (void)
     return TRUE;
 }
 
-#endif /* __NOUNIX__ */
-#endif /* !_MGRM_THREADS */
+#endif /* not defined __NOUNIX__ */
+#endif /* defined _MGRM_THREADS */
 
 BOOL mg_InitTimer (void)
 {
     __mg_os_start_time_ms();
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_init (&timerLock, NULL);
+#endif
+
+#ifdef _MGRM_THREADS
     __mg_timer_counter = 0;
 #else
     mg_InstallIntervalTimer ();
@@ -263,7 +266,7 @@ void mg_TerminateTimer (void)
         timerstr[i] = NULL;
     }
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_destroy (&timerLock);
 #endif
 }
@@ -375,8 +378,8 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
         speed = 1;
     }
 
-#ifdef _MGRM_THREADS
-    if (!(pMsgQueue = GetMsgQueueThisThread ())) {
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE))) {
         _WRN_PRINTF ("KERNEL>Timer: Not a GUI thread.\n");
         return FALSE;
     }
@@ -440,7 +443,6 @@ static void reset_select_timeout (void)
     }
     __mg_set_select_timeout (USEC_10MS * speed);
 }
-
 #endif
 
 void __mg_remove_timer (TIMER* timer, int slot)
@@ -491,8 +493,8 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
     PMSGQUEUE pMsgQueue;
     int killed = 0;
 
-#ifdef _MGRM_THREADS
-    if (!(pMsgQueue = GetMsgQueueThisThread ()))
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE)))
         return 0;
 #else
     pMsgQueue = __mg_dsk_msg_queue;
@@ -530,8 +532,8 @@ BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
     if (id == 0)
         return FALSE;
 
-#ifdef _MGRM_THREADS
-    if (!(pMsgQueue = GetMsgQueueThisThread ()))
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE)))
         return FALSE;
 #else
     pMsgQueue = __mg_dsk_msg_queue;
