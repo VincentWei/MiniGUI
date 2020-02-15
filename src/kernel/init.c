@@ -257,7 +257,7 @@ ndef __USE_TIMER_THREAD
     return NULL;
 }
 
-/* The following function is moved to src/include/internals.h as inline functions.
+/* The following functions were moved to src/include/internals.h as inline.
 static inline BOOL createThreadInfoKey (void)
 {
     if (pthread_key_create (&__mg_threadinfo_key, NULL))
@@ -270,7 +270,7 @@ static inline void deleteThreadInfoKey (void)
     pthread_key_delete (__mg_threadinfo_key);
 }
 
-MSGQUEUE* GetMsgQueueThisThread (void)
+MSGQUEUE* mg_GetMsgQueueForThisThread (void)
 {
     return (MSGQUEUE*) pthread_getspecific (__mg_threadinfo_key);
 }

@@ -2457,7 +2457,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                 pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
                 if (pWin && (pWin->WinType != TYPE_CONTROL) &&
                         (pWin->pHosting == NULL)) {
-                    if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
+                    if ((pMsgQueue = getMsgQueue((HWND)pWin))) {
                         POST_MSGQ(pMsgQueue);
                     }
                 }
@@ -2469,7 +2469,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                 pWin = (PMAINWIN)(nodes[slot].hwnd);
                 if (pWin && (pWin->WinType != TYPE_CONTROL) &&
                         (pWin->pHosting == NULL)) {
-                    if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
+                    if ((pMsgQueue = getMsgQueue((HWND)pWin))) {
                         POST_MSGQ(pMsgQueue);
                     }
                 }
@@ -2480,7 +2480,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                 pWin = (PMAINWIN)(nodes[slot].hwnd);
                 if (pWin && (pWin->WinType == TYPE_MAINWIN) &&
                         (pWin->pHosting == NULL)){
-                    if ((pMsgQueue = kernel_GetMsgQueue((HWND)pWin))) {
+                    if ((pMsgQueue = getMsgQueue((HWND)pWin))) {
                         POST_MSGQ(pMsgQueue);
                     }
                 }

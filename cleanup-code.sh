@@ -96,6 +96,13 @@ tab2space() {
 
 # sed -i 's/\<pMessages\>/pMsgQueue/g' `grep pMessages -rl src/`
 
-sed -i 's/\<mg_InitMsgQueueThisThread\>/mg_AllocMsgQueueThisThread/g' `grep mg_InitMsgQueueThisThread -rl include/ src/`
+# sed -i 's/\<mg_InitMsgQueueThisThread\>/mg_AllocMsgQueueThisThread/g' `grep mg_InitMsgQueueThisThread -rl include/ src/`
+
+# sed -i 's/\<mg_AllocMsgQueueThisThread\>/mg_AllocMsgQueueForThisThread/g' `grep mg_AllocMsgQueueThisThread -rl src/`
+# sed -i 's/\<mg_FreeMsgQueueThisThread\>/mg_FreeMsgQueueForThisThread/g' `grep mg_FreeMsgQueueThisThread -rl src/`
+
+# sed -i 's/\<GetMsgQueueThisThread\>/mg_GetMsgQueueForThisThread/g' `grep GetMsgQueueThisThread -rl src/`
+
+sed -i 's/\<kernel_GetMsgQueue\>/getMsgQueue/g' `grep kernel_GetMsgQueue -rl src/`
 
 exit 0

@@ -508,9 +508,6 @@ PMAINWIN gui_CheckAndGetMainWindowPtr (HWND hWnd);
 
 PMAINWIN gui_GetMainWindowPtrUnderPoint (int x, int y);
 
-/* return message queue of window. */
-PMSGQUEUE kernel_GetMsgQueue (HWND hWnd);
-
 /* return the next window need to repaint. */
 HWND kernel_CheckInvalidRegion (PMAINWIN pWin);
 
@@ -594,6 +591,17 @@ static inline PMAINWIN getMainWindowPtr (HWND hWnd)
     return pWin->pMainWin;
 }
 
+/* Get message queue by window handle.
+   Note that hWnd may belong to a different thread. */
+static inline PMSGQUEUE getMsgQueue (HWND hWnd)
+{
+    PMAINWIN pWin;
+    pWin = getMainWindowPtr (hWnd);
+    if (pWin)
+        return pWin->pMsgQueue;
+    return NULL;
+}
+
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
 /* Be careful: does not check validity of hWnd */
@@ -610,8 +618,9 @@ static inline BOOL BE_THIS_THREAD (HWND hWnd)
     return FALSE;
 }
 
-MSGQUEUE* mg_AllocMsgQueueThisThread (void);
-void mg_FreeMsgQueueThisThread (void);
+MSGQUEUE* mg_AllocMsgQueueForThisThread (void);
+void mg_FreeMsgQueueForThisThread (void);
+MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc);
 
 extern pthread_key_t __mg_threadinfo_key;
 
@@ -627,21 +636,7 @@ static inline void deleteThreadInfoKey (void)
     pthread_key_delete (__mg_threadinfo_key);
 }
 
-static inline MSGQUEUE* getMsgQueueThisThread (void)
-{
-    MSGQUEUE* pMsgQueue;
-
-    pMsgQueue = (MSGQUEUE*)pthread_getspecific (__mg_threadinfo_key);
-#ifdef __VXWORKS__
-    if (pMsgQueue == (void *)-1) {
-        return NULL;
-    }
-#endif
-
-    return pMsgQueue;
-}
-
-#endif  /* defined _MGRM_THREADS */
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifndef _MGRM_THREADS
 static inline void SetDesktopTimerFlag (void)

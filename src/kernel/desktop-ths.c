@@ -145,8 +145,8 @@ void* __kernel_desktop_main (void* data)
     MSG Msg;
 
     /* init message queue of desktop thread */
-    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueThisThread ()) ) {
-        _WRN_PRINTF ("KERNEL>Desktop: mg_AllocMsgQueueThisThread failure!\n");
+    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
+        _WRN_PRINTF ("KERNEL>Desktop: mg_AllocMsgQueueForThisThread failure!\n");
         return NULL;
     }
 
