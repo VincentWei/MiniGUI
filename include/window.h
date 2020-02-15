@@ -5873,8 +5873,7 @@ MG_EXPORT int GUIAPI GetWindowZOrder(HWND hWnd);
  * \return return the new index of ZOrder or 0 if hWnd is a MainWindow
  */
 MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
-
-#endif
+#endif /* defined __TARGET_MSTUDIO__ */
 
     /** @} end of res_manage */
 
@@ -5882,6 +5881,167 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      * \defgroup window_fns Windowing functions
      * @{
      */
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    /**
+     * \defgroup virtual_window_fns Virtual Window
+     *
+     * You know that we can post or send a message to other windows which
+     * may run in another thread under MiniGUI-Threads. The MiniGUI
+     * messaging functions such as \a PostMessage(), \a SendMessage(),
+     * \a SendNotifyMessage(), and the window callback procedure
+     * provide a flexible, efficient, safe, and flexible data transfer
+     * and synchronization mechanism for your multithreaded applications.
+     *
+     * But if we want to use the MiniGUI messaging mechanism for a general
+     * thread without a main window, how to do this?
+     *
+     * Furthermore, can we use the MiniGUI messaging mechanism under
+     * MiniGUI-Processes and MiniGUI-Standalone runtime modes for
+     * multithreading purpose?
+     *
+     * The virtual window provides a solution for the requirements above.
+     * A virtual window is a special window object which does not have
+     * a visible window area. But after you create a virtual window in
+     * a different thread, you can use the MiniGUI messaging mechanism
+     * to post or send messages between the current main window thread
+     * and the new thread.
+     *
+     * In MiniGUI, we call a thread creating a main window as a GUI thread,
+     * and a thread creating a virtual window as a message thread.
+     *
+     * It is important that to know the following key points about virtual
+     * window:
+     *
+     *  - It is enabled automatically under MiniGUI-Threads runtime mode.
+     *  - It can be enabled by using the compile-time configuration option
+     *    `--enable-virtualwindow`, or define `_MGHAVE_VIRTUAL_WINDOW` macro
+     *    under MiniGUI-Processes and MiniGUI-Standalone runtime modes.
+     *  - You can create multiple GUI threads under MiniGUI-Threads, but you
+     *    cannot create multiple GUI threads under MiniGUI-Processes and
+     *    MiniGUI-Standalone runtime modes.
+     *  - Regardless of the runtime mode, you can create multiple message
+     *    threads, and you can also create multiple virtual windows in
+     *    one message thread.
+     *  - It is possible to create a virtual window in a GUI thread, although
+     *    we do not encourage to do this. In other words, a GUI
+     *    thread is also a message thread. On the other hand, you cannot
+     *    create a main window in a message thread.
+     *  - Essentially, a virtual window is a simplified main window.
+     *    It consumes very little memory space, but provides a complete
+     *    MiniGUI messaging mechanism for a general multithreaded application.
+     *
+     * Since 4.2.0.
+     *
+     * @{
+     */
+
+/**
+ * \fn int GUIAPI CreateThreadForMessaging (pthread_t* thread,
+ *      pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
+ * \brief Create a message thread for main windows or virtual windows.
+ *
+ * The function creates a message thread for main windows or virtual windows
+ * by calling the POSIX thread function \a pthread_create(), and setting up
+ * the message queue for the thread.
+ *
+ * \param thread The buffer to return the thread identifier if
+ *      the thread was successfully created.
+ * \param attr  The pointer to the thread attribute.
+ * \param start_routine The function which is the entry of the thread.
+ * \param arg   The argument will be passed to \a start_routine.
+ *
+ * \return The return value of pthread_create (0 on success).
+ *
+ * \sa pthread_create
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
+        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg);
+
+/**
+ * \fn BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread)
+ * \brief Get the thread identifier which a window belongs to.
+ *
+ * \param hWnd The handle to a window, which may be a main window,
+ *      virtual window, or a control.
+ * \param thread The buffer to store the thread identifier.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread);
+
+/**
+ * \fn void GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
+ * \brief Cleans up the system resource associated with a virtual window.
+ *
+ * This function cleans up the system resource such as the message queue
+ * associated with the virual window \a hVirtWnd. \a DestroyVirtualWindow
+ * does not destroy all resource used by the virtual window, therefore,
+ * you should call this function after calling \a DestroyVirtualWindow and
+ * skipping out from the message loop. After calling this function, the
+ * virtual window object will be destroyed actually.
+ *
+ * \param hVirtWnd The handle to the virtual window.
+ *
+ * \sa DestroyVirtualWindow
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT void GUIAPI VirtualWindowThreadCleanup (HWND hVirtWnd);
+
+/**
+ * \fn HWND GUIAPI CreateVirtualWindow (HWND hHosting,
+ *      WNDPROC WndProc, DWORD dwAddData)
+ * \brief Create a virtual window.
+ *
+ * This function creates a virtual window for the purpose of
+ * multi-thread messaging.
+ *
+ * \param hHosting The hosting virutal window.
+ * \param WndProc The window callback procedure.
+ * \param dwAddData The additional data for the window.
+ *
+ * \return The handle to the new virtual window;
+ *      HWND_INVALID indicates an error.
+ *
+ * \sa VirtualWindowThreadCleanup
+ *
+ * Example:
+ *
+ * \include createvirtualwindow.c
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting,
+        WNDPROC WndProc, DWORD dwAddData);
+
+/**
+ * \fn BOOL GUIAPI DestroyVirtualWindow (HWND hWnd)
+ * \brief Destroy a virtual window.
+ *
+ * This function destroys a virtual window.
+ *
+ * \param hWnd The handle to the virtual window.
+ *
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa VirtualWindowThreadCleanup
+ *
+ * Example:
+ *
+ * \include createvirtualwindow.c
+ *
+ * Since 4.2.0.
+ */
+MG_EXPORT BOOL GUIAPI DestroyVirtualWindow (HWND hWnd);
+
+    /** @} end of virtual_window_fns */
+
+#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
 
     /**
      * \defgroup window_create_fns Window creating/destroying
@@ -6017,8 +6177,9 @@ MG_EXPORT pthread_t GUIAPI GetMainWinThread (HWND hMainWnd);
  * \param retval The buffer used to return the exit code of the target thread.
  *
  * \return The return value of pthread_join (0 on success).
+ *
+ * \note This function is deprecated.
  */
-
 MG_EXPORT int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval);
 #endif /* defined _MGRM_THREADS */
 
@@ -6031,7 +6192,7 @@ MG_EXPORT int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval);
  * destroy all resource used by a main window, therefore, you should call
  * this function after calling \a DestroyMainWindow and skipping out from
  * the message loop. After calling this function, the main window object
- * will destroyed actually.
+ * will be destroyed actually.
  *
  * \param hMainWnd The handle to the main window.
  *
@@ -6186,55 +6347,6 @@ static inline HWND GUIAPI CreateMainWindow (PMAINWINCREATE pCreateInfo)
  * \include destroymainwindow.c
  */
 MG_EXPORT BOOL GUIAPI DestroyMainWindow (HWND hWnd);
-
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-/**
- * \fn HWND GUIAPI CreateVirtualWindow (HWND hHosting,
- *      WNDPROC WndProc, DWORD dwAddData)
- * \brief Create a virtual window.
- *
- * This function creates a virtual window for the purpose of
- * multi-thread messaging.
- *
- * \param hHosting The hosting virutal window.
- * \param WndProc The window callback procedure.
- * \param dwAddData The additional data for the window.
- *
- * \return The handle to the new virtual window;
- *      HWND_INVALID indicates an error.
- *
- * \sa VirtualWindowThreadCleanup
- *
- * Example:
- *
- * \include createvirtualwindow.c
- *
- * Since 4.2.0.
- */
-MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting,
-        WNDPROC WndProc, DWORD dwAddData);
-
-/**
- * \fn BOOL GUIAPI DestroyVirtualWindow (HWND hWnd)
- * \brief Destroy a virtual window.
- *
- * This function destroys a virtual window.
- *
- * \param hWnd The handle to the virtual window.
- *
- * \return TRUE on success, FALSE on error.
- *
- * \sa VirtualWindowThreadCleanup
- *
- * Example:
- *
- * \include createvirtualwindow.c
- *
- * Since 4.2.0.
- */
-MG_EXPORT BOOL GUIAPI DestroyVirtualWindow (HWND hWnd);
-
-#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 /**
  * \fn BOOL GUIAPI SetWindowMask (HWND hWnd,  \
