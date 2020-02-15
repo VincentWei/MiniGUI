@@ -71,6 +71,7 @@
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 #include <pthread.h>
+#include <semaphore.h>
 #endif
 
 #ifdef __cplusplus
@@ -3047,7 +3048,7 @@ typedef struct _MSG
     LPARAM          lParam;
     /** Time */
     DWORD           time;
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     /** Addtional data*/
     void*            pAdd;
 #endif
@@ -3055,15 +3056,14 @@ typedef struct _MSG
 typedef MSG* PMSG;
 
 #define QS_NOTIFYMSG        0x10000000
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
   #define QS_SYNCMSG        0x20000000
-#else
-  #define QS_DESKTIMER      0x20000000
 #endif
 #define QS_POSTMSG          0x40000000
 #define QS_QUIT             0x80000000
 #define QS_INPUT            0x01000000
 #define QS_PAINT            0x02000000
+#define QS_DESKTIMER        0x04000000
 #define QS_TIMER            0x0000FFFF
 #define QS_EMPTY            0x00000000
 
@@ -3298,16 +3298,6 @@ MG_EXPORT LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg,
 MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
                 WPARAM wParam, LPARAM lParam);
 
-#ifndef _MGRM_THREADS
-
-/**
- * \def SendAsyncMessage
- * \brief Is an alias of \a SendMessage for MiniGUI-Processes
- *        and MiniGUI-Standalone.
- * \sa SendMessage
- */
-#define SendAsyncMessage SendMessage
-
 #ifdef _MGRM_PROCESSES
 
 #define CLIENTS_TOPMOST          -1
@@ -3393,7 +3383,7 @@ BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer,
 
 #endif /* _MGRM_PROCESSES */
 
-#else /* not defined _MGRM_THREADS */
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 
 /**
  * \fn LRESULT PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
@@ -3438,7 +3428,19 @@ MG_EXPORT LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, L
  * \sa PostSyncMessage
  */
 MG_EXPORT LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
-#endif /* defined _MGRM_THREADS */
+
+#else /* defined _MGHAVE_VIRTUAL_WINDOW */
+
+/**
+ * \def SendAsyncMessage
+ * \brief Is an alias of \a SendMessage if _MGHAVE_VIRTUAL_WINDOW
+ *        is not enabled.
+ *
+ * \sa SendMessage
+ */
+#define SendAsyncMessage SendMessage
+
+#endif /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
 /**
  * \fn int SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
@@ -3629,11 +3631,11 @@ MG_EXPORT LRESULT GUIAPI DispatchMessage (PMSG pMsg);
  */
 MG_EXPORT int GUIAPI ThrowAwayMessages (HWND pMainWnd);
 
-#ifndef _MGRM_THREADS
+#ifndef _MGHAVE_VIRTUAL_WINDOW
 
 /**
  * \fn BOOL EmptyMessageQueue (HWND hWnd)
- * \brief Empties a message queue.
+ * \brief Empty a message queue.
  *
  * This function empties the message queue of the main window \a hWnd.
  *
@@ -3641,13 +3643,13 @@ MG_EXPORT int GUIAPI ThrowAwayMessages (HWND pMainWnd);
  *
  * \return TRUE on all success, FALSE on error.
  *
- * \note Only defined for MiniGUI-Processes.
+ * \note Only defined when _MGHAVE_VIRTUAL_WINDOW is enabled.
  *
  * \sa ThrowAwayMessages
  */
 MG_EXPORT BOOL GUIAPI EmptyMessageQueue (HWND hWnd);
 
-#endif /* not defined _MGRM_THREADS */
+#endif /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifdef _MGHAVE_MSG_STRING
 
@@ -4214,7 +4216,7 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  *
  * Do not use the bits in this mask for applications.
  */
-#define WS_EX_INTERNAL_MASK     0x80000000L
+#define WS_EX_INTERNAL_MASK     0xF0000000L
 
     /** @} end of styles */
 
@@ -5024,11 +5026,15 @@ typedef struct _WINDOWINFO
     unsigned char   _padding1;
     unsigned char   _padding2;
     unsigned short  _padding3;
+    void*           _padding4;
 
-#ifdef _MGRM_THREADS
-    pthread_t       _padding4;
-#endif
-    void*           _padding5;
+    /** The caption of window.*/
+    const char*     spCaption;
+
+    /** The identifier of window.
+      * \note The type changed from int to LINT since v3.2.
+      */
+    LINT            id;
 
     /** The window procedure */
     WNDPROC         WinProc;
@@ -5041,6 +5047,7 @@ typedef struct _WINDOWINFO
     /** The second additional data of this window */
     DWORD           dwAddData2;
 
+    void*           _padding5;
     void*           _padding6;
     void*           _padding7;
     void*           _padding8;
@@ -5077,13 +5084,6 @@ typedef struct _WINDOWINFO
     HMENU hSysMenu;
     /** The pointer to logical font.*/
     PLOGFONT pLogFont;
-
-    /** The caption of window.*/
-    const char* spCaption;
-    /** The identifier of window.
-      * \note The type changed from int to LINT since v3.2.
-      */
-    LINT   id;
 
     /** The vertical scrollbar information.*/
     LFSCROLLBARINFO vscroll;
@@ -5938,7 +5938,8 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
 
 /**
  * \fn int GUIAPI CreateThreadForMessaging (pthread_t* thread,
- *      pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
+ *      pthread_attr_t* attr, void * (*start_routine)(void *), void* arg,
+ *      BOOL joinable, size_t stack_size)
  * \brief Create a message thread for main windows or virtual windows.
  *
  * The function creates a message thread for main windows or virtual windows
@@ -5947,18 +5948,26 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
  *
  * \param thread The buffer to return the thread identifier if
  *      the thread was successfully created.
- * \param attr  The pointer to the thread attribute.
- * \param start_routine The function which is the entry of the thread.
- * \param arg   The argument will be passed to \a start_routine.
+ * \param attr The pointer to the thread attribute.
+ * \param start_routine The entry function of the thread.
+ * \param arg The argument will be passed to \a start_routine.
+ * \param joinable Whether to create a joinable thread.
+ * \param stack_size The stack size in kilobytes, zero for default (4KiB).
  *
- * \return The return value of pthread_create (0 on success).
+ * \return On success, it returns 0; on error, an error number returned.
+ *      Exception the error numbers defined by pthread_create(), this
+ *      function may return ENOMEM when failed to allocate memory for
+ *      message queue.
+ *
+ * \note The last two arguments work only when \a attr is NULL.
  *
  * \sa pthread_create
  *
  * Since 4.2.0
  */
 MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
-        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg);
+        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg,
+        BOOL joinable, size_t stack_size);
 
 /**
  * \fn BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread)
@@ -5975,8 +5984,8 @@ MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
 MG_EXPORT BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread);
 
 /**
- * \fn void GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
- * \brief Cleans up the system resource associated with a virtual window.
+ * \fn BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
+ * \brief Cleanup the system resource associated with a virtual window.
  *
  * This function cleans up the system resource such as the message queue
  * associated with the virual window \a hVirtWnd. \a DestroyVirtualWindow
@@ -5989,19 +5998,23 @@ MG_EXPORT BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread);
  *
  * \sa DestroyVirtualWindow
  *
+ * \return TRUE on success, otherwise FALSE.
+ *
  * Since 4.2.0
  */
-MG_EXPORT void GUIAPI VirtualWindowThreadCleanup (HWND hVirtWnd);
+MG_EXPORT BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd);
 
 /**
  * \fn HWND GUIAPI CreateVirtualWindow (HWND hHosting,
- *      WNDPROC WndProc, DWORD dwAddData)
+ *      const char* spCaption, LINT id, WNDPROC WndProc, DWORD dwAddData)
  * \brief Create a virtual window.
  *
  * This function creates a virtual window for the purpose of
  * multi-thread messaging.
  *
  * \param hHosting The hosting virutal window.
+ * \param spCaption The caption of the virtual window.
+ * \param id The long integer (pointer size) identifier of the virtual window.
  * \param WndProc The window callback procedure.
  * \param dwAddData The additional data for the window.
  *
@@ -6017,7 +6030,7 @@ MG_EXPORT void GUIAPI VirtualWindowThreadCleanup (HWND hVirtWnd);
  * Since 4.2.0.
  */
 MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting,
-        WNDPROC WndProc, DWORD dwAddData);
+        const char* spCaption, LINT id, WNDPROC WndProc, DWORD dwAddData);
 
 /**
  * \fn BOOL GUIAPI DestroyVirtualWindow (HWND hWnd)
@@ -6148,10 +6161,14 @@ typedef MAINWINCREATE* PMAINWINCREATE;
  *
  * \return The return value of pthread_create (0 on success).
  *
- * \sa pthread_create
+ * \sa CreateThreadForMessaging, pthread_create
  */
-MG_EXPORT int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
-        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg);
+static inline int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
+        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
+{
+    return CreateThreadForMessaging (thread, attr, start_routine, arg,
+            FALSE, 16);
+}
 
 /**
  * \fn pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
@@ -6160,8 +6177,21 @@ MG_EXPORT int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
  * \param hMainWnd The handle to the main window.
  *
  * \return The thread identifier.
+ *
+ * \note Deprecated; use \a GetThreadByWindow() instead.
  */
-MG_EXPORT pthread_t GUIAPI GetMainWinThread (HWND hMainWnd);
+static inline pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
+{
+#ifdef WIN32
+    pthread_t ret;
+    memset(&ret, 0, sizeof(pthread_t));
+#else
+    pthread_t ret = 0;
+#endif
+
+    GetThreadByWindow (hMainWnd, &thread);
+    return thread;
+}
 
 /**
  * \fn int GUIAPI WaitMainWindowClose (HWND hWnd, void** retval)
@@ -6178,7 +6208,9 @@ MG_EXPORT pthread_t GUIAPI GetMainWinThread (HWND hMainWnd);
  *
  * \return The return value of pthread_join (0 on success).
  *
- * \note This function is deprecated.
+ * \note Deprecated; use GetThreadByWindow() and pthread_join() instead.
+ *
+ * \sa GetThreadByWindow
  */
 MG_EXPORT int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval);
 #endif /* defined _MGRM_THREADS */
