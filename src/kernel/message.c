@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -66,6 +66,10 @@
 #include "internals.h"
 #include "ctrlclass.h"
 #include "timer.h"
+
+#ifdef HAVE_SELECT
+#include "mgsock.h"
+#endif
 
 #ifdef _MGRM_PROCESSES
 #include "sharedres.h"
@@ -205,6 +209,16 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 }
 #endif /* _MGHAVE_VIRTUAL_WINDOW */
 
+#if 0
+BOOL __mg_kernel_dummy_idle_handler (PMSGQUEUE msg_queue, BOOL wait)
+{
+    if (wait)
+        __mg_os_time_delay (1);
+
+    return FALSE;
+}
+#endif
+
 BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 {
     memset (pMsgQueue, 0, sizeof(MSGQUEUE));
@@ -233,8 +247,26 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 
     pMsgQueue->len = iBufferLen;
 
-    pMsgQueue->FirstTimerSlot = 0;
-    pMsgQueue->TimerMask = 0;
+    pMsgQueue->OnIdle = NULL;
+
+    /* Since 4.2.0, MiniGUI provides support for timers per message thread */
+    // pMsgQueue->FirstTimerSlot = 0;
+    // pMsgQueue->TimerMask = 0;
+    // memset (pMsgQueue->timer_slots, 0, sizeof (pMsgQueue->timer_slots));
+
+#ifdef HAVE_SELECT
+    /* Since 4.2.0, MiniGUI supports listening file descriptors
+       per message thread */
+    // pMsgQueue->nr_fd_slots = 0;
+    // pMsgQueue->maxfd = 0;
+    // pMsgQueue->nr_rfds = 0;
+    // pMsgQueue->nr_wfds = 0;
+    // pMsgQueue->nr_efds = 0;
+    // pMsgQueue->fd_slots = NULL;
+    mg_fd_zero (&pMsgQueue->rfdset);
+    mg_fd_zero (&pMsgQueue->wfdset);
+    mg_fd_zero (&pMsgQueue->efdset);
+#endif
 
     return TRUE;
 }
@@ -417,7 +449,7 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 {
     PMSGQUEUE pMsgQueue;
 
-    if (hWnd == 0) {
+    if (hWnd == HWND_NULL) {
 #ifdef _MGHAVE_VIRTUAL_WINDOW
         if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE)))
             return FALSE;
@@ -426,7 +458,7 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 #endif
     }
     else {
-        if (!(pMsgQueue = getMsgQueue(hWnd)))
+        if (!(pMsgQueue = getMsgQueueByWindowInThisThread (hWnd)))
             return FALSE;
     }
 
@@ -466,11 +498,11 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 #endif
 
     UNLOCK_MSGQ (pMsgQueue);
-#ifndef _MGHAVE_VIRTUAL_WINDOW
-    return pMsgQueue->OnIdle (NULL);
-#else
+
+    /* Since 4.2.0, always call OnIdle with no wait */
+    if (pMsgQueue->OnIdle)
+        return pMsgQueue->OnIdle (pMsgQueue, FALSE);
     return FALSE;
-#endif
 
 retok:
     UNLOCK_MSGQ (pMsgQueue);
@@ -800,14 +832,23 @@ checkagain:
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     if (bWait) {
         /* no message, wait again. */
-        sem_wait (&pMsgQueue->wait);
-        goto checkagain;
+        if (pMsgQueue->OnIdle) {
+            if (sem_trywait (&pMsgQueue->wait) == 0)
+                goto checkagain;
+
+            pMsgQueue->OnIdle (pMsgQueue, TRUE);
+            goto checkagain;
+        }
+        else {
+            sem_wait (&pMsgQueue->wait);
+        }
     }
 #else
     /* no message, idle */
     if (bWait) {
-         pMsgQueue->OnIdle (pMsgQueue);
-         goto checkagain;
+        assert (pMsgQueue->OnIdle);
+        pMsgQueue->OnIdle (pMsgQueue, TRUE);
+        goto checkagain;
     }
 #endif
 
@@ -838,7 +879,7 @@ BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hWnd)
     if (!pMsg)
         return FALSE;
 
-    if (!(pMsgQueue = getMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueueByWindowInThisThread(hWnd)))
         return FALSE;
 
     memset (pMsg, 0, sizeof(MSG));
@@ -888,12 +929,22 @@ checkagain:
     }
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    /* no message, wait again. */
+    /* no message, try wait, if no message call idle. */
     UNLOCK_MSGQ (pMsgQueue);
-    sem_wait (&pMsgQueue->wait);
+    if (pMsgQueue->OnIdle) {
+        if (sem_trywait (&pMsgQueue->wait) == 0)
+            goto checkagain;
+
+        pMsgQueue->OnIdle (pMsgQueue, TRUE);
+        goto checkagain;
+    }
+    else {
+        sem_wait (&pMsgQueue->wait);
+    }
 #else
     /* no message, idle */
-    pMsgQueue->OnIdle (pMsgQueue);
+    assert (pMsgQueue->OnIdle);
+    pMsgQueue->OnIdle (pMsgQueue, TRUE);
 #endif
 
     goto checkagain;
@@ -912,7 +963,7 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
     if (!pMsg)
         return FALSE;
 
-    if (!(pMsgQueue = getMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueueByWindowInThisThread(hWnd)))
         return FALSE;
 
     LOCK_MSGQ (pMsgQueue);
@@ -1314,7 +1365,7 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
     PMSGQUEUE   pMsgQueue;
     PQMSG       pQMsg, temp;
 
-    if (!(pMsgQueue = getMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueueByWindowInThisThread(hWnd)))
         return FALSE;
 
     if (pMsgQueue->pFirstNotifyMsg) {
