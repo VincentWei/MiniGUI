@@ -231,7 +231,7 @@ void __mg_remove_client (int cli, int clifd)
                 mgClients[cli].layer, mgClients + cli);
 
     __mg_client_del (cli);    /* client has closed conn */
-    FD_CLR (clifd, &mg_rfdset);
+    FD_CLR (clifd, &__mg_dsk_msg_queue->rfdset);
     close (clifd);
 }
 
