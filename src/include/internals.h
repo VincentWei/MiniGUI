@@ -54,6 +54,16 @@
 
 #include "constants.h"
 #include "cliprect.h"
+#include "zorder.h"
+
+#ifdef HAVE_SELECT
+#   ifdef HAVE_SYS_SELECT_H
+#       include <sys/select.h>
+#   endif
+#   include <sys/time.h>
+#   include <sys/types.h>
+#   include <unistd.h>
+#endif
 
 /******************* Internal data *******************************************/
 
@@ -102,8 +112,6 @@ MGUI_COMPILE_TIME_ASSERT(ws_ex_int_2, WS_EX_INTERNAL_MASK & WS_EX_CTRLASMAINWIN)
 
 #define TYPE_WINTODEL       0xF1
 #define TYPE_UNDEFINED      0xFF
-
-#include "zorder.h"
 
 struct GAL_Surface;
 struct _MAINWIN;
@@ -174,7 +182,18 @@ typedef struct _SYNCMSG
 typedef SYNCMSG* PSYNCMSG;
 #endif   /* defined _MGHAVE_VIRTUAL_WINDOW */
 
-typedef BOOL (* IDLEHANDLER) (PMSGQUEUE msg_que);
+typedef BOOL (* IDLEHANDLER) (PMSGQUEUE msg_que, BOOL wait);
+
+#ifdef HAVE_SELECT
+
+typedef struct _LISTEN_FD {
+    int type;
+    int fd;
+    void* hwnd;
+    void* context;
+} LISTEN_FD;
+
+#endif
 
 // the MSGQUEUE struct is a internal struct.
 // using semaphores to implement message queue.
@@ -217,6 +236,17 @@ struct _MSGQUEUE
     TIMER* timer_slots [DEF_NR_TIMERS];
                                 // slots for timer
     DWORD TimerMask;            // timer slots mask
+
+#ifdef HAVE_SELECT
+    /* Since 4.2.0, MiniGUI supports listening file descriptors
+       per message thread */
+    int         nr_fd_slots;
+    int         maxfd, nr_rfds, nr_wfds, nr_efds;
+    fd_set      rfdset;
+    fd_set      wfdset;
+    fd_set      efdset;
+    LISTEN_FD** fd_slots;
+#endif
 };
 
 #ifdef __cplusplus
@@ -228,6 +258,12 @@ void mg_DestroyFreeQMSGList (void);
 BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen);
 void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue);
 BOOL kernel_QueueMessage (PMSGQUEUE pMsgQueue, PMSG msg);
+
+/* Since 4.2.0 */
+#ifdef HAVE_SELECT
+int __mg_kernel_check_listen_fds (MSGQUEUE* msg_queue,
+        fd_set* rsetptr, fd_set* wsetptr, fd_set* esetptr);
+#endif
 
 extern PMSGQUEUE __mg_dsk_msg_queue;
 
@@ -461,7 +497,7 @@ extern ZORDERINFO* __mg_zorder_info;
 
 #ifdef _MGRM_STANDALONE
 
-BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_que);
+BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_que, BOOL wait);
 BOOL salone_StandAloneStartup (void);
 void salone_StandAloneCleanup (void);
 
@@ -477,13 +513,13 @@ extern int __mg_client_id;
 BOOL kernel_IsOnlyMe (void);
 void* kernel_LoadSharedResource (void);
 void kernel_UnloadSharedResource (void);
-BOOL server_IdleHandler4Server (PMSGQUEUE msg_que);
+BOOL server_IdleHandler4Server (PMSGQUEUE msg_que, BOOL wait);
 void server_ServerCleanup (void);
 
 /* Only for client. */
 void* kernel_AttachSharedResource (void);
 void kernel_UnattachSharedResource (void);
-BOOL client_IdleHandler4Client (PMSGQUEUE msg_que);
+BOOL client_IdleHandler4Client (PMSGQUEUE msg_que, BOOL wait);
 BOOL client_ClientStartup (void);
 void client_ClientCleanup (void);
 
@@ -660,7 +696,7 @@ static inline TIMER** getTimerSlotsForThisThread (void)
 }
 
 /* Be careful: does not check validity of hWnd */
-static inline BOOL isWindowInThisThread (HWND hWnd)
+static inline MSGQUEUE* isWindowInThisThread (HWND hWnd)
 {
     PMAINWIN pMainWin = getMainWindowPtr(hWnd);
 #ifdef WIN32
@@ -668,9 +704,22 @@ static inline BOOL isWindowInThisThread (HWND hWnd)
 #else
     if (pMainWin && pMainWin->pMsgQueue->th == pthread_self())
 #endif
-        return TRUE;
+        return pMainWin->pMsgQueue;
 
-    return FALSE;
+    return NULL;
+}
+
+static inline MSGQUEUE* getMsgQueueByWindowInThisThread (HWND hWnd)
+{
+    PMAINWIN pMainWin = getMainWindowPtr(hWnd);
+#ifdef WIN32
+    if (pMainWin && pMainWin->pMsgQueue->th.p == pthread_self().p)
+#else
+    if (pMainWin && pMainWin->pMsgQueue->th == pthread_self())
+#endif
+        return pMainWin->pMsgQueue;
+
+    return NULL;
 }
 
 #else   /* define _MGHAVE_VIRTUAL_WINDOW */
@@ -688,6 +737,11 @@ static inline TIMER** getTimerSlotsForThisThread (void)
 static inline BOOL isWindowInThisThread (HWND hWnd)
 {
     return TRUE;
+}
+
+static inline MSGQUEUE* getMsgQueueByWindowInThisThread (HWND hWnd)
+{
+    return __mg_dsk_msg_queue;
 }
 
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
