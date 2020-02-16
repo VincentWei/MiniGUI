@@ -176,14 +176,16 @@ extern DWORD __mg_os_get_time_ms(void);
 
 BOOL GUIAPI salone_StandAloneStartup (void)
 {
-    mg_fd_zero (&mg_rfdset);
+#if 0
     mg_maxfd = 0;
+    mg_fd_zero (&mg_rfdset);
+#endif /* deprecated code since 4.2.0 */
 
 #if 0 /* VW: do not use signal based interval timer; since 4.0 */
     mg_InstallIntervalTimer ();
 #endif
 
-    __mg_os_start_time_ms();
+    __mg_os_start_time_ms ();
 
     return TRUE;
 }
@@ -195,14 +197,16 @@ void salone_StandAloneCleanup (void)
 #endif
 }
 
+#if 0
 BOOL minigui_idle (void)
 {
-    return salone_IdleHandler4StandAlone (__mg_dsk_msg_queue);
+    return salone_IdleHandler4StandAlone (__mg_dsk_msg_queue, TRUE);
 }
+#endif /* deprecated code */
 
-BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
+BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
 {
-    int    i, n;
+    int n;
 #ifdef __NOUNIX__
     struct timeval sel_timeout = {0, 10000};
 #elif defined (_MGGAL_BF533)
@@ -212,6 +216,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
 #endif
     struct timeval sel_timeout_nd = {0, 0};
     fd_set rset, wset, eset;
+    fd_set* rsetptr = NULL;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
@@ -221,23 +226,27 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
         SetDesktopTimerFlag ();
     }
 
-    rset = mg_rfdset;        /* rset gets modified each time around */
-    if (mg_wfdset) {
-        wset = *mg_wfdset;
+    /* rset gets modified each time around */
+    if (msg_queue->nr_rfds) {
+        rset = msg_queue->rfdset;
+        rsetptr = &rset;
+    }
+    if (msg_queue->nr_wfds) {
+        wset = msg_queue->wfdset;
         wsetptr = &wset;
     }
-    if (mg_efdset) {
-        eset = *mg_efdset;
+    if (msg_queue->nr_efds) {
+        eset = msg_queue->efdset;
         esetptr = &eset;
     }
 
     extra.params_mask = 0;
 #ifdef __NOUNIX__
-    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
+    n = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+                wait?&sel_timeout:&sel_timeout_nd, &extra);
 
     /* update __mg_timer_counter */
-    if (msg_queue) {
+    if (wait) {
         //__mg_timer_counter += 10;
         /**
         10 is too fast, the "repeat_threshold" is 5, use ++, repeate 5 times
@@ -245,36 +254,30 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
         __mg_timer_counter++;
     }
 #elif defined (_MGGAL_BF533)
-    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
+    n = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+                wait?&sel_timeout:&sel_timeout_nd, &extra);
 
     /* update __mg_timer_counter */
-    if (msg_queue) {
+    if (wait) {
         __mg_timer_counter += 1;
     }
 #else
-    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
+    n = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+                wait?&sel_timeout:&sel_timeout_nd, &extra);
     /* update __mg_timer_counter */
     __mg_timer_counter = __mg_os_get_time_ms()/10;
 #endif
 
-    if (msg_queue == NULL)
-        msg_queue = __mg_dsk_msg_queue;
-
     if (n < 0) {
-
         /* It is time to check event again. */
         if (errno == EINTR) {
-            //if (msg_queue)
             ParseEvent (msg_queue, 0);
         }
         return FALSE;
     }
-/*
-    else if (msg_queue == NULL)
+    else if (!wait)
         return (n > 0);
-*/
+
     /* handle intput event (mouse/touch-screen or keyboard) */
     if (n & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
     if (n & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
@@ -312,35 +315,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
         ParseEvent (msg_queue, 0);
 
     /* go through registered listen fds */
-    for (i = 0; i < MAX_NR_LISTEN_FD; i++) {
-        MSG Msg;
-
-        Msg.message = MSG_FDEVENT;
-
-        if (mg_listen_fds [i].fd) {
-            fd_set* temp = NULL;
-            int type = mg_listen_fds [i].type;
-
-            switch (type) {
-            case POLLIN:
-                temp = &rset;
-                break;
-            case POLLOUT:
-                temp = wsetptr;
-                break;
-            case POLLERR:
-                temp = esetptr;
-                break;
-            }
-
-            if (temp && mg_fd_isset (mg_listen_fds [i].fd, temp)) {
-                Msg.hwnd = (HWND)mg_listen_fds [i].hwnd;
-                Msg.wParam = MAKELONG (mg_listen_fds [i].fd, type);
-                Msg.lParam = (LPARAM)mg_listen_fds [i].context;
-                kernel_QueueMessage (msg_queue, &Msg);
-            }
-        }
-    }
+    __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
 
     return (n > 0);
 }
