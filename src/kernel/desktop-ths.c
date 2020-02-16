@@ -146,13 +146,12 @@ void* __kernel_desktop_main (void* data)
 
     /* init message queue of desktop thread */
     if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
-        _WRN_PRINTF ("KERNEL>Desktop: mg_AllocMsgQueueForThisThread failure!\n");
+        _WRN_PRINTF ("failed to allocate message queue\n");
         return NULL;
     }
 
     /* init desktop window */
     init_desktop_win();
-    __mg_dsk_win->th = pthread_self ();
     __mg_dsk_msg_queue->pRootMainWin = __mg_dsk_win;
 
     DesktopWinProc (HWND_DESKTOP, MSG_STARTSESSION, 0, 0);
