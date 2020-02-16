@@ -180,13 +180,21 @@ void mg_FreeMsgQueueForThisThread (void)
 #else
     if (pMsgQueue) {
 #endif
+        if (pMsgQueue->nrWindows > 0) {
+            _WRN_PRINTF ("there are still some windows not destroyed\n");
+        }
+
         mg_DestroyMsgQueue (pMsgQueue);
         free (pMsgQueue);
+
 #ifdef __VXWORKS__
         pthread_setspecific (__mg_threadinfo_key, (void*)-1);
 #else
         pthread_setspecific (__mg_threadinfo_key, NULL);
 #endif
+    }
+    else {
+        _WRN_PRINTF ("message queue has gone\n");
     }
 }
 
