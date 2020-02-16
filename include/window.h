@@ -74,6 +74,10 @@
 #include <semaphore.h>
 #endif
 
+#ifdef HAVE_POLL
+#include <poll.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -2838,14 +2842,14 @@ typedef struct _WINMASKINFO {
 
 #define MSG_CARETBLINK      0x0145
 
-#ifndef _MGRM_THREADS
+#ifdef HAVE_SELECT
 
 /**
  * \def MSG_FDEVENT
  * \brief Indicates an event of registered file descriptor occurred.
  *
  * You can use \a RegisterListenFD to register a file desciptor to
- * MiniGUI-Processes for listening.
+ * MiniGUI for listening.
  *
  * When there is a read/write/except event on the fd, MiniGUI
  * will post a MSG_FDEVENT message with \a wParam being equal to
@@ -2860,14 +2864,20 @@ typedef struct _WINMASKINFO {
  * \endcode
  *
  * \param fd The listened file descriptor.
- * \param type The event type.
+ * \param type The event type, can be Or'd with one or more of
+ *      POLLIN, POLLOUT, and POLLERR.
  * \param context A context value.
  *
- * \note Only available on MiniGUI-Processes.
+ * \note The file descriptor here was assumed as a unsigned short integer
+ *      on a 32-bit platform.
  *
  * \sa RegisterListenFD
  */
 #define MSG_FDEVENT         0x0146
+
+#endif /* defined HAVE_SELECT */
+
+#ifdef _MGRM_PROCESSES
 
 /**
  * \def MSG_SRVNOTIFY
@@ -2890,7 +2900,7 @@ typedef struct _WINMASKINFO {
    if the client moved to a new layer */
 #define MSG_LAYERCHANGED    0x0149
 
-#endif /* !_MGRM_THREADS */
+#endif /* defined _MGRM_PROCESSES */
 
 /**
  * \def MSG_DOESNEEDIME
@@ -3691,6 +3701,104 @@ MG_EXPORT void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
 #endif /* defined _MGHAVE_MSG_STRING */
 
     /** @} end of msg_pass_fns */
+
+#ifdef HAVE_SELECT
+    /**
+     * \defgroup listenfd_fns Listening a file descriptor
+     *
+     * Register/Unregister a listening file descriptor to the message queue
+     * of the current thread.
+     *
+     * When you need to listen to a file descriptor, you can use \a select(2)
+     * system call. In MiniGUI, you can also register it to MiniGUI to
+     * be a listened fd, and when there is a read/write/except event on
+     * the registered fd, MiniGUI will sent a notification message to
+     * the registered window.
+     *
+     * The functions in this group are only available to MiniGUI-Processes
+     * and MiniGUI-Standalone before 4.2.0. Since 4.2.0, you can register a
+     * file descriptor to be listened for all runtime modes as long as the
+     * underlying system supports select().
+     *
+     * Example:
+     *
+     * \include listenfd.c
+     *
+     * @{
+     */
+
+/**
+ * \def MAX_NR_LISTEN_FD
+ * \brief The max number of listen fd which user can use.
+ *
+ * \note Deprecated since 4.2.0. MiniGUI will try to allocate enough space to
+ *      manage all listening file descriptors.
+ */
+#define MAX_NR_LISTEN_FD   4
+
+#ifdef WIN32
+#ifndef POLLIN
+#define POLLIN  0x001
+#endif
+
+#ifndef POLLOUT
+#define POLLOUT 0x004
+#endif
+
+#ifndef POLLERR
+#define POLLERR 0x008
+#endif
+
+#endif /* WIN32 */
+
+/**
+ * \fn BOOL GUIAPI RegisterListenFD (int fd, int type,
+                HWND hwnd, void* context)
+ * \brief Register a file descriptor to be listened in the message loop.
+ *
+ * This function registers the file desciptor \a fd to be listened in the
+ * message loop of the current message thread.
+ *
+ * When there is a read/write/except event on this \a fd, MiniGUI
+ * will post a MSG_FDEVENT message with wParam being equal to
+ * MAKELONG (fd, type), and the lParam being set to \a context
+ * to the target window \a hwnd.
+ *
+ * \param fd The file descriptor to be listened.
+ * \param type The type of the event to be listened, can be Or'd with
+ *      one or more of POLLIN, POLLOUT, and POLLERR.
+ * \param hwnd The handle to the window will receive MSG_FDEVENT message.
+ * \param context The value will be passed to the window as lParam of
+ *        MSG_FDEVENT message.
+ *
+ * \return TRUE if all OK, and FALSE on error.
+ *
+ * \note Only available when the underlying system has select().
+ *
+ * \sa UnregisterListenFD, system_msgs
+ */
+MG_EXPORT BOOL GUIAPI RegisterListenFD (int fd, int type,
+                HWND hwnd, void* context);
+
+/**
+ * \fn BOOL GUIAPI UnregisterListenFD (int fd)
+ * \brief Unregister a being listened file descriptor.
+ *
+ * This function unregisters the being listened file descriptor \a fd.
+ *
+ * \param fd The file descriptor to be unregistered, should be a being
+ *        listened file descriptor.
+ * \return TRUE if all OK, and FALSE on error.
+ *
+ * \note Only available when the underlying system has select().
+ *
+ * \sa RegisterListenFD
+ */
+MG_EXPORT BOOL GUIAPI UnregisterListenFD (int fd);
+
+    /** @} end of listenfd_fns */
+
+#endif /* defined HAVE_SELECT */
 
     /**
      * \defgroup msg_hook_fns Message or event hook functions
@@ -6184,13 +6292,13 @@ static inline pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
 {
 #ifdef WIN32
     pthread_t ret;
-    memset(&ret, 0, sizeof(pthread_t));
+    memset (&ret, 0, sizeof (pthread_t));
 #else
     pthread_t ret = 0;
 #endif
 
-    GetThreadByWindow (hMainWnd, &thread);
-    return thread;
+    GetThreadByWindow (hMainWnd, &ret);
+    return ret;
 }
 
 /**
