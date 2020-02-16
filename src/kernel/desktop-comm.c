@@ -76,9 +76,6 @@ static void init_desktop_win (void)
 
     pDesktopWin->DataType          = TYPE_HWND;
     pDesktopWin->WinType           = TYPE_ROOTWIN;
-#ifdef _MGRM_THREADS
-    pDesktopWin->th                = __mg_desktop;
-#endif
 
     pDesktopWin->pLogFont          = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
     pDesktopWin->spCaption         = "THE DESKTOP WINDOW";
