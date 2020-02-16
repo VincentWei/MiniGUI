@@ -3770,10 +3770,12 @@ BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
     MG_CHECK_RET (MG_IS_MAIN_WINDOW (hMainWnd), FALSE);
     pMainWin = MG_GET_MAIN_WINDOW_PTR (hMainWnd);
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE)) ||
             pMainWin->pMsgQueue != pMsgQueue) {
         return FALSE;
     }
+#endif
 
     _DBG_PRINTF ("window(%p), caption(%s)\n", pMainWin, pMainWin->spCaption);
 
@@ -3789,9 +3791,11 @@ BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
 #endif
 
     pMsgQueue->nrWindows--;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     if (pMsgQueue->nrWindows == 0) {
         mg_FreeMsgQueueForThisThread ();
     }
+#endif
 
     free (pMainWin);
     return TRUE;
@@ -3870,7 +3874,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     if (pWin->pMsgQueue->pRootMainWin == NULL) {
         pWin->pMsgQueue->pRootMainWin = pWin;
     }
-    else if (hHosting == HWND_DESKTOP || hHosting == HWND_NULL) {
+    else if (pCreateInfo->hHosting == HWND_DESKTOP ||
+            pCreateInfo->hHosting == HWND_NULL) {
         pWin->pHosting = pWin->pMsgQueue->pRootMainWin;
     }
     else {
