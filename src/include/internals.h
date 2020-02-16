@@ -219,9 +219,7 @@ struct _MSGQUEUE
 
     IDLEHANDLER OnIdle;         // XXX: idle handler
 
-#ifdef _MGHAVE_VIRTUAL_WINDOW
     PMAINWIN pRootMainWin;      // the root main window of this message queue.
-#endif
     int nrWindows;              // the number of main/virtual windows.
 
     /* buffer for post message */
@@ -352,10 +350,8 @@ typedef struct _VIRTWIN
     /*
      * Fields for both virtual window and main window.
      */
-#ifdef _MGUSE_VIRTUAL_WINDOW
     //pthread_t th;         // the thread which creates this virtual window.
                             // moved to message queue structure since 4.2.0.
-#endif
     PMSGQUEUE pMsgQueue;    // the message queue.
 
     char* spCaption;        // the caption of main window.
@@ -396,10 +392,8 @@ typedef struct _MAINWIN
      * Common fields for control, virtual window, and main window.
      * VM[2020-02-14]: Move these fields to header to support virtual window.
      */
-#ifdef _MGUSE_VIRTUAL_WINDOW
     // pthread_t th;        // the thread which creates this main window.
                             // moved to message queue structure since 4.2.0.
-#endif
     PMSGQUEUE pMsgQueue;    // the message queue.
 
     char* spCaption;        // the caption of main window.
