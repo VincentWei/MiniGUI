@@ -62,7 +62,7 @@ dnl ========================================================================
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS(limits.h math.h locale.h unistd.h termio.h sys/types.h sys/time.h sys/memfd.h)
+AC_CHECK_HEADERS(limits.h math.h locale.h unistd.h termio.h sys/types.h sys/time.h sys/select.h sys/memfd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -77,7 +77,7 @@ AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(time mktime localtime clock_gettime strdup strcasecmp strncasecmp strerror setlocale)
-AC_CHECK_FUNCS(posix_memalign memalign valloc memfd_create)
+AC_CHECK_FUNCS(posix_memalign memalign valloc memfd_create poll select)
 
 PKG_CHECK_MODULES(UDEV, [libudev >= 200], have_udev="yes", have_udev="no; need libudev 200+")
 
