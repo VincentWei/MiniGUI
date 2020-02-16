@@ -1334,6 +1334,7 @@ static int get_next_activable_mainwin (const ZORDERINFO* zi, int from)
     return 0;
 }
 
+#if 0   /* move to window.c since 4.2.0 */
 /*
  * Add new hosted main window.
  */
@@ -1383,6 +1384,7 @@ static void dskRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
 
     return;
 }
+#endif  /* moved code */
 
 /*
  * Moves a window to topmost.
