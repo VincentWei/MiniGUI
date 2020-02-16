@@ -121,9 +121,8 @@ BOOL client_ClientStartup (void)
     if ( (conn_fd = cli_conn (CS_PATH, 'a')) < 0)
         return FALSE;
 
-    FD_ZERO (&mg_rfdset);
-    FD_SET (conn_fd, &mg_rfdset);
-    mg_maxfd = conn_fd;
+    FD_SET (conn_fd, &__mg_dsk_msg_queue->rfdset);
+    __mg_dsk_msg_queue->maxfd = conn_fd;
 
     __mg_set_select_timeout (0);
 
@@ -377,37 +376,38 @@ static void check_live (void)
     ClientRequest (&req, NULL, 0);
 }
 
-BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
+BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
 {
     static DWORD old_timer;
     static long repeat_timeout = TIMEOUT_START_REPEAT;
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
-    int i, n, nread;
+    int n, nread;
     struct timeval sel_timeout;
     MSG Msg;
 
     check_live ();
 
-    rset = mg_rfdset;        /* rset gets modified each time around */
-    if (mg_wfdset) {
-        wset = *mg_wfdset;
+    /* rset gets modified each time around */
+    rset = msg_queue->rfdset;
+    if (msg_queue->nr_wfds) {
+        wset = msg_queue->wfdset;
         wsetptr = &wset;
     }
-    if (mg_efdset) {
-        eset = *mg_efdset;
+    if (msg_queue->nr_efds) {
+        eset = msg_queue->efdset;
         esetptr = &eset;
     }
 
-    if (msg_que)
+    if (wait)
         sel_timeout = my_timeout;
     else {  /* check fd only: for HavePendingMessage function */
         sel_timeout.tv_sec = 0;
         sel_timeout.tv_usec = 0;
     }
 
-    if ((n = select (mg_maxfd + 1,
+    if ((n = select (msg_queue->maxfd + 1,
             &rset, wsetptr, esetptr, &sel_timeout)) < 0) {
         if (errno == EINTR) {
             /* it is time to check message again. */
@@ -417,14 +417,13 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
     }
     else if (n == 0) {
         check_live ();
-        if (msg_que
-                && (__mg_timer_counter - old_timer) >= repeat_timeout) {
+        if (wait && (__mg_timer_counter - old_timer) >= repeat_timeout) {
             Msg.hwnd = HWND_DESKTOP;
             Msg.message = MSG_TIMEOUT;
             Msg.wParam = (WPARAM)__mg_timer_counter;
             Msg.lParam = 0;
             Msg.time = __mg_timer_counter;
-            kernel_QueueMessage (msg_que, &Msg);
+            kernel_QueueMessage (msg_queue, &Msg);
 
             old_timer = __mg_timer_counter;
             repeat_timeout = TIMEOUT_REPEAT;
@@ -447,7 +446,8 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
             old_mouse_move_serial = SHAREDRES_MOUSEMOVESERIAL;
             UNLOCK_MOUSEMOVE_SEM();
 
-            if (flag && (mouse_x != old_mouse_x || mouse_y != old_mouse_y || buttons != old_buttons)) {
+            if (flag && (mouse_x != old_mouse_x || mouse_y != old_mouse_y ||
+                        buttons != old_buttons)) {
                 MSG msg;
                 old_mouse_x = mouse_x;
                 old_mouse_y = mouse_y;
@@ -464,19 +464,20 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
 
         return FALSE;
     }
-    /* check fd only: for HavePendingMessage function. */
-    else if (msg_que == NULL)
+    /* check fd only for HavePendingMessage function. */
+    else if (!wait)
         return TRUE;
 
     old_timer = __mg_timer_counter;
     repeat_timeout = TIMEOUT_START_REPEAT;
 
     if (FD_ISSET (conn_fd, &rset) &&
-        (!OnTrylockClientReq || !OnUnlockClientReq
-        || (OnTrylockClientReq && OnUnlockClientReq && !OnTrylockClientReq()))) {
+        (!OnTrylockClientReq || !OnUnlockClientReq ||
+         (OnTrylockClientReq && OnUnlockClientReq &&
+            !OnTrylockClientReq()))) {
 
 #if 1
-        if ( (nread = sock_read (conn_fd, &Msg, sizeof (MSG))) < 0) {
+        if ((nread = sock_read (conn_fd, &Msg, sizeof (MSG))) < 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
             __mg_err_sys ("client: read error on fd %d", conn_fd);
@@ -515,35 +516,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
     }
 
     /* go through registered listen fds */
-    for (i = 0; i < MAX_NR_LISTEN_FD; i++) {
-        MSG Msg;
-
-        Msg.message = MSG_FDEVENT;
-
-        if (mg_listen_fds [i].fd) {
-            fd_set* temp = NULL;
-            int type = mg_listen_fds [i].type;
-
-            switch (type) {
-            case POLLIN:
-                temp = &rset;
-                break;
-            case POLLOUT:
-                temp = wsetptr;
-                break;
-            case POLLERR:
-                temp = esetptr;
-                break;
-            }
-
-            if (temp && FD_ISSET (mg_listen_fds [i].fd, temp)) {
-                Msg.hwnd = (HWND)mg_listen_fds [i].hwnd;
-                Msg.wParam = MAKELONG (mg_listen_fds [i].fd, type);
-                Msg.lParam = (LPARAM)mg_listen_fds [i].context;
-                kernel_QueueMessage (msg_que, &Msg);
-            }
-        }
-    }
+    __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
 
     check_live ();
 
