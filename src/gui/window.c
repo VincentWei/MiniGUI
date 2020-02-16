@@ -3466,6 +3466,51 @@ BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
     return TRUE;
 }
 
+/* moved here from desktop.c; can be used on virtual window */
+static void guiAddNewHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
+{
+    PMAINWIN head, prev;
+
+    pHosted->pNextHosted = NULL;
+
+    head = pHosting->pFirstHosted;
+    if (head) {
+        while (head) {
+            prev = head;
+            head = head->pNextHosted;
+        }
+
+        prev->pNextHosted = pHosted;
+    }
+    else
+        pHosting->pFirstHosted = pHosted;
+
+    return;
+}
+
+/* moved here from desktop.c; can be used on virtual window */
+static void guiRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
+{
+    PMAINWIN head, prev;
+
+    head = pHosting->pFirstHosted;
+    if (head == pHosted) {
+        pHosting->pFirstHosted = head->pNextHosted;
+        return;
+    }
+
+    while (head) {
+        prev = head;
+        head = head->pNextHosted;
+
+        if (head == pHosted) {
+            prev->pNextHosted = head->pNextHosted;
+            return;
+        }
+    }
+
+    return;
+}
 /************************* Support for virtual window ************************/
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
@@ -3587,7 +3632,7 @@ HWND GUIAPI CreateVirtualWindow (HWND hHosting,
         pVirtWin->pHosting = (PVIRTWIN)pMsgQueue->pRootMainWin;
     }
     else {
-        if (pMsgQueue != getMsgQueue (hHosting)) {
+        if (pMsgQueue != getMsgQueueByWindowInThisThread (hHosting)) {
             goto err;
         }
         else {
@@ -3599,11 +3644,21 @@ HWND GUIAPI CreateVirtualWindow (HWND hHosting,
         goto err;
     }
 
+    /* handle hosting relationship */
+    if (pVirtWin->pHosting)
+        guiAddNewHostedMainWindow ((PMAINWIN)pVirtWin->pHosting,
+                (PMAINWIN)pVirtWin);
+
     pMsgQueue->nrWindows++;
 
     return (HWND)pVirtWin;
 
 err:
+    if (pMsgQueue->pRootMainWin == (PMAINWIN)pVirtWin) {
+        pMsgQueue->pRootMainWin = NULL;
+        assert (pMsgQueue->nrWindows == 0);
+    }
+
     free (pVirtWin);
     return HWND_INVALID;
 }
@@ -3617,8 +3672,7 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
     MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
     pVirtWin = MG_GET_VIRTUAL_WINDOW_PTR (hVirtWnd);
 
-    if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE)) ||
-            pVirtWin->pMsgQueue != pMsgQueue) {
+    if (!(pMsgQueue = getMsgQueueByWindowInThisThread (hVirtWnd))) {
         return FALSE;
     }
 
@@ -3633,15 +3687,16 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
             else
                 goto broken;
         }
-        else if (MG_IS_MAIN_WINDOW ((HWND)next)) {
+        else if (IsDialog((HWND)next)) {
+            if (!EndDialog ((HWND)next, IDCANCEL))
+                goto broken;
+        }
+        else {
+            assert (MG_IS_MAIN_WINDOW ((HWND)next));
             if (DestroyMainWindow ((HWND)next)) {
                 MainWindowCleanup ((HWND)next);
             }
             else
-                goto broken;
-        }
-        else if (IsDialog((HWND)next)) {
-            if (!EndDialog ((HWND)next, IDCANCEL))
                 goto broken;
         }
 
@@ -3664,6 +3719,11 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
         pVirtWin->spCaption = NULL;
     }
 
+    if (pMsgQueue->pRootMainWin == (PMAINWIN)pVirtWin) {
+        pMsgQueue->pRootMainWin = NULL;
+        assert (pMsgQueue->nrWindows == 0);
+    }
+
     return TRUE;
 
 broken:
@@ -3678,8 +3738,7 @@ BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
     MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
     pVirtWin = MG_GET_VIRTUAL_WINDOW_PTR (hVirtWnd);
 
-    if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE)) ||
-            pVirtWin->pMsgQueue != pMsgQueue) {
+    if (!(pMsgQueue = getMsgQueueByWindowInThisThread (hVirtWnd))) {
         return FALSE;
     }
 
@@ -3791,11 +3850,6 @@ BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
 #endif
 
     pMsgQueue->nrWindows--;
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (pMsgQueue->nrWindows == 0) {
-        mg_FreeMsgQueueForThisThread ();
-    }
-#endif
 
     free (pMainWin);
     return TRUE;
@@ -4027,6 +4081,10 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     pWin->pGCRInfo = &pWin->GCRInfo;
 #endif
 
+    /* handle hosting relationship */
+    if (pWin->pHosting)
+        guiAddNewHostedMainWindow (pWin->pHosting, pWin);
+
     if (SendMessage (HWND_DESKTOP, MSG_ADDNEWMAINWIN,
             (WPARAM)pWin, (LPARAM)&ct_info) < 0)
         goto err;
@@ -4089,11 +4147,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     return (HWND)pWin;
 
 err:
-#ifdef _MGRM_THREADS
-    if (pWin->pMsgQueue && pWin->pHosting == NULL) {
-        mg_FreeMsgQueueForThisThread ();
-    }
-#endif
+    if (pWin->pHosting)
+        guiRemoveHostedMainWindow (pWin->pHosting, pWin);
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (pWin->surf)
@@ -4102,6 +4157,11 @@ err:
     if (pWin->secondaryDC)
         DeleteSecondaryDC ((HWND)pWin);
 
+    if (pWin->pMsgQueue && pWin->pMsgQueue->pRootMainWin == pWin) {
+        pWin->pMsgQueue->pRootMainWin = NULL;
+        assert (pWin->pMsgQueue->nrWindows == 0);
+    }
+
     free (pWin);
     return HWND_INVALID;
 }
@@ -4109,9 +4169,46 @@ err:
 BOOL GUIAPI DestroyMainWindow (HWND hWnd)
 {
     PMAINWIN pWin;
-    PMAINWIN head, next;    /* hosted window list. */
+    PMAINWIN head, next;    /* for hosted window list. */
+    PMSGQUEUE pMsgQueue;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd))) return FALSE;
+    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+        return FALSE;
+
+    if (!(pMsgQueue = getMsgQueueByWindowInThisThread (hWnd))) {
+        return FALSE;
+    }
+
+    /* destroy all hosted main windows and dialogs here. */
+    head = pWin->pFirstHosted;
+    while (head) {
+        next = head->pNextHosted;
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        if (MG_IS_VIRTUAL_WINDOW ((HWND)next)) {
+            if (DestroyVirtualWindow ((HWND)next)) {
+                VirtualWindowCleanup ((HWND)next);
+            }
+            else
+                return FALSE;
+        }
+        else
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+        if (IsDialog((HWND)head)) {
+            if (!EndDialog ((HWND)head, IDCANCEL))
+                return FALSE;
+        }
+        else {
+            assert (MG_IS_MAIN_WINDOW ((HWND)next));
+
+            if (DestroyMainWindow ((HWND)head))
+                MainWindowCleanup ((HWND)head);
+            else
+                return FALSE;
+        }
+
+        head = next;
+    }
 
     if (SendMessage (hWnd, MSG_DESTROY, 0, 0))
         return FALSE;
@@ -4119,26 +4216,13 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     /* destroy all controls of this window */
     DestroyAllControls (hWnd);
 
-    /* destroy all hosted main windows and dialogs here. */
-    head = pWin->pFirstHosted;
-    while (head) {
-        next = head->pNextHosted;
-
-        if (IsDialog((HWND)head)) {
-            EndDialog ((HWND)head, IDCANCEL);
-        }
-        else {
-            if (DestroyMainWindow ((HWND)head))
-                MainWindowCleanup ((HWND)head);
-        }
-
-        head = next;
-    }
-
     /* kill all timers of this window */
     KillTimer (hWnd, 0);
 
-    SendMessage(HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)hWnd, 0);
+    if (pWin->pHosting)
+        guiRemoveHostedMainWindow (pWin->pHosting, pWin);
+
+    SendMessage (HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)hWnd, 0);
 
     if (sg_repeat_msg.hwnd == hWnd)
         sg_repeat_msg.hwnd = 0;
@@ -4196,6 +4280,11 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     pthread_mutex_destroy (&pWin->pGCRInfo->lock);
     pthread_mutex_destroy (&pWin->InvRgn.lock);
 #endif
+
+    if (pMsgQueue->pRootMainWin == pWin) {
+        pMsgQueue->pRootMainWin = NULL;
+        assert (pMsgQueue->nrWindows == 0);
+    }
 
     return TRUE;
 }
