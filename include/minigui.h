@@ -378,100 +378,12 @@ MG_EXPORT void GUIAPI TerminateGUI (int not_used);
 **/
 MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
 
-#ifndef _MGRM_THREADS
+#ifdef _MGRM_PROCESSES
 
     /**
      * \defgroup lite_fns MiniGUI-Processes specific functions
      * @{
      */
-
-    /**
-     * \defgroup lite_listenfd_fns Listening a file descriptor
-     *
-     * Register/Unregister a listen fd to MiniGUI.
-     *
-     * When you need to listen a file descriptor, you can use \a select(2)
-     * system call. In MiniGUI, you can also register it to MiniGUI to
-     * be a listened fd, and when there is a read/write/except event on
-     * the registered fd , MiniGUI will sent a notification message to
-     * the registered window.
-     *
-     * Example:
-     *
-     * \include listenfd.c
-     *
-     * @{
-     */
-
-/**
-* \def MAX_NR_LISTEN_FD
-* \brief The max number of listen fd which user can use.
-**/
-#define MAX_NR_LISTEN_FD   5
-
-#ifdef WIN32
-#ifndef POLLIN
-#define POLLIN  0x001
-#endif
-
-#ifndef POLLOUT
-#define POLLOUT 0x004
-#endif
-
-#ifndef POLLERR
-#define POLLERR 0x008
-#endif
-
-#endif /* WIN32 */
-
-/**
- * \fn BOOL GUIAPI RegisterListenFD (int fd, int type,
-                HWND hwnd, void* context)
- * \brief Registers a listening file descriptor to MiniGUI-Lite.
- *
- * This function registers the file desciptor \a fd to MiniGUI-Lite for
- * listening.
- *
- * When there is a read/write/except event on this \a fd, MiniGUI
- * will post a MSG_FDEVENT message with wParam being equal to
- * MAKELONG (fd, type), and the lParam being set to \a context
- * to the target window \a hwnd.
- *
- * \param fd The file descriptor to be listened.
- * \param type The type of the event to be listened, can be POLLIN, POLLOUT,
- *        or POLLERR.
- * \param hwnd The handle to the window will receive MSG_FDEVENT message.
- * \param context The value will be passed to the window as lParam of
- *        MSG_FDEVENT message.
- *
- * \return TRUE if all OK, and FALSE on error.
- *
- * \note Only available on MiniGUI-Processes.
- *
- * \sa UnregisterListenFD, system_msgs
- */
-MG_EXPORT BOOL GUIAPI RegisterListenFD (int fd, int type,
-                HWND hwnd, void* context);
-
-/**
- * \fn BOOL GUIAPI UnregisterListenFD (int fd)
- * \brief Unregisters a being listened file descriptor.
- *
- * This function unregisters the being listened file descriptor \a fd.
- *
- * \param fd The file descriptor to be unregistered, should be a being
- *        listened file descriptor.
- * \return TRUE if all OK, and FALSE on error.
- *
- * \note Only available on MiniGUI-Processes.
- *
- * \sa RegisterListenFD
- */
-MG_EXPORT BOOL GUIAPI UnregisterListenFD (int fd);
-
-    /** @} end of lite_listenfd_fns */
-
-#ifdef _MGRM_PROCESSES
 
     /**
      * \defgroup lite_layer_fns Layer operations
@@ -2353,11 +2265,9 @@ MG_EXPORT ssize_t sock_read_t (int fd, void* buff, size_t count,
 
     /** @} end of lite_socket_fns */
 
-#endif /* _MGRM_PROCESSES */
-
     /** @} end of lite_fns */
 
-#endif /* _MGRM_THREADS */
+#endif /* _MGRM_PROCESSES */
 
     /**
      * \defgroup init_fns Initialization and termination functions
