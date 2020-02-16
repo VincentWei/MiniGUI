@@ -1959,9 +1959,11 @@ static int dskAddNewMainWindow (PMAINWIN pWin, const COMPOSITINGINFO* ct_info)
         }
     }
 
+#if 0   /* move to window.c since 4.2.0 */
     /* Handle main window hosting. */
     if (pWin->pHosting)
         dskAddNewHostedMainWindow (pWin->pHosting, pWin);
+#endif  /* moved code */
 
     /* Init Global Clip Region info. */
     dskInitGCRInfo (pWin);
@@ -2020,9 +2022,11 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
         cliFreeZOrderNode (pWin);
     }
 
+#if 0   /* move to window.c since 4.2.0 */
     /* Handle main window hosting. */
     if (pWin->pHosting)
         dskRemoveHostedMainWindow (pWin->pHosting, pWin);
+#endif  /* moved code */
 
     if ((pWin->dwExStyle & WS_EX_AUTOSECONDARYDC) && pWin->secondaryDC) {
         DeleteSecondaryDC ((HWND)pWin);

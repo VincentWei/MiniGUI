@@ -228,9 +228,11 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
         }
     }
 
+#if 0   /* move to window.c since 4.2.0 */
     // Handle main window hosting.
     if (pWin->pHosting)
         dskAddNewHostedMainWindow (pWin->pHosting, pWin);
+#endif  /* moved code */
 
     // Init Global Clip Region info.
     dskInitGCRInfo (pWin);
@@ -406,9 +408,11 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
     // Update window Z order list.
     FreeZOrderNode (0, pWin->idx_znode, NULL);
 
+#if 0   /* move to window.c since 4.2.0 */
     // Handle main window hosting.
     if (pWin->pHosting)
         dskRemoveHostedMainWindow (pWin->pHosting, pWin);
+#endif  /* moved code */
 
     /* houhh 20081127.*/
     if ((pWin->dwExStyle & WS_EX_AUTOSECONDARYDC) && pWin->secondaryDC) {
@@ -2380,7 +2384,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     case MSG_IME_GETSTATUS:
         return dskGetIMEStatus ((int)wParam);
 
-#ifndef _MGRM_THREADS
+#if 0
     case MSG_SRVNOTIFY:
         BroadcastMessage (MSG_SRVNOTIFY, wParam, lParam);
         break;
