@@ -52,8 +52,7 @@
 #ifndef GUI_TIMER_H
     #define GUI_TIMER_H
 
-#define USEC_1S         1000000
-#define USEC_10MS       10000
+#include "constants.h"
 
 typedef struct _TIMER {
     HWND        hWnd;
