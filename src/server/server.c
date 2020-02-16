@@ -285,15 +285,14 @@ BOOL GUIAPI ServerStartup (int nr_globals,
 
     /* reserve the first client slot for the server */
     __mg_client_id = __mg_client_add (0, getpid (), 0);
-    mgClients [0].layer = mgTopmostLayer;
+    mgClients[0].layer = mgTopmostLayer;
 
     /* obtain fd to listen for client requests on */
     if ( (listenfd = serv_listen (CS_PATH)) < 0)
         goto fail;
 
-    FD_ZERO (&mg_rfdset);
-    FD_SET (listenfd, &mg_rfdset);
-    mg_maxfd = listenfd;
+    FD_SET (listenfd, &__mg_dsk_msg_queue->rfdset);
+    __mg_dsk_msg_queue->maxfd = listenfd;
     maxi = -1;
 
     mg_InitTimer ();
@@ -326,7 +325,7 @@ void server_ServerCleanup (void)
     unlink (CS_PATH);
 }
 
-BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
+BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
 {
     int    i, n, clifd, nread;
     pid_t  pid;
@@ -342,13 +341,14 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         SetDesktopTimerFlag ();
     }
 
-    rset = mg_rfdset;        /* rset gets modified each time around */
-    if (mg_wfdset) {
-        wset = *mg_wfdset;
+    /* rset gets modified each time around */
+    rset = __mg_dsk_msg_queue->rfdset;
+    if (__mg_dsk_msg_queue->nr_wfds) {
+        wset = __mg_dsk_msg_queue->wfdset;
         wsetptr = &wset;
     }
-    if (mg_efdset) {
-        eset = *mg_efdset;
+    if (__mg_dsk_msg_queue->nr_efds) {
+        eset = __mg_dsk_msg_queue->efdset;
         esetptr = &eset;
     }
 
@@ -363,12 +363,12 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
 #endif
 
     extra.params_mask = 0;
-    if ((n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?NULL:(&sel_timeout), &extra)) < 0) {
+    if ((n = IAL_WaitEvent (__mg_dsk_msg_queue->maxfd, &rset, wsetptr, esetptr,
+                wait?NULL:(&sel_timeout), &extra)) < 0) {
 
         /* It is time to check event again. */
         if (errno == EINTR) {
-            if (msg_queue)
+            if (wait)
                 ParseEvent (msg_queue, 0);
             return FALSE;
         }
@@ -393,9 +393,9 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         }
         if (OnNewDelClient) OnNewDelClient (LCO_NEW_CLIENT, i);
 
-        FD_SET (clifd, &mg_rfdset);
-        if (clifd > mg_maxfd)
-            mg_maxfd = clifd;  /* max fd for select() */
+        FD_SET (clifd, &__mg_dsk_msg_queue->rfdset);
+        if (clifd > __mg_dsk_msg_queue->maxfd)
+            __mg_dsk_msg_queue->maxfd = clifd;  /* max fd for select() */
         if (i > maxi)
             maxi = i;       /* max index in client[] array */
 #ifdef _DEBUG
@@ -405,7 +405,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
     }
 
     for (i = 0; i <= maxi; i++) {    /* go through client[] array */
-        if ( (clifd = mgClients [i].fd) < 0)
+        if ( (clifd = mgClients[i].fd) < 0)
             continue;
         if (FD_ISSET (clifd, &rset)) {
             int req_id;
@@ -428,7 +428,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         }
     }
 
-    if (msg_queue == NULL)
+    if (!wait)
         return (n > 0);
 
     /* handle intput event (mouse/touch-screen or keyboard) */
@@ -467,36 +467,8 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
     else if (n == 0)
         ParseEvent (msg_queue, 0);
 
-    /* go through registered listen fds */
-    for (i = 0; i < MAX_NR_LISTEN_FD; i++) {
-        MSG Msg;
-
-        Msg.message = MSG_FDEVENT;
-
-        if (mg_listen_fds [i].fd) {
-            fd_set* temp = NULL;
-            int type = mg_listen_fds [i].type;
-
-            switch (type) {
-            case POLLIN:
-                temp = &rset;
-                break;
-            case POLLOUT:
-                temp = wsetptr;
-                break;
-            case POLLERR:
-                temp = esetptr;
-                break;
-            }
-
-            if (temp && FD_ISSET (mg_listen_fds [i].fd, temp)) {
-                Msg.hwnd = (HWND)mg_listen_fds [i].hwnd;
-                Msg.wParam = MAKELONG (mg_listen_fds [i].fd, type);
-                Msg.lParam = (LPARAM)mg_listen_fds [i].context;
-                kernel_QueueMessage (msg_queue, &Msg);
-            }
-        }
-    }
+    /* go through registered listening fds */
+    __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
 
     return TRUE;
 }
