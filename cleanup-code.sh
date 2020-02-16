@@ -103,6 +103,11 @@ tab2space() {
 
 # sed -i 's/\<GetMsgQueueThisThread\>/mg_GetMsgQueueForThisThread/g' `grep GetMsgQueueThisThread -rl src/`
 
-sed -i 's/\<kernel_GetMsgQueue\>/getMsgQueue/g' `grep kernel_GetMsgQueue -rl src/`
+# sed -i 's/\<kernel_GetMsgQueue\>/getMsgQueue/g' `grep kernel_GetMsgQueue -rl src/`
+
+# sed -i 's/\<BE_THIS_THREAD\>/isWindowInThisThread/g' `grep BE_THIS_THREAD -rl src/`
+
+sed -i 's/\<SetMsgQueueTimerFlag\>/setMsgQueueTimerFlag/g' `grep SetMsgQueueTimerFlag -rl src/`
+sed -i 's/\<RemoveMsgQueueTimerFlag\>/removeMsgQueueTimerFlag/g' `grep RemoveMsgQueueTimerFlag -rl src/`
 
 exit 0

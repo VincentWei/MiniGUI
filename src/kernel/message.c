@@ -199,11 +199,6 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 
     if (pMsgQueue == NULL && alloc) {
         pMsgQueue = mg_AllocMsgQueueForThisThread ();
-#if 0
-        if (pMsgQueue) {
-            pthread_cleanup_push (mg_FreeMsgQueueForThisThread, (void*)pMsgQueue);
-        }
-#endif
     }
 
     return pMsgQueue;
@@ -352,7 +347,7 @@ ret:
     UNLOCK_MSGQ (msg_que);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!BE_THIS_THREAD (msg->hwnd))
+    if (!isWindowInThisThread (msg->hwnd))
         POST_MSGQ (msg_que);
 #endif
 
@@ -764,7 +759,7 @@ checkagain:
         pMsgQueue->FirstTimerSlot ++;
         pMsgQueue->FirstTimerSlot %= DEF_NR_TIMERS;
 
-        if ((timer = __mg_get_timer (slot))) {
+        if ((timer = pMsgQueue->timer_slots[slot])) {
             pMsgQueue->TimerMask &= ~(0x01UL << slot);
 
             if (timer->proc) {
@@ -782,7 +777,7 @@ checkagain:
 
                 if (!ret_timer_proc) {
                     /* remove the timer */
-                    __mg_remove_timer (timer, slot);
+                    __mg_remove_timer (pMsgQueue, slot);
                 }
                 UNLOCK_MSGQ (pMsgQueue);
                 goto checkagain;
@@ -967,7 +962,7 @@ LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!BE_THIS_THREAD(hWnd))
+    if (!isWindowInThisThread(hWnd))
         return SendSyncMessage (hWnd, nMsg, wParam, lParam);
 #endif
 
@@ -1012,7 +1007,7 @@ LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if ( !BE_THIS_THREAD(hWnd) )
+    if ( !isWindowInThisThread(hWnd) )
         POST_MSGQ(pMsgQueue);
 #endif
 
@@ -1052,7 +1047,7 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if ( !BE_THIS_THREAD(hWnd) )
+    if ( !isWindowInThisThread(hWnd) )
         POST_MSGQ(pMsgQueue);
 #endif
 
@@ -1072,7 +1067,7 @@ int GUIAPI PostMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
         pMsgQueue->dwState |= QS_PAINT;
         UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-        if ( !BE_THIS_THREAD(hWnd) )
+        if ( !isWindowInThisThread(hWnd) )
             POST_MSGQ(pMsgQueue);
 #endif
         return ERR_OK;
@@ -1111,7 +1106,7 @@ int GUIAPI PostQuitMessage (HWND hWnd)
     UNLOCK_MSGQ (pMsgQueue);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!BE_THIS_THREAD (hWnd))
+    if (!isWindowInThisThread (hWnd))
         POST_MSGQ (pMsgQueue);
 #endif
 
@@ -1298,11 +1293,11 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     /* clear timer message flags of this window */
     for (slot = 0; slot < DEF_NR_TIMERS; slot++) {
         if (pMsgQueue->TimerMask & (0x01UL << slot)) {
-            HWND timer_wnd = __mg_get_timer_hwnd (slot);
+            HWND timer_wnd = pMsgQueue->timer_slots [slot]->hWnd;
             if (timer_wnd == hWnd
                     || (MG_IS_MAIN_WINDOW (hWnd) &&
                         gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd)) {
-                RemoveMsgQueueTimerFlag (pMsgQueue, slot);
+                removeMsgQueueTimerFlag (pMsgQueue, slot);
             }
         }
     }
@@ -1450,7 +1445,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
-    if (BE_THIS_THREAD(hWnd))
+    if (isWindowInThisThread(hWnd))
         return -1;
 
     return SendSyncMessage (hWnd, msg, wParam, lParam);

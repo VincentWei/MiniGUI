@@ -52,14 +52,10 @@
 #ifndef GUI_TIMER_H
     #define GUI_TIMER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
 #define USEC_1S         1000000
 #define USEC_10MS       10000
 
-typedef struct _timer {
+typedef struct _TIMER {
     HWND        hWnd;
     LINT        id;
     DWORD       speed;
@@ -67,26 +63,36 @@ typedef struct _timer {
 
     TIMERPROC   proc;
     UINT_PTR    tick_count;
-    PMSGQUEUE   msg_queue;
+
+    // removed since 4.2.0
+    // PMSGQUEUE   msg_queue;
 } TIMER;
 typedef TIMER* PTIMER;
+
+struct _MSGQUEUE;
+typedef struct _MSGQUEUE MSGQUEUE;
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 BOOL mg_InitTimer (void);
 void mg_TerminateTimer (void);
 void __mg_dispatch_timer_message (DWORD inter);
-void __mg_remove_timers_by_msg_queue (const MSGQUEUE* msg_que);
+void __mg_remove_timers_by_msg_queue (MSGQUEUE* msg_queue);
+void __mg_remove_timer (MSGQUEUE* msg_queue, int slot);
 
+#if 0
 TIMER* __mg_get_timer (int slot);
-void __mg_remove_timer (TIMER* timer, int slot);
-
 static inline HWND __mg_get_timer_hwnd (int slot)
 {
-    TIMER* ptimer = __mg_get_timer (slot);
-    if (ptimer)
-        return ptimer->hWnd;
+    TIMER* timer = __mg_get_timer (slot);
+    if (timer)
+        return timer->hWnd;
 
     return HWND_NULL;
 }
+#endif /* deprecated code since 4.2.0 */
 
 #ifdef __cplusplus
 }

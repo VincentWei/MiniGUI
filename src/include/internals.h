@@ -109,6 +109,9 @@ struct GAL_Surface;
 struct _MAINWIN;
 typedef struct _MAINWIN* PMAINWIN;
 
+struct _TIMER;
+typedef struct _TIMER TIMER;
+
 typedef struct _SCROLLWINDOWINFO
 {
     int iOffx;
@@ -202,13 +205,17 @@ struct _MSGQUEUE
 #endif
     int nrWindows;              // the number of main/virtual windows.
 
-    MSG* msg;                   // post message buffer
+    /* buffer for post message */
     int len;                    // buffer length
+    MSG* msg;                   // post message buffer
     int readpos, writepos;      // positions for reading and writing
 
     int loop_depth;             // message loop depth, for dialog boxes
 
+    /* Since 4.2.0, MiniGUI provides support for timers per message thread */
     int FirstTimerSlot;         // the first timer slot to be checked
+    TIMER* timer_slots [DEF_NR_TIMERS];
+                                // slots for timer
     DWORD TimerMask;            // timer slots mask
 };
 
@@ -604,20 +611,6 @@ static inline PMSGQUEUE getMsgQueue (HWND hWnd)
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
-/* Be careful: does not check validity of hWnd */
-static inline BOOL BE_THIS_THREAD (HWND hWnd)
-{
-    PMAINWIN pMainWin = getMainWindowPtr(hWnd);
-#ifdef WIN32
-    if (pMainWin && pMainWin->pMsgQueue->th.p == pthread_self().p)
-#else
-    if (pMainWin && pMainWin->pMsgQueue->th == pthread_self())
-#endif
-        return TRUE;
-
-    return FALSE;
-}
-
 MSGQUEUE* mg_AllocMsgQueueForThisThread (void);
 void mg_FreeMsgQueueForThisThread (void);
 MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc);
@@ -634,6 +627,67 @@ static inline BOOL createThreadInfoKey (void)
 static inline void deleteThreadInfoKey (void)
 {
     pthread_key_delete (__mg_threadinfo_key);
+}
+
+static inline MSGQUEUE* getMsgQueueForThisThread (void)
+{
+    MSGQUEUE* pMsgQueue;
+
+    pMsgQueue = (MSGQUEUE*)pthread_getspecific (__mg_threadinfo_key);
+#ifdef __VXWORKS__
+    if (pMsgQueue == (void *)-1) {
+        pMsgQueue = NULL;
+    }
+#endif
+
+    return pMsgQueue;
+}
+
+static inline TIMER** getTimerSlotsForThisThread (void)
+{
+    MSGQUEUE* pMsgQueue;
+
+    pMsgQueue = (MSGQUEUE*)pthread_getspecific (__mg_threadinfo_key);
+#ifdef __VXWORKS__
+    if (pMsgQueue == (void *)-1) {
+        pMsgQueue = NULL;
+    }
+#endif
+
+    if (pMsgQueue)
+        return pMsgQueue->timer_slots;
+    return NULL;
+}
+
+/* Be careful: does not check validity of hWnd */
+static inline BOOL isWindowInThisThread (HWND hWnd)
+{
+    PMAINWIN pMainWin = getMainWindowPtr(hWnd);
+#ifdef WIN32
+    if (pMainWin && pMainWin->pMsgQueue->th.p == pthread_self().p)
+#else
+    if (pMainWin && pMainWin->pMsgQueue->th == pthread_self())
+#endif
+        return TRUE;
+
+    return FALSE;
+}
+
+#else   /* define _MGHAVE_VIRTUAL_WINDOW */
+
+static inline MSGQUEUE* getMsgQueueForThisThread (void)
+{
+    return __mg_dsk_msg_queue;
+}
+
+static inline TIMER** getTimerSlotsForThisThread (void)
+{
+    return __mg_dsk_msg_queue->timer_slots;
+}
+
+static inline BOOL isWindowInThisThread (HWND hWnd)
+{
+    return TRUE;
 }
 
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
@@ -653,13 +707,13 @@ static inline void AlertDesktopTimerEvent (void)
 }
 #endif /* defined _MGRM_THREADS */
 
-static inline void SetMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
+static inline void setMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
     pMsgQueue->TimerMask |= (0x01 << slot);
     POST_MSGQ (pMsgQueue);
 }
 
-static inline void RemoveMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
+static inline void removeMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
     pMsgQueue->TimerMask &= ~(0x01 << slot);
 }
