@@ -2670,8 +2670,8 @@ typedef struct _WINMASKINFO {
 
 /**
  * \def MSG_FREEZECTRL
- * \brief You can send this message to freeze or thaw the paint action of
- * the control.
+ * \brief Send this message to freeze or thaw the paint action of
+ *      the control.
  *
  * \code
  * MSG_FREEZECTRL
@@ -2720,10 +2720,12 @@ typedef struct _WINMASKINFO {
 
 /**
  * \def MSG_GETTEXTLENGTH
- * \brief Sent to the control to get the length of the text.
+ * \brief Send to the control or the main/virtual window to get the length
+ *      of the text or caption.
  *
- * This message is sent to the control when you calling \a GetWindowTextLength
- * function to get the lenght of the text.
+ * This message is sent to the control or the main/virtual window when you
+ * call \a GetWindowTextLength function to get the lenght of the text or
+ * the caption.
  *
  * \code
  * MSG_GETTEXTLENGTH
@@ -2739,10 +2741,11 @@ typedef struct _WINMASKINFO {
 
 /**
  * \def MSG_GETTEXT
- * \brief Sent to the control to get the text.
+ * \brief Send to the control to get the text, or send to the main/virtual
+ *      window to get the caption.
  *
- * This message is sent to the control when you calling \a GetWindowText
- * function to get the text.
+ * This message is sent to the control or the main/virtual window when you
+ * call \a GetWindowText function to get the text or the caption.
  *
  * \code
  * MSG_GETTEXT
@@ -2763,13 +2766,14 @@ typedef struct _WINMASKINFO {
 
 /**
  * \def MSG_SETTEXT
- * \brief Sent to the control to set the text.
+ * \brief Send to the control to set the text, or send to the main/virtual
+ *      window to set the caption.
  *
- * This message is sent to the control when you calling \a SetWindowText
- * function to set the text.
+ * This message is sent to the control or the main/virtual window when you
+ * call \a SetWindowText function to set the text or the caption.
  *
  * \code
- * MSG_GETTEXT
+ * MSG_SETTEXT
  * char* text_buf;
  *
  * wParam = 0;
@@ -2777,6 +2781,7 @@ typedef struct _WINMASKINFO {
  * \endcode
  *
  * \param text_buf The pointer to a buffer contains the text.
+ *
  * \return The return value is equal to zero if the text is set.
  *
  * \sa SetWindowText
@@ -5160,45 +5165,46 @@ typedef struct _WINDOWINFO
     void*           _padding7;
     void*           _padding8;
 
-    /** The position and size of window.*/
+    /** The position and size of the window. N/A for virtual window. */
     int left, top;
     int right, bottom;
 
-    /** The position and size of client area.*/
+    /** The position and size of client area. N/A for virtual window. */
     int cl, ct;
     int cr, cb;
 
-    /** The styles of window.*/
+    /** The styles of window. N/A for virtual window. */
     DWORD dwStyle;
-    /** The extended styles of window.*/
+    /** The extended styles of window. N/A for virtual window. */
     DWORD dwExStyle;
 
     /** The index of znode for this window
-      * (only for a main window and a control as main window. */
+      * (only for a main window and a control as main window. 
+      * N/A for virtual window. */
     int idx_znode;
 
-    /** The background pixel value of this window. */
+    /** The background pixel value of this window. N/A for virtual window. */
     gal_pixel iBkColor;
 
-    /** The handle of menu.*/
+    /** The handle of menu. N/A for virtual window. */
     HMENU hMenu;
-    /** The handle of accelerator table.*/
+    /** The handle of accelerator table. N/A for virtual window. */
     HACCEL hAccel;
-    /** The handle of cursor.*/
+    /** The handle of cursor. N/A for virtual window. */
     HCURSOR hCursor;
-    /** The handle of icon.*/
+    /** The handle of icon. N/A for virtual window. */
     HICON hIcon;
-    /** The handle of system menu.*/
+    /** The handle of system menu. N/A for virtual window. */
     HMENU hSysMenu;
-    /** The pointer to logical font.*/
+    /** The pointer to logical font. N/A for virtual window. */
     PLOGFONT pLogFont;
 
-    /** The vertical scrollbar information.*/
+    /** The vertical scrollbar information. N/A for virtual window. */
     LFSCROLLBARINFO vscroll;
-    /** The horizital scrollbar information.*/
+    /** The horizital scrollbar information. N/A for virtual window. */
     LFSCROLLBARINFO hscroll;
 
-    /** The window renderer. */
+    /** The window renderer. N/A for virtual window. */
     WINDOW_ELEMENT_RENDERER* we_rdr;
 } WINDOWINFO;
 
@@ -6018,7 +6024,7 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      * In MiniGUI, we call a thread creating a main window as a GUI thread,
      * and a thread creating a virtual window as a message thread.
      *
-     * It is important that to know the following key points about virtual
+     * It is important to know the following key points about virtual
      * window:
      *
      *  - It is enabled automatically under MiniGUI-Threads runtime mode.
@@ -6037,7 +6043,27 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      *    create a main window in a message thread.
      *  - Essentially, a virtual window is a simplified main window.
      *    It consumes very little memory space, but provides a complete
-     *    MiniGUI messaging mechanism for a general multithreaded application.
+     *    MiniGUI messaging mechanism for a general multithreaded app.
+     *
+     * A virtual window will get the following system messages in its life
+     * life-cycle:
+     *
+     *  - MSG_CREATE: this message will be sent to the virtual window when
+     *    you call \a CreateVirtualWindow function.
+     *  - MSG_CLOSE: this message will be sent to the virtual window when
+     *    the system asks to close the virtual window.
+     *  - MSG_DESTROY: this message will be sent to the virtual window when
+     *    the system tries to destroy the virtual window, or after you
+     *    called \a DestroyVirtualWindow function.
+     *  - MSG_IDLE: When there is no any message in the message queue, all
+     *    virtual windows living in the message thread will get this idle
+     *    message.
+     *  - MSG_TIMER: When a timer expired after you call \a SetTimer to
+     *    set up a timer for a virtual window.
+     *  - MSG_QUIT: quit the message loop.
+     *  - MSG_GETTEXT:
+     *  - MSG_SETTEXT:
+     *  - MSG_GETTEXTLENGTH:
      *
      * Since 4.2.0.
      *
@@ -6090,6 +6116,19 @@ MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
  * Since 4.2.0
  */
 MG_EXPORT BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread);
+
+/**
+ * \fn BOOL GUIAPI IsWindowInThisThread (HWND hWnd)
+ * \brief Determine whether a window was created in this thread.
+ *
+ * \param hWnd The handle to a window, which may be a main window,
+ *      virtual window, or a control.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * Since 4.2.0
+ */
+MG_EXPORT BOOL GUIAPI IsWindowInThisThread (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
@@ -6654,6 +6693,11 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd,
 LRESULT GUIAPI PreDefControlProc (HWND hWnd, UINT message,
                 WPARAM wParam, LPARAM lParam);
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+LRESULT GUIAPI PreDefVirtualWinProc (HWND hWnd, UINT message,
+                WPARAM wParam, LPARAM lParam);
+#endif
+
 /**
  * \fn LRESULT DefaultWindowProc (HWND hWnd, UINT message, \
                 WPARAM wParam, LPARAM lParam)
@@ -6675,11 +6719,15 @@ MG_EXPORT LRESULT GUIAPI DefaultWindowProc (HWND hWnd, UINT message,
                 WPARAM wParam, LPARAM lParam);
 
 /**
- * \var WNDPROC __mg_def_proc[3]
- * \brief The default window callback procedure array
+ * \var WNDPROC __mg_def_proc[]
+ * \brief The default window callback procedure array.
  *
 */
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+extern MG_EXPORT WNDPROC __mg_def_proc[4];
+#else
 extern MG_EXPORT WNDPROC __mg_def_proc[3];
+#endif
 
 /**
  * \def DefaultMainWinProc
@@ -6729,6 +6777,23 @@ extern MG_EXPORT WNDPROC __mg_def_proc[3];
  * \param lParam The second parameter of the message.
  */
 #define DefaultControlProc (__mg_def_proc[2])
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+/**
+ * \def DefaultVirtualWinProc
+ * \brief The default window callback procedure for virtual windows.
+ *
+ * This function is the default window callback procedure for virtual windows.
+ * You should call this function for any message which you do not want to handle
+ * in your own callback procedure.
+ *
+ * \param hWnd The handle to the window.
+ * \param message The message identifier.
+ * \param wParam The first parameter of the message.
+ * \param lParam The second parameter of the message.
+ */
+#define DefaultVirtualWinProc (__mg_def_proc[3])
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifdef _DEBUG
 MG_EXPORT void GUIAPI DumpWindow (FILE* fp, HWND hWnd);
@@ -7626,6 +7691,23 @@ MG_EXPORT void GUIAPI ScreenToWindow (HWND hWnd, int* x, int* y);
  * \sa IsControl, IsWindow
  */
 MG_EXPORT BOOL GUIAPI IsMainWindow (HWND hWnd);
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+/**
+ * \fn BOOL GUIAPI IsVirtualWindow (HWND hWnd)
+ * \brief Determine whether a window is a virtual window.
+ *
+ * This function determines whether the specified window \a hWnd is
+ * a virtual window or not.
+ *
+ * \param hWnd The handle to the window.
+ *
+ * \return TRUE for a virtual window, otherwise FALSE.
+ *
+ * \sa IsMainWindow, IsWindow, IsControl
+ */
+MG_EXPORT BOOL GUIAPI IsVirtualWindow (HWND hWnd);
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 /**
  * \fn BOOL GUIAPI IsControl (HWND hWnd)
