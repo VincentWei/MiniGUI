@@ -258,8 +258,8 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
     pMsgQueue->OnIdle = NULL;
 
     /* Since 4.2.0, MiniGUI provides support for timers per message thread */
-    // pMsgQueue->FirstTimerSlot = 0;
-    // pMsgQueue->TimerMask = 0;
+    // pMsgQueue->first_timer_slot = 0;
+    // pMsgQueue->expired_timer_mask = 0;
     // memset (pMsgQueue->timer_slots, 0, sizeof (pMsgQueue->timer_slots));
 
 #ifdef HAVE_SELECT
@@ -492,7 +492,7 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
         goto retok;
     }
 
-    if (pMsgQueue->TimerMask)
+    if (pMsgQueue->expired_timer_mask)
         goto retok;
 #ifndef _MGHAVE_VIRTUAL_WINDOW
     /*
@@ -532,6 +532,64 @@ int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
 
     return SendMessage (HWND_DESKTOP, MSG_BROADCASTMSG, 0, (LPARAM)(&msg));
 }
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+static void travel_all_hosted (PMAINWIN pWin,
+    void (*cb) (PMAINWIN, void*), void* data)
+{
+    PMAINWIN pNext = pWin->pFirstHosted;
+    while (pNext) {
+        travel_all_hosted (pNext, cb, data);
+
+        cb (pNext, data);
+        pNext = pNext->pNextHosted;
+    }
+
+    cb (pWin, data);
+}
+
+static void _my_travel_cb (PMAINWIN win, void* data)
+{
+    MSG* msg = (MSG*)data;
+
+    msg->hwnd = (HWND)win;
+    kernel_QueueMessage (win->pMsgQueue, msg);
+    msg->time++;
+}
+
+int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg)
+{
+    PMAINWIN win;
+
+    msg->time = 0;
+
+    if ((win = msg_queue->pRootMainWin)) {
+        travel_all_hosted (win, _my_travel_cb, msg);
+    }
+
+    return (int)msg->time;
+}
+
+int GUIAPI BroadcastMessageInThisThread (UINT nMsg,
+        WPARAM wParam, LPARAM lParam)
+{
+    MSGQUEUE* pMsgQueue;
+    MSG msg = { HWND_NULL, nMsg, wParam, lParam };
+
+    pMsgQueue = (MSGQUEUE*)pthread_getspecific (__mg_threadinfo_key);
+#ifdef __VXWORKS__
+    if (pMsgQueue == (void *)-1) {
+        pMsgQueue = NULL;
+    }
+#endif
+
+    if (pMsgQueue == NULL)
+        return -1;
+
+    return __mg_broadcast_message (pMsgQueue, &msg);
+}
+
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifdef _MGHAVE_MSG_STRING
 #include "msgstr.h"
@@ -762,7 +820,7 @@ checkagain:
     }
 #endif
 
-    if (pMsgQueue->TimerMask && IS_MSG_WANTED(MSG_TIMER)) {
+    if (pMsgQueue->expired_timer_mask && IS_MSG_WANTED(MSG_TIMER)) {
         int slot;
         TIMER* timer;
 
@@ -775,7 +833,7 @@ checkagain:
             SET_PADD (NULL);
 
             if (uRemoveMsg == PM_REMOVE) {
-                pMsgQueue->TimerMask = 0;
+                pMsgQueue->expired_timer_mask = 0;
             }
             UNLOCK_MSGQ (pMsgQueue);
             return TRUE;
@@ -783,24 +841,24 @@ checkagain:
 #endif
 
         /* get the first expired timer slot */
-        slot = pMsgQueue->FirstTimerSlot;
+        slot = pMsgQueue->first_timer_slot;
         do {
-            if (pMsgQueue->TimerMask & (0x01UL << slot))
+            if (pMsgQueue->expired_timer_mask & (0x01UL << slot))
                 break;
 
             slot ++;
             slot %= DEF_NR_TIMERS;
-            if (slot == pMsgQueue->FirstTimerSlot) {
+            if (slot == pMsgQueue->first_timer_slot) {
                 slot = -1;
                 break;
             }
         } while (TRUE);
 
-        pMsgQueue->FirstTimerSlot ++;
-        pMsgQueue->FirstTimerSlot %= DEF_NR_TIMERS;
+        pMsgQueue->first_timer_slot ++;
+        pMsgQueue->first_timer_slot %= DEF_NR_TIMERS;
 
         if ((timer = pMsgQueue->timer_slots[slot])) {
-            pMsgQueue->TimerMask &= ~(0x01UL << slot);
+            pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
 
             if (timer->proc) {
                 BOOL ret_timer_proc;
@@ -932,7 +990,7 @@ checkagain:
     }
 #endif
 
-    if (pMsgQueue->TimerMask) {
+    if (pMsgQueue->expired_timer_mask) {
         goto getit;
     }
 
@@ -1126,7 +1184,7 @@ int GUIAPI PostMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
         pMsgQueue->dwState |= QS_PAINT;
         UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-        if ( !isWindowInThisThread(hWnd) )
+        if (!isWindowInThisThread(hWnd))
             POST_MSGQ(pMsgQueue);
 #endif
         return ERR_OK;
@@ -1351,7 +1409,7 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
 
     /* clear timer message flags of this window */
     for (slot = 0; slot < DEF_NR_TIMERS; slot++) {
-        if (pMsgQueue->TimerMask & (0x01UL << slot)) {
+        if (pMsgQueue->expired_timer_mask & (0x01UL << slot)) {
             HWND timer_wnd = pMsgQueue->timer_slots [slot]->hWnd;
             if (timer_wnd == hWnd
                     || (MG_IS_MAIN_WINDOW (hWnd) &&
@@ -1394,7 +1452,7 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
     mg_TerminateTimer ();
 
     pMsgQueue->dwState = QS_EMPTY;
-    pMsgQueue->TimerMask = 0;
+    pMsgQueue->expired_timer_mask = 0;
 
     return TRUE;
 }
