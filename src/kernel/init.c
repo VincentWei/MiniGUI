@@ -402,6 +402,9 @@ int GUIAPI InitGUI (int args, const char *agr[])
     __mg_def_proc[0] = PreDefMainWinProc;
     __mg_def_proc[1] = PreDefDialogProc;
     __mg_def_proc[2] = PreDefControlProc;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    __mg_def_proc[3] = PreDefVirtualWinProc;
+#endif
 
     step++;
     if (!mg_InitSliceAllocator ()) {
