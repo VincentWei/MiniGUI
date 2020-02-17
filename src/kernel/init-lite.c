@@ -254,11 +254,6 @@ static BOOL InitResource (void)
         goto failure;
     }
 
-    if (!InitDskMsgQueue ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init MSG queue error!\n");
-        goto failure;
-    }
-
     return TRUE;
 
 failure:
@@ -562,9 +557,6 @@ int InitGUI (int argc, const char* agr[])
 
 void TerminateGUI (int rcByGUI)
 {
-    /* printf("Quit from MiniGUIMain()\n"); */
-
-    DestroyDskMsgQueue ();
     mg_DestroyFreeQMSGList ();
     mg_TerminateAccel ();
     mg_TerminateControlClass ();
