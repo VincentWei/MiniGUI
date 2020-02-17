@@ -349,6 +349,9 @@ int InitGUI (int argc, const char* agr[])
     __mg_def_proc[0] = PreDefMainWinProc;
     __mg_def_proc[1] = PreDefDialogProc;
     __mg_def_proc[2] = PreDefControlProc;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    __mg_def_proc[3] = PreDefVirtualWinProc;
+#endif
 
     if (!mg_InitSliceAllocator ()) {
         _ERR_PRINTF ("KERNEL>InitGUI: failed to initialize slice allocator!\n");
