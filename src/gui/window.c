@@ -2507,14 +2507,16 @@ static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
          ** call default window procedure
          ** when handle MSG_SETTEXT.
          */
-        if (pWin->WinType == TYPE_CONTROL)
-            return 0;
+        if (pWin->WinType != TYPE_MAINWIN)
+            return -1;
 
         FreeFixStr (pWin->spCaption);
         len = strlen ((char*)lParam);
         pWin->spCaption = FixStrAlloc (len);
-        if (len > 0)
+        if (len > 0 && pWin->spCaption) /* Since 4.2.0: validate new buffer */
             strcpy (pWin->spCaption, (char*)lParam);
+        else
+            return -1;
 
 #ifdef _MGRM_PROCESSES
         SendMessage (HWND_DESKTOP, MSG_CHANGECAPTION, (WPARAM) pWin, 0L);
@@ -2671,18 +2673,93 @@ LRESULT PreDefControlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
     return DefaultMainWinProc (hWnd, message, wParam, lParam);
 }
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+LRESULT PreDefVirtualWinProc (HWND hWnd, UINT message,
+        WPARAM wParam, LPARAM lParam)
+{
+    VIRTWIN* pWin = (VIRTWIN*)hWnd;
+
+    switch (message) {
+    case MSG_CLOSE:
+        DestroyVirtualWindow (hWnd);
+        break;
+
+    case MSG_CREATE:
+    case MSG_DESTROY:
+        break;
+
+    case MSG_GETTEXTLENGTH:
+        if (pWin->spCaption)
+            return strlen (pWin->spCaption);
+        else
+            return 0;
+
+    case MSG_GETTEXT:
+        if (pWin->spCaption) {
+            size_t len;
+            char* buffer = (char*)lParam;
+
+            len = MIN (strlen (pWin->spCaption), wParam);
+            memcpy (buffer, pWin->spCaption, len);
+            buffer [len] = '\0';
+            return len;
+        }
+        else
+            return 0;
+        break;
+
+    case MSG_SETTEXT: {
+        size_t len;
+
+        if (pWin->WinType != TYPE_VIRTWIN)
+            return -1;
+
+        FreeFixStr (pWin->spCaption);
+        len = strlen ((char*)lParam);
+        pWin->spCaption = FixStrAlloc (len);
+        if (len > 0 && pWin->spCaption)
+            strcpy (pWin->spCaption, (char*)lParam);
+        break;
+    }
+
+    default:
+        break;
+    }
+
+    /* for any other messages, return 0 by default */
+    return 0;
+}
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+
 LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if (IsMainWindow(hWnd)) {
-        return DefaultMainWinProc (hWnd, message, wParam, lParam);
-    }
-    else if (IsControl(hWnd)) {
+    PMAINWIN pWin;
+
+    /* Since 4.2.0: for error returns -1 */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
+
+    pWin = MG_GET_WINDOW_PTR (hWnd);
+    switch (pWin->WinType) {
+    case TYPE_CONTROL:
         return DefaultControlProc (hWnd, message, wParam, lParam);
+        break;
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    case TYPE_VIRTWIN:
+        return DefaultVirtualWinProc (hWnd, message, wParam, lParam);
+        break;
+#endif
+
+    default:
+        if (IsDialog (hWnd))
+            return DefaultDialogProc (hWnd, message, wParam, lParam);
+        else
+            return DefaultMainWinProc (hWnd, message, wParam, lParam);
+        break;
     }
-    else if (IsDialog(hWnd)) {
-        return DefaultDialogProc (hWnd, message, wParam, lParam);
-    }
-    return 0;
+
+    /* Since 4.2.0: for error returns -1 */
+    return -1;
 }
 
 /************************* GUI calls support ********************************/
@@ -2823,6 +2900,19 @@ BOOL GUIAPI IsMainWindow (HWND hWnd)
 
     return (pWin->WinType == TYPE_MAINWIN);
 }
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+BOOL GUIAPI IsVirtualWindow (HWND hWnd)
+{
+    PMAINWIN pWin;
+
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+
+    pWin = MG_GET_WINDOW_PTR(hWnd);
+
+    return (pWin->WinType == TYPE_VIRTWIN);
+}
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 BOOL GUIAPI IsControl (HWND hWnd)
 {
@@ -3599,6 +3689,11 @@ BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread)
     return TRUE;
 }
 
+BOOL GUIAPI IsWindowInThisThread (HWND hWnd)
+{
+    return (getMsgQueueIfWindowInThisThread (hWnd) != NULL);
+}
+
 HWND GUIAPI CreateVirtualWindow (HWND hHosting,
         const char* spCaption, LINT id, WNDPROC WndProc, DWORD dwAddData)
 {
@@ -3632,7 +3727,7 @@ HWND GUIAPI CreateVirtualWindow (HWND hHosting,
         pVirtWin->pHosting = (PVIRTWIN)pMsgQueue->pRootMainWin;
     }
     else {
-        if (pMsgQueue != getMsgQueueByWindowInThisThread (hHosting)) {
+        if (pMsgQueue != getMsgQueueIfWindowInThisThread (hHosting)) {
             goto err;
         }
         else {
@@ -3672,7 +3767,7 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
     MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
     pVirtWin = MG_GET_VIRTUAL_WINDOW_PTR (hVirtWnd);
 
-    if (!(pMsgQueue = getMsgQueueByWindowInThisThread (hVirtWnd))) {
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hVirtWnd))) {
         return FALSE;
     }
 
@@ -3738,7 +3833,7 @@ BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
     MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
     pVirtWin = MG_GET_VIRTUAL_WINDOW_PTR (hVirtWnd);
 
-    if (!(pMsgQueue = getMsgQueueByWindowInThisThread (hVirtWnd))) {
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hVirtWnd))) {
         return FALSE;
     }
 
@@ -4175,7 +4270,7 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
         return FALSE;
 
-    if (!(pMsgQueue = getMsgQueueByWindowInThisThread (hWnd))) {
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hWnd))) {
         return FALSE;
     }
 
@@ -6662,10 +6757,11 @@ int GUIAPI GetWindowZOrder(HWND hWnd)
 {
     PCONTROL pCtrl, pCtrlTmp;
     int idx;
-    if(!IsWindow(hWnd))
+
+    if (!IsWindow (hWnd))
         return -1;
 
-    if(IsMainWindow(hWnd))
+    if (IsMainWindow (hWnd))
         return 0;
 
     pCtrl = (PCONTROL)hWnd;
@@ -6686,10 +6782,11 @@ int GUIAPI SetWindowZOrder (HWND hWnd, int zorder)
 {
     int idx;
     PCONTROL pCtrl, pCtrlTmp;
-    if (!IsWindow(hWnd))
+
+    if (!IsWindow (hWnd))
         return -1;
 
-    if (IsMainWindow(hWnd))
+    if (IsMainWindow (hWnd))
         return 0;
 
     pCtrl = (PCONTROL)hWnd;
