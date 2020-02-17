@@ -115,8 +115,8 @@ int __mg_kernel_check_listen_fds (MSGQUEUE* msg_queue,
     return nr;
 }
 
-/* the standard idle handler for a message queue */
-static BOOL idle_handler_for_msg_thread (MSGQUEUE* msg_queue, BOOL wait)
+/* the idle handler for a message queue with checking listening fds */
+BOOL __mg_idle_handler_with_fds (MSGQUEUE* msg_queue, BOOL wait)
 {
     int n;
     fd_set rset, wset, eset;
@@ -162,7 +162,7 @@ static BOOL idle_handler_for_msg_thread (MSGQUEUE* msg_queue, BOOL wait)
         }
         _WRN_PRINTF ("failed to call select\n");
     }
-    else if (wait && n == 0) {
+    else if (n == 0) {
 #ifdef _MGRM_PROCESSES
         if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
             msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
@@ -183,7 +183,7 @@ static BOOL idle_handler_for_msg_thread (MSGQUEUE* msg_queue, BOOL wait)
         n += __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
     }
 
-    if (n == 0) {
+    if (wait && n == 0) {
         // no MSG_TIMER or MSG_FDEVENT message...
         // it time to post MSG_IDLE to all windows in this thread.
 #ifdef _MGRM_PROCESSES
@@ -297,10 +297,6 @@ BOOL GUIAPI RegisterListenFD (int fd, int type, HWND hwnd, void* context)
 
         if (ok && msg_queue->maxfd < fd) {
             msg_queue->maxfd = fd;
-            if (msg_queue->OnIdle == NULL) {
-                msg_queue->OnIdle = idle_handler_for_msg_thread;
-            }
-
             return TRUE;
         }
     }
@@ -338,13 +334,6 @@ BOOL GUIAPI UnregisterListenFD (int fd)
 
                 mg_slice_delete (LISTEN_FD, msg_queue->fd_slots[i]);
                 msg_queue->fd_slots[i] = NULL;
-
-                if ((msg_queue->nr_rfds + msg_queue->nr_wfds +
-                            msg_queue->nr_efds) == 0 &&
-                        msg_queue->OnIdle == idle_handler_for_msg_thread) {
-                    msg_queue->OnIdle = NULL;
-                }
-
                 return TRUE;
             }
         }
