@@ -703,7 +703,7 @@ static inline MSGQUEUE* isWindowInThisThread (HWND hWnd)
     return NULL;
 }
 
-static inline MSGQUEUE* getMsgQueueByWindowInThisThread (HWND hWnd)
+static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
 {
     PMAINWIN pMainWin = getMainWindowPtr(hWnd);
 #ifdef WIN32
@@ -733,7 +733,7 @@ static inline BOOL isWindowInThisThread (HWND hWnd)
     return TRUE;
 }
 
-static inline MSGQUEUE* getMsgQueueByWindowInThisThread (HWND hWnd)
+static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
 {
     return __mg_dsk_msg_queue;
 }
