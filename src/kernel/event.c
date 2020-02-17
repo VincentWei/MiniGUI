@@ -128,7 +128,7 @@ static void GetTimeout (void)
         return;
     myrepeatusec = atoi(szValue);
 
-    if( GetMgEtcValue (EVENTPARA, EVENTPARA_TIMEOUTUSEC, szValue, 10) < 0 )
+    if (GetMgEtcValue (EVENTPARA, EVENTPARA_TIMEOUTUSEC, szValue, 10) < 0)
         return;
     mytimeoutusec = atoi(szValue);
 
