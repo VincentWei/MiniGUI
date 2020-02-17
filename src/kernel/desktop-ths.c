@@ -151,8 +151,7 @@ void* __kernel_desktop_main (void* data)
     }
 
     /* init desktop window */
-    init_desktop_win();
-    __mg_dsk_msg_queue->pRootMainWin = __mg_dsk_win;
+    init_desktop_win ();
 
     DesktopWinProc (HWND_DESKTOP, MSG_STARTSESSION, 0, 0);
     PostMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
@@ -192,11 +191,26 @@ void* __kernel_desktop_main (void* data)
 #endif
     }
 
-    /* printf("Quit from __kernel_desktop_main()\n"); */
+    mg_FreeMsgQueueForThisThread ();
+    __mg_dsk_msg_queue = NULL;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_EVENT;
 
     return NULL;
+}
+
+void mg_TerminateDesktop (void)
+{
+    pthread_mutex_destroy(&sg_ScrGCRInfo.lock);
+
+    __kernel_free_z_order_info (__mg_zorder_info);
+    __mg_zorder_info = NULL;
+    DestroyFreeClipRectList (&sg_FreeClipRectList);
+    DestroyFreeClipRectList (&sg_FreeInvRectList);
+
+    mg_TerminateSystemRes ();
+    //dongjunjie avoid double free
+    __mg_dsk_win = 0;
 }
 
 #endif /* _MGRM_THREADS */
