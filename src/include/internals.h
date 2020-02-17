@@ -230,10 +230,12 @@ struct _MSGQUEUE
     int loop_depth;             // message loop depth, for dialog boxes
 
     /* Since 4.2.0, MiniGUI provides support for timers per message thread */
-    int FirstTimerSlot;         // the first timer slot to be checked
+    int nr_timers;              // the number of active timers
+    int first_timer_slot;       // the first timer slot to be checked
     TIMER* timer_slots [DEF_NR_TIMERS];
                                 // slots for timer
-    DWORD TimerMask;            // timer slots mask
+    DWORD old_tick_count;       // the old tick count.
+    DWORD expired_timer_mask;   // timer slots mask
 
 #ifdef HAVE_SELECT
     /* Since 4.2.0, MiniGUI supports listening file descriptors
@@ -255,7 +257,10 @@ BOOL mg_InitFreeQMSGList (void);
 void mg_DestroyFreeQMSGList (void);
 BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen);
 void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue);
-BOOL kernel_QueueMessage (PMSGQUEUE pMsgQueue, PMSG msg);
+BOOL kernel_QueueMessage (PMSGQUEUE pMsgQueue, PMSG pMsg);
+
+/* Since 4.2.0 */
+int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg);
 
 /* Since 4.2.0 */
 #ifdef HAVE_SELECT
@@ -673,7 +678,7 @@ static inline MSGQUEUE* getMsgQueueForThisThread (void)
     return pMsgQueue;
 }
 
-static inline TIMER** getTimerSlotsForThisThread (void)
+static inline TIMER** getTimerSlotsForThisThread (PMSGQUEUE* retMsgQueue)
 {
     MSGQUEUE* pMsgQueue;
 
@@ -684,8 +689,13 @@ static inline TIMER** getTimerSlotsForThisThread (void)
     }
 #endif
 
-    if (pMsgQueue)
+    if (pMsgQueue) {
+        if (retMsgQueue) {
+            *retMsgQueue = pMsgQueue;
+        }
         return pMsgQueue->timer_slots;
+    }
+
     return NULL;
 }
 
@@ -749,7 +759,7 @@ static inline void SetDesktopTimerFlag (void)
 static inline void AlertDesktopTimerEvent (void)
 {
     if (__mg_dsk_msg_queue) {
-        __mg_dsk_msg_queue->TimerMask = 1;
+        __mg_dsk_msg_queue->expired_timer_mask = 1;
         POST_MSGQ (__mg_dsk_msg_queue);
     }
 }
@@ -757,13 +767,13 @@ static inline void AlertDesktopTimerEvent (void)
 
 static inline void setMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
-    pMsgQueue->TimerMask |= (0x01 << slot);
+    pMsgQueue->expired_timer_mask |= (0x01 << slot);
     POST_MSGQ (pMsgQueue);
 }
 
 static inline void removeMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
-    pMsgQueue->TimerMask &= ~(0x01 << slot);
+    pMsgQueue->expired_timer_mask &= ~(0x01 << slot);
 }
 
 BOOL mg_InitTimer (void);
