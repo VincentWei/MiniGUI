@@ -88,30 +88,8 @@ static void init_desktop_win (void)
 
     __mg_hwnd_desktop = (HWND)pDesktopWin;
     __mg_dsk_win  = pDesktopWin;
-}
 
-void mg_TerminateDesktop (void)
-{
-    if (__mg_dsk_msg_queue) {
-        mg_DestroyMsgQueue (__mg_dsk_msg_queue);
-#ifdef _MGRM_THREADS
-        free (__mg_dsk_msg_queue);
-        __mg_dsk_msg_queue = NULL;
-#endif
-    }
-
-#ifdef _MGRM_THREADS
-    pthread_mutex_destroy(&sg_ScrGCRInfo.lock);
-#endif
-
-    __kernel_free_z_order_info (__mg_zorder_info);
-    __mg_zorder_info = NULL;
-    DestroyFreeClipRectList (&sg_FreeClipRectList);
-    DestroyFreeClipRectList (&sg_FreeInvRectList);
-
-    mg_TerminateSystemRes ();
-    //dongjunjie avoid double free
-    __mg_dsk_win = 0;
+    __mg_dsk_msg_queue->pRootMainWin = __mg_dsk_win;
 }
 
 static PMAINWIN dskGetActiveWindow (void)
@@ -2391,7 +2369,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 #endif
 
     case MSG_TIMEOUT:
-        BroadcastMessage (MSG_IDLE, wParam, 0);
+        // Since 4.2.0; only handle the current thread (the only GUI thread).
+        BroadcastMessageInThisThread (MSG_IDLE, wParam, 0);
         break;
 
     case MSG_DT_KEYLONGPRESS:
@@ -2433,7 +2412,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         if (sg_old_counter == 0)
             sg_old_counter = __mg_timer_counter;
 
-        __mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
+        __mg_check_expired_timers (NULL, __mg_timer_counter - sg_old_counter);
         sg_old_counter = __mg_timer_counter;
 
         if (__mg_timer_counter < (blink_counter + 10))
@@ -2507,7 +2486,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
         if (MG_UNLIKELY(sg_old_counter == 0))
             sg_old_counter = __mg_timer_counter;
-        __mg_dispatch_timer_message (__mg_timer_counter - sg_old_counter);
+        __mg_check_expired_timers (NULL, __mg_timer_counter - sg_old_counter);
         sg_old_counter = __mg_timer_counter;
 
         if (__mg_timer_counter < (blink_counter + 10))
