@@ -150,6 +150,9 @@ void* __kernel_desktop_main (void* data)
         return NULL;
     }
 
+    /* for threads mode, the idle handler for desktop thread is NULL */
+    __mg_dsk_msg_queue->OnIdle = NULL;
+
     /* init desktop window */
     init_desktop_win ();
 
