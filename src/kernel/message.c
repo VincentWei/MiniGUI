@@ -466,7 +466,7 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 #endif
     }
     else {
-        if (!(pMsgQueue = getMsgQueueByWindowInThisThread (hWnd)))
+        if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hWnd)))
             return FALSE;
     }
 
@@ -887,7 +887,7 @@ BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hWnd)
     if (!pMsg)
         return FALSE;
 
-    if (!(pMsgQueue = getMsgQueueByWindowInThisThread(hWnd)))
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread(hWnd)))
         return FALSE;
 
     memset (pMsg, 0, sizeof(MSG));
@@ -971,7 +971,7 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
     if (!pMsg)
         return FALSE;
 
-    if (!(pMsgQueue = getMsgQueueByWindowInThisThread(hWnd)))
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread(hWnd)))
         return FALSE;
 
     LOCK_MSGQ (pMsgQueue);
@@ -1373,7 +1373,7 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
     PMSGQUEUE   pMsgQueue;
     PQMSG       pQMsg, temp;
 
-    if (!(pMsgQueue = getMsgQueueByWindowInThisThread(hWnd)))
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread(hWnd)))
         return FALSE;
 
     if (pMsgQueue->pFirstNotifyMsg) {
