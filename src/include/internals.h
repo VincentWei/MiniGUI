@@ -634,10 +634,11 @@ static inline PMSGQUEUE getMsgQueue (HWND hWnd)
     return NULL;
 }
 
-#ifdef _MGHAVE_VIRTUAL_WINDOW
 
 MSGQUEUE* mg_AllocMsgQueueForThisThread (void);
 void mg_FreeMsgQueueForThisThread (void);
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc);
 
 extern pthread_key_t __mg_threadinfo_key;
@@ -723,8 +724,10 @@ static inline MSGQUEUE* getMsgQueueForThisThread (void)
     return __mg_dsk_msg_queue;
 }
 
-static inline TIMER** getTimerSlotsForThisThread (void)
+static inline TIMER** getTimerSlotsForThisThread (PMSGQUEUE* retMsgQueue)
 {
+    if (retMsgQueue)
+        *retMsgQueue = __mg_dsk_msg_queue;
     return __mg_dsk_msg_queue->timer_slots;
 }
 
