@@ -3479,7 +3479,7 @@ MG_EXPORT int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPA
 
 /**
  * \fn int BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
- * \brief Broadcasts a message to all main window on the desktop.
+ * \brief Broadcast a message to all main windows on the desktop.
  *
  * This function posts the message specified by (\a nMsg, \a wParam, \a lParam)
  * to all the main windows on the desktop.
@@ -3492,6 +3492,37 @@ MG_EXPORT int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPA
  * \sa PostMessage
  */
 MG_EXPORT int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam);
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+
+/**
+ * \fn int BroadcastMessageInThisThread (UINT nMsg,
+ *      WPARAM wParam, LPARAM lParam)
+ * \brief Broadcast a message to all main/virtual windows in the current thread.
+ *
+ * This function posts the message specified by (\a nMsg, \a wParam, \a lParam)
+ * to all the main/virtual windows in the current thread.
+ *
+ * \param nMsg The message identifier.
+ * \param wParam The first parameter of the message.
+ * \param lParam The second parameter of the message.
+ *
+ * \return The number of windows posted the message; < 0 on error.
+ *
+ * \note This function only available when the support for virtual window
+ *      is enabled. If the support for virtual window is not enabled,
+ *      this function is defined as an alias of \a BroadcastMessage.
+ *
+ * \sa BroadcastMessage, PostMessage
+ */
+MG_EXPORT int GUIAPI BroadcastMessageInThisThread (UINT nMsg,
+        WPARAM wParam, LPARAM lParam);
+
+#else   /* defined _MGHAVE_VIRTUAL_WINDOW */
+
+#define BroadcastMessageInThisThread BroadcastMessage
+
+#endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
 /**
  * \fn int PostQuitMessage (HWND hWnd)
