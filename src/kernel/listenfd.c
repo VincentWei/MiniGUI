@@ -62,7 +62,12 @@
 #include "gdi.h"
 #include "window.h"
 #include "internals.h"
+#include "timer.h"
 #include "mgsock.h"
+
+#ifdef _MGRM_PROCESSES
+#include "sharedres.h"
+#endif
 
 int __mg_kernel_check_listen_fds (MSGQUEUE* msg_queue,
         fd_set* rsetptr, fd_set* wsetptr, fd_set* esetptr)
@@ -121,8 +126,14 @@ static BOOL idle_handler_for_msg_thread (MSGQUEUE* msg_queue, BOOL wait)
     struct timeval sel_timeout;
 
     if (wait) {
-        sel_timeout.tv_sec = 0;
-        sel_timeout.tv_usec = USEC_10MS;
+        if (msg_queue->nr_timers > 0) {
+            sel_timeout.tv_sec = 0;
+            sel_timeout.tv_usec = USEC_10MS;
+        }
+        else {
+            sel_timeout.tv_sec = 0;
+            sel_timeout.tv_usec = USEC_TIMEOUT;
+        }
     }
     else {
         sel_timeout.tv_sec = 0;
@@ -151,14 +162,39 @@ static BOOL idle_handler_for_msg_thread (MSGQUEUE* msg_queue, BOOL wait)
         }
         _WRN_PRINTF ("failed to call select\n");
     }
-    else if (n == 0)
-        return FALSE;
+    else if (wait && n == 0) {
+#ifdef _MGRM_PROCESSES
+        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
+            msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 
-    if (rsetptr || wsetptr || esetptr) {
-        n = __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
+        n = __mg_check_expired_timers (msg_queue,
+                SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+#else
+        if (MG_UNLIKELY (sg_old_counter == 0))
+            msg_queue->old_tick_count = __mg_timer_counter;
+        n = __mg_check_expired_timers (msg_queue,
+                __mg_timer_counter - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = __mg_timer_counter;
+#endif
     }
 
-    return TRUE;
+    if (rsetptr || wsetptr || esetptr) {
+        n += __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
+    }
+
+    if (n == 0) {
+        // no MSG_TIMER or MSG_FDEVENT message...
+        // it time to post MSG_IDLE to all windows in this thread.
+#ifdef _MGRM_PROCESSES
+        MSG msg = { HWND_NULL, MSG_IDLE, SHAREDRES_TIMER_COUNTER, 0 };
+#else
+        MSG msg = { HWND_NULL, MSG_IDLE, __mg_timer_counter, 0 };
+#endif
+        n = __mg_broadcast_message (msg_queue, &msg);
+    }
+
+    return n > 0;
 }
 
 /*
