@@ -107,7 +107,15 @@ tab2space() {
 
 # sed -i 's/\<BE_THIS_THREAD\>/isWindowInThisThread/g' `grep BE_THIS_THREAD -rl src/`
 
-sed -i 's/\<SetMsgQueueTimerFlag\>/setMsgQueueTimerFlag/g' `grep SetMsgQueueTimerFlag -rl src/`
-sed -i 's/\<RemoveMsgQueueTimerFlag\>/removeMsgQueueTimerFlag/g' `grep RemoveMsgQueueTimerFlag -rl src/`
+# sed -i 's/\<SetMsgQueueTimerFlag\>/setMsgQueueTimerFlag/g' `grep SetMsgQueueTimerFlag -rl src/`
+# sed -i 's/\<RemoveMsgQueueTimerFlag\>/removeMsgQueueTimerFlag/g' `grep RemoveMsgQueueTimerFlag -rl src/`
+
+# sed -i 's/\<getMsgQueueByWindowInThisThread\>/getMsgQueueIfWindowInThisThread/g' `grep getMsgQueueByWindowInThisThread -rl include/ src/`
+
+# sed -i 's/\<FirstTimerSlot\>/first_time_slot/g' `grep FirstTimerSlot -rl src/`
+# sed -i 's/\<TimerMask\>/expired_timer_mask/g' `grep TimerMask -rl src/`
+
+# sed -i 's/\<first_time_slot\>/first_timer_slot/g' `grep first_time_slot -rl src/`
+# sed -i 's/\<__mg_dispatch_timer_message\>/__mg_check_expired_timers/g' `grep __mg_dispatch_timer_message -rl src/`
 
 exit 0
