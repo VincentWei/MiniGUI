@@ -66,6 +66,7 @@
 #include "internals.h"
 #include "ctrlclass.h"
 #include "timer.h"
+#include "misc.h"
 
 #ifdef HAVE_SELECT
 #include "mgsock.h"
@@ -217,15 +218,141 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 }
 #endif /* _MGHAVE_VIRTUAL_WINDOW */
 
-#if 0
-BOOL __mg_kernel_dummy_idle_handler (PMSGQUEUE msg_queue, BOOL wait)
+#ifdef HAVE_SELECT
+/* the idle handler for a message queue with checking listening fds */
+static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
 {
-    if (wait)
-        __mg_os_time_delay (1);
+    int n;
+    fd_set rset, wset, eset;
+    fd_set* rsetptr = NULL;
+    fd_set* wsetptr = NULL;
+    fd_set* esetptr = NULL;
+    struct timeval sel_timeout;
 
-    return FALSE;
-}
+    if (wait) {
+        if (msg_queue->nr_timers > 0) {
+            sel_timeout.tv_sec = 0;
+            sel_timeout.tv_usec = USEC_10MS;
+        }
+        else {
+            sel_timeout.tv_sec = 0;
+            sel_timeout.tv_usec = USEC_TIMEOUT;
+        }
+    }
+    else {
+        sel_timeout.tv_sec = 0;
+        sel_timeout.tv_usec = 0;
+    }
+
+    /* a fdset got modified each time around */
+    if (msg_queue->nr_rfds) {
+        rset = msg_queue->rfdset;
+        rsetptr = &rset;
+    }
+    if (msg_queue->nr_wfds) {
+        wset = msg_queue->wfdset;
+        wsetptr = &wset;
+    }
+    if (msg_queue->nr_efds) {
+        eset = msg_queue->efdset;
+        esetptr = &eset;
+    }
+
+    if ((n = select (msg_queue->maxfd + 1,
+            rsetptr, wsetptr, esetptr, &sel_timeout)) < 0) {
+        if (errno == EINTR) {
+            /* it is time to check message again. */
+            return FALSE;
+        }
+        _WRN_PRINTF ("failed to call select\n");
+    }
+    else if (n == 0) {
+#ifdef _MGRM_PROCESSES
+        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
+            msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+
+        n = __mg_check_expired_timers (msg_queue,
+                SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+#else
+        if (MG_UNLIKELY (sg_old_counter == 0))
+            msg_queue->old_tick_count = __mg_timer_counter;
+        n = __mg_check_expired_timers (msg_queue,
+                __mg_timer_counter - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = __mg_timer_counter;
 #endif
+    }
+
+    if (rsetptr || wsetptr || esetptr) {
+        n += __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
+    }
+
+    if (wait && n == 0) {
+        // no MSG_TIMER or MSG_FDEVENT message...
+        // it time to post MSG_IDLE to all windows in this thread.
+#ifdef _MGRM_PROCESSES
+        MSG msg = { HWND_NULL, MSG_IDLE, SHAREDRES_TIMER_COUNTER, 0 };
+#else
+        MSG msg = { HWND_NULL, MSG_IDLE, __mg_timer_counter, 0 };
+#endif
+        n = __mg_broadcast_message (msg_queue, &msg);
+    }
+
+    return n > 0;
+}
+
+#else   /* defined HAVE_SELECT */
+
+static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
+{
+    int n = 0;
+    long timeout_ms;
+
+    if (wait) {
+        if (msg_queue->nr_timers > 0) {
+            timeout_ms = 10;
+        }
+        else {
+            timeout_ms = 300;
+        }
+    }
+    else {
+        timeout_ms = 0;
+    }
+
+    if (timeout_ms > 0)
+        __mg_os_time_delay (timeout_ms);
+
+#ifdef _MGRM_PROCESSES
+    if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
+        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+
+    n = __mg_check_expired_timers (msg_queue,
+            SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+#else
+    if (MG_UNLIKELY (sg_old_counter == 0))
+        msg_queue->old_tick_count = __mg_timer_counter;
+    n = __mg_check_expired_timers (msg_queue,
+            __mg_timer_counter - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = __mg_timer_counter;
+#endif
+
+    if (wait && n == 0) {
+        // no MSG_TIMER or MSG_FDEVENT message...
+        // it time to post MSG_IDLE to all windows in this thread.
+#ifdef _MGRM_PROCESSES
+        MSG msg = { HWND_NULL, MSG_IDLE, SHAREDRES_TIMER_COUNTER, 0 };
+#else
+        MSG msg = { HWND_NULL, MSG_IDLE, __mg_timer_counter, 0 };
+#endif
+        n = __mg_broadcast_message (msg_queue, &msg);
+    }
+
+    return n > 0;
+}
+
+#endif  /* not defined HAVE_SELECT */
 
 BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 {
@@ -255,7 +382,7 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 
     pMsgQueue->len = iBufferLen;
 
-    pMsgQueue->OnIdle = NULL;
+    pMsgQueue->OnIdle = std_idle_handler;
 
     /* Since 4.2.0, MiniGUI provides support for timers per message thread */
     // pMsgQueue->first_timer_slot = 0;

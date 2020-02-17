@@ -297,11 +297,6 @@ static inline void SetDskIdleHandler (IDLEHANDLER idle_handler)
 }
 #endif /* not defined _MGRM_THREADS */
 
-/* Since 4.2.0 */
-#ifdef _HAVE_SELECT
-BOOL __mg_idle_handler_with_fds (MSGQUEUE* msg_queue, BOOL wait);
-#endif
-
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
   #define MG_MUTEX_INIT(lock)      pthread_mutex_init(lock, NULL)
