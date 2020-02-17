@@ -77,7 +77,7 @@ extern "C" {
 
 BOOL mg_InitTimer (void);
 void mg_TerminateTimer (void);
-void __mg_dispatch_timer_message (DWORD inter);
+int  __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter);
 void __mg_remove_timers_by_msg_queue (MSGQUEUE* msg_queue);
 void __mg_remove_timer (MSGQUEUE* msg_queue, int slot);
 
