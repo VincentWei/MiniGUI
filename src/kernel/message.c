@@ -151,6 +151,7 @@ inline static void FreeQMSG (PQMSG pqmsg)
 /****************************** Message Queue Management ************************/
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 pthread_key_t __mg_threadinfo_key;
+#endif
 
 MSGQUEUE* mg_AllocMsgQueueForThisThread (void)
 {
@@ -165,8 +166,10 @@ MSGQUEUE* mg_AllocMsgQueueForThisThread (void)
         return NULL;
     }
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pMsgQueue->th = pthread_self();
     pthread_setspecific (__mg_threadinfo_key, pMsgQueue);
+#endif
     return pMsgQueue;
 }
 
@@ -174,13 +177,9 @@ void mg_FreeMsgQueueForThisThread (void)
 {
     MSGQUEUE* pMsgQueue;
 
-    pMsgQueue = pthread_getspecific (__mg_threadinfo_key);
+    pMsgQueue = getMsgQueueForThisThread ();
 
-#ifdef __VXWORKS__
-    if (pMsgQueue != (void *)0 && pMsgQueue != (void *)-1) {
-#else
     if (pMsgQueue) {
-#endif
         if (pMsgQueue->nrWindows > 0) {
             _WRN_PRINTF ("there are still some windows not destroyed\n");
         }
@@ -188,17 +187,20 @@ void mg_FreeMsgQueueForThisThread (void)
         mg_DestroyMsgQueue (pMsgQueue);
         free (pMsgQueue);
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 #ifdef __VXWORKS__
         pthread_setspecific (__mg_threadinfo_key, (void*)-1);
 #else
         pthread_setspecific (__mg_threadinfo_key, NULL);
 #endif
+#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
     }
     else {
         _WRN_PRINTF ("message queue has gone\n");
     }
 }
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 {
     MSGQUEUE* pMsgQueue;
@@ -216,7 +218,7 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 
     return pMsgQueue;
 }
-#endif /* _MGHAVE_VIRTUAL_WINDOW */
+#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifdef HAVE_SELECT
 /* the idle handler for a message queue with checking listening fds */
@@ -275,7 +277,7 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
                 SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
         msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 #else
-        if (MG_UNLIKELY (sg_old_counter == 0))
+        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
             msg_queue->old_tick_count = __mg_timer_counter;
         n = __mg_check_expired_timers (msg_queue,
                 __mg_timer_counter - msg_queue->old_tick_count);
@@ -331,7 +333,7 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
             SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
     msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 #else
-    if (MG_UNLIKELY (sg_old_counter == 0))
+    if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
         msg_queue->old_tick_count = __mg_timer_counter;
     n = __mg_check_expired_timers (msg_queue,
             __mg_timer_counter - msg_queue->old_tick_count);
@@ -660,7 +662,6 @@ int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
     return SendMessage (HWND_DESKTOP, MSG_BROADCASTMSG, 0, (LPARAM)(&msg));
 }
 
-#ifdef _MGHAVE_VIRTUAL_WINDOW
 static void travel_all_hosted (PMAINWIN pWin,
     void (*cb) (PMAINWIN, void*), void* data)
 {
@@ -697,6 +698,7 @@ int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg)
     return (int)msg->time;
 }
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 int GUIAPI BroadcastMessageInThisThread (UINT nMsg,
         WPARAM wParam, LPARAM lParam)
 {
