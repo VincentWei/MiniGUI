@@ -259,22 +259,22 @@ void mg_TerminateTimer (void)
 #endif /* deprecated code */
 }
 
-/************************* Functions run in desktop thread *******************/
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-#else
-#endif
-
-void __mg_dispatch_timer_message (DWORD inter)
+/************************* Functions run in message thread *******************/
+int __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter)
 {
-    int i;
-    MSGQUEUE* msg_queue;
+    int nr = 0;
 
     if (inter == 0)
-        return;
+        return 0;
 
-    msg_queue = getMsgQueueForThisThread ();
+    if (msg_queue == NULL) {
+        msg_queue = getMsgQueueForThisThread ();
+    }
+
     if (msg_queue) {
+        int i;
         TIMER** timer_slots = msg_queue->timer_slots;
+
         for (i = 0; i < DEF_NR_TIMERS; i++) {
             if (timer_slots[i]) {
                 timer_slots[i]->count += inter;
@@ -288,6 +288,7 @@ void __mg_dispatch_timer_message (DWORD inter)
                        or else we may encounter dead lock here */
                     setMsgQueueTimerFlag (msg_queue, i);
                     timer_slots[i]->count -= timer_slots[i]->speed;
+                    nr++;
                 }
             }
         }
@@ -295,6 +296,8 @@ void __mg_dispatch_timer_message (DWORD inter)
     else {
         _WRN_PRINTF ("called for non message thread\n");
     }
+
+    return nr;
 }
 
 BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
@@ -303,6 +306,7 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
     int i;
     int slot = -1;
     TIMER** timer_slots;
+    PMSGQUEUE pMsgQueue;
 
     if (id == 0) {
         _WRN_PRINTF ("bad identifier (%ld).\n", id);
@@ -313,7 +317,7 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
         speed = 1;
     }
 
-    timer_slots = getTimerSlotsForThisThread();
+    timer_slots = getTimerSlotsForThisThread(&pMsgQueue);
     if (MG_UNLIKELY (timer_slots == NULL)) {
         _WRN_PRINTF ("called for non message thread\n");
         goto badret;
@@ -349,6 +353,8 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
     timer_slots[slot]->count = 0;
     timer_slots[slot]->proc = timer_proc;
     timer_slots[slot]->tick_count = 0;
+
+    pMsgQueue->nr_timers++;
 
 #ifdef _MGRM_PROCESSES
     if (!mgIsServer)
@@ -387,10 +393,11 @@ void __mg_remove_timer (MSGQUEUE* msg_queue, int slot)
     timer_slots = msg_queue->timer_slots;
     if (MG_LIKELY (timer_slots[slot])) {
         /* The following code is already moved to message.c...
-         * timer->msg_queue->TimerMask &= ~(0x01 << slot);
+         * timer->msg_queue->expired_timer_mask &= ~(0x01 << slot);
          */
         mg_slice_delete (TIMER, timer_slots[slot]);
         timer_slots [slot] = NULL;
+        msg_queue->nr_timers--;
 
 #ifdef _MGRM_PROCESSES
         if (!mgIsServer)
@@ -410,6 +417,8 @@ void __mg_remove_timers_by_msg_queue (MSGQUEUE* msg_queue)
             timer_slots [i] = NULL;
         }
     }
+
+    msg_queue->nr_timers--;
 }
 
 /* If id == 0, clear all timers of the window */
@@ -429,6 +438,7 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
                 removeMsgQueueTimerFlag (msg_queue, i);
                 mg_slice_delete (TIMER, timer_slots[i]);
                 timer_slots [i] = NULL;
+                msg_queue->nr_timers--;
                 killed ++;
 
                 if (id)
@@ -493,7 +503,7 @@ BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
     if (id == 0)
         return FALSE;
 
-    timer_slots = getTimerSlotsForThisThread ();
+    timer_slots = getTimerSlotsForThisThread (NULL);
     if (timer_slots) {
         for (i = 0; i < DEF_NR_TIMERS; i++) {
             if (timer_slots[i] &&
@@ -514,7 +524,7 @@ BOOL GUIAPI HaveFreeTimer (void)
     int i;
     TIMER** timer_slots;
 
-    timer_slots = getTimerSlotsForThisThread ();
+    timer_slots = getTimerSlotsForThisThread (NULL);
     if (timer_slots) {
         for (i = 0; i < DEF_NR_TIMERS; i++) {
             if (timer_slots[i] == NULL)
@@ -584,15 +594,15 @@ void __mg_move_timer_last (TIMER* timer, int slot)
     if (timer && timer->msg_queue) {
         /* The following code is already called in message.c...
          * timer->tick_count = 0;
-         * timer->msg_queue->TimerMask &= ~(0x01 << slot);
+         * timer->msg_queue->expired_timer_mask &= ~(0x01 << slot);
          */
 
         if (slot != (DEF_NR_TIMERS - 1)) {
             TIMER* t;
 
-            if (timer->msg_queue->TimerMask & (0x01 << (DEF_NR_TIMERS -1))) {
-                timer->msg_queue->TimerMask |= (0x01 << slot);
-                timer->msg_queue->TimerMask &= ~(0x01 << (DEF_NR_TIMERS -1));
+            if (timer->msg_queue->expired_timer_mask & (0x01 << (DEF_NR_TIMERS -1))) {
+                timer->msg_queue->expired_timer_mask |= (0x01 << slot);
+                timer->msg_queue->expired_timer_mask &= ~(0x01 << (DEF_NR_TIMERS -1));
             }
 
             t = timerstr [DEF_NR_TIMERS - 1];
@@ -612,7 +622,7 @@ TIMER* __mg_get_timer (int slot)
     if (slot < 0 || slot >= DEF_NR_TIMERS)
         return NULL;
 
-    timer_slots = getTimerSlotsForThisThread ();
+    timer_slots = getTimerSlotsForThisThread (NULL);
     if (timer_slots) {
         return timer_slots[slot];
     }
