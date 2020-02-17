@@ -107,7 +107,6 @@ PLOGFONT g_SysLogFont[1];   // TODO: bad coding
 #define __mg_hwnd_desktop                     0xFFFFFFFD
 #define __mg_dsk_win                          1
 #define gui_Control(hwnd)                     NULL
-#define DestroyDskMsgQueue()
 #define salone_StandAloneStartup()            TRUE
 #define salone_StandAloneCleanup()
 #define salone_IdleHandler4StandAlone(qmsg)   NULL
