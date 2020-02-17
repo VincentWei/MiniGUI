@@ -80,8 +80,7 @@
 #endif
 
 /******************************* global data *********************************/
-MSGQUEUE __mg_desktop_msg_queue;
-PMSGQUEUE __mg_dsk_msg_queue = &__mg_desktop_msg_queue;
+PMSGQUEUE __mg_dsk_msg_queue;
 
 #include "desktop-comm.c"
 /********************* Window management support *****************************/
@@ -102,6 +101,12 @@ BOOL mg_InitDesktop (void)
 {
     int ret;
     RECT rcScr = GetScreenRect();
+
+    /* Since 4.2.0: allocate message queue for desktop thread */
+    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
+        _WRN_PRINTF ("failed to allocate message queue\n");
+        return FALSE;
+    }
 
     /*
      * Init ZOrderInfo here.
@@ -140,6 +145,23 @@ BOOL mg_InitDesktop (void)
     SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
 
     return TRUE;
+}
+
+void mg_TerminateDesktop (void)
+{
+    if (__mg_dsk_msg_queue) {
+        mg_FreeMsgQueueForThisThread ();
+        __mg_dsk_msg_queue = NULL;
+    }
+
+    __kernel_free_z_order_info (__mg_zorder_info);
+    __mg_zorder_info = NULL;
+    DestroyFreeClipRectList (&sg_FreeClipRectList);
+    DestroyFreeClipRectList (&sg_FreeInvRectList);
+
+    mg_TerminateSystemRes ();
+    //dongjunjie avoid double free
+    __mg_dsk_win = 0;
 }
 
 #endif /* _MGRM_STANDALONE */
