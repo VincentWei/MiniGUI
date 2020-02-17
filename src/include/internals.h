@@ -217,7 +217,7 @@ struct _MSGQUEUE
     PSYNCMSG pLastSyncMsg;      // tail of the sync message queue
 #endif
 
-    IDLEHANDLER OnIdle;         // XXX: idle handler
+    IDLEHANDLER OnIdle;         // idle handler for this message queue.
 
     PMAINWIN pRootMainWin;      // the root main window of this message queue.
     int nrWindows;              // the number of main/virtual windows.
@@ -291,21 +291,16 @@ static inline BOOL QueueDeskMessage (PMSG msg)
 }
 
 #ifndef _MGRM_THREADS
-static inline BOOL InitDskMsgQueue (void)
-{
-    return mg_InitMsgQueue (__mg_dsk_msg_queue, 0);
-}
-
-static inline void DestroyDskMsgQueue (void)
-{
-    mg_DestroyMsgQueue (__mg_dsk_msg_queue);
-}
-
 static inline void SetDskIdleHandler (IDLEHANDLER idle_handler)
 {
     __mg_dsk_msg_queue->OnIdle = idle_handler;
 }
 #endif /* not defined _MGRM_THREADS */
+
+/* Since 4.2.0 */
+#ifdef _HAVE_SELECT
+BOOL __mg_idle_handler_with_fds (MSGQUEUE* msg_queue, BOOL wait);
+#endif
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
