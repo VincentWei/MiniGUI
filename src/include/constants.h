@@ -172,6 +172,7 @@
 #define DEF_NR_TIMERS       NR_BITS_DWORD
 #define USEC_1S             1000000
 #define USEC_10MS           10000
+#define USEC_TIMEOUT        300000
 
 // round n to multiple of m
 #define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
