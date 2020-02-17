@@ -73,8 +73,13 @@ IME_STATUS_INFO __mg_ime_status_info;
 
 static HWND sg_hCaretWnd;
 static UINT sg_uCaretBTime;
-/*default window procedure*/
+
+/* default window procedures */
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+WNDPROC __mg_def_proc[4];
+#else
 WNDPROC __mg_def_proc[3];
+#endif
 
 static BLOCKHEAP sg_FreeInvRectList;
 
