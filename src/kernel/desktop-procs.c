@@ -88,8 +88,7 @@
 #   define CLIENT_HAS_NO_MAINWINDOW() (znodes_of_this_client() == 0)
 
 /******************************* global data *********************************/
-MSGQUEUE __mg_desktop_msg_queue;
-PMSGQUEUE __mg_dsk_msg_queue = &__mg_desktop_msg_queue;
+PMSGQUEUE __mg_dsk_msg_queue;
 
 GHANDLE __mg_layer;
 
@@ -208,6 +207,7 @@ static void TerminateSharedSysRes (void)
 }
 
 static LRESULT DesktopWinProc (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 static void init_desktop_win (void)
 {
     static MAINWIN desktop_win;
@@ -244,11 +244,17 @@ static void init_desktop_win (void)
 
     __mg_hwnd_desktop = (HWND)pDesktopWin;
     __mg_dsk_win  = pDesktopWin;
-
+    __mg_dsk_msg_queue->pRootMainWin = __mg_dsk_win;
 }
 
 BOOL mg_InitDesktop (void)
 {
+    /* Since 4.2.0: allocate message queue for desktop thread */
+    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
+        _WRN_PRINTF ("failed to allocate message queue\n");
+        return FALSE;
+    }
+
 #ifndef _MGSCHEMA_COMPOSITING
     /* Init heap of clipping rects. */
     InitFreeClipRectList (&sg_FreeClipRectList, SIZE_CLIPRECTHEAP);
@@ -268,6 +274,10 @@ BOOL mg_InitDesktop (void)
 
 void mg_TerminateDesktop (void)
 {
+    /* Since 4.2.0: message queue for desktop thread was dynamically allocated */
+    mg_FreeMsgQueueForThisThread ();
+    __mg_dsk_msg_queue = NULL;
+
     TerminateSharedSysRes ();
 
 #ifndef _MGSCHEMA_COMPOSITING
@@ -3979,7 +3989,7 @@ static void dskOnTimer (void)
     if (sg_old_counter == 0)
         sg_old_counter = SHAREDRES_TIMER_COUNTER;
 
-    __mg_dispatch_timer_message (SHAREDRES_TIMER_COUNTER - sg_old_counter);
+    __mg_check_expired_timers (NULL, SHAREDRES_TIMER_COUNTER - sg_old_counter);
     sg_old_counter = SHAREDRES_TIMER_COUNTER;
 
     if (SHAREDRES_TIMER_COUNTER < (blink_counter + 10))
@@ -4394,11 +4404,10 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         break;
     }
 
-    case MSG_TIMEOUT: {
-        MSG msg = {0, MSG_IDLE, wParam, 0};
-        dskBroadcastMessage (&msg);
+    case MSG_TIMEOUT:
+        // Since 4.2.0; only handle the current thread (the only GUI thread).
+        BroadcastMessageInThisThread (MSG_IDLE, wParam, 0);
         break;
-    }
 
     case MSG_SRVNOTIFY: {
         MSG msg = {0, MSG_SRVNOTIFY, wParam, lParam};
