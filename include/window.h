@@ -2011,7 +2011,7 @@ extern DWORD __mg_interval_time;
  */
 #define MSG_EXIN_USER_END               0x009C
 
-#define MSG_LASTEXTRAINPUTMSG   0x009F
+#define MSG_LASTEXTRAINPUTMSG           0x009F
 
     /** @} end of extra_input_msgs */
 
@@ -2419,7 +2419,7 @@ typedef struct _COMPOSITINGINFO {
     DWORD   arg;
 } COMPOSITINGINFO;
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 #define MSG_SETCOMPOSITING  0x0105
 
 #define MSG_SHOWGLOBALCTRL  0x010A
@@ -2443,7 +2443,7 @@ typedef struct _WINMASKINFO {
     struct _RECT4MASK*  rcs;
 } WINMASKINFO;
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 #define MSG_SETWINDOWMASK   0x010F
 
 #define MSG_LASTWINDOWMSG   0x010F
@@ -2901,7 +2901,7 @@ typedef struct _WINMASKINFO {
 
 #define MSG_UPDATECLIWIN    0x0148
 
-/* Since 4.2.0; the server send this message to the client
+/* Since 5.0.0; the server send this message to the client
    if the client moved to a new layer */
 #define MSG_LAYERCHANGED    0x0149
 
@@ -2980,8 +2980,9 @@ typedef struct _WINMASKINFO {
     #define CCDOP_GETCCI        0x01
     #define CCDOP_SETCCI        0x02
 
-#define MSG_REGISTERKEYHOOK     0x016D
-#define MSG_REGISTERMOUSEHOOK   0x016E
+#define MSG_REGISTERHOOKFUNC    0x016D
+#define MSG_REGISTERHOOKWIN     0x016E
+#define MSG_UNREGISTERHOOKWIN   0x016F
 
 #define MSG_LASTSYSTEMMSG   0x016F
 
@@ -3752,7 +3753,7 @@ MG_EXPORT void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
      * the registered window.
      *
      * The functions in this group are only available to MiniGUI-Processes
-     * and MiniGUI-Standalone before 4.2.0. Since 4.2.0, you can register a
+     * and MiniGUI-Standalone before 5.0.0. Since 5.0.0, you can register a
      * file descriptor to be listened for all runtime modes as long as the
      * underlying system supports select().
      *
@@ -3767,7 +3768,7 @@ MG_EXPORT void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
  * \def MAX_NR_LISTEN_FD
  * \brief The max number of listen fd which user can use.
  *
- * \note Deprecated since 4.2.0. MiniGUI will try to allocate enough space to
+ * \note Deprecated since 5.0.0. MiniGUI will try to allocate enough space to
  *      manage all listening file descriptors.
  */
 #define MAX_NR_LISTEN_FD   4
@@ -3841,77 +3842,205 @@ MG_EXPORT BOOL GUIAPI UnregisterListenFD (int fd);
      * @{
      */
 
-/**
- * \def HOOK_GOON
- * \sa SRVEVTHOOK  RegisterKeyHookWindow RegisterMouseHookWindow
- */
-#define HOOK_GOON       0
+#define HOOK_OP_MASK        0x00FF
+#define HOOK_GOON           0x0000
+#define HOOK_STOP           0x0001
+
+#define HOOK_EVENT_MASK     0xFF00
+#define HOOK_EVENT_KEY      0x0100
+#define HOOK_EVENT_MOUSE    0x0200
+#define HOOK_EVENT_EXTRA    0x0400
+
 
 /**
- * \def HOOK_STOP
- * \sa SRVEVTHOOK  RegisterKeyHookWindow RegisterMouseHookWindow
- */
-#define HOOK_STOP       1
-
-#ifndef _MGRM_PROCESSES
-
-/**
- * \var typedef int (* MSGHOOK)(void* context, HWND dst_wnd, \
- *                UINT msg, WPARAM wparam, LPARAM lparam)
- *
+ * \var typedef int (* MSGHOOK) (void* context, HWND dst_wnd,
+ *      UINT msg, WPARAM wparam, LPARAM lparam)
  * \brief Type of message hook function.
+ *
+ * This is the type of a message hook function.
+ *
+ * \param context The context which was set when you registered
+ *      the hook function.
+ * \param dst_wnd The handle of the original destination window of the message.
+ * \param msg The message identifier.
+ * \param wparam The first parameter of the message.
+ * \param lparam The second paramter of the message.
+ *
+ * \return A value indicating stopping or continuing the subsequent handling
+ *      of the message, can be one of the following values:
+ *      - HOOK_GOON\n
+ *        Indicate continuing to handle the message.
+ *      - HOOK_STOP\n
+ *        Indicate stopping to handle the message.
  */
-typedef int (* MSGHOOK)(void* context, HWND dst_wnd,
-                UINT msg, WPARAM wparam, LPARAM lparam);
+typedef int (* MSGHOOK) (void* context, HWND dst_wnd,
+        UINT msg, WPARAM wparam, LPARAM lparam);
 
 /**
- * Structure defines a message hook.
+ * \fn MSGHOOK GUIAPI RegisterEventHookFunc (int event_type,
+ *      MSGHOOK hook, void* context)
+ * \brief Registers an input event message hook function.
+ *
+ * This function registers an input event message hook function pointed
+ * to by \a hook. When the desktop receives an input event message with
+ * the specified event type \a event_type, it will call the hook function
+ * first, and passes the \a context value to the hook as the first argument.
+ *
+ * \param event_type Which type of event to be hooked. The value of
+ *      this argument should be a one of the following values:
+ *      - HOOK_EVENT_KEY\n
+ *        To hook all key events.
+ *      - HOOK_EVENT_MOUSE\n
+ *        To hook all mouse events.
+ *      - HOOK_EVENT_EXTRA\n
+ *        To hook all extra input events.
+ * \param hook The pointer to the hook function. This function will unregister
+ *      the old hook for the specified event type if \a hook is NULL.
+ * \param context The context value will be passed to the hook function.
+ *
+ * \return The pointer to the old hook function for the specified event type.
+ *
+ * \note The hook function will be called in the context of
+ *      desktop or event thread. you should note the thread safety when
+ *      implementing the hook function.
+ *
+ * \sa RegisterEventHookWindow, MSGHOOK
+ *
+ * Since 5.0.0
  */
-typedef struct _HOOKINFO
-{
-    /** the context which will be passed to the hook function. */
-    void* context;
-    /** the pointer to the hook function. */
-    MSGHOOK hook;
-} HOOKINFO;
+MG_EXPORT MSGHOOK GUIAPI RegisterEventHookFunc (int event_type,
+        MSGHOOK hook, void* context);
 
 /**
  * \fn MSGHOOK GUIAPI RegisterKeyMsgHook (void* context, MSGHOOK hook)
- * \brief Registers a key message hook.
+ * \brief Register a key message hook function.
  *
  * This function registers a key message hook pointed to by \a hook.
- *
- * When the desktop receives a key message, it will send it to the hook first,
- * and passes the \a context value to the hook as the first argument.
- *
- * \param context The context value will be passed to the hook.
- * \param hook The hook. This function will unregister the old hook if
- *        \a hook is NULL.
- * \return The old hook.
- *
- * \sa UnregisterHook, KEYMSGHOOK
- */
-MG_EXPORT MSGHOOK GUIAPI RegisterKeyMsgHook (void* context, MSGHOOK hook);
-
-/**
- * \fn MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook)
- * \brief Registers a mouse message hook.
- *
- * This function registers a mouse message hook pointed to by \a hook.
- *
- * When the desktop receives a mouse message, it will send it to the hook
+ * When the desktop receives a key message, it will call the hook function
  * first, and passes the \a context value to the hook as the first argument.
  *
  * \param context The context value will be passed to the hook.
- * \param hook The hook. This function will unregister the old hook if
- *        \a hook is NULL.
- * \return The old hook.
+ * \param hook The pointer to the hook function. This function will
+ *      unregister the old hook if \a hook is NULL.
  *
- * \sa UnregisterHook, KEYMSGHOOK
+ * \return The pointer to the old hook function.
+ *
+ * \sa RegisterEventHookFunc, MSGHOOK
  */
-MG_EXPORT MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook);
+static inline MSGHOOK GUIAPI RegisterKeyMsgHook (void* context, MSGHOOK hook)
+{
+    return RegisterEventHookFunc (HOOK_EVENT_KEY, hook, context);
+}
 
-#endif /* !_MGRM_PROCESSES */
+/**
+ * \fn MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook)
+ * \brief Register a mouse message hook function.
+ *
+ * This function registers a mouse message hook pointed to by \a hook.
+ * When the desktop receives a mouse message, it will call the  hook function
+ * first, and passes the \a context value to the hook as the first argument.
+ *
+ * \param context The context value will be passed to the hook function.
+ * \param hook The pointer to the hook function. This function will
+ *      unregister the old hook if \a hook is NULL.
+ *
+ * \return The pointer to the old hook function.
+ *
+ * \sa RegisterEventHookFunc, MSGHOOK
+ */
+static inline MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook)
+{
+    return RegisterEventHookFunc (HOOK_EVENT_MOUSE, hook, context);
+}
+
+/**
+ * \fn BOOL GUIAPI RegisterEventHookWindow (HWND hwnd, DWORD flags)
+ * \brief Register an input event message hook window.
+ *
+ * This function registers the specified window \a hwnd as an input
+ * event message hook window. When MiniGUI receives an input event
+ * message, it will post it to the hook window first.
+ *
+ * \param hwnd The hook hwnd.
+ * \param flags The flags indicating the event types hooked event and whether stop
+ *      or continue handling the hooked events. The value of this argument should
+ *      be OR'd with one or more event types and HOOK_GOON or HOOK_STOP:
+ *      - HOOK_EVENT_KEY\n
+ *        To hook all key events.
+ *      - HOOK_EVENT_MOUSE\n
+ *        To hook all mouse events.
+ *      - HOOK_EVENT_EXTRA\n
+ *        To hook all extra input events.
+ *      - HOOK_GOON\n
+ *        Indicate continuing to handle the message.
+ *      - HOOK_STOP\n
+ *        Indicate stopping to handle the message.
+ *
+ * \return The handle of old hook window.
+ *
+ * \note This function be be called by a client of MiniGUI-Processes.
+ *       For the server, you can use SetServerEventHook.
+ *
+ * \sa UnregisterEventHookWindow
+ *
+ * Since 5.0.0.
+ */
+MG_EXPORT BOOL GUIAPI RegisterEventHookWindow (HWND hwnd, DWORD flags);
+
+/**
+ * \fn BOOL GUIAPI UnregisterEventHookWindow (HWND hwnd)
+ * \brief Unregister an input event message hook window.
+ *
+ * This function unregisters the specified window \a hwnd from
+ * the hook list.
+ *
+ * \param hwnd The hook hwnd.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \sa RegisterEventHookWindow
+ *
+ * Since 5.0.0.
+ */
+MG_EXPORT BOOL GUIAPI UnregisterEventHookWindow (HWND hwnd);
+
+/**
+ * \fn HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag)
+ * \brief Register a key message hook window.
+ *
+ * This function registers a window specified by \a hwnd as the key message
+ * hook window. When MiniGUI receives a key message, it will post it to the
+ * hooked window first.
+ *
+ * \param hwnd The handle of the hook window. This function will unregister
+ *      the old hook if \a hwnd is HWND_NULL.
+ * \param flag Indicating whether stop or continue handling the hooked messages;
+ *      HOOK_GOON to continue, HOOK_STOP to stop.
+ *
+ * \return The handle of old hook window.
+ *
+ * \sa UnregisterEventHookWindow, RegisterMouseHookWindow
+ */
+MG_EXPORT HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag);
+
+/**
+ * \fn HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag)
+ * \brief Registers a mouse message hook window.
+ *
+ * This function registers a window specified by \a hwnd as the mouse message
+ * hook window. When MiniGUI receives a mouse message, it will post it to the
+ * hooked window first.
+ *
+ * \param hwnd The handle of the hook window. This function will unregister
+ *      the old hook if \a hwnd is HWND_NULL.
+ * \param flag Indicating whether stop or continue handling the hooked messages;
+ *      HOOK_GOON to continue, HOOK_STOP to stop.
+ *
+ * \return The handle of old hook window.
+ *
+ * \sa UnregisterEventHookWindow, RegisterMouseHookWindow
+ */
+MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 #ifndef _MGRM_THREADS
 
@@ -3920,82 +4049,40 @@ MG_EXPORT MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook);
  * \brief The type of the event hook.
  *
  * You can call \a SetServerEventHook to set an event hook
- * in the server of the MiniGUI-Processes.
+ * in the server of the MiniGUI-Processes or under MiniGUI-Standalone
+ * runtime mode.
  *
- * If the event hook returns HOOK_GOON, \a mginit will continue to
- * handle the event, and send it to the active client.
- * If the hook returns HOOK_STOP, \a mginit will cancel normal handling.
+ * If the event hook returns HOOK_GOON, MiniGUI will continue to
+ * handle the event, and post it to the active client.
+ * If the hook returns HOOK_STOP, MiniGUI will cancel subsequent handling.
  *
- * \sa SetServerEventHook
+ * \note Deprecated since 5.0.0; Use \a RegisterEventHookFunc() instead.
+ *
+ * \sa SetServerEventHook, RegisterEventHookFunc
  */
 typedef int (* SRVEVTHOOK) (PMSG pMsg);
 
 /**
- * \fn void GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
- * \brief Sets an event hook in the server of MiniGUI-Processes.
+ * \fn SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
+ * \brief Set an event hook in the server of MiniGUI-Processes.
  *
- * This function sets the event hook as \a SrvEvtHook in the server,
- * i.e. mginit, of MiniGUI-Processes.
+ * This function sets the event hook as \a SrvEvtHook for the server
+ * of MiniGUI-Processes or MiniGUI-Standalone.
  *
  * \param SrvEvtHook The pointer to the hook, NULL to cancel the hook.
  *
- * \note Only defined for MiniGUI-Processes, and only can be used by the server.
+ * \return The old hook function.
  *
- * \sa SRVEVTHOOK
+ * \note Only available for MiniGUI-Processes and MiniGUI-Standalone runtime
+ *      modes. Under MiniGUI-Processes, only the server can call this function.
+ *
+ * \note Deprecated since 5.0.0; Use \a RegisterEventHookFunc() instead.
+ *
+ * \sa SRVEVTHOOK, RegisterEventHookFunc
  */
 MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
 
-#ifdef _MGRM_PROCESSES
-
-/**
- * \fn HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag)
- * \brief Registers a key message hook window.
- *
- * This function registers a key message hook pointed to by \a hook.
- *
- * When the desktop receives a key message, it will send it to the hook first,
- * and passes the \a context value to the hook as the first argument.
- *
- * \param hwnd The hook hwnd. This function will unregister the old hook if
- *        \a hwnd is HWND_NULL.
- * \param flag Indicates whether stop or continue handling the hooked messages.
- *        HOOK_GOON to continue, HOOK_STOP to stop.
- *
- * \return The handle of old hook window.
- *
- * \note This function be be called by a client of MiniGUI-Processes.
- *       For the server, you can use SetServerEventHook.
- *
- * \sa RegisterMouseHookWindow, SetServerEventHook
- */
-MG_EXPORT HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag);
-
-/**
- * \fn HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag)
- * \brief Registers a mouse message hook window.
- *
- * This function registers a mouse message hook pointed to by \a hook.
- *
- * When the desktop receives a mouse message, it will send it to the hook
- * first, and passes the \a context value to the hook as the first argument.
- *
- * \param hwnd The hook hwnd. This function will unregister the old hook if
- *        \a hook is HWND_NULL.
- * \param flag Indicates whether stop or continue handling the hooked messages.
- *        HOOK_GOON to continue, HOOK_STOP to stop.
- *
- * \return The handle of old hook window.
- *
- * \note This function be be called by a client of MiniGUI-Processes.
- *       For the server, you can use SetServerEventHook.
- *
- * \sa RegisterKeyHookWindow, SetServerEventHook
- */
-MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
-
-#endif /* _MGRM_PROCESSES */
-#endif /* !_MGRM_THREADS */
-
+#endif /* not defined _MGRM_THREADS */
 
     /** @} end of msg_hook_fns */
 
@@ -4020,7 +4107,7 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  * \def WS_ALWAYSTOP
  * \brief Indicates the main window is always on top of others.
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 #define WS_ALWAYSTOP        0x80000000L
 
@@ -4151,7 +4238,7 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  * \note This mask value is equal to the style mask \a WS_EX_CONTROL_MASK;
  *      The former is for main window, and the later for control.
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 #define WS_EX_WINTYPE_MASK          0x0000000FL
 
@@ -4165,7 +4252,7 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  * \note If there is already a main window acts as the screen lock,
  *  a topmost main window will be created.
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 #define WS_EX_WINTYPE_SCREENLOCK    0x00000001L
 
@@ -4179,7 +4266,7 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  * \note If there is already a main window acts as the docker,
  *  a topmost main window will be created.
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 #define WS_EX_WINTYPE_DOCKER        0x00000002L
 
@@ -4194,7 +4281,7 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  * \note If there is already a main window acts as the launcher,
  *  a normal main window will be created.
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 #define WS_EX_WINTYPE_LAUNCHER      0x00000003L
 
@@ -5162,7 +5249,7 @@ typedef struct _WINDOW_ELEMENT_RENDERER {
 /**
  * The window information structure.
  *
- * \note The layout of this structure changed since 4.2.0 to
+ * \note The layout of this structure changed since 5.0.0 to
  *      support virtual window.
  */
 typedef struct _WINDOWINFO
@@ -6096,7 +6183,7 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      *  - MSG_SETTEXT:
      *  - MSG_GETTEXTLENGTH:
      *
-     * Since 4.2.0.
+     * Since 5.0.0.
      *
      * @{
      */
@@ -6128,7 +6215,7 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
  *
  * \sa pthread_create
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
         pthread_attr_t* attr, void * (*start_routine)(void *), void* arg,
@@ -6144,7 +6231,7 @@ MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
  *
  * \return TRUE on success, otherwise FALSE.
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread);
 
@@ -6157,7 +6244,7 @@ MG_EXPORT BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread);
  *
  * \return TRUE on success, otherwise FALSE.
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI IsWindowInThisThread (HWND hWnd);
 
@@ -6178,7 +6265,7 @@ MG_EXPORT BOOL GUIAPI IsWindowInThisThread (HWND hWnd);
  *
  * \sa DestroyVirtualWindow
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd);
 
@@ -6205,7 +6292,7 @@ MG_EXPORT BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd);
  *
  * \include createvirtualwindow.c
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting,
         const char* spCaption, LINT id, WNDPROC WndProc, DWORD dwAddData);
@@ -6226,7 +6313,7 @@ MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting,
  *
  * \include createvirtualwindow.c
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT BOOL GUIAPI DestroyVirtualWindow (HWND hWnd);
 
@@ -6410,7 +6497,7 @@ MG_EXPORT int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval);
  *
  * \sa DestroyMainWindow
  *
- * \note Since 4.2.0, this function returns a BOOL value. If you try
+ * \note Since 5.0.0, this function returns a BOOL value. If you try
  *      to clean up a main window in a thread other than it belongs to,
  *      the function will fail.
  */
@@ -6622,7 +6709,7 @@ MG_EXPORT BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask);
  *
  * \sa GetWindowStyle, WS_ALWAYSTOP
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
 
@@ -6676,7 +6763,7 @@ MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
  *
  * \sa CreateMainWindowEx
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI SetMainWindowCompositing (HWND hWnd,
         int type, DWORD arg);
