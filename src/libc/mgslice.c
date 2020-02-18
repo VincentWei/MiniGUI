@@ -69,6 +69,51 @@
 #include "common.h"
 #include "minigui.h"
 
+#ifdef _MGSLICE_FALLBACK
+
+#include <stdlib.h>
+
+void *mg_slice_alloc(size_t block_size)
+{
+    return malloc (block_size);
+}
+
+void *mg_slice_alloc0(size_t block_size)
+{
+    return calloc (1, block_size);
+}
+
+void *mg_slice_copy(size_t block_size, const void *mem_block)
+{
+    void* new_slice = malloc (block_size);
+    memcpy (new_slice, mem_block, block_size);
+    return new_slice;
+}
+
+void mg_slice_free(size_t block_size, void *mem_block)
+{
+    free (mem_block);
+}
+
+void mg_slice_free_chain_with_offset(size_t block_size,
+        void *mem_chain, size_t next_offset)
+{
+    void* slice = mem_chain;
+
+    while (slice) {
+        Uint8 *current = slice;
+        slice = *(void **) (current + next_offset);
+        free (current);
+    }
+}
+
+void mg_slice_debug_tree_statistics(void)
+{
+    _MG_PRINTF("MGSlice: we are using the fallback implementation\n");
+}
+
+#else /* define _MGSLICE_FALLBACK */
+
 #if defined(HAVE_POSIX_MEMALIGN) && !defined(_XOPEN_SOURCE)
 #define _XOPEN_SOURCE 600       /* posix_memalign() */
 #endif
@@ -1455,3 +1500,5 @@ void mg_slice_debug_tree_statistics (void)
 }
 
 #endif /* _MGDEVEL_MODE */
+
+#endif /* not defined _MGSLICE_FALLBACK */
