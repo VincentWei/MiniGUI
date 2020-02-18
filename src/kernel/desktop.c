@@ -4435,14 +4435,14 @@ typedef struct _HOOKWININFO {
     int cli;
 } HOOKWININFO;
 
-static struct list_head hook_wins = { &hook_wins, &hook_wins };
+static struct list_head hook_win_list = { &hook_win_list, &hook_win_list };
 
 static int dskRegisterHookWin (int cli, HWND hwnd, DWORD flags)
 {
     struct list_head *info;
     HOOKWININFO *new_hook_info;
 
-    list_for_each (info, &hook_wins) {
+    list_for_each (info, &hook_win_list) {
         HOOKWININFO *hook_info = (HOOKWININFO*)info;
         if (hook_info->cli == cli && hook_info->hwnd == hwnd) {
             return -1;
@@ -4455,7 +4455,7 @@ static int dskRegisterHookWin (int cli, HWND hwnd, DWORD flags)
     new_hook_info->cli = cli;
     new_hook_info->hwnd = hwnd;
     new_hook_info->flags = (int)flags;
-    list_add_tail (&new_hook_info->list, &hook_wins);
+    list_add_tail (&new_hook_info->list, &hook_win_list);
     return 0;
 }
 
@@ -4464,7 +4464,7 @@ static int dskUnregisterHookWin (int cli, HWND hwnd)
     struct list_head *info;
     HOOKWININFO *hook_info_got = NULL;
 
-    list_for_each (info, &hook_wins) {
+    list_for_each (info, &hook_win_list) {
         HOOKWININFO *hook_info = (HOOKWININFO*)info;
         if (hook_info->cli == cli && hook_info->hwnd == hwnd) {
             hook_info_got = hook_info;
@@ -4523,7 +4523,7 @@ int __mg_check_hook_wins (int event_type,
     }
 #endif
 
-    list_for_each (info, &hook_wins) {
+    list_for_each (info, &hook_win_list) {
         HOOKWININFO *hook_info = (HOOKWININFO*)info;
         if ((hook_info->flags & HOOK_EVENT_MASK) == event_type) {
             op = hook_info->flags & HOOK_OP_MASK;
@@ -4552,7 +4552,7 @@ int __mg_free_hook_wins (int cli)
     int nr = 0;
     struct list_head *info, *tmp;
 
-    list_for_each_safe (info, tmp, &hook_wins) {
+    list_for_each_safe (info, tmp, &hook_win_list) {
         HOOKWININFO *hook_info = (HOOKWININFO*)info;
         if (cli < 0 || hook_info->cli == cli) {
             list_del (&hook_info->list);
@@ -4564,3 +4564,58 @@ int __mg_free_hook_wins (int cli)
     return nr;
 }
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+static struct list_head msg_queue_list = { &msg_queue_list, &msg_queue_list };
+
+static inline int dskRegisterMsgQueue (MSGQUEUE* msg_queue)
+{
+    list_add_tail (&msg_queue->list, &msg_queue_list);
+    return 0;
+}
+
+static int dskUnregisterMsgQueue (MSGQUEUE* msg_queue)
+{
+    struct list_head *l;
+    MSGQUEUE *msg_queue_got = NULL;
+
+    list_for_each (l, &msg_queue_list) {
+        if (msg_queue == (MSGQUEUE*)l) {
+            msg_queue_got = (MSGQUEUE*)l;
+            break;
+        }
+    }
+
+    if (msg_queue_got == NULL)
+        return -1;
+
+    list_del (&msg_queue->list);
+    return 0;
+}
+
+int __mg_join_all_message_threads (void)
+{
+    int nr = 0;
+    struct list_head *l, *tmp;
+    void* res;
+
+    list_for_each (l, &msg_queue_list) {
+        MSGQUEUE *msg_queue = (MSGQUEUE*)l;
+        pthread_cancel (msg_queue->th);
+    }
+
+    list_for_each_safe (l, tmp, &msg_queue_list) {
+        MSGQUEUE *msg_queue = (MSGQUEUE*)l;
+        pthread_join (msg_queue->th, &res);
+        if (res == PTHREAD_CANCELED) {
+            list_del (&msg_queue->list);
+            mg_DestroyMsgQueue (msg_queue);
+            free (msg_queue);
+            nr++;
+        }
+    }
+
+    deleteThreadInfoKey ();
+    return nr;
+}
+
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
