@@ -71,7 +71,7 @@ typedef struct _ICONDIR {
     WORD cdCount;
 } ICONDIR;
 
-/* Since 4.2.0, we always decode an icon into RGBA8888 compliant pixels */
+/* Since 5.0.0, we always decode an icon into RGBA8888 compliant pixels */
 typedef struct _ICON {
     Uint32  width;
     Uint32  height;

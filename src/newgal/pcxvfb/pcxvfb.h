@@ -59,7 +59,7 @@ int __mg_pcxvfb_server_sockfd;
 int __mg_pcxvfb_client_sockfd;
 
 typedef struct _XVFbHeader {
-    /* Changes since 4.2.0.
+    /* Changes since 5.0.0.
      *
      * For a PCXVFB which creates double buffers, MiniGUI can use
      * the double buffers to eliminate the mess screen due to the
@@ -105,7 +105,7 @@ struct GAL_PrivateVideoData {
     unsigned char* shmrgn;
     XVFBHeader* hdr;
 
-    /* Since 4.2.0.
+    /* Since 5.0.0.
      * When double buffering supported, the real surface represents the ultimate
      * frame buffer, and the shadow screen represents the rendering surface.
      * When double buffering disabled, both are NULL.
@@ -115,7 +115,7 @@ struct GAL_PrivateVideoData {
     RECT dirty_rc;
 
 #ifdef _MGSCHEMA_COMPOSITING
-    /* Since 4.2.0: support for hardware cursor. */
+    /* Since 5.0.0: support for hardware cursor. */
     GAL_Surface *cursor;
     int csr_x, csr_y;
     int hot_x, hot_y;

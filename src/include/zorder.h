@@ -163,7 +163,7 @@ typedef ZORDERINFO* PZORDERINFO;
                 GET_MASKRECT_USAGEBMP(zi) + \
                 (zi)->size_maskrect_usage_bmp))
 
-/* Since 4.2.0: maximal number of fixed znodes: 4 */
+/* Since 5.0.0: maximal number of fixed znodes: 4 */
 #define SIZE_USAGE_BMP \
         ROUND_TO_MULTIPLE((7 + SHAREDRES_NR_GLOBALS + nr_topmosts + nr_normals + \
             DEF_NR_FIXEDZNODES) / 8, 8)

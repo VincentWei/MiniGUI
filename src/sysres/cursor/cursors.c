@@ -49,7 +49,7 @@
 #define NR_CURSORS 23
 
 /*
- * Since 4.2.0:
+ * Since 5.0.0:
  * For LoadCursorFromPNGMem, the array of offsets must have NR_CURSORS + 1 units.
  */
 const int __mg_cursors_offset [] = {

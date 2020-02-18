@@ -462,7 +462,7 @@ int InitGUI (int argc, const char* agr[])
         atexit (kernel_UnloadSharedResource);
         SHAREDRES_TERMIOS = savedtermio;
 
-        /* Since 4.2.0
+        /* Since 5.0.0
          * Copy the video engine information to the shared resource segement
          */
         strncpy (SHAREDRES_VIDEO_ENGINE, engine, LEN_ENGINE_NAME);

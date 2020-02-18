@@ -52,7 +52,7 @@
 #ifndef GUI_GAL_H
     #define GUI_GAL_H
 
-// Since 4.2.0: available for all runtime modes.
+// Since 5.0.0: available for all runtime modes.
 extern BOOL __mg_switch_away;
 
 #ifdef _MGRM_PROCESSES
@@ -68,7 +68,7 @@ extern GHANDLE __mg_layer;
 extern "C" {
 #endif  /* __cplusplus */
 
-// Since 4.2.0
+// Since 5.0.0
 int __mg_convert_region_to_rects (const CLIPRGN * rgn,
         GAL_Rect *rects, int max_nr);
 

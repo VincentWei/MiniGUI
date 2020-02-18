@@ -128,7 +128,7 @@ extern "C" {
  *    light white
  *
  * \note These pixel values are complient to pixel format of \a HDC_SCREEN.
- *  Since 4.2.0, you should use the value returned by \a MakeRGBA macro
+ *  Since 5.0.0, you should use the value returned by \a MakeRGBA macro
  *  for the background color of a window.
  */
 extern MG_EXPORT gal_pixel SysPixelIndex [];

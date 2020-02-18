@@ -243,7 +243,7 @@ void mg_TerminateTimer (void)
 #   endif /* __WINBOND_SWLINUX__ */
 #endif
 
-    /* Since 4.2.0, we allocate timer slots per thread, and manage the time slots
+    /* Since 5.0.0, we allocate timer slots per thread, and manage the time slots
        in message queue */
 #if 0
     for (i = 0; i < DEF_NR_TIMERS; i++) {
@@ -551,7 +551,7 @@ DWORD GUIAPI GetTickCount (void)
 }
 
 #if 0
-/* Since 4.2.0, we use timer slots per thread, and manage the time slots
+/* Since 5.0.0, we use timer slots per thread, and manage the time slots
    in message queue */
 static TIMER *timerstr[DEF_NR_TIMERS];
 

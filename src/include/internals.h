@@ -203,7 +203,7 @@ struct _MSGQUEUE
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_t th;               // the thread identifier this message queue lives
-                                // moved from window structures since 4.2.0.
+                                // moved from window structures since 5.0.0.
     pthread_mutex_t lock;       // lock
     sem_t wait;                 // the semaphore for wait message
     sem_t sync_msg;             // the semaphore for sync message
@@ -229,7 +229,7 @@ struct _MSGQUEUE
 
     int loop_depth;             // message loop depth, for dialog boxes
 
-    /* Since 4.2.0, MiniGUI provides support for timers per message thread */
+    /* Since 5.0.0, MiniGUI provides support for timers per message thread */
     int nr_timers;              // the number of active timers
     int first_timer_slot;       // the first timer slot to be checked
     TIMER* timer_slots [DEF_NR_TIMERS];
@@ -238,7 +238,7 @@ struct _MSGQUEUE
     DWORD expired_timer_mask;   // timer slots mask
 
 #ifdef HAVE_SELECT
-    /* Since 4.2.0, MiniGUI supports listening file descriptors
+    /* Since 5.0.0, MiniGUI supports listening file descriptors
        per message thread */
     int         nr_fd_slots;
     int         maxfd, nr_rfds, nr_wfds, nr_efds;
@@ -259,10 +259,10 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen);
 void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue);
 BOOL kernel_QueueMessage (PMSGQUEUE pMsgQueue, PMSG pMsg);
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg);
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 #ifdef HAVE_SELECT
 int __mg_kernel_check_listen_fds (MSGQUEUE* msg_queue,
         fd_set* rsetptr, fd_set* wsetptr, fd_set* esetptr);
@@ -332,7 +332,7 @@ struct _wnd_element_data;
 
 #define WF_ERASEBKGND    0x01 // flag to erase bkground or not
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 typedef struct _VIRTWIN
 {
     /*
@@ -346,7 +346,7 @@ typedef struct _VIRTWIN
      * Fields for both virtual window and main window.
      */
     //pthread_t th;         // the thread which creates this virtual window.
-                            // moved to message queue structure since 4.2.0.
+                            // moved to message queue structure since 5.0.0.
     PMSGQUEUE pMsgQueue;    // the message queue.
 
     char* spCaption;        // the caption of main window.
@@ -388,7 +388,7 @@ typedef struct _MAINWIN
      * VM[2020-02-14]: Move these fields to header to support virtual window.
      */
     // pthread_t th;        // the thread which creates this main window.
-                            // moved to message queue structure since 4.2.0.
+                            // moved to message queue structure since 5.0.0.
     PMSGQUEUE pMsgQueue;    // the message queue.
 
     char* spCaption;        // the caption of main window.
@@ -478,6 +478,21 @@ typedef struct _MAINWIN
     RECT  update_rc;
 } MAINWIN;
 
+/* Structure defines a message hook function; moved here since 5.0.0 */
+typedef struct _HOOKINFO
+{
+    /* the pointer to the hook function. */
+    MSGHOOK hook;
+    /* the context which will be passed to the hook function. */
+    void* context;
+} HOOKINFO;
+
+/* since 5.0.0 */
+int __mg_check_hook_func (int event_type, const MSG* msg);
+int __mg_check_hook_wins (int event_type,
+        UINT uMsg, WPARAM wParam, LPARAM lParam);
+int __mg_free_hook_wins (int cli);
+
 /************************* Initialization/Termination ************************/
 void __mg_init_local_sys_text (void);
 
@@ -551,16 +566,18 @@ PGCRINFO kernel_GetGCRgnInfo (HWND hWnd);
 /* internal variables */
 typedef struct _TRACKMENUINFO* PTRACKMENUINFO;
 
-extern DWORD __mg_timer_counter;
-
-extern HWND __mg_capture_wnd;
+extern HWND __mg_captured_wnd;
 extern HWND __mg_ime_wnd;
+extern HWND __mg_hwnd_desktop;
+extern DWORD __mg_timer_counter;
+extern PMAINWIN __mg_dsk_win;
+
+#if 0 /* Since 5.0.0: deprecated */
 #ifndef _MGRM_PROCESSES
 extern PMAINWIN __mg_active_mainwnd;
 extern PTRACKMENUINFO __mg_ptmi;
 #endif
-extern PMAINWIN __mg_dsk_win;
-extern HWND __mg_hwnd_desktop;
+#endif  /* Since 5.0.0: deprecated */
 
 extern LRESULT SendSyncMessage (HWND hWnd,
                 UINT msg, WPARAM wParam, LPARAM lParam);
@@ -791,7 +808,7 @@ void ReleaseSecondarySubDC (HDC secondary_subdc);
 HDC CreateMemDCFromSurface (struct GAL_Surface* surface);
 struct GAL_Surface* GetSurfaceFromDC (HDC hdc);
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 #ifdef _MGRM_PROCESSES
 struct _SemSetManager;
 typedef struct _SemSetManager SemSetManager;
@@ -802,7 +819,7 @@ int __mg_alloc_mutual_sem (SemSetManager* manager, int *semid);
 int __mg_free_mutual_sem (SemSetManager* manager, int sem_num);
 #endif /* _MGRM_PROCESSES */
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 #ifdef _MGSCHEMA_COMPOSITING
 BOOL mg_InitCompositor (void);
 void mg_TerminateCompositor (void);

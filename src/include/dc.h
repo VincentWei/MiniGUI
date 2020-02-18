@@ -706,7 +706,7 @@ static inline void release_valid_dc (PMAINWIN pWin, HDC hdc)
 void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         HDC real_dc, const RECT* rc, DWORD flags);
 
-/* Since 4.2.0.
+/* Since 5.0.0.
  * helpers for getting and reseting common RGBA8888 DC for internal use.
  */
 HDC __mg_get_common_rgba8888_dc (void);

@@ -186,6 +186,7 @@ void __mg_client_del (int cli)
     if (deleting->global_res)
         __mg_release_global_res (cli);
     __mg_remove_all_znodes_of_client (cli);
+    __mg_free_hook_wins (cli);  /* Since 5.0.0 */
 
     if (deleting->next)
         deleting->next->prev = deleting->prev;

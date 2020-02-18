@@ -126,7 +126,9 @@ static void ParseEvent (PLWEVENT lwe)
         else if (ke->event == KE_KEYALWAYSPRESS) {
             Msg.message = MSG_KEYALWAYSPRESS;
         }
-        QueueDeskMessage (&Msg);
+
+        if (__mg_check_hook_func (HOOK_EVENT_KEY, &Msg) == HOOK_GOON)
+            QueueDeskMessage (&Msg);
     }
     else if(lwe->type == LWETYPE_MOUSE) {
         Msg.wParam = me->status;
@@ -169,13 +171,15 @@ static void ParseEvent (PLWEVENT lwe)
             int old = Msg.message;
 
             Msg.message = MSG_MOUSEMOVE;
-            QueueDeskMessage (&Msg);
+            if (__mg_check_hook_func (HOOK_EVENT_MOUSE, &Msg) == HOOK_GOON)
+                QueueDeskMessage (&Msg);
             Msg.message = old;
 
             mouse_x = me->x; mouse_y = me->y;
         }
 
-        QueueDeskMessage (&Msg);
+        if (__mg_check_hook_func (HOOK_EVENT_MOUSE, &Msg) == HOOK_GOON)
+            QueueDeskMessage (&Msg);
     }
 }
 
@@ -233,6 +237,8 @@ ndef __USE_TIMER_THREAD
                     if (extra.params_mask & (1 << i)) {
                         msg.wParam = extra.wparams[i];
                         msg.lParam = extra.lparams[i];
+                        if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                                HOOK_GOON)
                         QueueDeskMessage (&msg);
                         n++;
                     }
@@ -242,11 +248,14 @@ ndef __USE_TIMER_THREAD
                     msg.message = MSG_EXIN_END_CHANGES;
                     msg.wParam = n;
                     msg.lParam = 0;
-                    QueueDeskMessage (&msg);
+                    if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                            HOOK_GOON)
+                        QueueDeskMessage (&msg);
                 }
             }
             else {
-                QueueDeskMessage (&msg);
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
+                    QueueDeskMessage (&msg);
             }
         }
         else if (event == 0 && kernel_GetLWEvent (0, &lwe))

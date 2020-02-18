@@ -269,7 +269,7 @@ typedef struct VideoBootStrap {
     const char *desc;
     int (*available)(void);
     GAL_VideoDevice *(*create)(int devindex);
-    /* Since 4.2.0; used to check where the video engine support composition schema */
+    /* Since 5.0.0; used to check where the video engine support composition schema */
     BOOL compositing_enabled;
 } VideoBootStrap;
 

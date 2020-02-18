@@ -118,4 +118,15 @@ tab2space() {
 # sed -i 's/\<first_time_slot\>/first_timer_slot/g' `grep first_time_slot -rl src/`
 # sed -i 's/\<__mg_dispatch_timer_message\>/__mg_check_expired_timers/g' `grep __mg_dispatch_timer_message -rl src/`
 
+# sed -i 's/\<4\.2\.0\>/5.0.0/g' `grep '4\.2\.0' -rl include/ src/`
+
+# sed -i 's/\<__mg_check_hook_func\>/____mg_check_hook_event/g' `grep __mg_check_hook_func -rl src/`
+# sed -i 's/\<____mg_check_hook_event\>/__mg_check_hook_event/g' `grep ____mg_check_hook_event -rl src/`
+
+# sed -i 's/\<__mg_capture_wnd\>/_captured_wnd/g' `grep __mg_capture_wnd -rl include/ src/`
+
+# sed -i 's/\<_captured_wnd\>/__mg_captured_wnd/g' `grep _captured_wnd -rl include/ src/`
+
+sed -i 's/\<__mg_check_hook_event\>/__mg_check_hook_func/g' `grep __mg_check_hook_event -rl include/ src/`
+
 exit 0

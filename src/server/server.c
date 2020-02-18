@@ -83,19 +83,19 @@ extern DWORD __mg_timer_counter;
 
 ON_NEW_DEL_CLIENT OnNewDelClient = NULL;
 
+#if 0
+/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
 static SRVEVTHOOK srv_evt_hook = NULL;
 
 SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
 {
     SRVEVTHOOK old_hook = srv_evt_hook;
 
-    if (!mgIsServer)
-        return NULL;
-
     srv_evt_hook = SrvEvtHook;
 
     return old_hook;
 }
+#endif /* deprecated code; moved to window.c */
 
 static void ParseEvent (PMSGQUEUE msg_que, int event)
 {
@@ -146,19 +146,27 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             Msg.message = MSG_KEYALWAYSPRESS;
         }
 
+#if 0   /* Since 5.0.0 */
         if (__mg_do_drag_drop_window (Msg.message, 0, 0))
             return;
 
         if (!(srv_evt_hook && srv_evt_hook (&Msg))) {
             kernel_QueueMessage (msg_que, &Msg);
         }
+#else   /* deprecated code */
+        if (__mg_check_hook_func (HOOK_EVENT_KEY, &Msg) == HOOK_GOON) {
+            kernel_QueueMessage (msg_que, &Msg);
+        }
+#endif  /* use __mg_check_hook_func instead */
     }
     else if (lwe.type == LWETYPE_MOUSE) {
+#if 0   /* Since 5.0.0: move to desktop */
         static int down_client = -1;
         static int down_by;
         int cur_client = __mg_get_znode_at_point (__mg_zorder_info,
                         me->x, me->y, NULL);
-        Msg.wParam = me->status;
+#endif  /* moved to desktop */
+
         switch (me->event) {
         case ME_MOVED:
             Msg.message = MSG_MOUSEMOVE;
@@ -183,6 +191,14 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             break;
         }
 
+        Msg.wParam = me->status;
+        Msg.lParam = MAKELONG (me->x, me->y);
+
+        if (__mg_check_hook_func (HOOK_EVENT_MOUSE, &Msg) == HOOK_GOON) {
+            kernel_QueueMessage (msg_que, &Msg);
+        }
+
+#if 0   /* Since 5.0.0: move to desktop */
         if (__mg_do_drag_drop_window (Msg.message, me->x, me->y)) {
             down_client = -1;
             return;
@@ -201,8 +217,6 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         if (cur_client == -1)
             SetDefaultCursor (GetSystemCursor (IDC_ARROW));
 
-        Msg.lParam = MAKELONG (me->x, me->y);
-
         if (__mg_handle_mouse_hook (Msg.message,
                                 Msg.wParam, Msg.lParam) == HOOK_STOP)
             return;
@@ -211,7 +225,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             int target_client = cur_client;
 
             if (down_client < 0) {
-                if (!__mg_capture_wnd && me->event == ME_MOVED) {
+                if (!__mg_captured_wnd && me->event == ME_MOVED) {
                     int cli = __mg_handle_normal_mouse_move (__mg_zorder_info,
                                     me->x, me->y);
 
@@ -252,6 +266,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         if (Msg.message == MSG_RBUTTONUP && down_by == MSG_RBUTTONDOWN) {
             down_client = -1;
         }
+#endif  /* moved to desktop */
     }
 }
 
@@ -448,7 +463,9 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
                 if (extra.params_mask & (1 << i)) {
                     msg.wParam = extra.wparams[i];
                     msg.lParam = extra.lparams[i];
-                    kernel_QueueMessage (msg_queue, &msg);
+                    if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                            HOOK_GOON)
+                        kernel_QueueMessage (msg_queue, &msg);
                     n++;
                 }
             }
@@ -457,11 +474,13 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
                 msg.message = MSG_EXIN_END_CHANGES;
                 msg.wParam = n;
                 msg.lParam = 0;
-                kernel_QueueMessage (msg_queue, &msg);
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
+                    kernel_QueueMessage (msg_queue, &msg);
             }
         }
         else {
-            kernel_QueueMessage (msg_queue, &msg);
+            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
+                kernel_QueueMessage (msg_queue, &msg);
         }
     }
     else if (n == 0)

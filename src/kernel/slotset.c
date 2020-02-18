@@ -72,7 +72,7 @@ int __mg_lookfor_unused_slot (unsigned char* bitmap, int len_bmp, int set)
     return -1;
 }
 
-#if 0 // inline since 4.2.0
+#if 0 // inline since 5.0.0
 void __mg_slot_set_use (unsigned char* bitmap, int index)
 {
     bitmap += index >> 3;

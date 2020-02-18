@@ -100,7 +100,7 @@
 
 #define REQID_COPYCURSOR        0x001B
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 // Get global wallpaper pattern surface
 #define REQID_GETWPSURFACE          0x001C
 // Load cursor from PNG file
@@ -121,7 +121,7 @@
  * (defined in /include/minigui.h).
  */
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 typedef struct _SharedSurfInfo {
     Uint32 flags;
     size_t map_size;
@@ -161,7 +161,7 @@ typedef struct LayerOpInfo {
     } layer;
 } LAYEROPINFO;
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 typedef struct _MoveToLayerInfo {
     BOOL handle_name;   /* specify the layer by handle or name */
     union {
@@ -182,8 +182,8 @@ typedef struct _MovedClientInfo {
 #define ID_ZOOP_HIDE                5
 #define ID_ZOOP_MOVEWIN             6
 #define ID_ZOOP_SETACTIVE           7
-#define ID_ZOOP_SETALWAYSTOP        8   /* since 4.2.0 */
-#define ID_ZOOP_SETCOMPOSITING      9   /* since 4.2.0 */
+#define ID_ZOOP_SETALWAYSTOP        8   /* since 5.0.0 */
+#define ID_ZOOP_SETCOMPOSITING      9   /* since 5.0.0 */
 
 #define ID_ZOOP_START_TRACKMENU     10
 #define ID_ZOOP_END_TRACKMENU       11
@@ -226,7 +226,7 @@ typedef struct ZorderOpInfo
     RECT    rcA;
 
     int     location;
-    /* Since 4.2.0: use extra data to pass the caption string
+    /* Since 5.0.0: use extra data to pass the caption string
     char    caption[MAX_CAPTION_LEN + 1];
     */
 
@@ -240,14 +240,14 @@ typedef struct ZorderOpInfo
 #endif
 } ZORDEROPINFO;
 
-#define ID_REG_KEY          1
-#define ID_REG_MOUSE        2
+#define HOOKOP_ID_REGISTER      1
+#define HOOKOP_ID_UNREGISTER    2
 
 typedef struct RegHookInfo
 {
     int     id_op;
     HWND    hwnd;
-    DWORD   flag;
+    DWORD   flags;
 } REGHOOKINFO;
 
 #ifdef _MGGAL_MLSHADOW

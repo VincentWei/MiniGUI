@@ -531,7 +531,7 @@ ret:
     return ServerSendReply (clifd, &ret_value, sizeof (BOOL));
 }
 
-/* Since 4.2.0: handle fd received for shared surface */
+/* Since 5.0.0: handle fd received for shared surface */
 static int zorder_op (int cli, int clifd, void* buff, size_t len, int fd)
 {
     intptr_t ret_value;
@@ -618,12 +618,12 @@ static int open_ime_wnd (int cli, int clifd, void* buff, size_t len)
 static int register_hook (int cli, int clifd, void* buff, size_t len)
 {
     REGHOOKINFO* info;
-    HWND ret_value;
+    int ret_value;
 
     info = (REGHOOKINFO*)buff;
     ret_value = __mg_do_reghook_operation (cli, info);
 
-    return ServerSendReply (clifd, &ret_value, sizeof (HWND));
+    return ServerSendReply (clifd, &ret_value, sizeof (int));
 }
 
 static int set_ime_stat (int cli, int clifd, void* buff, size_t len)

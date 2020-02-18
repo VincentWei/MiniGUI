@@ -79,6 +79,8 @@
 extern DWORD __mg_timer_counter;
 static DWORD old_timer_counter = 0;
 
+#if 0
+/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
 static SRVEVTHOOK srv_evt_hook = NULL;
 
 SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
@@ -89,6 +91,7 @@ SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
 
     return old_hook;
 }
+#endif /* deprecated code; moved to window.c */
 
 static void ParseEvent (PMSGQUEUE msg_que, int event)
 {
@@ -133,12 +136,18 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             Msg.message = MSG_KEYALWAYSPRESS;
         }
 
+#if 0   /* Since 5.0.0 */
         if (!(srv_evt_hook && srv_evt_hook (&Msg))) {
             kernel_QueueMessage (msg_que, &Msg);
         }
+#else   /* deprecated code */
+        if (__mg_check_hook_func (HOOK_EVENT_KEY, &Msg) == HOOK_GOON) {
+            kernel_QueueMessage (msg_que, &Msg);
+        }
+#endif  /* use __mg_check_hook_func instead */
     }
     else if (lwe.type == LWETYPE_MOUSE) {
-        Msg.wParam = me->status;
+
         switch (me->event) {
         case ME_MOVED:
             Msg.message = MSG_MOUSEMOVE;
@@ -164,10 +173,17 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             break;
         }
 
+        Msg.wParam = me->status;
         Msg.lParam = MAKELONG (me->x, me->y);
+#if 0   /* Since 5.0.0 */
         if (!(srv_evt_hook && srv_evt_hook (&Msg))) {
             kernel_QueueMessage (msg_que, &Msg);
         }
+#else   /* deprecated code */
+        if (__mg_check_hook_func (HOOK_EVENT_MOUSE, &Msg) == HOOK_GOON) {
+            kernel_QueueMessage (msg_que, &Msg);
+        }
+#endif  /* use __mg_check_hook_func instead */
     }
 }
 
@@ -179,7 +195,7 @@ BOOL GUIAPI salone_StandAloneStartup (void)
 #if 0
     mg_maxfd = 0;
     mg_fd_zero (&mg_rfdset);
-#endif /* deprecated code since 4.2.0 */
+#endif /* deprecated code since 5.0.0 */
 
 #if 0 /* VW: do not use signal based interval timer; since 4.0 */
     mg_InstallIntervalTimer ();
@@ -295,7 +311,9 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
                 if (extra.params_mask & (1 << i)) {
                     msg.wParam = extra.wparams[i];
                     msg.lParam = extra.lparams[i];
-                    kernel_QueueMessage (msg_queue, &msg);
+                    if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &Msg) ==
+                            HOOK_GOON)
+                        kernel_QueueMessage (msg_queue, &msg);
                     n++;
                 }
             }
@@ -304,11 +322,13 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
                 msg.message = MSG_EXIN_END_CHANGES;
                 msg.wParam = n;
                 msg.lParam = 0;
-                kernel_QueueMessage (msg_queue, &msg);
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &Msg) == HOOK_GOON)
+                    kernel_QueueMessage (msg_queue, &msg);
             }
         }
         else {
-            kernel_QueueMessage (msg_queue, &msg);
+            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &Msg) == HOOK_GOON)
+                kernel_QueueMessage (msg_queue, &msg);
         }
     }
     else if (n == 0)

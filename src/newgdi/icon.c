@@ -368,7 +368,7 @@ HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
     Uint32 image_size;
     gal_pixel trans_pixel;
 
-    /* Since 4.2.0, we always decode an icon into RGBA8888 compliant pixels */
+    /* Since 5.0.0, we always decode an icon into RGBA8888 compliant pixels */
     hdc = __mg_get_common_rgba8888_dc ();
     if (!(pdc = dc_HDC2PDC (hdc)))
         return 0;

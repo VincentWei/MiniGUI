@@ -4082,7 +4082,7 @@ static int mnuTrackMenuOnButtonUp (PTRACKMENUINFO ptmi,
     return 0;
 }
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 #ifdef _MGSCHEMA_COMPOSITING
 static void sync_update_ppp (PTRACKMENUINFO ptmi)
 {
@@ -4121,7 +4121,7 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
             if (GetCurrentCursor() != GetSystemCursor(IDC_ARROW))
                 SetCursor(GetSystemCursor(IDC_ARROW));
             ret_value = mnuShowPopupMenu (ptmi);
-            /* Since 4.2.0 */
+            /* Since 5.0.0 */
             sync_update_ppp (ptmi);
             return ret_value;
         break;
@@ -4148,27 +4148,27 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
             if (mnuTrackMenuOnButtonDown (ptmi,
                     message, (int)wParam, (int)lParam) < 0)
                 return 1;
-            /* Since 4.2.0 */
+            /* Since 5.0.0 */
             sync_update_ppp (ptmi);
         break;
 
         case MSG_LBUTTONUP:
         case MSG_RBUTTONUP:
             mnuTrackMenuOnButtonUp (ptmi, message, (int)wParam, (int)lParam);
-            /* Since 4.2.0 */
+            /* Since 5.0.0 */
             sync_update_ppp (ptmi);
             return 1;
 
         case MSG_MOUSEMOVE:
             mnu_scroll_menu (ptmi, (int)wParam, (int)lParam);
-            /* Since 4.2.0 */
+            /* Since 5.0.0 */
             sync_update_ppp (ptmi);
             break;
 
         case MSG_KEYDOWN:
         case MSG_KEYUP:
             mnuTrackMenuWithKey (ptmi, message, (int)wParam, (DWORD)lParam);
-            /* Since 4.2.0 */
+            /* Since 5.0.0 */
             sync_update_ppp (ptmi);
             break;
 

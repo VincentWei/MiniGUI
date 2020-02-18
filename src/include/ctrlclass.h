@@ -67,7 +67,7 @@ typedef struct _CTRLCLASSINFO
 #ifdef _MGSCHEMA_COMPOSITING
     DWORD     dwBkColor;        // control background color.
 #else
-    // gal_pixel iFgColor;      // control foreground color; removed since 4.2.0.
+    // gal_pixel iFgColor;      // control foreground color; removed since 5.0.0.
     gal_pixel iBkColor;         // control background color (pixel value)
 #endif
 

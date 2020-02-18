@@ -111,7 +111,7 @@ typedef struct _TRACKMENUINFO
     HWND                    hwnd;
     UINT                    flags;
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     HDC                     dc;
 
 #ifdef _MENU_SAVE_BOX

@@ -212,7 +212,7 @@ BOOL GUIAPI HideCaretEx (HWND hWnd, BOOL ime)
     return TRUE;
 }
 
-/* Since 4.2.0: Use client dc instead of HDC_SCREEN_SYS of the owner
+/* Since 5.0.0: Use client dc instead of HDC_SCREEN_SYS of the owner
    to get the caret bitmaps */
 void GetCaretBitmaps (PCARETINFO pCaretInfo)
 {

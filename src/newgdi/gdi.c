@@ -3246,7 +3246,7 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     return (HDC)pmem_dc;
 }
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 HDC CreateMemDCFromSurface (GAL_Surface* surface)
 {
     PDC pmem_dc = NULL;
@@ -4196,7 +4196,7 @@ HDC drmCreateDCFromPrimeFd (GHANDLE video,
 
 #endif /* defined _MGGAL_DRM */
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 HDC __mg_get_common_rgba8888_dc (void)
 {
     static HDC _dc_common_rgba8888 = HDC_INVALID;

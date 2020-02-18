@@ -386,13 +386,13 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 
     pMsgQueue->OnIdle = std_idle_handler;
 
-    /* Since 4.2.0, MiniGUI provides support for timers per message thread */
+    /* Since 5.0.0, MiniGUI provides support for timers per message thread */
     // pMsgQueue->first_timer_slot = 0;
     // pMsgQueue->expired_timer_mask = 0;
     // memset (pMsgQueue->timer_slots, 0, sizeof (pMsgQueue->timer_slots));
 
 #ifdef HAVE_SELECT
-    /* Since 4.2.0, MiniGUI supports listening file descriptors
+    /* Since 5.0.0, MiniGUI supports listening file descriptors
        per message thread */
     // pMsgQueue->nr_fd_slots = 0;
     // pMsgQueue->maxfd = 0;
@@ -636,7 +636,7 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 
     UNLOCK_MSGQ (pMsgQueue);
 
-    /* Since 4.2.0, always call OnIdle with no wait */
+    /* Since 5.0.0, always call OnIdle with no wait */
     if (pMsgQueue->OnIdle)
         return pMsgQueue->OnIdle (pMsgQueue, FALSE);
     return FALSE;
@@ -750,7 +750,7 @@ void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
 
 static inline void CheckCapturedMouseMessage (PMSG pMsg)
 {
-    if (__mg_capture_wnd == pMsg->hwnd
+    if (__mg_captured_wnd == pMsg->hwnd
             && pMsg->message >= MSG_FIRSTMOUSEMSG
             && pMsg->message <= MSG_LASTMOUSEMSG
             && !(pMsg->wParam & KS_CAPTURED)) {

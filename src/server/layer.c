@@ -195,7 +195,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     __mg_slot_set_use ((unsigned char*)(zi + 1), 0);
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
-    /* Since 4.2.0; allocate znodes for other fixed main windows */
+    /* Since 5.0.0; allocate znodes for other fixed main windows */
     {
         int i;
         static int fixed_ztypes [] = {
@@ -1052,7 +1052,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
 
     nodes = GET_ZORDERNODE(zi);
 
-    /* Since 4.2.0: handle fixed znodes */
+    /* Since 5.0.0: handle fixed znodes */
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
     if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
         return FALSE;
@@ -1078,7 +1078,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
     return TRUE;
 }
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 BOOL GUIAPI ServerMoveClientToLayer (int cli, MG_Layer* dst_layer)
 {
     MG_Client* client = mgClients + cli;

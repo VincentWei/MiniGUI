@@ -264,7 +264,7 @@ BOOL GUIAPI UnregisterListenFD (int fd)
 }
 
 #if 0
-/* Since 4.2.0, MiniGUI provides support for listening file descriptors
+/* Since 5.0.0, MiniGUI provides support for listening file descriptors
    per message thread */
 LISTEN_FD mg_listen_fds[MAX_NR_LISTEN_FD];
 static fd_set _wfdset, _efdset;

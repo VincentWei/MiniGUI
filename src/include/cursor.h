@@ -76,7 +76,7 @@ typedef struct _CURSOR {
     int xhotspot;
     int yhotspot;
 #if IS_COMPOSITING_SCHEMA
-    /* Since 4.2.0; for compositing schema */
+    /* Since 5.0.0; for compositing schema */
     void* surface;
 #else
     int width;

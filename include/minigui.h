@@ -79,10 +79,10 @@ extern "C" {
 #define ZOF_STATUS_MASK         0x0000000F
 #define ZOF_VISIBLE             0x00000001
 #define ZOF_DISABLED            0x00000002
-#define ZOF_MAXIMIZED           0x00000004  // Since 4.2.0
-#define ZOF_MINIMIZED           0x00000008  // Since 4.2.0
+#define ZOF_MAXIMIZED           0x00000004  // Since 5.0.0
+#define ZOF_MINIMIZED           0x00000008  // Since 5.0.0
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 #define ZOF_INTERNAL_FLAGS_MASK 0X000F0000
 #define ZOF_IF_REFERENCE        0x00010000
 #define ZOF_IF_ALWAYSTOP        0x00020000
@@ -97,12 +97,12 @@ extern "C" {
 #define ZOF_TYPE_MASK           0xF0000000
 #define ZOF_TYPE_NULL           0x00000000
 #define ZOF_TYPE_DESKTOP        0x10000000  // fixed and only one.
-#define ZOF_TYPE_LAUNCHER       0x20000000  // Since 4.2.0; fixed and only one.
+#define ZOF_TYPE_LAUNCHER       0x20000000  // Since 5.0.0; fixed and only one.
 #define ZOF_TYPE_NORMAL         0x30000000
 #define ZOF_TYPE_TOPMOST        0x40000000
 #define ZOF_TYPE_GLOBAL         0x50000000
-#define ZOF_TYPE_DOCKER         0x60000000  // Since 4.2.0; fixed and only one.
-#define ZOF_TYPE_SCREENLOCK     0x70000000  // Since 4.2.0; fixed and only one.
+#define ZOF_TYPE_DOCKER         0x60000000  // Since 5.0.0; fixed and only one.
+#define ZOF_TYPE_SCREENLOCK     0x70000000  // Since 5.0.0; fixed and only one.
 #define ZOF_TYPE_POPUPMENU      0x80000000
 
 #define ZOF_TF_FLAG_MASK        0x0F000000
@@ -131,8 +131,8 @@ extern "C" {
 
 #define ZNIF_VISIBLE            (ZOF_VISIBLE)
 #define ZNIF_DISABLED           (ZOF_DISABLED)
-#define ZNIF_MAXIMIZED          (ZOF_MAXIMIZED) /* Since 4.2.0 */
-#define ZNIF_MINIMIZED          (ZOF_MINIMIZED) /* Since 4.2.0 */
+#define ZNIF_MAXIMIZED          (ZOF_MAXIMIZED) /* Since 5.0.0 */
+#define ZNIF_MINIMIZED          (ZOF_MINIMIZED) /* Since 5.0.0 */
 
     /**
      * \defgroup rect_vars Global Rectangles
@@ -143,7 +143,7 @@ extern "C" {
  * \fn RECT GUIAPI GetScreenRect (void);
  * \brief Return the rectangle of the physical screen.
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT RECT GUIAPI GetScreenRect (void);
 
@@ -151,7 +151,7 @@ MG_EXPORT RECT GUIAPI GetScreenRect (void);
  * \def g_rcScr
  * \brief Contains the rectangle of the whole screen.
  *
- * \note Since 4.2.0, g_rcScr is defined a macro to call \a GetScreenRect.
+ * \note Since 5.0.0, g_rcScr is defined a macro to call \a GetScreenRect.
  */
 #define g_rcScr (GetScreenRect())
 
@@ -184,7 +184,7 @@ MG_EXPORT RECT GUIAPI GetScreenRect (void);
  *
  * \sa mgIsServer
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI IsServer(void);
 
@@ -195,7 +195,7 @@ MG_EXPORT BOOL GUIAPI IsServer(void);
  *
  * \note Only defined for MiniGUI-Processes.
  *
- * \note Since 4.2.0, mgIsServer is defined as a macro to call \a IsServer.
+ * \note Since 5.0.0, mgIsServer is defined as a macro to call \a IsServer.
  */
 #define mgIsServer (IsServer())
 
@@ -542,7 +542,7 @@ MG_EXPORT BOOL GUIAPI DeleteLayer (BOOL handle_name,
  *
  * \sa ServerMoveClientToLayer
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT BOOL GUIAPI MoveToLayer (BOOL handle_name,
                         GHANDLE layer_handle, const char* layer_name);
@@ -918,7 +918,7 @@ MG_EXPORT int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode,
  *
  * \sa ServerGetZNodeInfo
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode,
                 int* cli);
@@ -1134,7 +1134,7 @@ typedef struct _ZNODEHEADER {
  *
  * \sa ServerGetZNodeInfo, ServerReleaseWinZNodeHeader, ZNODEHEADER
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (
                 MG_Layer* layer, int idx_znode, void** priv_data, BOOL lock);
@@ -1159,7 +1159,7 @@ MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (
  *
  * \sa ServerGetWinZNodeHeader
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 #ifdef _MGSCHEMA_COMPOSITING
 MG_EXPORT BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer,
@@ -1184,7 +1184,7 @@ static inline BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer,
  *
  * \sa ServerGetPopupMenuZNodeHeader, ZNODEHEADER
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT int GUIAPI ServerGetPopupMenusCount (void);
 
@@ -1211,7 +1211,7 @@ MG_EXPORT int GUIAPI ServerGetPopupMenusCount (void);
  *
  * \sa ServerGetPopupMenusCount, ServerReleasePopupMenuZNodeHeader, ZNODEHEADER
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (
                 int idx_znode, void** priv_data, BOOL lock);
@@ -1235,7 +1235,7 @@ MG_EXPORT const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (
  *
  * \sa ServerGetPopupMenusCount, ServerReleasePopupMenuZNodeHeader, ZNODEHEADER
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 
 #ifdef _MGSCHEMA_COMPOSITING
@@ -1284,7 +1284,7 @@ typedef struct _CLIPRGN CLIPRGN;
  *
  * \sa ServerGetPopupMenuZNodeRegion
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
                 DWORD rgn_ops, CLIPRGN* dst_rgn);
@@ -1320,7 +1320,7 @@ MG_EXPORT BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
  *
  * \sa ServerGetWinZNodeRegion
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
         DWORD rgn_ops, CLIPRGN* dst_rgn);
@@ -1345,7 +1345,7 @@ MG_EXPORT BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
  *
  * \sa ServerGetWinZNodeHeader, ServerSetPopupMenuZNodePrivateData
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI ServerSetWinZNodePrivateData (MG_Layer* layer,
         int idx_znode, void* priv_data);
@@ -1367,7 +1367,7 @@ MG_EXPORT BOOL GUIAPI ServerSetWinZNodePrivateData (MG_Layer* layer,
  *
  * \sa ServerGetPopupMenuZNodeHeader, ServerSetWinZNodePrivateData
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx,
         void* priv_data);
@@ -1425,7 +1425,7 @@ MG_EXPORT BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode,
  *
  * \sa MoveToLayer
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT BOOL GUIAPI ServerMoveClientToLayer (int cli, MG_Layer* dst_layer);
 
@@ -1660,7 +1660,7 @@ typedef struct _CompositorOps {
  *
  * \sa ServerRegisterCompositor
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT const CompositorOps* GUIAPI ServerGetCompositorOps (const char* name);
 
@@ -1678,7 +1678,7 @@ MG_EXPORT const CompositorOps* GUIAPI ServerGetCompositorOps (const char* name);
  *
  * \sa ServerUnregisterCompositor
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT BOOL GUIAPI ServerRegisterCompositor (
             const char* name, const CompositorOps* ops);
@@ -1697,7 +1697,7 @@ MG_EXPORT BOOL GUIAPI ServerRegisterCompositor (
  *
  * \sa ServerRegisterCompositor
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT BOOL GUIAPI ServerUnregisterCompositor (const char* name);
 
@@ -1722,7 +1722,7 @@ MG_EXPORT BOOL GUIAPI ServerUnregisterCompositor (const char* name);
  *
  * \note Only called by the server.
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT const CompositorOps* GUIAPI ServerSelectCompositor (
             const char* name, CompositorCtxt** ctxt);
@@ -1830,7 +1830,7 @@ typedef REQUEST* PREQUEST;
  *
  * \sa ServerSendReply
  *
- * Since: 4.2.0
+ * Since: 5.0.0
  */
 MG_EXPORT int GUIAPI ClientRequestEx2 (const REQUEST* request,
                 const void* ex_data, size_t ex_data_len, int fd_to_send,
@@ -1936,7 +1936,7 @@ MG_EXPORT int GUIAPI GetSockFD2Server (void);
  *
  * \sa ClientRequest, RegisterRequestHandler
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT int GUIAPI ServerSendReplyEx (int clifd,
                 const void* reply, int len, int fd_to_send);
@@ -1982,7 +1982,7 @@ typedef int (* REQ_HANDLER) (int cli, int clifd, void* buff, size_t len);
  *
  * \sa RegisterRequestHandlerV1
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 typedef int (* REQ_HANDLER_V1) (int cli, int clifd,
                 void* buff, size_t len, int fd_received);
@@ -2027,7 +2027,7 @@ MG_EXPORT BOOL GUIAPI RegisterRequestHandler (int req_id,
  *
  * \sa ClientRequest, ServerSendReply, MAX_SYS_REQID, MAX_REQID
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI RegisterRequestHandlerV1 (int req_id,
                 REQ_HANDLER_V1 your_handler_v1);
@@ -2095,7 +2095,7 @@ MG_EXPORT REQ_HANDLER_V1 GUIAPI GetRequestHandlerV1 (int req_id);
  *
  * \sa RegisterRequestHandler, RegisterRequestHandlerV1
  *
- * Since 4.2.0
+ * Since 5.0.0
  */
 MG_EXPORT void* GUIAPI GetRequestHandlerEx (int req_id, int* version);
 
@@ -3517,7 +3517,7 @@ MG_EXPORT HCURSOR GUIAPI LoadCursorFromMem (const void* area);
  *
  * \sa SetCursor
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT HCURSOR GUIAPI LoadCursorFromPNGFile (const char* filename,
         int hotspot_x, int hotspot_y);
@@ -3542,7 +3542,7 @@ MG_EXPORT HCURSOR GUIAPI LoadCursorFromPNGFile (const char* filename,
  *
  * \sa SetCursor
  *
- * Since 4.2.0.
+ * Since 5.0.0.
  */
 MG_EXPORT HCURSOR GUIAPI LoadCursorFromPNGMem (const void* area, size_t size,
         int hotspot_x, int hotspot_y);

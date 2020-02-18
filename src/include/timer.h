@@ -63,7 +63,7 @@ typedef struct _TIMER {
     TIMERPROC   proc;
     UINT_PTR    tick_count;
 
-    // removed since 4.2.0
+    // removed since 5.0.0
     // PMSGQUEUE   msg_queue;
 } TIMER;
 typedef TIMER* PTIMER;
@@ -91,7 +91,7 @@ static inline HWND __mg_get_timer_hwnd (int slot)
 
     return HWND_NULL;
 }
-#endif /* deprecated code since 4.2.0 */
+#endif /* deprecated code since 5.0.0 */
 
 #ifdef __cplusplus
 }

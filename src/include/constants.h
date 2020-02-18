@@ -91,13 +91,13 @@
 #   define MAX_NR_SHARED_SURF      (DEF_NR_NORMALS * (MAX_NR_LAYERS >> 1))
 #endif
 
-/* Since 4.2.0; the fixed znode index for special main window */
+/* Since 5.0.0; the fixed znode index for special main window */
 #define ZNIDX_DESKTOP           0
 #define ZNIDX_SCREENLOCK        1
 #define ZNIDX_DOCKER            2
 #define ZNIDX_LAUNCHER          3
 
-/* Since 4.2.0; radius for round corners */
+/* Since 5.0.0; radius for round corners */
 #define RADIUS_WINDOW_CORNERS       7
 #define RADIUS_POPUPMENU_CORNERS    7
 

@@ -150,7 +150,7 @@ BOOL __mg_is_abs_path (const char* path);
 int __mg_path_joint (char* dst, int dst_size, const char* abs_path,
         const char* sub_path);
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 static inline
 const char* __mg_get_extension (const char* filename) {
     const char* ext;
@@ -164,7 +164,7 @@ const char* __mg_get_extension (const char* filename) {
 // the number of integers extracted successfully.
 int __mg_extract_integers (const char* s, int c, int* ab, int max_nr);
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 #ifndef __NOUNIX__
 int __mg_create_anonymous_file (off_t size, const char* debug_name,
         mode_t rw_modes);

@@ -374,7 +374,7 @@ static BOOL PCXVFB_SyncUpdate (_THIS)
 
     bound = this->hidden->dirty_rc;
 
-    /* Since 4.2.0; blit dirty content to the ultimate buffer */
+    /* Since 5.0.0; blit dirty content to the ultimate buffer */
     if (this->hidden->real_screen) {
         GAL_Rect src_rect, dst_rect;
         src_rect.x = bound.left;
@@ -832,7 +832,7 @@ static GAL_Surface *PCXVFB_SetVideoMode (_THIS, GAL_Surface *current,
     current->pitch  = this->hidden->hdr->pitch;
     current->format->MSBLeft = this->hidden->hdr->MSBLeft;
 
-    /* Since 4.2.0, check double buffers.
+    /* Since 5.0.0, check double buffers.
      * XXX: not work for platforms other than Linux
      */
     if (this->hidden->hdr->data_size >=
@@ -927,7 +927,7 @@ static int PCXVFB_SetColors(_THIS, int firstcolor,
 
 static void PCXVFB_VideoQuit (_THIS)
 {
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     if (this->hidden->real_screen) {
         GAL_FreeSurface (this->hidden->real_screen);
     }

@@ -98,7 +98,7 @@ typedef struct tagG_RES {
     int semid;
     int shmid;
 
-    /* information of NEWGAL engine; since 4.2.0 */
+    /* information of NEWGAL engine; since 5.0.0 */
     char video_engine [LEN_ENGINE_NAME + 1];
     char video_mode [LEN_VIDEO_MODE + 1];
     char video_device [LEN_DEVICE_NAME + 1];

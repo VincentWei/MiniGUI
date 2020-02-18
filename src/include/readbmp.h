@@ -146,7 +146,7 @@ int __mg_bmp_compute_pitch (int bpp, Uint32 width, Uint32 *pitch, BOOL does_roun
 #define fp_mgetw(fp)    MGUI_ReadBE16(fp)
 #define fp_mgetl(fp)    MGUI_ReadBE32(fp)
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 const RGB* __mg_bmp_get_std_16c (void);
 
 #ifdef __cplusplus

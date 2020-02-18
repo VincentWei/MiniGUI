@@ -693,7 +693,7 @@ BOOL GUIAPI DeleteLayer (BOOL handle_name,
     return ret;
 }
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
 {
     if (layer_handle != INV_LAYER_HANDLE) {
@@ -721,7 +721,7 @@ BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
     return FALSE;
 }
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 BOOL GUIAPI MoveToLayer (BOOL handle_name, GHANDLE handle, const char* name)
 {
     MOVETOLAYERINFO info;

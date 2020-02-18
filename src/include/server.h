@@ -151,7 +151,7 @@ int __mg_remove_all_znodes_of_client (int cli);
 int __mg_handle_normal_mouse_move (const ZORDERINFO* zi, int x, int y);
 int __mg_get_znode_at_point (const ZORDERINFO* zi, int x, int y, HWND* hwnd);
 
-HWND __mg_do_reghook_operation (int cli, const REGHOOKINFO* info);
+int __mg_do_reghook_operation (int cli, const REGHOOKINFO* info);
 int __mg_handle_mouse_hook (int message, WPARAM wParam, LPARAM lParam);
 
 int __mg_do_change_topmost_layer (void);
