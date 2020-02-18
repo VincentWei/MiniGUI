@@ -2513,7 +2513,7 @@ static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
         FreeFixStr (pWin->spCaption);
         len = strlen ((char*)lParam);
         pWin->spCaption = FixStrAlloc (len);
-        if (len > 0 && pWin->spCaption) /* Since 4.2.0: validate new buffer */
+        if (len > 0 && pWin->spCaption) /* Since 5.0.0: validate new buffer */
             strcpy (pWin->spCaption, (char*)lParam);
         else
             return -1;
@@ -2735,7 +2735,7 @@ LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 {
     PMAINWIN pWin;
 
-    /* Since 4.2.0: for error returns -1 */
+    /* Since 5.0.0: for error returns -1 */
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
 
     pWin = MG_GET_WINDOW_PTR (hWnd);
@@ -2758,7 +2758,7 @@ LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
         break;
     }
 
-    /* Since 4.2.0: for error returns -1 */
+    /* Since 5.0.0: for error returns -1 */
     return -1;
 }
 
@@ -3902,7 +3902,7 @@ pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
 #endif /* deprecated code */
 
 #ifdef _MGRM_THREADS
-/* This function is deprecated since 4.2.0 */
+/* This function is deprecated since 5.0.0 */
 int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval)
 {
     pthread_t th;
@@ -4225,7 +4225,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     }
 #endif
 
-    /* Since 4.2.0: exclude the special window type style if failed */
+    /* Since 5.0.0: exclude the special window type style if failed */
     if ((pWin->dwExStyle & WS_EX_WINTYPE_MASK) == WS_EX_WINTYPE_SCREENLOCK &&
             pWin->idx_znode != ZNIDX_SCREENLOCK) {
         pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
@@ -4692,7 +4692,7 @@ BOOL GUIAPI GetClientRect (HWND hWnd, PRECT prc)
 }
 
 /******************** main window and control styles support *****************/
-/* Since 4.2.0. */
+/* Since 5.0.0. */
 gal_pixel GUIAPI DWORD2PixelByWindow (HWND hWnd, DWORD dwColor)
 {
 #ifdef _MGSCHEMA_COMPOSITING
@@ -5100,7 +5100,7 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
     }
 
     if (IsMainWindow (hWnd) || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
-        // Since 4.2.0: check the return value.
+        // Since 5.0.0: check the return value.
         if (SendMessage (HWND_DESKTOP, MSG_MOVEMAINWIN,
                 (WPARAM)hWnd, (LPARAM)(&rcResult)))
             return FALSE;
@@ -5680,7 +5680,7 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     if (!(pMainWin = gui_GetMainWindowPtrOfControl (hParentWnd)))
         return HWND_INVALID;
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     if (dwExStyle & WS_EX_CTRLASMAINWIN &&
             (pMainWin->dwExStyle & WS_EX_WINTYPE_MASK)) {
         _WRN_PRINTF("Cannot create global controls in a special main window\n");
@@ -6049,68 +6049,116 @@ NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd)
     return control->notif_proc;
 }
 
-/****************************** Hooks support ********************************/
-#ifndef _MGRM_PROCESSES
-MSGHOOK GUIAPI RegisterKeyMsgHook (void* context, MSGHOOK hook)
+/****************************** Hook support ********************************/
+MSGHOOK GUIAPI RegisterEventHookFunc (int event_type,
+        MSGHOOK hook, void* context)
 {
+    HOOKINFO hook_info = { hook, context };
+
     return (MSGHOOK)SendMessage (HWND_DESKTOP,
-            MSG_REGISTERKEYHOOK, (WPARAM)context, (LPARAM)hook);
+            MSG_REGISTERHOOKFUNC, (WPARAM)event_type, (LPARAM)&hook_info);
 }
 
-MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook)
+BOOL GUIAPI RegisterEventHookWindow (HWND hwnd, DWORD flags)
 {
-    return (MSGHOOK)SendMessage (HWND_DESKTOP,
-            MSG_REGISTERMOUSEHOOK, (WPARAM)context, (LPARAM)hook);
+    MG_CHECK_RET (MG_IS_WINDOW (hwnd), FALSE);
+
+    return (SendMessage (HWND_DESKTOP,
+                MSG_REGISTERHOOKWIN, (WPARAM)hwnd, (LPARAM)flags) == 0);
 }
 
-#else
+BOOL GUIAPI UnregisterEventHookWindow (HWND hwnd)
+{
+    MG_CHECK_RET (MG_IS_WINDOW (hwnd), FALSE);
+
+    return (SendMessage (HWND_DESKTOP,
+                MSG_UNREGISTERHOOKWIN, (WPARAM)hwnd, 0) == 0);
+}
 
 /*
  * REQID_REGKEYHOOK        0x0016
  */
 HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag)
 {
-    HWND old_hwnd = HWND_NULL;
+    static HWND hooked_wnd = NULL;
+    HWND old_hook = HWND_NULL;
 
-    if (!mgIsServer) {
+    MG_CHECK_RET (MG_IS_WINDOW (hwnd), HWND_NULL);
 
-        REGHOOKINFO info;
-        REQUEST req;
-
-        info.id_op = ID_REG_KEY;
-        info.hwnd = hwnd;
-        info.flag = flag;
-
-        req.id = REQID_REGISTERHOOK;
-        req.data = &info;
-        req.len_data = sizeof (REGHOOKINFO);
-        ClientRequest (&req, &old_hwnd, sizeof (HWND));
+    old_hook = hooked_wnd;
+    if (hwnd == HWND_NULL) {
+        if (UnregisterEventHookWindow (hwnd)) {
+            hooked_wnd = HWND_NULL;
+        }
+    }
+    else {
+        if (RegisterEventHookWindow (hwnd, flag | HOOK_EVENT_KEY)) {
+            hooked_wnd = hwnd;
+        }
     }
 
-    return old_hwnd;
+    return old_hook;
 }
 
 HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag)
 {
-    HWND old_hwnd = HWND_NULL;
-    if (!mgIsServer) {
+    static HWND hooked_wnd = NULL;
+    HWND old_hook = HWND_NULL;
 
-        REGHOOKINFO info;
-        REQUEST req;
+    MG_CHECK_RET (MG_IS_WINDOW (hwnd), HWND_NULL);
 
-        info.id_op = ID_REG_MOUSE;
-        info.hwnd = hwnd;
-        info.flag = flag;
-
-        req.id = REQID_REGISTERHOOK;
-        req.data = &info;
-        req.len_data = sizeof (REGHOOKINFO);
-        ClientRequest (&req, &old_hwnd, sizeof (HWND));
+    old_hook = hooked_wnd;
+    if (hwnd == HWND_NULL) {
+        if (UnregisterEventHookWindow (hwnd)) {
+            hooked_wnd = HWND_NULL;
+        }
+    }
+    else {
+        if (RegisterEventHookWindow (hwnd, flag | HOOK_EVENT_MOUSE)) {
+            hooked_wnd = hwnd;
+        }
     }
 
-    return old_hwnd;
+    return old_hook;
 }
-#endif
+
+#ifndef _MGRM_THREADS
+/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
+static int my_event_hook (void* context, HWND dst_wnd,
+        UINT message, WPARAM wparam, LPARAM lparam)
+{
+    MSG msg = { dst_wnd, message, wparam, lparam };
+    SRVEVTHOOK srv_evt_hook = (SRVEVTHOOK)context;
+
+    assert (srv_evt_hook);
+    return srv_evt_hook (&msg);
+}
+
+SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
+{
+    static SRVEVTHOOK srv_evt_hook = NULL;
+    SRVEVTHOOK old_hook;
+
+    if (!mgIsServer)
+        return NULL;
+
+    old_hook = srv_evt_hook;
+    if (SrvEvtHook) {
+        RegisterEventHookFunc (HOOK_EVENT_KEY,   my_event_hook, SrvEvtHook);
+        RegisterEventHookFunc (HOOK_EVENT_MOUSE, my_event_hook, SrvEvtHook);
+        RegisterEventHookFunc (HOOK_EVENT_EXTRA, my_event_hook, SrvEvtHook);
+        srv_evt_hook = SrvEvtHook;
+    }
+    else {
+        RegisterEventHookFunc (HOOK_EVENT_KEY,   NULL, NULL);
+        RegisterEventHookFunc (HOOK_EVENT_MOUSE, NULL, NULL);
+        RegisterEventHookFunc (HOOK_EVENT_EXTRA, NULL, NULL);
+        srv_evt_hook = NULL;
+    }
+
+    return old_hook;
+}
+#endif /* not defined _MGRM_THREADS */
 
 /**************************** IME support ************************************/
 int GUIAPI RegisterIMEWindow (HWND hWnd)
@@ -6538,14 +6586,14 @@ static int set_window_mask_rect (HWND hWnd, WINMASKINFO* mask_info)
         }
     }
 
-    /* Since 4.2.0: use MSG_SETWINDOWMASK messasge instead of
+    /* Since 5.0.0: use MSG_SETWINDOWMASK messasge instead of
        __kernel_change_z_node_mask_rect */
     retval = (int)SendMessage (HWND_DESKTOP,
             MSG_SETWINDOWMASK, (WPARAM)hWnd, (LPARAM)mask_info);
     // retval = __kernel_change_z_node_mask_rect (hWnd, mask_info->rcs, mask_info->nr_rcs);
     free (mask_info->rcs);
 
-    /* Since 4.2.0. Under compositing schema, the compositor should refresh
+    /* Since 5.0.0. Under compositing schema, the compositor should refresh
        the screen for the change of region. */
 #ifndef _MGSCHEMA_COMPOSITING
     pCtrl = (PCONTROL)hWnd;
@@ -6696,7 +6744,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
     // XXX: retval = __kernel_change_z_node_mask_rect (hWnd, rect, nr_rcs);
     free (mask_info.rcs);
 
-    /* Since 4.2.0. Under compositing schema, the compositor should refresh
+    /* Since 5.0.0. Under compositing schema, the compositor should refresh
        the screen for the change of region. */
 #ifndef _MGSCHEMA_COMPOSITING
     pCtrl = (PCONTROL)hWnd;
@@ -6848,7 +6896,7 @@ int GUIAPI SetWindowZOrder (HWND hWnd, int zorder)
 
 #endif /* defined __TARGET_MSTUDIO__ */
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 BOOL GUIAPI SetMainWindowAlwaysTop (HWND hMainWnd, BOOL fSet)
 {
     PMAINWIN pMainWin;
