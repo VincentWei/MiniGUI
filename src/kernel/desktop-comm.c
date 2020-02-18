@@ -2335,14 +2335,25 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     case MSG_CTRLCLASSDATAOP:
         return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
 
+    /* Since 5.0.0 */
     case MSG_REGISTERHOOKFUNC:
         return (LRESULT)dskRegisterHookFunc ((int)wParam, (HOOKINFO*)lParam);
 
+    /* Since 5.0.0 */
     case MSG_REGISTERHOOKWIN:
         return (LRESULT)dskRegisterHookWin (0, (HWND)wParam, (DWORD)lParam);
 
+    /* Since 5.0.0 */
     case MSG_UNREGISTERHOOKWIN:
         return (LRESULT)dskUnregisterHookWin (0, (HWND)wParam);
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    /* Since 5.0.0 */
+    case MSG_MANAGE_MSGTHREAD:
+        if (wParam == MSGTHREAD_SIGNIN)
+            return dskRegisterMsgQueue ((MSGQUEUE*)lParam);
+        return dskUnregisterMsgQueue ((MSGQUEUE*)lParam);
+#endif
 
     case MSG_IME_REGISTER:
         return dskRegisterIMEWnd ((HWND)wParam);
