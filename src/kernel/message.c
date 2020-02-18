@@ -201,6 +201,7 @@ void mg_FreeMsgQueueForThisThread (void)
 }
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
+/* no use function */
 MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 {
     MSGQUEUE* pMsgQueue;
@@ -214,6 +215,8 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 
     if (pMsgQueue == NULL && alloc) {
         pMsgQueue = mg_AllocMsgQueueForThisThread ();
+        SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+                MSGTHREAD_SIGNIN, (LPARAM)pMsgQueue);
     }
 
     return pMsgQueue;
@@ -797,6 +800,8 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax
 
 checkagain:
 
+    TEST_CANCEL;
+
     TEST_IF_QUIT(pMsgQueue, hWnd);
 
     LOCK_MSGQ (pMsgQueue);
@@ -1080,6 +1085,8 @@ BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hWnd)
     memset (pMsg, 0, sizeof(MSG));
 
 checkagain:
+
+    TEST_CANCEL;
 
     TEST_IF_QUIT(pMsgQueue, hWnd);
 
