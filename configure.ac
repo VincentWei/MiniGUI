@@ -95,6 +95,7 @@ runtime_mode="procs"
 compositing_schema="no"
 virtual_window="no"
 use_shmopen="no"
+mgslice_use_fallback="no"
 
 incore_res="no"
 use_miniguientry="no"
@@ -319,6 +320,10 @@ runtime_mode=$withval)
 AC_ARG_ENABLE(incoreres,
 [  --enable-incoreres       use incore resource instead file IO to initialize MiniGUI <default=no>],
 incore_res=$enableval)
+
+AC_ARG_ENABLE(mgslicefallback,
+[  --enable-mgslicefallback use fallback implementation for mg_slice_xxx <default=no>],
+mgslice_use_fallback=$enableval)
 
 AC_ARG_ENABLE(miniguientry,
 [  --enable-miniguientry    use minigui_entry function in MiniGUI <default=no>],
@@ -1768,8 +1773,12 @@ if test "x$virtual_window" = "xyes"; then
   AC_DEFINE(_MGHAVE_VIRTUAL_WINDOW, 1, [Define if virtual window enabled])
 fi
 
+if test "x$mgslice_use_fallback" = "xyes"; then
+  AC_DEFINE(_MGSLICE_FALLBACK, 1, [Define if use the fallback implementation for mgslice_xxx])
+fi
+
 if test "x$incore_res" = "xno"; then
-    AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
+  AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
 fi
 
 AC_SUBST(MGLIB_SUFFIX)
@@ -2749,6 +2758,7 @@ AC_MSG_NOTICE([
   * Surface schema:     ${surface_schema}
   * Use shm_open:       ${use_shmopen}
   * Incore resource:    ${incore_res}
+  * Fallback mgslice:   ${mgslice_use_fallback}
   * Developer mode:     ${devel_mode}
   * Target name:        ${with_targetname}
   * Cursor:             ${build_cursor_support}
