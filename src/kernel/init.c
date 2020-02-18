@@ -590,6 +590,9 @@ void GUIAPI TerminateGUI (int not_used)
 {
     __mg_enter_terminategui = 1;
 
+    /* Since 5.0.0 */
+    __mg_join_all_message_threads ();
+
     pthread_join (__mg_desktop, NULL);
 
     /* DesktopProc() will set __mg_quiting_stage to _MG_QUITING_STAGE_EVENT */

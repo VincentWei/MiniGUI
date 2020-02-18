@@ -557,6 +557,11 @@ int InitGUI (int argc, const char* agr[])
 
 void TerminateGUI (int rcByGUI)
 {
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    /* Since 5.0.0 */
+    __mg_join_all_message_threads ();
+#endif
+
     mg_DestroyFreeQMSGList ();
     mg_TerminateAccel ();
     mg_TerminateControlClass ();
