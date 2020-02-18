@@ -181,7 +181,7 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
         return -1;
     }
 
-    /* Since 4.2.0: handle window style if failed to allocate znode
+    /* Since 5.0.0: handle window style if failed to allocate znode
        for fixed ones */
     if (pWin->dwExStyle & WS_EX_WINTYPE_MASK) {
         ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
@@ -206,7 +206,7 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
         }
     }
 
-#if 0   /* move to window.c since 4.2.0 */
+#if 0   /* move to window.c since 5.0.0 */
     // Handle main window hosting.
     if (pWin->pHosting)
         dskAddNewHostedMainWindow (pWin->pHosting, pWin);
@@ -333,7 +333,7 @@ static void dskMoveToTopMost (PMAINWIN pWin, int reason, LPARAM lParam)
         dskSetActiveWindow (pWin);
 }
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 static BOOL dskSetMainWindowAlwaysTop (PMAINWIN pWin, BOOL fSet)
 {
     if ((pWin->dwStyle & WS_ALWAYSTOP) && fSet)
@@ -355,7 +355,7 @@ static BOOL dskSetMainWindowAlwaysTop (PMAINWIN pWin, BOOL fSet)
     return TRUE;
 }
 
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 static int dskSetWindowMask (HWND pWin, const WINMASKINFO* mask_info)
 {
     FreeZOrderMaskRect (0, ((PMAINWIN)pWin)->idx_znode);
@@ -386,7 +386,7 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
     // Update window Z order list.
     FreeZOrderNode (0, pWin->idx_znode, NULL);
 
-#if 0   /* move to window.c since 4.2.0 */
+#if 0   /* move to window.c since 5.0.0 */
     // Handle main window hosting.
     if (pWin->pHosting)
         dskRemoveHostedMainWindow (pWin->pHosting, pWin);
@@ -526,9 +526,9 @@ static void dskEnableWindow (PMAINWIN pWin, int flags)
             pWin->dwStyle |=  WS_DISABLED;
 
         if (pWin->dwStyle & WS_DISABLED) {
-            if (__mg_capture_wnd &&
-                gui_GetMainWindowPtrOfControl (__mg_capture_wnd) == pWin)
-                __mg_capture_wnd = 0;
+            if (__mg_captured_wnd &&
+                gui_GetMainWindowPtrOfControl (__mg_captured_wnd) == pWin)
+                __mg_captured_wnd = 0;
 
             if (dskGetActiveWindow () == pWin) {
                 dskSetActiveWindow (NULL);
@@ -722,53 +722,6 @@ static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
     return ret;
 }
 
-/*********************** Hook support ****************************************/
-static HOOKINFO keyhook;
-static HOOKINFO mousehook;
-
-static MSGHOOK dskRegisterKeyHook (void* context, MSGHOOK hook)
-{
-    MSGHOOK old_hook = keyhook.hook;
-
-    keyhook.context = context;
-    keyhook.hook = hook;
-    return old_hook;
-}
-
-static MSGHOOK dskRegisterMouseHook (void* context, MSGHOOK hook)
-{
-    MSGHOOK old_hook = mousehook.hook;
-
-    mousehook.context = context;
-    mousehook.hook = hook;
-    return old_hook;
-}
-
-static int dskHandleKeyHooks (HWND dst_wnd, UINT message,
-                WPARAM wParam, LPARAM lParam)
-{
-    int ret = HOOK_GOON;
-
-    if (keyhook.hook) {
-        ret = keyhook.hook (keyhook.context, dst_wnd, message, wParam, lParam);
-    }
-
-    return ret;
-}
-
-static int dskHandleMouseHooks (HWND dst_wnd, UINT message,
-                WPARAM wParam, LPARAM lParam)
-{
-    int ret = HOOK_GOON;
-
-    if (mousehook.hook) {
-        ret = mousehook.hook (mousehook.context, dst_wnd,
-                message, wParam, lParam);
-    }
-
-    return ret;
-}
-
 /*********************** Desktop window support ******************************/
 PMAINWIN gui_GetMainWindowPtrUnderPoint (int x, int y)
 {
@@ -864,6 +817,9 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
             mg_altdown = 0;
         }
     }
+
+#if 0 /* since 5.0.0, deprecated code */
+
 #ifndef _MGRM_THREADS
     if (__mg_ime_wnd
                     && message != MSG_SYSKEYDOWN && message != MSG_SYSKEYUP) {
@@ -901,6 +857,34 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
         }
     }
 
+#else   /* since 5.0.0, deprecated code */
+
+#ifndef _MGRM_THREADS
+    if (__mg_ime_wnd &&
+            message != MSG_SYSKEYDOWN && message != MSG_SYSKEYUP) {
+        PostMessage (__mg_ime_wnd, message, (WPARAM)scancode, (LPARAM)status);
+        return 0;
+    }
+#else
+    else if (__mg_ime_wnd && __mg_zorder_info->active_win) {
+        PostMessage (__mg_ime_wnd,
+                message, (WPARAM)scancode, (LPARAM)status);
+        return 0;
+    }
+#endif
+
+    if (__mg_zorder_info->active_win) {
+        __mg_post_msg_by_znode (__mg_zorder_info,
+                __mg_zorder_info->active_win,
+                message, (WPARAM)scancode, (LPARAM)status);
+    }
+    else {
+        SendMessage (HWND_DESKTOP, MSG_DT_KEYOFF + message,
+                (WPARAM)scancode, (LPARAM)status);
+    }
+
+#endif  /* since 5.0.0: do not handle hook function here */
+
     return 0;
 }
 
@@ -915,7 +899,6 @@ static PMAINWIN _mgs_old_under_p = NULL;
 
 static DWORD _mgs_down_buttons = 0;
 
-
 /* defined in ../gui/window.c */
 extern void __mg_reset_mainwin_capture_info (PCONTROL ctrl);
 
@@ -928,8 +911,8 @@ void __mg_reset_desktop_capture_info (PMAINWIN pWin)
         _mgs_down_buttons = DOWN_BUTTON_NONE;
     }
 
-    if ((HWND)pWin == __mg_capture_wnd)
-        __mg_capture_wnd = 0;
+    if ((HWND)pWin == __mg_captured_wnd)
+        __mg_captured_wnd = 0;
 
     __mg_reset_mainwin_capture_info ((PCONTROL)pWin);
 }
@@ -942,8 +925,8 @@ static HWND DesktopSetCapture (HWND hwnd)
     _mgs_button_down_main_window = gui_GetMainWindowPtrOfControl (hwnd);
     _mgs_down_buttons = DOWN_BUTTON_NONE;
 
-    hTemp = __mg_capture_wnd;
-    __mg_capture_wnd = hwnd;
+    hTemp = __mg_captured_wnd;
+    __mg_captured_wnd = hwnd;
     return hTemp;
 }
 
@@ -952,17 +935,19 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     PMAINWIN pUnderPointer;
     PMAINWIN pCtrlPtrIn;
 
-    if (__mg_capture_wnd) {
-        PostMessage (__mg_capture_wnd, message,
+    if (__mg_captured_wnd) {
+        PostMessage (__mg_captured_wnd, message,
                         flags | KS_CAPTURED, MAKELONG (x, y));
         return 0;
     }
 
     pCtrlPtrIn = gui_GetMainWindowPtrUnderPoint (x, y);
 
+#if 0   /* since 5.0.0, do not handle hook function here */
     if (dskHandleMouseHooks ((HWND)pCtrlPtrIn,
                             message, flags, MAKELONG (x, y)) == HOOK_STOP)
         return 0;
+#endif  /* since 5.0.0, do not handle hook function here */
 
     if (pCtrlPtrIn && pCtrlPtrIn->WinType == TYPE_CONTROL) {
         pUnderPointer = pCtrlPtrIn->pMainWin;
@@ -1193,7 +1178,7 @@ static void lock_zorder_info (void)
     static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
         ZNIDX_LAUNCHER };
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
         pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
         if (pWin)
@@ -1223,7 +1208,7 @@ static void unlock_zorder_info (void)
     static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
         ZNIDX_LAUNCHER };
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
         pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
         if (pWin)
@@ -1477,7 +1462,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         return lRet;
 
     case MSG_GETCAPTURE:
-        return (LRESULT)__mg_capture_wnd;
+        return (LRESULT)__mg_captured_wnd;
 
     case MSG_SETCAPTURE:
         return (LRESULT)DesktopSetCapture ((HWND)pWin);
@@ -1551,11 +1536,11 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         return (LRESULT)hwnd;
     }
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     case MSG_SETALWAYSTOP:
         return dskSetMainWindowAlwaysTop(pWin, (BOOL)lParam);
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     case MSG_SETWINDOWMASK:
         return dskSetWindowMask (pWin, (WINMASKINFO*)lParam);
 
@@ -1674,7 +1659,7 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
     id = IDM_FIRSTWINDOW;
     iPos = 0;
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     slot = ZNIDX_SCREENLOCK;
     if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
             pWin->WinType == TYPE_MAINWIN) {
@@ -1692,7 +1677,7 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
         iPos++;
     }
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     slot = ZNIDX_DOCKER;
     if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
             pWin->WinType == TYPE_MAINWIN) {
@@ -1775,7 +1760,7 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
         iPos++;
     }
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     slot = ZNIDX_LAUNCHER;
     if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
             pWin->WinType == TYPE_MAINWIN) {
@@ -1822,7 +1807,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
         static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
             ZNIDX_LAUNCHER };
 
-        /* Since 4.2.0 */
+        /* Since 5.0.0 */
         for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
             pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
             if (pWin && (pWin->WinType != TYPE_CONTROL)
@@ -1969,9 +1954,9 @@ static int dskOnRemoveCtrlInstance (PCONTROL pParent, PCONTROL pCtrl)
         FreeZOrderNode (0, pCtrl->idx_znode, NULL);
     }
 
-    if ((HWND)pCtrl == __mg_capture_wnd) {
+    if ((HWND)pCtrl == __mg_captured_wnd) {
         /* force release the capture */
-        __mg_capture_wnd = 0;
+        __mg_captured_wnd = 0;
     }
 
     if (fFound) {
@@ -2144,7 +2129,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
     static HDC hDesktopDC;
-    int flags, x, y;
+    WPARAM flags;
+    int x, y;
     PMAINWIN active_mainwnd = dskGetActiveWindow();
 
     if (message >= MSG_FIRSTWINDOWMSG && message <= MSG_LASTWINDOWMSG)
@@ -2156,9 +2142,19 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     // VW: Since 4.0.0 for extra input messages.
     else if (message >= MSG_FIRSTEXTRAINPUTMSG &&
             message <= MSG_LASTEXTRAINPUTMSG) {
+
+        if (dskPreExtraMessageHandler (message, wParam, lParam))
+            return 0;
+
+        if (do_drag_drop_window (message, 0, 0))
+            return 0;
+
         PostMessage ((HWND)active_mainwnd, message, wParam, lParam);
     }
     else if (message >= MSG_FIRSTKEYMSG && message <= MSG_LASTKEYMSG) {
+
+        if (dskPreKeyMessageHandler (message, wParam, lParam))
+            return 0;
 
         if (do_drag_drop_window (message, 0, 0))
             return 0;
@@ -2198,7 +2194,10 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
     if (message >= MSG_FIRSTMOUSEMSG && message <= MSG_LASTMOUSEMSG) {
 
-        flags = (int)wParam;
+        if (dskPreMouseMessageHandler (message, wParam, lParam))
+            return 0;
+
+        flags = wParam;
 
         x = LOSWORD (lParam);
         y = HISWORD (lParam);
@@ -2336,13 +2335,14 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     case MSG_CTRLCLASSDATAOP:
         return (LRESULT)gui_ControlClassDataOp (wParam, (WNDCLASS*)lParam);
 
-    case MSG_REGISTERKEYHOOK:
-        return (LRESULT)dskRegisterKeyHook ((void*)wParam,
-                        (MSGHOOK)lParam);
+    case MSG_REGISTERHOOKFUNC:
+        return (LRESULT)dskRegisterHookFunc ((int)wParam, (HOOKINFO*)lParam);
 
-    case MSG_REGISTERMOUSEHOOK:
-        return (LRESULT)dskRegisterMouseHook ((void*)wParam,
-                        (MSGHOOK)lParam);
+    case MSG_REGISTERHOOKWIN:
+        return (LRESULT)dskRegisterHookWin (0, (HWND)wParam, (DWORD)lParam);
+
+    case MSG_UNREGISTERHOOKWIN:
+        return (LRESULT)dskUnregisterHookWin (0, (HWND)wParam);
 
     case MSG_IME_REGISTER:
         return dskRegisterIMEWnd ((HWND)wParam);
@@ -2369,7 +2369,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 #endif
 
     case MSG_TIMEOUT:
-        // Since 4.2.0; only handle the current thread (the only GUI thread).
+        // Since 5.0.0; only handle the current thread (the only GUI thread).
         BroadcastMessageInThisThread (MSG_IDLE, wParam, 0);
         break;
 
@@ -2432,7 +2432,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
             static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
                 ZNIDX_LAUNCHER };
 
-            /* Since 4.2.0 */
+            /* Since 5.0.0 */
             for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
                 pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
                 if (pWin && (pWin->WinType != TYPE_CONTROL) &&

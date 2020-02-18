@@ -87,7 +87,7 @@ PMSGQUEUE __mg_dsk_msg_queue;
 
 static BOOL InitWndManagementInfo (void)
 {
-    __mg_capture_wnd = 0;
+    __mg_captured_wnd = 0;
 
     sg_ptmi = NULL;
 
@@ -102,7 +102,7 @@ BOOL mg_InitDesktop (void)
     int ret;
     RECT rcScr = GetScreenRect();
 
-    /* Since 4.2.0: allocate message queue for desktop thread */
+    /* Since 5.0.0: allocate message queue for desktop thread */
     if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
         _WRN_PRINTF ("failed to allocate message queue\n");
         return FALSE;

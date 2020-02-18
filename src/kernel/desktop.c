@@ -64,7 +64,7 @@ PMAINWIN __mg_dsk_win;
 HWND __mg_hwnd_desktop;
 
 /* the capture window */
-HWND __mg_capture_wnd;
+HWND __mg_captured_wnd;
 
 /* handle to the ime window - server only. */
 HWND __mg_ime_wnd;
@@ -266,14 +266,14 @@ static int get_znode_at_point (const ZORDERINFO* zi,
 {
     int slot;
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     slot = ZNIDX_SCREENLOCK;
     if (nodes[slot].hwnd && (nodes[slot].flags & ZOF_VISIBLE) &&
             pt_in_maskrect (zi, &nodes[slot], x, y)) {
         goto ret;
     }
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     slot = ZNIDX_DOCKER;
     if (nodes[slot].hwnd && (nodes[slot].flags & ZOF_VISIBLE) &&
             pt_in_maskrect (zi, &nodes[slot], x, y)) {
@@ -302,7 +302,7 @@ static int get_znode_at_point (const ZORDERINFO* zi,
         }
     }
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     slot = ZNIDX_LAUNCHER;
     if (nodes[slot].hwnd && (nodes[slot].flags & ZOF_VISIBLE) &&
             pt_in_maskrect (zi, &nodes[slot], x, y)) {
@@ -316,7 +316,7 @@ ret:
 static void unchain_znode (unsigned char* usage_bmp,
                 ZORDERNODE* nodes, int idx_znode)
 {
-    /* Since 4.2.0: do not call unchain_znode for fixed znodes */
+    /* Since 5.0.0: do not call unchain_znode for fixed znodes */
     assert (idx_znode != ZNIDX_SCREENLOCK ||
             idx_znode != ZNIDX_DOCKER ||
             idx_znode != ZNIDX_LAUNCHER);
@@ -978,7 +978,7 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
         SubtractClipRect (&gcrinfo->crgn, &menu_nodes [i].rc);
     }
 
-    /* Since 4.2.0: check fixed znodes */
+    /* Since 5.0.0: check fixed znodes */
     switch (nodes[idx_znode].flags & ZOF_TYPE_MASK) {
     case ZOF_TYPE_SCREENLOCK:
         slot = ZNIDX_SCREENLOCK;
@@ -1339,7 +1339,7 @@ static int get_next_activable_mainwin (const ZORDERINFO* zi, int from)
     return 0;
 }
 
-#if 0   /* move to window.c since 4.2.0 */
+#if 0   /* move to window.c since 5.0.0 */
 /*
  * Add new hosted main window.
  */
@@ -1425,7 +1425,7 @@ static BOOL dskIsTopMost (PMAINWIN pWin)
 
     lock_zi_for_read (__mg_zorder_info);
 
-    /* Since 4.2.0: handle fixed znodes */
+    /* Since 5.0.0: handle fixed znodes */
     if (pWin->idx_znode <= ZNIDX_LAUNCHER)
         ret = TRUE;
     else if (__mg_zorder_info->first_global == pWin->idx_znode)
@@ -1830,7 +1830,7 @@ static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
     return old_hwnd;
 }
 
-#if 0 /* Since 4.2.0, use strdup to duplicate the caption */
+#if 0 /* Since 5.0.0, use strdup to duplicate the caption */
 static void get_text_char_pos (PLOGFONT log_font, const char *text,
                int len, int fit_bytes, int *fit_chars, int *pos_chars)
 {
@@ -1870,7 +1870,7 @@ static void get_text_char_pos (PLOGFONT log_font, const char *text,
 }
 #endif
 
-/* Since 4.2.0:
+/* Since 5.0.0:
    Under compositing schema, we do not allocate mask rectangles
    for round corners. Instead, we get the region of window znode
    in ServerGetWinZNodeRegion.
@@ -2035,7 +2035,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 
     nodes = GET_ZORDERNODE(zi);
 
-    /* Since 4.2.0: check fixed znode type first */
+    /* Since 5.0.0: check fixed znode type first */
     switch (type) {
     case ZOF_TYPE_SCREENLOCK:
         if (nodes [ZNIDX_SCREENLOCK].hwnd) {
@@ -2163,7 +2163,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 #endif /* not defined _MGSCHEMA_COMPOSITING */
 
     if (caption) {
-#if 0 /* Since 4.2.0, use strdup to duplicate the caption */
+#if 0 /* Since 5.0.0, use strdup to duplicate the caption */
         PLOGFONT menufont;
         int fit_chars, pos_chars[MAX_CAPTION_LEN], caplen;
 
@@ -2202,7 +2202,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 
     /* check influenced zorder nodes */
     if (flags & ZOF_VISIBLE) {
-        /* Since 4.2.0 */
+        /* Since 5.0.0 */
 #ifndef _MGSCHEMA_COMPOSITING
         int slot;
         RECT rc_screen = GetScreenRect();
@@ -2272,7 +2272,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     }
 
 #if 1
-    /* Since 4.2.0. Support for always top znode. */
+    /* Since 5.0.0. Support for always top znode. */
     if (first) {        // not a fixed znode
         if (*first == 0 ||
                 (nodes [*first].flags & ZOF_IF_ALWAYSTOP) != ZOF_IF_ALWAYSTOP)
@@ -2362,7 +2362,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     type = flags & ZOF_TYPE_MASK;
     rc = nodes [idx_znode].rc;
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     switch (type) {
     case ZOF_TYPE_SCREENLOCK:
         fixed_idx = ZNIDX_SCREENLOCK;
@@ -2414,7 +2414,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     /* please lock zi for change*/
     lock_zi_for_change (zi);
 
-    /* Since 4.2.0, use strdup to duplicate the caption */
+    /* Since 5.0.0, use strdup to duplicate the caption */
     if (nodes[idx_znode].caption) {
         free (nodes[idx_znode].caption);
         nodes[idx_znode].caption = NULL;
@@ -2442,7 +2442,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
             }
         }
 
-        /* Since 4.2.0 */
+        /* Since 5.0.0 */
         if (type > ZOF_TYPE_DOCKER) {
             slot = ZNIDX_DOCKER;
             if (nodes [slot].flags & ZOF_VISIBLE &&
@@ -2512,7 +2512,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
         zi->active_win = 0;
 
     if (first == &fixed_idx) {
-        /* Since 4.2.0: handle fixed znodes */
+        /* Since 5.0.0: handle fixed znodes */
         nodes [idx_znode].hwnd = HWND_NULL;
         nodes [idx_znode].cli = -1;
         nodes [idx_znode].flags &= ~ZOF_VISIBLE;
@@ -2572,7 +2572,7 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
     } else
 #endif
     {
-        /* Since 4.2.0 */
+        /* Since 5.0.0 */
         switch (pWin->dwExStyle & WS_EX_WINTYPE_MASK) {
         case WS_EX_WINTYPE_SCREENLOCK:
             zt_type |= ZOF_TYPE_SCREENLOCK;
@@ -2598,7 +2598,7 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
         }
     }
 
-    /* XXX: Since 4.2.0 */
+    /* XXX: Since 5.0.0 */
     if (!(pWin->dwStyle & WS_CHILD)) {
         if (pWin->dwStyle & WS_MINIMIZE) {
             zt_type |= ZOF_MINIMIZED;
@@ -2616,7 +2616,7 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
     if (pWin->dwStyle & WS_DISABLED)
         zt_type |= ZOF_DISABLED;
 
-    /* Since 4.2.0 */
+    /* Since 5.0.0 */
     if (pWin->dwStyle & WS_ALWAYSTOP)
         zt_type |= ZOF_IF_ALWAYSTOP;
 
@@ -2883,7 +2883,7 @@ static int dskSetZNodeAlwaysTop (int cli, int idx_znode, BOOL fSet)
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
-/* Since 4.2.0 */
+/* Since 5.0.0 */
 static int dskSetZNodeCompositing (int cli, int idx_znode, int ct, DWORD ct_arg)
 {
     ZORDERINFO* zi = get_zorder_info (cli);
@@ -2934,7 +2934,7 @@ static int dskMove2Top (int cli, int idx_znode)
         return -1;
     }
 
-    /* Since 4.2.0: handle fixed znodes */
+    /* Since 5.0.0: handle fixed znodes */
     if (idx_znode <= ZNIDX_LAUNCHER)
         return -1;
 
@@ -2945,7 +2945,7 @@ static int dskMove2Top (int cli, int idx_znode)
 
     nodes = GET_ZORDERNODE(zi);
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-    /* Since 4.2.0: handle fixed znodes */
+    /* Since 5.0.0: handle fixed znodes */
     switch (type) {
     case ZOF_TYPE_SCREENLOCK:
         fixed_idx = ZNIDX_SCREENLOCK;
@@ -3027,7 +3027,7 @@ static int dskMove2Top (int cli, int idx_znode)
     }
 
 #if 1
-    /* Since 4.2.0. Support for always top znode. */
+    /* Since 5.0.0. Support for always top znode. */
     if (!(*first) ||
             ((nodes [*first].flags & ZOF_IF_ALWAYSTOP) != ZOF_IF_ALWAYSTOP)) {
         nodes [idx_znode].prev = nodes[*first].prev;
@@ -3100,7 +3100,7 @@ static int dskShowWindow (int cli, int idx_znode)
 
     nodes = GET_ZORDERNODE(__mg_zorder_info);
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-    /* Since 4.2.0: handle fixed znodes */
+    /* Since 5.0.0: handle fixed znodes */
     switch (type) {
     case ZOF_TYPE_SCREENLOCK:
         fixed_idx = ZNIDX_SCREENLOCK;
@@ -3206,7 +3206,7 @@ static int dskHideWindow (int cli, int idx_znode)
 
     nodes = GET_ZORDERNODE(zi);
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-    /* Since 4.2.0: handle fixed znodes */
+    /* Since 5.0.0: handle fixed znodes */
     switch (type) {
     case ZOF_TYPE_SCREENLOCK:
         fixed_idx = ZNIDX_SCREENLOCK;
@@ -3544,7 +3544,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
             }
 
             slot = 0;
-            /* Since 4.2.0: handle fixed znodes */
+            /* Since 5.0.0: handle fixed znodes */
             switch (type) {
             case ZOF_TYPE_SCREENLOCK:
                 slot = ZNIDX_SCREENLOCK;
@@ -3647,7 +3647,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
             AddClipRect (&sg_UpdateRgn, rcInv + i);
         }
 
-        /* Since 4.2.0: handle fixed znodes */
+        /* Since 5.0.0: handle fixed znodes */
         if (type < ZOF_TYPE_SCREENLOCK) {
             slot = ZNIDX_SCREENLOCK;
             if (nodes [slot].flags & ZOF_VISIBLE &&
@@ -4181,7 +4181,7 @@ static int dskGetIMETargetInfo (IME_TARGET_INFO *info)
     return ERR_OK;
 }
 
-#ifdef _DEB
+#ifdef _DEBUG
 void GUIAPI DumpWindow (FILE* fp, HWND hWnd)
 {
     PMAINWIN pWin = (PMAINWIN)hWnd;
@@ -4334,283 +4334,233 @@ __mg_err_ret:
     return nr_mask_rects;
 }
 
+/*********************** Hook support ****************************************/
+static HOOKINFO keyhook;
+static HOOKINFO mousehook;
+static HOOKINFO extrahook;
+
+static MSGHOOK dskRegisterHookFunc (int event_type, HOOKINFO* info)
+{
+    MSGHOOK old_hook = NULL;
+   
+    switch (event_type) {
+    case HOOK_EVENT_KEY:
+        old_hook = keyhook.hook;
+        keyhook.context = info->context;
+        keyhook.hook = info->hook;
+        break;
+
+    case HOOK_EVENT_MOUSE:
+        old_hook = mousehook.hook;
+        mousehook.context = info->context;
+        mousehook.hook = info->hook;
+        break;
+
+    case HOOK_EVENT_EXTRA:
+        old_hook = extrahook.hook;
+        extrahook.context = info->context;
+        extrahook.hook = info->hook;
+        break;
+
+    default:
+        break;
+    }
+
+    return old_hook;
+}
+
+#if 0   /* deprecated code since 5.0.0 */
+static int dskHandleKeyHooks (HWND dst_wnd, UINT message,
+                WPARAM wParam, LPARAM lParam)
+{
+    int ret = HOOK_GOON;
+
+    if (keyhook.hook) {
+        ret = keyhook.hook (keyhook.context, dst_wnd, message, wParam, lParam);
+    }
+
+    return ret;
+}
+
+static int dskHandleMouseHooks (HWND dst_wnd, UINT message,
+                WPARAM wParam, LPARAM lParam)
+{
+    int ret = HOOK_GOON;
+
+    if (mousehook.hook) {
+        ret = mousehook.hook (mousehook.context, dst_wnd,
+                message, wParam, lParam);
+    }
+
+    return ret;
+}
+#endif  /* deprecated code since 5.0.0 */
+
+/* Since 5.0.0; return non zero to STOP handling the message */
+static inline int
+dskPreKeyMessageHandler (UINT message, WPARAM wparam, LPARAM lparam)
+{
+    if (__mg_check_hook_wins (HOOK_EVENT_KEY, message, wparam, lparam))
+        return HOOK_STOP;
+
+    return HOOK_GOON;
+}
+
+/* Since 5.0.0; return non zero to STOP handling the message */
+static inline int
+dskPreMouseMessageHandler (UINT message, WPARAM wparam, LPARAM lparam)
+{
+    if (__mg_check_hook_wins (HOOK_EVENT_MOUSE, message, wparam, lparam))
+        return HOOK_STOP;
+
+    return HOOK_GOON;
+}
+
+/* Since 5.0.0; return non zero to STOP handling the message */
+static inline int
+dskPreExtraMessageHandler (UINT message, WPARAM wparam, LPARAM lparam)
+{
+    if (__mg_check_hook_wins (HOOK_EVENT_EXTRA, message, wparam, lparam))
+        return HOOK_STOP;
+
+    return HOOK_GOON;
+}
+
+#include "list.h"
+
+typedef struct _HOOKWININFO {
+    struct list_head list;
+    HWND hwnd;
+    int flags;
+    int cli;
+} HOOKWININFO;
+
+static struct list_head hook_wins = { &hook_wins, &hook_wins };
+
+static int dskRegisterHookWin (int cli, HWND hwnd, DWORD flags)
+{
+    struct list_head *info;
+    HOOKWININFO *new_hook_info;
+
+    list_for_each (info, &hook_wins) {
+        HOOKWININFO *hook_info = (HOOKWININFO*)info;
+        if (hook_info->cli == cli && hook_info->hwnd == hwnd) {
+            return -1;
+        }
+    }
+
+    if ((new_hook_info = mg_slice_new (HOOKWININFO)) == NULL)
+        return -1;
+
+    new_hook_info->cli = cli;
+    new_hook_info->hwnd = hwnd;
+    new_hook_info->flags = (int)flags;
+    list_add_tail (&new_hook_info->list, &hook_wins);
+    return 0;
+}
+
+static int dskUnregisterHookWin (int cli, HWND hwnd)
+{
+    struct list_head *info;
+    HOOKWININFO *hook_info_got = NULL;
+
+    list_for_each (info, &hook_wins) {
+        HOOKWININFO *hook_info = (HOOKWININFO*)info;
+        if (hook_info->cli == cli && hook_info->hwnd == hwnd) {
+            hook_info_got = hook_info;
+            break;
+        }
+    }
+
+    if (hook_info_got == NULL)
+        return -1;
+
+    list_del (&hook_info_got->list);
+    mg_slice_delete (HOOKWININFO, hook_info_got);
+    return 0;
+}
+
+/* this should be called before queuing the event messages to DESKTOP */
+int __mg_check_hook_func (int event_type, const MSG* msg)
+{
+    HOOKINFO* info = NULL;
+   
+    switch (event_type) {
+    case HOOK_EVENT_KEY:
+        info = &keyhook;
+        break;
+
+    case HOOK_EVENT_MOUSE:
+        info = &mousehook;
+        break;
+
+    case HOOK_EVENT_EXTRA:
+        info = &extrahook;
+        break;
+
+    default:
+        break;
+    }
+
+    if (info && info->hook) {
+        return info->hook (info->context, msg->hwnd,
+                msg->message, msg->wParam, msg->lParam);
+    }
+
+    return HOOK_GOON;
+}
+
+/* this should be called in the context of DESKTOP thread */
+int __mg_check_hook_wins (int event_type,
+        UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    struct list_head *info;
+    int op = HOOK_GOON;
+
 #ifdef _MGRM_PROCESSES
-
-#ifdef _MGSCHEMA_COMPOSITING
-struct _my_circle_context {
-    int         status;     /* whether failed to allocate cliprect for region */
-    int         r;          /* the radius of the round corner */
-    RECT        rc;         /* the rectangle of the znode */
-    DWORD       tw_flags;   /* the corner flags of the znode */
-    DWORD       rgn_ops;    /* region operation */
-    CLIPRGN*    dst_rgn;    /* the destination region */
-};
-
-static void cb_circle_corners (void* context, int x1, int x2, int y)
-{
-    struct _my_circle_context* ctxt = (struct _my_circle_context*)context;
-    RECT rc;
-
-    if (ctxt->status) // check status first
-        return;
-
-    if (y < 0) {
-        if (ctxt->tw_flags & ZOF_TW_TROUNDCNS) {
-            rc.left = ctxt->rc.left + x1 + ctxt->r;
-            rc.right = ctxt->rc.right + x2 - ctxt->r;
-            rc.top = ctxt->rc.top + y + ctxt->r;
-            rc.bottom = rc.top + 1;
-        }
-        else {
-            return;
-        }
+    if (!mgIsServer) {
+        return HOOK_GOON;
     }
-    else if (y > 0) {
-        if (ctxt->tw_flags & ZOF_TW_BROUNDCNS) {
-            rc.left = ctxt->rc.left + x1 + ctxt->r;
-            rc.right = ctxt->rc.right + x2 - ctxt->r;
-            rc.top = ctxt->rc.bottom + y - ctxt->r;
-            rc.bottom = rc.top + 1;
-        }
-        else {
-            return;
-        }
-    }
-    else {
-        rc.left = ctxt->rc.left + x1 + ctxt->r;
-        rc.right = ctxt->rc.right + x2 - ctxt->r;
-        rc.top = ctxt->rc.bottom - ctxt->r;
-        rc.bottom = rc.top + 1;
-    }
+#endif
 
-    // check out of bound
-    {
-        RECT eff_rc = ctxt->rc;
-        if (!IntersectRect (&rc, &eff_rc, &rc))
-            return;
-    }
-
-    if (!(ctxt->rgn_ops & RGN_OP_FLAG_ABS)) {
-        OffsetRect (&rc, -ctxt->rc.left, -ctxt->rc.top);
-    }
-
-    if ((ctxt->rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
-        if (!SubtractClipRect (ctxt->dst_rgn, &rc))
-            ctxt->status = -1;
-    }
-    else {
-        _DBG_PRINTF("add new rect: %d, %d, %d, %d for (%d, %d) to (%d, %d)\n",
-                rc.left, rc.top, rc.right, rc.bottom, x1, y, x2, y);
-        if (!AddClipRect (ctxt->dst_rgn, &rc))
-            ctxt->status = -1;
-    }
-}
-#endif /* _MGSCHEMA_COMPOSITING */
-
-
-BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
-                DWORD rgn_ops, CLIPRGN* dst_rgn)
-{
-    RECT rc;
-    MASKRECT *maskrect;
-    ZORDERNODE* nodes;
-    ZORDERINFO* zi;
-    int idx, nr_mask_rects;
-
-    if (!mgIsServer || idx_znode <= 0)
-        return FALSE;
-
-    if (layer) {
-        zi = mgTopmostLayer->zorder_info;
-    }
-    else {
-        if (!__mg_is_valid_layer (layer))
-            return FALSE;
-        zi = layer->zorder_info;
-    }
-
-    if (idx_znode > (zi->max_nr_globals +
-            zi->max_nr_topmosts + zi->max_nr_normals)) {
-        return FALSE;
-    }
-
-    if ((rgn_ops & RGN_OP_MASK) == RGN_OP_SET) {
-        EmptyClipRgn (dst_rgn);
-        rgn_ops &= ~RGN_OP_MASK;
-        rgn_ops |= RGN_OP_INCLUDE;
-    }
-
-    /* lock zi for read */
-    lock_zi_for_read (zi);
-
-    nr_mask_rects = 0;
-    nodes = GET_ZORDERNODE(zi);
-    maskrect = GET_MASKRECT(zi);
-    idx = nodes [idx_znode].idx_mask_rect;
-    while (idx) {
-        rc.left = maskrect->left;
-        rc.top = maskrect->top;
-        rc.right = maskrect->left;
-        rc.bottom = maskrect->bottom;
-
-        if (rgn_ops & RGN_OP_FLAG_ABS) {
-            OffsetRect (&rc, nodes[idx_znode].rc.left, nodes[idx_znode].rc.top);
-        }
-
-        if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
-            if (!SubtractClipRect (dst_rgn, &rc)) {
-                nr_mask_rects = -1;
-                goto __mg_err_ret;
+    list_for_each (info, &hook_wins) {
+        HOOKWININFO *hook_info = (HOOKWININFO*)info;
+        if ((hook_info->flags & HOOK_EVENT_MASK) == event_type) {
+            op = hook_info->flags & HOOK_OP_MASK;
+#ifdef _MGRM_PROCESSES
+            if (hook_info->cli != 0) {
+                MSG msg = { hook_info->hwnd, uMsg, wParam, lParam };
+                __mg_send2client (&msg, mgClients + hook_info->cli);
             }
-        }
-        else {
-            if (!AddClipRect (dst_rgn, &rc)) {
-                nr_mask_rects = -1;
-                goto __mg_err_ret;
+            else {
+                PostMessage (hook_info->hwnd, uMsg, wParam, lParam);
             }
-        }
-
-        idx = maskrect->next;
-        nr_mask_rects ++;
-    }
-
-    if (nr_mask_rects == 0) {
-        rc = nodes[idx_znode].rc;
-        if (!(rgn_ops & RGN_OP_FLAG_ABS)) {
-            OffsetRect (&rc, -rc.left, -rc.top);
-        }
-
-#ifdef _MGSCHEMA_COMPOSITING
-        /* Since 4.2.0, we count in the round corners here */
-        if (nodes[idx_znode].flags & ZOF_TW_FLAG_MASK) {
-            struct _my_circle_context ctxt = { 0, RADIUS_WINDOW_CORNERS, };
-
-            if (RECTW(rc) >= (RADIUS_WINDOW_CORNERS << 1) &&
-                    RECTH(rc) >= (RADIUS_WINDOW_CORNERS << 1)) {
-                ctxt.status = 0;
-                ctxt.r = RADIUS_WINDOW_CORNERS;
-                ctxt.rc = rc;
-                /* both top and bottom corners for popup menu */
-                ctxt.tw_flags = nodes[idx_znode].flags & ZOF_TW_FLAG_MASK;    
-                ctxt.rgn_ops = rgn_ops;
-                ctxt.dst_rgn = dst_rgn;
-
-                CircleGenerator (&ctxt, 0, 0, RADIUS_WINDOW_CORNERS,
-                        cb_circle_corners);
-
-                if (ctxt.status) {
-                    nr_mask_rects = -1;
-                    goto __mg_err_ret;
-                }
-
-                if (nodes[idx_znode].flags & ZOF_TW_TROUNDCNS) {
-                    rc.top += RADIUS_WINDOW_CORNERS;
-                }
-                if (nodes[idx_znode].flags & ZOF_TW_BROUNDCNS) {
-                    rc.bottom -= RADIUS_WINDOW_CORNERS;
-                }
-            }
-        }
-#endif /* _MGSCHEMA_COMPOSITING */
-
-        if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
-            if (!SubtractClipRect (dst_rgn, &rc)) {
-                nr_mask_rects = -1;
-                goto __mg_err_ret;
-            }
-        }
-        else {
-            if (!AddClipRect (dst_rgn, &rc)) {
-                nr_mask_rects = -1;
-                goto __mg_err_ret;
-            }
+#else
+            PostMessage (hook_info->hwnd, uMsg, wParam, lParam);
+#endif
+            if (op == HOOK_STOP)
+                break;
         }
     }
 
-__mg_err_ret:
-    /* unlock zi for read */
-    unlock_zi_for_read (zi);
-
-    return nr_mask_rects >= 0;
+    return op;
 }
 
-BOOL GUIAPI ServerGetPopupMenuZNodeRegion (int idx_znode,
-                DWORD rgn_ops, CLIPRGN* dst_rgn)
+/* Since 5.0.0; free all if cli < 0 */
+int __mg_free_hook_wins (int cli)
 {
-    RECT rc;
-    ZORDERNODE* nodes;
-    ZORDERINFO* zi;
-    int nr_mask_rects = 0;
+    int nr = 0;
+    struct list_head *info, *tmp;
 
-    if (!mgIsServer || idx_znode < 0)
-        return FALSE;
-
-    zi = mgTopmostLayer->zorder_info;
-    if (idx_znode >= zi->nr_popupmenus)
-        return FALSE;
-
-    if ((rgn_ops & RGN_OP_MASK) == RGN_OP_SET) {
-        EmptyClipRgn (dst_rgn);
-        rgn_ops &= ~RGN_OP_MASK;
-        rgn_ops |= RGN_OP_INCLUDE;
-    }
-
-    /* lock zi for read */
-    lock_zi_for_read (zi);
-
-    nodes = GET_MENUNODE(zi);
-    rc = nodes[idx_znode].rc;
-    if (!(rgn_ops & RGN_OP_FLAG_ABS)) {
-        OffsetRect (&rc, -rc.left, -rc.top);
-    }
-
-#ifdef _MGSCHEMA_COMPOSITING
-    {
-        struct _my_circle_context ctxt = { 0, RADIUS_POPUPMENU_CORNERS, };
-
-        if (RECTW(rc) >= (RADIUS_POPUPMENU_CORNERS << 1) &&
-                RECTH(rc) >= (RADIUS_POPUPMENU_CORNERS << 1)) {
-            ctxt.status = 0;
-            ctxt.r = RADIUS_POPUPMENU_CORNERS;
-            ctxt.rc = rc;
-            /* both top and bottom corners for popup menu */
-            ctxt.tw_flags = ZOF_TW_TROUNDCNS | ZOF_TW_BROUNDCNS;    
-            ctxt.rgn_ops = rgn_ops;
-            ctxt.dst_rgn = dst_rgn;
-
-            CircleGenerator (&ctxt, 0, 0, RADIUS_POPUPMENU_CORNERS,
-                    cb_circle_corners);
-
-            if (ctxt.status) {
-                nr_mask_rects = -1;
-                goto __mg_err_ret;
-            }
-
-            rc.top += RADIUS_POPUPMENU_CORNERS;
-            rc.bottom -= RADIUS_POPUPMENU_CORNERS;
-        }
-    }
-#endif /* _MGSCHEMA_COMPOSITING */
-
-    if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
-        if (!SubtractClipRect (dst_rgn, &rc)) {
-            nr_mask_rects = -1;
-            goto __mg_err_ret;
-        }
-    }
-    else {
-        if (!AddClipRect (dst_rgn, &rc)) {
-            nr_mask_rects = -1;
-            goto __mg_err_ret;
+    list_for_each_safe (info, tmp, &hook_wins) {
+        HOOKWININFO *hook_info = (HOOKWININFO*)info;
+        if (cli < 0 || hook_info->cli == cli) {
+            list_del (&hook_info->list);
+            mg_slice_delete (HOOKWININFO, hook_info);
+            nr++;
         }
     }
 
-__mg_err_ret:
-    /* unlock zi for read */
-    unlock_zi_for_read (zi);
-
-    return nr_mask_rects >= 0;
+    return nr;
 }
-
-#endif /* _MGRM_PROCESSES */
 

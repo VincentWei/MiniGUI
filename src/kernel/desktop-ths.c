@@ -87,7 +87,7 @@ static BOOL InitWndManagementInfo (void)
 {
     RECT rcScr = GetScreenRect();
 
-    __mg_capture_wnd = 0;
+    __mg_captured_wnd = 0;
 
 #ifdef _MGHAVE_MENU
     sg_ptmi = NULL;
@@ -211,8 +211,11 @@ void mg_TerminateDesktop (void)
     DestroyFreeClipRectList (&sg_FreeClipRectList);
     DestroyFreeClipRectList (&sg_FreeInvRectList);
 
+    // Since 5.0.0
+    __mg_free_hook_wins (0);
+
     mg_TerminateSystemRes ();
-    //dongjunjie avoid double free
+    // dongjunjie avoid double free
     __mg_dsk_win = 0;
 }
 
