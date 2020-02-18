@@ -55,6 +55,7 @@
 #include "constants.h"
 #include "cliprect.h"
 #include "zorder.h"
+#include "list.h"
 
 #ifdef HAVE_SELECT
 #   ifdef HAVE_SYS_SELECT_H
@@ -195,13 +196,12 @@ typedef struct _LISTEN_FD {
 
 #endif
 
-// the MSGQUEUE struct is a internal struct.
-// using semaphores to implement message queue.
+// the MSGQUEUE struct is an internal struct.
+// use semaphores to implement message queue.
 struct _MSGQUEUE
 {
-    DWORD dwState;              // message queue states
-
 #ifdef _MGHAVE_VIRTUAL_WINDOW
+    struct list_head list;      // for managing message threads
     pthread_t th;               // the thread identifier this message queue lives
                                 // moved from window structures since 5.0.0.
     pthread_mutex_t lock;       // lock
@@ -209,6 +209,7 @@ struct _MSGQUEUE
     sem_t sync_msg;             // the semaphore for sync message
 #endif
 
+    DWORD  dwState;             // message queue states
     PQMSG  pFirstNotifyMsg;     // head of the notify message queue
     PQMSG  pLastNotifyMsg;      // tail of the notify message queue
 
@@ -656,6 +657,10 @@ MSGQUEUE* mg_AllocMsgQueueForThisThread (void);
 void mg_FreeMsgQueueForThisThread (void);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
+
+#define TEST_CANCEL pthread_testcancel()
+int __mg_join_all_message_threads (void);
+
 MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc);
 
 extern pthread_key_t __mg_threadinfo_key;
@@ -735,6 +740,8 @@ static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
 }
 
 #else   /* define _MGHAVE_VIRTUAL_WINDOW */
+
+#define TEST_CANCEL
 
 static inline MSGQUEUE* getMsgQueueForThisThread (void)
 {
