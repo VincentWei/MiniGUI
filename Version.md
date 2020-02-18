@@ -1,6 +1,6 @@
-Version 4.2.0 (2019/02/22)
+Version 4.9.0 (2019/02/28)
 
-This is a developing version, an unstable version.
+This is a developing version (target version: 5.0.0), an unstable version.
 
 It needs the following packages:
 

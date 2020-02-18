@@ -1,15 +1,68 @@
 # Release Notes
 
-## Version 4.1.0
+## Version 4.9.0
 
-The MiniGUI development team announces the availability of MiniGUI 4.1.0.
+The MiniGUI development team announces the availability of MiniGUI 4.9.0.
 This is a unstable release to test some new and exciting features.
 We recommend that you test this version and report any bugs and
 incompatibilities in
 
-<https://github.com/VincentWei/minigui>
+<https://github.com/VincentWei/minigui/tree/dev-4-1>
 
 ### What's new in this version
+
+In the development of version 4.9.x, we introduced the following new and
+exciting features for MiniGUI:
+
+* ENHANCEMENTS:
+   - Support for compositing schema under MiniGUi-Processes runtime mode.
+     This feature brings the exciting visual effects which are popular
+     on modern desktop computers or smart phones to MiniGUI.
+   - Support for hardware cursors under compositing schema. MiniGUI now can
+     utilize the hardware cursors if your graphics device support it.
+     You can also load a cursor from a PNG file.
+   - New main window types. You now can easily create some special main window
+     which acts as screen lock, docker, or lanucher. You can also use the common
+     global tooltip main window to show a tooltip.
+   - Virtual Window. You now can easily create message threads under all runtime
+     modes to exploit the messaging mechanism of MiniGUI in non GUI threads.
+   - Support for loading icon from a bitmap file. You can now load an icon
+     from a bitmap file.
+   - Enhanced timer support. MiniGUI now manages the timers per message thread.
+     Under MiniGUI-Threads runtime mode, you can set up 32 (64 on 64-bit
+     architecture) timers for each GUI threads. If you enabled virtual window,
+     you can also do this for each message thread.
+   - Support for listening a file descriptor as long as the underlying system
+     has the `select()` system call for all runtime modes. Now you can call
+     `RegisterListenFD()` to register a file descriptor to be listened, and
+     handle `MSG_FDEVENT` in your window callback procedure to read/write
+     from/to the file descriptor. Before this version, this feature only
+     available for MiniGUI-Processes runtime mode.
+   - Unified the message hook functions for all runtime modes. MiniGUI now
+     provides the unified message hook functions for all runtime modes.
+* ADJUSTMENTS:
+   - `g_rcScr` now is defined a macro calling function `GetScreenRect()`.
+   - `mgIsServer` now is define a macro calling function `IsServer()`.
+* CLEANUP:
+   - Cleaned up a lot of internal symbols (the external functions and
+     global variables) in order to avoid name polution.
+
+
+The following new features will be developed in version 4.9.x:
+
+
+* ENHANCEMENTS:
+   - New APIs for GPU integration, such as `IsMemDC`, `IsScreenDC`, `IsWindowDC`, `GetVideoHandle`, and `drmGetDeviceFD`.
+   - Add new operation for DRM engine: `create_buffer_from_prime_fd`.
+   - Use `dlopen` to load the external DRM driver.
+   - Add a new runtime configuration key for DRM engine `drm.exdriver` to define the external DRM driver.
+* MODIFICATIONS:
+   - Change the name of old `dri` NEWGAL engine to `drm`.
+   - Change the configuration option of DRM engine to `--enable-videodrm`.
+   - Change the macro for DRM engine to `_MGGAL_DRM`.
+   - Change the runtime configuration section for DRM engine to `drm`.
+
+### Compositing schema
 
 In this version, we enhanced the MiniGUI-Processes runtime mode to support
 the compositing schema. Under compositing schema, regardless a main window
@@ -57,7 +110,7 @@ Usage:
 In order to use the compositing schema on Linux-based system, we introduce
 some new APIs for your new apps.
 
-### New runtime configuration
+#### Runtime configuration for compositing schema
 
 ```
 [compositing_schema]
@@ -73,7 +126,7 @@ wallpaper_pattern_size=full
 compositor=my_compositor.so
 ```
 
-### Compositing types
+#### Compositing types
 
 You can call the following function to set the compositing type and argument
 of a main window:
@@ -124,6 +177,8 @@ the cursor. And you can use the following APIs to load a PNG file as the cursor:
 
 - `LoadCursorFromPNGFile`
 - `LoadCursorFromPNGMem`
+
+### Virtual Window
 
 ### Other new APIs
 
