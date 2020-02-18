@@ -2907,6 +2907,11 @@ typedef struct _WINMASKINFO {
 
 #endif /* defined _MGRM_PROCESSES */
 
+/* Since 5.0.0: for managing message thread */
+#define MSG_MANAGE_MSGTHREAD    0x014A
+    #define MSGTHREAD_SIGNIN        0x00
+    #define MSGTHREAD_SIGNOUT       0x01
+
 /**
  * \def MSG_DOESNEEDIME
  * \brief Sends to a window to query whether the window needs to open
@@ -6432,7 +6437,7 @@ static inline int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
         pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
 {
     return CreateThreadForMessaging (thread, attr, start_routine, arg,
-            FALSE, 16);
+            TRUE, 16);
 }
 
 /**
