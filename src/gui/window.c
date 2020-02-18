@@ -3614,17 +3614,31 @@ struct _entry_args {
 static void* _message_thread_entry (void* arg)
 {
     struct _entry_args* entry_args = (struct _entry_args*)arg;
+    MSGQUEUE* msg_queue;
 
-    /* create message queue for this thread */
-    if (!(entry_args->msg_queue = mg_AllocMsgQueueForThisThread ()))
+    if (pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL))
         goto failed;
 
+    /* create message queue for this thread */
+    if (!(msg_queue = mg_AllocMsgQueueForThisThread ()))
+        goto failed;
+
+    SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+            MSGTHREAD_SIGNIN, (LPARAM)msg_queue);
+
+    if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
+        goto failed;
+
+    entry_args->msg_queue = msg_queue;
     sem_post (&entry_args->wait);
 
     /* call start routine of app */
     entry_args->start_routine (entry_args->arg);
 
+    SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+            MSGTHREAD_SIGNOUT, (LPARAM)msg_queue);
     mg_FreeMsgQueueForThisThread ();
+
     return NULL;
 
 failed:
@@ -3700,7 +3714,7 @@ HWND GUIAPI CreateVirtualWindow (HWND hHosting,
     PVIRTWIN pVirtWin;
     PMSGQUEUE pMsgQueue;
 
-    if (!(pMsgQueue = mg_GetMsgQueueForThisThread (TRUE))) {
+    if (!(pMsgQueue = getMsgQueueForThisThread ())) {
         _WRN_PRINTF ("Not a message thread!\n");
         return HWND_INVALID;
     }
@@ -3851,10 +3865,6 @@ BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
 #endif
 
     pMsgQueue->nrWindows--;
-    if (pMsgQueue->nrWindows == 0) {
-        mg_FreeMsgQueueForThisThread ();
-    }
-
     free (pVirtWin);
     return TRUE;
 }
@@ -3925,7 +3935,7 @@ BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
     pMainWin = MG_GET_MAIN_WINDOW_PTR (hMainWnd);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE)) ||
+    if (!(pMsgQueue = getMsgQueueForThisThread ()) ||
             pMainWin->pMsgQueue != pMsgQueue) {
         return FALSE;
     }
@@ -4016,7 +4026,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 
 #ifdef _MGRM_THREADS
     /* Create or get the message queue for this new main window. */
-    if ((pWin->pMsgQueue = mg_GetMsgQueueForThisThread (TRUE)) == NULL) {
+    if ((pWin->pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
         goto err;
     }
 
