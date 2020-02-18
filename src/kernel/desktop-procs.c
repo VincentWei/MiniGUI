@@ -4426,7 +4426,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
             if (do_drag_drop_window (message, 0, 0))
                 return 0;
 
-            if (_mg_zorder_info->active_win) {
+            if (__mg_zorder_info->active_win) {
                 __mg_post_msg_by_znode (__mg_zorder_info,
                         __mg_zorder_info->active_win,
                         message, wParam, lParam);

@@ -311,7 +311,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
                 if (extra.params_mask & (1 << i)) {
                     msg.wParam = extra.wparams[i];
                     msg.lParam = extra.lparams[i];
-                    if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &Msg) ==
+                    if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
                             HOOK_GOON)
                         kernel_QueueMessage (msg_queue, &msg);
                     n++;
@@ -322,12 +322,12 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
                 msg.message = MSG_EXIN_END_CHANGES;
                 msg.wParam = n;
                 msg.lParam = 0;
-                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &Msg) == HOOK_GOON)
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
                     kernel_QueueMessage (msg_queue, &msg);
             }
         }
         else {
-            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &Msg) == HOOK_GOON)
+            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
                 kernel_QueueMessage (msg_queue, &msg);
         }
     }

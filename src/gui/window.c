@@ -6139,8 +6139,10 @@ SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
     static SRVEVTHOOK srv_evt_hook = NULL;
     SRVEVTHOOK old_hook;
 
+#ifdef _MGRM_PROCESSES
     if (!mgIsServer)
         return NULL;
+#endif
 
     old_hook = srv_evt_hook;
     if (SrvEvtHook) {
