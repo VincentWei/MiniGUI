@@ -4072,6 +4072,13 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     pWin->dwStyle       = pCreateInfo->dwStyle;
     pWin->dwExStyle     = pCreateInfo->dwExStyle;
 
+    /* Since 5.0.0: normalize the window styles */
+    pWin->dwStyle       &= ~WS_MAINWIN_ONLY_MASK;
+    if (pWin->dwExStyle & WS_EX_TOPMOST) {
+        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
+        pWin->dwExStyle |= WS_EX_WINTYPE_HIGHER;
+    }
+
 #ifdef _MGHAVE_MENU
     pWin->hMenu         = pCreateInfo->hMenu;
 #else
@@ -4235,6 +4242,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     }
 #endif
 
+#if 0
     /* Since 5.0.0: exclude the special window type style if failed */
     if ((pWin->dwExStyle & WS_EX_WINTYPE_MASK) == WS_EX_WINTYPE_SCREENLOCK &&
             pWin->idx_znode != ZNIDX_SCREENLOCK) {
@@ -4248,6 +4256,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
             pWin->idx_znode != ZNIDX_LAUNCHER) {
         pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
     }
+#endif /* move to desktop */
 
     return (HWND)pWin;
 
@@ -5690,12 +5699,14 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     if (!(pMainWin = gui_GetMainWindowPtrOfControl (hParentWnd)))
         return HWND_INVALID;
 
+#if 0
     /* Since 5.0.0 */
     if (dwExStyle & WS_EX_CTRLASMAINWIN &&
             (pMainWin->dwExStyle & WS_EX_WINTYPE_MASK)) {
         _WRN_PRINTF("Cannot create global controls in a special main window\n");
         return HWND_INVALID;
     }
+#endif
 
     cci = (PCTRLCLASSINFO)SendMessage (HWND_DESKTOP,
             MSG_GETCTRLCLASSINFO, 0, (LPARAM)spClassName);
