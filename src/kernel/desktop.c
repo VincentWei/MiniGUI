@@ -1577,12 +1577,22 @@ static int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 
     /* the slot must be larger than zero */
     if (type == ZOF_TYPE_GLOBAL)
-        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1), 
-                                        zi->max_nr_globals, 1);
+        /*
+         * VW 2020-02-19
+         * a bad argument for __mg_lookfor_unused_slot.
+         * the second argument should be the size of the slot bitmap,
+         * not the maximal index of available slot.
+
+        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1),
+                zi->max_nr_globals, 1);
+
+         */
+        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1),
+                zi->max_nr_globals >> 3, 1);
     else {
-        free_slot = __mg_lookfor_unused_slot ((BYTE*)(zi + 1) 
-                        + (zi->max_nr_globals >> 3), 
-                        zi->size_usage_bmp - (zi->max_nr_globals >> 3), 1);
+        free_slot = __mg_lookfor_unused_slot (
+                (BYTE*)(zi + 1) + (zi->max_nr_globals >> 3), 
+                zi->size_usage_bmp - (zi->max_nr_globals >> 3), 1);
 
         if (free_slot >= 0) {
             free_slot += zi->max_nr_globals;
@@ -1756,16 +1766,17 @@ static int FreeZOrderNode (int cli, int idx_znode)
             nr_nodes = &zi->nr_globals;
             break;
         case ZOF_TYPE_TOPMOST:
-            if (zi->nr_topmosts < zi->max_nr_topmosts) {
-                first = &zi->first_topmost;
-                nr_nodes = &zi->nr_topmosts;
-            }
+            // VW 2020-02-19: a copy-paste bug
+            // if (zi->nr_topmosts < zi->max_nr_topmosts) {
+            first = &zi->first_topmost;
+            nr_nodes = &zi->nr_topmosts;
             break;
         case ZOF_TYPE_NORMAL:
-            if (zi->nr_normals < zi->max_nr_normals) {
-                first = &zi->first_normal;
-                nr_nodes = &zi->nr_normals;
-            }
+            // VW 2020-02-19: a copy-paste bug
+            // if (zi->nr_normals < zi->max_nr_normals) {
+            first = &zi->first_normal;
+            nr_nodes = &zi->nr_normals;
+            // }
             break;
         default:
             break;
