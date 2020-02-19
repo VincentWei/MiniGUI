@@ -90,7 +90,12 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     ZORDERINFO* zi;
     ZORDERNODE* znodes;
     void* maskrect_usage_bmp;
-    int size_usage_bmp = SIZE_USAGE_BMP (SHAREDRES_NR_GLOBALS,
+    int size_usage_bmp;
+
+    nr_topmosts = (nr_topmosts + 7) & ~0x07;
+    nr_normals = (nr_normals + 7) & ~0x07;
+
+    size_usage_bmp = SIZE_USAGE_BMP (SHAREDRES_NR_GLOBALS,
             nr_topmosts, nr_normals);
 
     layer->zorder_shmid = __kernel_alloc_z_order_info (nr_topmosts, nr_normals);

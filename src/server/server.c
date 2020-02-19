@@ -284,6 +284,7 @@ BOOL GUIAPI ServerStartup (int nr_globals,
     if (def_nr_normals <= 0) def_nr_normals = DEF_NR_NORMALS;
 
     nr_globals = (nr_globals + 7) & ~0x07;
+    nr_globals -= NR_FIXED_ZNODES;
     def_nr_topmosts = (def_nr_topmosts + 7) & ~0x07;
     def_nr_normals = (def_nr_normals + 7) & ~0x07;
 

@@ -182,26 +182,36 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     }
 
     /* Since 5.0.0: handle window style if failed to allocate znode
-       for fixed ones */
+       for special main window */
     if (pWin->dwExStyle & WS_EX_WINTYPE_MASK) {
         ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
 
         pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
         switch (nodes [pWin->idx_znode].flags & ZOF_TYPE_MASK) {
+        case ZOF_TYPE_TOOLTIP:
+            pWin->dwExStyle |= WS_EX_WINTYPE_TOOLTIP;
+            break;
+        case ZOF_TYPE_GLOBAL:
+            pWin->dwExStyle |= WS_EX_WINTYPE_GLOBAL;
+            break;
         case ZOF_TYPE_SCREENLOCK:
             pWin->dwExStyle |= WS_EX_WINTYPE_SCREENLOCK;
             break;
         case ZOF_TYPE_DOCKER:
             pWin->dwExStyle |= WS_EX_WINTYPE_DOCKER;
             break;
-        case ZOF_TYPE_LAUNCHER:
-            pWin->dwExStyle |= WS_EX_WINTYPE_LAUNCHER;
-            break;
         case ZOF_TYPE_TOPMOST:
+            pWin->dwExStyle |= WS_EX_WINTYPE_HIGHER;
             pWin->dwExStyle |= WS_EX_TOPMOST;
             break;
         case ZOF_TYPE_NORMAL:
+            pWin->dwExStyle |= WS_EX_WINTYPE_NORMAL;
+            break;
+        case ZOF_TYPE_LAUNCHER:
+            pWin->dwExStyle |= WS_EX_WINTYPE_LAUNCHER;
+            break;
         default:
+            assert(0);
             break;
         }
     }
@@ -1871,7 +1881,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
     else if (id == IDM_CLOSEALLWIN) {
         PMAINWIN pWin;
 
-        for (level = 0; level < NR_ZORDER_LEVELS; level < 0) {
+        for (level = 0; level < NR_ZORDER_LEVELS; level++) {
             slot = __mg_zorder_info->first_in_levels[level];
             for (; slot > 0; slot = nodes[slot].next) {
                 pWin = (PMAINWIN)(nodes[slot].hwnd);

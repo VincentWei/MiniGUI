@@ -2026,20 +2026,30 @@ static int dskAddNewMainWindow (PMAINWIN pWin, const COMPOSITINGINFO* ct_info)
 
         pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
         switch (nodes [pWin->idx_znode].flags & ZOF_TYPE_MASK) {
+        case ZOF_TYPE_TOOLTIP:
+            pWin->dwExStyle |= WS_EX_WINTYPE_TOOLTIP;
+            break;
+        case ZOF_TYPE_GLOBAL:
+            pWin->dwExStyle |= WS_EX_WINTYPE_GLOBAL;
+            break;
         case ZOF_TYPE_SCREENLOCK:
             pWin->dwExStyle |= WS_EX_WINTYPE_SCREENLOCK;
             break;
         case ZOF_TYPE_DOCKER:
             pWin->dwExStyle |= WS_EX_WINTYPE_DOCKER;
             break;
-        case ZOF_TYPE_LAUNCHER:
-            pWin->dwExStyle |= WS_EX_WINTYPE_LAUNCHER;
-            break;
         case ZOF_TYPE_TOPMOST:
+            pWin->dwExStyle |= WS_EX_WINTYPE_HIGHER;
             pWin->dwExStyle |= WS_EX_TOPMOST;
             break;
         case ZOF_TYPE_NORMAL:
+            pWin->dwExStyle |= WS_EX_WINTYPE_NORMAL;
+            break;
+        case ZOF_TYPE_LAUNCHER:
+            pWin->dwExStyle |= WS_EX_WINTYPE_LAUNCHER;
+            break;
         default:
+            assert(0);
             break;
         }
     }

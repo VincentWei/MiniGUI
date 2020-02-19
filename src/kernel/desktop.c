@@ -2165,7 +2165,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         if (zi->first_launcher > 0 &&
                 nodes [zi->first_launcher].cli != cli) {
             flags &= ~ZOF_TYPE_MASK;
-            flags |= ZOF_TYPE_TOPMOST;
+            flags |= ZOF_TYPE_NORMAL;
         }
         break;
 
@@ -2263,10 +2263,8 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     /* lock zi for change */
     lock_zi_for_change (zi);
 
-    /* the slot must be larger than zero */
-    if (free_slot == -1) {
-
-        /* Since 5.0.0: tune code to avoid potential errors */
+    /* Since 5.0.0: tune code to avoid potential errors */
+    {
         int len_bmp_specials = LEN_USAGE_BMP_SPECIAL(zi);
 
         if (IS_TYPE_SPECIAL (type)) {
@@ -2295,7 +2293,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     if (-1 == free_slot) {
         /* unlock zorderinfo for change. */
         unlock_zi_for_change (zi);
-        _ERR_PRINTF ("Cann't find unused slot. \n");
+        _WRN_PRINTF ("cannot allocate slot for new znode\n");
         return -1;
     }
 
@@ -2325,7 +2323,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     if (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS) {
         RECT cli_rect;
 
-        SetRect(&cli_rect, 0, 0, RECTW(nodes[free_slot].rc),
+        SetRect (&cli_rect, 0, 0, RECTW(nodes[free_slot].rc),
                 RECTH(nodes[free_slot].rc));
         alloc_mask_rects_for_round_corners (__mg_zorder_info,
                 &nodes[free_slot], flags, &cli_rect);

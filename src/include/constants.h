@@ -79,7 +79,7 @@
 /* the numbers of znodes in different levels - should be mulitples of 8 */
 #define DEF_NR_POPUPMENUS           16
 #define DEF_NR_TOOLTIPS             8
-#define DEF_NR_GLOBALS              15      // reserve one for fixed znodes
+#define DEF_NR_GLOBALS              15      // reserve slots for fixed znodes
 #define DEF_NR_SCREENLOCKS          8
 #define DEF_NR_DOCKERS              8
 #define DEF_NR_TOPMOSTS             16
