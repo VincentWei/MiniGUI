@@ -97,13 +97,16 @@ extern "C" {
 #define ZOF_TYPE_MASK           0xF0000000
 #define ZOF_TYPE_NULL           0x00000000
 #define ZOF_TYPE_DESKTOP        0x10000000  // fixed and only one.
-#define ZOF_TYPE_LAUNCHER       0x20000000  // Since 5.0.0; fixed and only one.
+#define ZOF_TYPE_LAUNCHER       0x20000000  // Since 5.0.0
 #define ZOF_TYPE_NORMAL         0x30000000
-#define ZOF_TYPE_TOPMOST        0x40000000
-#define ZOF_TYPE_GLOBAL         0x50000000
-#define ZOF_TYPE_DOCKER         0x60000000  // Since 5.0.0; fixed and only one.
-#define ZOF_TYPE_SCREENLOCK     0x70000000  // Since 5.0.0; fixed and only one.
-#define ZOF_TYPE_POPUPMENU      0x80000000
+#define ZOF_TYPE_HIGHER         0x40000000
+#define ZOF_TYPE_DOCKER         0x50000000  // Since 5.0.0
+#define ZOF_TYPE_SCREENLOCK     0x60000000  // Since 5.0.0;
+#define ZOF_TYPE_GLOBAL         0x70000000
+#define ZOF_TYPE_TOOLTIP        0x80000000  // Since 5.0.0; fixed and only one.
+#define ZOF_TYPE_POPUPMENU      0x90000000
+
+#define ZOF_TYPE_TOPMOST        ZOF_TYPE_HIGHER // for backward compatibility
 
 #define ZOF_TF_FLAG_MASK        0x0F000000
 #define ZOF_TF_MAINWIN          0x01000000
@@ -112,27 +115,43 @@ extern "C" {
 
 #define ZNIT_NULL               (ZOF_TYPE_NULL)
 #define ZNIT_POPUPMENU          (ZOF_TYPE_POPUPMENU)
-#define ZNIT_SCREENLOCK         (ZOF_TYPE_SCREENLOCK | ZOF_TF_MAINWIN)
-#define ZNIT_DOCKER             (ZOF_TYPE_DOCKER | ZOF_TF_MAINWIN)
-#define ZNIT_LAUNCHER           (ZOF_TYPE_LAUNCHER | ZOF_TF_MAINWIN)
-#define ZNIT_DESKTOP            (ZOF_TYPE_DESKTOP)
+#define ZNIT_TOOLTIP            (ZOF_TYPE_TOOLTIP | ZOF_TF_MAINWIN)
 
 #define ZNIT_GLOBAL_MAINWIN     (ZOF_TYPE_GLOBAL | ZOF_TF_MAINWIN)
 #define ZNIT_GLOBAL_TOOLWIN     (ZOF_TYPE_GLOBAL | ZOF_TF_TOOLWIN)
 #define ZNIT_GLOBAL_CONTROL     (ZOF_TYPE_GLOBAL | ZOF_TF_CONTROL)
 
-#define ZNIT_TOPMOST_MAINWIN    (ZOF_TYPE_TOPMOST | ZOF_TF_MAINWIN)
-#define ZNIT_TOPMOST_TOOLWIN    (ZOF_TYPE_TOPMOST | ZOF_TF_TOOLWIN)
-#define ZNIT_TOPMOST_CONTROL    (ZOF_TYPE_TOPMOST | ZOF_TF_CONTROL)
+#define ZNIT_SCREENLOCK_MAINWIN (ZOF_TYPE_SCREENLOCK | ZOF_TF_MAINWIN)
+#define ZNIT_SCREENLOCK_TOOLWIN (ZOF_TYPE_SCREENLOCK | ZOF_TF_TOOLWIN)
+#define ZNIT_SCREENLOCK_CONTROL (ZOF_TYPE_SCREENLOCK | ZOF_TF_CONTROL)
+
+#define ZNIT_DOCKER_MAINWIN     (ZOF_TYPE_DOCKER | ZOF_TF_MAINWIN)
+#define ZNIT_DOCKER_TOOLWIN     (ZOF_TYPE_DOCKER | ZOF_TF_TOOLWIN)
+#define ZNIT_DOCKER_CONTROL     (ZOF_TYPE_DOCKER | ZOF_TF_CONTROL)
+
+#define ZNIT_HIGHER_MAINWIN     (ZOF_TYPE_HIGHER | ZOF_TF_MAINWIN)
+#define ZNIT_HIGHER_TOOLWIN     (ZOF_TYPE_HIGHER | ZOF_TF_TOOLWIN)
+#define ZNIT_HIGHER_CONTROL     (ZOF_TYPE_HIGHER | ZOF_TF_CONTROL)
 
 #define ZNIT_NORMAL_MAINWIN     (ZOF_TYPE_NORMAL | ZOF_TF_MAINWIN)
 #define ZNIT_NORMAL_TOOLWIN     (ZOF_TYPE_NORMAL | ZOF_TF_TOOLWIN)
 #define ZNIT_NORMAL_CONTROL     (ZOF_TYPE_NORMAL | ZOF_TF_CONTROL)
 
+#define ZNIT_LAUNCHER_MAINWIN   (ZOF_TYPE_LAUNCHER | ZOF_TF_MAINWIN)
+#define ZNIT_LAUNCHER_TOOLWIN   (ZOF_TYPE_LAUNCHER | ZOF_TF_TOOLWIN)
+#define ZNIT_LAUNCHER_CONTROL   (ZOF_TYPE_LAUNCHER | ZOF_TF_CONTROL)
+
+#define ZNIT_DESKTOP            (ZOF_TYPE_DESKTOP)
+
 #define ZNIF_VISIBLE            (ZOF_VISIBLE)
 #define ZNIF_DISABLED           (ZOF_DISABLED)
-#define ZNIF_MAXIMIZED          (ZOF_MAXIMIZED) /* Since 5.0.0 */
-#define ZNIF_MINIMIZED          (ZOF_MINIMIZED) /* Since 5.0.0 */
+#define ZNIF_MAXIMIZED          (ZOF_MAXIMIZED) /* Since 5.2.0 */
+#define ZNIF_MINIMIZED          (ZOF_MINIMIZED) /* Since 5.2.0 */
+
+/* definitions for backward compatibility */
+#define ZNIT_TOPMOST_MAINWIN    (ZNIT_HIGHER_MAINWIN)
+#define ZNIT_TOPMOST_TOOLWIN    (ZNIT_HIGHER_TOOLWIN)
+#define ZNIT_TOPMOST_CONTROL    (ZNIT_HIGHER_CONTROL)
 
     /**
      * \defgroup rect_vars Global Rectangles
@@ -929,25 +948,31 @@ typedef struct _ZNODEINFO {
      * The type of the z-node, can be one of the following values:
      * - ZNIT_POPUPMENU\n
      *   a popup menu.
-     * - ZNIT_SCREENLOCK\n
-     *   the screen lock.
-     * - ZNIT_DOCKER\n
-     *   the docker.
-     * - ZNIT_LAUNCHER\n
-     *   the launcher.
-     * - ZNIT_DESKTOP\n
-     *   the desktop.
+     * - ZNIT_TOOLTIP\n
      * - ZNIT_GLOBAL_MAINWIN\n
-     *   a global main window.
+     *   a main window in the global/system level.
      * - ZNIT_GLOBAL_TOOLWIN\n
-     *   a global tool window.
+     *   a tool window in the global/system level.
      * - ZNIT_GLOBAL_CONTROL\n
-     *   a global control with WS_EX_CTRLASMAINWIN style.
-     * - ZNIT_TOPMOST_MAINWIN\n
+     *   a control with WS_EX_CTRLASMAINWIN style in the global/system level.
+     *   the global tooltip main window.
+     * - ZNIT_SCREENLOCK_MAINWIN\n
+     *   a main window in the screen lock level.
+     * - ZNIT_SCREENLOCK_TOOLWIN\n
+     *   a tool window in the screen lock level.
+     * - ZNIT_SCREENLOCK_CONTROL\n
+     *   a control with WS_EX_CTRLASMAINWIN style in the screen lock level.
+     * - ZNIT_DOCKER_MAINWIN\n
+     *   a main window in the docker level.
+     * - ZNIT_DOCKER_TOOLWIN\n
+     *   a tool window in the docker level.
+     * - ZNIT_DOCKER_CONTROL\n
+     *   a control with WS_EX_CTRLASMAINWIN style in the docker level.
+     * - ZNIT_HIGHER_MAINWIN\n
      *   a topmost main window.
-     * - ZNIT_TOPMOST_TOOLWIN\n
+     * - ZNIT_HIGHER_TOOLWIN\n
      *   a topmost tool window.
-     * - ZNIT_TOPMOST_CONTROL\n
+     * - ZNIT_HIGHER_CONTROL\n
      *   a topmost control with WS_EX_CTRLASMAINWIN style.
      * - ZNIT_NORMAL_MAINWIN\n
      *   a normal main window.
@@ -955,6 +980,12 @@ typedef struct _ZNODEINFO {
      *   a normal tool window.
      * - ZNIT_NORMAL_CONTROL\n
      *   a normal control with WS_EX_CTRLASMAINWIN style.
+     * - ZNIT_LAUNCHER_MAINWIN\n
+     *   a main window in the launcher level.
+     * - ZNIT_LAUNCHER_TOOLWIN\n
+     *   a tool window in the launcher level.
+     * - ZNIT_LAUNCHER_CONTROL\n
+     *   a control with WS_EX_CTRLASMAINWIN style in the launcher level.
      * - ZNIT_DESKTOP\n
      *   the desktop.
      * - ZNIT_NULL\n
