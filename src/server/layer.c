@@ -90,6 +90,8 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     ZORDERINFO* zi;
     ZORDERNODE* znodes;
     void* maskrect_usage_bmp;
+    int size_usage_bmp = SIZE_USAGE_BMP (SHAREDRES_NR_GLOBALS,
+            nr_topmosts, nr_normals);
 
     layer->zorder_shmid = __kernel_alloc_z_order_info (nr_topmosts, nr_normals);
 
@@ -114,25 +116,37 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
 
     layer->zorder_info = zi;
 
-    zi->size_usage_bmp = SIZE_USAGE_BMP;
+    zi->size_usage_bmp = size_usage_bmp;
     zi->size_maskrect_usage_bmp = SIZE_MASKRECT_USAGE_BMP;
 
     _DBG_PRINTF("size_zi: %lu, size_usage_bmp: %d, size_maskrect_usage_bmp: %d\n",
                 sizeof (*zi), zi->size_usage_bmp, zi->size_maskrect_usage_bmp);
 
     zi->max_nr_popupmenus = DEF_NR_POPUPMENUS;
+    zi->max_nr_tooltips = DEF_NR_TOOLTIPS;
     zi->max_nr_globals = SHAREDRES_NR_GLOBALS;
+    zi->max_nr_screenlocks = DEF_NR_SCREENLOCKS;
+    zi->max_nr_dockers = DEF_NR_DOCKERS;
     zi->max_nr_topmosts = nr_topmosts;
     zi->max_nr_normals = nr_normals;
+    zi->max_nr_launchers = DEF_NR_LAUNCHERS;
 
     zi->nr_popupmenus = 0;
+    zi->nr_tooltips = 0;
     zi->nr_globals = 0;
+    zi->nr_screenlocks = 0;
+    zi->nr_dockers = 0;
     zi->nr_topmosts = 0;
     zi->nr_normals = 0;
+    zi->nr_launchers = 0;
 
+    zi->first_tooltip = 0;
     zi->first_global = 0;
+    zi->first_screenlock = 0;
+    zi->first_docker = 0;
     zi->first_topmost = 0;
     zi->first_normal = 0;
+    zi->first_launcher = 0;
 
     zi->active_win = 0;
 
@@ -147,8 +161,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     /* init the semaphore with semctl */
     {
         union semun arg;
-        arg.val = zi->max_nr_popupmenus + zi->max_nr_globals
-                    + zi->max_nr_topmosts + zi->max_nr_normals;
+        arg.val = zi->max_nr_popupmenus + MAX_NR_ZNODES(zi);
         semctl (zi->zi_semid, zi->zi_semnum, SETVAL, arg);
     }
 #if 0
@@ -168,7 +181,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     }
 #endif
 
-    memset (zi + 1, 0xFF, SIZE_USAGE_BMP);
+    memset (zi + 1, 0xFF, size_usage_bmp);
     /* get a unused mask rect slot. */
     maskrect_usage_bmp = GET_MASKRECT_USAGEBMP(zi);
     memset (maskrect_usage_bmp, 0xFF, zi->size_maskrect_usage_bmp);
@@ -195,32 +208,33 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     __mg_slot_set_use ((unsigned char*)(zi + 1), 0);
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
+#if 0   /* deprecated code */
     /* Since 5.0.0; allocate znodes for other fixed main windows */
     {
         int i;
-        static int fixed_ztypes [] = {
-            ZNIT_SCREENLOCK, ZNIT_DOCKER, ZNIT_LAUNCHER };
+        static int fixed_ztypes [] = { ZNIT_TOOLTIP };
 
         for (i = 0; i < TABLESIZE (fixed_ztypes); i++) {
-            znodes [i + ZNIDX_SCREENLOCK].flags = fixed_ztypes [i];
+            znodes [i + ZNIDX_FIRST].flags = fixed_ztypes [i];
 #ifndef _MGSCHEMA_COMPOSITING
-            znodes [i + ZNIDX_SCREENLOCK].age = 0;
-            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.left = 0;
-            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.top = 0;
-            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.right = 0;
-            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.bottom = 0;
+            znodes [i + ZNIDX_FIRST].age = 0;
+            znodes [i + ZNIDX_FIRST].dirty_rc.left = 0;
+            znodes [i + ZNIDX_FIRST].dirty_rc.top = 0;
+            znodes [i + ZNIDX_FIRST].dirty_rc.right = 0;
+            znodes [i + ZNIDX_FIRST].dirty_rc.bottom = 0;
 #endif
-            znodes [i + ZNIDX_SCREENLOCK].cli = -1;
-            znodes [i + ZNIDX_SCREENLOCK].hwnd = HWND_NULL;
-            znodes [i + ZNIDX_SCREENLOCK].next = 0;
-            znodes [i + ZNIDX_SCREENLOCK].prev = 0;
-            znodes [i + ZNIDX_SCREENLOCK].idx_mask_rect = 0;
-            znodes [i + ZNIDX_SCREENLOCK].priv_data = NULL;
+            znodes [i + ZNIDX_FIRST].cli = -1;
+            znodes [i + ZNIDX_FIRST].hwnd = HWND_NULL;
+            znodes [i + ZNIDX_FIRST].next = 0;
+            znodes [i + ZNIDX_FIRST].prev = 0;
+            znodes [i + ZNIDX_FIRST].idx_mask_rect = 0;
+            znodes [i + ZNIDX_FIRST].priv_data = NULL;
 
-            SetRectEmpty (&znodes [i + ZNIDX_SCREENLOCK].rc);
-            __mg_slot_set_use ((unsigned char*)(zi + 1), i + ZNIDX_SCREENLOCK);
+            SetRectEmpty (&znodes [i + ZNIDX_FIRST].rc);
+            __mg_slot_set_use ((unsigned char*)(zi + 1), i + ZNIDX_FIRST);
         }
     }
+#endif  /* deprecated code */
 
     sg_nr_layers ++;
     return TRUE;
@@ -732,8 +746,7 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
         return -1;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return -1;
     }
 
@@ -765,8 +778,7 @@ int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode, int* cli)
         return -1;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return -1;
     }
 
@@ -801,8 +813,7 @@ BOOL GUIAPI ServerGetZNodeInfo (MG_Layer* layer, int idx_znode,
         return FALSE;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return FALSE;
     }
 
@@ -841,8 +852,7 @@ const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
         return NULL;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return NULL;
     }
 
@@ -940,8 +950,7 @@ BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
         return FALSE;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return FALSE;
     }
 
@@ -1005,8 +1014,7 @@ BOOL GUIAPI ServerSetWinZNodePrivateData (MG_Layer* layer,
         return FALSE;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return FALSE;
     }
 
@@ -1045,8 +1053,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
         return FALSE;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (idx_znode > zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return FALSE;
     }
 

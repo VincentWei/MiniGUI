@@ -127,6 +127,8 @@ tab2space() {
 
 # sed -i 's/\<_captured_wnd\>/__mg_captured_wnd/g' `grep _captured_wnd -rl include/ src/`
 
-sed -i 's/\<__mg_check_hook_event\>/__mg_check_hook_func/g' `grep __mg_check_hook_event -rl include/ src/`
+# sed -i 's/\<__mg_check_hook_event\>/__mg_check_hook_func/g' `grep __mg_check_hook_event -rl include/ src/`
+
+# sed -i 's/\<DEF_NR_FIXEDZNODES\>/NR_FIXED_ZNODES/g' `grep DEF_NR_FIXEDZNODES -rl src/`
 
 exit 0

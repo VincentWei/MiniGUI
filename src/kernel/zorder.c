@@ -71,17 +71,17 @@
 unsigned int g_license_message_offset;
 #endif
 
-#if defined(_MGRM_PROCESSES)
-#include "ourhdr.h"
-#include "sockio.h"
-#include "client.h"
-#include "server.h"
-#include "sharedres.h"
-#include "drawsemop.h"
+#ifdef _MGRM_PROCESSES
+#   include "ourhdr.h"
+#   include "sockio.h"
+#   include "client.h"
+#   include "server.h"
+#   include "sharedres.h"
+#   include "drawsemop.h"
 #endif
 #include "misc.h"
 
-#if defined(_MGRM_PROCESSES)
+#ifdef _MGRM_PROCESSES
 
 #define SHM_PARAM 0644
 
@@ -98,11 +98,13 @@ inline static key_t get_layer_shm_key (void)
     last_layer_key ++;
     return key;
 }
-#endif
+#endif  /* defined _MGRM_PROCESSES */
 
 int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 {
-#if defined(_MGRM_PROCESSES)
+#ifdef _MGRM_PROCESSES
+    int size_usage_bmp = SIZE_USAGE_BMP (SHAREDRES_NR_GLOBALS,
+            nr_topmosts, nr_normals);
     key_t shm_key;
     int zorder_shmid;
 
@@ -111,54 +113,78 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     }
 
     zorder_shmid = shmget (shm_key,
-                sizeof (ZORDERINFO) + SIZE_USAGE_BMP +
-                sizeof (ZORDERNODE) *
-                        (DEF_NR_POPUPMENUS +    /* for the popup menus */
-                        SHAREDRES_NR_GLOBALS +  /* for the global windows */
-                        nr_topmosts +           /* for the topmost windows */
-                        nr_normals +            /* for the normal windows */
-                        DEF_NR_FIXEDZNODES) +   /* for the fixed znodes */
-                        SIZE_MASKRECT_USAGE_BMP +
-                sizeof (MASKRECT) * DEF_NR_MASKRECT,
-                SHM_PARAM | IPC_CREAT | IPC_EXCL);
+            sizeof (ZORDERINFO) +
+            size_usage_bmp +
+            sizeof (ZORDERNODE) *
+            (DEF_NR_POPUPMENUS +        /* for the popup menus */
+                DEF_NR_TOOLTIPS +       /* for the tooltip ones */
+                SHAREDRES_NR_GLOBALS +  /* for the global ones */
+                DEF_NR_SCREENLOCKS +    /* for the screenlock ones */
+                DEF_NR_DOCKERS +        /* for the docker ones */
+                nr_topmosts +           /* for the higher windows */
+                nr_normals +            /* for the normal windows */
+                DEF_NR_LAUNCHERS +      /* for the launcher ones */
+                NR_FIXED_ZNODES) +      /* for the fixed znodes */
+            SIZE_MASKRECT_USAGE_BMP +
+            sizeof (MASKRECT) * DEF_NR_MASKRECT,
+            SHM_PARAM | IPC_CREAT | IPC_EXCL);
 
     return zorder_shmid;
-#else
+#else   /* defined _MGRM_PROCESSES */
+    int size_usage_bmp = SIZE_USAGE_BMP (DEF_NR_GLOBALS,
+            nr_topmosts, nr_normals);
     ZORDERNODE* znodes;
     void* maskrect_usage_bmp;
 
-    __mg_zorder_info = (PZORDERINFO) calloc (1,
-                sizeof (ZORDERINFO) + SIZE_USAGE_BMP +
-                    sizeof (ZORDERNODE) *
-                            (DEF_NR_POPUPMENUS +    /* for the popup menus */
-                            SHAREDRES_NR_GLOBALS +  /* for global window: 0*/
-                            nr_topmosts +           /* for the topmost windows */
-                            nr_normals +            /* for the normal windows */
-                            DEF_NR_FIXEDZNODES) +   /* for the fixed znodes */
-                            SIZE_MASKRECT_USAGE_BMP +
-                    sizeof (MASKRECT) * DEF_NR_MASKRECT);
+    __mg_zorder_info = (PZORDERINFO) malloc (
+            sizeof (ZORDERINFO) +
+            size_usage_bmp + 
+            sizeof (ZORDERNODE) *
+            (DEF_NR_POPUPMENUS +        /* for the popup menus */
+                DEF_NR_TOOLTIPS +       /* for the tooltip ones */
+                DEF_NR_GLOBALS +        /* for global windows */
+                DEF_NR_SCREENLOCKS +    /* for the screenlock ones */
+                DEF_NR_DOCKERS +        /* for the docker ones */
+                nr_topmosts +           /* for the topmost windows */
+                nr_normals +            /* for the normal windows */
+                DEF_NR_LAUNCHERS +      /* for the launcher ones */
+                NR_FIXED_ZNODES) +      /* for the fixed znodes */
+            SIZE_MASKRECT_USAGE_BMP +
+            sizeof (MASKRECT) * DEF_NR_MASKRECT);
 
     if (!__mg_zorder_info) {
         _MG_PRINTF ("KERNEL>ZOrder: calloc zorderinfo failure. \n");
         return -1;
     }
 
-    __mg_zorder_info->size_usage_bmp = SIZE_USAGE_BMP;
+    __mg_zorder_info->size_usage_bmp = size_usage_bmp;
     __mg_zorder_info->size_maskrect_usage_bmp = SIZE_MASKRECT_USAGE_BMP;
 
     __mg_zorder_info->max_nr_popupmenus = DEF_NR_POPUPMENUS;
-    __mg_zorder_info->max_nr_globals = 0;
+    __mg_zorder_info->max_nr_tooltips = DEF_NR_TOOLTIPS;
+    __mg_zorder_info->max_nr_globals = DEF_NR_GLOBALS;
+    __mg_zorder_info->max_nr_screenlocks = DEF_NR_SCREENLOCKS;
+    __mg_zorder_info->max_nr_dockers = DEF_NR_DOCKERS;
     __mg_zorder_info->max_nr_topmosts = nr_topmosts;
     __mg_zorder_info->max_nr_normals = nr_normals;
+    __mg_zorder_info->max_nr_launchers = DEF_NR_LAUNCHERS;
 
     __mg_zorder_info->nr_popupmenus = 0;
+    __mg_zorder_info->nr_tooltips = 0;
     __mg_zorder_info->nr_globals = 0;
+    __mg_zorder_info->nr_screenlocks = 0;
+    __mg_zorder_info->nr_dockers = 0;
     __mg_zorder_info->nr_topmosts = 0;
     __mg_zorder_info->nr_normals = 0;
+    __mg_zorder_info->nr_launchers = 0;
 
+    __mg_zorder_info->first_tooltip = 0;
     __mg_zorder_info->first_global = 0;
+    __mg_zorder_info->first_screenlock = 0;
+    __mg_zorder_info->first_docker = 0;
     __mg_zorder_info->first_topmost = 0;
     __mg_zorder_info->first_normal = 0;
+    __mg_zorder_info->first_launcher = 0;
 
     __mg_zorder_info->active_win = 0;
 
@@ -166,7 +192,7 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     __mg_zorder_info->ptmi_in_cli = (HWND)-1;
 
     /* Set zorder node usage map. */
-    memset (__mg_zorder_info + 1, 0xFF, SIZE_USAGE_BMP);
+    memset (__mg_zorder_info + 1, 0xFF, size_usage_bmp);
 
     /* Set zorder mask rect usage map. */
     maskrect_usage_bmp = GET_MASKRECT_USAGEBMP(__mg_zorder_info);
@@ -188,33 +214,34 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     __mg_slot_set_use ((unsigned char*)(__mg_zorder_info + 1), 0);
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
+#if 0   /* deprecated code */
     /* Since 5.0.0; allocate znodes for other fixed main windows */
     {
         int i;
-        static int fixed_ztypes [] = {
-            ZNIT_SCREENLOCK, ZNIT_DOCKER, ZNIT_LAUNCHER };
+        static int fixed_ztypes [] = { ZNIT_TOOLTIP };
 
         for (i = 0; i < TABLESIZE (fixed_ztypes); i++) {
-            znodes [i + ZNIDX_SCREENLOCK].flags = fixed_ztypes [i];
+            znodes [i + ZNIDX_FIRST].flags = fixed_ztypes [i];
 #ifndef _MGSCHEMA_COMPOSITING
-            znodes [i + ZNIDX_SCREENLOCK].age = 0;
-            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.left = 0;
-            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.top = 0;
-            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.right = 0;
-            znodes [i + ZNIDX_SCREENLOCK].dirty_rc.bottom = 0;
+            znodes [i + ZNIDX_FIRST].age = 0;
+            znodes [i + ZNIDX_FIRST].dirty_rc.left = 0;
+            znodes [i + ZNIDX_FIRST].dirty_rc.top = 0;
+            znodes [i + ZNIDX_FIRST].dirty_rc.right = 0;
+            znodes [i + ZNIDX_FIRST].dirty_rc.bottom = 0;
 #endif
-            znodes [i + ZNIDX_SCREENLOCK].cli = -1;
-            znodes [i + ZNIDX_SCREENLOCK].hwnd = HWND_NULL;
-            znodes [i + ZNIDX_SCREENLOCK].next = 0;
-            znodes [i + ZNIDX_SCREENLOCK].prev = 0;
-            znodes [i + ZNIDX_SCREENLOCK].idx_mask_rect = 0;
-            znodes [i + ZNIDX_SCREENLOCK].priv_data = NULL;
+            znodes [i + ZNIDX_FIRST].cli = -1;
+            znodes [i + ZNIDX_FIRST].hwnd = HWND_NULL;
+            znodes [i + ZNIDX_FIRST].next = 0;
+            znodes [i + ZNIDX_FIRST].prev = 0;
+            znodes [i + ZNIDX_FIRST].idx_mask_rect = 0;
+            znodes [i + ZNIDX_FIRST].priv_data = NULL;
 
-            SetRectEmpty (&znodes [i + ZNIDX_SCREENLOCK].rc);
+            SetRectEmpty (&znodes [i + ZNIDX_FIRST].rc);
             __mg_slot_set_use ((unsigned char*)(__mg_zorder_info + 1),
-                    i + ZNIDX_SCREENLOCK);
+                    i + ZNIDX_FIRST);
         }
     }
+#endif  /* deprecated code */
 
 #ifdef _MGRM_THREADS
 #ifndef __NOUNIX__
@@ -246,7 +273,7 @@ void __kernel_free_z_order_info (ZORDERINFO* zi)
 #endif
 }
 
-#if 0
+#if 0   /* deprecated code */
 #if IS_SHAREDFB_SCHEMA
 
 int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
@@ -372,5 +399,5 @@ void __kernel_free_z_order_info (ZORDERINFO* zi)
 #endif /* not IS_SHAREDFB_SCHEMA */
 }
 
-#endif /* comment out code */
+#endif  /* deprecated code */
 
