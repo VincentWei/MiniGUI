@@ -4108,19 +4108,22 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  */
 #define WS_NONE             0x00000000L
 
-/**
- * \def WS_ALWAYSTOP
- * \brief Indicates the main window is always on top of others.
- *
- * Since 5.0.0.
- */
-#define WS_ALWAYSTOP        0x80000000L
+/* bits in this mask are only for main windows and controls */
+#define WS_CAPTIONBAR_MASK  0xF0000000L
 
 /**
- * \def WS_CHILD
- * \brief Indicates the window is a child.
+ * \def WS_MINIMIZEBOX
+ * \brief Creates a window with minimizing box on caption.
+ * \note This style is valid only for main window.
  */
-#define WS_CHILD            0x40000000L
+#define WS_MINIMIZEBOX      0x80000000L
+
+/**
+ * \def WS_MAXIMIZEBOX
+ * \brief Creates a window with maximizing box on caption.
+ * \note This style is valid only for main window.
+ */
+#define WS_MAXIMIZEBOX      0x40000000L
 
 /**
  * \def WS_CAPTION
@@ -4133,6 +4136,9 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  * \brief Creates a main window with system menu.
  */
 #define WS_SYSMENU          0x10000000L
+
+/* bits in this mask are both for main windows and controls */
+#define WS_STATUS_MASK      0x0F000000L
 
 /**
  * \def WS_VISIBLE
@@ -4150,49 +4156,48 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
 #define WS_MINIMIZE         0x02000000L
 #define WS_MAXIMIZE         0x01000000L
 
+/* bits in this mask are reused for main windows */
+#define WS_FRAME_MASK       0x00E00000L
+
 /**
  * \def WS_DLGFRAME
- * \brief The window has a fixed frame, i.e. user can not
+ * \brief The main window has a fixed frame, i.e. user can not
  *        drag the border of the window.
  */
 #define WS_DLGFRAME         0x00800000L
 
 /**
- * \def WS_BORDER
- * \brief Creates a window with border.
- */
-#define WS_BORDER           0x00400000L
-
-/**
  * \def WS_THICKFRAME
- * \brief Creates a window with thick frame.
+ * \brief Creates a main window with thick frame.
  */
-#define WS_THICKFRAME       0x00200000L
+#define WS_THICKFRAME       0x00400000L
 
 /**
  * \def WS_THINFRAME
- * \brief Creates a window with thin frame.
+ * \brief Creates a main window with thin frame.
  */
-#define WS_THINFRAME        0x00100000L
+#define WS_THINFRAME        0x00200000L
+
+/* bits in this mask only for main window */
+#define WS_MAINWIN_ONLY_MASK    0x00100000L
 
 /**
- * \def WS_VSCROLL
- * \brief Creates a window with vertical scroll bar.
+ * \def WS_ALWAYSTOP
+ * \brief Indicates the main window is always on top of others.
+ *
+ * Since 5.0.0.
  */
-#define WS_VSCROLL          0x00080000L
+#define WS_ALWAYSTOP        0x00100000L
 
-/**
- * \def WS_HSCROLL
- * \brief Creates a window with horizontal scroll bar.
- */
-#define WS_HSCROLL          0x00040000L
+/* bits in this mask are reused for controls */
+#define WS_CONTROL_MASK     0x00C00000L
 
 /**
  * \def WS_GROUP
  * \brief Indicates the control is the leader of a group.
  * \note This style is valid only for controls.
  */
-#define WS_GROUP            0x00020000L
+#define WS_GROUP            0x00800000L
 
 /**
  * \def WS_TABSTOP
@@ -4200,25 +4205,34 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  *        using Tab key.
  * \note This style is valid only for controls.
  */
-#define WS_TABSTOP          0x00010000L
+#define WS_TABSTOP          0x00400000L
 
-/*
- * Not implemented, reserved for future use.
- *
- * \def WS_MINIMIZEBOX
- * \brief Creates a window with minimizing box on caption.
- * \note This style is valid only for main window.
- */
-#define WS_MINIMIZEBOX      0x00020000L
+/* bits in this mask are both for main windows and controls */
+#define WS_MISC_MASK        0x000F0000L
 
-/*
- * Not implemented, reserved for future use.
- *
- * \def WS_MAXIMIZEBOX
- * \brief Creates a window with maximizing box on caption.
- * \note This style is valid only for main window.
+/**
+ * \def WS_CHILD
+ * \brief Indicates the window is a child.
  */
-#define WS_MAXIMIZEBOX      0x00010000L
+#define WS_CHILD            0x00080000L
+
+/**
+ * \def WS_VSCROLL
+ * \brief Creates a window with vertical scroll bar.
+ */
+#define WS_VSCROLL          0x00040000L
+
+/**
+ * \def WS_HSCROLL
+ * \brief Creates a window with horizontal scroll bar.
+ */
+#define WS_HSCROLL          0x00020000L
+
+/**
+ * \def WS_BORDER
+ * \brief Creates a window with border.
+ */
+#define WS_BORDER           0x00010000L
 
 /* Obsolete styles, back-compatibility definitions. */
 #define WS_OVERLAPPED       0x00000000L
@@ -4236,6 +4250,46 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  */
 #define WS_EX_CONTROL_MASK          0x0000000FL
 
+    /**
+     * \defgroup main_window_type_styles Styles for main window types/levels
+     *
+     * Before 5.0.0, you can create a topmost main window with the style
+     * \a WS_EX_TOPMOST in order to show the main window
+     * above all normal windows, and if you use MiniGUI-Processes runtime mode,
+     * the server (`mginit`) will always create global main windows.
+     *
+     * Since 5.0.0, we introduce a concept of levels for main windows. There are
+     * eight levels in MiniGUI from top to bottom:
+     *
+     *  - The tooltip level. 
+     *  - The system/global level.
+     *  - The screen lock level.
+     *  - The docker level.
+     *  - The higher level.
+     *  - The normal level.
+     *  - The launcher level.
+     *  - The desktop or wallpaper.
+     *
+     * We use new styles like \a WS_EX_WINTYPE_SYSTEM to create main windows in
+     * different levels. For historical reasons, you can still use the style
+     * \a WS_EX_TOPMOST, but MiniGUI will create a main window in the higher
+     * level for this styele.
+     *
+     * By default, without the style \a WS_EX_TOPMOST or a style like
+     * \a WS_EX_WINTYPE_SYSTEM, MiniGUI will create a main window in
+     * the normal level.
+     *
+     * The main windows in the desktop level are managed
+     * by MiniGUI. No API is provided for app to create or manage
+     * the main windows in desktop level.
+     *
+     * Any MiniGUI process instance has a virtual desktop window. Under
+     * compositing schema, all contents in HDC_SCREEN will be composited as
+     * the wallpaper of the desktop.
+     *
+     * @{
+     */
+
 /**
  * \def WS_EX_WINTYPE_MASK
  * \brief The style mask for main window type.
@@ -4248,47 +4302,136 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
 #define WS_EX_WINTYPE_MASK          0x0000000FL
 
 /**
- * \def WS_EX_WINTYPE_SCREENLOCK
- * \brief The main window type is the screen lock.
+ * \def WS_EX_WINTYPE_TOOLTIP
+ * \brief The type for a system/global main window.
  *
- * Use this style when you want to create a main window acting as
- * the screen lock. The screen lock will have the highest z-index.
+ * Use this style when you want to create a tooltip main window.
+ * A tooltip main window will be shown above other types of main windows.
  *
- * \note If there is already a main window acts as the screen lock,
- *  a topmost main window will be created.
+ * \note Under MiniGUI-Processes runtime mode, only the client which creates
+ *      the first main window in the tooltip level can create other main
+ *      windows in this level. For other clients, a main window in the higher
+ *      level will be created.
+ * \note The maximal number of all main windows in the tooltip level is 8.
+ *      MiniGUI will create a main windows in higher level if there is no room
+ *      in the tooltip level.
  *
  * Since 5.0.0.
  */
-#define WS_EX_WINTYPE_SCREENLOCK    0x00000001L
+#define WS_EX_WINTYPE_TOOLTIP       0x00000001L
+
+/**
+ * \def WS_EX_WINTYPE_GLOBAL
+ * \brief The type for a system/global main window.
+ *
+ * Use this style when you want to create a system/global main window.
+ * A system/global main window will be shown above other types of main windows.
+ *
+ * \note Under MiniGUI-Processes runtime mode, only the server (`mginit`) can
+ *      create main windows in the system level, and any main windows created
+ *      by the server is a system main window.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_GLOBAL        0x00000002L
+
+/**
+ * \def WS_EX_WINTYPE_SCREENLOCK
+ * \brief The type for a main window in the screen lock level.
+ *
+ * Use this style when you want to create a main window in the
+ * screen lock level. A main window in the screen lock level will
+ * be shown below the system main windows and above the other main windows.
+ *
+ * \note Under MiniGUI-Processes runtime mode, only the client which creates
+ *      the first main window in the screen lock level can create other
+ *      main windows in the this level. For other clients, a main window in
+ *      the higher level will be created.
+ * \note The maximal number of all main windows in the screen lock level is 8.
+ *      MiniGUI will create a main windows in higher level if there is no room
+ *      in the screen lock level.
+ * 
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_SCREENLOCK    0x00000003L
 
 /**
  * \def WS_EX_WINTYPE_DOCKER
- * \brief The main window type is the docker.
+ * \brief The type for a main window in the docker level.
  *
- * Use this style when you want to create a main window acting as
- * the docker. The docker will have the z-index lower than screen lock.
+ * Use this style when you want to create a main window in the
+ * docker level. A main window in the docker level will
+ * be shown below the main windows in the screen lock level and
+ * above the main windows in the higher level.
  *
- * \note If there is already a main window acts as the docker,
- *  a topmost main window will be created.
+ * \note Under MiniGUI-Processes runtime mode, only the client which creates
+ *      the first main window in the docker level can create other main windows
+ *      in the docker level. For other clients, a main window in the higher
+ *      level will be created.
+ * \note The maximal number of all main windows in the docker level is 8.
+ *      MiniGUI will create a main windows in higher level if there is no room
+ *      in the docker level.
  *
  * Since 5.0.0.
  */
-#define WS_EX_WINTYPE_DOCKER        0x00000002L
+#define WS_EX_WINTYPE_DOCKER        0x00000004L
+
+/**
+ * \def WS_EX_WINTYPE_HIGHER
+ * \brief The type for a main window in the higher level.
+ *
+ * Use this style when you want to create a main window in the
+ * higher level. A main window in the higher level will
+ * be shown below the main windows in the docker level and
+ * above the main windows in the normal level.
+ *
+ * \note The maximal number of all main windows in the higher level is 16
+ *      by default. An attempt to create a main window in higher level
+ *      will fail if there is no room in the higher level.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_HIGHER        0x00000005L
+
+/**
+ * \def WS_EX_WINTYPE_NORMAL
+ * \brief The type for a main window in the normal level.
+ *
+ * Use this style when you want to create a main window in the
+ * normal level (default). A main window in the normal level will
+ * be shown below the main windows in the higher level and
+ * above the main windows in the launcher level.
+ *
+ * \note The maximal number of all main windows in the normal level is 128
+ *      by default. An attempt to create a main window in normal level
+ *      will fail if there is no room in the normal level.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_NORMAL        0x00000006L
 
 /**
  * \def WS_EX_WINTYPE_LAUNCHER
- * \brief The main window type is the launcher.
+ * \brief The type for a main window in the launcher level.
  *
- * Use this style when you want to create a main window acting as
- * the launcher (or the window manager). The launcher will have the lowest
- * z-index.
+ * Use this style when you want to create a main window in the
+ * launcher level. A main window in the launcher level will
+ * be shown below the main windows in the normal level and
+ * above the wallpaper.
  *
- * \note If there is already a main window acts as the launcher,
- *  a normal main window will be created.
+ * \note Under MiniGUI-Processes runtime mode, only the client which creates
+ *      the first main window in the launcher level can create other
+ *      main windows in the launcher level. For other clients, a main window
+ *      in the normal level will be created.
+ * \note The maximal number of all main windows in the launcher level is 8.
+ *      MiniGUI will create a main windows in normal level if there is no room
+ *      in the launcher level.
  *
  * Since 5.0.0.
  */
-#define WS_EX_WINTYPE_LAUNCHER      0x00000003L
+#define WS_EX_WINTYPE_LAUNCHER      0x00000006L
+
+    /** @} end of main_window_type_styles */
 
 /**
  * \def WS_EX_TROUNDCNS
@@ -4360,7 +4503,19 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
 
 /**
  * \def WS_EX_TOPMOST
- * \brief The main window is a topmost (always on top) window.
+ * \brief The main window is in the higher level.
+ *
+ * Before 5.0.0,
+ * you can create a main window with this style in order to show the main window
+ * above all normal windows, and if you use MiniGUI-Processes runtime mode,
+ * the server (`mginit`) will always create global main windows.
+ *
+ * Since 5.0.0, we introduce a concept of levels for main windows. We can
+ * use new styles like \a WS_EX_WINTYPE_SYSTEM to create main windows in
+ * different levels. For historical reasons, you can still use this style,
+ * but MiniGUI will create a main window in the higher level for this styele.
+ *
+ * \sa main_window_type_styles
  */
 #define WS_EX_TOPMOST           0x00004000L
 
