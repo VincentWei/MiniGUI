@@ -73,29 +73,41 @@
 /* constants for layers and z-order nodes */
 #define MAX_NR_LAYERS               8
 
-#ifdef _MGRM_PROCESSES
-#   define DEF_NR_GLOBALS           16
-#else
-#   define DEF_NR_GLOBALS           0
-#endif
+/* Since 5.0.0: the number of the fixed znodes  - DONOT adjust */
+#define NR_FIXED_ZNODES             1
 
-/* number of znodes */
-#define DEF_NR_MASKRECT             1024
+/* the numbers of znodes in different levels - should be mulitples of 8 */
 #define DEF_NR_POPUPMENUS           16
+#define DEF_NR_TOOLTIPS             8
+#define DEF_NR_GLOBALS              15      // reserve one for fixed znodes
+#define DEF_NR_SCREENLOCKS          8
+#define DEF_NR_DOCKERS              8
 #define DEF_NR_TOPMOSTS             16
 #define DEF_NR_NORMALS              128
-#define DEF_NR_FIXEDZNODES          4
+#define DEF_NR_LAUNCHERS            8
+
+/* Since 5.0.0: the number of the zorder levels - DONOT adjust */
+#define NR_ZORDER_LEVELS            7
+enum {
+    ZLIDX_TOOLTIP = 0,
+    ZLIDX_GLOBAL,
+    ZLIDX_SCREENLOCK,
+    ZLIDX_DOCKER,
+    ZLIDX_TOPMOST,
+    ZLIDX_NORMAL,
+    ZLIDX_LAUNCHER,
+};
+
+/* Since 5.0.0; the znode index for fixed znodes - DONOT adjust */
+#define ZNIDX_DESKTOP               0
+
+/* The heap size for mask rectangles */
+#define DEF_NR_MASKRECT             1024
 
 #if IS_COMPOSITING_SCHEMA
 /* max number of shared surfaces */
 #   define MAX_NR_SHARED_SURF      (DEF_NR_NORMALS * (MAX_NR_LAYERS >> 1))
 #endif
-
-/* Since 5.0.0; the fixed znode index for special main window */
-#define ZNIDX_DESKTOP           0
-#define ZNIDX_SCREENLOCK        1
-#define ZNIDX_DOCKER            2
-#define ZNIDX_LAUNCHER          3
 
 /* Since 5.0.0; radius for round corners */
 #define RADIUS_WINDOW_CORNERS       7
@@ -104,18 +116,18 @@
 /* constants for MiniGUI-Processes runtime mode */
 #ifdef _MGRM_PROCESSES
 
-// the lock file
+/* the lock file */
 #define LOCKFILE                    "/var/tmp/mginit"
-// the well-known Unix domain socket name
+/* the well-known Unix domain socket name */
 #define CS_PATH                     "/var/tmp/minigui"
 
-// key base for System V IPC
+/* key base for System V IPC objects */
 #define IPC_KEY_BASE                0x464D4700
 
-// Live threshold: 5 seconds
+/* Live threshold: 5 seconds */
 #define THRES_LIVE                  500
 
-// timeout value for socket I/O: 1 second
+/* timeout value for socket I/O: 1 second */
 #define TO_SOCKIO                   100
 
 #endif /* _MGRM_PROCESSES */
@@ -168,14 +180,14 @@
 
 /* misc constants and utilities */
 
-// Number of timers.
+/* Number of timers. */
 #define DEF_NR_TIMERS       NR_BITS_DWORD
 #define USEC_1S             1000000
 #define USEC_10MS           10000
 #define USEC_TIMEOUT        300000
 
-// round n to multiple of m
+/* round n to multiple of m */
 #define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
 
-#endif // GUI_CONSTANTS_H
+#endif /* GUI_CONSTANTS_H */
 
