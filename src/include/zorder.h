@@ -104,18 +104,33 @@ typedef struct _ZORDERINFO {
     int             size_usage_bmp;
 
     int             max_nr_popupmenus;
+    int             max_nr_nodes_in_levels[0];
+    int             max_nr_tooltips;
     int             max_nr_globals;
+    int             max_nr_screenlocks;
+    int             max_nr_dockers;
     int             max_nr_topmosts;
     int             max_nr_normals;
+    int             max_nr_launchers;
 
     int             nr_popupmenus;
+    int             nr_nodes_in_levels[0];
+    int             nr_tooltips;
     int             nr_globals;
+    int             nr_screenlocks;
+    int             nr_dockers;
     int             nr_topmosts;
     int             nr_normals;
+    int             nr_launchers;
 
+    int             first_in_levels[0];
+    int             first_tooltip;
     int             first_global;
+    int             first_screenlock;
+    int             first_docker;
     int             first_topmost;
     int             first_normal;
+    int             first_launcher;
 
     int             active_win;
 
@@ -140,36 +155,100 @@ typedef struct _ZORDERINFO {
 } ZORDERINFO;
 typedef ZORDERINFO* PZORDERINFO;
 
-#define GET_ZORDERNODE(zi) (ZORDERNODE*)((char*)((zi)+1)+ \
-        (zi)->size_usage_bmp + \
+#define GET_ZORDERNODE(zi)                                  \
+        (ZORDERNODE*)((char*)((zi)+1) +                     \
+        (zi)->size_usage_bmp +                              \
         sizeof(ZORDERNODE)*(DEF_NR_POPUPMENUS))
 
-#define GET_MENUNODE(zi) \
-        (ZORDERNODE*)((char*)((zi)+1)+ \
-                (zi)->size_usage_bmp)
+#define GET_MENUNODE(zi)                                    \
+        (ZORDERNODE*)((char*)((zi)+1)+ (zi)->size_usage_bmp)
 
-#if defined(_MGRM_THREADS) || defined(_MGRM_STANDALONE)
-#   define SHAREDRES_NR_GLOBALS        0
-#endif
+#define GET_MASKRECT_USAGEBMP(zi)                           \
+        ((char *)((zi) + 1) +                               \
+                (zi)->size_usage_bmp +                      \
+            sizeof (ZORDERNODE) *(DEF_NR_POPUPMENUS +       \
+                (zi)->max_nr_tooltips +                     \
+                (zi)->max_nr_globals +                      \
+                (zi)->max_nr_screenlocks +                  \
+                (zi)->max_nr_dockers +                      \
+                (zi)->max_nr_topmosts +                     \
+                (zi)->max_nr_normals +                      \
+                (zi)->max_nr_launchers))
 
-#define GET_MASKRECT_USAGEBMP(zi) \
-        ((char *)((zi) + 1) +  \
-                (zi)->size_usage_bmp + \
-            sizeof (ZORDERNODE) *(DEF_NR_POPUPMENUS + \
-                SHAREDRES_NR_GLOBALS +zi->max_nr_topmosts + \
-                (zi)->max_nr_normals))
-
-#define GET_MASKRECT(zi) ((MASKRECT *)( \
-                GET_MASKRECT_USAGEBMP(zi) + \
+#define GET_MASKRECT(zi) ((MASKRECT *)(                     \
+                GET_MASKRECT_USAGEBMP(zi) +                 \
                 (zi)->size_maskrect_usage_bmp))
-
-/* Since 5.0.0: maximal number of fixed znodes: 4 */
-#define SIZE_USAGE_BMP \
-        ROUND_TO_MULTIPLE((7 + SHAREDRES_NR_GLOBALS + nr_topmosts + nr_normals + \
-            DEF_NR_FIXEDZNODES) / 8, 8)
 
 #define SIZE_MASKRECT_USAGE_BMP \
         ROUND_TO_MULTIPLE((7 + DEF_NR_MASKRECT) / 8, 8)
+
+#define MAX_NR_SPECIAL_ZNODES(zi)                           \
+            (zi->max_nr_tooltips + zi->max_nr_globals +     \
+            zi->max_nr_screenlocks + zi->max_nr_dockers +   \
+            zi->max_nr_launchers)
+
+#define MAX_NR_GENERAL_ZNODES(zi)                           \
+            (zi->max_nr_topmosts + zi->max_nr_normals)
+
+#define MAX_NR_ZNODES(zi)                                   \
+    MAX_NR_SPECIAL_ZNODES(zi) + MAX_NR_GENERAL_ZNODES(zi)
+
+#define NR_SPECIAL_ZNODES(zi)                               \
+            (zi->nr_tooltips + zi->nr_globals +             \
+            zi->nr_screenlocks + zi->nr_dockers +           \
+            zi->nr_launchers)
+
+#define NR_GENERAL_ZNODES(zi)                               \
+            (zi->nr_topmosts + zi->nr_normals)
+
+#define NR_ZNODES(zi)                                       \
+    NR_SPECIAL_ZNODES(zi) + NR_GENERAL_ZNODES(zi)
+
+/* Since 5.0.0: more levels  */
+#define SIZE_USAGE_BMP_GENERAL(max_nr_t, max_nr_n)          \
+    ROUND_TO_MULTIPLE((7 +                                  \
+                (max_nr_t) + (max_nr_n)) / 8, 8)
+
+#define SIZE_USAGE_BMP_SPECIAL(max_nr_g)                    \
+    ROUND_TO_MULTIPLE((7 +                                  \
+                DEF_NR_TOOLTIPS +                           \
+                max_nr_g +                                  \
+                DEF_NR_SCREENLOCKS +                        \
+                DEF_NR_DOCKERS +                            \
+                DEF_NR_LAUNCHERS +                          \
+                NR_FIXED_ZNODES) / 8, 8)
+
+#define SIZE_USAGE_BMP(max_nr_g, max_nr_t, max_nr_n)        \
+    (SIZE_USAGE_BMP_GENERAL(max_nr_t, max_nr_n) +           \
+     SIZE_USAGE_BMP_SPECIAL(max_nr_g))
+
+#define LEN_USAGE_BMP_GENERAL(zi)                           \
+    ROUND_TO_MULTIPLE((7 +                                  \
+                MAX_NR_GENERAL_ZNODES(zi)) / 8, 8)
+
+#define LEN_USAGE_BMP_SPECIAL(zi)                           \
+    ROUND_TO_MULTIPLE((7 +                                  \
+                MAX_NR_SPECIAL_ZNODES(zi)) / 8, 8)
+
+#define LEN_USAGE_BMP(zi)                                   \
+    (LEN_USAGE_BMP_GENERAL(zi) +                            \
+     LEN_USAGE_BMP_SPECIAL(zi))
+
+#define IS_INVALID_ZIDX(zi, idx)                            \
+    MG_UNLIKELY ((idx) > MAX_NR_ZNODES(zi) || ((idx) < 0))
+
+#define IS_TYPE_GENERAL(type)                               \
+    (type == ZOF_TYPE_TOPMOST ||                            \
+     type == ZOF_TYPE_NORMAL)
+
+#define IS_TYPE_SPECIAL(type)                               \
+    (type == ZOF_TYPE_TOOLTIP ||                            \
+     type == ZOF_TYPE_GLOBAL ||                             \
+     type == ZOF_TYPE_SCREENLOCK ||                         \
+     type == ZOF_TYPE_DOCKER ||                             \
+     type == ZOF_TYPE_LAUNCHER)
+
+#define ZOF_TYPE_TO_LEVEL_IDX(type)     ((int)(8 - ((type) >> 28)))
 
 #ifdef __cplusplus
 extern "C" {
