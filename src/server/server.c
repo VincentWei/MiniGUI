@@ -354,7 +354,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
 
     if (__mg_timer_counter != SHAREDRES_TIMER_COUNTER) {
         __mg_timer_counter = SHAREDRES_TIMER_COUNTER;
-        SetDesktopTimerFlag ();
+        AlertDesktopTimerEvent ();
     }
 
     /* rset gets modified each time around */

@@ -365,7 +365,7 @@ static void check_live (void)
     REQUEST req;
 
     if (__mg_timer_counter != SHAREDRES_TIMER_COUNTER) {
-        SetDesktopTimerFlag ();
+        AlertDesktopTimerEvent ();
         __mg_timer_counter = SHAREDRES_TIMER_COUNTER;
     }
 

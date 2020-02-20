@@ -239,7 +239,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
 
     if (old_timer_counter != __mg_timer_counter) {
         old_timer_counter = __mg_timer_counter;
-        SetDesktopTimerFlag ();
+        AlertDesktopTimerEvent ();
     }
 
     /* rset gets modified each time around */
