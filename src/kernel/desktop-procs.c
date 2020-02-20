@@ -2034,7 +2034,7 @@ static int dskAddNewMainWindow (PMAINWIN pWin, const COMPOSITINGINFO* ct_info)
         case ZOF_TYPE_DOCKER:
             pWin->dwExStyle |= WS_EX_WINTYPE_DOCKER;
             break;
-        case ZOF_TYPE_TOPMOST:
+        case ZOF_TYPE_HIGHER:
             pWin->dwExStyle |= WS_EX_WINTYPE_HIGHER;
             pWin->dwExStyle |= WS_EX_TOPMOST;
             break;
@@ -2149,7 +2149,7 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
         case ZOF_TYPE_GLOBAL:
             first = __mg_zorder_info->first_global;
             break;
-        case ZOF_TYPE_TOPMOST:
+        case ZOF_TYPE_HIGHER:
             first = __mg_zorder_info->first_topmost;
             break;
         case ZOF_TYPE_NORMAL:
@@ -3462,7 +3462,6 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
 
     if (target_client > 0) {
         Msg.hwnd = HWND_NULL;
-#ifdef _MG_CONFIG_FAST_MOUSEMOVE
         if (Msg.message == MSG_MOUSEMOVE) {
             LOCK_MOUSEMOVE_SEM();
             if (SHAREDRES_MOUSEMOVECLIENT > 0 &&
@@ -3474,9 +3473,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
             ++ SHAREDRES_MOUSEMOVESERIAL;
             UNLOCK_MOUSEMOVE_SEM();
         }
-        else
-#endif
-        {
+        else {
             Send2Client (&Msg, target_client);
         }
 
@@ -4263,7 +4260,7 @@ void GUIAPI DesktopUpdateAllWindow(void)
 static void srvUpdateDesktopMenu (void)
 {
     UPDATA_DSKMENU_INFO info;
-    int nCount, count, iPos;
+    int level, nCount, count, iPos;
     MG_Layer* layer;
 
     info.menu = GetSubMenu (sg_DesktopMenu, 3);
@@ -4277,69 +4274,22 @@ static void srvUpdateDesktopMenu (void)
     info.id = IDM_FIRSTWINDOW;
     info.pos = 0;
 
-    info.mii.type = MFT_STRING;
-    count = do_for_all_znodes (&info,
-                    __mg_zorder_info, _cb_update_dskmenu, ZT_SCREENLOCK);
-    count += do_for_all_znodes (&info,
-                    __mg_zorder_info, _cb_update_dskmenu, ZT_DOCKER);
+    for (level = 0; level < NR_ZORDER_LEVELS; level++) {
 
-    if (count) {
-        info.mii.type            = MFT_SEPARATOR;
-        info.mii.state           = 0;
-        info.mii.id              = 0;
-        info.mii.typedata        = 0;
-        InsertMenuItem (info.menu, info.pos, TRUE, &info.mii);
-
-        info.pos ++;
-    }
-
-    info.mii.type = MFT_STRING;
-    count = do_for_all_znodes (&info,
-                    __mg_zorder_info, _cb_update_dskmenu, ZT_GLOBAL);
-
-    if (count) {
-        info.mii.type            = MFT_SEPARATOR;
-        info.mii.state           = 0;
-        info.mii.id              = 0;
-        info.mii.typedata        = 0;
-        InsertMenuItem (info.menu, info.pos, TRUE, &info.mii);
-
-        info.pos ++;
-    }
-
-    info.mii.type = MFT_STRING;
-    count = do_for_all_znodes (&info,
-                    __mg_zorder_info, _cb_update_dskmenu, ZT_TOPMOST);
-
-    if (count) {
-        info.mii.type            = MFT_SEPARATOR;
-        info.mii.state           = 0;
-        info.mii.id              = 0;
-        info.mii.typedata        = 0;
-        InsertMenuItem (info.menu, info.pos, TRUE, &info.mii);
-
-        info.pos ++;
         info.mii.type = MFT_STRING;
+        count = do_for_all_znodes (&info,
+                __mg_zorder_info, _cb_update_dskmenu, _zts_for_level[level]);
+
+        if (count && level < (NR_ZORDER_LEVELS - 1)) {
+            info.mii.type            = MFT_SEPARATOR;
+            info.mii.state           = 0;
+            info.mii.id              = 0;
+            info.mii.typedata        = 0;
+            InsertMenuItem (info.menu, info.pos, TRUE, &info.mii);
+
+            info.pos ++;
+        }
     }
-
-    info.mii.type = MFT_STRING;
-    count = do_for_all_znodes (&info,
-                    __mg_zorder_info, _cb_update_dskmenu, ZT_NORMAL);
-
-    if (count) {
-        info.mii.type            = MFT_SEPARATOR;
-        info.mii.state           = 0;
-        info.mii.id              = 0;
-        info.mii.typedata        = 0;
-        InsertMenuItem (info.menu, info.pos, TRUE, &info.mii);
-
-        info.pos ++;
-        info.mii.type = MFT_STRING;
-    }
-
-    info.mii.type = MFT_STRING;
-    count = do_for_all_znodes (&info,
-                    __mg_zorder_info, _cb_update_dskmenu, ZT_LAUNCHER);
 
     info.menu = GetSubMenu (sg_DesktopMenu, 4);
     nCount = GetMenuItemCount (info.menu);
