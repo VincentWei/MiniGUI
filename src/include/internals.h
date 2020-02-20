@@ -767,12 +767,7 @@ static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
 
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
-#ifndef _MGRM_THREADS
-static inline void SetDesktopTimerFlag (void)
-{
-    __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
-}
-#else   /* not defined _MGRM_THREADS */
+#if 0 // def _MGHAVE_VIRTUAL_WINDOW
 static inline void AlertDesktopTimerEvent (void)
 {
     if (__mg_dsk_msg_queue) {
@@ -780,7 +775,16 @@ static inline void AlertDesktopTimerEvent (void)
         POST_MSGQ (__mg_dsk_msg_queue);
     }
 }
-#endif /* defined _MGRM_THREADS */
+#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
+
+static inline void AlertDesktopTimerEvent (void)
+{
+    __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (getMsgQueueForThisThread() != __mg_dsk_msg_queue)
+        POST_MSGQ (__mg_dsk_msg_queue);
+#endif
+}
 
 static inline void setMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {

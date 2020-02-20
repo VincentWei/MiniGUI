@@ -633,16 +633,16 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 
     if (pMsgQueue->expired_timer_mask)
         goto retok;
-#ifndef _MGHAVE_VIRTUAL_WINDOW
+
     /*
      * FIXME
      * We do not need to check QS_DESKTIMER, because it is for the
      * desktop window, and user don't care it.
      */
-    if (!bNoDeskTimer && (pMsgQueue->dwState & QS_DESKTIMER)) {
+    if (!bNoDeskTimer && pMsgQueue == __mg_dsk_msg_queue &&
+            (pMsgQueue->dwState & QS_DESKTIMER)) {
         goto retok;
     }
-#endif
 
     UNLOCK_MSGQ (pMsgQueue);
 
@@ -775,9 +775,9 @@ static inline void CheckCapturedMouseMessage (PMSG pMsg)
 }
 
 #define IS_MSG_WANTED(message) \
-        ( (nMsgFilterMin <= 0 && nMsgFilterMax <= 0) || \
+        ((nMsgFilterMin <= 0 && nMsgFilterMax <= 0) || \
           (nMsgFilterMin > 0 && nMsgFilterMax >= nMsgFilterMin && \
-           message >= nMsgFilterMin && message <= nMsgFilterMax) )
+           message >= nMsgFilterMin && message <= nMsgFilterMax))
 
 BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax,
                           BOOL bWait, UINT uRemoveMsg)
@@ -790,7 +790,7 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE))) {
-        _WRN_PRINTF ("Kernel>message: no message queue.\n");
+        _WRN_PRINTF ("not a message thread.\n");
         return FALSE;
     }
 #else
@@ -878,12 +878,7 @@ checkagain:
                 CheckCapturedMouseMessage (pMsg);
                 if (uRemoveMsg == PM_REMOVE) {
                     pMsgQueue->readpos++;
-#if 0
-                    if (pMsgQueue->readpos >= pMsgQueue->len)
-                        pMsgQueue->readpos = 0;
-#else
                     pMsgQueue->readpos %= pMsgQueue->len;
-#endif
                 }
 
                 UNLOCK_MSGQ (pMsgQueue);
@@ -918,7 +913,7 @@ checkagain:
             UNLOCK_MSGQ (pMsgQueue);
             return TRUE;
         }
-#endif
+#endif  /* deprecated code */
 
         pMsg->message = MSG_PAINT;
         pMsg->wParam = 0;
@@ -934,7 +929,7 @@ checkagain:
         if ((hNeedPaint = msgCheckHostedTree (pHostingRoot))) {
             pMsg->hwnd = hNeedPaint;
 
-            dump_window (hNeedPaint, "repainting");
+            //dump_window (hNeedPaint, "repainting");
 
             pWin = (PMAINWIN) hNeedPaint;
             pMsg->lParam = (LPARAM)(&pWin->InvRgn.rgn);
@@ -946,11 +941,8 @@ checkagain:
         pMsgQueue->dwState &= ~QS_PAINT;
     }
 
-    /*
-     * handle timer here
-     */
-#ifndef _MGHAVE_VIRTUAL_WINDOW
-    if (pMsgQueue->dwState & QS_DESKTIMER) {
+    /* handle desktop timer here */
+    if (pMsgQueue == __mg_dsk_msg_queue && pMsgQueue->dwState & QS_DESKTIMER) {
         pMsg->hwnd = HWND_DESKTOP;
         pMsg->message = MSG_TIMER;
         pMsg->wParam = 0;
@@ -959,15 +951,17 @@ checkagain:
         if (uRemoveMsg == PM_REMOVE) {
             pMsgQueue->dwState &= ~QS_DESKTIMER;
         }
+
+        UNLOCK_MSGQ (pMsgQueue);
         return TRUE;
     }
-#endif
 
+    /* handle general timer here */
     if (pMsgQueue->expired_timer_mask && IS_MSG_WANTED(MSG_TIMER)) {
         int slot;
         TIMER* timer;
 
-#ifdef _MGHAVE_VIRTUAL_WINDOW
+#if 0   // def _MGHAVE_VIRTUAL_WINDOW
         if (hWnd == HWND_DESKTOP) {
             pMsg->hwnd = hWnd;
             pMsg->message = MSG_TIMER;
@@ -981,7 +975,7 @@ checkagain:
             UNLOCK_MSGQ (pMsgQueue);
             return TRUE;
         }
-#endif
+#endif  /* deprecated code */
 
         /* get the first expired timer slot */
         slot = pMsgQueue->first_timer_slot;
@@ -1129,11 +1123,9 @@ checkagain:
         goto getit;
     }
 
-#ifndef _MGHAVE_VIRTUAL_WINDOW
-    if (pMsgQueue->dwState & QS_DESKTIMER) {
+    if (pMsgQueue == __mg_dsk_msg_queue && pMsgQueue->dwState & QS_DESKTIMER) {
         goto getit;
     }
-#endif
 
     if (pMsgQueue->expired_timer_mask) {
         goto getit;
@@ -1199,12 +1191,7 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
 
             if (uRemoveMsg == PM_REMOVE) {
                 pMsgQueue->readpos++;
-#if 0
-                if (pMsgQueue->readpos >= pMsgQueue->len)
-                    pMsgQueue->readpos = 0;
-#else
                 pMsgQueue->readpos %= pMsgQueue->len;
-#endif
             }
 
             UNLOCK_MSGQ (pMsgQueue);
@@ -1228,7 +1215,7 @@ LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
         return SendSyncMessage (hWnd, nMsg, wParam, lParam);
 #endif
 
-    if ( !(WndProc = GetWndProc(hWnd)) )
+    if (!(WndProc = GetWndProc(hWnd)))
         return ERR_INV_HWND;
 
     return (*WndProc)(hWnd, nMsg, wParam, lParam);
@@ -1269,7 +1256,7 @@ LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if ( !isWindowInThisThread(hWnd) )
+    if (!isWindowInThisThread(hWnd))
         POST_MSGQ(pMsgQueue);
 #endif
 
@@ -1309,7 +1296,7 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if ( !isWindowInThisThread(hWnd) )
+    if (!isWindowInThisThread(hWnd))
         POST_MSGQ(pMsgQueue);
 #endif
 
