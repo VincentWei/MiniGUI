@@ -439,7 +439,7 @@ MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
 /**
  * \fn GHANDLE GUIAPI JoinLayer (const char* layer_name,
                 const char* client_name,
-                int max_nr_topmosts, int max_nr_normals)
+                int max_nr_highers, int max_nr_normals)
  * \brief Joins to a layer.
  *
  * This function should be called by clients before calling any other MiniGUI
@@ -449,19 +449,19 @@ MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
  * \a layer_name, the client will join to the default layer.
  *
  * If the client want to create a new layer, you should specify the maximal
- * number of topmost frame objects (max_nr_topmosts) and the maximal number of
- * normal frame objects (max_nr_normals) in the new layer. Passing zero to
- * \a max_nr_topmosts and max_nr_normals will use the default values, and
- * the default values are specified by ServerStartup.
+ * number of z-nodes in the higher level (max_nr_highers) and the maximal
+ * number of z-nodes in the normal level (max_nr_normals) of the new layer.
+ * Passing zero to \a max_nr_highers and max_nr_normals will use the default
+ * values, and the default values are specified by ServerStartup.
  *
  * Note that the server will create a default layer named "mginit".
  *
  * \param layer_name The name of the layer. You can use NAME_TOPMOST_LAYER to
  *        specify the current topmost layer.
  * \param client_name The name of the client.
- * \param max_nr_topmosts The maximal number of topmost z-order nodes in
+ * \param max_nr_highers The maximal number of z-nodes in the higher level of
  *        the new layer.
- * \param max_nr_normals The maximal number of normal z-order nodes in
+ * \param max_nr_normals The maximal number of z-nodes in the normal level of
  *        the new layer.
  *
  * \return The handle to the layer on success, INV_LAYER_HANDLE on error.
@@ -472,7 +472,7 @@ MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
  */
 MG_EXPORT GHANDLE GUIAPI JoinLayer (const char* layer_name,
                 const char* client_name,
-                int max_nr_topmosts, int max_nr_normals);
+                int max_nr_highers, int max_nr_normals);
 
 /**
  * \fn GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
@@ -793,7 +793,7 @@ extern MG_EXPORT ON_ZNODE_OPERATION OnZNodeOperation;
 
 /**
  * \fn BOOL GUIAPI ServerStartup (int nr_globals,
-                int def_nr_topmosts, int def_nr_normals)
+                int def_nr_highers, int def_nr_normals)
  * \brief Initializes the server of MiniGUI-Processes.
  *
  * This function initializes the server, i.e. \a mginit. It creates the
@@ -804,32 +804,32 @@ extern MG_EXPORT ON_ZNODE_OPERATION OnZNodeOperation;
  * Note that the default layer created by the server called
  * "mginit" (NAME_DEF_LAYER).
  *
- * \param nr_globals The number of the global z-order nodes. All z-order nodes
- *        created by mginit are global ones.
- * \param def_nr_topmosts The maximal number of the topmost z-order nodes in
- *        the default layer. It is also the default number of topmost
- *        z-order nodes of a new layer.
- * \param def_nr_normals The maximal number of normal global z-order nodes in
- *        the new layer. It is also the default number of normal
- *        z-order nodes of a new layer.
+ * \param nr_globals The number of the z-nodes in the global level.
+ *      All z-nodes created by `mginit` are global ones.
+ * \param def_nr_highers The maximal number of the z-nodes in the higher
+ *      level of the default layer. It is also the default number of
+ *      the z-nodes in the higher level of a new layer.
+ * \param def_nr_normals The maximal number of the z-nodes in the normal
+ *      level of the default layer. It is also the default number of
+ *      the z-nodes in the normal level of a new layer.
  *
  * \return TRUE on success, otherwise FALSE.
  *
  * \note Server-only function, i.e. \em only can be called by \a mginit.
  */
 MG_EXPORT BOOL GUIAPI ServerStartup (int nr_globals,
-                int def_nr_topmosts, int def_nr_normals);
+                int def_nr_highers, int def_nr_normals);
 
 /**
  * \fn MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
-                int max_nr_topmosts, int max_nr_normals)
+                int max_nr_highers, int max_nr_normals)
  * \brief Create a new layer from the server.
  *
  * This function creates a new layer named by \a layer_name.
- * You should specify the maximal number of topmost frame
- * objects (max_nr_topmosts) and the maximal number of normal frame
- * objects (max_nr_normals) in the new layer. Passing zero to
- * max_nr_topmosts and max_nr_normals will use the default values,
+ * You should specify the maximal number of z-nodes in the higher level
+ * (max_nr_highers) and the maximal number of z-nodes in the normal level
+ * (max_nr_normals) of the new layer. Passing zero to
+ * max_nr_highers and max_nr_normals will use the default values,
  * and the default values are specified by ServerStartup.
  *
  * Note that the server will create a default layer named "mginit".
@@ -837,9 +837,9 @@ MG_EXPORT BOOL GUIAPI ServerStartup (int nr_globals,
  * \param layer_name The name of the layer. If there is already a layer
  *        named \a layer_name, the function will return the pointer to
  *        that layer.
- * \param max_nr_topmosts The maximal number of topmost z-order nodes in
+ * \param max_nr_highers The maximal number of z-nodes in the higher level of
  *        the new layer.
- * \param max_nr_normals The maximal number of normal z-order nodes in
+ * \param max_nr_normals The maximal number of z-nodes in the normal level of
  *        the new layer.
  *
  * \return The handle to the layer on success, NULL on error.
@@ -849,7 +849,7 @@ MG_EXPORT BOOL GUIAPI ServerStartup (int nr_globals,
  * \sa ServerDeleteLayer, ServerStartup
  */
 MG_EXPORT MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
-                int max_nr_topmosts, int max_nr_normals);
+                int max_nr_highers, int max_nr_normals);
 
 /**
  * \fn BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)

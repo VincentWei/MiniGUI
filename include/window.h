@@ -2043,7 +2043,7 @@ extern DWORD __mg_interval_time;
  *        Hides the window.
  *      - SW_SHOWNORMAL\n
  *        Shows the window, and if the window is a main window
- *        sets it to be the topmost main window.
+ *        sets it to be the topmost main window in its z-node level.
  *
  * \sa ShowWindow
  */
@@ -4258,8 +4258,8 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
      * above all normal windows, and if you use MiniGUI-Processes runtime mode,
      * the server (`mginit`) will always create global main windows.
      *
-     * Since 5.0.0, we introduce a concept of levels for main windows. There are
-     * eight levels in MiniGUI from top to bottom:
+     * Since 5.0.0, we introduce a concept of zorder levels for main windows.
+     * There are eight levels in MiniGUI from top to bottom:
      *
      *  - The tooltip level. 
      *  - The system/global level.
@@ -4270,13 +4270,13 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
      *  - The launcher level.
      *  - The desktop or wallpaper.
      *
-     * We use new styles like \a WS_EX_WINTYPE_SYSTEM to create main windows in
+     * We use new styles like \a WS_EX_WINTYPE_GLOBAL to create main windows in
      * different levels. For historical reasons, you can still use the style
      * \a WS_EX_TOPMOST, but MiniGUI will create a main window in the higher
-     * level for this styele.
+     * level for this style.
      *
      * By default, without the style \a WS_EX_TOPMOST or a style like
-     * \a WS_EX_WINTYPE_SYSTEM, MiniGUI will create a main window in
+     * \a WS_EX_WINTYPE_GLOBAL, MiniGUI will create a main window in
      * the normal level.
      *
      * The main windows in the desktop level are managed
@@ -4511,7 +4511,7 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  * the server (`mginit`) will always create global main windows.
  *
  * Since 5.0.0, we introduce a concept of levels for main windows. We can
- * use new styles like \a WS_EX_WINTYPE_SYSTEM to create main windows in
+ * use new styles like \a WS_EX_WINTYPE_GLOBAL to create main windows in
  * different levels. For historical reasons, you can still use this style,
  * but MiniGUI will create a main window in the higher level for this styele.
  *
