@@ -65,6 +65,8 @@
 #include "ctrlclass.h"
 #include "element.h"
 #include "dc.h"
+#include "debug.h"
+
 #ifdef _MGRM_PROCESSES
 #include "client.h"
 #endif
@@ -1632,22 +1634,23 @@ static LRESULT DefaultNCMouseMsgHandler(PMAINWIN pWin, UINT message,
         }
         else
 #endif
-            if (location & HT_DRAGGABLE && !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
-                DRAGINFO drag_info;
+        if (location & HT_DRAGGABLE &&
+                !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
+            DRAGINFO drag_info;
 
-                drag_info.location = location;
-                drag_info.init_x = x;
-                drag_info.init_y = y;
-                SendMessage (HWND_DESKTOP, MSG_STARTDRAGWIN,
-                        (WPARAM)pWin, (LPARAM)&drag_info);
-            }
-            else {
-                downCode = location;
-                moveCode = location;
-                hiliteCode = HT_UNKNOWN;
+            drag_info.location = location;
+            drag_info.init_x = x;
+            drag_info.init_y = y;
+            SendMessage (HWND_DESKTOP, MSG_STARTDRAGWIN,
+                    (WPARAM)pWin, (LPARAM)&drag_info);
+        }
+        else {
+            downCode = location;
+            moveCode = location;
+            hiliteCode = HT_UNKNOWN;
 
-                wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
-            }
+            wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
+        }
         break;
 
     case MSG_NCMOUSEMOVE:
@@ -2013,12 +2016,10 @@ BOOL GUIAPI AdjustWindowRectEx (RECT* pRect, DWORD dwStyle,
 }
 
 /* this function is CONTROL safe. */
-static int HittestOnNClient (PMAINWIN pWin, int x, int y)
+static inline int HittestOnNClient (PMAINWIN pWin, int x, int y)
 {
-    const WINDOWINFO *info = GetWindowInfo ((HWND)pWin);
-    return info->we_rdr->hit_test ((HWND)pWin, x, y);
+    return pWin->we_rdr->hit_test ((HWND)pWin, x, y);
 }
-
 
 /************************** internal functions *********************************/
 void gui_WndRect(HWND hWnd, PRECT prc)
@@ -2180,7 +2181,7 @@ static LRESULT DefaultPostMsgHandler(PMAINWIN pWin, UINT message,
                     (pCtrl= (CONTROL*)(pWin->hFirstChildAsMainWin)) != NULL) {
                 int x = (int)wParam;
                 int y = (int)lParam;
-                ScreenToClient((HWND)pCtrl->pParent,&x,&y);
+                ScreenToClient ((HWND)pCtrl->pParent,&x,&y);
 
                 while (pCtrl) {
                     if ((pCtrl->dwStyle&WS_VISIBLE) &&
