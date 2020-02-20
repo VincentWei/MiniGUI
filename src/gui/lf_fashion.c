@@ -2274,10 +2274,10 @@ static int hit_test (HWND hWnd, int x, int y)
     win_h = win_info->bottom - win_info->top;
 
     /*mouse not in this window*/
-    CHECK_RET_VAL(!PtInRect((RECT*)win_info, x, y), HT_OUT);
+    CHECK_RET_VAL(!PtInRect((RECT*)&win_info->left, x, y), HT_OUT);
 
     /*mouse in client area*/
-    CHECK_RET_VAL(PtInRect((RECT*)&(win_info->cl), x, y), HT_CLIENT);
+    CHECK_RET_VAL(PtInRect((RECT*)&win_info->cl, x, y), HT_CLIENT);
 
     /*change x y to hwnd coordiante*/
     x -= win_info->left;
