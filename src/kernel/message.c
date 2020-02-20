@@ -67,6 +67,7 @@
 #include "ctrlclass.h"
 #include "timer.h"
 #include "misc.h"
+#include "debug.h"
 
 #ifdef HAVE_SELECT
 #include "mgsock.h"
@@ -897,7 +898,7 @@ checkagain:
         HWND hNeedPaint;
         PMAINWIN pWin;
 
-#ifdef _MGHAVE_VIRTUAL_WINDOW
+#if 0 // def _MGHAVE_VIRTUAL_WINDOW
         /* REMIND this */
         if (hWnd == HWND_DESKTOP) {
             pMsg->hwnd = hWnd;
@@ -919,14 +920,17 @@ checkagain:
         pMsg->lParam = 0;
         SET_PADD (NULL);
 
-#ifndef _MGHAVE_VIRTUAL_WINDOW
+#if 0 //ndef _MGHAVE_VIRTUAL_WINDOW
         pHostingRoot = __mg_dsk_win;
 #else
         pHostingRoot = pMsgQueue->pRootMainWin;
 #endif
 
-        if ( (hNeedPaint = msgCheckHostedTree (pHostingRoot)) ) {
+        if ((hNeedPaint = msgCheckHostedTree (pHostingRoot))) {
             pMsg->hwnd = hNeedPaint;
+
+            dump_window (hNeedPaint, "repainting");
+
             pWin = (PMAINWIN) hNeedPaint;
             pMsg->lParam = (LPARAM)(&pWin->InvRgn.rgn);
             UNLOCK_MSGQ (pMsgQueue);
@@ -1380,9 +1384,7 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 
 #ifdef _MGHAVE_TRACE_MSG
     if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
-        fprintf (stderr, "Message %u (%s): hWnd: %p, wP: %p, lP: %p. %s\n",
-            pMsg->message, Message2Str (pMsg->message),
-            pMsg->hwnd, (PVOID)pMsg->wParam, (PVOID)pMsg->lParam, SYNMSGNAME);
+        dump_message (pMsg, __func__);
     }
 #endif
 
@@ -1397,8 +1399,7 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 
 #ifdef _MGHAVE_TRACE_MSG
         if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
-            fprintf (stderr, "Message %u (%s) has been thrown away.\n",
-                pMsg->message, Message2Str (pMsg->message));
+            dump_message (pMsg, "thrown away");
         }
 #endif
         return -1;
@@ -1423,8 +1424,7 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 
 #ifdef _MGHAVE_TRACE_MSG
     if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
-        fprintf (stderr, "Message %u (%s) done, return value: %p\n",
-            pMsg->message, Message2Str (pMsg->message), (PVOID)lRet);
+        dump_message_with_retval (pMsg, lRet, __func__);
     }
 #endif
 
