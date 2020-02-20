@@ -47,11 +47,14 @@ exciting features for MiniGUI:
 * CLEANUP:
    - Cleaned up a lot of internal symbols (the external functions and
      global variables) in order to avoid name polution.
+   - Refactored the code for the following modules: z-order management,
+     message queue, event/message handling, and part of graphics abstract
+     layer.
 
 The following new features will be developed in the successive versions of
 4.9.x:
 
-- Enhance DRM GAL engine to support compositing schema and MiniGUI-Processes
+- Enhance DRM engine to support compositing schema and MiniGUI-Processes
   runtime mode.
 - Enhance other frequently-used GAL engines to support compositing schema.
 - Provide a customized compositor which provides window animation effects as
