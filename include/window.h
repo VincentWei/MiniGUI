@@ -4279,13 +4279,10 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
      * \a WS_EX_WINTYPE_GLOBAL, MiniGUI will create a main window in
      * the normal level.
      *
-     * The main windows in the desktop level are managed
-     * by MiniGUI. No API is provided for app to create or manage
-     * the main windows in desktop level.
-     *
-     * Any MiniGUI process instance has a virtual desktop window. Under
-     * compositing schema, all contents in HDC_SCREEN will be composited as
-     * the wallpaper of the desktop.
+     * The desktop is the only main window in the desktop level. Any MiniGUI
+     * process instance has a virtual desktop window. The desktop window is
+     * an internal window object, so no API is provided for app to create or
+     * manage it.
      *
      * @{
      */

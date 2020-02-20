@@ -15,19 +15,15 @@ In the development of version 4.9.x, we introduced the following new and
 exciting features for MiniGUI:
 
 * ENHANCEMENTS:
-   - Support for compositing schema under MiniGUi-Processes runtime mode.
+   - Support for compositing schema under MiniGUI-Processes runtime mode.
      This feature brings the exciting visual effects which are popular
      on modern desktop computers or smart phones to MiniGUI.
-   - Support for hardware cursors under compositing schema. MiniGUI now can
-     utilize the hardware cursors if your graphics device support it.
-     You can also load a cursor from a PNG file.
-   - New main window types. You now can easily create some special main window
-     which acts as screen lock, docker, or lanucher. You can also use the common
-     global tooltip main window to show a tooltip.
-   - Virtual Window. You now can easily create message threads under all runtime
-     modes to exploit the messaging mechanism of MiniGUI in non GUI threads.
-   - Support for loading icon from a bitmap file. You can now load an icon
-     from a bitmap file.
+   - New main window types/levels. You now can easily create main windows
+     in different z-order levels. This enhancement allows us to create
+     special an app which acts as screen lock, docker, or launcher.
+   - Virtual Window. You now can easily create message threads under all
+     runtime modes to exploit the messaging mechanism of MiniGUI in
+     non GUI threads - we call them message threads.
    - Enhanced timer support. MiniGUI now manages the timers per message thread.
      Under MiniGUI-Threads runtime mode, you can set up 32 (64 on 64-bit
      architecture) timers for each GUI threads. If you enabled virtual window,
@@ -38,8 +34,13 @@ exciting features for MiniGUI:
      handle `MSG_FDEVENT` in your window callback procedure to read/write
      from/to the file descriptor. Before this version, this feature only
      available for MiniGUI-Processes runtime mode.
+   - Support for hardware cursors under compositing schema. MiniGUI now can
+     utilize the hardware cursors if your graphics device support it.
+     You can also load a cursor from a PNG file.
+   - Support for loading icon from a bitmap file. You can now load an icon
+     from a bitmap file.
    - Unified the message hook functions for all runtime modes. MiniGUI now
-     provides the unified message hook functions for all runtime modes.
+     provides the consistent message hook functions for all runtime modes.
 * ADJUSTMENTS:
    - `g_rcScr` now is defined a macro calling function `GetScreenRect()`.
    - `mgIsServer` now is define a macro calling function `IsServer()`.
@@ -47,20 +48,14 @@ exciting features for MiniGUI:
    - Cleaned up a lot of internal symbols (the external functions and
      global variables) in order to avoid name polution.
 
+The following new features will be developed in the successive versions of
+4.9.x:
 
-The following new features will be developed in version 4.9.x:
-
-
-* ENHANCEMENTS:
-   - New APIs for GPU integration, such as `IsMemDC`, `IsScreenDC`, `IsWindowDC`, `GetVideoHandle`, and `drmGetDeviceFD`.
-   - Add new operation for DRM engine: `create_buffer_from_prime_fd`.
-   - Use `dlopen` to load the external DRM driver.
-   - Add a new runtime configuration key for DRM engine `drm.exdriver` to define the external DRM driver.
-* MODIFICATIONS:
-   - Change the name of old `dri` NEWGAL engine to `drm`.
-   - Change the configuration option of DRM engine to `--enable-videodrm`.
-   - Change the macro for DRM engine to `_MGGAL_DRM`.
-   - Change the runtime configuration section for DRM engine to `drm`.
+- Enhance DRM GAL engine to support compositing schema and MiniGUI-Processes
+  runtime mode.
+- Enhance other frequently-used GAL engines to support compositing schema.
+- Provide a customized compositor which provides window animation effects as
+  an example in `mg-demos`.
 
 ### Compositing schema
 
@@ -96,7 +91,7 @@ The major flaws of the compositing schema are as follow:
   to kill a client which runs in background and in full screen mode
   if you are running MiniGUI on an embedded system, like Android
   or iOS does.
-- It needs a hardware-accelerated NEWGAL engine to get a smooth
+- It may need a hardware-accelerated NEWGAL engine to get a smooth
   user experience.
 
 Usage:
@@ -143,34 +138,120 @@ MiniGUI provides you the following compositing type:
   `CreateMainWindowEx`.
 - `CT_COLORKEY`: Use a specific color as the transparency key when composting
   the contents of the main window to the screen. You should specify
-  the color along with the compositing argument in a RGBA triple value.
+  the color along with the compositing argument in a RGBA quadruple value.
 - `CT_ALPHACHANNEL`: Use a specific alpha channel value when compositing the
   contents of the main window to the screen.
-- `CT_ALPHAPIXEL`: Use the alpha component of the rendering buffer when composting
-  the contents of the main window.
-- `CT_BLURRED`: Apply a Gaussian blur to the background of the main window.
+- `CT_ALPHAPIXEL`: Use the alpha component of the rendering buffer when
+  composting the contents of the main window.
+- `CT_BLURRED`: Apply a Gaussian blur to the contents blew of the main window.
 
 ### New main window types
 
 In this version, we also enhanced the window manager of MiniGUI Core
 to support some special main window types.
 
-- Screen Lock. Use `WS_EX_WINTYPE_SCREENLOCK` extended window style
-to create a screen lock. The main window acts as a screen lock will
-have the highest z-order index in the system.
-- Docker. Use `WS_EX_WINTYPE_DOCKER` extended window style
-to create a docker. The main window acts as a docker will
-have the z-order index lower than the screen lock in the system.
-- Launcher. Use `WS_EX_WINTYPE_LAUNCHER` extended window style
-to create a docker. The main window acts as a docker will
-have the z-order index higher than the desktop in the system.
+Before 5.0.0, you can create a topmost main window with the style
+`WS_EX_TOPMOST` in order to show the main window above all normal main windows,
+and if you use MiniGUI-Processes runtime mode, the server (`mginit`) will
+always create global main windows, which are shown on other main windows
+created by clients.
 
-Note that if there is already a main window acts as the screen lock,
-the docker, or the launcher, MiniGUI will create a normal main window.
+Since 5.0.0, we introduce a concept of z-order levels for main windows.
+There are eight levels in MiniGUI from top to bottom:
 
-Also note that the new main window types are available for the legacy schema.
+- The tooltip level. 
+- The system/global level.
+- The screen lock level.
+- The docker level.
+- The higher level.
+- The normal level.
+- The launcher level.
+- The desktop or wallpaper.
 
-### Enhancement of cursor
+We use new styles like `WS_EX_WINTYPE_GLOBAL` to create main windows in
+different levels. For historical reasons, you can still use the style
+`WS_EX_TOPMOST`, but MiniGUI will create a main window in the higher
+level for this style.
+
+By default, without the style `WS_EX_TOPMOST` or a style like
+`WS_EX_WINTYPE_GLOBAL`, MiniGUI will create a main window in
+the normal level.
+
+The main windows in the desktop level are managed by MiniGUI.
+Any MiniGUI process instance has a virtual desktop window. The desktop
+window is an internal object, so no API is provided for app to create
+or manage the desktop window.
+
+### Virtual window
+
+You know that we can post or send a message to other windows which
+may run in another thread under MiniGUI-Threads. The MiniGUI
+messaging functions such as `PostMessage()`, `SendMessage()`,
+`SendNotifyMessage()`, and the window callback procedure
+provide a flexible, efficient, safe, and flexible data transfer
+and synchronization mechanism for your multithreaded applications.
+
+But if we want to use the MiniGUI messaging mechanism for a general
+thread without a main window, how to do this?
+
+Furthermore, can we use the MiniGUI messaging mechanism under
+MiniGUI-Processes and MiniGUI-Standalone runtime modes for
+multithreading purpose?
+
+The virtual window provides a solution for the requirements above.
+A virtual window is a special window object which does not have
+a visible window area. But after you create a virtual window in
+a different thread, you can use the MiniGUI messaging mechanism
+to post or send messages between the current main window thread
+and the new thread.
+
+In MiniGUI, we call a thread creating a main window as a GUI thread,
+and a thread creating a virtual window as a message thread.
+
+It is important to know the following key points about virtual
+window:
+
+- It is enabled automatically under MiniGUI-Threads runtime mode.
+- It can be enabled by using the compile-time configuration option
+  `--enable-virtualwindow`, or define `_MGHAVE_VIRTUAL_WINDOW` macro
+  under MiniGUI-Processes and MiniGUI-Standalone runtime modes.
+- You can create multiple GUI threads under MiniGUI-Threads, but you
+  cannot create multiple GUI threads under MiniGUI-Processes and
+  MiniGUI-Standalone runtime modes. In other words, there is only one
+  GUI thread (the main thread) under MiniGUI-Processes and
+  MiniGUI-Standalone runtime modes.
+- Regardless of the runtime mode, you can create multiple message
+  threads, and you can also create multiple virtual windows in
+  one message thread.
+- It is possible to create a virtual window in a GUI thread, although
+  we do not encourage to do this. 
+- Essentially, a virtual window is a simplified main window.
+  It consumes very little memory space, but provides a complete
+  MiniGUI messaging mechanism for a general multithreaded app.
+
+A virtual window will get the following system messages in its life
+life-cycle:
+
+ - `MSG_CREATE`: this message will be sent to the virtual window when
+   you call \a `CreateVirtualWindow` function.
+ - `MSG_CLOSE`: this message will be sent to the virtual window when
+   the system asks to close the virtual window.
+ - `MSG_DESTROY`: this message will be sent to the virtual window when
+   the system tries to destroy the virtual window, or after you
+   called \a `DestroyVirtualWindow` function.
+ - `MSG_IDLE`: When there is no any message in the message queue, all
+   virtual windows living in the message thread will get this idle
+   message.
+ - `MSG_TIMER`: When a timer expired after you call `SetTimer` to
+   set up a timer for a virtual window.
+ - `MSG_QUIT`: quit the message loop.
+ - `MSG_GETTEXT`:
+ - `MSG_SETTEXT`:
+ - `MSG_GETTEXTLENGTH`:
+
+### Other enhancements
+
+#### Hardware cursor
 
 Under the compositing schema, MiniGUI now can use the hardware cursor to show
 the cursor. And you can use the following APIs to load a PNG file as the cursor:
@@ -178,7 +259,13 @@ the cursor. And you can use the following APIs to load a PNG file as the cursor:
 - `LoadCursorFromPNGFile`
 - `LoadCursorFromPNGMem`
 
-### Virtual Window
+#### Loading an icon from bitmap files
+
+#### Unified event hook functions
+
+#### Listening file descriptor under all runtime modes
+
+#### Enhanced timer 
 
 ### Other new APIs
 
