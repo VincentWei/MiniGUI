@@ -185,7 +185,7 @@ typedef ZORDERINFO* PZORDERINFO;
 #define MAX_NR_SPECIAL_ZNODES(zi)                           \
             (zi->max_nr_tooltips + zi->max_nr_globals +     \
             zi->max_nr_screenlocks + zi->max_nr_dockers +   \
-            zi->max_nr_launchers)
+            zi->max_nr_launchers + NR_FIXED_ZNODES)
 
 #define MAX_NR_GENERAL_ZNODES(zi)                           \
             (zi->max_nr_topmosts + zi->max_nr_normals)
@@ -196,7 +196,7 @@ typedef ZORDERINFO* PZORDERINFO;
 #define NR_SPECIAL_ZNODES(zi)                               \
             (zi->nr_tooltips + zi->nr_globals +             \
             zi->nr_screenlocks + zi->nr_dockers +           \
-            zi->nr_launchers)
+            zi->nr_launchers + NR_FIXED_ZNODES)
 
 #define NR_GENERAL_ZNODES(zi)                               \
             (zi->nr_topmosts + zi->nr_normals)
@@ -237,8 +237,11 @@ typedef ZORDERINFO* PZORDERINFO;
 #define IS_INVALID_ZIDX(zi, idx)                            \
     MG_UNLIKELY ((idx) > MAX_NR_ZNODES(zi) || ((idx) < 0))
 
+#define IS_INVALID_ZIDX_LOOSE(zi, idx)                            \
+    MG_UNLIKELY ((idx) > MAX_NR_ZNODES(zi))
+
 #define IS_TYPE_GENERAL(type)                               \
-    (type == ZOF_TYPE_TOPMOST ||                            \
+    (type == ZOF_TYPE_HIGHER ||                            \
      type == ZOF_TYPE_NORMAL)
 
 #define IS_TYPE_SPECIAL(type)                               \
