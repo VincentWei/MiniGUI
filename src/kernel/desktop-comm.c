@@ -200,7 +200,7 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
         case ZOF_TYPE_DOCKER:
             pWin->dwExStyle |= WS_EX_WINTYPE_DOCKER;
             break;
-        case ZOF_TYPE_TOPMOST:
+        case ZOF_TYPE_HIGHER:
             pWin->dwExStyle |= WS_EX_WINTYPE_HIGHER;
             pWin->dwExStyle |= WS_EX_TOPMOST;
             break;
@@ -273,7 +273,7 @@ static void dskHideGlobalControl (PMAINWIN pWin, int reason, LPARAM lParam)
             first = __mg_zorder_info->first_global;
             break;
 #endif
-        case ZOF_TYPE_TOPMOST:
+        case ZOF_TYPE_HIGHER:
             first = __mg_zorder_info->first_topmost;
             break;
         case ZOF_TYPE_NORMAL:

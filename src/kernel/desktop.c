@@ -125,7 +125,7 @@ static const int _zts_for_level [] = {
 
 static const int _zof_types_for_level [] = {
     ZOF_TYPE_TOOLTIP, ZOF_TYPE_GLOBAL, ZOF_TYPE_SCREENLOCK, ZOF_TYPE_DOCKER,
-    ZOF_TYPE_TOPMOST, ZOF_TYPE_NORMAL, ZOF_TYPE_LAUNCHER };
+    ZOF_TYPE_HIGHER, ZOF_TYPE_NORMAL, ZOF_TYPE_LAUNCHER };
 
 typedef BOOL (* CB_ONE_ZNODE) (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node);
@@ -965,7 +965,7 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
         slot = zi->first_docker;
         break;
 
-    case ZOF_TYPE_TOPMOST:
+    case ZOF_TYPE_HIGHER:
         level_from  = ZLIDX_TOOLTIP;
         level_to    = ZLIDX_DOCKER;
         slot = zi->first_topmost;
@@ -1076,35 +1076,11 @@ int __kernel_get_next_znode (const ZORDERINFO* zi, int from)
         return next;
     }
 
-#if 0   /* deprecated code */
-    switch (from) {
-    case ZNIDX_TOOLTIP:
-        next = zi->first_global;
-        if (next == 0)
-            next = zi->first_screenlock;
-        if (next == 0)
-            next = zi->first_docker;
-        if (next == 0)
-            next = zi->first_topmost;
-        if (next == 0)
-            next = zi->first_normal;
-        if (next == 0)
-            next = zi->first_launcher;
-        if (next == 0)
-            return 0;
-        break;
-
-    default:
-        next = nodes [from].next;
-        break;
-    }
-#endif  /* deprecated code */
-
     next = nodes [from].next;
     if (next > 0)
         return next;
 
-    // next is still zero, from is not fixed znode.
+    /* next is still zero. */
     switch (nodes [from].flags & ZOF_TYPE_MASK) {
         case ZOF_TYPE_TOOLTIP:
             next = zi->first_global;
@@ -1150,7 +1126,7 @@ int __kernel_get_next_znode (const ZORDERINFO* zi, int from)
                 next = zi->first_launcher;
             break;
 
-        case ZOF_TYPE_TOPMOST:
+        case ZOF_TYPE_HIGHER:
             next = zi->first_normal;
             if (next == 0)
                 next = zi->first_launcher;
@@ -1216,31 +1192,14 @@ int __kernel_get_prev_znode (const ZORDERINFO* zi, int from)
             }
         }
 
-#if 0   /* deprecated code */
-        if (prev == 0 && nodes [ZNIDX_TOOLTIP].hwnd)
-            prev = ZNIDX_TOOLTIP;
-#endif  /* deprecated code */
-
         return prev;
     }
-
-#if 0   /* deprecated code */
-    switch (from) {
-    case ZNIDX_TOOLTIP:
-        return 0;  /* the topmost znode */
-        break;
-
-    default:
-        prev = nodes [from].prev;
-        break;
-    }
-#endif  /* deprecated code */
 
     prev = nodes [from].prev;
     if (prev > 0)
         return prev;
 
-    // prev is still zero, and from is not fixed znode.
+    /* prev is still zero. */
     switch (nodes [from].flags & ZOF_TYPE_MASK) {
     case ZOF_TYPE_LAUNCHER:
         if (zi->first_normal) {
@@ -1279,11 +1238,6 @@ int __kernel_get_prev_znode (const ZORDERINFO* zi, int from)
                 prev = nodes [prev].next;
             }
         }
-
-#if 0   /* deprecated code */
-        if (prev == 0 && nodes [ZNIDX_TOOLTIP].hwnd)
-            prev = ZNIDX_TOOLTIP;
-#endif  /* deprectaed code */
         break;
 
     case ZOF_TYPE_NORMAL:
@@ -1320,7 +1274,7 @@ int __kernel_get_prev_znode (const ZORDERINFO* zi, int from)
 
         break;
 
-    case ZOF_TYPE_TOPMOST:
+    case ZOF_TYPE_HIGHER:
         if (zi->first_docker) {
             prev = zi->first_docker;
             while (nodes [prev].next) {
@@ -2135,14 +2089,14 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         if (zi->first_tooltip > 0 &&
                 nodes [zi->first_tooltip].cli != cli) {
             flags &= ~ZOF_TYPE_MASK;
-            flags |= ZOF_TYPE_TOPMOST;
+            flags |= ZOF_TYPE_HIGHER;
         }
         break;
 
     case ZOF_TYPE_GLOBAL:
         if (cli != 0) {
             flags &= ~ZOF_TYPE_MASK;
-            flags |= ZOF_TYPE_TOPMOST;
+            flags |= ZOF_TYPE_HIGHER;
         }
         break;
 
@@ -2150,7 +2104,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         if (zi->first_screenlock > 0 &&
                 nodes [zi->first_screenlock].cli != cli) {
             flags &= ~ZOF_TYPE_MASK;
-            flags |= ZOF_TYPE_TOPMOST;
+            flags |= ZOF_TYPE_HIGHER;
         }
         break;
 
@@ -2158,7 +2112,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         if (zi->first_docker > 0 &&
                 nodes [zi->first_docker].cli != cli) {
             flags &= ~ZOF_TYPE_MASK;
-            flags |= ZOF_TYPE_TOPMOST;
+            flags |= ZOF_TYPE_HIGHER;
         }
         break;
 
@@ -2169,29 +2123,6 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             flags |= ZOF_TYPE_NORMAL;
         }
         break;
-
-#if 0   /* deprecated code */
-    case ZOF_TYPE_DOCKER:
-        if (nodes [ZNIDX_DOCKER].hwnd) {
-            flags &= ~ZOF_TYPE_MASK;
-            flags |= ZOF_TYPE_TOPMOST;
-        }
-        else {
-            free_slot = ZNIDX_DOCKER;
-        }
-        break;
-
-    case ZOF_TYPE_LAUNCHER:
-        if (nodes [ZNIDX_LAUNCHER].hwnd) {
-            flags &= ~ZOF_TYPE_MASK;
-            flags |= ZOF_TYPE_NORMAL;
-        }
-        else {
-            free_slot = ZNIDX_LAUNCHER;
-        }
-        break;
-#endif  /* deprecated code */
-
     }
 #endif  /* defined _MGRM_PROCESSES */
 
@@ -2226,7 +2157,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         }
         break;
 
-    case ZOF_TYPE_TOPMOST:
+    case ZOF_TYPE_HIGHER:
         if (zi->nr_topmosts < zi->max_nr_topmosts) {
             first = &zi->first_topmost;
             nr_nodes = &zi->nr_topmosts;
@@ -2402,7 +2333,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             }
         }
 
-        if (type >= ZOF_TYPE_TOPMOST) {
+        if (type >= ZOF_TYPE_HIGHER) {
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
@@ -2562,7 +2493,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
         nr_nodes = &zi->nr_dockers;
         break;
 
-    case ZOF_TYPE_TOPMOST:
+    case ZOF_TYPE_HIGHER:
         if (zi->nr_topmosts < zi->max_nr_topmosts) {
             first = &zi->first_topmost;
             nr_nodes = &zi->nr_topmosts;
@@ -2663,7 +2594,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
             }
         }
 
-        if (type > ZOF_TYPE_TOPMOST) {
+        if (type > ZOF_TYPE_HIGHER) {
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
@@ -3181,7 +3112,7 @@ static int dskMove2Top (int cli, int idx_znode)
     case ZOF_TYPE_GLOBAL:
         first = &zi->first_global;
         break;
-    case ZOF_TYPE_TOPMOST:
+    case ZOF_TYPE_HIGHER:
         first = &zi->first_topmost;
         break;
     case ZOF_TYPE_NORMAL:
@@ -3233,7 +3164,7 @@ static int dskMove2Top (int cli, int idx_znode)
                 }
             }
         }
-        if (type == ZOF_TYPE_TOPMOST) {
+        if (type == ZOF_TYPE_HIGHER) {
             slot = zi->first_topmost;
             for (; slot != idx_znode; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
@@ -3361,7 +3292,7 @@ static int dskShowWindow (int cli, int idx_znode)
         if (type > ZOF_TYPE_NORMAL) {
             do_for_all_znodes (&rc, zi, _cb_intersect_rc, ZT_NORMAL);
         }
-        if (type > ZOF_TYPE_TOPMOST) {
+        if (type > ZOF_TYPE_HIGHER) {
             do_for_all_znodes (&rc, zi, _cb_intersect_rc, ZT_TOPMOST);
         }
         if (type > ZOF_TYPE_DOCKER) {
@@ -3439,7 +3370,7 @@ static int dskHideWindow (int cli, int idx_znode)
     case ZOF_TYPE_GLOBAL:
         first = &zi->first_global;
         break;
-    case ZOF_TYPE_TOPMOST:
+    case ZOF_TYPE_HIGHER:
         first = &zi->first_topmost;
         break;
     case ZOF_TYPE_NORMAL:
@@ -3494,7 +3425,7 @@ static int dskHideWindow (int cli, int idx_znode)
         if (type > ZOF_TYPE_DOCKER) {
             do_for_all_znodes (&sg_UpdateRgn, zi, _cb_update_rc, ZT_DOCKER);
         }
-        if (type > ZOF_TYPE_TOPMOST) {
+        if (type > ZOF_TYPE_HIGHER) {
             do_for_all_znodes (&sg_UpdateRgn, zi, _cb_update_rc, ZT_TOPMOST);
         }
         if (type > ZOF_TYPE_NORMAL) {
@@ -3591,7 +3522,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
     case ZOF_TYPE_GLOBAL:
         first = &zi->first_global;
         break;
-    case ZOF_TYPE_TOPMOST:
+    case ZOF_TYPE_HIGHER:
         first = &zi->first_topmost;
         break;
     case ZOF_TYPE_NORMAL:
@@ -3663,7 +3594,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         if (type > ZOF_TYPE_NORMAL) {
             do_for_all_znodes ((void*)rcWin, zi, _cb_intersect_rc, ZT_NORMAL);
         }
-        if (type > ZOF_TYPE_TOPMOST) {
+        if (type > ZOF_TYPE_HIGHER) {
             do_for_all_znodes ((void*)rcWin, zi, _cb_intersect_rc, ZT_TOPMOST);
         }
         if (type > ZOF_TYPE_DOCKER) {
@@ -3740,7 +3671,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
             }
         }
 
-        if (type > ZOF_TYPE_TOPMOST) {
+        if (type > ZOF_TYPE_HIGHER) {
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&
@@ -3829,7 +3760,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
                 slot = zi->first_docker;
                 break;
 
-            case ZOF_TYPE_TOPMOST:
+            case ZOF_TYPE_HIGHER:
                 level_from = ZLIDX_TOOLTIP;
                 level_to = ZLIDX_DOCKER;
                 slot = zi->first_topmost;
@@ -3955,7 +3886,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
             }
         }
 
-        if (type < ZOF_TYPE_TOPMOST) {
+        if (type < ZOF_TYPE_HIGHER) {
             slot = zi->first_topmost;
             for (; slot > 0; slot = nodes [slot].next) {
                 if (nodes [slot].flags & ZOF_VISIBLE &&

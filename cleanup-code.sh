@@ -131,4 +131,8 @@ tab2space() {
 
 # sed -i 's/\<DEF_NR_FIXEDZNODES\>/NR_FIXED_ZNODES/g' `grep DEF_NR_FIXEDZNODES -rl src/`
 
+#sed -i 's/\<ZOF_TYPE_TOPMOST\>/__ZOF_TYPE_HIGHER/g' `grep ZOF_TYPE_TOPMOST -rl include/ src/`
+
+sed -i 's/\<__ZOF_TYPE_HIGHER\>/ZOF_TYPE_HIGHER/g' `grep __ZOF_TYPE_HIGHER -rl include/ src/`
+
 exit 0
