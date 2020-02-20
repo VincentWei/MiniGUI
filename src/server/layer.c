@@ -124,8 +124,10 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     zi->size_usage_bmp = size_usage_bmp;
     zi->size_maskrect_usage_bmp = SIZE_MASKRECT_USAGE_BMP;
 
-    _DBG_PRINTF("size_zi: %lu, size_usage_bmp: %d, size_maskrect_usage_bmp: %d\n",
-                sizeof (*zi), zi->size_usage_bmp, zi->size_maskrect_usage_bmp);
+    _DBG_PRINTF("size_zi:%lu, size_znode:%lu,"
+            " size_usage_bmp:%d, size_maskrect_usage_bmp:%d\n",
+            sizeof (*zi), sizeof (ZORDERNODE),
+            zi->size_usage_bmp, zi->size_maskrect_usage_bmp);
 
     zi->max_nr_popupmenus = DEF_NR_POPUPMENUS;
     zi->max_nr_tooltips = DEF_NR_TOOLTIPS;

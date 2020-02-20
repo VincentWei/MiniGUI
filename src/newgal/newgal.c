@@ -55,7 +55,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG
 #include "common.h"
 #include "minigui.h"
 #include "constants.h"
