@@ -197,7 +197,7 @@ void mg_FreeMsgQueueForThisThread (void)
 #endif /* defined _MGHAVE_VIRTUAL_WINDOW */
     }
     else {
-        _WRN_PRINTF ("message queue has gone\n");
+        _WRN_PRINTF ("message queue for this thread has gone\n");
     }
 }
 
@@ -539,6 +539,10 @@ HWND kernel_CheckInvalidRegion (PMAINWIN pWin)
     PCONTROL pCtrl = (PCONTROL)pWin;
     HWND hwnd;
 
+    /* Since 5.0.0: skip virtual window */
+    if (pWin->WinType == TYPE_VIRTWIN)
+        return HWND_NULL;
+
     if (pCtrl->InvRgn.rgn.head)
         return (HWND)pCtrl;
 
@@ -572,7 +576,9 @@ static HWND msgCheckHostedTree (PMAINWIN pHosting)
     HWND hNeedPaint;
     PMAINWIN pHosted;
 
-    if ((hNeedPaint = kernel_CheckInvalidRegion (pHosting)))
+    /* Since 5.0.0: always skip desktop */
+    if (pHosting != __mg_dsk_win &&
+            (hNeedPaint = kernel_CheckInvalidRegion (pHosting)))
         return hNeedPaint;
 
     pHosted = pHosting->pFirstHosted;
@@ -749,8 +755,7 @@ void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
     fprintf (fp, "Message %s: hWnd: %p, wP: %p, lP: %p.\n",
              Message2Str (nMsg), hWnd, (PVOID)wParam, (PVOID)lParam);
 }
-
-#endif
+#endif /* defined _MGHAVE_MSG_STRING */
 
 static inline void CheckCapturedMouseMessage (PMSG pMsg)
 {
@@ -1680,8 +1685,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     /* suspend until the message has been handled. */
     if (sem_wait (SyncMsg.sem_handle) < 0) {
-        fprintf (stderr,
-            "KERNEL>SendSyncMessage: thread is interrupted abnormally!\n");
+        _ERR_PRINTF ("SendSyncMessage: thread is interrupted abnormally!\n");
     }
 
 #ifndef _SYNC_NEED_REENTERABLE
