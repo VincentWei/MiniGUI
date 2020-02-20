@@ -1702,7 +1702,8 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
         for (; slot > 0; slot = nodes[slot].next) {
             pWin = (PMAINWIN)(nodes[slot].hwnd);
             if (pWin && pWin->WinType == TYPE_MAINWIN) {
-                if (pWin->dwStyle & WS_VISIBLE)
+                if (nodes[slot].flags & ZOF_VISIBLE &&
+                        !(nodes[slot].flags & ZOF_DISABLED))
                     mii.state       = MFS_ENABLED;
                 else
                     mii.state       = MFS_DISABLED;
@@ -1723,7 +1724,8 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
             inserted = TRUE;
         }
 
-        if (inserted && level < (NR_ZORDER_LEVELS - 1)) {
+        if (inserted && level < (NR_ZORDER_LEVELS - 1) &&
+                __mg_zorder_info->first_in_levels[level+1] > 0) {
             mii.type            = MFT_SEPARATOR;
             mii.state           = 0;
             mii.id              = 0;

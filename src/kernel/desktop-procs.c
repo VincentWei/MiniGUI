@@ -3464,11 +3464,6 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
         Msg.hwnd = HWND_NULL;
         if (Msg.message == MSG_MOUSEMOVE) {
             LOCK_MOUSEMOVE_SEM();
-            if (SHAREDRES_MOUSEMOVECLIENT > 0 &&
-                    SHAREDRES_MOUSEMOVECLIENT != target_client) {
-                _WRN_PRINTF ("drop a mouse move message, old_client=%d, target_client=%d\n",
-                        SHAREDRES_MOUSEMOVECLIENT, target_client);
-            }
             SHAREDRES_MOUSEMOVECLIENT = target_client;
             ++ SHAREDRES_MOUSEMOVESERIAL;
             UNLOCK_MOUSEMOVE_SEM();
@@ -3476,8 +3471,6 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
         else {
             Send2Client (&Msg, target_client);
         }
-
-        return HOOK_STOP;
     }
 
     if (Msg.message == MSG_LBUTTONUP && down_by == MSG_LBUTTONDOWN) {
@@ -3907,9 +3900,8 @@ static BOOL _cb_update_dskmenu (void* context,
 {
     UPDATA_DSKMENU_INFO* info = (UPDATA_DSKMENU_INFO*) context;
 
-    if (node->flags & ZOF_TF_MAINWIN
-            && !(node->flags & ZOF_IF_ALWAYSTOP)) {
-        if (node->flags & ZOF_VISIBLE)
+    if (node->flags & ZOF_TF_MAINWIN) {
+        if (node->flags & ZOF_VISIBLE && !(node->flags & ZOF_DISABLED))
             info->mii.state       = MFS_ENABLED;
         else
             info->mii.state       = MFS_DISABLED;
@@ -4260,7 +4252,7 @@ void GUIAPI DesktopUpdateAllWindow(void)
 static void srvUpdateDesktopMenu (void)
 {
     UPDATA_DSKMENU_INFO info;
-    int level, nCount, count, iPos;
+    int level, nCount, count, iPos, sep_pos;
     MG_Layer* layer;
 
     info.menu = GetSubMenu (sg_DesktopMenu, 3);
@@ -4274,21 +4266,26 @@ static void srvUpdateDesktopMenu (void)
     info.id = IDM_FIRSTWINDOW;
     info.pos = 0;
 
+    sep_pos = 0;
     for (level = 0; level < NR_ZORDER_LEVELS; level++) {
 
-        info.mii.type = MFT_STRING;
-        count = do_for_all_znodes (&info,
-                __mg_zorder_info, _cb_update_dskmenu, _zts_for_level[level]);
-
-        if (count && level < (NR_ZORDER_LEVELS - 1)) {
+        if (sep_pos > 0 && level < (NR_ZORDER_LEVELS - 1)) {
             info.mii.type            = MFT_SEPARATOR;
             info.mii.state           = 0;
             info.mii.id              = 0;
             info.mii.typedata        = 0;
-            InsertMenuItem (info.menu, info.pos, TRUE, &info.mii);
+            InsertMenuItem (info.menu, sep_pos, TRUE, &info.mii);
 
             info.pos ++;
         }
+
+        info.mii.type = MFT_STRING;
+        count = do_for_all_znodes (&info,
+                __mg_zorder_info, _cb_update_dskmenu, _zts_for_level[level]);
+        if (count > 0)
+            sep_pos = info.pos;
+        else
+            sep_pos = 0;
     }
 
     info.menu = GetSubMenu (sg_DesktopMenu, 4);
