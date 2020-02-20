@@ -54,6 +54,12 @@
 
 #include <string.h>
 
+#include "common.h"
+#include "minigui.h"
+#include "gdi.h"
+#include "window.h"
+#include "internals.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -72,6 +78,106 @@ static inline void dump_rect (const RECT* rect, const char* name)
     _WRN_PRINTF("rect of %s: (%d, %d, %d, %d); size (%d x %d)\n", name,
             rect->left, rect->top, rect->right, rect->bottom,
             RECTWP(rect), RECTHP(rect));
+}
+
+static inline void dump_window (HWND hwnd, const char* name)
+{
+    PMAINWIN main_win = (PMAINWIN)hwnd;
+
+    if (hwnd == HWND_NULL) {
+        _WRN_PRINTF("window for %s: (nil)\n", name);
+        return;
+    }
+    else if (hwnd == HWND_INVALID) {
+        _WRN_PRINTF("window for %s: (invalid)\n", name);
+        return;
+    }
+    else if (main_win->DataType != TYPE_HWND) {
+        _WRN_PRINTF("window for %s: not a window (datatype: %d)\n", name,
+                (int)main_win->DataType);
+        return;
+    }
+
+    switch (main_win->WinType) {
+    case TYPE_MAINWIN:
+        _WRN_PRINTF("A main window for %s: "
+                "caption(%s), id(%ld), positon(%d, %d, %d, %d)\n",
+                name, main_win->spCaption, main_win->id,
+                main_win->left, main_win->top,
+                main_win->right, main_win->bottom);
+        break;
+
+    case TYPE_VIRTWIN:
+        _WRN_PRINTF("A virtual window for %s: "
+                "caption(%s), id(%ld)\n",
+                name, main_win->spCaption, main_win->id);
+        break;
+
+    case TYPE_CONTROL:
+        _WRN_PRINTF("A control for %s: "
+                "caption(%s), id(%ld), positon(%d, %d, %d, %d)\n",
+                name, main_win->spCaption, main_win->id,
+                main_win->left, main_win->top,
+                main_win->right, main_win->bottom);
+        break;
+
+    case TYPE_ROOTWIN:
+        _WRN_PRINTF("A root window for %s: "
+                "caption(%s), id(%ld), positon(%d, %d, %d, %d)\n",
+                name, main_win->spCaption, main_win->id, 
+                main_win->left, main_win->top,
+                main_win->right, main_win->bottom);
+        break;
+
+    default:
+        _WRN_PRINTF("A unknown window for %s: %p\n",
+                name, main_win);
+        break;
+    }
+}
+
+static inline void dump_message (const MSG* msg, const char* name)
+{
+#ifdef _MGHAVE_MSG_STRING
+    _WRN_PRINTF ("Message(%s) for %s: %u (%s), Wnd: %p, wP: %p, lP: %p.\n",
+            msg->pAdd?"SYNC":"NORM",
+            name, msg->message, Message2Str (msg->message),
+            msg->hwnd, (PVOID)msg->wParam, (PVOID)msg->lParam);
+#else
+    _WRN_PRINTF ("Message(%S) for %s: %u, Wnd: %p, wP: %p, lP: %p.\n",
+            msg->pAdd?"SYNC":"NORM",
+            name, msg->message,
+            msg->hwnd, (PVOID)msg->wParam, (PVOID)msg->lParam);
+#endif
+}
+
+static inline void dump_message_with_retval (const MSG* msg, LRESULT retval,
+        const char* name)
+{
+#ifdef _MGHAVE_MSG_STRING
+    _WRN_PRINTF ("Message(%s) for %s done: %u (%s), Wnd: %p, retval (%p).\n",
+            msg->pAdd?"SYNC":"NORM",
+            name, msg->message, Message2Str (msg->message),
+            msg->hwnd, (PVOID)retval);
+#else
+    _WRN_PRINTF ("Message(%S) for %s: %u, Wnd: %p, retval (%p).\n",
+            msg->pAdd?"SYNC":"NORM",
+            name, msg->message,
+            msg->hwnd, (PVOID)retval);
+#endif
+}
+
+static inline void dump_mouse_message (UINT message, int location, int x, int y,
+        const char* name)
+{
+#ifdef _MGHAVE_MSG_STRING
+    _WRN_PRINTF ("Mouse message for %s: %u (%s), location(%d), x(%d), y(%d).\n",
+            name, message, Message2Str (message),
+            location, x, y);
+#else
+    _WRN_PRINTF ("Mouse message for %s: %u, location(%d), x(%d), y(%d).\n",
+            name, message, location, x, y);
+#endif
 }
 
 #ifdef __cplusplus
