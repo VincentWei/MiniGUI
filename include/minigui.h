@@ -106,7 +106,8 @@ extern "C" {
 #define ZOF_TYPE_TOOLTIP        0x80000000  // Since 5.0.0; fixed and only one.
 #define ZOF_TYPE_POPUPMENU      0x90000000
 
-#define ZOF_TYPE_TOPMOST        ZOF_TYPE_HIGHER // for backward compatibility
+#define ZOF_TYPE_BOTTOMMOST     ZOF_TYPE_LAUNCHER
+#define ZOF_TYPE_TOPMOST        ZOF_TYPE_TOOLTIP
 
 #define ZOF_TF_FLAG_MASK        0x0F000000
 #define ZOF_TF_MAINWIN          0x01000000
@@ -969,17 +970,17 @@ typedef struct _ZNODEINFO {
      * - ZNIT_DOCKER_CONTROL\n
      *   a control with WS_EX_CTRLASMAINWIN style in the docker level.
      * - ZNIT_HIGHER_MAINWIN\n
-     *   a topmost main window.
+     *   a main window in the higher level.
      * - ZNIT_HIGHER_TOOLWIN\n
-     *   a topmost tool window.
+     *   a tool window in the higher level.
      * - ZNIT_HIGHER_CONTROL\n
-     *   a topmost control with WS_EX_CTRLASMAINWIN style.
+     *   a control with WS_EX_CTRLASMAINWIN style in the higher level.
      * - ZNIT_NORMAL_MAINWIN\n
-     *   a normal main window.
+     *   a main window in the normal level.
      * - ZNIT_NORMAL_TOOLWIN\n
-     *   a normal tool window.
+     *   a tool window in the normal level.
      * - ZNIT_NORMAL_CONTROL\n
-     *   a normal control with WS_EX_CTRLASMAINWIN style.
+     *   a control with WS_EX_CTRLASMAINWIN style in the normal level.
      * - ZNIT_LAUNCHER_MAINWIN\n
      *   a main window in the launcher level.
      * - ZNIT_LAUNCHER_TOOLWIN\n
