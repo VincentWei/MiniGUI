@@ -145,12 +145,20 @@ dump_message (const MSG* msg, const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
     _WRN_PRINTF ("Message(%s) for %s: %u (%s), Wnd: %p, wP: %p, lP: %p.\n",
+#ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pAdd?"SYNC":"NORM",
+#else
+            "NORM",
+#endif
             name, msg->message, Message2Str (msg->message),
             msg->hwnd, (PVOID)msg->wParam, (PVOID)msg->lParam);
 #else
-    _WRN_PRINTF ("Message(%S) for %s: %u, Wnd: %p, wP: %p, lP: %p.\n",
+    _WRN_PRINTF ("Message(%s): %u, Wnd: %p, wP: %p, lP: %p.\n",
+#ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pAdd?"SYNC":"NORM",
+#else
+            "NORM",
+#endif
             name, msg->message,
             msg->hwnd, (PVOID)msg->wParam, (PVOID)msg->lParam);
 #endif
@@ -162,12 +170,20 @@ dump_message_with_retval (const MSG* msg, LRESULT retval,
 {
 #ifdef _MGHAVE_MSG_STRING
     _WRN_PRINTF ("Message(%s) for %s done: %u (%s), Wnd: %p, retval (%p).\n",
+#ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pAdd?"SYNC":"NORM",
+#else
+            "NORM",
+#endif
             name, msg->message, Message2Str (msg->message),
             msg->hwnd, (PVOID)retval);
 #else
-    _WRN_PRINTF ("Message(%S) for %s: %u, Wnd: %p, retval (%p).\n",
+    _WRN_PRINTF ("Message(%s) for %s: %u, Wnd: %p, retval (%p).\n",
+#ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pAdd?"SYNC":"NORM",
+#else
+            "NORM",
+#endif
             name, msg->message,
             msg->hwnd, (PVOID)retval);
 #endif
