@@ -505,7 +505,7 @@ static void on_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     if (generate_dirty_region (ctxt, znode_hdr, rgn)) {
         if (znode_hdr->changes == 0) {
             /* It's the first exposure of the window. */
-            _WRN_PRINTF ("It is the first exposure of the window (%d): %u\n",
+            _MG_PRINTF ("It is the first exposure of the window (%d): %u\n",
                     zidx, znode_hdr->dirty_age);
         }
 
