@@ -102,11 +102,13 @@ BOOL mg_InitDesktop (void)
     int ret;
     RECT rcScr = GetScreenRect();
 
+#if 0   /* move to init-lite.c */
     /* Since 5.0.0: allocate message queue for desktop thread */
     if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
         _WRN_PRINTF ("failed to allocate message queue\n");
         return FALSE;
     }
+#endif  /* moved code */
 
     /*
      * Init ZOrderInfo here.

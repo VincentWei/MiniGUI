@@ -377,6 +377,14 @@ int InitGUI (int argc, const char* agr[])
     step++;
 #endif
 
+    /* Since 5.0.0
+       allocate message queue for desktop thread before starting client. */
+    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
+        err_message (step, "Failed to allocate message queue!");
+        return step;
+    }
+    step++;
+
 #ifdef _MGRM_PROCESSES
     if (!_is_server) {
         if (!client_ClientStartup ()) {
@@ -467,11 +475,14 @@ int InitGUI (int argc, const char* agr[])
          */
         strncpy (SHAREDRES_VIDEO_ENGINE, engine, LEN_ENGINE_NAME);
         strncpy (SHAREDRES_VIDEO_MODE, mode, LEN_VIDEO_MODE);
-        if (GetMgEtcValue (engine, "device", SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME) < 0)
+        if (GetMgEtcValue (engine, "device",
+                    SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME) < 0)
             *SHAREDRES_VIDEO_DEVICE = 0;
-        if (GetMgEtcValue (engine, "pixelformat", SHAREDRES_VIDEO_FOURCC, LEN_FOURCC_FORMAT) < 0)
+        if (GetMgEtcValue (engine, "pixelformat",
+                    SHAREDRES_VIDEO_FOURCC, LEN_FOURCC_FORMAT) < 0)
             *SHAREDRES_VIDEO_FOURCC = 0;
-        if (GetMgEtcValue (engine, "exdriver", SHAREDRES_VIDEO_EXDRIVER, LEN_EXDRIVER_NAME) < 0)
+        if (GetMgEtcValue (engine, "exdriver",
+                    SHAREDRES_VIDEO_EXDRIVER, LEN_EXDRIVER_NAME) < 0)
             *SHAREDRES_VIDEO_EXDRIVER = 0;
 
         SHAREDRES_VIDEO_DPI   = __gal_screen->dpi;
@@ -485,7 +496,8 @@ int InitGUI (int argc, const char* agr[])
     }
     else {
         _DBG_PRINTF("Engien info from shared resource: %s %s %d\n",
-                SHAREDRES_VIDEO_ENGINE, SHAREDRES_VIDEO_MODE, SHAREDRES_VIDEO_DPI);
+                SHAREDRES_VIDEO_ENGINE,
+                SHAREDRES_VIDEO_MODE, SHAREDRES_VIDEO_DPI);
     }
 
     step++;
