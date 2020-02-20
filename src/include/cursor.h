@@ -105,9 +105,6 @@ void mg_TerminateCursor(void);
 
 #ifndef _MGRM_THREADS
 
-/* Use shared memory to emulate MSG_MOUSEMOVE message */
-#define _MG_CONFIG_FAST_MOUSEMOVE 1
-
 /* show cursor hidden by client GDI function */
 void kernel_ReShowCursor (void);
 
