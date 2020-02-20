@@ -135,8 +135,7 @@ static void lock_zi_for_change (const ZORDERINFO* zi)
     int clients = 0;
     struct sembuf sb;
 
-    clients = zi->max_nr_popupmenus + zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals;
+    clients = MAX_NR_ZNODES (zi);
 
 #ifndef _MGSCHEMA_COMPOSITING
     /* Cancel the current drag and drop operation */
@@ -159,8 +158,7 @@ static void unlock_zi_for_change (const ZORDERINFO* zi)
 {
     int clients = 0;
     struct sembuf sb;
-    clients = zi->max_nr_popupmenus + zi->max_nr_globals
-            + zi->max_nr_topmosts + zi->max_nr_normals;
+    clients = MAX_NR_ZNODES (zi);
 
 again:
     sb.sem_num = zi->zi_semnum;
@@ -250,11 +248,13 @@ static void init_desktop_win (void)
 
 BOOL mg_InitDesktop (void)
 {
+#if 0   /* move to init-lite.c */
     /* Since 5.0.0: allocate message queue for desktop thread */
     if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
         _WRN_PRINTF ("failed to allocate message queue\n");
         return FALSE;
     }
+#endif  /* moved code */
 
 #ifndef _MGSCHEMA_COMPOSITING
     /* Init heap of clipping rects. */
@@ -1049,9 +1049,7 @@ static int srvStartDragWindow (int cli, int idx_znode,
     RECT rcScr = GetScreenRect ();
 #endif
 
-    if (idx_znode > (zi->max_nr_globals
-                    + zi->max_nr_topmosts + zi->max_nr_normals) ||
-            idx_znode < 0) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return -1;
     }
 
@@ -1100,7 +1098,7 @@ static int srvStartDragWindow (int cli, int idx_znode,
             SetCursor (GetSystemCursor (IDC_SIZENESW));
             break;
         default:
-            _WRN_PRINTF ("KERNEL>Desktop: Drag and drop window: bad location\n");
+            _WRN_PRINTF ("bad location\n");
             break;
     }
 
@@ -1125,9 +1123,7 @@ static int srvCancelDragWindow (int cli, int idx_znode)
     RECT rcScr = GetScreenRect ();
 #endif
 
-    if (idx_znode > (zi->max_nr_globals
-                    + zi->max_nr_topmosts + zi->max_nr_normals) ||
-            idx_znode < 0) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return -1;
     }
 
@@ -3424,7 +3420,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     static int down_client = -1;
     static int down_by;
     int target_client;
-    int cur_client = __mg_get_znode_at_point (__mg_zorder_info, x, y, NULL);
+    int cur_client;
     WPARAM wparam = flags;
     LPARAM lparam = MAKELONG (x, y);
     MSG Msg = { HWND_DESKTOP, message, wparam, lparam };
@@ -3441,6 +3437,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     switch (Msg.message) {
     case MSG_LBUTTONDOWN:
     case MSG_RBUTTONDOWN:
+    case MSG_MBUTTONDOWN:
         if (cur_client >= 0 && down_client == -1) {
             down_client = cur_client;
             down_by = Msg.message;
@@ -3470,7 +3467,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
             LOCK_MOUSEMOVE_SEM();
             if (SHAREDRES_MOUSEMOVECLIENT > 0 &&
                     SHAREDRES_MOUSEMOVECLIENT != target_client) {
-                _DBG_PRINTF ("drop a mouse move message, old_client=%d, target_client=%d\n",
+                _WRN_PRINTF ("drop a mouse move message, old_client=%d, target_client=%d\n",
                         SHAREDRES_MOUSEMOVECLIENT, target_client);
             }
             SHAREDRES_MOUSEMOVECLIENT = target_client;
@@ -3489,7 +3486,10 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     if (Msg.message == MSG_LBUTTONUP && down_by == MSG_LBUTTONDOWN) {
         down_client = -1;
     }
-    if (Msg.message == MSG_RBUTTONUP && down_by == MSG_RBUTTONDOWN) {
+    else if (Msg.message == MSG_RBUTTONUP && down_by == MSG_RBUTTONDOWN) {
+        down_client = -1;
+    }
+    else if (Msg.message == MSG_MBUTTONUP && down_by == MSG_MBUTTONDOWN) {
         down_client = -1;
     }
 
@@ -3611,7 +3611,7 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
                         UndHitCode, MAKELONG (x, y));
             }
             else {
-                PostMessage((HWND)pUnderPointer, message,
+                PostMessage ((HWND)pUnderPointer, message,
                     flags, MAKELONG(cx, cy));
                 mgs_captured_main_win = (void*)HWND_INVALID;
             }
@@ -3668,14 +3668,13 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
     case MSG_LBUTTONDBLCLK:
     case MSG_RBUTTONDBLCLK:
     case MSG_MBUTTONDBLCLK:
-        if (pUnderPointer)
-        {
+        if (pUnderPointer) {
             if (pUnderPointer->dwStyle & WS_DISABLED) {
                 Ping ();
                 break;
             }
 
-            if(UndHitCode == HT_CLIENT)
+            if (UndHitCode == HT_CLIENT)
                 PostMessage((HWND)pUnderPointer, message,
                     flags, MAKELONG(cx, cy));
             else
@@ -4402,6 +4401,8 @@ static void srvUpdateDesktopMenu (void)
 }
 #endif /* defined _MGHAVE_MENU */
 
+#include "debug.h"
+
 static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
 {
     static HDC hDesktopDC;
@@ -4455,7 +4456,7 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
 
     case MSG_ERASEDESKTOP:
 
-        if(dsk_ops->paint_desktop)
+        if (dsk_ops->paint_desktop)
             dsk_ops->paint_desktop(dt_context, hDesktopDC, (PRECT)lParam);
 
         break;
@@ -4856,8 +4857,7 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
         zi = layer->zorder_info;
     }
 
-    if (idx_znode > (zi->max_nr_globals +
-            zi->max_nr_topmosts + zi->max_nr_normals)) {
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
         return FALSE;
     }
 
