@@ -416,6 +416,10 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
         __mg_err_sys ("client: select error");
     }
     else if (n == 0) {
+        static int old_mouse_x = -1, old_mouse_y = -1, old_buttons = -1;
+        static unsigned int old_mouse_move_serial = 0xdeadbeef;
+        int flag = 0, mouse_x = -1, mouse_y = -1, buttons = -1;
+
         check_live ();
         if (wait && (__mg_timer_counter - old_timer) >= repeat_timeout) {
             Msg.hwnd = HWND_DESKTOP;
@@ -429,38 +433,30 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
             repeat_timeout = TIMEOUT_REPEAT;
         }
 
-#ifdef _MG_CONFIG_FAST_MOUSEMOVE
-        {
-            static int old_mouse_x = -1, old_mouse_y = -1, old_buttons = -1;
-            static unsigned int old_mouse_move_serial = 0xdeadbeef;
-            int flag = 0, mouse_x = -1, mouse_y = -1, buttons = -1;
-
-            LOCK_MOUSEMOVE_SEM();
-            if (SHAREDRES_MOUSEMOVECLIENT == __mg_client_id
-                    && SHAREDRES_MOUSEMOVESERIAL != old_mouse_move_serial) {
-                mouse_x = SHAREDRES_MOUSEX;
-                mouse_y = SHAREDRES_MOUSEY;
-                buttons = SHAREDRES_SHIFTSTATUS;
-                flag = 1;
-            }
-            old_mouse_move_serial = SHAREDRES_MOUSEMOVESERIAL;
-            UNLOCK_MOUSEMOVE_SEM();
-
-            if (flag && (mouse_x != old_mouse_x || mouse_y != old_mouse_y ||
-                        buttons != old_buttons)) {
-                MSG msg;
-                old_mouse_x = mouse_x;
-                old_mouse_y = mouse_y;
-                old_buttons = buttons;
-
-                msg.hwnd = HWND_DESKTOP;
-                msg.message = MSG_MOUSEMOVE;
-                msg.wParam = buttons;
-                msg.lParam = MAKELONG(mouse_x, mouse_y);
-                QueueDeskMessage(&msg);
-            }
+        LOCK_MOUSEMOVE_SEM();
+        if (SHAREDRES_MOUSEMOVECLIENT == __mg_client_id
+                && SHAREDRES_MOUSEMOVESERIAL != old_mouse_move_serial) {
+            mouse_x = SHAREDRES_MOUSEX;
+            mouse_y = SHAREDRES_MOUSEY;
+            buttons = SHAREDRES_SHIFTSTATUS;
+            flag = 1;
         }
-#endif
+        old_mouse_move_serial = SHAREDRES_MOUSEMOVESERIAL;
+        UNLOCK_MOUSEMOVE_SEM();
+
+        if (flag && (mouse_x != old_mouse_x || mouse_y != old_mouse_y ||
+                    buttons != old_buttons)) {
+            MSG msg;
+            old_mouse_x = mouse_x;
+            old_mouse_y = mouse_y;
+            old_buttons = buttons;
+
+            msg.hwnd = HWND_DESKTOP;
+            msg.message = MSG_MOUSEMOVE;
+            msg.wParam = buttons;
+            msg.lParam = MAKELONG(mouse_x, mouse_y);
+            QueueDeskMessage(&msg);
+        }
 
         return FALSE;
     }
