@@ -189,8 +189,5 @@ enum {
 /* round n to multiple of m */
 #define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
 
-/* Use shared memory to emulate MSG_MOUSEMOVE message */
-#define _MG_CONFIG_FAST_MOUSEMOVE 1
-
 #endif /* GUI_CONSTANTS_H */
 
