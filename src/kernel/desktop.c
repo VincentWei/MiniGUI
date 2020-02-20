@@ -4805,6 +4805,8 @@ static int dskUnregisterMsgQueue (MSGQUEUE* msg_queue)
     return 0;
 }
 
+#include "debug.h"
+
 int __mg_join_all_message_threads (void)
 {
     int nr = 0;
@@ -4813,6 +4815,7 @@ int __mg_join_all_message_threads (void)
 
     list_for_each (l, &msg_queue_list) {
         MSGQUEUE *msg_queue = (MSGQUEUE*)l;
+        dump_message_queue (msg_queue, __func__);
         pthread_cancel (msg_queue->th);
     }
 
@@ -4827,7 +4830,6 @@ int __mg_join_all_message_threads (void)
         }
     }
 
-    deleteThreadInfoKey ();
     return nr;
 }
 

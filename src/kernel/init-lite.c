@@ -353,7 +353,6 @@ int InitGUI (int argc, const char* agr[])
         return step;
     }
     step++;
-    atexit (mg_TerminateSliceAllocator);
 
     if (!mg_InitFixStr ()) {
         err_message (step, "Can not initialize Fixed String heap!\n");
@@ -372,6 +371,14 @@ int InitGUI (int argc, const char* agr[])
 #ifdef _MGRM_PROCESSES
     if (_is_server && !kernel_IsOnlyMe ()) {
         err_message (step, "There is already an instance of 'mginit'!");
+        return step;
+    }
+    step++;
+#endif
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!createThreadInfoKey ()) {
+        err_message (step, "Failed to init pthread key.\n");
         return step;
     }
     step++;
@@ -607,6 +614,17 @@ void TerminateGUI (int rcByGUI)
         client_ClientCleanup ();
     }
 #endif
+
+#ifdef _MGHAVE_ADV_2DAPI
+    extern void miFreeArcCache (void);
+    miFreeArcCache ();
+#endif
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    deleteThreadInfoKey();
+#endif
+
+    mg_TerminateSliceAllocator();
 }
 #endif /* ifndef _MG_MINIMALGDI */
 

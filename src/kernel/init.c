@@ -630,6 +630,10 @@ void GUIAPI TerminateGUI (int not_used)
     miFreeArcCache ();
 #endif
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    deleteThreadInfoKey();
+#endif
+
     mg_TerminateSliceAllocator();
 
     /*
