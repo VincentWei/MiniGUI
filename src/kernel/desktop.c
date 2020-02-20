@@ -756,7 +756,8 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
             BitBlt (hdc, rcMove.left, rcMove.top,
                     rcMove.right - rcMove.left,
                     rcMove.bottom - rcMove.top,
-                    hdc, pswi->iOffx + rcMove.left, pswi->iOffy + rcMove.top, 0);
+                    hdc,
+                    pswi->iOffx + rcMove.left, pswi->iOffy + rcMove.top, 0);
         }
 
         pcrc = pcrc->next;
