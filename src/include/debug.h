@@ -59,12 +59,14 @@
 #include "gdi.h"
 #include "window.h"
 #include "internals.h"
+#include "timer.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
 
-static inline void dump_region (const CLIPRGN* rgn, const char* name)
+static inline void
+dump_region (const CLIPRGN* rgn, const char* name)
 {
     _WRN_PRINTF("rcBound of %s (%p): (%d, %d, %d, %d); size (%d x %d)\n",
             name, rgn,
@@ -73,14 +75,16 @@ static inline void dump_region (const CLIPRGN* rgn, const char* name)
             RECTW(rgn->rcBound), RECTH(rgn->rcBound));
 }
 
-static inline void dump_rect (const RECT* rect, const char* name)
+static inline void
+dump_rect (const RECT* rect, const char* name)
 {
     _WRN_PRINTF("rect of %s: (%d, %d, %d, %d); size (%d x %d)\n", name,
             rect->left, rect->top, rect->right, rect->bottom,
             RECTWP(rect), RECTHP(rect));
 }
 
-static inline void dump_window (HWND hwnd, const char* name)
+static inline void
+dump_window (HWND hwnd, const char* name)
 {
     PMAINWIN main_win = (PMAINWIN)hwnd;
 
@@ -136,7 +140,8 @@ static inline void dump_window (HWND hwnd, const char* name)
     }
 }
 
-static inline void dump_message (const MSG* msg, const char* name)
+static inline void
+dump_message (const MSG* msg, const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
     _WRN_PRINTF ("Message(%s) for %s: %u (%s), Wnd: %p, wP: %p, lP: %p.\n",
@@ -151,7 +156,8 @@ static inline void dump_message (const MSG* msg, const char* name)
 #endif
 }
 
-static inline void dump_message_with_retval (const MSG* msg, LRESULT retval,
+static inline void
+dump_message_with_retval (const MSG* msg, LRESULT retval,
         const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
@@ -167,7 +173,8 @@ static inline void dump_message_with_retval (const MSG* msg, LRESULT retval,
 #endif
 }
 
-static inline void dump_mouse_message (UINT message, int location, int x, int y,
+static inline void
+dump_mouse_message (UINT message, int location, int x, int y,
         const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
@@ -180,6 +187,45 @@ static inline void dump_mouse_message (UINT message, int location, int x, int y,
 #endif
 }
 
+static inline void
+dump_message_queue (const MSGQUEUE* msg_queue, const char* name)
+{
+    int i, nr;
+
+    _WRN_PRINTF ("Message queue for %s: Root Window (%p), nrWindows (%d), "
+            "nrTimers (%d), nrListenFD (%d):\n",
+            name,
+            msg_queue->pRootMainWin ?
+                msg_queue->pRootMainWin->spCaption : "NULL",
+            msg_queue->nrWindows, msg_queue->nr_timers, msg_queue->nr_fd_slots);
+
+    nr = 0;
+    for (i = 0; i < DEF_NR_TIMERS; i++) {
+        if (msg_queue->timer_slots[i]) {
+            _WRN_PRINTF ("  Timer #%d: hWnd (%p), id (%ld)\n",
+                    i, msg_queue->timer_slots[i]->hWnd,
+                    msg_queue->timer_slots[i]->id);
+            nr++;
+        }
+    }
+
+    if (nr != msg_queue->nr_timers) {
+        _ERR_PRINTF ("nrTimers in message queue does not match counted %d\n",
+                nr);
+    }
+
+    nr = 0;
+    for (i = 0; i < msg_queue->nr_fd_slots; i++) {
+        if (msg_queue->fd_slots[i]) {
+            _WRN_PRINTF ("  Listened FD #%d: type (%d), fd (%d), hwnd (%p)\n",
+                    i, msg_queue->fd_slots[i]->type,
+                    msg_queue->fd_slots[i]->fd, msg_queue->fd_slots[i]->hwnd);
+            nr++;
+        }
+    }
+
+    _WRN_PRINTF ("----End of message queue for %s\n", name);
+}
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
