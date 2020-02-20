@@ -169,7 +169,8 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
         arg.val = zi->max_nr_popupmenus + MAX_NR_ZNODES(zi);
         semctl (zi->zi_semid, zi->zi_semnum, SETVAL, arg);
     }
-#if 0
+#if 0   /* the pthread rwlock shared among processes must be located in
+           the global writable shared memory. */
     {
         int ret;
         pthread_rwlockattr_t attr;
@@ -184,7 +185,7 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
         }
 
     }
-#endif
+#endif  /* deprectated code */
 
     memset (zi + 1, 0xFF, size_usage_bmp);
     /* get a unused mask rect slot. */
@@ -751,14 +752,14 @@ int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
         return -1;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (IS_INVALID_ZIDX (zi, idx_znode)) {
+    if (IS_INVALID_ZIDX_LOOSE (zi, idx_znode)) {
         return -1;
     }
 
     nodes = GET_ZORDERNODE(zi);
     if (idx_znode > 0) {
         DWORD type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-        if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
+        if (type < ZOF_TYPE_BOTTOMMOST || type > ZOF_TYPE_TOPMOST)
             return -1;
     }
 
@@ -783,14 +784,14 @@ int GUIAPI ServerGetPrevZNode (MG_Layer* layer, int idx_znode, int* cli)
         return -1;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    if (IS_INVALID_ZIDX (zi, idx_znode)) {
+    if (IS_INVALID_ZIDX_LOOSE (zi, idx_znode)) {
         return -1;
     }
 
     nodes = GET_ZORDERNODE(zi);
     if (idx_znode > 0) {
         DWORD type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-        if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
+        if (type < ZOF_TYPE_BOTTOMMOST || type > ZOF_TYPE_TOPMOST)
             return -1;
     }
 
@@ -1066,7 +1067,7 @@ BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer,
 
     /* Since 5.0.0: handle fixed znodes */
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
-    if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_SCREENLOCK)
+    if (type < ZOF_TYPE_BOTTOMMOST || type > ZOF_TYPE_TOPMOST)
         return FALSE;
 
     if (nodes [idx_znode].hwnd == HWND_NULL) {
