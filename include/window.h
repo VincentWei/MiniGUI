@@ -8202,8 +8202,8 @@ MG_EXPORT HWND GUIAPI GetFirstHosted (HWND hHosting);
  *
  * \return Handle to the next hosted main window.
  *         Returns 0 when \a hHosted is the last hosted main window;
- *         HWND_INVALID when error occurs. If \a hHosted is 0, this call
- *         equals GetFirstHosted(hHosting).
+ *         HWND_INVALID when error occurs. If \a hHosted is 0, it is equivalent
+ *         to GetFirstHosted(hHosting).
  *         If an invalid window handle is passed as \a hHosting
  *         or \a hHosted, HWND_INVALID will be returned; If \a hHosted is
  *         not the hosted window of \a hHosting, HWND_INVALID will be returned.
@@ -9446,15 +9446,20 @@ MG_EXPORT NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd,
 MG_EXPORT NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd);
 
 /**
- * \def CreateWindow(class_name, caption, style, id, x, y, w, h, parent, add_data)
+ * \def CreateWindow(class_name, caption, style, id, x, y, w, h, parent,
+ *      add_data)
  * \brief A simplified version of \a CreateWindowEx.
  *
  * \sa CreateWindowEx
  */
-#define CreateWindow(class_name, caption, style,        \
-                id, x, y, w, h, parent, add_data)       \
-        CreateWindowEx(class_name, caption, style, 0,   \
-                        id, x, y, w, h, parent, add_data)
+static inline HWND GUIAPI CreateWindow (const char* spClassName,
+                const char* spCaption, DWORD dwStyle,
+                LINT id, int x, int y, int w, int h, HWND hParentWnd,
+                DWORD dwAddData)
+{
+    return CreateWindowEx2 (spClassName, spCaption, dwStyle, WS_EX_NONE,
+                id, x, y, w, h, hParentWnd, NULL, NULL, dwAddData);
+}
 
     /** @} end of control_fns */
 
@@ -9468,7 +9473,8 @@ MG_EXPORT NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd);
  * \var typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD)
  * \brief Type of the timer callback procedure.
  *
- * This is the prototype of the callback procedure of a timer created by SetTimerEx.
+ * This is the prototype of the callback procedure of a timer created by
+ * \a SetTimerEx.
  * MiniGUI will call the timer procedure instead of sending MSG_TIMER message.
  *
  * If the return value of a timer procedure is FALSE, the timer will be killed
@@ -9477,6 +9483,7 @@ MG_EXPORT NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd);
  * \sa SetTimerEx
  *
  * \note The prototype had changed since MiniGUI v3.2; the old one:
+ *
  *      BOOL (* TIMERPROC)(HWND, int, unsigned int)
  */
 typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD);
@@ -9507,11 +9514,13 @@ typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD);
  *
  * \sa SetTimer, ResetTimerEx, KillTimer, MSG_TIMER
  *
- * \note You should set, reset, and kill a timer in the same thread if your
- *       MiniGUI is configured as MiniGUI-Threads.
+ * \note You should set, reset, and kill a timer in the same message thread
+ *      if your enabled support for the virtual window.
  *
  * \note The prototype had changed since MiniGUI v3.2; the old one:
- *      BOOL GUIAPI SetTimerEx (HWND hWnd, int id, unsigned int speed, TIMERPROC timer_proc);
+ *
+ *      BOOL SetTimerEx (HWND hWnd, int id, unsigned int speed, \
+ *              TIMERPROC timer_proc);
  *
  * Example:
  *
@@ -9536,8 +9545,8 @@ MG_EXPORT BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
  * This function destroys the specified timer \a id.
  *
  * \param hWnd The window owns the timer.
- * \param id The identifier of the timer. If \a id equals 0,
- *        this function will kill all timers in the system.
+ * \param id The identifier of the timer. If \a id is 0, this function will
+ *      kill all timers of created by the window.
  *
  * \return The number of actually killed timer.
  *

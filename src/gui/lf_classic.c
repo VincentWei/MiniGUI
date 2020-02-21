@@ -2271,10 +2271,10 @@ static void draw_border (HWND hWnd, HDC hdc, BOOL is_active)
     if (border < -2)
         return ;
 
-    if(is_active)
-    border_color = GetWindowElementPixelEx (hWnd, hdc, WE_FGC_ACTIVE_WND_BORDER);
+    if (is_active)
+        border_color = GetWindowElementPixelEx (hWnd, hdc, WE_FGC_ACTIVE_WND_BORDER);
     else
-    border_color = GetWindowElementPixelEx (hWnd, hdc, WE_FGC_INACTIVE_WND_BORDER);
+        border_color = GetWindowElementPixelEx (hWnd, hdc, WE_FGC_INACTIVE_WND_BORDER);
 
     win_info = GetWindowInfo(hWnd);
 

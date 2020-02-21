@@ -398,6 +398,24 @@ MG_EXPORT void GUIAPI TerminateGUI (int not_used);
 **/
 MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
 
+/**
+* \def NAME_SELF_LAYER
+* \brief The name of the self layer.
+**/
+#define NAME_SELF_LAYER         ""
+
+/**
+* \def NAME_TOPMOST_LAYER
+* \brief The name of the topmost layer.
+**/
+#define NAME_TOPMOST_LAYER      ""
+
+/**
+* \def NAME_DEF_LAYER
+* \brief The default name of the layer.
+**/
+#define NAME_DEF_LAYER          "mginit"
+
 #ifdef _MGRM_PROCESSES
 
     /**
@@ -417,24 +435,6 @@ MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
      *
      * @{
      */
-
-/**
-* \def NAME_SELF_LAYER
-* \brief The name of the self layer.
-**/
-#define NAME_SELF_LAYER         ""
-
-/**
-* \def NAME_TOPMOST_LAYER
-* \brief The name of the topmost layer.
-**/
-#define NAME_TOPMOST_LAYER      ""
-
-/**
-* \def NAME_DEF_LAYER
-* \brief The default name of the layer.
-**/
-#define NAME_DEF_LAYER          "mginit"
 
 /**
  * \fn GHANDLE GUIAPI JoinLayer (const char* layer_name,
