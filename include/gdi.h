@@ -7488,42 +7488,48 @@ MG_EXPORT void GUIAPI GetGlyphBitmap (LOGFONT* log_font,
                 const char* mchar, int mchar_len,
                 GLYPHBITMAP* glyph_bitmap);
 
-#ifndef _MGRM_THREADS
-
 /**
  * \fn BOOL GUIAPI InitVectorialFonts (void)
  * \brief Initializes vectorial font renderer.
  *
- * This function initializes vectorial font renderer for MiniGUI-Processes
- * application. For the performance reason, MiniGUI-Processes does not load
- * vetorical fonts, such as TrueType or Adobe Type1, at startup. If you
- * want to render text in vectorial fonts, you must call this function
- * to initialize TrueType and Type1 font renderer.
+ * Before 5.0.0, for the performance reason, under MiniGUI-Processes and
+ * MiniGUI-Standalone runtime modes, MiniGUI does not load vector fonts,
+ * such as TrueType or Adobe Type 1, at startup automatically.
+ * This function initializes the vector font engines for MiniGUI-Processes
+ * and MiniGUI-Standalone apps.  If you want to render text in vector fonts,
+ * you must call this function to initialize the vector font engines.
  *
- * \return TRUE on success, FALSE on error.
+ * Since 5.0.0, MiniGUI always initialize the vector font engines at startup
+ * if it was configured for all runtime modes.
  *
- * \note Only defined for non-threads runmode. If your MiniGUI configured as
- * MiniGUI-Threads, no need to initialize FreeType font engines explicitly.
+ * \return Always return TRUE.
  *
  * \sa TermVectorialFonts
  */
-MG_EXPORT BOOL GUIAPI InitVectorialFonts (void);
+static inline BOOL GUIAPI InitVectorialFonts (void)
+{
+    _WRN_PRINTF("deprecated\n");
+    return TRUE;
+}
 
 /**
  * \fn void GUIAPI TermVectorialFonts (void)
  * \brief Terminates vectorial font renderer.
  *
- * This function terminates the vectorial font renderer.
- * When you are done with vectorial fonts, you should call this function to
- * unload the vectorial fonts to save memory.
+ * Before 5.0.0, this function terminates the vector font engines.
+ * When you are done with the vector fonts, you should call this function
+ * to unload the vector fonts to save memory.
  *
- * \note Only defined for non-threads runmode.
+ * Since 5.0.0, MiniGUI always initialize the FreeType fonts at startup
+ * if it was configured for all runtime modes. Therefore, this function
+ * does nothing.
  *
  * \sa InitVectorialFonts
  */
-MG_EXPORT void GUIAPI TermVectorialFonts (void);
-
-#endif
+static inline void GUIAPI TermVectorialFonts (void)
+{
+    _WRN_PRINTF("deprecated\n");
+}
 
 /**
  * \fn PLOGFONT GUIAPI CreateLogFont (const char* type, \
@@ -7639,7 +7645,7 @@ MG_EXPORT void GUIAPI TermVectorialFonts (void);
  *        size expected.
  * \param rotation The rotation of the logical font, it is in units of
  *        tenth degrees. Note that you can specify rotation only for
- *        vector fonts (use FreeType2 font engine).
+ *        vector fonts (use FreeType 2 font engine).
  * \return The pointer to the logical font created, NULL on error.
  *
  * \sa CreateLogFontIndirect, CreateLogFontByName, SelectFont
