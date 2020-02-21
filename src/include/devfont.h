@@ -52,6 +52,9 @@
 #ifndef GUI_DEVFONT_H
     #define GUI_DEVFONT_H
 
+/* define _DEBUG_DEVFONF to dump the devfonts */
+#define _DEBUG_DEVFONT
+
 #define ACHAR_MBC_FLAG          0x80000000
 
 #define IS_MBCHV(chv)   ((chv) & ACHAR_MBC_FLAG)
@@ -347,7 +350,8 @@ struct _FONTOPS
         Glyph32 prev, Glyph32 curr, int* delta_x, int* delta_y);
 
     /**
-     * The method to get the FreeType2 FT_Face objece; only valid for FreeType2 font engine
+     * The method to get the FreeType2 FT_Face objece; only valid for FreeType2
+     * font engine
      *
      * Since 4.0.0.
      */
