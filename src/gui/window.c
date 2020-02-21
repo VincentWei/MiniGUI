@@ -3608,42 +3608,42 @@ static void guiRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
 struct _entry_args {
     void* (*start_routine)(void *);
     void* arg;
-    sem_t wait;
+    sem_t* wait;
     void* msg_queue;
 };
 
 static void* _message_thread_entry (void* arg)
 {
-    struct _entry_args* entry_args = (struct _entry_args*)arg;
-    MSGQUEUE* msg_queue;
+    struct _entry_args* orig_args = (struct _entry_args*)arg;
+    struct _entry_args entry_args = *orig_args;
 
     if (pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL))
         goto failed;
 
     /* create message queue for this thread */
-    if (!(msg_queue = mg_AllocMsgQueueForThisThread ()))
+    if (!(entry_args.msg_queue = mg_AllocMsgQueueForThisThread ()))
         goto failed;
 
+    orig_args->msg_queue = entry_args.msg_queue;
+    sem_post (entry_args.wait);
+
     SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
-            MSGTHREAD_SIGNIN, (LPARAM)msg_queue);
+            MSGTHREAD_SIGNIN, (LPARAM)&entry_args.msg_queue);
 
     if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
         goto failed;
 
-    entry_args->msg_queue = msg_queue;
-    sem_post (&entry_args->wait);
-
     /* call start routine of app */
-    entry_args->start_routine (entry_args->arg);
+    entry_args.start_routine (entry_args.arg);
 
     SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
-            MSGTHREAD_SIGNOUT, (LPARAM)msg_queue);
+            MSGTHREAD_SIGNOUT, (LPARAM)&entry_args.msg_queue);
     mg_FreeMsgQueueForThisThread ();
 
     return NULL;
 
 failed:
-    sem_post (&entry_args->wait);
+    sem_post (entry_args.wait);
     return NULL;
 }
 
@@ -3652,6 +3652,7 @@ MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
         BOOL joinable, size_t stack_size)
 {
     pthread_attr_t new_attr;
+    sem_t wait;
     struct _entry_args entry_args;
     int ret;
 
@@ -3673,10 +3674,13 @@ MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
 
     }
 
-    sem_init (&entry_args.wait, 0, 0);
+    entry_args.start_routine = start_routine;
+    entry_args.arg = arg;
+    entry_args.wait = &wait;
+    sem_init (entry_args.wait, 0, 0);
     ret = pthread_create (thread, attr, _message_thread_entry, &entry_args);
-    sem_wait (&entry_args.wait);
-    sem_destroy (&entry_args.wait);
+    sem_wait (entry_args.wait);
+    sem_destroy (&wait);
 
     pthread_attr_destroy (&new_attr);
 
