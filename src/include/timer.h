@@ -57,11 +57,10 @@
 typedef struct _TIMER {
     HWND        hWnd;
     LINT        id;
-    DWORD       speed;
-    UINT_PTR    count;
-
+    DWORD       interv;
+    DWORD       ticks_expected;
+    DWORD       ticks_fired;
     TIMERPROC   proc;
-    UINT_PTR    tick_count;
 
     // removed since 5.0.0
     // PMSGQUEUE   msg_queue;

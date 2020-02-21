@@ -228,7 +228,7 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 /* the idle handler for a message queue with checking listening fds */
 static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
 {
-    int n;
+    int retval, n = 0;
     fd_set rset, wset, eset;
     fd_set* rsetptr = NULL;
     fd_set* wsetptr = NULL;
@@ -264,32 +264,31 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
         esetptr = &eset;
     }
 
-    if ((n = select (msg_queue->maxfd + 1,
+    if ((retval = select (msg_queue->maxfd + 1,
             rsetptr, wsetptr, esetptr, &sel_timeout)) < 0) {
-        if (errno == EINTR) {
-            /* it is time to check message again. */
-            return FALSE;
+        /* no event. */
+        if (errno != EINTR) {
+            _WRN_PRINTF ("unexpected error of select(): %m\n");
         }
-        _WRN_PRINTF ("failed to call select\n");
+        return FALSE;
     }
-    else if (n == 0) {
+    else if (retval == 0) {
 #ifdef _MGRM_PROCESSES
         if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
             msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 
-        n = __mg_check_expired_timers (msg_queue,
+        n += __mg_check_expired_timers (msg_queue,
                 SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
         msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 #else
         if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
             msg_queue->old_tick_count = __mg_timer_counter;
-        n = __mg_check_expired_timers (msg_queue,
+        n += __mg_check_expired_timers (msg_queue,
                 __mg_timer_counter - msg_queue->old_tick_count);
         msg_queue->old_tick_count = __mg_timer_counter;
 #endif
     }
-
-    if (rsetptr || wsetptr || esetptr) {
+    else if (rsetptr || wsetptr || esetptr) {
         n += __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
     }
 
@@ -779,8 +778,8 @@ static inline void CheckCapturedMouseMessage (PMSG pMsg)
           (nMsgFilterMin > 0 && nMsgFilterMax >= nMsgFilterMin && \
            message >= nMsgFilterMin && message <= nMsgFilterMax))
 
-BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax,
-                          BOOL bWait, UINT uRemoveMsg)
+BOOL PeekMessageEx (PMSG pMsg, HWND hWnd,
+        UINT nMsgFilterMin, UINT nMsgFilterMax, BOOL bWait, UINT uRemoveMsg)
 {
     PMSGQUEUE pMsgQueue;
     PQMSG phead;
@@ -1005,7 +1004,7 @@ checkagain:
 
                 /* calling the timer callback procedure */
                 ret_timer_proc = timer->proc (timer->hWnd,
-                        timer->id, timer->tick_count);
+                        timer->id, timer->ticks_fired);
 
                 /* lock the message queue again */
                 LOCK_MSGQ (pMsgQueue);
@@ -1021,7 +1020,7 @@ checkagain:
                 pMsg->message = MSG_TIMER;
                 pMsg->hwnd = timer->hWnd;
                 pMsg->wParam = timer->id;
-                pMsg->lParam = timer->tick_count;
+                pMsg->lParam = timer->ticks_fired;
                 SET_PADD (NULL);
 
                 UNLOCK_MSGQ (pMsgQueue);
@@ -1132,9 +1131,10 @@ checkagain:
         goto getit;
     }
 
+    UNLOCK_MSGQ (pMsgQueue);
+
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     /* no message, try wait, if no message call idle. */
-    UNLOCK_MSGQ (pMsgQueue);
     if (pMsgQueue->OnIdle) {
         if (sem_trywait (&pMsgQueue->wait) == 0)
             goto checkagain;
@@ -1576,8 +1576,6 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
 
     pMsgQueue->readpos = 0;
     pMsgQueue->writepos = 0;
-
-    mg_TerminateTimer ();
 
     pMsgQueue->dwState = QS_EMPTY;
     pMsgQueue->expired_timer_mask = 0;
