@@ -2521,6 +2521,31 @@ MG_EXPORT DESKTOPOPS* GUIAPI SetCustomDesktopOperationSet
  */
 MG_EXPORT void GUIAPI DesktopUpdateAllWindow (void);
 
+#ifndef _MGRM_PROCESSES
+
+#define DUMMY_LAYER_HANDLE  (GHANDLE)(-1)
+
+/**
+ * \fn GHANDLE GUIAPI JoinLayer (const char* layer_name,
+                const char* client_name,
+                int max_nr_highers, int max_nr_normals)
+ * \brief The dummy replacement of the same function for MiniGUI-Processes.
+ *
+ * This function is a replacment of the same function for MiniGUI-Processes
+ * runtime mode. We provide this function for MiniGUI-Threads and
+ * MiniGUI-Standalone runtime modes, in order to avoid using the
+ * conditional compilation instructions in your source code.
+ *
+ * \return Always returns DUMMY_LAYER_HANDLE to indicate success.
+ */
+static inline GHANDLE GUIAPI JoinLayer (const char* layer_name,
+        const char* client_name, int max_nr_highers, int max_nr_normals)
+{
+    return DUMMY_LAYER_HANDLE;
+}
+
+#endif  /* not defined _MGRM_PROCESSES */
+
     /** @} end of init_fns */
 
 #ifdef _MGHAVE_MOUSECALIBRATE
