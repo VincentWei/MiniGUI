@@ -77,6 +77,7 @@
 #include "server.h"
 #include "sharedres.h"
 #include "drawsemop.h"
+#include "timer.h"
 #include "license.h"
 
 extern DWORD __mg_timer_counter;
@@ -343,7 +344,7 @@ void server_ServerCleanup (void)
 
 BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
 {
-    int    i, n, clifd, nread;
+    int    i, evt, clifd, nread;
     pid_t  pid;
     uid_t  uid;
     struct timeval sel_timeout = {0, 0};
@@ -351,6 +352,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
+    int nevts = 0;              // Since 5.0.0; for timer and fd events
 
     if (__mg_timer_counter != SHAREDRES_TIMER_COUNTER) {
         __mg_timer_counter = SHAREDRES_TIMER_COUNTER;
@@ -379,7 +381,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
 #endif
 
     extra.params_mask = 0;
-    if ((n = IAL_WaitEvent (__mg_dsk_msg_queue->maxfd, &rset, wsetptr, esetptr,
+    if ((evt = IAL_WaitEvent (__mg_dsk_msg_queue->maxfd, &rset, wsetptr, esetptr,
                 wait?NULL:(&sel_timeout), &extra)) < 0) {
 
         /* It is time to check event again. */
@@ -444,13 +446,10 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
         }
     }
 
-    if (!wait)
-        return (n > 0);
-
     /* handle intput event (mouse/touch-screen or keyboard) */
-    if (n & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
-    if (n & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
-    if (n & IAL_EVENT_EXTRA) {
+    if (evt & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
+    if (evt & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
+    if (evt & IAL_EVENT_EXTRA) {
         MSG msg;
         msg.hwnd = HWND_DESKTOP;
         msg.message = extra.event;
@@ -484,12 +483,19 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
                 kernel_QueueMessage (msg_queue, &msg);
         }
     }
-    else if (n == 0)
+    else if (evt == 0) {
         ParseEvent (msg_queue, 0);
 
-    /* go through registered listening fds */
-    __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
+        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
+            msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 
-    return TRUE;
+        nevts += __mg_check_expired_timers (msg_queue,
+                SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+    }
+
+    /* go through registered listening fds */
+    nevts += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
+    return (nevts > 0);
 }
 

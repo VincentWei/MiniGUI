@@ -74,6 +74,7 @@
 #include "cursor.h"
 #include "event.h"
 #include "menu.h"
+#include "timer.h"
 #include "ourhdr.h"
 
 extern DWORD __mg_timer_counter;
@@ -191,7 +192,7 @@ void salone_StandAloneCleanup (void)
 
 BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
 {
-    int n;
+    int levt;       // low input event flags
 #ifdef __NOUNIX__
     struct timeval sel_timeout = {0, 10000};
 #elif defined (_MGGAL_BF533)
@@ -205,6 +206,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
+    int nevts = 0;              // Since 5.0.0; for timer and fd events
 
     if (old_timer_counter != __mg_timer_counter) {
         old_timer_counter = __mg_timer_counter;
@@ -227,7 +229,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
 
     extra.params_mask = 0;
 #ifdef __NOUNIX__
-    n = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+    levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
 
     /* update __mg_timer_counter */
@@ -239,7 +241,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
         __mg_timer_counter++;
     }
 #elif defined (_MGGAL_BF533)
-    n = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+    levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
 
     /* update __mg_timer_counter */
@@ -247,26 +249,24 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
         __mg_timer_counter += 1;
     }
 #else
-    n = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+    levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
     /* update __mg_timer_counter */
     __mg_timer_counter = __mg_os_get_time_ms()/10;
 #endif
 
-    if (n < 0) {
+    if (levt < 0) {
         /* It is time to check event again. */
         if (errno == EINTR) {
             ParseEvent (msg_queue, 0);
         }
         return FALSE;
     }
-    else if (!wait)
-        return (n > 0);
 
     /* handle intput event (mouse/touch-screen or keyboard) */
-    if (n & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
-    if (n & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
-    if (n & IAL_EVENT_EXTRA) {
+    if (levt & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
+    if (levt & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
+    if (levt & IAL_EVENT_EXTRA) {
         MSG msg;
         msg.hwnd = HWND_DESKTOP;
         msg.message = extra.event;
@@ -300,13 +300,19 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
                 kernel_QueueMessage (msg_queue, &msg);
         }
     }
-    else if (n == 0)
+    else if (levt == 0) {
         ParseEvent (msg_queue, 0);
 
-    /* go through registered listen fds */
-    __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
+        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
+            msg_queue->old_tick_count = __mg_timer_counter;
+        nevts += __mg_check_expired_timers (msg_queue,
+                __mg_timer_counter - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = __mg_timer_counter;
+    }
 
-    return (n > 0);
+    /* go through registered listen fds */
+    nevts += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
+    return (nevts > 0);
 }
 
 #if 0   /* deprecated code */

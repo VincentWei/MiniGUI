@@ -410,7 +410,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
     if ((n = select (msg_queue->maxfd + 1,
             &rset, wsetptr, esetptr, &sel_timeout)) < 0) {
         if (errno == EINTR) {
-            /* it is time to check message again. */
+            /* no event */
             return FALSE;
         }
         __mg_err_sys ("client: select error");
@@ -428,6 +428,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
             Msg.lParam = 0;
             Msg.time = __mg_timer_counter;
             kernel_QueueMessage (msg_queue, &Msg);
+            n++;
 
             old_timer = __mg_timer_counter;
             repeat_timeout = TIMEOUT_REPEAT;
@@ -455,14 +456,17 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
             msg.message = MSG_MOUSEMOVE;
             msg.wParam = buttons;
             msg.lParam = MAKELONG(mouse_x, mouse_y);
-            QueueDeskMessage(&msg);
+            kernel_QueueMessage (msg_queue, &msg);
+            n++;
         }
 
-        return FALSE;
+        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
+            msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+
+        n += __mg_check_expired_timers (msg_queue,
+                SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
     }
-    /* check fd only for HavePendingMessage function. */
-    else if (!wait)
-        return TRUE;
 
     old_timer = __mg_timer_counter;
     repeat_timeout = TIMEOUT_START_REPEAT;
@@ -472,32 +476,11 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
          (OnTrylockClientReq && OnUnlockClientReq &&
             !OnTrylockClientReq()))) {
 
-#if 1
         if ((nread = sock_read (conn_fd, &Msg, sizeof (MSG))) < 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
             __mg_err_sys ("client: read error on fd %d", conn_fd);
         }
-#else /* use recvmsg */
-        struct iovec    iov[1];
-        struct msghdr   msg;
-
-        iov[0].iov_base = &Msg;
-        iov[0].iov_len  = sizeof (MSG);
-
-        msg.msg_name        = NULL;
-        msg.msg_namelen     = 0;
-        msg.msg_iov         = iov;
-        msg.msg_iovlen      = 1;
-        msg.msg_control     = NULL;
-        msg.msg_controllen  = 0;
-
-        if ((nread = sock_recvmsg (conn_fd, &msg, 0)) < 0) {
-            if (OnTrylockClientReq && OnUnlockClientReq)
-                OnUnlockClientReq();
-            __mg_err_sys ("client: read error on fd %d", conn_fd);
-        }
-#endif
         else if (nread == 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
@@ -512,11 +495,11 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
     }
 
     /* go through registered listen fds */
-    __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
+    n += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
 
     check_live ();
 
-    return TRUE;
+    return (n > 0);
 }
 
 GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
