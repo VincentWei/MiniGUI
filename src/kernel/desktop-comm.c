@@ -2512,8 +2512,35 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     // per 0.01s
     case MSG_TIMER: {
         static DWORD uCounter = 0;
-#ifndef _MGRM_THREADS
         static DWORD blink_counter = 0;
+
+#ifdef _MGRM_THREADS
+        if (__mg_quiting_stage < 0) {
+
+            post_quit_to_all_message_threads ();
+
+            if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE &&
+                    __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
+                __mg_quiting_stage--;
+            }
+            else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
+                /* printf("force to quit !!!\n"); */
+            }
+
+            if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
+                    && HAS_NO_MAINWINDOW()
+                    && __mg_enter_terminategui) {
+                /* Let Desktop wait for MiniGUIMain() */
+                __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
+            }
+            else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
+                PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+            }
+        }
+#endif  /* _MGRM_THREADS */
+
+#if 0   /* use post_quit_to_all_message_threads instead */
+#ifndef _MGRM_THREADS
         static DWORD sg_old_counter = 0;
 
         if (sg_old_counter == 0)
@@ -2522,17 +2549,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         __mg_check_expired_timers (NULL, __mg_timer_counter - sg_old_counter);
         sg_old_counter = __mg_timer_counter;
 
-        if (__mg_timer_counter < (blink_counter + 10))
-            break;
-
-        uCounter += (__mg_timer_counter - blink_counter) * 10;
-        blink_counter = __mg_timer_counter;
 #else   /* not defined _MGRM_THREADS */
-        static DWORD blink_counter = 0;
-        static DWORD sg_old_counter = 0;
-
         if (__mg_quiting_stage < 0) {
-#if 0   /* use post_quit_to_all_message_threads instead */
             int level, slot;
             PMSGQUEUE pMsgQueue;
             ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
@@ -2550,7 +2568,6 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                     }
                 }
             }
-#endif   /* deprecated code */
 
             post_quit_to_all_message_threads ();
 
@@ -2573,19 +2590,21 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
             }
         }
 
+        static DWORD sg_old_counter = 0;
+
         if (MG_UNLIKELY(sg_old_counter == 0))
             sg_old_counter = __mg_timer_counter;
-        /* XXX: no need to check expired timers in desktop thread */
         __mg_check_expired_timers (NULL, __mg_timer_counter - sg_old_counter);
         sg_old_counter = __mg_timer_counter;
+
+#endif  /* defined _MGRM_THREADS */
+#endif  /* deprecated code */
 
         if (__mg_timer_counter < (blink_counter + 10))
             break;
 
         uCounter += (__mg_timer_counter - blink_counter) * 10;
         blink_counter = __mg_timer_counter;
-#endif /* defined _MGRM_THREADS */
-
         if (sg_hCaretWnd != 0
                 && gui_GetMainWindowPtrOfControl (sg_hCaretWnd) ==
                 dskGetActiveWindow()
@@ -2602,5 +2621,6 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
     return 0;
 }
-#endif
+
+#endif  /* defined(_MGRM_THREADS) || defined(_MGRM_STANDALONE) */
 
