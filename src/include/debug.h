@@ -68,7 +68,7 @@ extern "C" {
 static inline void
 dump_region (const CLIPRGN* rgn, const char* name)
 {
-    _WRN_PRINTF("rcBound of %s (%p): (%d, %d, %d, %d); size (%d x %d)\n",
+    _MG_PRINTF("rcBound of %s (%p): (%d, %d, %d, %d); size (%d x %d)\n",
             name, rgn,
             rgn->rcBound.left, rgn->rcBound.top,
             rgn->rcBound.right, rgn->rcBound.bottom,
@@ -78,7 +78,7 @@ dump_region (const CLIPRGN* rgn, const char* name)
 static inline void
 dump_rect (const RECT* rect, const char* name)
 {
-    _WRN_PRINTF("rect of %s: (%d, %d, %d, %d); size (%d x %d)\n", name,
+    _MG_PRINTF("rect of %s: (%d, %d, %d, %d); size (%d x %d)\n", name,
             rect->left, rect->top, rect->right, rect->bottom,
             RECTWP(rect), RECTHP(rect));
 }
@@ -89,22 +89,22 @@ dump_window (HWND hwnd, const char* name)
     PMAINWIN main_win = (PMAINWIN)hwnd;
 
     if (hwnd == HWND_NULL) {
-        _WRN_PRINTF("window for %s: (nil)\n", name);
+        _MG_PRINTF("window for %s: (nil)\n", name);
         return;
     }
     else if (hwnd == HWND_INVALID) {
-        _WRN_PRINTF("window for %s: (invalid)\n", name);
+        _MG_PRINTF("window for %s: (invalid)\n", name);
         return;
     }
     else if (main_win->DataType != TYPE_HWND) {
-        _WRN_PRINTF("window for %s: not a window (datatype: %d)\n", name,
+        _MG_PRINTF("window for %s: not a window (datatype: %d)\n", name,
                 (int)main_win->DataType);
         return;
     }
 
     switch (main_win->WinType) {
     case TYPE_MAINWIN:
-        _WRN_PRINTF("A main window for %s: "
+        _MG_PRINTF("A main window for %s: "
                 "caption(%s), id(%ld), positon(%d, %d, %d, %d)\n",
                 name, main_win->spCaption, main_win->id,
                 main_win->left, main_win->top,
@@ -112,13 +112,13 @@ dump_window (HWND hwnd, const char* name)
         break;
 
     case TYPE_VIRTWIN:
-        _WRN_PRINTF("A virtual window for %s: "
+        _MG_PRINTF("A virtual window for %s: "
                 "caption(%s), id(%ld)\n",
                 name, main_win->spCaption, main_win->id);
         break;
 
     case TYPE_CONTROL:
-        _WRN_PRINTF("A control for %s: "
+        _MG_PRINTF("A control for %s: "
                 "caption(%s), id(%ld), positon(%d, %d, %d, %d)\n",
                 name, main_win->spCaption, main_win->id,
                 main_win->left, main_win->top,
@@ -126,7 +126,7 @@ dump_window (HWND hwnd, const char* name)
         break;
 
     case TYPE_ROOTWIN:
-        _WRN_PRINTF("A root window for %s: "
+        _MG_PRINTF("A root window for %s: "
                 "caption(%s), id(%ld), positon(%d, %d, %d, %d)\n",
                 name, main_win->spCaption, main_win->id, 
                 main_win->left, main_win->top,
@@ -134,7 +134,7 @@ dump_window (HWND hwnd, const char* name)
         break;
 
     default:
-        _WRN_PRINTF("A unknown window for %s: %p\n",
+        _MG_PRINTF("A unknown window for %s: %p\n",
                 name, main_win);
         break;
     }
@@ -144,7 +144,7 @@ static inline void
 dump_message (const MSG* msg, const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
-    _WRN_PRINTF ("Message(%s) for %s: %u (%s), Wnd: %p, wP: %p, lP: %p.\n",
+    _MG_PRINTF ("Message(%s) for %s: %u (%s), Wnd: %p, wP: %p, lP: %p.\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pAdd?"SYNC":"NORM",
 #else
@@ -153,7 +153,7 @@ dump_message (const MSG* msg, const char* name)
             name, msg->message, Message2Str (msg->message),
             msg->hwnd, (PVOID)msg->wParam, (PVOID)msg->lParam);
 #else
-    _WRN_PRINTF ("Message(%s): %u, Wnd: %p, wP: %p, lP: %p.\n",
+    _MG_PRINTF ("Message(%s): %u, Wnd: %p, wP: %p, lP: %p.\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pAdd?"SYNC":"NORM",
 #else
@@ -169,7 +169,7 @@ dump_message_with_retval (const MSG* msg, LRESULT retval,
         const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
-    _WRN_PRINTF ("Message(%s) for %s done: %u (%s), Wnd: %p, retval (%p).\n",
+    _MG_PRINTF ("Message(%s) for %s done: %u (%s), Wnd: %p, retval (%p).\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pAdd?"SYNC":"NORM",
 #else
@@ -178,7 +178,7 @@ dump_message_with_retval (const MSG* msg, LRESULT retval,
             name, msg->message, Message2Str (msg->message),
             msg->hwnd, (PVOID)retval);
 #else
-    _WRN_PRINTF ("Message(%s) for %s: %u, Wnd: %p, retval (%p).\n",
+    _MG_PRINTF ("Message(%s) for %s: %u, Wnd: %p, retval (%p).\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pAdd?"SYNC":"NORM",
 #else
@@ -194,11 +194,11 @@ dump_mouse_message (UINT message, int location, int x, int y,
         const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
-    _WRN_PRINTF ("Mouse message for %s: %u (%s), location(%d), x(%d), y(%d).\n",
+    _MG_PRINTF ("Mouse message for %s: %u (%s), location(%d), x(%d), y(%d).\n",
             name, message, Message2Str (message),
             location, x, y);
 #else
-    _WRN_PRINTF ("Mouse message for %s: %u, location(%d), x(%d), y(%d).\n",
+    _MG_PRINTF ("Mouse message for %s: %u, location(%d), x(%d), y(%d).\n",
             name, message, location, x, y);
 #endif
 }
@@ -208,7 +208,7 @@ dump_message_queue (const MSGQUEUE* msg_queue, const char* name)
 {
     int i, nr;
 
-    _WRN_PRINTF ("Message queue for %s: Root Window (%p), nrWindows (%d), "
+    _MG_PRINTF ("Message queue for %s: Root Window (%p), nrWindows (%d), "
             "nrTimers (%d), nrListenFD (%d):\n",
             name,
             msg_queue->pRootMainWin ?
@@ -218,7 +218,7 @@ dump_message_queue (const MSGQUEUE* msg_queue, const char* name)
     nr = 0;
     for (i = 0; i < DEF_NR_TIMERS; i++) {
         if (msg_queue->timer_slots[i]) {
-            _WRN_PRINTF ("  Timer #%d: hWnd (%p), id (%ld)\n",
+            _MG_PRINTF ("  Timer #%d: hWnd (%p), id (%ld)\n",
                     i, msg_queue->timer_slots[i]->hWnd,
                     msg_queue->timer_slots[i]->id);
             nr++;
@@ -233,15 +233,16 @@ dump_message_queue (const MSGQUEUE* msg_queue, const char* name)
     nr = 0;
     for (i = 0; i < msg_queue->nr_fd_slots; i++) {
         if (msg_queue->fd_slots[i]) {
-            _WRN_PRINTF ("  Listened FD #%d: type (%d), fd (%d), hwnd (%p)\n",
+            _MG_PRINTF ("  Listened FD #%d: type (%d), fd (%d), hwnd (%p)\n",
                     i, msg_queue->fd_slots[i]->type,
                     msg_queue->fd_slots[i]->fd, msg_queue->fd_slots[i]->hwnd);
             nr++;
         }
     }
 
-    _WRN_PRINTF ("----End of message queue for %s\n", name);
+    _MG_PRINTF ("----End of message queue for %s\n", name);
 }
+
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
