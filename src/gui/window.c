@@ -3776,7 +3776,7 @@ err:
 BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
 {
     PVIRTWIN pVirtWin;
-    PVIRTWIN next;
+    PVIRTWIN hosted;
     PMSGQUEUE pMsgQueue;
 
     MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
@@ -3787,30 +3787,31 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
     }
 
     /* destroy all hosted virtual windows, main windows, and dialogs here. */
-    next = pVirtWin->pFirstHosted;
-    while (next) {
+    hosted = pVirtWin->pFirstHosted;
+    while (hosted) {
+        PVIRTWIN next = hosted->pNextHosted;
 
-        if (MG_IS_VIRTUAL_WINDOW ((HWND)next)) {
-            if (DestroyVirtualWindow ((HWND)next)) {
-                VirtualWindowCleanup ((HWND)next);
+        if (MG_IS_VIRTUAL_WINDOW ((HWND)hosted)) {
+            if (DestroyVirtualWindow ((HWND)hosted)) {
+                VirtualWindowCleanup ((HWND)hosted);
             }
             else
                 goto broken;
         }
-        else if (IsDialog((HWND)next)) {
-            if (!EndDialog ((HWND)next, IDCANCEL))
+        else if (IsDialog((HWND)hosted)) {
+            if (!EndDialog ((HWND)hosted, IDCANCEL))
                 goto broken;
         }
         else {
-            assert (MG_IS_MAIN_WINDOW ((HWND)next));
-            if (DestroyMainWindow ((HWND)next)) {
-                MainWindowCleanup ((HWND)next);
+            assert (MG_IS_MAIN_WINDOW ((HWND)hosted));
+            if (DestroyMainWindow ((HWND)hosted)) {
+                MainWindowCleanup ((HWND)hosted);
             }
             else
                 goto broken;
         }
 
-        next = next->pNextHosted;
+        hosted = next;
     }
 
     if (SendMessage (hVirtWnd, MSG_DESTROY, 0, 0)) {
@@ -4284,7 +4285,7 @@ err:
 BOOL GUIAPI DestroyMainWindow (HWND hWnd)
 {
     PMAINWIN pWin;
-    PMAINWIN head, next;    /* for hosted window list. */
+    PMAINWIN hosted;    /* for hosted window list. */
     PMSGQUEUE pMsgQueue;
 
     if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
@@ -4295,34 +4296,34 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     }
 
     /* destroy all hosted main windows and dialogs here. */
-    head = pWin->pFirstHosted;
-    while (head) {
-        next = head->pNextHosted;
+    hosted = pWin->pFirstHosted;
+    while (hosted) {
+        PMAINWIN next = hosted->pNextHosted;
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-        if (MG_IS_VIRTUAL_WINDOW ((HWND)next)) {
-            if (DestroyVirtualWindow ((HWND)next)) {
-                VirtualWindowCleanup ((HWND)next);
+        if (MG_IS_VIRTUAL_WINDOW ((HWND)hosted)) {
+            if (DestroyVirtualWindow ((HWND)hosted)) {
+                VirtualWindowCleanup ((HWND)hosted);
             }
             else
                 return FALSE;
         }
         else
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
-        if (IsDialog((HWND)head)) {
-            if (!EndDialog ((HWND)head, IDCANCEL))
+        if (IsDialog((HWND)hosted)) {
+            if (!EndDialog ((HWND)hosted, IDCANCEL))
                 return FALSE;
         }
         else {
-            assert (MG_IS_MAIN_WINDOW ((HWND)next));
+            assert (MG_IS_MAIN_WINDOW ((HWND)hosted));
 
-            if (DestroyMainWindow ((HWND)head))
-                MainWindowCleanup ((HWND)head);
+            if (DestroyMainWindow ((HWND)hosted))
+                MainWindowCleanup ((HWND)hosted);
             else
                 return FALSE;
         }
 
-        head = next;
+        hosted = next;
     }
 
     if (SendMessage (hWnd, MSG_DESTROY, 0, 0))
