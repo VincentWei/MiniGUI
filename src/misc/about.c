@@ -203,6 +203,7 @@ void GUIAPI OpenAboutDialog (void)
 
     if (sg_AboutWnd != 0) {
         ShowWindow (sg_AboutWnd, SW_SHOWNORMAL);
+        SetActiveWindow (sg_AboutWnd);
         return;
     }
 
