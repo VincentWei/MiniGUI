@@ -53,7 +53,7 @@
     #define GUI_DEVFONT_H
 
 /* define _DEBUG_DEVFONF to dump the devfonts */
-#define _DEBUG_DEVFONT
+/* #undef _DEBUG_DEVFONT */
 
 #define ACHAR_MBC_FLAG          0x80000000
 
