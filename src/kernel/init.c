@@ -567,6 +567,13 @@ int GUIAPI InitGUI (int args, const char *agr[])
         goto failure;
     }
 
+    /* init message queue of main GUI thread */
+    step++;
+    if (!mg_AllocMsgQueueForThisThread ()) {
+        _ERR_PRINTF ("failed to allocate message queue\n");
+        goto failure;
+    }
+
     SetKeyboardLayout ("default");
 
     SetCursor (GetSystemCursor (IDC_ARROW));
@@ -593,16 +600,15 @@ void GUIAPI TerminateGUI (int not_used)
     /* Since 5.0.0 */
     __mg_join_all_message_threads ();
 
+    __mg_quiting_stage = _MG_QUITING_STAGE_TIMER;
+    mg_TerminateTimer ();
+
     pthread_join (__mg_desktop, NULL);
 
     /* DesktopProc() will set __mg_quiting_stage to _MG_QUITING_STAGE_EVENT */
     pthread_join (__mg_parsor, NULL);
 
-    deleteThreadInfoKey ();
     __mg_license_destroy();
-
-    __mg_quiting_stage = _MG_QUITING_STAGE_TIMER;
-    mg_TerminateTimer ();
 
     mg_TerminateDesktop ();
 
@@ -630,9 +636,9 @@ void GUIAPI TerminateGUI (int not_used)
     miFreeArcCache ();
 #endif
 
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-    deleteThreadInfoKey();
-#endif
+    mg_FreeMsgQueueForThisThread ();
+
+    deleteThreadInfoKey ();
 
     mg_TerminateSliceAllocator();
 
