@@ -1040,20 +1040,21 @@ checkagain:
                 goto checkagain;
 
             pMsgQueue->OnIdle (pMsgQueue, TRUE);
-            goto checkagain;
         }
         else {
             sem_wait (&pMsgQueue->wait);
         }
+
+        goto checkagain;
     }
-#else
+#else   /* defined _MGHAVE_VIRTUAL_WINDOW */
     /* no message, idle */
     if (bWait) {
         assert (pMsgQueue->OnIdle);
         pMsgQueue->OnIdle (pMsgQueue, TRUE);
         goto checkagain;
     }
-#endif
+#endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
     /* no message */
     return FALSE;
@@ -1139,16 +1140,15 @@ checkagain:
             goto checkagain;
 
         pMsgQueue->OnIdle (pMsgQueue, TRUE);
-        goto checkagain;
     }
     else {
         sem_wait (&pMsgQueue->wait);
     }
-#else
+#else   /* defined _MGHAVE_VIRTUAL_WINDOW */
     /* no message, idle */
     assert (pMsgQueue->OnIdle);
     pMsgQueue->OnIdle (pMsgQueue, TRUE);
-#endif
+#endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
     goto checkagain;
 
