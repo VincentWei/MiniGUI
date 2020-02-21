@@ -165,8 +165,7 @@ dump_message (const MSG* msg, const char* name)
 }
 
 static inline void
-dump_message_with_retval (const MSG* msg, LRESULT retval,
-        const char* name)
+dump_message_with_retval (const MSG* msg, LRESULT retval, const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
     _MG_PRINTF ("Message(%s) for %s done: %u (%s), Wnd: %p, retval (%p).\n",
@@ -190,8 +189,7 @@ dump_message_with_retval (const MSG* msg, LRESULT retval,
 }
 
 static inline void
-dump_mouse_message (UINT message, int location, int x, int y,
-        const char* name)
+dump_mouse_message (UINT message, int location, int x, int y, const char* name)
 {
 #ifdef _MGHAVE_MSG_STRING
     _MG_PRINTF ("Mouse message for %s: %u (%s), location(%d), x(%d), y(%d).\n",
