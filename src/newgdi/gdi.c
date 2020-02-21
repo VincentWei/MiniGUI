@@ -347,7 +347,7 @@ BOOL mg_InitGDI (void)
     INIT_SPECIFICAL_FONTS (FONT_ETC_SECTION_NAME_UPF);
 #endif
 
-#if (defined (_MGFONT_TTF) || defined (_MGFONT_FT2)) && defined(_MGRM_THREADS)
+#if defined (_MGFONT_TTF) || defined (_MGFONT_FT2)
     if (!font_InitFreetypeLibrary ()) {
         _WRN_PRINTF ("Can not initialize freetype fonts!\n");
         goto error;
@@ -355,13 +355,14 @@ BOOL mg_InitGDI (void)
     INIT_SPECIFICAL_FONTS (FONT_ETC_SECTION_NAME_TTF);
 #endif
 
-    /* TODO: add other font support here */
-#if defined (_MGFONT_SEF) && !defined(_LITE_VERSION)
+#ifdef _MGFONT_SEF
     if(!font_InitializeScripteasy()) {
         _WRN_PRINTF ("Can not initialize ScriptEasy fonts!\n");
         goto error;
     }
 #endif
+
+    /* XXX: add other font support here */
 
     if (!font_InitIncoreFonts ()) {
         _WRN_PRINTF ("Can not initialize incore fonts!\n");
@@ -387,11 +388,9 @@ void mg_TerminateGDI( void )
 {
     mg_TermSysFont ();
 
-#ifdef _MGRM_THREADS
-#if defined (_MGFONT_TTF) || defined (_MGFONT_FT2)
+#if defined(_MGFONT_TTF) || defined(_MGFONT_FT2)
     font_TermSpecificalFonts (FONT_ETC_SECTION_NAME_TTF);
     font_TermFreetypeLibrary ();
-#endif
 #endif
 
 #ifdef _MGFONT_QPF
@@ -410,7 +409,7 @@ void mg_TerminateGDI( void )
     font_TermSpecificalFonts (FONT_ETC_SECTION_NAME_RBF);
 #endif
 
-#if defined (_MGFONT_SEF) && !defined(_LITE_VERSION)
+#ifdef _MGFONT_SEF
     font_UninitializeScripteasy();
 #endif
 
