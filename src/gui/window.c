@@ -2928,7 +2928,17 @@ BOOL GUIAPI IsControl (HWND hWnd)
 
 BOOL GUIAPI IsDialog (HWND hWnd)
 {
+#if 0   /* Since 5.0.0: use the internal extended style WS_EX_DIALOGBOX */
     return (BOOL)SendAsyncMessage (hWnd, MSG_ISDIALOG, 0, 0);
+#else   /* deprecated code */
+    PMAINWIN pWin;
+
+    MG_CHECK_RET (MG_IS_MAIN_WINDOW(hWnd), FALSE);
+
+    pWin = MG_GET_WINDOW_PTR(hWnd);
+
+    return (pWin->dwExStyle & WS_EX_DIALOGBOX);
+#endif  /* Since 5.0.0: use the internal extended style WS_EX_DIALOGBOX */
 }
 
 HWND GUIAPI GetMainWindowHandle (HWND hWnd)

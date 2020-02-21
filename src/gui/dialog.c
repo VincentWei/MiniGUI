@@ -194,6 +194,9 @@ int GUIAPI DialogBoxIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     if (hDlg == HWND_INVALID)
         return -1;
 
+    /* Since 5.0.0: use internal extended style for dialgbox */
+    IncludeWindowExStyle (hDlg, WS_EX_DIALOGBOX);
+
     //MiniGUI maybe change dialog owner in CreateMainWindow, so we
     //should update its owner by GetHosting.
     hOwner = GetHosting (hDlg);
