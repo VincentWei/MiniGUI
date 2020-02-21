@@ -74,22 +74,27 @@
 #define MSG_CANCELSCREENSAVER   0x0201
 #endif
 
-/* Internal use extended style. */
+/* Internal extended style. */
 #define WS_EX_MODALDISABLED     0x10000000L
 
-/**
+/*
  * \def WS_EX_CTRLASMAINWIN
  * \brief The control can be displayed out of the main window
  *        which contains the control.
  */
 #define WS_EX_CTRLASMAINWIN     0x20000000L
 
+/* Internal extended style. */
+#define WS_EX_DIALOGBOX         0x40000000L
+
 /* Make sure the internal window extended styles above are ok */
 #define MGUI_COMPILE_TIME_ASSERT(name, x)               \
        typedef int MGUI_dummy_ ## name[((x)?1:0) * 2 - 1]
 
-MGUI_COMPILE_TIME_ASSERT(ws_ex_int_1, WS_EX_INTERNAL_MASK & WS_EX_MODALDISABLED);
-MGUI_COMPILE_TIME_ASSERT(ws_ex_int_2, WS_EX_INTERNAL_MASK & WS_EX_CTRLASMAINWIN);
+MGUI_COMPILE_TIME_ASSERT(ws_ex_int_1,
+        WS_EX_INTERNAL_MASK & WS_EX_MODALDISABLED);
+MGUI_COMPILE_TIME_ASSERT(ws_ex_int_2,
+        WS_EX_INTERNAL_MASK & WS_EX_CTRLASMAINWIN);
 
 #undef MGUI_COMPILE_TIME_ASSERT
 
@@ -790,13 +795,13 @@ static inline void AlertDesktopTimerEvent (void)
 
 static inline void setMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
-    pMsgQueue->expired_timer_mask |= (0x01 << slot);
+    pMsgQueue->expired_timer_mask |= (0x01UL << slot);
     POST_MSGQ (pMsgQueue);
 }
 
 static inline void removeMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
-    pMsgQueue->expired_timer_mask &= ~(0x01 << slot);
+    pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
 }
 
 BOOL mg_InitTimer (BOOL use_sys_timer);
