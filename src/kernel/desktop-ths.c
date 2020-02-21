@@ -140,13 +140,15 @@ BOOL mg_InitDesktop (void)
     return TRUE;
 }
 
+#include "debug.h"
+
 void* __kernel_desktop_main (void* data)
 {
     MSG Msg;
 
     /* init message queue of desktop thread */
     if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
-        _WRN_PRINTF ("failed to allocate message queue\n");
+        _ERR_PRINTF ("failed to allocate message queue\n");
         return NULL;
     }
 
@@ -163,33 +165,29 @@ void* __kernel_desktop_main (void* data)
     sem_post ((sem_t*)data);
 
     /* process messages of desktop thread */
-    while (GetMessage(&Msg, HWND_DESKTOP)) {
+    while (GetMessage (&Msg, HWND_DESKTOP)) {
         LRESULT lRet = 0;
 
 #ifdef _MGHAVE_TRACE_MSG
         if (Msg.message != MSG_TIMEOUT && Msg.message != MSG_TIMER) {
-            fprintf (stderr, "Message %u (%s): hWnd: HWND_DESKTOP, wP: %p, lP: %p, tick: %u; %s\n",
-                Msg.message, Message2Str (Msg.message),
-                (PVOID)Msg.wParam, (PVOID)Msg.lParam, (UINT)Msg.time,
-                Msg.pAdd?"Sync":"Normal");
+            dump_message (&Msg, __func__);
         }
 #endif
 
         lRet = DesktopWinProc (HWND_DESKTOP,
                         Msg.message, Msg.wParam, Msg.lParam);
 
-        if (Msg.pAdd) /* this is a sync message. */
-        {
+        if (Msg.pAdd) {
+            /* this is a sync message. */
             PSYNCMSG pSyncMsg = (PSYNCMSG)(Msg.pAdd);
             pSyncMsg->retval = lRet;
-            if(pSyncMsg->sem_handle)
+            if (pSyncMsg->sem_handle)
                 sem_post(pSyncMsg->sem_handle);
         }
 
 #ifdef _MGHAVE_TRACE_MSG
         if (Msg.message != MSG_TIMEOUT && Msg.message != MSG_TIMER) {
-            fprintf (stderr, "Message %u (%s) done, return value: %p\n",
-                Msg.message, Message2Str (Msg.message), (PVOID)lRet);
+            dump_message_with_retval (&Msg, lRet, __func__);
         }
 #endif
     }
