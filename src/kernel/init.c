@@ -286,9 +286,6 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (void)
 */
 
 /************************** System Initialization ****************************/
-
-int __mg_timer_init (void);
-
 static BOOL SystemThreads(void)
 {
     sem_t wait;
@@ -316,7 +313,10 @@ static BOOL SystemThreads(void)
 
     sem_wait (&wait);
 
+#if 0   /* deprecated code */
+    /* Since 5.0.0, we no longer use the timer thread */
     __mg_timer_init ();
+#endif  /* deprecated code */
 
     // this thread collect low level event from outside,
     // if there is no event, this thread will suspend to wait a event.
@@ -574,6 +574,13 @@ int GUIAPI InitGUI (int args, const char *agr[])
         goto failure;
     }
 
+    /* init message queue of main GUI thread */
+    step++;
+    if (!mg_InitTimer (FALSE)) {
+        _ERR_PRINTF ("failed to start time counter\n");
+        goto failure;
+    }
+
     SetKeyboardLayout ("default");
 
     SetCursor (GetSystemCursor (IDC_ARROW));
@@ -597,11 +604,12 @@ void GUIAPI TerminateGUI (int not_used)
 {
     __mg_enter_terminategui = 1;
 
+    mg_TerminateTimer (FALSE);
+
     /* Since 5.0.0 */
     __mg_join_all_message_threads ();
 
     __mg_quiting_stage = _MG_QUITING_STAGE_TIMER;
-    mg_TerminateTimer ();
 
     pthread_join (__mg_desktop, NULL);
 

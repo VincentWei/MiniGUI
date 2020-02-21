@@ -767,7 +767,7 @@ static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
 
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
-#if 0 // def _MGHAVE_VIRTUAL_WINDOW
+#if 0 /* always use QS_DESKTIMER for desktop timer */
 static inline void AlertDesktopTimerEvent (void)
 {
     if (__mg_dsk_msg_queue) {
@@ -775,15 +775,17 @@ static inline void AlertDesktopTimerEvent (void)
         POST_MSGQ (__mg_dsk_msg_queue);
     }
 }
-#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
+#endif /* deprecated code */
 
 static inline void AlertDesktopTimerEvent (void)
 {
     __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+#if 0   /* since 5.0.0, we no longer use the timer thread */
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     if (getMsgQueueForThisThread() != __mg_dsk_msg_queue)
         POST_MSGQ (__mg_dsk_msg_queue);
-#endif
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+#endif  /* deprecated code */
 }
 
 static inline void setMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
@@ -797,9 +799,8 @@ static inline void removeMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
     pMsgQueue->expired_timer_mask &= ~(0x01 << slot);
 }
 
-BOOL mg_InitTimer (void);
-BOOL mg_InstallIntervalTimer (void);
-BOOL mg_UninstallIntervalTimer (void);
+BOOL mg_InitTimer (BOOL use_sys_timer);
+void mg_TerminateTimer (BOOL use_sys_timer);
 
 /*window element renderer manager interface*/
 extern WINDOW_ELEMENT_RENDERER * __mg_def_renderer;

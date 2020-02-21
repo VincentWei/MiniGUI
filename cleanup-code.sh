@@ -135,6 +135,6 @@ tab2space() {
 
 # sed -i 's/\<__ZOF_TYPE_HIGHER\>/ZOF_TYPE_HIGHER/g' `grep __ZOF_TYPE_HIGHER -rl include/ src/`
 
-sed -i 's/\<SetDesktopTimerFlag\>/AlertDesktopTimerEvent/g' `grep SetDesktopTimerFlag -rl include/ src/`
+# sed -i 's/\<SetDesktopTimerFlag\>/AlertDesktopTimerEvent/g' `grep SetDesktopTimerFlag -rl include/ src/`
 
 exit 0

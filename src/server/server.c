@@ -311,7 +311,7 @@ BOOL GUIAPI ServerStartup (int nr_globals,
     __mg_dsk_msg_queue->maxfd = listenfd;
     maxi = -1;
 
-    mg_InitTimer ();
+    mg_InitTimer (TRUE);
 
     __mg_start_server_desktop ();
 
@@ -336,7 +336,7 @@ void server_ServerCleanup (void)
 {
     __mg_cleanup_layers ();
 
-    mg_UninstallIntervalTimer ();
+    mg_TerminateTimer (TRUE);
 
     unlink (CS_PATH);
 }

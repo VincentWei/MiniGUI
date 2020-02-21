@@ -242,7 +242,7 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
         }
         else {
             sel_timeout.tv_sec = 0;
-            sel_timeout.tv_usec = USEC_TIMEOUT;
+            sel_timeout.tv_usec = USEC_10MS; // USEC_TIMEOUT;
         }
     }
     else {

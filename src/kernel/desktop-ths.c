@@ -142,6 +142,16 @@ BOOL mg_InitDesktop (void)
 
 #include "debug.h"
 
+static BOOL desktop_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
+{
+    if (wait) {
+        __mg_os_time_delay (10);
+        __mg_update_timer_count (NULL);
+    }
+
+    return FALSE;
+}
+
 void* __kernel_desktop_main (void* data)
 {
     MSG Msg;
@@ -153,7 +163,7 @@ void* __kernel_desktop_main (void* data)
     }
 
     /* for threads mode, the idle handler for desktop thread is NULL */
-    __mg_dsk_msg_queue->OnIdle = NULL;
+    __mg_dsk_msg_queue->OnIdle = desktop_idle_handler;
 
     /* init desktop window */
     init_desktop_win ();

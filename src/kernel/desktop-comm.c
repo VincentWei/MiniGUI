@@ -2532,6 +2532,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         static DWORD sg_old_counter = 0;
 
         if (__mg_quiting_stage < 0) {
+#if 0   /* use post_quit_to_all_message_threads instead */
             int level, slot;
             PMSGQUEUE pMsgQueue;
             ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
@@ -2549,45 +2550,9 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                     }
                 }
             }
+#endif   /* deprecated code */
 
-#if 0   /* deprecated code */
-            static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
-                ZNIDX_LAUNCHER };
-
-            /* Since 5.0.0 */
-            for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
-                pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
-                if (pWin && (pWin->WinType != TYPE_CONTROL) &&
-                        (pWin->pHosting == NULL)) {
-                    if ((pMsgQueue = getMsgQueue((HWND)pWin))) {
-                        POST_MSGQ(pMsgQueue);
-                    }
-                }
-            }
-
-            /* XXX: wake up other theads */
-            for (slot=__mg_zorder_info->first_topmost;
-                    slot > 0; slot = nodes[slot].next) {
-                pWin = (PMAINWIN)(nodes[slot].hwnd);
-                if (pWin && (pWin->WinType != TYPE_CONTROL) &&
-                        (pWin->pHosting == NULL)) {
-                    if ((pMsgQueue = getMsgQueue((HWND)pWin))) {
-                        POST_MSGQ(pMsgQueue);
-                    }
-                }
-            }
-
-            for (slot = __mg_zorder_info->first_normal;
-                    slot > 0; slot = nodes[slot].next) {
-                pWin = (PMAINWIN)(nodes[slot].hwnd);
-                if (pWin && (pWin->WinType == TYPE_MAINWIN) &&
-                        (pWin->pHosting == NULL)){
-                    if ((pMsgQueue = getMsgQueue((HWND)pWin))) {
-                        POST_MSGQ(pMsgQueue);
-                    }
-                }
-            }
-#endif  /* deprecated code */
+            post_quit_to_all_message_threads ();
 
             if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE &&
                     __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
@@ -2602,13 +2567,15 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                     && __mg_enter_terminategui) {
                 /* Let Desktop wait for MiniGUIMain() */
                 __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
-            } else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
+            }
+            else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
                 PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
             }
         }
 
         if (MG_UNLIKELY(sg_old_counter == 0))
             sg_old_counter = __mg_timer_counter;
+        /* XXX: no need to check expired timers in desktop thread */
         __mg_check_expired_timers (NULL, __mg_timer_counter - sg_old_counter);
         sg_old_counter = __mg_timer_counter;
 

@@ -4833,4 +4833,19 @@ int __mg_join_all_message_threads (void)
     return nr;
 }
 
+static inline int post_quit_to_all_message_threads (void)
+{
+    int nr = 0;
+    struct list_head *l;
+
+    list_for_each (l, &msg_queue_list) {
+        MSGQUEUE *msg_queue = (MSGQUEUE*)l;
+        dump_message_queue (msg_queue, __func__);
+        POST_MSGQ (msg_queue);
+        nr++;
+    }
+
+    return nr;
+}
+
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */

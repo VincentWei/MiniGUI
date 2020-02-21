@@ -79,20 +79,6 @@
 extern DWORD __mg_timer_counter;
 static DWORD old_timer_counter = 0;
 
-#if 0
-/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
-static SRVEVTHOOK srv_evt_hook = NULL;
-
-SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
-{
-    SRVEVTHOOK old_hook = srv_evt_hook;
-
-    srv_evt_hook = SrvEvtHook;
-
-    return old_hook;
-}
-#endif /* deprecated code; moved to window.c */
-
 static void ParseEvent (PMSGQUEUE msg_que, int event)
 {
     LWEVENT lwe;
@@ -192,33 +178,16 @@ extern DWORD __mg_os_get_time_ms(void);
 
 BOOL GUIAPI salone_StandAloneStartup (void)
 {
-#if 0
-    mg_maxfd = 0;
-    mg_fd_zero (&mg_rfdset);
-#endif /* deprecated code since 5.0.0 */
-
-#if 0 /* VW: do not use signal based interval timer; since 4.0 */
-    mg_InstallIntervalTimer ();
-#endif
-
-    __mg_os_start_time_ms ();
-
+    /* VW: do not use signal based interval timer; since 4.0 */
+    mg_InitTimer (FALSE);
     return TRUE;
 }
 
 void salone_StandAloneCleanup (void)
 {
-#if 0 /* VW: do not use signal based interval timer; since 4.0 */
-    mg_UninstallIntervalTimer ();
-#endif
+    /* VW: do not use signal based interval timer; since 4.0 */
+    mg_TerminateTimer (FALSE);
 }
-
-#if 0
-BOOL minigui_idle (void)
-{
-    return salone_IdleHandler4StandAlone (__mg_dsk_msg_queue, TRUE);
-}
-#endif /* deprecated code */
 
 BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
 {
@@ -339,4 +308,23 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
 
     return (n > 0);
 }
+
+#if 0   /* deprecated code */
+/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
+static SRVEVTHOOK srv_evt_hook = NULL;
+
+SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
+{
+    SRVEVTHOOK old_hook = srv_evt_hook;
+
+    srv_evt_hook = SrvEvtHook;
+
+    return old_hook;
+}
+
+BOOL minigui_idle (void)
+{
+    return salone_IdleHandler4StandAlone (__mg_dsk_msg_queue, TRUE);
+}
+#endif /* deprecated code */
 

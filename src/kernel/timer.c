@@ -69,7 +69,7 @@
 #include "ourhdr.h"
 #include "client.h"
 #include "sharedres.h"
-#endif
+#endif /* defined _MGRM_PROCESSES */
 
 #if defined(_DEBUG) && defined(_MGRM_PROCESSES)
 #define TIMER_ERR_SYS(text)         __mg_err_sys (text)
@@ -79,78 +79,27 @@
 
 DWORD __mg_timer_counter = 0;
 
-/* timer action for minigui timers */
-static void __mg_timer_action (void *data)
+/* update timer count for desktop thread */
+void __mg_update_timer_count (void *data)
 {
 #if defined(_MGRM_PROCESSES)
     SHAREDRES_TIMER_COUNTER = __mg_os_get_time_ms()/10;
-#elif defined(_MGRM_THREADS)
+#else
     __mg_timer_counter = __mg_os_get_time_ms()/10;
-    /* alert desktop */
-    AlertDesktopTimerEvent ();
-#else /* _MGRM_STANDALONE */
-    // do nothing
 #endif
+
+    /* alert desktop */
+    __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
 }
-
-/* timer entry for thread version */
-#ifdef _MGRM_THREADS
-
-#ifdef __AOS__
-
-#include "os_api.h"
-
-static OS_TIMER_ID __mg_os_timer = 0;
-
-#else /* __AOS__ */
-static void* TimerEntry (void* data)
-{
-    sem_post ((sem_t*)data);
-
-    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
-        __mg_os_time_delay (10);
-        __mg_timer_action (NULL);
-    }
-
-    /* printf("quit from TimerEntry()\n"); */
-    return NULL;
-}
-#endif /* !__AOS__ */
-
-int __mg_timer_init (void)
-{
-    if (!mg_InitTimer ()) {
-        fprintf (stderr, "KERNEL>timer: Init Timer failure.\n");
-        return -1;
-    }
-
-#ifdef __AOS__
-    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_timer_action,
-                                         NULL, AOS_TIMER_TICKT,
-                                         OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
-#else /* __AOS__ */
-    {
-        sem_t wait;
-        sem_init (&wait, 0, 0);
-        pthread_create (&__mg_timer, NULL, TimerEntry, &wait);
-        sem_wait (&wait);
-        sem_destroy (&wait);
-    }
-#endif /* !__AOS__ */
-
-    return 0;
-}
-
-#else /* defined _MGRM_THREADS */
 
 #ifdef __NOUNIX__
 
-BOOL mg_InstallIntervalTimer (void)
+static BOOL install_system_timer (void)
 {
     return TRUE;
 }
 
-BOOL mg_UninstallIntervalTimer (void)
+static BOOL unintall_system_timer (void)
 {
     return TRUE;
 }
@@ -164,7 +113,7 @@ BOOL mg_UninstallIntervalTimer (void)
 static struct sigaction old_alarm_handler;
 static struct itimerval old_timer;
 
-BOOL mg_InstallIntervalTimer (void)
+static BOOL install_system_timer (void)
 {
     struct itimerval timerv;
     struct sigaction siga;
@@ -172,7 +121,7 @@ BOOL mg_InstallIntervalTimer (void)
     sigaction (SIGALRM, NULL, &old_alarm_handler);
 
     siga = old_alarm_handler;
-    siga.sa_handler = (void(*)(int))__mg_timer_action;
+    siga.sa_handler = (void(*)(int))__mg_update_timer_count;
 #ifndef _MGRM_STANDALONE
     siga.sa_flags = 0;
 #else
@@ -196,7 +145,7 @@ BOOL mg_InstallIntervalTimer (void)
     return TRUE;
 }
 
-BOOL mg_UninstallIntervalTimer (void)
+static BOOL unintall_system_timer (void)
 {
     if (setitimer (ITIMER_REAL, &old_timer, 0) == -1) {
         TIMER_ERR_SYS ("setitimer call failed!\n");
@@ -212,51 +161,24 @@ BOOL mg_UninstallIntervalTimer (void)
 }
 
 #endif /* not defined __NOUNIX__ */
-#endif /* defined _MGRM_THREADS */
 
-BOOL mg_InitTimer (void)
+BOOL mg_InitTimer (BOOL use_sys_timer)
 {
+    __mg_timer_counter = 0;
+
     __mg_os_start_time_ms();
 
-#ifdef _MGRM_THREADS
-    __mg_timer_counter = 0;
-#else
-    mg_InstallIntervalTimer ();
-#endif
+    if (use_sys_timer) {
+        install_system_timer ();
+    }
 
     return TRUE;
 }
 
-void mg_TerminateTimer (void)
+void mg_TerminateTimer (BOOL use_sys_timer)
 {
-#ifdef __AOS__
-    tp_os_timer_delete (__mg_os_timer);
-#endif
-
-#ifndef _MGRM_THREADS
-    mg_UninstallIntervalTimer ();
-#else
-#   ifdef __WINBOND_SWLINUX__
-    pthread_detach (__mg_timer); /* XXX: Can we pthread_join()? */
-#   else
-    pthread_join (__mg_timer, NULL);
-#   endif /* __WINBOND_SWLINUX__ */
-#endif
-
-    /* Since 5.0.0, we allocate timer slots per thread, and manage the time slots
-       in message queue */
-#if 0
-    for (i = 0; i < DEF_NR_TIMERS; i++) {
-        if (timerstr[i] != NULL)
-            free ( timerstr[i] );
-        timerstr[i] = NULL;
-    }
-
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-    pthread_mutex_destroy (&timerLock);
-#endif
-
-#endif /* deprecated code */
+    if (use_sys_timer)
+        unintall_system_timer ();
 }
 
 /************************* Functions run in message thread *******************/
@@ -550,7 +472,93 @@ DWORD GUIAPI GetTickCount (void)
 #endif
 }
 
-#if 0
+#if 0   /* deprecated code */
+
+/* Since 5.0.0, we no longer use the timer thread for MiniGUI-Threads runmode */
+   in message queue */
+
+/* timer entry for thread version */
+#ifdef _MGRM_THREADS
+
+#ifdef __AOS__
+
+#include "os_api.h"
+
+static OS_TIMER_ID __mg_os_timer = 0;
+
+#else /* __AOS__ */
+static void* TimerEntry (void* data)
+{
+    sem_post ((sem_t*)data);
+
+    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
+        __mg_os_time_delay (10);
+        __mg_update_timer_count (NULL);
+    }
+
+    /* printf("quit from TimerEntry()\n"); */
+    return NULL;
+}
+#endif /* !__AOS__ */
+
+int __mg_timer_init (void)
+{
+    if (!mg_InitTimer ()) {
+        fprintf (stderr, "KERNEL>timer: Init Timer failure.\n");
+        return -1;
+    }
+
+#ifdef __AOS__
+    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_update_timer_count,
+                                         NULL, AOS_TIMER_TICKT,
+                                         OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
+#else /* __AOS__ */
+    {
+        sem_t wait;
+        sem_init (&wait, 0, 0);
+        pthread_create (&__mg_timer, NULL, TimerEntry, &wait);
+        sem_wait (&wait);
+        sem_destroy (&wait);
+    }
+#endif /* !__AOS__ */
+
+    return 0;
+}
+
+void mg_TerminateTimer (void)
+{
+#ifdef __AOS__
+    tp_os_timer_delete (__mg_os_timer);
+#endif
+
+#ifdef __WINBOND_SWLINUX__
+    pthread_detach (__mg_timer); /* XXX: Can we pthread_join()? */
+#else
+    pthread_join (__mg_timer, NULL);
+#endif /* __WINBOND_SWLINUX__ */
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    pthread_mutex_destroy (&timerLock);
+#endif
+
+#if 0   /* deprecated code */
+    /* Since 5.0.0, we allocate timer slots per thread, and manage the time slots
+       in message queue */
+    for (i = 0; i < DEF_NR_TIMERS; i++) {
+        if (timerstr[i] != NULL)
+            free ( timerstr[i] );
+        timerstr[i] = NULL;
+    }
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    pthread_mutex_destroy (&timerLock);
+#endif
+#endif  /* deprecated code */
+}
+
+#else /* defined _MGRM_THREADS */
+#endif /* defined _MGRM_THREADS */
+
 /* Since 5.0.0, we use timer slots per thread, and manage the time slots
    in message queue */
 static TIMER *timerstr[DEF_NR_TIMERS];
