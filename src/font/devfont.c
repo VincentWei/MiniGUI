@@ -426,7 +426,7 @@ unsigned short font_GetBestScaleFactor (int height, int expect)
 { \
     devfont = head; \
     while (devfont) { \
-        _DBG_PRINTF ("  %d: %s, charsetname: %s, style: %08x\n",  \
+        _MG_PRINTF ("  %d: %s, charsetname: %s, style: %08x\n",  \
                 count,  \
                 devfont->name, devfont->charset_ops->name, devfont->style); \
             devfont = devfont->next; \
@@ -439,13 +439,13 @@ void dbg_dumpDevFonts (void)
     int         count = 0;
     DEVFONT*    devfont;
 
-    _DBG_PRINTF ("============= SBDevFonts ============\n");
+    _MG_PRINTF ("============= SBDevFonts ============\n");
     PRINT_DEVFONTS (sb_dev_font_head, devfont, count);
-    _DBG_PRINTF ("========== End of SBDevFonts =========\n");
+    _MG_PRINTF ("========== End of SBDevFonts =========\n");
 
-    _DBG_PRINTF ("\n============= MBDevFonts ============\n");
+    _MG_PRINTF ("\n============= MBDevFonts ============\n");
     PRINT_DEVFONTS (mb_dev_font_head, devfont, count);
-    _DBG_PRINTF ("========== End of MBDevFonts =========\n");
+    _MG_PRINTF ("========== End of MBDevFonts =========\n");
 }
 #endif /* _DEBUG_DEVFONT */
 
@@ -1096,6 +1096,8 @@ void font_TermSpecificalFonts (char* etc_section)
     init_or_term_specifical_fonts (etc_section, TRUE);
 }
 
+#if 0
+/* Since 5.0.0, we always initialize vector fonts for all runtime modes */
 #ifndef _MGRM_THREADS
 
 static int init_count = 0;
@@ -1134,6 +1136,6 @@ void GUIAPI TermVectorialFonts (void)
     font_TermFreetypeLibrary ();
 #endif
 }
+#endif /* not defined _MGRM_THREADS */
 
-#endif /* !_MGRM_THREADS */
-
+#endif  /* deprecated code */
