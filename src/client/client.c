@@ -364,14 +364,19 @@ static void check_live (void)
 {
     REQUEST req;
 
-    if (__mg_timer_counter != SHAREDRES_TIMER_COUNTER) {
+#if 0   /* deprecated code */
+    /* Since 5.0.0, call __mg_update_tick_count instead */
+    if (__mg_tick_counter != SHAREDRES_TIMER_COUNTER) {
         AlertDesktopTimerEvent ();
-        __mg_timer_counter = SHAREDRES_TIMER_COUNTER;
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
     }
+#endif  /* deprecated code */
+
+    __mg_update_tick_count (NULL);
 
     /* Tell server that I am live */
     req.id = REQID_IAMLIVE;
-    req.data = &__mg_timer_counter;
+    req.data = &__mg_tick_counter;
     req.len_data = sizeof (unsigned int);
     ClientRequest (&req, NULL, 0);
 }
@@ -421,16 +426,16 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
         int flag = 0, mouse_x = -1, mouse_y = -1, buttons = -1;
 
         check_live ();
-        if (wait && (__mg_timer_counter - old_timer) >= repeat_timeout) {
+        if (wait && (__mg_tick_counter - old_timer) >= repeat_timeout) {
             Msg.hwnd = HWND_DESKTOP;
             Msg.message = MSG_TIMEOUT;
-            Msg.wParam = (WPARAM)__mg_timer_counter;
+            Msg.wParam = (WPARAM)__mg_tick_counter;
             Msg.lParam = 0;
-            Msg.time = __mg_timer_counter;
+            Msg.time = __mg_tick_counter;
             kernel_QueueMessage (msg_queue, &Msg);
             n++;
 
-            old_timer = __mg_timer_counter;
+            old_timer = __mg_tick_counter;
             repeat_timeout = TIMEOUT_REPEAT;
         }
 
@@ -468,7 +473,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
         msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
     }
 
-    old_timer = __mg_timer_counter;
+    old_timer = __mg_tick_counter;
     repeat_timeout = TIMEOUT_START_REPEAT;
 
     if (FD_ISSET (conn_fd, &rset) &&
