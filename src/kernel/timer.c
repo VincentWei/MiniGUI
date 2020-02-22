@@ -77,19 +77,44 @@
 #define TIMER_ERR_SYS(text)
 #endif
 
-DWORD __mg_timer_counter = 0;
+DWORD __mg_tick_counter = 0;
 
 /* update timer count for desktop thread */
-void __mg_update_timer_count (void *data)
+void __mg_update_tick_count (void *data)
 {
 #if defined(_MGRM_PROCESSES)
-    SHAREDRES_TIMER_COUNTER = __mg_os_get_time_ms()/10;
-#else
-    __mg_timer_counter = __mg_os_get_time_ms()/10;
-#endif
+    if (mgIsServer) {
+        DWORD elapsed_ticks;
 
-    /* alert desktop */
-    __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+        /* Since 5.0.0, we use elapsed time in ms to count the ticks */
+        elapsed_ticks = __mg_os_get_elapsed_ms ();
+        elapsed_ticks = (elapsed_ticks + 9) / 10;
+
+        __mg_tick_counter += elapsed_ticks;
+        SHAREDRES_TIMER_COUNTER = __mg_tick_counter;
+    }
+    else {
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
+    }
+#else   /* defined _MGRM_PROCESSES */
+    DWORD elapsed_ticks;
+
+    /* Since 5.0.0, we use elapsed time in ms to count the ticks */
+    elapsed_ticks = __mg_os_get_elapsed_ms ();
+    elapsed_ticks = (elapsed_ticks + 9) / 10;
+    __mg_tick_counter += elapsed_ticks;
+#endif  /* not defined _MGRM_PROCESSES */
+
+    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
+       message, and the interval for the timer of desktop changes to 0.05s. */
+    if (__mg_tick_counter >
+            __mg_dsk_msg_queue->last_ticks_desktop + DESKTOP_TIMER_INERTVAL) {
+        __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+#ifdef _MGRM_THREADS    /* only wake up desktop for threads mode */
+        POST_MSGQ (__mg_dsk_msg_queue);
+#endif
+        __mg_dsk_msg_queue->last_ticks_desktop = __mg_tick_counter;
+    }
 }
 
 #ifdef __NOUNIX__
@@ -121,7 +146,7 @@ static BOOL install_system_timer (void)
     sigaction (SIGALRM, NULL, &old_alarm_handler);
 
     siga = old_alarm_handler;
-    siga.sa_handler = (void(*)(int))__mg_update_timer_count;
+    siga.sa_handler = (void(*)(int))__mg_update_tick_count;
 #ifndef _MGRM_STANDALONE
     siga.sa_flags = 0;
 #else
@@ -164,7 +189,7 @@ static BOOL unintall_system_timer (void)
 
 BOOL mg_InitTimer (BOOL use_sys_timer)
 {
-    __mg_timer_counter = 0;
+    __mg_tick_counter = 0;
 
     __mg_os_start_time_ms();
 
@@ -200,7 +225,7 @@ int __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter)
 #ifdef _MGRM_PROCESSES
         ticks_current = SHAREDRES_TIMER_COUNTER;
 #else
-        ticks_current = __mg_timer_counter;
+        ticks_current = __mg_tick_counter;
 #endif
 
         for (i = 0; i < DEF_NR_TIMERS; i++) {
@@ -219,7 +244,7 @@ int __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter)
 #ifdef _MGRM_PROCESSES
                     timer_slots[i]->ticks_current = SHAREDRES_TIMER_COUNTER;
 #else
-                    timer_slots[i]->ticks_current = __mg_timer_counter;
+                    timer_slots[i]->ticks_current = __mg_tick_counter;
 #endif
                     /* setting timer flag is simple, we do not need to lock msgq,
                        or else we may encounter dead lock here */
@@ -289,7 +314,7 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD interv,
 #ifdef _MGRM_PROCESSES
     ticks_current = SHAREDRES_TIMER_COUNTER;
 #else
-    ticks_current = __mg_timer_counter;
+    ticks_current = __mg_tick_counter;
 #endif
 
     timer_slots[slot]->hWnd = hWnd;
@@ -425,7 +450,7 @@ BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD interv,
 #ifdef _MGRM_PROCESSES
                 ticks_current = SHAREDRES_TIMER_COUNTER;
 #else
-                ticks_current = __mg_timer_counter;
+                ticks_current = __mg_tick_counter;
 #endif
                 /* Should clear old timer flags */
                 removeMsgQueueTimerFlag (msg_queue, i);
@@ -494,10 +519,10 @@ DWORD GUIAPI GetTickCount (void)
 #ifdef _MGRM_PROCESSES
     return SHAREDRES_TIMER_COUNTER;
 #elif defined(_MGRM_STANDALONE)
-    __mg_timer_counter = __mg_os_get_time_ms()/10;
-    return __mg_timer_counter;
+    __mg_tick_counter = __mg_os_get_time_ms()/10;
+    return __mg_tick_counter;
 #else
-    return __mg_timer_counter;
+    return __mg_tick_counter;
 #endif
 }
 
@@ -522,7 +547,7 @@ static void* TimerEntry (void* data)
 
     while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
         __mg_os_time_delay (10);
-        __mg_update_timer_count (NULL);
+        __mg_update_tick_count (NULL);
     }
 
     /* printf("quit from TimerEntry()\n"); */
@@ -538,7 +563,7 @@ int __mg_timer_init (void)
     }
 
 #ifdef __AOS__
-    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_update_timer_count,
+    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_update_tick_count,
                                          NULL, AOS_TIMER_TICKT,
                                          OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
 #else /* __AOS__ */
