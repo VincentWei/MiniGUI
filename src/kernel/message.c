@@ -292,12 +292,14 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
         n += __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
     }
 
+#if 0
     if (wait && n == 0) {
         n = handle_idle_message (msg_queue);
     }
     else {
         msg_queue->idle_counter = 0;
     }
+#endif
 
     return n > 0;
 }
@@ -325,12 +327,14 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
             __mg_tick_counter - msg_queue->old_tick_count);
     msg_queue->old_tick_count = __mg_tick_counter;
 
+#if 0
     if (wait && n == 0) {
         n = handle_idle_message (msg_queue);
     }
     else {
         msg_queue->idle_counter = 0;
     }
+#endif
 
     return n > 0;
 }
@@ -774,6 +778,9 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd,
     pMsgQueue = __mg_dsk_msg_queue;
 #endif
 
+    /* since 5.0.0, reset idle counter */
+    pMsgQueue->idle_counter = 0;
+
     memset (pMsg, 0, sizeof(MSG));
     pMsg->time = __mg_tick_counter;
 
@@ -996,7 +1003,9 @@ checkagain:
             if (sem_trywait (&pMsgQueue->wait) == 0)
                 goto checkagain;
 
-            pMsgQueue->OnIdle (pMsgQueue, TRUE);
+            if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+                handle_idle_message (pMsgQueue);
+            }
         }
         else {
             sem_wait (&pMsgQueue->wait);
@@ -1008,7 +1017,9 @@ checkagain:
     /* no message, idle */
     if (bWait) {
         assert (pMsgQueue->OnIdle);
-        pMsgQueue->OnIdle (pMsgQueue, TRUE);
+        if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+            handle_idle_message (pMsgQueue);
+        }
         goto checkagain;
     }
 #endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
@@ -1018,7 +1029,7 @@ checkagain:
 }
 
 #if 0   /* moved code */
-/* The following two functions are moved to window.h as inline functions.
+/* The following two functions are moved to window.h as inline functions. */
 int GUIAPI GetMessage (PMSG pMsg, HWND hWnd)
 {
     return PeekMessageEx (pMsg, hWnd, 0, 0, TRUE, PM_REMOVE);
@@ -1042,6 +1053,8 @@ BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hWnd)
 
     if (!(pMsgQueue = getMsgQueueIfWindowInThisThread(hWnd)))
         return FALSE;
+
+    pMsgQueue->idle_counter = 0;
 
     memset (pMsg, 0, sizeof(MSG));
 
@@ -1097,7 +1110,9 @@ checkagain:
         if (sem_trywait (&pMsgQueue->wait) == 0)
             goto checkagain;
 
-        pMsgQueue->OnIdle (pMsgQueue, TRUE);
+        if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+            handle_idle_message (pMsgQueue);
+        }
     }
     else {
         sem_wait (&pMsgQueue->wait);
@@ -1105,7 +1120,9 @@ checkagain:
 #else   /* defined _MGHAVE_VIRTUAL_WINDOW */
     /* no message, idle */
     assert (pMsgQueue->OnIdle);
-    pMsgQueue->OnIdle (pMsgQueue, TRUE);
+    if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+        handle_idle_message (pMsgQueue);
+    }
 #endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
     goto checkagain;
@@ -1500,7 +1517,7 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
             if (timer_wnd == hWnd
                     || (MG_IS_MAIN_VIRT_WINDOW (hWnd) &&
                         gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd)) {
-                removeMsgQueueTimerFlag (pMsgQueue, slot);
+                pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
             }
         }
     }

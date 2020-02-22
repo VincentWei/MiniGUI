@@ -233,7 +233,9 @@ int __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter)
                 if (ticks_current >= timer_slots[i]->ticks_expected) {
                     /* setting timer flag is simple, we do not need to lock
                        msgq, or else we may encounter dead lock here */
-                    setMsgQueueTimerFlag (msg_queue, i);
+                    msg_queue->expired_timer_mask |= (0x01UL << i);
+                    POST_MSGQ (msg_queue);
+
                     timer_slots[i]->ticks_expected += timer_slots[i]->interv;
                     timer_slots[i]->ticks_fired = ticks_current;
                     nr++;
@@ -248,7 +250,8 @@ int __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter)
 #endif
                     /* setting timer flag is simple, we do not need to lock msgq,
                        or else we may encounter dead lock here */
-                    setMsgQueueTimerFlag (msg_queue, i);
+                    msg_queue->expired_timer_mask |= (0x01UL << i);
+                    POST_MSGQ (msg_queue);
                     timer_slots[i]->count -= timer_slots[i]->interv;
                     nr++;
                 }
@@ -363,7 +366,7 @@ void __mg_remove_timer (MSGQUEUE* msg_queue, int slot)
     timer_slots = msg_queue->timer_slots;
     if (MG_LIKELY (timer_slots[slot])) {
         /* The following code is already moved to message.c...
-         * timer->msg_queue->expired_timer_mask &= ~(0x01 << slot);
+         * timer->msg_queue->expired_timer_mask &= ~(0x01UL << slot);
          */
         mg_slice_delete (TIMER, timer_slots[slot]);
         timer_slots [slot] = NULL;
@@ -405,7 +408,7 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
         for (i = 0; i < DEF_NR_TIMERS; i++) {
             if ((timer_slots [i] && timer_slots [i]->hWnd == hWnd) &&
                     (id == 0 || timer_slots [i]->id == id)) {
-                removeMsgQueueTimerFlag (msg_queue, i);
+                msg_queue->expired_timer_mask &= ~(0x01UL << i);
                 mg_slice_delete (TIMER, timer_slots[i]);
                 timer_slots [i] = NULL;
                 msg_queue->nr_timers--;
@@ -453,7 +456,7 @@ BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD interv,
                 ticks_current = __mg_tick_counter;
 #endif
                 /* Should clear old timer flags */
-                removeMsgQueueTimerFlag (msg_queue, i);
+                msg_queue->expired_timer_mask &= ~(0x01UL << i);
                 timer_slots[i]->interv = interv;
                 timer_slots[i]->ticks_expected = ticks_current + interv;
                 timer_slots[i]->ticks_fired = 0;
@@ -656,15 +659,15 @@ void __mg_move_timer_last (TIMER* timer, int slot)
     if (timer && timer->msg_queue) {
         /* The following code is already called in message.c...
          * timer->ticks_current = 0;
-         * timer->msg_queue->expired_timer_mask &= ~(0x01 << slot);
+         * timer->msg_queue->expired_timer_mask &= ~(0x01UL << slot);
          */
 
         if (slot != (DEF_NR_TIMERS - 1)) {
             TIMER* t;
 
-            if (timer->msg_queue->expired_timer_mask & (0x01 << (DEF_NR_TIMERS -1))) {
-                timer->msg_queue->expired_timer_mask |= (0x01 << slot);
-                timer->msg_queue->expired_timer_mask &= ~(0x01 << (DEF_NR_TIMERS -1));
+            if (timer->msg_queue->expired_timer_mask & (0x01UL << (DEF_NR_TIMERS -1))) {
+                timer->msg_queue->expired_timer_mask |= (0x01UL << slot);
+                timer->msg_queue->expired_timer_mask &= ~(0x01UL << (DEF_NR_TIMERS -1));
             }
 
             t = timerstr [DEF_NR_TIMERS - 1];
