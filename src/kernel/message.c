@@ -224,6 +224,21 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
 }
 #endif /* defined _MGHAVE_VIRTUAL_WINDOW */
 
+static int handle_idle_message (MSGQUEUE* msg_queue)
+{
+    int n = 0;
+
+    msg_queue->idle_counter++;
+    if (msg_queue->idle_counter >= MAX_IDLE_COUNTER) {
+        // it is time to post MSG_IDLE to all windows in this thread.
+        MSG msg = { HWND_NULL, MSG_IDLE, __mg_tick_counter, 0 };
+        n = __mg_broadcast_message (msg_queue, &msg);
+        msg_queue->idle_counter = 0;
+    }
+
+    return n;
+}
+
 #ifdef HAVE_SELECT
 /* the idle handler for a message queue with checking listening fds */
 static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
@@ -236,14 +251,8 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
     struct timeval sel_timeout;
 
     if (wait) {
-        if (msg_queue->nr_timers > 0) {
-            sel_timeout.tv_sec = 0;
-            sel_timeout.tv_usec = USEC_10MS;
-        }
-        else {
-            sel_timeout.tv_sec = 0;
-            sel_timeout.tv_usec = USEC_10MS; // USEC_TIMEOUT;
-        }
+        sel_timeout.tv_sec = 0;
+        sel_timeout.tv_usec = USEC_10MS;
     }
     else {
         sel_timeout.tv_sec = 0;
@@ -273,34 +282,21 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
         return FALSE;
     }
     else if (retval == 0) {
-#ifdef _MGRM_PROCESSES
         if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-            msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
-
+            msg_queue->old_tick_count = __mg_tick_counter;
         n += __mg_check_expired_timers (msg_queue,
-                SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
-        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
-#else
-        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-            msg_queue->old_tick_count = __mg_timer_counter;
-        n += __mg_check_expired_timers (msg_queue,
-                __mg_timer_counter - msg_queue->old_tick_count);
-        msg_queue->old_tick_count = __mg_timer_counter;
-#endif
+                __mg_tick_counter - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = __mg_tick_counter;
     }
     else if (rsetptr || wsetptr || esetptr) {
         n += __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
     }
 
     if (wait && n == 0) {
-        // no MSG_TIMER or MSG_FDEVENT message...
-        // it time to post MSG_IDLE to all windows in this thread.
-#ifdef _MGRM_PROCESSES
-        MSG msg = { HWND_NULL, MSG_IDLE, SHAREDRES_TIMER_COUNTER, 0 };
-#else
-        MSG msg = { HWND_NULL, MSG_IDLE, __mg_timer_counter, 0 };
-#endif
-        n = __mg_broadcast_message (msg_queue, &msg);
+        n = handle_idle_message (msg_queue);
+    }
+    else {
+        msg_queue->idle_counter = 0;
     }
 
     return n > 0;
@@ -314,12 +310,7 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
     long timeout_ms;
 
     if (wait) {
-        if (msg_queue->nr_timers > 0) {
-            timeout_ms = 10;
-        }
-        else {
-            timeout_ms = 300;
-        }
+        timeout_ms = 10;
     }
     else {
         timeout_ms = 0;
@@ -328,30 +319,17 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
     if (timeout_ms > 0)
         __mg_os_time_delay (timeout_ms);
 
-#ifdef _MGRM_PROCESSES
     if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
-
+        msg_queue->old_tick_count = __mg_tick_counter;
     n = __mg_check_expired_timers (msg_queue,
-            SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
-    msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
-#else
-    if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-        msg_queue->old_tick_count = __mg_timer_counter;
-    n = __mg_check_expired_timers (msg_queue,
-            __mg_timer_counter - msg_queue->old_tick_count);
-    msg_queue->old_tick_count = __mg_timer_counter;
-#endif
+            __mg_tick_counter - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = __mg_tick_counter;
 
     if (wait && n == 0) {
-        // no MSG_TIMER or MSG_FDEVENT message...
-        // it time to post MSG_IDLE to all windows in this thread.
-#ifdef _MGRM_PROCESSES
-        MSG msg = { HWND_NULL, MSG_IDLE, SHAREDRES_TIMER_COUNTER, 0 };
-#else
-        MSG msg = { HWND_NULL, MSG_IDLE, __mg_timer_counter, 0 };
-#endif
-        n = __mg_broadcast_message (msg_queue, &msg);
+        n = handle_idle_message (msg_queue);
+    }
+    else {
+        msg_queue->idle_counter = 0;
     }
 
     return n > 0;
@@ -449,7 +427,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
 
     LOCK_MSGQ(msg_que);
 
-    msg->time = __mg_timer_counter;
+    msg->time = __mg_tick_counter;
 
     /* check for the duplicated messages */
     if (msg->message == MSG_MOUSEMOVE
@@ -634,7 +612,6 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
         goto retok;
 
     /*
-     * FIXME
      * We do not need to check QS_DESKTIMER, because it is for the
      * desktop window, and user don't care it.
      */
@@ -784,7 +761,8 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd,
     PMSGQUEUE pMsgQueue;
     PQMSG phead;
 
-    if (!pMsg || (hWnd != HWND_DESKTOP && !MG_IS_MAIN_WINDOW(hWnd)))
+    if (MG_UNLIKELY (pMsg == NULL ||
+                (hWnd != HWND_DESKTOP && !MG_IS_MAIN_VIRT_WINDOW (hWnd))))
         return FALSE;
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
@@ -797,11 +775,7 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd,
 #endif
 
     memset (pMsg, 0, sizeof(MSG));
-#ifdef _MGRM_PROCESSES
-    pMsg->time = SHAREDRES_TIMER_COUNTER;
-#else
-    pMsg->time = __mg_timer_counter;
-#endif
+    pMsg->time = __mg_tick_counter;
 
 checkagain:
 
@@ -960,22 +934,6 @@ checkagain:
         int slot;
         TIMER* timer;
 
-#if 0   // def _MGHAVE_VIRTUAL_WINDOW
-        if (hWnd == HWND_DESKTOP) {
-            pMsg->hwnd = hWnd;
-            pMsg->message = MSG_TIMER;
-            pMsg->wParam = 0;
-            pMsg->lParam = 0;
-            SET_PADD (NULL);
-
-            if (uRemoveMsg == PM_REMOVE) {
-                pMsgQueue->expired_timer_mask = 0;
-            }
-            UNLOCK_MSGQ (pMsgQueue);
-            return TRUE;
-        }
-#endif  /* deprecated code */
-
         /* get the first expired timer slot */
         slot = pMsgQueue->first_timer_slot;
         do {
@@ -1059,8 +1017,8 @@ checkagain:
     return FALSE;
 }
 
-/*
-The following two functions are moved to window.h as inline functions.
+#if 0   /* moved code */
+/* The following two functions are moved to window.h as inline functions.
 int GUIAPI GetMessage (PMSG pMsg, HWND hWnd)
 {
     return PeekMessageEx (pMsg, hWnd, 0, 0, TRUE, PM_REMOVE);
@@ -1072,7 +1030,7 @@ BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
     return PeekMessageEx (pMsg, hWnd, nMsgFilterMin, nMsgFilterMax,
                            FALSE, uRemoveMsg);
 }
-*/
+#endif  /* moved code */
 
 /* wait for message */
 BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hWnd)
@@ -1540,7 +1498,7 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
         if (pMsgQueue->expired_timer_mask & (0x01UL << slot)) {
             HWND timer_wnd = pMsgQueue->timer_slots [slot]->hWnd;
             if (timer_wnd == hWnd
-                    || (MG_IS_MAIN_WINDOW (hWnd) &&
+                    || (MG_IS_MAIN_VIRT_WINDOW (hWnd) &&
                         gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd)) {
                 removeMsgQueueTimerFlag (pMsgQueue, slot);
             }
