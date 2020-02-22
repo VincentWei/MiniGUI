@@ -188,18 +188,27 @@ typedef struct _SYNCMSG
 typedef SYNCMSG* PSYNCMSG;
 #endif   /* defined _MGHAVE_VIRTUAL_WINDOW */
 
-typedef BOOL (* IDLEHANDLER) (PMSGQUEUE msg_que, BOOL wait);
+typedef BOOL (* IDLEHANDLER) (PMSGQUEUE msg_queue, BOOL wait);
 
 #ifdef HAVE_SELECT
-
 typedef struct _LISTEN_FD {
     int type;
     int fd;
     void* hwnd;
     void* context;
 } LISTEN_FD;
+#endif  /* defined HAVE_SELECT */
 
+#define QS_NOTIFYMSG        0x10000000
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+  #define QS_SYNCMSG        0x20000000
 #endif
+#define QS_POSTMSG          0x40000000
+#define QS_QUIT             0x80000000
+#define QS_INPUT            0x01000000
+#define QS_PAINT            0x02000000
+#define QS_DESKTIMER        0x04000000
+#define QS_EMPTY            0x00000000
 
 // the MSGQUEUE struct is an internal struct.
 // use semaphores to implement message queue.
@@ -234,6 +243,9 @@ struct _MSGQUEUE
     int readpos, writepos;      // positions for reading and writing
 
     int loop_depth;             // message loop depth, for dialog boxes
+
+    int idle_counter;           // the idle connter for MSG_IDLE
+    DWORD last_ticks_desktop;   // the last tick count for desktop timer
 
     /* Since 5.0.0, MiniGUI provides support for timers per message thread */
     int nr_timers;              // the number of active timers
@@ -575,7 +587,7 @@ typedef struct _TRACKMENUINFO* PTRACKMENUINFO;
 extern HWND __mg_captured_wnd;
 extern HWND __mg_ime_wnd;
 extern HWND __mg_hwnd_desktop;
-extern DWORD __mg_timer_counter;
+extern DWORD __mg_tick_counter;
 extern PMAINWIN __mg_dsk_win;
 
 #if 0 /* Since 5.0.0: deprecated */
@@ -616,6 +628,12 @@ extern pthread_t __mg_desktop, __mg_parsor, __mg_timer;
 #define MG_IS_VIRTUAL_WINDOW(hWnd)                          \
         (MG_IS_WINDOW(hWnd) &&                              \
          ((PMAINWIN)hWnd)->WinType == TYPE_VIRTWIN)
+
+/* Whether hWnd is a main window or virtual window */
+#define MG_IS_MAIN_VIRT_WINDOW(hWnd)                        \
+        (MG_IS_WINDOW(hWnd) &&                              \
+         (((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN ||       \
+          ((PMAINWIN)hWnd)->WinType == TYPE_VIRTWIN))
 
 #define MG_IS_NORMAL_MAIN_WINDOW(hWnd)                      \
         (hWnd != HWND_DESKTOP && MG_IS_MAIN_WINDOW(hWnd))
@@ -772,7 +790,9 @@ static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
 
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
-#if 0 /* always use QS_DESKTIMER for desktop timer */
+#if 0   /* deprecated code */
+/* since 5.0.0, we always use QS_DESKTIMER for desktop timer */
+/* since 5.0.0, we no longer use the timer thread */
 static inline void AlertDesktopTimerEvent (void)
 {
     if (__mg_dsk_msg_queue) {
@@ -780,18 +800,16 @@ static inline void AlertDesktopTimerEvent (void)
         POST_MSGQ (__mg_dsk_msg_queue);
     }
 }
-#endif /* deprecated code */
 
 static inline void AlertDesktopTimerEvent (void)
 {
     __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
-#if 0   /* since 5.0.0, we no longer use the timer thread */
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     if (getMsgQueueForThisThread() != __mg_dsk_msg_queue)
         POST_MSGQ (__mg_dsk_msg_queue);
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
-#endif  /* deprecated code */
 }
+#endif /* deprecated code */
 
 static inline void setMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
