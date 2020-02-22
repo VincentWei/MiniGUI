@@ -3774,7 +3774,6 @@ HWND GUIAPI CreateVirtualWindow (HWND hHosting,
                 (PMAINWIN)pVirtWin);
 
     pMsgQueue->nrWindows++;
-
     return (HWND)pVirtWin;
 
 err:
@@ -3945,7 +3944,9 @@ int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval)
 BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
 {
     PMAINWIN pMainWin;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     PMSGQUEUE pMsgQueue;
+#endif
 
     MG_CHECK_RET (MG_IS_MAIN_WINDOW (hMainWnd), FALSE);
     pMainWin = MG_GET_MAIN_WINDOW_PTR (hMainWnd);
@@ -4062,6 +4063,11 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 
     /* leave the pHosting is NULL for the first window of this thread. */
 #else
+    /* you must create main window in the main thread for non-threads mods */
+    if (getMsgQueueForThisThread () != __mg_dsk_msg_queue) {
+        goto err;
+    }
+
     pWin->pHosting = getMainWindowPtr (pCreateInfo->hHosting);
     if (pWin->pHosting == NULL)
         pWin->pHosting = __mg_dsk_win;
@@ -4215,8 +4221,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
             (WPARAM)pWin, (LPARAM)&ct_info) < 0)
         goto err;
 
-    /* houhh20081127, Move these code into dskAddNewMainWindow().*/
 #if 0
+    /* houhh20081127, Move these code into dskAddNewMainWindow().*/
     /* Create secondary window dc. */
     if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
         pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
@@ -4256,22 +4262,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     }
 #endif
 
-#if 0
-    /* Since 5.0.0: exclude the special window type style if failed */
-    if ((pWin->dwExStyle & WS_EX_WINTYPE_MASK) == WS_EX_WINTYPE_SCREENLOCK &&
-            pWin->idx_znode != ZNIDX_SCREENLOCK) {
-        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
-    }
-    else if ((pWin->dwExStyle & WS_EX_WINTYPE_MASK) == WS_EX_WINTYPE_DOCKER &&
-            pWin->idx_znode != ZNIDX_DOCKER) {
-        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
-    }
-    else if ((pWin->dwExStyle & WS_EX_WINTYPE_MASK) == WS_EX_WINTYPE_LAUNCHER &&
-            pWin->idx_znode != ZNIDX_LAUNCHER) {
-        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
-    }
-#endif /* move to desktop */
-
+    pWin->pMsgQueue->nrWindows++;
     return (HWND)pWin;
 
 err:
