@@ -81,8 +81,9 @@ extern "C" {
 
 unsigned int __mg_os_get_random_seed (void);
 void __mg_os_time_delay (int ms);
-void __mg_os_start_time_ms(void);
-DWORD __mg_os_get_time_ms(void);
+void __mg_os_start_time_ms (void);
+DWORD __mg_os_get_time_ms (void);
+DWORD __mg_os_get_elapsed_ms (void);
 time_t __mg_os_time (time_t* timep);
 time_t __mg_os_mktime (struct tm *tmp);
 struct tm *__mg_os_localtime (const time_t * timep);
@@ -95,8 +96,15 @@ struct tm *__mg_os_localtime (const time_t * timep);
 
 extern GHANDLE hMgEtc;
 
+#ifdef _MGSLICE_FALLBACK
+static inline BOOL mg_InitSliceAllocator(void) {
+    return TRUE;
+}
+static inline void mg_TerminateSliceAllocator(void) { }
+#else   /* defined _MGSLICE_FALLBACK */
 BOOL mg_InitSliceAllocator(void);
 void mg_TerminateSliceAllocator(void);
+#endif  /* not defined _MGSLICE_FALLBACK */
 
 BOOL mg_InitMgEtc (void);
 void mg_TerminateMgEtc (void);
