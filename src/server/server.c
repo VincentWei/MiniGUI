@@ -80,7 +80,7 @@
 #include "timer.h"
 #include "license.h"
 
-extern DWORD __mg_timer_counter;
+extern DWORD __mg_tick_counter;
 
 ON_NEW_DEL_CLIENT OnNewDelClient = NULL;
 
@@ -119,7 +119,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
     if (!kernel_GetLWEvent (event, &lwe))
         return;
 
-    Msg.time = __mg_timer_counter;
+    Msg.time = __mg_tick_counter;
     if (lwe.type == LWETYPE_TIMEOUT) {
         Msg.message = MSG_TIMEOUT;
         Msg.wParam = (WPARAM)lwe.count;
@@ -354,10 +354,13 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
     int nevts = 0;              // Since 5.0.0; for timer and fd events
 
-    if (__mg_timer_counter != SHAREDRES_TIMER_COUNTER) {
-        __mg_timer_counter = SHAREDRES_TIMER_COUNTER;
+#if 0   /* deprecated code */
+    /* since 5.0.0, use __mg_update_tick_count instead */
+    if (__mg_tick_counter != SHAREDRES_TIMER_COUNTER) {
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
         AlertDesktopTimerEvent ();
     }
+#endif  /* deprecated code */
 
     /* rset gets modified each time around */
     rset = __mg_dsk_msg_queue->rfdset;
@@ -455,7 +458,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
         msg.message = extra.event;
         msg.wParam = extra.wparam;
         msg.lParam = extra.lparam;
-        msg.time = __mg_timer_counter;
+        msg.time = __mg_tick_counter;
         if (extra.params_mask) {
             // packed multiple sub events
             int i, n = 0;

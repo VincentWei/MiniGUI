@@ -72,7 +72,7 @@
 
 #define    NALLOC       4        /* #Client structs to alloc/realloc for */
 
-extern DWORD __mg_timer_counter;
+extern DWORD __mg_tick_counter;
 
 MG_Client* mgClients = NULL;
 int mgClientSize = 0;
@@ -159,7 +159,7 @@ again:
             mgClients[i].pid = pid;
             mgClients[i].uid = uid;
             mgClients[i].has_dirty = FALSE;
-            mgClients[i].last_live_time = __mg_timer_counter;
+            mgClients[i].last_live_time = __mg_tick_counter;
             mgClients[i].layer = NULL;
             return (i);    /* return index in client[] array */
         }
@@ -240,7 +240,7 @@ int __mg_send2client (const MSG* Msg, MG_Client* client)
 {
     int ret;
 
-    if (__mg_timer_counter < (client->last_live_time + THRES_LIVE)) {
+    if (__mg_tick_counter < (client->last_live_time + THRES_LIVE)) {
 
 #if 1
         ret = sock_write_t (client->fd, Msg, sizeof (MSG), TO_SOCKIO);
@@ -294,7 +294,7 @@ void __mg_set_active_client (MG_Client* client)
         return;
 
     if (layer->cli_active) {
-        MSG msg = {0, MSG_SETFOCUS, 0, 0, __mg_timer_counter};
+        MSG msg = {0, MSG_SETFOCUS, 0, 0, __mg_tick_counter};
 
         __mg_send2client (&msg, layer->cli_active);
     }
@@ -362,7 +362,7 @@ int GUIAPI Send2Client (const MSG* msg, int cli)
 
 BOOL GUIAPI Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
-    MSG msg = {0, nMsg, wParam, lParam, __mg_timer_counter};
+    MSG msg = {0, nMsg, wParam, lParam, __mg_tick_counter};
 
     if (!mgIsServer)
         return FALSE;

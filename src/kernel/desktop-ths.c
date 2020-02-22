@@ -133,7 +133,7 @@ BOOL mg_InitDesktop (void)
 
     // Init Window Management information.
     if (!InitWndManagementInfo()) {
-        _WRN_PRINTF ("KERNEL>Desktop: Can not initialize window management information!\n");
+        _ERR_PRINTF ("KERNEL>Desktop: failed to init window manager!\n");
         return FALSE;
     }
 
@@ -142,16 +142,6 @@ BOOL mg_InitDesktop (void)
 
 #include "debug.h"
 
-static BOOL desktop_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
-{
-    if (wait) {
-        __mg_os_time_delay (10);
-        __mg_update_timer_count (NULL);
-    }
-
-    return FALSE;
-}
-
 void* __kernel_desktop_main (void* data)
 {
     MSG Msg;
@@ -159,11 +149,12 @@ void* __kernel_desktop_main (void* data)
     /* init message queue of desktop thread */
     if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
         _ERR_PRINTF ("failed to allocate message queue\n");
+        sem_post ((sem_t*)data);
         return NULL;
     }
 
     /* for threads mode, the idle handler for desktop thread is NULL */
-    __mg_dsk_msg_queue->OnIdle = desktop_idle_handler;
+    __mg_dsk_msg_queue->OnIdle = NULL;
 
     /* init desktop window */
     init_desktop_win ();
@@ -206,7 +197,6 @@ void* __kernel_desktop_main (void* data)
     __mg_dsk_msg_queue = NULL;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_EVENT;
-
     return NULL;
 }
 

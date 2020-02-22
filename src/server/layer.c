@@ -642,7 +642,7 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
 
     client = layer->cli_head;
     while (client) {
-        MSG msg = {0, MSG_PAINT, 0, 0, __mg_timer_counter};
+        MSG msg = {0, MSG_PAINT, 0, 0, __mg_tick_counter};
 
         __mg_send2client (&msg, client);
 
@@ -720,7 +720,7 @@ void GUIAPI DisableClientsOutput (void)
 
 void GUIAPI UpdateTopmostLayer (const RECT* dirty_rc)
 {
-    MSG msg = {0, MSG_PAINT, 0, 0, __mg_timer_counter};
+    MSG msg = {0, MSG_PAINT, 0, 0, __mg_tick_counter};
 
     if (!mgIsServer)
         return;
@@ -1108,7 +1108,7 @@ BOOL GUIAPI ServerMoveClientToLayer (int cli, MG_Layer* dst_layer)
     if (__mg_move_client_to_layer (client, dst_layer)) {
         MSG msg = { HWND_DESKTOP,
                 MSG_LAYERCHANGED, (WPARAM)dst_layer,
-                (LPARAM)dst_layer->zorder_shmid, __mg_timer_counter };
+                (LPARAM)dst_layer->zorder_shmid, __mg_tick_counter };
 
         __mg_send2client (&msg, client);
 

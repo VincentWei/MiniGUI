@@ -310,7 +310,7 @@ static int update_client_window_rgn (int cli, HWND hwnd)
         }
     }
     else {
-        MSG msg = {hwnd, MSG_UPDATECLIWIN, 0, 0, __mg_timer_counter};
+        MSG msg = {hwnd, MSG_UPDATECLIWIN, 0, 0, __mg_tick_counter};
 
         while (crc) {
             msg.wParam = MAKELONG (crc->rc.left, crc->rc.top);
@@ -883,7 +883,7 @@ static BOOL _cb_update_cli_znode (void* context,
     int cli = (int)(intptr_t)context;
 
     if (znode->cli == cli && znode->flags & ZOF_VISIBLE && znode->hwnd) {
-       MSG msg = {znode->hwnd, MSG_UPDATECLIWIN, 0, 0, __mg_timer_counter};
+       MSG msg = {znode->hwnd, MSG_UPDATECLIWIN, 0, 0, __mg_tick_counter};
 
         if (!IsRectEmpty(&(znode->dirty_rc))) {
 
@@ -1162,7 +1162,7 @@ static int do_drag_drop_window (int msg, int x, int y)
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
 #else
-        MSG msg = {_dd_info.hwnd, MSG_WINDOWDROPPED, 0, 0, __mg_timer_counter};
+        MSG msg = {_dd_info.hwnd, MSG_WINDOWDROPPED, 0, 0, __mg_tick_counter};
 #endif
 
         switch (_dd_info.location) {
@@ -1226,7 +1226,7 @@ static int do_drag_drop_window (int msg, int x, int y)
                             msg.wParam, msg.lParam);
         }
         else {
-            mgClients [_dd_info.cli].last_live_time = __mg_timer_counter;
+            mgClients [_dd_info.cli].last_live_time = __mg_tick_counter;
             __mg_send2client (&msg, mgClients + _dd_info.cli);
         }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
@@ -1234,7 +1234,7 @@ static int do_drag_drop_window (int msg, int x, int y)
         _dd_info.last_y = y;
     }
     else {
-        MSG msg = {_dd_info.hwnd, MSG_WINDOWDROPPED, 0, 0, __mg_timer_counter};
+        MSG msg = {_dd_info.hwnd, MSG_WINDOWDROPPED, 0, 0, __mg_tick_counter};
 
         msg.wParam = MAKELONG (_dd_info.rc.left, _dd_info.rc.top);
         msg.lParam = MAKELONG (_dd_info.rc.right, _dd_info.rc.bottom);
@@ -1251,7 +1251,7 @@ static int do_drag_drop_window (int msg, int x, int y)
                             msg.wParam, msg.lParam);
         }
         else {
-            mgClients [_dd_info.cli].last_live_time = __mg_timer_counter;
+            mgClients [_dd_info.cli].last_live_time = __mg_tick_counter;
             __mg_send2client (&msg, mgClients + _dd_info.cli);
         }
 
@@ -1888,7 +1888,7 @@ int __mg_do_change_topmost_layer (void)
         MG_Layer* dst_layer = mgTopmostLayer;
         MSG msg = { HWND_DESKTOP,
                 MSG_LAYERCHANGED, (WPARAM)dst_layer,
-                (LPARAM)dst_layer->zorder_shmid, __mg_timer_counter };
+                (LPARAM)dst_layer->zorder_shmid, __mg_tick_counter };
 
         slot = old_zorder_info->first_tooltip;
         if (old_nodes[slot].cli > 0) {
@@ -4168,24 +4168,26 @@ static void dskRefreshAllWindow (const RECT* invrc)
 /***********************************************************
  * Handler for MSG_TIMER for the server and all clients.
  **********************************************************/
-
 static void dskOnTimer (void)
 {
     static UINT uCounter = 0;
     static UINT blink_counter = 0;
+
+#if 0   /* deprecated code */
+    /* Since 5.0.0, __mg_check_expired_timers is called in idle handler */
     static UINT sg_old_counter = 0;
-
     if (sg_old_counter == 0)
-        sg_old_counter = SHAREDRES_TIMER_COUNTER;
+        sg_old_counter = __mg_tick_counter;
 
-    __mg_check_expired_timers (NULL, SHAREDRES_TIMER_COUNTER - sg_old_counter);
-    sg_old_counter = SHAREDRES_TIMER_COUNTER;
+    __mg_check_expired_timers (NULL, __mg_tick_counter - sg_old_counter);
+    sg_old_counter = __mg_tick_counter;
+#endif  /* deprecated code */
 
-    if (SHAREDRES_TIMER_COUNTER < (blink_counter + 10))
+    if (__mg_tick_counter < (blink_counter + 10))
         return;
 
-    uCounter += (SHAREDRES_TIMER_COUNTER - blink_counter) * 10;
-    blink_counter = SHAREDRES_TIMER_COUNTER;
+    uCounter += (__mg_tick_counter - blink_counter) * 10;
+    blink_counter = __mg_tick_counter;
 
     if (sg_hCaretWnd != 0
             && (HWND)gui_GetMainWindowPtrOfControl (sg_hCaretWnd)
@@ -4493,7 +4495,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 #endif
 
             if (__mg_zorder_info->cli_trackmenu > 0) {
-                MSG msg = {0, message, wParam, lParam, __mg_timer_counter};
+                MSG msg = {0, message, wParam, lParam, __mg_tick_counter};
                 __mg_send2client (&msg, mgClients +
                                 __mg_zorder_info->cli_trackmenu);
             }
@@ -4525,7 +4527,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
             if (__mg_zorder_info->cli_trackmenu > 0 ) {
 
-                MSG msg = {0, message, wParam, lParam, __mg_timer_counter};
+                MSG msg = {0, message, wParam, lParam, __mg_tick_counter};
 
                 __mg_send2client (&msg, mgClients +
                                 __mg_zorder_info->cli_trackmenu);
@@ -4683,6 +4685,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     case MSG_BROADCASTMSG:
         return dskBroadcastMessage ((PMSG)lParam);
 
+    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
+       message, and the interval for this MSG_TIMER changes to about 0.05s. */
     case MSG_TIMER:
         if (__mg_quiting_stage < 0) {
             if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE &&

@@ -2509,10 +2509,27 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
             dsk_ops->mouse_handler(dt_context, message, wParam, lParam);
         break;
 
-    // per 0.01s
+    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
+       message, and the interval for this MSG_TIMER changes to about 0.05s. */
     case MSG_TIMER: {
         static DWORD uCounter = 0;
         static DWORD blink_counter = 0;
+
+        _WRN_PRINTF ("got MSG_TIMER message for desktop (%lu)\n",
+                __mg_tick_counter);
+        if (__mg_tick_counter < (blink_counter + 10))
+            break;
+
+        uCounter += (__mg_tick_counter - blink_counter) * 10;
+        blink_counter = __mg_tick_counter;
+        if (sg_hCaretWnd != 0
+                && gui_GetMainWindowPtrOfControl (sg_hCaretWnd) ==
+                dskGetActiveWindow()
+                && uCounter >= sg_uCaretBTime) {
+            PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);
+            uCounter = 0;
+        }
+        break;
 
 #ifdef _MGRM_THREADS
         if (__mg_quiting_stage < 0) {
@@ -2544,10 +2561,10 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         static DWORD sg_old_counter = 0;
 
         if (sg_old_counter == 0)
-            sg_old_counter = __mg_timer_counter;
+            sg_old_counter = __mg_tick_counter;
 
-        __mg_check_expired_timers (NULL, __mg_timer_counter - sg_old_counter);
-        sg_old_counter = __mg_timer_counter;
+        __mg_check_expired_timers (NULL, __mg_tick_counter - sg_old_counter);
+        sg_old_counter = __mg_tick_counter;
 
 #else   /* not defined _MGRM_THREADS */
         if (__mg_quiting_stage < 0) {
@@ -2593,26 +2610,12 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         static DWORD sg_old_counter = 0;
 
         if (MG_UNLIKELY(sg_old_counter == 0))
-            sg_old_counter = __mg_timer_counter;
-        __mg_check_expired_timers (NULL, __mg_timer_counter - sg_old_counter);
-        sg_old_counter = __mg_timer_counter;
+            sg_old_counter = __mg_tick_counter;
+        __mg_check_expired_timers (NULL, __mg_tick_counter - sg_old_counter);
+        sg_old_counter = __mg_tick_counter;
 
 #endif  /* defined _MGRM_THREADS */
 #endif  /* deprecated code */
-
-        if (__mg_timer_counter < (blink_counter + 10))
-            break;
-
-        uCounter += (__mg_timer_counter - blink_counter) * 10;
-        blink_counter = __mg_timer_counter;
-        if (sg_hCaretWnd != 0
-                && gui_GetMainWindowPtrOfControl (sg_hCaretWnd) ==
-                dskGetActiveWindow()
-                && uCounter >= sg_uCaretBTime) {
-            PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);
-            uCounter = 0;
-        }
-        break;
     }
 
     default:

@@ -1569,7 +1569,7 @@ static int srvForceCloseMenu (int cli)
     /* notify the client to close the menu */
     {
 #if defined(_MGRM_PROCESSES)
-        MSG msg = {0, MSG_CLOSEMENU, 0, 0, __mg_timer_counter};
+        MSG msg = {0, MSG_CLOSEMENU, 0, 0, __mg_tick_counter};
 
         if (cli_trackmenu)
             ret = __mg_send2client (&msg, mgClients + cli_trackmenu);
@@ -1773,7 +1773,7 @@ int __mg_post_msg_by_znode (const ZORDERINFO* zi, int znode,
 #if defined (_MGRM_PROCESSES)
     else {
         MSG msg = {nodes [znode].main_win,
-                message, wParam, lParam, __mg_timer_counter};
+                message, wParam, lParam, __mg_tick_counter};
 
         ret = __mg_send2client (&msg, mgClients + nodes [znode].cli);
     }
@@ -1797,7 +1797,7 @@ post_msg_by_znode_p (const ZORDERINFO* zi, const ZORDERNODE* znode,
 #if defined (_MGRM_PROCESSES)
     else {
         MSG msg = {znode->main_win,
-                message, wParam, lParam, __mg_timer_counter};
+                message, wParam, lParam, __mg_tick_counter};
 
         ret = __mg_send2client (&msg, mgClients + znode->cli);
     }

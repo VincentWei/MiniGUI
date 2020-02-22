@@ -11,7 +11,7 @@ tab2space() {
 # tab2space
 
 # templates
-# sed -i 's/\<AAA\>/__AAA/g' `grep AAA -rl include/ src/`
+# sed -i 's/\<aaa\>/__aaa/g' `grep aaa -rl include/ src/`
 # sed -i 's/\<AAA\>/__mgAAA/g' `grep AAA -rl include/ src/`
 # sed -i 's/\<AAA\>/__gdiAAA/g' `grep AAA -rl include/ src/`
 # sed -i 's/\<AAA\>/__mg_AAA/g' `grep AAA -rl include/ src/`
@@ -136,5 +136,9 @@ tab2space() {
 # sed -i 's/\<__ZOF_TYPE_HIGHER\>/ZOF_TYPE_HIGHER/g' `grep __ZOF_TYPE_HIGHER -rl include/ src/`
 
 # sed -i 's/\<SetDesktopTimerFlag\>/AlertDesktopTimerEvent/g' `grep SetDesktopTimerFlag -rl include/ src/`
+
+# sed -i 's/\<__mg_update_timer_count\>/__mg_update_tick_count/g' `grep __mg_update_timer_count -rl include/ src/`
+
+sed -i 's/\<__mg_timer_counter\>/__mg_tick_counter/g' `grep __mg_timer_counter -rl include/ src/`
 
 exit 0

@@ -77,8 +77,10 @@
 #include "timer.h"
 #include "ourhdr.h"
 
-extern DWORD __mg_timer_counter;
+extern DWORD __mg_tick_counter;
+#if 0   /* deprecated code */
 static DWORD old_timer_counter = 0;
+#endif  /* deprecated code */
 
 static void ParseEvent (PMSGQUEUE msg_que, int event)
 {
@@ -99,7 +101,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
     if (!kernel_GetLWEvent (event, &lwe))
         return;
 
-    Msg.time = __mg_timer_counter;
+    Msg.time = __mg_tick_counter;
     if (lwe.type == LWETYPE_TIMEOUT) {
         Msg.message = MSG_TIMEOUT;
         Msg.wParam = (WPARAM)lwe.count;
@@ -208,10 +210,15 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
     int nevts = 0;              // Since 5.0.0; for timer and fd events
 
-    if (old_timer_counter != __mg_timer_counter) {
-        old_timer_counter = __mg_timer_counter;
+#if 0   /* deprecated code */
+    /* Since 5.0.0, call __mg_update_tick_count instead */
+    if (old_timer_counter != __mg_tick_counter) {
+        old_timer_counter = __mg_tick_counter;
         AlertDesktopTimerEvent ();
     }
+#endif  /* deprecated code */
+
+    __mg_update_tick_count (NULL);
 
     /* rset gets modified each time around */
     if (msg_queue->nr_rfds) {
@@ -232,27 +239,27 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
     levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
 
-    /* update __mg_timer_counter */
+    /* update __mg_tick_counter */
     if (wait) {
-        //__mg_timer_counter += 10;
+        //__mg_tick_counter += 10;
         /**
         10 is too fast, the "repeat_threshold" is 5, use ++, repeate 5 times
         **/
-        __mg_timer_counter++;
+        __mg_tick_counter++;
     }
 #elif defined (_MGGAL_BF533)
     levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
 
-    /* update __mg_timer_counter */
+    /* update __mg_tick_counter */
     if (wait) {
-        __mg_timer_counter += 1;
+        __mg_tick_counter += 1;
     }
 #else
     levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
-    /* update __mg_timer_counter */
-    __mg_timer_counter = __mg_os_get_time_ms()/10;
+    /* update __mg_tick_counter */
+    __mg_tick_counter = __mg_os_get_time_ms()/10;
 #endif
 
     if (levt < 0) {
@@ -272,7 +279,7 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
         msg.message = extra.event;
         msg.wParam = extra.wparam;
         msg.lParam = extra.lparam;
-        msg.time = __mg_timer_counter;
+        msg.time = __mg_tick_counter;
         if (extra.params_mask) {
             // packed multiple sub events
             int i, n = 0;
@@ -304,10 +311,10 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
         ParseEvent (msg_queue, 0);
 
         if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-            msg_queue->old_tick_count = __mg_timer_counter;
+            msg_queue->old_tick_count = __mg_tick_counter;
         nevts += __mg_check_expired_timers (msg_queue,
-                __mg_timer_counter - msg_queue->old_tick_count);
-        msg_queue->old_tick_count = __mg_timer_counter;
+                __mg_tick_counter - msg_queue->old_tick_count);
+        msg_queue->old_tick_count = __mg_tick_counter;
     }
 
     /* go through registered listen fds */
