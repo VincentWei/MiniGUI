@@ -809,7 +809,6 @@ static inline void AlertDesktopTimerEvent (void)
         POST_MSGQ (__mg_dsk_msg_queue);
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 }
-#endif /* deprecated code */
 
 static inline void setMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
@@ -821,6 +820,7 @@ static inline void removeMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
     pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
 }
+#endif /* deprecated code */
 
 BOOL mg_InitTimer (BOOL use_sys_timer);
 void mg_TerminateTimer (BOOL use_sys_timer);

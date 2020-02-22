@@ -9600,7 +9600,7 @@ MG_EXPORT BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id);
 
 /**
  * \fn BOOL GUIAPI HaveFreeTimer (void)
- * \brief Determines whether there is any free timer slot in the current
+ * \brief Determine whether there is any free timer slot in the current
  *      thread.
  *
  * This function determines whether there is any free timer slot in the
