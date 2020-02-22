@@ -3739,7 +3739,7 @@ HWND GUIAPI CreateVirtualWindow (HWND hHosting,
     }
 
     pVirtWin->DataType      = TYPE_HWND;
-    pVirtWin->WinType       = TYPE_MAINWIN;
+    pVirtWin->WinType       = TYPE_VIRTWIN;
     pVirtWin->pMsgQueue     = pMsgQueue;
     pVirtWin->spCaption     = FixStrAlloc (strlen (spCaption));
     if (spCaption [0])
@@ -3844,6 +3844,7 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
         pVirtWin->spCaption = NULL;
     }
 
+    pMsgQueue->nrWindows--;
     if (pMsgQueue->pRootMainWin == (PMAINWIN)pVirtWin) {
         pMsgQueue->pRootMainWin = NULL;
         assert (pMsgQueue->nrWindows == 0);
@@ -3880,7 +3881,6 @@ BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
     memset (pVirtWin, 0xcc, sizeof(VIRTWIN));
 #endif
 
-    pMsgQueue->nrWindows--;
     free (pVirtWin);
     return TRUE;
 }
@@ -3969,8 +3969,6 @@ BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
     /* to avoid threadx keep pMainWin's value, which will lead to wrong way */
     memset (pMainWin, 0xcc, sizeof(MAINWIN));
 #endif
-
-    pMsgQueue->nrWindows--;
 
     free (pMainWin);
     return TRUE;
@@ -4411,6 +4409,7 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     pthread_mutex_destroy (&pWin->InvRgn.lock);
 #endif
 
+    pMsgQueue->nrWindows--;
     if (pMsgQueue->pRootMainWin == pWin) {
         pMsgQueue->pRootMainWin = NULL;
         assert (pMsgQueue->nrWindows == 0);
