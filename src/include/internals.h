@@ -284,10 +284,12 @@ int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg);
 #ifdef HAVE_SELECT
 int __mg_kernel_check_listen_fds (MSGQUEUE* msg_queue,
         fd_set* rsetptr, fd_set* wsetptr, fd_set* esetptr);
-#endif
+#endif  /* defined HAVE_SELECT */
 
 extern PMSGQUEUE __mg_dsk_msg_queue;
 
+#if 0   /* deprecated code */
+/* Since 5.0.0, we do not use quiting stage */
 /* Running stages */
 #define _MG_QUITING_STAGE_RUNNING 1
 /* Try to quit main thread, and for MiniGUI-Threads, to quit
@@ -302,6 +304,7 @@ extern PMSGQUEUE __mg_dsk_msg_queue;
 /* Quit TimerEntry (MiniGUI-Threads only) */
 #define _MG_QUITING_STAGE_TIMER   (-40)
 extern int __mg_quiting_stage;
+#endif  /* deprecated code */
 
 static inline BOOL QueueDeskMessage (PMSG msg)
 {
@@ -607,7 +610,6 @@ extern unsigned int __mg_csrimgpitch;
 #   endif
 #else /* not defined _MGRM_THREADS */
 extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
-extern pthread_t __mg_desktop, __mg_parsor, __mg_timer;
 #endif /* defined _MGRM_THREADS */
 
 /* hWnd is a window, including HWND_DESKTOP */
