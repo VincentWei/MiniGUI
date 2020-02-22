@@ -4841,6 +4841,7 @@ static inline int post_quit_to_all_message_threads (void)
     list_for_each (l, &msg_queue_list) {
         MSGQUEUE *msg_queue = (MSGQUEUE*)l;
         dump_message_queue (msg_queue, __func__);
+        msg_queue->dwState |= QS_QUIT;
         POST_MSGQ (msg_queue);
         nr++;
     }

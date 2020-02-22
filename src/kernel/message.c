@@ -84,6 +84,8 @@
 
 /******************************************************************************/
 
+#if 0   /* deprecated code */
+/* since 5.0.0, we use post_quit_to_all_message_threads instead */
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
   #define SET_PADD(value) pMsg->pAdd = value
@@ -108,12 +110,13 @@
         if (TEST_NEED_TO_QUIT(queue)) {                 \
             LOCK_MSGQ (queue);                          \
             if (!(queue->dwState & QS_QUIT)){           \
-                queue->loop_depth ++;                   \
+                queue->loop_depth++;                    \
                 queue->dwState |= QS_QUIT;              \
                 UNLOCK_MSGQ (queue);                    \
                 if (IsDialog(hWnd)) {                   \
                     EndDialog (hWnd, IDCANCEL);         \
-                } else {                                \
+                }                                       \
+                else {                                  \
                     DestroyMainWindow (hWnd);           \
                 }                                       \
             } else {                                    \
@@ -121,7 +124,15 @@
             }                                           \
         }                                               \
     } while (0)
+#endif  /* deprecated code */
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+#   define SET_PADD(value) pMsg->pAdd = value
+#else
+#   define SET_PADD(value)
+#endif
+
+#define TEST_IF_QUIT(queue, hWnd)
 #define ERR_MSG_CANCELED    ERR_QUEUE_FULL
 
 /****************************** Message Allocation ****************************/

@@ -74,9 +74,6 @@
 #include "devfont.h"
 
 /******************************* global data *********************************/
-/* system threads */
-pthread_t __mg_desktop, __mg_parsor, __mg_timer;
-
 /* pointer to desktop message queue */
 PMSGQUEUE __mg_dsk_msg_queue;
 
@@ -195,8 +192,6 @@ void* __kernel_desktop_main (void* data)
 
     mg_FreeMsgQueueForThisThread ();
     __mg_dsk_msg_queue = NULL;
-
-    __mg_quiting_stage = _MG_QUITING_STAGE_EVENT;
     return NULL;
 }
 

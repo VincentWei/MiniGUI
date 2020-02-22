@@ -112,8 +112,6 @@ int InitGUI (int argc, const char* agr[])
     char mode [LEN_VIDEO_MODE + 1];
     int step = 1;
 
-    __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
-
 #ifndef __NOUNIX__
         tcgetattr (0, &savedtermio);
 #endif
@@ -260,7 +258,8 @@ failure:
     return FALSE;
 }
 
-#define err_message(step, message) _ERR_PRINTF ("KERNEL>InitGUI (step %d): %s\n", step, message)
+#define err_message(step, message)      \
+    _ERR_PRINTF ("KERNEL>InitGUI (step %d): %s\n", step, message)
 
 static void sig_handler (int v)
 {
@@ -270,8 +269,8 @@ static void sig_handler (int v)
     else if (v == SIGINT) {
         _exit(1); /* force to quit */
     }
-    else if (__mg_quiting_stage > 0) {
-        ExitGUISafely(-1);
+    else if (v == SIGTERM) {
+        ExitGUISafely (-1);
     }
     else {
         exit(1); /* force to quit */
@@ -313,8 +312,6 @@ int InitGUI (int argc, const char* agr[])
     char engine [LEN_ENGINE_NAME + 1];
     char mode [LEN_VIDEO_MODE + 1];
     int step = 1;
-
-    __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
 
 #ifdef _MGRM_PROCESSES
     const char* name;

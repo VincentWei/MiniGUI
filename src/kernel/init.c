@@ -81,10 +81,13 @@
 #include "clipboard.h"
 #include "license.h"
 
-int __mg_quiting_stage;
-
 #ifdef _MGRM_THREADS
-int __mg_enter_terminategui;
+// deprecated since 5.0.0
+// int __mg_enter_terminategui;
+
+static int _is_minigui_running;
+
+static pthread_t _th_parsor;
 
 /******************************* extern data *********************************/
 extern void* __kernel_desktop_main (void* data);
@@ -195,7 +198,7 @@ static void* EventLoop (void* data)
 
     sem_post ((sem_t*)data);
 
-    while (__mg_quiting_stage > _MG_QUITING_STAGE_EVENT) {
+    while (_is_minigui_running) {
         EXTRA_INPUT_EVENT extra;
 
 #if 0   /* deprecated code */
@@ -289,6 +292,7 @@ MSGQUEUE* mg_GetMsgQueueForThisThread (void)
 /************************** System Initialization ****************************/
 static BOOL SystemThreads(void)
 {
+    pthread_t th;
     sem_t wait;
 
     sem_init (&wait, 0, 0);
@@ -305,11 +309,11 @@ static BOOL SystemThreads(void)
         pthread_attr_t new_attr;
         pthread_attr_init (&new_attr);
         pthread_attr_setstacksize (&new_attr, 16 * 1024);
-        pthread_create (&__mg_desktop, &new_attr, __kernel_desktop_main, &wait);
+        pthread_create (&th, &new_attr, __kernel_desktop_main, &wait);
         pthread_attr_destroy (&new_attr);
     }
 #else
-    pthread_create (&__mg_desktop, NULL, __kernel_desktop_main, &wait);
+    pthread_create (&th, NULL, __kernel_desktop_main, &wait);
 #endif
 
     sem_wait (&wait);
@@ -329,8 +333,8 @@ static BOOL SystemThreads(void)
     // this thread also parse low level event and translate it to message,
     // then post the message to the approriate message queue.
     // this thread should also have a higher priority.
-    pthread_create (&__mg_parsor, NULL, EventLoop, &wait);
-    pthread_detach (__mg_parsor);
+    pthread_create (&_th_parsor, NULL, EventLoop, &wait);
+    pthread_detach (_th_parsor);
     sem_wait (&wait);
 
     sem_destroy (&wait);
@@ -358,7 +362,7 @@ static void sig_handler (int v)
     else if (v == SIGINT) {
         _exit(1); /* force to quit */
     }
-    else if (__mg_quiting_stage > 0) {
+    else if (v == SIGTERM) {
         ExitGUISafely(-1);
     }
     else {
@@ -400,10 +404,6 @@ int GUIAPI InitGUI (int args, const char *agr[])
     char engine [LEN_ENGINE_NAME + 1];
     char mode [LEN_VIDEO_MODE + 1];
     int step = 0;
-
-    __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
-    __mg_enter_terminategui = 0;
-
     MSGQUEUE* msg_queue;
 
 #ifdef HAVE_SETLOCALE
@@ -568,6 +568,8 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     __mg_splash_delay();
 
+    _is_minigui_running = 1;
+
     step++;
     if (!SystemThreads()) {
         _ERR_PRINTF ("KERNEL>InitGUI: failed to init system threads!\n");
@@ -600,7 +602,6 @@ int GUIAPI InitGUI (int args, const char *agr[])
     SetCursorPos (g_rcScr.right >> 1, g_rcScr.bottom >> 1);
 
     mg_TerminateMgEtc ();
-
     return 0;
 
 failure:
@@ -614,19 +615,16 @@ failure1:
 
 void GUIAPI TerminateGUI (int not_used)
 {
-    __mg_enter_terminategui = 1;
-
     mg_TerminateTimer (FALSE);
 
     /* Since 5.0.0 */
+    SendNotifyMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
     __mg_join_all_message_threads ();
+    pthread_join (__mg_dsk_msg_queue->th, NULL);
 
-    __mg_quiting_stage = _MG_QUITING_STAGE_TIMER;
-
-    pthread_join (__mg_desktop, NULL);
-
-    /* DesktopProc() will set __mg_quiting_stage to _MG_QUITING_STAGE_EVENT */
-    pthread_join (__mg_parsor, NULL);
+    /* Tell event parsor quit */
+    _is_minigui_running = 0;
+    pthread_join (_th_parsor, NULL);
 
     __mg_license_destroy();
 
@@ -674,19 +672,29 @@ void GUIAPI TerminateGUI (int not_used)
 
 #endif /* _MGRM_THREADS */
 
+/* XXX: We need a better policy to exit MiniGUI safely by giving a chance
+   for all windows to save data. */
 void GUIAPI ExitGUISafely (int exitcode)
 {
 #ifdef _MGRM_PROCESSES
     if (mgIsServer)
 #endif
     {
-#   define IDM_CLOSEALLWIN (MINID_RESERVED + 1) /* see src/kernel/desktop-*.c */
-        SendNotifyMessage(HWND_DESKTOP, MSG_COMMAND, IDM_CLOSEALLWIN, 0);
-        SendNotifyMessage(HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+        /* see src/kernel/desktop-*.c */
+#       define IDM_CLOSEALLWIN (MINID_RESERVED + 1) 
 
-        if (__mg_quiting_stage > 0) {
-            __mg_quiting_stage = _MG_QUITING_STAGE_START;
-        }
+        SendNotifyMessage (HWND_DESKTOP, MSG_COMMAND, IDM_CLOSEALLWIN, 0);
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        __mg_join_all_message_threads ();
+        SendMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+        pthread_join (__mg_dsk_msg_queue->th, NULL);
+
+#   ifdef _MGRM_THREADS
+        /* Tell event parsor quit */
+        _is_minigui_running = 0;
+        pthread_join (_th_parsor, NULL);
+#   endif  /* defined _MGRM_THREADS */
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
     }
 }
 

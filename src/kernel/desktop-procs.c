@@ -4685,9 +4685,10 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     case MSG_BROADCASTMSG:
         return dskBroadcastMessage ((PMSG)lParam);
 
+    case MSG_TIMER:
+#if 0   /* deprecated code */
     /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
        message, and the interval for this MSG_TIMER changes to about 0.05s. */
-    case MSG_TIMER:
         if (__mg_quiting_stage < 0) {
             if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE &&
                     __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
@@ -4707,6 +4708,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                 PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
             }
         }
+#endif  /* deprecated code */
 
         dskOnTimer ();
         break;

@@ -340,9 +340,7 @@ void __mg_splash_delay (void)
 {
     int i;
 
-    for (i = 0;
-        __mg_quiting_stage > 0 && i < _MG_LICENSE_SPLASH_STEP;
-        i++) {
+    for (i = 0; i < _MG_LICENSE_SPLASH_STEP; i++) {
         __mg_splash_progress();
         __mg_os_time_delay (_MG_LICENSE_SPLASH_MSEC);
     }

@@ -53,10 +53,6 @@
 /* only for MiniGUI-Threads or MiniGUI-Standalone */
 #include "desktop.c"
 
-#ifdef _MGRM_THREADS
-extern int __mg_enter_terminategui;
-#endif
-
 #if defined(_MGRM_THREADS) || defined(_MGRM_STANDALONE)
 
 static LRESULT DesktopWinProc (HWND hWnd, UINT msg,
@@ -1894,7 +1890,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
                         && (pWin->pHosting == NULL)
 #endif
                    )
-                        PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+                        SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
             }
         }
 
@@ -1943,7 +1939,7 @@ static int dskDesktopCommand (HMENU hDesktopMenu, int id)
 #endif  /* deprecated code */
     }
     else if (id == IDM_ENDSESSION) {
-        PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+        SendNotifyMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
     }
 #ifdef _MGHAVE_MENU
     else if (id >= IDM_FIRSTWINDOW) {
@@ -2212,6 +2208,8 @@ void GUIAPI DesktopUpdateAllWindow(void)
     SendMessage(HWND_DESKTOP, MSG_PAINT, 0, 0);
 }
 
+#if 0   /* deprecated code */
+/* Since 5.0.0, we donot use quiting stage */
 #ifndef _MG_ENABLE_SCREENSAVER
 #   define HAS_NO_MAINWINDOW()  \
         ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 0)
@@ -2220,6 +2218,7 @@ void GUIAPI DesktopUpdateAllWindow(void)
 #   define HAS_NO_MAINWINDOW() \
         ((__mg_zorder_info->nr_normals + __mg_zorder_info->nr_topmosts) == 1)
 #endif
+#endif   /* deprecated code */
 
 static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         WPARAM wParam, LPARAM lParam)
@@ -2356,32 +2355,27 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         break;
 
     case MSG_ENDSESSION:
-        if (
-                HAS_NO_MAINWINDOW()
-#ifdef _MGRM_THREADS
-                && __mg_enter_terminategui
-#endif
-                ) {
-            __mg_screensaver_destroy();
+        __mg_screensaver_destroy ();
 
-            if (hDesktopDC)
-                ReleaseDC (hDesktopDC);
-            hDesktopDC = 0;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        post_quit_to_all_message_threads ();
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+
+        if (hDesktopDC)
+            ReleaseDC (hDesktopDC);
+        hDesktopDC = 0;
 
 #ifdef _MGHAVE_MENU
-            if (sg_DesktopMenu) {
-                DestroyMenu (sg_DesktopMenu);
-                sg_DesktopMenu = 0;
-            }
-#endif
-            if(dsk_ops->deinit)
-                dsk_ops->deinit(dt_context);
-
-            PostQuitMessage (HWND_DESKTOP);
-
-            return 1;
+        if (sg_DesktopMenu) {
+            DestroyMenu (sg_DesktopMenu);
+            sg_DesktopMenu = 0;
         }
-        break;
+#endif
+        if (dsk_ops->deinit)
+            dsk_ops->deinit (dt_context);
+
+        PostQuitMessage (HWND_DESKTOP);
+        return 1;
 
     case MSG_ERASEDESKTOP:
         if (dsk_ops->paint_desktop)
@@ -2531,32 +2525,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         }
         break;
 
-#ifdef _MGRM_THREADS
-        if (__mg_quiting_stage < 0) {
-
-            post_quit_to_all_message_threads ();
-
-            if (__mg_quiting_stage > _MG_QUITING_STAGE_FORCE &&
-                    __mg_quiting_stage <= _MG_QUITING_STAGE_START) {
-                __mg_quiting_stage--;
-            }
-            else if (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) {
-                /* printf("force to quit !!!\n"); */
-            }
-
-            if (__mg_quiting_stage > _MG_QUITING_STAGE_DESKTOP
-                    && HAS_NO_MAINWINDOW()
-                    && __mg_enter_terminategui) {
-                /* Let Desktop wait for MiniGUIMain() */
-                __mg_quiting_stage = _MG_QUITING_STAGE_DESKTOP;
-            }
-            else if (__mg_quiting_stage <= _MG_QUITING_STAGE_DESKTOP) {
-                PostMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
-            }
-        }
-#endif  /* _MGRM_THREADS */
-
-#if 0   /* use post_quit_to_all_message_threads instead */
+#if 0   /* Since 5.0.0, we use post_quit_to_all_message_threads instead */
 #ifndef _MGRM_THREADS
         static DWORD sg_old_counter = 0;
 
@@ -2568,6 +2537,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
 #else   /* not defined _MGRM_THREADS */
         if (__mg_quiting_stage < 0) {
+            extern int __mg_enter_terminategui;
             int level, slot;
             PMSGQUEUE pMsgQueue;
             ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
