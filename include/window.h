@@ -3076,18 +3076,6 @@ typedef struct _MSG
 } MSG;
 typedef MSG* PMSG;
 
-#define QS_NOTIFYMSG        0x10000000
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-  #define QS_SYNCMSG        0x20000000
-#endif
-#define QS_POSTMSG          0x40000000
-#define QS_QUIT             0x80000000
-#define QS_INPUT            0x01000000
-#define QS_PAINT            0x02000000
-#define QS_DESKTIMER        0x04000000
-#define QS_TIMER            0x0000FFFF
-#define QS_EMPTY            0x00000000
-
 /**
  * \def PM_NOREMOVE
  *
@@ -6443,7 +6431,7 @@ MG_EXPORT BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd);
  * \return The handle to the new virtual window;
  *      HWND_INVALID indicates an error.
  *
- * \sa VirtualWindowThreadCleanup
+ * \sa VirtualWindowCleanup
  *
  * Example:
  *
@@ -6464,7 +6452,7 @@ MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting,
  *
  * \return TRUE on success, FALSE on error.
  *
- * \sa VirtualWindowThreadCleanup
+ * \sa VirtualWindowCleanup
  *
  * Example:
  *
@@ -9494,7 +9482,7 @@ typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD);
  * \brief Creates a timer with the specified timeout value.
  *
  * This function creates a timer with the specified timeout value \a speed.
- * Note that the timeout value is in unit of 10 ms.
+ * Note that the timeout value is in the unit of 10 ms.
  * When the timer expires, an MSG_TIMER message will be send to the
  * window \a hWnd if \a timer_proc is NULL, otherwise MiniGUI will call
  * \a timer_proc by passing \a hWnd, \a id, and the tick count when this
@@ -9595,8 +9583,8 @@ MG_EXPORT BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
  * \fn BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
  * \brief Determines whether a timer is installed.
  *
- * This function determines whether a timer with identifier \a id of
- * a window \a hwnd has been installed.
+ * This function determines whether a timer with identifier \a id for
+ * a window \a hwnd has been installed in the current thread.
  *
  * \param hWnd The window owns the timer.
  * \param id The identifier of the timer.
@@ -9612,10 +9600,11 @@ MG_EXPORT BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id);
 
 /**
  * \fn BOOL GUIAPI HaveFreeTimer (void)
- * \brief Determines whether there is any free timer slot in the system.
+ * \brief Determines whether there is any free timer slot in the current
+ *      thread.
  *
  * This function determines whether there is any free timer slot in the
- * system.
+ * current thread.
  *
  * \return TRUE for yes, otherwise FALSE.
  *
