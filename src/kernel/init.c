@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -103,7 +103,7 @@ static void ParseEvent (PLWEVENT lwe)
     Msg.wParam = 0;
     Msg.lParam = 0;
 
-    Msg.time = __mg_timer_counter;
+    Msg.time = __mg_tick_counter;
 
     if (lwe->type == LWETYPE_TIMEOUT) {
         Msg.message = MSG_TIMEOUT;
@@ -198,17 +198,19 @@ static void* EventLoop (void* data)
     while (__mg_quiting_stage > _MG_QUITING_STAGE_EVENT) {
         EXTRA_INPUT_EVENT extra;
 
-#if 0
-ndef __USE_TIMER_THREAD
+#if 0   /* deprecated code */
+#ifndef __USE_TIMER_THREAD
         /* VM: Since 4.0.0, update timer counter in event loop */
         if (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
             extern void __mg_timer_action (void *data);
             __mg_timer_action (NULL);
         }
 #endif
+#endif  /* deprecated code */
 
         extra.params_mask = 0;
-        event = IAL_WaitEvent (0, NULL, NULL, NULL, &__mg_event_timeout, &extra);
+        event = IAL_WaitEvent (0, NULL, NULL, NULL, &__mg_event_timeout,
+                &extra);
         if (event < 0)
             continue;
 
@@ -229,7 +231,7 @@ ndef __USE_TIMER_THREAD
             msg.message = extra.event;
             msg.wParam = extra.wparam;
             msg.lParam = extra.lparam;
-            msg.time = __mg_timer_counter;
+            msg.time = __mg_tick_counter;
             if (extra.params_mask) {
                 // packed multiple sub events
                 int i, n = 0;
@@ -262,7 +264,6 @@ ndef __USE_TIMER_THREAD
             ParseEvent (&lwe);
     }
 
-    /* printf("Quit from EventLoop()\n"); */
     return NULL;
 }
 
@@ -312,6 +313,9 @@ static BOOL SystemThreads(void)
 #endif
 
     sem_wait (&wait);
+
+    if (__mg_dsk_msg_queue == NULL)
+        return FALSE;
 
 #if 0   /* deprecated code */
     /* Since 5.0.0, we no longer use the timer thread */
@@ -383,6 +387,14 @@ static BOOL InstallSEGVHandler (void)
 #include <locale.h>
 #endif
 
+static IDLEHANDLER std_idle_handler;
+
+static BOOL idle_handler_for_main_thread (MSGQUEUE *msg_queue, BOOL wait)
+{
+    __mg_update_tick_count (NULL);
+    return std_idle_handler (msg_queue, wait);
+}
+
 int GUIAPI InitGUI (int args, const char *agr[])
 {
     char engine [LEN_ENGINE_NAME + 1];
@@ -391,6 +403,8 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
     __mg_enter_terminategui = 0;
+
+    MSGQUEUE* msg_queue;
 
 #ifdef HAVE_SETLOCALE
     setlocale (LC_ALL, "C");
@@ -407,7 +421,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     tcgetattr (0, &savedtermio);
 #endif
 
-    /*initialize default window process*/
+    /*init default window process*/
     __mg_def_proc[0] = PreDefMainWinProc;
     __mg_def_proc[1] = PreDefDialogProc;
     __mg_def_proc[2] = PreDefControlProc;
@@ -417,20 +431,20 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     step++;
     if (!mg_InitSliceAllocator ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: failed to initialize slice allocator!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init slice allocator!\n");
         return step;
     }
 
     step++;
     if (!mg_InitFixStr ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init Fixed String module failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init fixed string heap!\n");
         return step;
     }
 
     step++;
     /* Init miscelleous*/
     if (!mg_InitMisc ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Initialization of misc things failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init misc module!\n");
         return step;
     }
 
@@ -445,11 +459,11 @@ int GUIAPI InitGUI (int args, const char *agr[])
         return step;
 
     case ERR_NO_MATCH:
-        _ERR_PRINTF ("KERNEL>InitGUI: Can not get graphics engine information!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Cannot get graphics engine info!\n");
         return step;
 
     case ERR_GFX_ENGINE:
-        _ERR_PRINTF ("KERNEL>InitGUI: Can not initialize graphics engine!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Cannot init graphics engine!\n");
         return step;
     }
 
@@ -462,7 +476,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
      */
     step++;
     if (!mg_InitSystemRes ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Can not initialize system resource!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not init system resource!\n");
         goto failure1;
     }
 
@@ -476,16 +490,9 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init Master Screen DC here */
     step++;
     if (!mg_InitScreenDC ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Can not initialize screen DC!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not init screen DC!\n");
         goto failure1;
     }
-
-#if 0
-    g_rcScr.left = 0;
-    g_rcScr.top = 0;
-    g_rcScr.right = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXX) + 1;
-    g_rcScr.bottom = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXY) + 1;
-#endif
 
     __mg_license_create();
     __mg_splash_draw_framework();
@@ -501,7 +508,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init low level event */
     step++;
     if(!mg_InitLWEvent()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Low level event initialization failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init low level event!\n");
         goto failure1;
     }
     __mg_splash_progress();
@@ -509,7 +516,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /** Init LF Manager */
     step++;
     if (!mg_InitLFManager ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Initialization of LF Manager failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init LF Manager!\n");
         goto failure;
     }
     __mg_splash_progress();
@@ -518,7 +525,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init menu */
     step++;
     if (!mg_InitMenu ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init Menu module failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init menu module!\n");
         goto failure;
     }
 #endif
@@ -526,7 +533,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init control class */
     step++;
     if(!mg_InitControlClass()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init Control Class failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init control classes!\n");
         goto failure;
     }
     __mg_splash_progress();
@@ -534,28 +541,28 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init accelerator */
     step++;
     if(!mg_InitAccel()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init Accelerator failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init accelerator!\n");
         goto failure;
     }
     __mg_splash_progress();
 
     step++;
     if (!mg_InitDesktop ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init Desktop failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init desktop!\n");
         goto failure;
     }
     __mg_splash_progress();
 
     step++;
     if (!mg_InitFreeQMSGList ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init free QMSG list failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init free QMSG heap!\n");
         goto failure;
     }
     __mg_splash_progress();
 
     step++;
     if (!createThreadInfoKey ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init thread hash table failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init thread key!\n");
         goto failure;
     }
 
@@ -563,21 +570,26 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     step++;
     if (!SystemThreads()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Init system threads failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init system threads!\n");
         goto failure;
     }
 
     /* init message queue of main GUI thread */
     step++;
-    if (!mg_AllocMsgQueueForThisThread ()) {
-        _ERR_PRINTF ("failed to allocate message queue\n");
+    if (!(msg_queue = mg_AllocMsgQueueForThisThread ())) {
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to allocate message queue!\n");
         goto failure;
     }
 
-    /* init message queue of main GUI thread */
+    /* for threads mode, the idle handler for the main threads should
+       call __mg_update_tick_count () */
+    std_idle_handler = msg_queue->OnIdle;
+    msg_queue->OnIdle = idle_handler_for_main_thread;
+
+    /* init timer for tick counter */
     step++;
     if (!mg_InitTimer (FALSE)) {
-        _ERR_PRINTF ("failed to start time counter\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to start time counter\n");
         goto failure;
     }
 
@@ -595,7 +607,7 @@ failure:
     mg_TerminateLWEvent ();
 failure1:
     mg_TerminateGAL ();
-    _ERR_PRINTF ("KERNEL>InitGUI: Init failure, please check "
+    _ERR_PRINTF ("KERNEL>InitGUI: initialization failed; please check "
             "your MiniGUI configuration or resource.\n");
     return step;
 }
@@ -677,3 +689,4 @@ void GUIAPI ExitGUISafely (int exitcode)
         }
     }
 }
+
