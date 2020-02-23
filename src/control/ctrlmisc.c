@@ -239,11 +239,24 @@ void GUIAPI DisabledTextOutEx (HDC hdc, HWND hwnd, int x, int y, const char* szT
 
 void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
 {
-    NOTIFPROC notif_proc;
+    HWND parent;
 
     if (GetWindowExStyle (hwnd) & WS_EX_NOPARENTNOTIFY)
         return;
 
+    /* Since 5.0.0: use NotifyWindow */
+    parent = GetParent (hwnd);
+    if (parent == HWND_INVALID) {
+        _DBG_PRINTF ("failed to get parent of window (%p)\n", hwnd);
+        return;
+    }
+
+    if (NotifyWindow (parent, id, code, add_data)) {
+        _DBG_PRINTF ("failed to notify parent window (%p)\n", parent);
+    }
+
+#if 0   /* deprecated code */
+    NOTIFPROC notif_proc;
     notif_proc = GetNotificationCallback (hwnd);
 
     if (notif_proc) {
@@ -251,8 +264,9 @@ void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
     }
     else {
         SendNotifyMessage (GetParent (hwnd), MSG_COMMAND,
-                                 (WPARAM) MAKELONG (id, code), (LPARAM)hwnd);
+                (WPARAM) MAKELONG (id, code), (LPARAM)hwnd);
     }
+#endif  /* deprecated code */
 }
 
 LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

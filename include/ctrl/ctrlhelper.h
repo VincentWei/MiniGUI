@@ -184,23 +184,29 @@ MG_EXPORT void ResetToolTipWin (HWND hwnd, int x, int y,
 MG_EXPORT void DestroyToolTipWin (HWND hwnd);
 
 /**
- * \fn void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
- * \brief Sends a notification message to the parent.
+ * \fn void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code,
+ *      DWORD add_data)
+ * \brief Send a notification message to the parent.
  *
- * By default, the notification from a control will be sent to its parent
- * window within a MSG_COMMAND messsage.
+ * This function calls \a NotifyWindow to send a notification message
+ * to the parent.
  *
- * Since version 1.2.6, MiniGUI defines the Nofication Callback Procedure
- * for control. You can specify a callback function for a control by calling
+ * In the early version, the notification from a control will be sent to
+ * its parent window within a MSG_COMMAND message.
+ *
+ * Since version 1.2.6, MiniGUI defines the Notification Callback Procedure
+ * for a window. You can specify a callback function to a window by calling
  * \a SetNotificationCallback to receive and handle the notification from
- * the control.
+ * its children in the procedure.
  *
- * If you have defined the Notificaton Callback Procedure for the control,
- * calling NotifyParentEx will call the notification callback procedure,
- * not send the notification message to the parent.
+ * If you have set the notification callback procedure for the parent,
+ * MiniGUI will call the callback procedure eventually, instead of dispatching
+ * a MSG_COMMAND message to the window procedure.
  *
- * Note that if the control has WS_EX_NOPARENTNOTIFY style, this function
+ * Note that if the control has \a WS_EX_NOPARENTNOTIFY style, this function
  * will not notify the parent.
+ *
+ * Since 5.0.0, you can call NotifyWindow to notify any kind of window.
  *
  * \param hwnd The handle to current control window.
  * \param id The identifier of current control.
@@ -209,9 +215,10 @@ MG_EXPORT void DestroyToolTipWin (HWND hwnd);
  *
  * \note The type of \a id change from int to LINT since v3.2.
  *
- * \sa SetNotificationCallback
+ * \sa NotifyWindow, SetNotificationCallback
  */
-MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data);
+MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code,
+        DWORD add_data);
 
 /**
  * \def NotifyParent(hwnd, id, code)
