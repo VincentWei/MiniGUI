@@ -106,9 +106,9 @@ build_clipboard="yes"
 use_own_stdio="no"
 use_own_malloc="no"
 use_own_pthread="no"
-
 build_adv2dapi="yes"
-build_updateregion="no"
+build_updateregion="yes"
+
 build_minimalgdi="no"
 
 dnl Options for look and feel renderer
