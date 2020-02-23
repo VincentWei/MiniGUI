@@ -11,7 +11,7 @@ tab2space() {
 # tab2space
 
 # templates
-# sed -i 's/\<aaa\>/__aaa/g' `grep '\<aaa\>' -rl include/ src/`
+# sed -i 's/\<AAA\>/__AAA/g' `grep '\<AAA\>' -rl include/ src/`
 # sed -i 's/\<AAA\>/__mgAAA/g' `grep '\<AAA\>' -rl include/ src/`
 # sed -i 's/\<AAA\>/__gdiAAA/g' `grep '\<AAA\>' -rl include/ src/`
 # sed -i 's/\<AAA\>/__mg_AAA/g' `grep '\<AAA\>' -rl include/ src/`
@@ -141,6 +141,8 @@ tab2space() {
 
 # sed -i 's/\<__mg_timer_counter\>/__mg_tick_counter/g' `grep __mg_timer_counter -rl include/ src/`
 
-sed -i 's/\<pAdd\>/pSyncMsg/g' `grep '\<pAdd\>' -rl include/ src/`
+# sed -i 's/\<pAdd\>/pSyncMsg/g' `grep '\<pAdd\>' -rl include/ src/`
+
+sed -i 's/\<isWindowInThisThread\>/getMainWinIfWindowInThisThread/g' `grep '\<isWindowInThisThread\>' -rl include/ src/`
 
 exit 0
