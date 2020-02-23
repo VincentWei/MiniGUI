@@ -183,8 +183,11 @@ int GUIAPI DialogBoxIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     int  retCode = IDCANCEL;
     MSG Msg;
 
-    if(hOwner && hOwner != HWND_INVALID && hOwner != HWND_DESKTOP)
+    if (hOwner && hOwner != HWND_INVALID && hOwner != HWND_DESKTOP)
         hOwner = GetMainWindowHandle(hOwner);
+
+    /* Since 5.0.0: use internal extended style for dialgbox */
+    pDlgTemplate->dwExStyle |= WS_EX_DIALOGBOX;
 
     hDlg = CreateMainWindowIndirectParamEx(pDlgTemplate,
         hOwner, DlgProc, lParam,
@@ -193,9 +196,6 @@ int GUIAPI DialogBoxIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
 
     if (hDlg == HWND_INVALID)
         return -1;
-
-    /* Since 5.0.0: use internal extended style for dialgbox */
-    IncludeWindowExStyle (hDlg, WS_EX_DIALOGBOX);
 
     //MiniGUI maybe change dialog owner in CreateMainWindow, so we
     //should update its owner by GetHosting.
