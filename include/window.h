@@ -6226,7 +6226,7 @@ MG_EXPORT void* LoadResource (const char* res_name, int type, DWORD usr_param);
 
 /**
  * \fn void* GetResource (RES_KEY key);
- * \brief Retrive and return a buffered resource by the key.
+ * \brief Retrieve and return a buffered resource by the key.
  *
  * You should call LoadResource firstly, and then call GetResource when you need it.
  * Note that GetResource will not increase the reference count automatically.
@@ -6763,11 +6763,11 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
  * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
  *              const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
  *              unsigned int surf_flag, int compos_type, DWORD ct_arg,
- *              const char* window_name, const char* layer_name)
- * \brief Creates a main window with specified compositing type.
+ *              LINT id, LINT reserved)
+ * \brief Creates a main window with specified compositing type and identifier.
  *
- * This function creates a main window by using information and the speicified
- * compositing type, and returns the handle to the main window.
+ * This function creates a main window by using information and the specified
+ * compositing type and identifier, then returns the handle to the main window.
  *
  * \param pCreateInfo The pointer to a MAINWINCREATE structure.
  * \param werdr_name The name of window element renderer. NULL for default
@@ -6790,8 +6790,8 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
  *            the pixel format ARGB8888.
  * \param compos_type The compositing type of the main window.
  * \param ct_arg The compositing argument of the main window.
- * \param window_name The window name; reserved for future use.
- * \param layer_name The layer name; reserved for future use.
+ * \param id The window identifier.
+ * \param reserved Reserved for future use.
  *
  * \return The handle to the new main window; HWND_INVALID indicates an error.
  *
@@ -6808,7 +6808,7 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
 MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
                 const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
                 unsigned int surf_flag, int compos_type, DWORD ct_arg,
-                const char* window_name, const char* layer_name);
+                LINT id, LINT reserved);
 
 /**
  * \fn HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo, \
@@ -6821,10 +6821,12 @@ MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
  *
  * \param pCreateInfo The pointer to a MAINWINCREATE structure.
  * \param werdr_name The name of window element renderer. NULL for default
- *                   renderer.
+ *      renderer.
  * \param we_attrs The pointer to window element attribute table. NULL for
- *                   default window attribute table.
- * \param window_name The window name; reserved for future use.
+ *      default window attribute table.
+ * \param window_name The window name, reserved for future use before 5.0.0.
+ *  Since 5.0.0, this argument will cast to LINT for the identifier of
+ *  the main window.
  * \param layer_name The layer name; reserved for future use.
  *
  * \return The handle to the new main window; HWND_INVALID indicates an error.
@@ -6840,7 +6842,7 @@ static inline HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
                 const char* window_name, const char* layer_name)
 {
     return CreateMainWindowEx2 (pCreateInfo, werdr_name, we_attrs,
-            ST_DEFAULT, CT_OPAQUE, 0, window_name, layer_name);
+            ST_DEFAULT, CT_OPAQUE, 0, (LINT)window_name, (LINT)layer_name);
 }
 
 /**
@@ -7235,9 +7237,9 @@ MG_EXPORT BOOL GUIAPI IsWindowEnabled (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI GetClientRect(HWND hWnd, PRECT prc)
- * \brief Retrives the client rectangle of a window.
+ * \brief Retrieve the client rectangle of a window.
  *
- * This function retrives the coordinates of the client area of
+ * This function retrieves the coordinates of the client area of
  * the window specified by \a hWnd. The client coordinates specify
  * the upper-left and lower-right corners of the client area.
  * Because client coordinates are relative to the upper-left corner of
@@ -7308,9 +7310,9 @@ MG_EXPORT gal_pixel GUIAPI SetWindowBkColor (HWND hWnd, gal_pixel new_bkcolor);
 
 /**
  * \fn PLOGFONT GUIAPI GetWindowFont (HWND hWnd)
- * \brief Retrives the default font of a window.
+ * \brief Retrieve the default font of a window.
  *
- * This function retrives the default font of the specified
+ * This function retrieves the default font of the specified
  * window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -7343,9 +7345,9 @@ MG_EXPORT PLOGFONT GUIAPI SetWindowFont (HWND hWnd, PLOGFONT pLogFont);
 
 /**
  * \fn HCURSOR GUIAPI GetWindowCursor (HWND hWnd)
- * \brief Retrives the current cursor of a window.
+ * \brief Retrieve the current cursor of a window.
  *
- * This function retrives the current cursor of the specified
+ * This function retrieves the current cursor of the specified
  * window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -7372,9 +7374,9 @@ MG_EXPORT HCURSOR GUIAPI SetWindowCursor (HWND hWnd, HCURSOR hNewCursor);
 
 /**
  * \fn HICON GUIAPI GetWindowIcon (HWND hWnd)
- * \brief Retrives the current icon of a window.
+ * \brief Retrieve the current icon of a window.
  *
- * This function retrives the current icon of the specified
+ * This function retrieves the current icon of the specified
  * window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -7405,9 +7407,9 @@ MG_EXPORT HICON GUIAPI SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw);
 
 /**
  * \fn DWORD GUIAPI GetWindowStyle (HWND hWnd)
- * \brief Retrives the style of a window.
+ * \brief Retrieve the style of a window.
  *
- * This function retrives the style of the window specified by \a hWnd.
+ * This function retrieves the style of the window specified by \a hWnd.
  *
  * \param hWnd The handle to the window.
  * \return The style of the window.
@@ -7418,9 +7420,9 @@ MG_EXPORT DWORD GUIAPI GetWindowStyle (HWND hWnd);
 
 /**
  * \fn DWORD GUIAPI GetWindowExStyle (HWND hWnd)
- * \brief Retrives the extended style of a window.
+ * \brief Retrieve the extended style of a window.
  *
- * This function retrives the extended style of the window specified by \a hWnd.
+ * This function retrieves the extended style of the window specified by \a hWnd.
  *
  * \param hWnd The handle to the window.
  * \return The extended style of the window.
@@ -7491,9 +7493,9 @@ MG_EXPORT BOOL GUIAPI IncludeWindowExStyle (HWND hWnd, DWORD dwStyle);
 
 /**
  * \fn WNDPROC GUIAPI GetWindowCallbackProc (HWND hWnd)
- * \brief Retrives the callback procedure of a window.
+ * \brief Retrieve the callback procedure of a window.
  *
- * This function retrives the window callback procedure of the specified window
+ * This function retrieves the window callback procedure of the specified window
  * \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -7524,9 +7526,9 @@ MG_EXPORT WNDPROC GUIAPI SetWindowCallbackProc (HWND hWnd, WNDPROC newProc);
 
 /**
  * \fn DWORD GUIAPI GetWindowAdditionalData (HWND hWnd)
- * \brief Retrives the first additional data of a window.
+ * \brief Retrieve the first additional data of a window.
  *
- * This function retrives the first additional data of the specified window
+ * This function retrieves the first additional data of the specified window
  * \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -7558,9 +7560,9 @@ MG_EXPORT DWORD GUIAPI SetWindowAdditionalData (HWND hWnd, DWORD newData);
 
 /**
  * \fn DWORD GUIAPI GetWindowAdditionalData2 (HWND hWnd)
- * \brief Retrives the second additional data of a window.
+ * \brief Retrieve the second additional data of a window.
  *
- * This function retrives the second additional data of the specified window
+ * This function retrieves the second additional data of the specified window
  * \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -7591,9 +7593,9 @@ MG_EXPORT DWORD GUIAPI SetWindowAdditionalData2 (HWND hWnd, DWORD newData);
 
 /**
  * \fn DWORD GUIAPI GetWindowClassAdditionalData (HWND hWnd)
- * \brief Retrives the additional data of a control class.
+ * \brief Retrieve the additional data of a control class.
  *
- * This function retrives the additional data of the control class to which
+ * This function retrieves the additional data of the control class to which
  * the specified control \a hWnd belongs.
  *
  * \param hWnd The handle to the control.
@@ -7626,9 +7628,9 @@ MG_EXPORT DWORD GUIAPI SetWindowClassAdditionalData (HWND hWnd, DWORD newData);
 
 /**
  * \fn const char* GUIAPI GetWindowCaption (HWND hWnd)
- * \brief Retrives the caption of a window.
+ * \brief Retrieve the caption of a window.
  *
- * This function retrives the caption of the specified window \a hWnd.
+ * This function retrieves the caption of the specified window \a hWnd.
  *
  * \param hWnd The handle to the window.
  *
@@ -7801,9 +7803,9 @@ MG_EXPORT void GUIAPI EndPaint(HWND hWnd, HDC hdc);
 
 /**
  * \fn BOOL GUIAPI GetUpdateRect (HWND hWnd, RECT* update_rect)
- * \brief Retrives the bounding box of the update region of a window.
+ * \brief Retrieve the bounding box of the update region of a window.
  *
- * This function retrives the bounding box of the update region of
+ * This function retrieves the bounding box of the update region of
  * the specified window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -8091,7 +8093,7 @@ MG_EXPORT BOOL GUIAPI IsDialog (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetParent (HWND hWnd)
- * \brief Retrieves the handle to a child window's parent window.
+ * \brief Retrieve the handle to a child window's parent window.
  *
  * This function retrieves the handle to the specified child window's
  * parent window.
@@ -8110,9 +8112,9 @@ MG_EXPORT HWND GUIAPI GetParent (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetMainWindowHandle (HWND hWnd)
- * \brief Retrives the handle to the main window contains a window.
+ * \brief Retrieve the handle to the main window contains a window.
  *
- * This function retrives the handle to the main window which contains the
+ * This function retrieves the handle to the main window which contains the
  * specified window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -8127,9 +8129,9 @@ MG_EXPORT HWND GUIAPI GetMainWindowHandle (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI IsWindowVisible (HWND hWnd)
- * \brief Retrieves the visibility state of the specified window.
+ * \brief Retrieve the visibility state of the specified window.
  *
- * This function retrives the visibility state of the specified window \a hWnd.
+ * This function retrieves the visibility state of the specified window \a hWnd.
  *
  * \param hWnd Handle to the window to test.
  *
@@ -8143,9 +8145,9 @@ MG_EXPORT BOOL GUIAPI IsWindowVisible (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI GetWindowRect (HWND hWnd, PRECT prc)
- * \brief Retrives the dimensions of the bounding rectangle of a window.
+ * \brief Retrieve the dimensions of the bounding rectangle of a window.
  *
- * This function retrives the dimension of the bounding rectangle of
+ * This function retrieves the dimension of the bounding rectangle of
  * the specified window \a hWnd. The dimensions are given in parent's
  * client coordinates (screen coordinates for main window) that are
  * relative to the upper-left corner of the parent's client area (screen).
@@ -8162,9 +8164,9 @@ MG_EXPORT BOOL GUIAPI GetWindowRect (HWND hWnd, PRECT prc);
 
 /**
  * \fn HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
- * \brief Retrives the next control in a window.
+ * \brief Retrieve the next control in a window.
  *
- * This function retrives the next child of the specified
+ * This function retrieves the next child of the specified
  * window \a hWnd. If you pass HWND_NULL for the argument
  * of \a hChild, the function will return the first child of the window.
  *
@@ -8188,9 +8190,9 @@ MG_EXPORT HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild);
 
 /**
  * \fn HWND GUIAPI GetNextMainWindow (HWND hMainWnd)
- * \brief Retrives the next main window in the system according to the zorder.
+ * \brief Retrieve the next main window in the system according to the zorder.
  *
- * This function retrives the next main window of the specified
+ * This function retrieves the next main window of the specified
  * main window \a hMainWnd.
  *
  * \param hMainWnd The handle to the main window.
@@ -8205,43 +8207,106 @@ MG_EXPORT HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild);
  */
 MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
 
+#define WIN_SEARCH_METHOD_MASK  0xFF00
+#define WIN_SEARCH_METHOD_BFS   0x0000
+#define WIN_SEARCH_METHOD_DFS   0x0100
+
+#define WIN_SEARCH_FILTER_MASK  0x00FF
+#define WIN_SEARCH_FILTER_MAIN  0x0000
+#define WIN_SEARCH_FILTER_VIRT  0x0001
+
+/**
+ * \fn HWND GUIAPI GetMainVirtWindowById (LINT id, DWORD search_flags)
+ * \brief Retrieve the main window or virtual window by identifier.
+ *
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
+ *
+ * This function retrieves the first window which has the specified identifier
+ * \a id in the window tree in the current thread.
+ *
+ * \param id The identifier.
+ * \param search_flags The search flags, should be OR'd with a search method
+ *  value and one or two search filter values:
+ *      - WIN_SEARCH_METHOD_BFS\n
+ *        use BFS (breadth-first search).
+ *      - WIN_SEARCH_METHOD_DFS\n
+ *        use DFS (depth-first search).
+ *      - WIN_SEARCH_FILTER_MAIN\n
+ *        search main windows.
+ *      - WIN_SEARCH_FILTER_VIRT\n
+ *        search virtual windows.
+ *
+ * \return The handle to the first main window or virtual window which has the
+ *  specified identifier. If the current thread is not a message thread, it
+ *  returns HWND_INVALID. If there is no window matches the identifier, it
+ *  returns HWND_NULL.
+ *
+ * \sa GetRootWindow, GetHosting, GetFirstHosted, GetNextHosted
+ */
+MG_EXPORT HWND GUIAPI GetMainVirtWindowById (LINT id, DWORD search_flags);
+
+/**
+ * \fn HWND GUIAPI GetRootWindow (void)
+ * \brief Retrieve the root window of current thread.
+ *
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
+ *
+ * This function retrieves and returns the root window in the current thread.
+ *
+ * \return The handle to the root window. If the current thread is not
+ *  a message thread, it returns HWND_INVALID. If there is no
+ *  any window created in the current thread, it returns HWND_NULL.
+ *
+ * \sa GetHosting, GetFirstHosted, GetNextHosted, GetMainWindowById
+ */
+MG_EXPORT HWND GUIAPI GetRootWindow (void);
+
 /**
  * \fn HWND GUIAPI GetHosting (HWND hMainWnd)
- * \brief Retrives the hosting main window of a main window.
+ * \brief Retrieve the hosting window of a main window or a virtual window.
  *
- * This function retrives the hosting main window of the specified
- * main window \a hWnd. The hosting main window creates the message queue,
- * which shared with all hosted main window of it.
- * The hosting window of a top-level main window is HWND_DESKTOP.
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
  *
- * HWND_DESKTOP has no hosting window, do not use this function for it.
+ * This function retrieves the hosting window of the specified main window
+ * or virtual window \a hWnd.
+ *
+ * For a root window in the current thread, this function returns HWND_NULL.
  *
  * \param hMainWnd The handle to the main window.
  *
  * \return The handle to the hosting main window. A valid window must have a
- *         hosting window.  If error occurs, such as a invalid handle or
- *         HWND_DESKTOP is passed as \a hMainWnd, HWND_INVALID is returned.
+ *  hosting window. If error occurs, for example, an invalid handle, the
+ *  specified window is not in the current thread, or the current thread
+ *  is not a message thread, this function returns HWND_INVALID.
+ *  For a root window in the current thread, this function returns HWND_NULL.
  *
- * \sa GetFirstHosted, GetNextHosted
+ * \sa GetRootWindow, GetFirstHosted, GetNextHosted
  */
 MG_EXPORT HWND GUIAPI GetHosting (HWND hMainWnd);
 
 /**
  * \fn HWND GUIAPI GetFirstHosted (HWND hHosting)
- * \brief Retrives the first hosted main window of a main window.
+ * \brief Retrieve the first hosted window of a main window or a virtual window.
  *
- * This function retrives the first hosted main window of
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
+ *
+ * This function retrieves the first hosted main/virtual window of
  * the specified main window \a hMainWnd.
- *
- * For MiniGUI-Threads, HWND_DESKTOP has no any "hosted" window,
- * so do not use this function for it.
  *
  * \param hHosting The handle to the hosting main window.
  *
  * \return The handle to the first hosted main window. If an invalid window
- *         handle is passed for \a hHosting, HWND_INVALID will be returned.
- *         If tihs main window do not have a hosted window, HWND_NULL
- *         will be returned.
+ *  handle is passed for \a hHosting, HWND_INVALID will be returned.
+ *  If the specified window do not have a hosted window, this function returns
+ *  HWND_NULL.
  *
  * \sa GetHosting, GetNextHosted
  */
@@ -8249,25 +8314,24 @@ MG_EXPORT HWND GUIAPI GetFirstHosted (HWND hHosting);
 
 /**
  * \fn HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted)
- * \brief Retrives the next hosted main window of a main window.
+ * \brief Retrieve the next hosted window of a main window or a virtual window.
  *
- * This function retrives the next hosted main window of the specified
- * main window \a hHosting.
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
  *
- * For MiniGUI-Threads, HWND_DESKTOP has no any "hosted" window,
- * so do not use this function for it.
+ * This function retrieves the next hosted main/virtual window of the specified
+ * main/virtual window \a hHosting. If \a hHosted is HWND_NULL, it is
+ * equivalent to GetFirstHosted(hHosting).
+
+ * \param hHosting The handle to the hosting window.
+ * \param hHosted The handle to a known hosted window. This function
+ *        will return the next hosted window.
  *
- * \param hHosting The handle to the hosting main window.
- * \param hHosted The handle to a known hosted main window. This function
- *        will return the next hosted main window.
- *
- * \return Handle to the next hosted main window.
- *         Returns 0 when \a hHosted is the last hosted main window;
- *         HWND_INVALID when error occurs. If \a hHosted is 0, it is equivalent
- *         to GetFirstHosted(hHosting).
- *         If an invalid window handle is passed as \a hHosting
- *         or \a hHosted, HWND_INVALID will be returned; If \a hHosted is
- *         not the hosted window of \a hHosting, HWND_INVALID will be returned.
+ * \return The handle to the next hosted main window.
+ *  It returns HWND_NULL when \a hHosted is the last hosted main window.
+ *  If invalid window handles are passed, or if \a hHosted is not a hosted
+ *  window of \a hHosting, this function returns HWND_INVALID.
  *
  * \sa GetFirstHosted
  */
@@ -8275,7 +8339,7 @@ MG_EXPORT HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted);
 
 /**
  * \fn int GUIAPI GetWindowTextLength (HWND hWnd)
- * \brief Retrieves the length of a window's text.
+ * \brief Retrieve the length of a window's text.
  *
  * This function retrieves the length, in characters, of the specified
  * window's text. The function retrieves the length of the text by sending
@@ -8326,10 +8390,10 @@ MG_EXPORT BOOL GUIAPI SetWindowText (HWND hWnd, const char* spString);
 
 /**
  * \fn HWND GUIAPI GetFocusChild (HWND hParent)
- * \brief Retrieves the handle to the window's active child that has
+ * \brief Retrieve the handle to the window's active child that has
  *        the keyboard focus.
  *
- * This function retrives the handle to the window's active child that has
+ * This function retrieves the handle to the window's active child that has
  * the keyboard focus.
  *
  * \param hParent The handle to the parent window.
@@ -8384,9 +8448,9 @@ MG_EXPORT HWND GUIAPI SetFocusChild (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetActiveWindow (void)
- * \brief Retrieves the main window handle to the active main window.
+ * \brief Retrieve the main window handle to the active main window.
  *
- * This function retrives the main window handle to the active main window
+ * This function retrieves the main window handle to the active main window
  * which receives the input.
  *
  * \return The handle to the active main window.
@@ -8424,7 +8488,7 @@ MG_EXPORT HWND GUIAPI SetActiveWindow (HWND hMainWnd);
 
 /**
  * \fn HWND GUIAPI GetCapture(void)
- * \brief Retrives the handle to the window (if any) that has captured
+ * \brief Retrieve the handle to the window (if any) that has captured
  * the mouse.
  *
  * This function retrieves the handle to the window (if any) that has captured
@@ -8470,7 +8534,7 @@ MG_EXPORT void GUIAPI ReleaseCapture(void);
 
 /**
  * \fn HWND GUIAPI GetWindowUnderCursor(void)
- * \brief Retrives the handle to the window (if any) which is just
+ * \brief Retrieve the handle to the window (if any) which is just
  *        beneath the mouse cursor.
  *
  * This function retrieves the handle to the window (if any) that is under
@@ -8484,7 +8548,7 @@ MG_EXPORT HWND GUIAPI GetWindowUnderCursor (void);
 
 /**
  * \fn HWND GUIAPI WindowFromPointEx (POINT pt, BOOL bRecursion)
- * \brief Retrieves a handle to the window that contains the specified point.
+ * \brief Retrieve a handle to the window that contains the specified point.
  *
  * This function retrieves a handle to the main window that contains the
  * specified point \a pt.
@@ -8508,7 +8572,7 @@ MG_EXPORT HWND GUIAPI WindowFromPointEx (POINT pt, BOOL bRecursion);
 /**
  * \fn HWND GUIAPI ChildWindowFromPointEx (HWND hParent, POINT pt,
                     UINT uFlags)
- * \brief Retrives a handle to the child window that contains the
+ * \brief Retrieve a handle to the child window that contains the
  *        speicified point and meets the certain criteria.
  *
  * This function determines which, if any, of the child windows
@@ -8546,7 +8610,7 @@ MG_EXPORT HWND GUIAPI ChildWindowFromPointEx (HWND hParent, POINT pt,
 
 /**
  * \fn HWND GUIAPI ChildWindowFromPoint (HWND hParent, POINT pt)
- * \brief Retrives a handle to the child window that contains the
+ * \brief Retrieve a handle to the child window that contains the
  *        speicified point.
  *
  * This function determines which, if any, of the child windows
@@ -8725,7 +8789,7 @@ static inline void GUIAPI ScrollWindow (HWND hWnd, int dx, int dy,
 
 /**
  * \fn MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name, const char* id)
- * \brief Retrives the system bitmap object by identifier.
+ * \brief Retrieve the system bitmap object by identifier.
  *
  * This function returns the system bitmap object by its identifier.
  *
@@ -8746,7 +8810,7 @@ MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name,
 
 /**
  * \fn PBITMAP GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
- * \brief Retrives the system bitmap object by identifier.
+ * \brief Retrieve the system bitmap object by identifier.
  *
  * This function returns the system bitmap object by its identifier.
  *
@@ -8766,7 +8830,7 @@ MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
 
 /**
  * \fn PBITMAP GUIAPI GetSystemBitmap (HWND hWnd, const char* id)
- * \brief Retrives the system bitmap object by identifier.
+ * \brief Retrieve the system bitmap object by identifier.
  *
  * This function returns the system bitmap object by its identifier.
  *
@@ -8879,9 +8943,9 @@ MG_EXPORT HICON GUIAPI LoadSystemIcon (const char* szItemName, int which);
 
 /**
  * \fn HICON GUIAPI GetLargeSystemIconEx (HWND hWnd, int iItem)
- * \brief Retrives a large system icon by its identifier in default renderer.
+ * \brief Retrieve a large system icon by its identifier in default renderer.
  *
- * This function retrives the handle to a large (32x32) system icon
+ * This function retrieves the handle to a large (32x32) system icon
  * by its identifier \a id.
  *
  * \param hWnd The handle to the window.
@@ -8901,9 +8965,9 @@ MG_EXPORT HICON GUIAPI GetLargeSystemIconEx (HWND hWnd, int iItem);
 
 /**
  * \fn HICON GUIAPI GetSmallSystemIconEx (HWND hWnd, int iItem)
- * \brief Retrives a small system icon by its identifier.
+ * \brief Retrieve a small system icon by its identifier.
  *
- * This function retrives the handle to a small (16x16) system icon by
+ * This function retrieves the handle to a small (16x16) system icon by
  * its identifier \a id.
  *
  * \param hWnd The handle to the window.
@@ -8923,7 +8987,7 @@ MG_EXPORT HICON GUIAPI GetSmallSystemIconEx (HWND hWnd, int iItem);
 
 /**
  * \def GetLargeSystemIcon
- * \brief Retrives a large (32x32) system icon by its identifier
+ * \brief Retrieve a large (32x32) system icon by its identifier
  *        in default renderer.
  * \sa GetSmallSystemIconEx
  */
@@ -8931,7 +8995,7 @@ MG_EXPORT HICON GUIAPI GetSmallSystemIconEx (HWND hWnd, int iItem);
 
 /**
  * \def GetSmallSystemIcon
- * \brief Retrives a small (16x16) system icon by its identifier
+ * \brief Retrieve a small (16x16) system icon by its identifier
  *        in default renderer.
  * \sa GetSmallSystemIconEx
  */
@@ -8969,7 +9033,7 @@ MG_EXPORT BOOL GUIAPI EnableScrollBar (HWND hWnd, int iSBar, BOOL bEnable);
 
 /**
  * \fn BOOL GUIAPI GetScrollPos (HWND hWnd, int iSBar, int* pPos)
- * \brief Retrieves the current position of the scroll box (thumb) in the
+ * \brief Retrieve the current position of the scroll box (thumb) in the
  *        specified scroll bar.
  *
  * This function retrieves the current position of the scroll box (thumb) in
@@ -8992,10 +9056,10 @@ MG_EXPORT BOOL GUIAPI GetScrollPos (HWND hWnd, int iSBar, int* pPos);
 
 /**
  * \fn BOOL GUIAPI GetScrollRange (HWND hWnd, int iSBar, int* pMinPos, int* pMaxPos)
- * \brief Retrives the minimum and maximum position values for the specified
+ * \brief Retrieve the minimum and maximum position values for the specified
  * scroll bar.
  *
- * This function retrives the minimum and maximum position values for
+ * This function retrieves the minimum and maximum position values for
  * the specified scroll bar.
  *
  * \param hWnd The handle to the window.
@@ -9116,11 +9180,11 @@ typedef struct _SCROLLINFO
      * A flag indicates which fields contain valid values,
      * can be OR'ed value of the following values:
      *      - SIF_RANGE\n
-     *        Retrives or sets the range of the scroll bar.
+     *        Retrieve or sets the range of the scroll bar.
      *      - SIF_PAGE\n
-     *        Retrives or sets the page size of the scroll bar.
+     *        Retrieve or sets the page size of the scroll bar.
      *      - SIF_POS\n
-     *        Retrives or sets the position of the scroll bar.
+     *        Retrieve or sets the position of the scroll bar.
      *      - SIF_DISABLENOSCROLL\n
      *        Hides the scroll when disabled, not implemented so far.
      */
@@ -9166,7 +9230,7 @@ MG_EXPORT BOOL GUIAPI SetScrollInfo (HWND hWnd, int iSBar,
 
 /**
  * \fn BOOL GUIAPI GetScrollInfo (HWND hWnd, int iSBar, PSCROLLINFO lpsi)
- * \brief Retrieves the parameters of a scroll bar.
+ * \brief Retrieve the parameters of a scroll bar.
  *
  * This function retrieves the parameters of a scroll bar, including the
  * minimum and maximum scrolling positions, the page size, and the position
@@ -9229,15 +9293,15 @@ typedef struct _WNDCLASS {
 
     /** The mask of class information, can be OR'd with the following values:
       * - COP_STYLE\n
-      *   Retrive the style of the window class.
+      *   Retrieve the style of the window class.
       * - COP_HCURSOR\n
-      *   Retrive the cursor of the window class.
+      *   Retrieve the cursor of the window class.
       * - COP_BKCOLOR\n
-      *   Retrive the background pixel value of the window class.
+      *   Retrieve the background pixel value of the window class.
       * - COP_WINPROC
-      *   Retrive the window procedure of the window class.
+      *   Retrieve the window procedure of the window class.
       * - COP_ADDDATA\n
-      *   Retrive the additional data of the window class.
+      *   Retrieve the additional data of the window class.
       */
     DWORD   opMask;
 
@@ -9331,7 +9395,7 @@ MG_EXPORT BOOL GUIAPI UnregisterWindowClass (const char* szClassName);
 
 /**
  * \fn const char* GUIAPI GetClassName (HWND hWnd)
- * \brief Retrieves the name of the class to which the specified window belongs.
+ * \brief Retrieve the name of the class to which the specified window belongs.
  *
  * This function retrieves the name of the class to which
  * the specified window \a hWnd belongs.
@@ -9346,9 +9410,9 @@ MG_EXPORT const char* GUIAPI GetClassName (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI GetWindowClassInfo (PWNDCLASS pWndClass)
- * \brief Retrieves the information of the specified window class.
+ * \brief Retrieve the information of the specified window class.
  *
- * This function retrives the information of a window class.
+ * This function retrieves the information of a window class.
  * The window class to be retrived is specified by \a pWndClass->spClassName.
  *
  * \param pWndClass The pointer to a WNDCLASS structure, which specifies the
@@ -9764,9 +9828,9 @@ MG_EXPORT int GUIAPI UnregisterIMEWindow (HWND hWnd);
 
 /**
  * \fn int GUIAPI GetIMEStatus (int StatusCode)
- * \brief Retrives status of the current IME window.
+ * \brief Retrieve status of the current IME window.
  *
- * This function retrives status of the current IME window.
+ * This function retrieves status of the current IME window.
  *
  * \param StatusCode The item to be retrived, can be one of the following
  * values:
@@ -9826,9 +9890,9 @@ MG_EXPORT int GUIAPI SetIMEStatus (int StatusCode, int Value);
 
 /**
  * \fn int GUIAPI GetIMETargetInfo (IME_TARGET_INFO* info)
- * \brief Retrives the target info of the current IME window.
+ * \brief Retrieve the target info of the current IME window.
  *
- * This function retrives the target info of the current IME window.
+ * This function retrieves the target info of the current IME window.
  *
  * \param info The item to be retrived. The target info is
  *        return by the current IME Window.
@@ -9858,11 +9922,11 @@ MG_EXPORT int GUIAPI SetIMETargetInfo (const IME_TARGET_INFO *info);
 
 /**
  * \fn int GUIAPI GetIMEPos (POINT* pt)
- * \brief Retrives the position of the current IME window.
+ * \brief Retrieve the position of the current IME window.
  *
  * NOTE that this function is deprecated.
  *
- * This function retrives the position of the current IME window.
+ * This function retrieves the position of the current IME window.
  *
  * \param pt The item to be retrived. The positon is
  *        return by the current IME Window.
@@ -10628,9 +10692,9 @@ MG_EXPORT HMENU GUIAPI SetMenu (HWND hwnd, HMENU hmnu);
 
 /**
  * \fn HMENU GUIAPI GetMenu (HWND hwnd)
- * \brief Retrieves the handle to the menu assigned to the given main window.
+ * \brief Retrieve the handle to the menu assigned to the given main window.
  *
- * This function retrives the handle to the menu assigned to
+ * This function retrieves the handle to the menu assigned to
  * the given main window \a hwnd.
  *
  * \param hwnd The handle to the main window.
@@ -10712,7 +10776,7 @@ MG_EXPORT int GUIAPI TrackPopupMenu (HMENU hmnu, UINT uFlags,
 
 /**
  * \fn HMENU GUIAPI GetMenuBarItemRect (HWND hwnd, int pos, RECT* prc)
- * \brief Retrieves the rect of a menu bar item.
+ * \brief Retrieve the rect of a menu bar item.
  *
  * This function retrieves the rect of the menu bar item specified
  * by the parameter \a pos.
@@ -10772,7 +10836,7 @@ MG_EXPORT int GUIAPI GetMenuItemCount (HMENU hmnu);
 
 /**
  * \fn LINT GUIAPI GetMenuItemID (HMENU hmnu, int pos)
- * \brief Retrieves the menu item identifier of a menu item at specified
+ * \brief Retrieve the menu item identifier of a menu item at specified
  *        position in a menu.
  *
  * This function retrieves the menu item identifier of a menu item at
@@ -10792,7 +10856,7 @@ MG_EXPORT LINT GUIAPI GetMenuItemID (HMENU hmnu, int pos);
 /**
  * \fn int GUIAPI GetMenuItemInfo (HMENU hmnu, LINT item, \
  *               UINT flag, PMENUITEMINFO pmii)
- * \brief Retrieves information about a menu item.
+ * \brief Retrieve information about a menu item.
  *
  * This function retrieves information about a menu item, and returns the
  * information via \a pmii.
@@ -10823,7 +10887,7 @@ int GUIAPI GetMenuItemRect (HWND hwnd, HMENU hmnu,
 
 /**
  * \fn HMENU GUIAPI GetPopupSubMenu (HMENU hpppmnu)
- * \brief Retrieves the submenu of the specified popup menu.
+ * \brief Retrieve the submenu of the specified popup menu.
  *
  * This function retrieves the submenu of the specified popup menu.
  *
@@ -10851,7 +10915,7 @@ MG_EXPORT HMENU GUIAPI StripPopupHead (HMENU hpppmnu);
 
 /**
  * \fn HMENU GUIAPI GetSubMenu (HMENU hmnu, int pos)
- * \brief Retrieves the handle to the submenu activated by the specified menu
+ * \brief Retrieve the handle to the submenu activated by the specified menu
  *        item.
  *
  * This function retrieves the handle to the drop-down menu or submenu
@@ -11328,9 +11392,9 @@ MG_EXPORT LINT GUIAPI GetDlgCtrlID (HWND hwndCtl);
 
 /**
  * \fn HWND GUIAPI GetDlgItem (HWND hDlg, LINT nIDDlgItem)
- * \brief Retrives the handle to a control in a dialog box.
+ * \brief Retrieve the handle to a control in a dialog box.
  *
- * This function retrives the handle to a control, whose identifier is
+ * This function retrieves the handle to a control, whose identifier is
  * \a nIDDlgItem, in the specified dialog box \a hDlg.
  *
  * \param hDlg The handle to the dialog box.
@@ -11380,9 +11444,9 @@ MG_EXPORT UINT GUIAPI GetDlgItemInt (HWND hDlg, LINT nIDDlgItem,
 /**
  * \fn int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem, \
  *               char* lpString, int nMaxCount)
- * \brief Retrieves the title or text associated with a control in a dialog box.
+ * \brief Retrieve the title or text associated with a control in a dialog box.
  *
- * This function retrives the title or text associated with a control, whose
+ * This function retrieves the title or text associated with a control, whose
  * identifier is \a nIDDlgItem in the dialog box \a hDlg.
  *
  * \param hDlg The handle to the dialog box.
@@ -11404,7 +11468,7 @@ MG_EXPORT int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem,
 
 /**
  * \fn char* GUIAPI GetDlgItemText2 (HWND hDlg, LINT id, int* lenPtr)
- * \brief Retrieves the title or text associated with a control in a dialog box.
+ * \brief Retrieve the title or text associated with a control in a dialog box.
  *
  * This function is similiar as \a GetDlgItemText function,
  * but it allocates memory for the text and returns the pointer
@@ -11427,7 +11491,7 @@ MG_EXPORT char* GUIAPI GetDlgItemText2 (HWND hDlg, LINT id, int* lenPtr);
 /**
  * \fn HWND GUIAPI GetNextDlgGroupItem (HWND hDlg, \
  *               HWND hCtl, BOOL bPrevious)
- * \brief Retrieves the handle to the first control in a group of controls
+ * \brief Retrieve the handle to the first control in a group of controls
  *        that precedes (or follows) the specified control in a dialog box.
  *
  * This function retrieves the handle to the first control in a group of
@@ -11448,7 +11512,7 @@ MG_EXPORT HWND GUIAPI GetNextDlgGroupItem (HWND hDlg,
 
 /**
  * \fn HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
- * \brief Retrieves the handle to the first control that has the WS_TABSTOP
+ * \brief Retrieve the handle to the first control that has the WS_TABSTOP
  *        style that precedes (or follows) the specified control.
  *
  * This function retrieves the handle to the first control that has the
