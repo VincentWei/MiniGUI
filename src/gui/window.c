@@ -2961,48 +2961,143 @@ HWND GUIAPI GetParent (HWND hWnd)
     return (HWND)pChildWin->pParent;
 }
 
+/* Since 5.0.0 */
+HWND GUIAPI GetRootWindow (void)
+{
+    MSGQUEUE* pMsgQueue;
+
+    if ((pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
+        return HWND_INVALID;
+    }
+
+    return (HWND)pMsgQueue->pRootMainWin;
+}
+
 HWND GUIAPI GetHosting (HWND hWnd)
 {
-    PMAINWIN pWin;
+    PMAINWIN pMainWin;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+    if ((pMainWin = getMainWinIfWindowInThisThread (hWnd)) == NULL) {
         return HWND_INVALID;
+    }
 
-    if (pWin->pHosting == NULL)
-        return HWND_DESKTOP;
-
-    return (HWND)(pWin->pHosting);
+    return pMainWin->pHosting;
 }
 
 HWND GUIAPI GetFirstHosted (HWND hWnd)
 {
-    PMAINWIN pWin;
+    PMAINWIN pMainWin;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+    if ((pMainWin = getMainWinIfWindowInThisThread (hWnd)) == NULL) {
         return HWND_INVALID;
+    }
 
-    return (HWND)(pWin->pFirstHosted);
+    return pMainWin->pFirstHosted;
 }
 
 HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted)
 {
-    PMAINWIN pWin;
+    PMAINWIN pHosting;
     PMAINWIN pHosted;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hHosting)))
+    if ((pHosting = getMainWinIfWindowInThisThread (hHosting)) == NULL) {
         return HWND_INVALID;
-
-    if (hHosted == 0) {
-        return GetFirstHosted(hHosting);
     }
 
-    if (!(pHosted = gui_CheckAndGetMainWindowPtr (hHosted)))
-        return HWND_INVALID;
+    if (hHosted == HWND_NULL) {
+        return GetFirstHosted (hHosting);
+    }
 
-    if (pHosted->pHosting != pWin)
+    if ((pHosted = getMainWinIfWindowInThisThread (hHosted)) == NULL) {
         return HWND_INVALID;
+    }
+
+    if (MG_UNLIKELY (pHosted->pHosting != pHosting)) {
+        return HWND_INVALID;
+    }
 
     return (HWND)(pHosted->pNextHosted);
+}
+
+struct _search_context {
+    LINT id;
+    DWORD flags;
+    PMAINWIN hosting;
+};
+
+static PMAINWIN search_win_tree_dfs (struct _search_context *ctxt)
+{
+    PMAINWIN hosted = GetFirstHosted (ctxt->hosting);
+
+    while (hosted) {
+        if (hosted->id == ctxt->id &&
+                (((ctxt->flags & WIN_SEARCH_FILTER_MAIN) &&
+                hosted->WinType == TYPE_MAINWIN) ||
+                ((ctxt->flags & WIN_SEARCH_FILTER_VIRT) &&
+                hosted->WinType == TYPE_VIRTWIN))) {
+            return hosted;
+        }
+
+        hosted = GetFirstHosted (hosted);
+    }
+
+    hosted = GetNextHosted (ctxt->hosting, hosted);
+    if (hosted) {
+        ctxt->hosting = hosted;
+        return search_win_tree_dfs (ctxt);
+    }
+
+    return NULL;
+}
+
+static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
+{
+    PMAINWIN hosted = GetFirstHosted (ctxt->hosting);
+
+    while (hosted) {
+        if (hosted->id == ctxt->id &&
+                (((ctxt->flags & WIN_SEARCH_FILTER_MAIN) &&
+                hosted->WinType == TYPE_MAINWIN) ||
+                ((ctxt->flags & WIN_SEARCH_FILTER_VIRT) &&
+                hosted->WinType == TYPE_VIRTWIN))) {
+            return hosted;
+        }
+
+        hosted = GetNextHosted (ctxt->hosting, hosted);
+    }
+
+    hosted = GetFirstHosted (ctxt->hosting);
+    if (hosted) {
+        ctxt->hosting = hosted;
+        return search_win_tree_bfs (ctxt);
+    }
+
+    return NULL;
+}
+
+HWND GUIAPI GetMainVirtWindowById (LINT id, DWORD search_flags)
+{
+    MSGQUEUE* pMsgQueue;
+    PMAINWIN pHosting;
+    struct _search_context ctxt = { id, search_flags };
+
+    if ((pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
+        return HWND_INVALID;
+    }
+
+    if ((pHosting = pMsgQueue->pRootMainWin) == NULL) {
+        return HWND_NULL;
+    }
+
+    ctxt.hosting = pHosting;
+    if ((search_flags & WIN_SEARCH_METHOD_MASK) == WIN_SEARCH_METHOD_DFS) {
+        // depth first search
+        return (HWND)search_win_tree_dfs (&ctxt);
+    }
+    else {
+        // breadth first search
+        return (HWND)search_win_tree_bfs (&ctxt);
+    }
 }
 
 HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
@@ -4027,7 +4122,7 @@ static void ResetMenuSize (HWND hwnd)
 HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
         unsigned int surf_flag, int ct, DWORD ct_arg,
-        const char* window_name, const char* layer_name)
+        LINT id, LINT reserved)
 {
     PMAINWIN pWin;
     COMPOSITINGINFO ct_info = { ct, ct_arg };
@@ -4115,18 +4210,21 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 #endif
         pWin->hSysMenu = 0;
 
-    pWin->spCaption    = FixStrAlloc (strlen (pCreateInfo->spCaption));
+    pWin->spCaption         = FixStrAlloc (strlen (pCreateInfo->spCaption));
     if (pCreateInfo->spCaption [0])
         strcpy (pWin->spCaption, pCreateInfo->spCaption);
 
-    pWin->MainWindowProc = pCreateInfo->MainWindowProc;
-    pWin->iBkColor    = pCreateInfo->iBkColor;
+    /* Since 5.0.0 */
+    pWin->id                = id;
 
-    pWin->pCaretInfo = NULL;
+    pWin->MainWindowProc    = pCreateInfo->MainWindowProc;
+    pWin->iBkColor          = pCreateInfo->iBkColor;
 
-    pWin->dwAddData   = pCreateInfo->dwAddData;
-    pWin->dwAddData2  = 0;
-    pWin->secondaryDC = 0;
+    pWin->pCaretInfo        = NULL;
+
+    pWin->dwAddData         = pCreateInfo->dwAddData;
+    pWin->dwAddData2        = 0;
+    pWin->secondaryDC       = 0;
 
     /* Scroll bar */
     if (pWin->dwStyle & WS_VSCROLL) {
