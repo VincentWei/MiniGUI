@@ -2955,7 +2955,8 @@ HWND GUIAPI GetParent (HWND hWnd)
 {
     PCONTROL pChildWin = (PCONTROL)hWnd;
 
-    MG_CHECK_RET (MG_IS_WINDOW(hWnd), HWND_INVALID);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NOT_VIRT_WINDOW(hWnd), HWND_INVALID);
 
     return (HWND)pChildWin->pParent;
 }
