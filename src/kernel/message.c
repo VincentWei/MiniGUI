@@ -88,8 +88,8 @@
 /* since 5.0.0, we use post_quit_to_all_message_threads instead */
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
-  #define SET_PADD(value) pMsg->pAdd = value
-  #define SYNMSGNAME pMsg->pAdd?"Sync":"Normal"
+  #define SET_PADD(value) pMsg->pSyncMsg = value
+  #define SYNMSGNAME pMsg->pSyncMsg?"Sync":"Normal"
 
   /* XXX: Need desktop thread keep alive to wakeup sem_wait()
      by delivering messages */
@@ -127,13 +127,18 @@
 #endif  /* deprecated code */
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-#   define SET_PADD(value) pMsg->pAdd = value
+#   define SET_PADD(value) pMsg->pSyncMsg = value
 #else
 #   define SET_PADD(value)
 #endif
 
 #define TEST_IF_QUIT(queue, hWnd)
 #define ERR_MSG_CANCELED    ERR_QUEUE_FULL
+
+#define ALLOCQMSG()         (PQMSG)BlockDataAlloc(&QMSGHeap)
+#define FREEQMSG(pqmsg)     BlockDataFree(&QMSGHeap, pqmsg)
+#define GETWNDPROC(hWnd)    (((PMAINWIN)hWnd)->MainWindowProc)
+#define GETNOTIFPROC(hWnd)  (((PMAINWIN)hWnd)->NotifProc)
 
 /****************************** Message Allocation ****************************/
 static BLOCKHEAP QMSGHeap;
@@ -148,16 +153,6 @@ BOOL mg_InitFreeQMSGList (void)
 void mg_DestroyFreeQMSGList (void)
 {
     DestroyBlockDataHeap (&QMSGHeap);
-}
-
-inline static PQMSG QMSGAlloc (void)
-{
-    return (PQMSG) BlockDataAlloc (&QMSGHeap);
-}
-
-inline static void FreeQMSG (PQMSG pqmsg)
-{
-    BlockDataFree (&QMSGHeap, pqmsg);
 }
 
 /****************************** Message Queue Management ************************/
@@ -417,7 +412,7 @@ void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue)
     while (head) {
         next = head->next;
 
-        FreeQMSG (head);
+        FREEQMSG (head);
         head = next;
     }
 
@@ -520,11 +515,6 @@ ret:
 }
 
 /******************************************************************************/
-
-static inline WNDPROC GetWndProc (HWND hWnd)
-{
-     return ((PMAINWIN)hWnd)->MainWindowProc;
-}
 
 HWND kernel_CheckInvalidRegion (PMAINWIN pWin)
 {
@@ -850,7 +840,7 @@ checkagain:
             if (IS_MSG_WANTED(pMsg->message)) {
               if (uRemoveMsg == PM_REMOVE) {
                   pMsgQueue->pFirstNotifyMsg = phead->next;
-                  FreeQMSG (phead);
+                  FREEQMSG (phead);
               }
 
               UNLOCK_MSGQ (pMsgQueue);
@@ -1201,7 +1191,7 @@ LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
         return SendSyncMessage (hWnd, nMsg, wParam, lParam);
 #endif
 
-    if (!(WndProc = GetWndProc(hWnd)))
+    if (!(WndProc = GETWNDPROC(hWnd)))
         return ERR_INV_HWND;
 
     return (*WndProc)(hWnd, nMsg, wParam, lParam);
@@ -1219,7 +1209,7 @@ LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
     if (!(pMsgQueue = getMsgQueue(hWnd)))
         return ERR_INV_HWND;
 
-    pqmsg = QMSGAlloc();
+    pqmsg = ALLOCQMSG();
 
     LOCK_MSGQ (pMsgQueue);
 
@@ -1259,7 +1249,7 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
     if (!(pMsgQueue = getMsgQueue(hWnd)))
         return ERR_INV_HWND;
 
-    pqmsg = QMSGAlloc();
+    pqmsg = ALLOCQMSG();
 
     LOCK_MSGQ (pMsgQueue);
 
@@ -1268,6 +1258,48 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
     pqmsg->Msg.message = nMsg;
     pqmsg->Msg.wParam = wParam;
     pqmsg->Msg.lParam = lParam;
+    pqmsg->Msg.time = __mg_tick_counter;
+    pqmsg->next = NULL;
+
+    if (pMsgQueue->pFirstNotifyMsg == NULL) {
+        pMsgQueue->pFirstNotifyMsg = pMsgQueue->pLastNotifyMsg = pqmsg;
+    }
+    else {
+        pMsgQueue->pLastNotifyMsg->next = pqmsg;
+        pMsgQueue->pLastNotifyMsg = pqmsg;
+    }
+
+    pMsgQueue->dwState |= QS_NOTIFYMSG;
+
+    UNLOCK_MSGQ (pMsgQueue);
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!isWindowInThisThread(hWnd))
+        POST_MSGQ(pMsgQueue);
+#endif
+
+    return ERR_OK;
+}
+
+int GUIAPI NotifyWindow (HWND hWnd, LINT id, int code, DWORD dwAddData)
+{
+    PMSGQUEUE pMsgQueue;
+    PQMSG pqmsg;
+
+    MG_CHECK_RET (MG_IS_WINDOW(hWnd), ERR_INV_HWND);
+
+    if (!(pMsgQueue = getMsgQueue(hWnd)))
+        return ERR_INV_HWND;
+
+    pqmsg = ALLOCQMSG();
+
+    LOCK_MSGQ (pMsgQueue);
+
+    /* queue the notification message. */
+    pqmsg->Msg.hwnd = hWnd;
+    pqmsg->Msg.message = MSG_NOTIFICATION;
+    pqmsg->Msg.wParam = (WPARAM)id;
+    pqmsg->Msg.lParam = (LPARAM)code;
+    pqmsg->Msg.time = dwAddData;
     pqmsg->next = NULL;
 
     if (pMsgQueue->pFirstNotifyMsg == NULL) {
@@ -1368,8 +1400,8 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 
     if (pMsg->hwnd == HWND_INVALID) {
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-        if (pMsg->pAdd) {
-            pSyncMsg = (PSYNCMSG)pMsg->pAdd;
+        if (pMsg->pSyncMsg) {
+            pSyncMsg = (PSYNCMSG)pMsg->pSyncMsg;
             pSyncMsg->retval = ERR_MSG_CANCELED;
             sem_post (pSyncMsg->sem_handle);
         }
@@ -1386,15 +1418,31 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
     if (pMsg->hwnd == 0)
         return -1;
 
-    if (!(WndProc = GetWndProc (pMsg->hwnd)))
+    if (!(WndProc = GETWNDPROC (pMsg->hwnd)))
         return -1;
 
-    lRet = WndProc (pMsg->hwnd, pMsg->message, pMsg->wParam, pMsg->lParam);
+    /* Since 5.0.0 */
+    if (pMsg->message == MSG_NOTIFICATION) {
+        NOTIFPROC NotifProc = GETNOTIFPROC (pMsg->hwnd);
+        if (NotifProc) {
+             NotifProc (pMsg->hwnd, (LINT)pMsg->wParam, (int)pMsg->lParam,
+                    pMsg->time);
+            lRet = 0;
+        }
+        else {
+            lRet = WndProc (pMsg->hwnd, MSG_COMMAND,
+                    MAKELONG (pMsg->wParam, pMsg->lParam), pMsg->time);
+        }
+    }
+    else {
+        lRet = WndProc (pMsg->hwnd, pMsg->message, pMsg->wParam, pMsg->lParam);
+    }
+
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     /* this is a sync message. */
-    if (pMsg->pAdd) {
-        pSyncMsg = (PSYNCMSG)pMsg->pAdd;
+    if (pMsg->pSyncMsg) {
+        pSyncMsg = (PSYNCMSG)pMsg->pSyncMsg;
         pSyncMsg->retval = lRet;
         sem_post (pSyncMsg->sem_handle);
     }
@@ -1552,7 +1600,7 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
         pQMsg = pMsgQueue->pFirstNotifyMsg;
         while (pQMsg) {
             temp = pQMsg->next;
-            FreeQMSG (pQMsg);
+            FREEQMSG (pQMsg);
             pQMsg = temp;
         }
     }
@@ -1620,7 +1668,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (pMsgQueue->dwState & QS_SYNCMSG) {
                 if (pMsgQueue->pFirstSyncMsg) {
                     msg = pMsgQueue->pFirstSyncMsg->Msg;
-                    msg.pAdd = (pMsgQueue->pFirstSyncMsg);
+                    msg.pSyncMsg = (pMsgQueue->pFirstSyncMsg);
                     pMsgQueue->pFirstSyncMsg = pMsgQueue->pFirstSyncMsg->pNext;
                     UNLOCK_MSGQ (pMsgQueue);
                     TranslateMessage(&msg);
@@ -1685,7 +1733,7 @@ LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lPa
 
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
 
-    if (!(WndProc = GetWndProc(hWnd)))
+    if (!(WndProc = GETWNDPROC(hWnd)))
         return -1;
 
     return WndProc (hWnd, nMsg, wParam, lParam);
