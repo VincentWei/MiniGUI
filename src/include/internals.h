@@ -744,7 +744,7 @@ static inline TIMER** getTimerSlotsForThisThread (PMSGQUEUE* retMsgQueue)
 }
 
 /* Be careful: does not check validity of hWnd */
-static inline MSGQUEUE* isWindowInThisThread (HWND hWnd)
+static inline PMAINWIN getMainWinIfWindowInThisThread (HWND hWnd)
 {
     PMAINWIN pMainWin = getMainWindowPtr(hWnd);
 #ifdef WIN32
@@ -752,7 +752,7 @@ static inline MSGQUEUE* isWindowInThisThread (HWND hWnd)
 #else
     if (pMainWin && pMainWin->pMsgQueue->th == pthread_self())
 #endif
-        return pMainWin->pMsgQueue;
+        return pMainWin;
 
     return NULL;
 }
@@ -786,9 +786,9 @@ static inline TIMER** getTimerSlotsForThisThread (PMSGQUEUE* retMsgQueue)
     return __mg_dsk_msg_queue->timer_slots;
 }
 
-static inline BOOL isWindowInThisThread (HWND hWnd)
+static inline PMAINWIN getMainWinIfWindowInThisThread (HWND hWnd)
 {
-    return TRUE;
+    return getMainWindowPtr(hWnd);
 }
 
 static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
