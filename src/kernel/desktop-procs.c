@@ -4710,6 +4710,9 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         }
 #endif  /* deprecated code */
 
+        _WRN_PRINTF ("got MSG_TIMER message for desktop (%lu)\n",
+                __mg_tick_counter);
+
         dskOnTimer ();
         break;
     }

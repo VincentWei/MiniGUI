@@ -175,9 +175,9 @@ void* __kernel_desktop_main (void* data)
         lRet = DesktopWinProc (HWND_DESKTOP,
                         Msg.message, Msg.wParam, Msg.lParam);
 
-        if (Msg.pAdd) {
+        if (Msg.pSyncMsg) {
             /* this is a sync message. */
-            PSYNCMSG pSyncMsg = (PSYNCMSG)(Msg.pAdd);
+            PSYNCMSG pSyncMsg = (PSYNCMSG)(Msg.pSyncMsg);
             pSyncMsg->retval = lRet;
             if (pSyncMsg->sem_handle)
                 sem_post(pSyncMsg->sem_handle);

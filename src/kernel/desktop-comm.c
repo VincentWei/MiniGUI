@@ -2509,8 +2509,6 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         static DWORD uCounter = 0;
         static DWORD blink_counter = 0;
 
-        _WRN_PRINTF ("got MSG_TIMER message for desktop (%lu)\n",
-                __mg_tick_counter);
         if (__mg_tick_counter < (blink_counter + 10))
             break;
 

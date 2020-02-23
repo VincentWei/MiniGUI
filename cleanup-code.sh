@@ -11,11 +11,11 @@ tab2space() {
 # tab2space
 
 # templates
-# sed -i 's/\<aaa\>/__aaa/g' `grep aaa -rl include/ src/`
-# sed -i 's/\<AAA\>/__mgAAA/g' `grep AAA -rl include/ src/`
-# sed -i 's/\<AAA\>/__gdiAAA/g' `grep AAA -rl include/ src/`
-# sed -i 's/\<AAA\>/__mg_AAA/g' `grep AAA -rl include/ src/`
-# sed -i 's/\<AAA\>/dbg_AAA/g' `grep AAA -rl include/ src/`
+# sed -i 's/\<aaa\>/__aaa/g' `grep '\<aaa\>' -rl include/ src/`
+# sed -i 's/\<AAA\>/__mgAAA/g' `grep '\<AAA\>' -rl include/ src/`
+# sed -i 's/\<AAA\>/__gdiAAA/g' `grep '\<AAA\>' -rl include/ src/`
+# sed -i 's/\<AAA\>/__mg_AAA/g' `grep '\<AAA\>' -rl include/ src/`
+# sed -i 's/\<AAA\>/dbg_AAA/g' `grep '\<AAA\>' -rl include/ src/`
 
 # sed -i 's/\<kernel_alloc_z_order_info\>/__kernel_alloc_z_order_info/g' `grep kernel_alloc_z_order_info -rl include/ src/`
 # sed -i 's/\<kernel_free_z_order_info\>/__kernel_free_z_order_info/g' `grep kernel_free_z_order_info -rl include/ src/`
@@ -139,6 +139,8 @@ tab2space() {
 
 # sed -i 's/\<__mg_update_timer_count\>/__mg_update_tick_count/g' `grep __mg_update_timer_count -rl include/ src/`
 
-sed -i 's/\<__mg_timer_counter\>/__mg_tick_counter/g' `grep __mg_timer_counter -rl include/ src/`
+# sed -i 's/\<__mg_timer_counter\>/__mg_tick_counter/g' `grep __mg_timer_counter -rl include/ src/`
+
+sed -i 's/\<pAdd\>/pSyncMsg/g' `grep '\<pAdd\>' -rl include/ src/`
 
 exit 0

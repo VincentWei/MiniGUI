@@ -146,7 +146,7 @@ dump_message (const MSG* msg, const char* name)
 #ifdef _MGHAVE_MSG_STRING
     _MG_PRINTF ("Message(%s) for %s: %u (%s), Wnd: %p, wP: %p, lP: %p.\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-            msg->pAdd?"SYNC":"NORM",
+            msg->pSyncMsg?"SYNC":"NORM",
 #else
             "NORM",
 #endif
@@ -155,7 +155,7 @@ dump_message (const MSG* msg, const char* name)
 #else
     _MG_PRINTF ("Message(%s): %u, Wnd: %p, wP: %p, lP: %p.\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-            msg->pAdd?"SYNC":"NORM",
+            msg->pSyncMsg?"SYNC":"NORM",
 #else
             "NORM",
 #endif
@@ -170,7 +170,7 @@ dump_message_with_retval (const MSG* msg, LRESULT retval, const char* name)
 #ifdef _MGHAVE_MSG_STRING
     _MG_PRINTF ("Message(%s) for %s done: %u (%s), Wnd: %p, retval (%p).\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-            msg->pAdd?"SYNC":"NORM",
+            msg->pSyncMsg?"SYNC":"NORM",
 #else
             "NORM",
 #endif
@@ -179,7 +179,7 @@ dump_message_with_retval (const MSG* msg, LRESULT retval, const char* name)
 #else
     _MG_PRINTF ("Message(%s) for %s: %u, Wnd: %p, retval (%p).\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-            msg->pAdd?"SYNC":"NORM",
+            msg->pSyncMsg?"SYNC":"NORM",
 #else
             "NORM",
 #endif
