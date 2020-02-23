@@ -228,7 +228,7 @@ HWND GUIAPI OpenAboutDialog (HWND hHosting)
     CreateInfo.hHosting = hHosting;
 
     hMainWnd = CreateMainWindowEx2 (&CreateInfo, NULL, NULL,
-            ST_PIXEL_ARGB8888, CT_ALPHAPIXEL, 0x80, NULL, NULL);
+            ST_PIXEL_ARGB8888, CT_ALPHAPIXEL, 0x80, 0, 0);
 
     if (hMainWnd == HWND_INVALID)
         return HWND_INVALID;
