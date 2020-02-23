@@ -375,7 +375,7 @@ char * __mg_msgstr3 [] =
     "MSG_GETTEXT",            // 0x0133
     "MSG_SETTEXT",            // 0x0134
     "MSG_ENABLE",             // 0x0135
-    "",                       // 0x0136
+    "MSG_NOTIFICATION",       // 0x0136
     "",                       // 0x0137
     "",                       // 0x0138
     "",                       // 0x0139
