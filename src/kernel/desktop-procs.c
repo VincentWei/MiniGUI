@@ -216,30 +216,27 @@ static void init_desktop_win (void)
 
     pDesktopWin = &desktop_win;
 
-    pDesktopWin->pMsgQueue         = __mg_dsk_msg_queue;
-    pDesktopWin->MainWindowProc    = DesktopWinProc;
+    pDesktopWin->pMsgQueue          = __mg_dsk_msg_queue;
+    pDesktopWin->MainWindowProc     = DesktopWinProc;
 
-    pDesktopWin->DataType          = TYPE_HWND;
-    pDesktopWin->WinType           = TYPE_ROOTWIN;
+    pDesktopWin->DataType           = TYPE_HWND;
+    pDesktopWin->WinType            = TYPE_ROOTWIN;
 
-    pDesktopWin->pLogFont          = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
-    pDesktopWin->spCaption         = NULL;
-    pDesktopWin->iBkColor          = 0;
+    pDesktopWin->pLogFont           = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
+    if (mgIsServer)
+        pDesktopWin->spCaption      = "THE DESKTOP OF THE SERVER";
+    else
+        pDesktopWin->spCaption = "THE DESKTOP OF CLIENT";
 
     if (mgIsServer) {
 #ifndef _MGSCHEMA_COMPOSITING
-        pDesktopWin->pGCRInfo      = &sg_ScrGCRInfo;
+        pDesktopWin->pGCRInfo       = &sg_ScrGCRInfo;
 #endif
-        pDesktopWin->idx_znode     = 0;
+        pDesktopWin->idx_znode      = 0;
     }
 
-    if (mgIsServer)
-        pDesktopWin->spCaption = "THE DESKTOP OF THE SERVER";
-    else
-        pDesktopWin->spCaption = "THE VIRTUAL DESKTOP OF CLIENT";
-
-    pDesktopWin->pMainWin          = pDesktopWin;
-    pDesktopWin->we_rdr            = __mg_def_renderer;
+    pDesktopWin->pMainWin           = pDesktopWin;
+    pDesktopWin->we_rdr             = __mg_def_renderer;
 
     __mg_hwnd_desktop = (HWND)pDesktopWin;
     __mg_dsk_win  = pDesktopWin;
