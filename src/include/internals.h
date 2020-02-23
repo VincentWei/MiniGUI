@@ -631,11 +631,17 @@ extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
         (MG_IS_WINDOW(hWnd) &&                              \
          ((PMAINWIN)hWnd)->WinType == TYPE_VIRTWIN)
 
-/* Whether hWnd is a main window or virtual window */
+/* Whether hWnd is a main window or a virtual window */
 #define MG_IS_MAIN_VIRT_WINDOW(hWnd)                        \
         (MG_IS_WINDOW(hWnd) &&                              \
-         (((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN ||       \
+         (((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN ||      \
           ((PMAINWIN)hWnd)->WinType == TYPE_VIRTWIN))
+
+/* Whether hWnd is a main window or a control */
+#define MG_IS_NOT_VIRT_WINDOW(hWnd)                         \
+        (MG_IS_WINDOW(hWnd) &&                              \
+         (((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN ||      \
+          ((PMAINWIN)hWnd)->WinType == TYPE_CONTROL))
 
 #define MG_IS_NORMAL_MAIN_WINDOW(hWnd)                      \
         (hWnd != HWND_DESKTOP && MG_IS_MAIN_WINDOW(hWnd))
