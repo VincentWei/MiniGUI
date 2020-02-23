@@ -290,7 +290,7 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD interv,
         goto badret;
     }
 
-    if (MG_UNLIKELY (!isWindowInThisThread (hWnd))) {
+    if (MG_UNLIKELY (!getMainWinIfWindowInThisThread (hWnd))) {
         _WRN_PRINTF ("called for a window not in current thread\n");
         goto badret;
     }

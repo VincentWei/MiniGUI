@@ -507,7 +507,7 @@ ret:
     UNLOCK_MSGQ (msg_que);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!isWindowInThisThread (msg->hwnd))
+    if (!getMainWinIfWindowInThisThread (msg->hwnd))
         POST_MSGQ (msg_que);
 #endif
 
@@ -1187,7 +1187,7 @@ LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!isWindowInThisThread(hWnd))
+    if (!getMainWinIfWindowInThisThread(hWnd))
         return SendSyncMessage (hWnd, nMsg, wParam, lParam);
 #endif
 
@@ -1232,7 +1232,7 @@ LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!isWindowInThisThread(hWnd))
+    if (!getMainWinIfWindowInThisThread(hWnd))
         POST_MSGQ(pMsgQueue);
 #endif
 
@@ -1273,7 +1273,7 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!isWindowInThisThread(hWnd))
+    if (!getMainWinIfWindowInThisThread(hWnd))
         POST_MSGQ(pMsgQueue);
 #endif
 
@@ -1314,7 +1314,7 @@ int GUIAPI NotifyWindow (HWND hWnd, LINT id, int code, DWORD dwAddData)
 
     UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!isWindowInThisThread(hWnd))
+    if (!getMainWinIfWindowInThisThread(hWnd))
         POST_MSGQ(pMsgQueue);
 #endif
 
@@ -1334,7 +1334,7 @@ int GUIAPI PostMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
         pMsgQueue->dwState |= QS_PAINT;
         UNLOCK_MSGQ (pMsgQueue);
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-        if (!isWindowInThisThread(hWnd))
+        if (!getMainWinIfWindowInThisThread(hWnd))
             POST_MSGQ(pMsgQueue);
 #endif
         return ERR_OK;
@@ -1373,7 +1373,7 @@ int GUIAPI PostQuitMessage (HWND hWnd)
     UNLOCK_MSGQ (pMsgQueue);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!isWindowInThisThread (hWnd))
+    if (!getMainWinIfWindowInThisThread (hWnd))
         POST_MSGQ (pMsgQueue);
 #endif
 
@@ -1721,7 +1721,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
-    if (isWindowInThisThread(hWnd))
+    if (getMainWinIfWindowInThisThread(hWnd))
         return -1;
 
     return SendSyncMessage (hWnd, msg, wParam, lParam);
