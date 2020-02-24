@@ -2183,7 +2183,10 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     }
 
     if (first == NULL) {
-        _WRN_PRINTF ("no free slot for the new znode\n");
+        int level = ZOF_TYPE_TO_LEVEL_IDX (type);
+        _WRN_PRINTF ("no free slot for the new znode; level (%d), max_nr (%d), nr (%d)\n",
+                level, zi->nr_nodes_in_levels[level],
+                zi->max_nr_nodes_in_levels[level]);
         return -1;
     }
 
