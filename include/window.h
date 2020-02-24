@@ -1327,7 +1327,12 @@ extern DWORD __mg_interval_time;
  *
  * \code
  * MSG_CREATE for main windows:
+ * HWND hosting = (HWND)wParam;
  * PMAINWINCREATE create_info = (PMAINWINCREATE)lParam;
+ *
+ * MSG_CREATE for virtual windows:
+ * HWND hosting = (HWND)wParam;
+ * DWORD add_data = (DWORD)lParam;
  *
  * MSG_CREATE for controls:
  * HWND parent = (HWND)wParam;
@@ -1335,11 +1340,14 @@ extern DWORD __mg_interval_time;
  * \endcode
  *
  * \param create_info The pointer to the MAINWINCREATE structure which is
- *        passed to CreateMainWindow function.
- * \param parent The handle to the parent window of the control.
- * \param add_data The first additional data passed to CreateWindowEx function.
+ *      passed to CreateMainWindow function.
+ * \param hosting The handle to the hosting window of the new main/virtual
+ *      window.
+ * \param parent The handle to the parent window of the new control.
+ * \param add_data The first additional data passed to CreateVirtualWindow or
+ *      CreateWindowEx function.
  *
- * \sa CreateMainWindow, CreateWindowEx, MAINWINCREATE
+ * \sa CreateMainWindow, CreateVirtualWindow, CreateWindowEx, MAINWINCREATE
  */
 #define MSG_CREATE          0x0060
 
@@ -6488,17 +6496,17 @@ MG_EXPORT BOOL GUIAPI IsWindowInThisThread (HWND hWnd);
 MG_EXPORT BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd);
 
 /**
- * \fn HWND GUIAPI CreateVirtualWindow (HWND hHosting,
- *      const char* spCaption, LINT id, WNDPROC WndProc, DWORD dwAddData)
+ * \fn HWND GUIAPI CreateVirtualWindow (HWND hHosting, WNDPROC WndProc,
+ *      const char* spCaption, LINT id, DWORD dwAddData)
  * \brief Create a virtual window.
  *
  * This function creates a virtual window for the purpose of
  * multi-thread messaging.
  *
  * \param hHosting The hosting virutal window.
+ * \param WndProc The window callback procedure.
  * \param spCaption The caption of the virtual window.
  * \param id The long integer (pointer size) identifier of the virtual window.
- * \param WndProc The window callback procedure.
  * \param dwAddData The additional data for the window.
  *
  * \return The handle to the new virtual window;
@@ -6512,8 +6520,8 @@ MG_EXPORT BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd);
  *
  * Since 5.0.0.
  */
-MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting,
-        const char* spCaption, LINT id, WNDPROC WndProc, DWORD dwAddData);
+MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting, WNDPROC WndProc,
+        const char* spCaption, LINT id, DWORD dwAddData);
 
 /**
  * \fn BOOL GUIAPI DestroyVirtualWindow (HWND hWnd)
@@ -8216,7 +8224,8 @@ MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
 #define WIN_SEARCH_FILTER_VIRT  0x0001
 
 /**
- * \fn HWND GUIAPI GetMainVirtWindowById (LINT id, DWORD search_flags)
+ * \fn HWND GUIAPI GetMainVirtWindowById (HWND hHosting,
+ *      LINT lId, DWORD dwSearchFflags)
  * \brief Retrieve the main window or virtual window by identifier.
  *
  * All main windows and/or virtual windows in a thread form a window tree.
@@ -8226,8 +8235,11 @@ MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
  * This function retrieves the first window which has the specified identifier
  * \a id in the window tree in the current thread.
  *
- * \param id The identifier.
- * \param search_flags The search flags, should be OR'd with a search method
+ * \param hHosting The handle to a main or virtual window in the thread,
+ *  which will be the root of the sub window tree to search. If it is
+ *  HWND_NULL, this function will use the root window of the current thread.
+ * \param lId The identifier.
+ * \param dwSearchFflags The search flags, should be OR'd with a search method
  *  value and one or two search filter values:
  *      - WIN_SEARCH_METHOD_BFS\n
  *        use BFS (breadth-first search).
@@ -8239,13 +8251,44 @@ MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
  *        search virtual windows.
  *
  * \return The handle to the first main window or virtual window which has the
- *  specified identifier. If the current thread is not a message thread, it
+ *  specified identifier in the searching sub window tree.
+ *  If the current thread is not a message thread, it
  *  returns HWND_INVALID. If there is no window matches the identifier, it
  *  returns HWND_NULL.
  *
  * \sa GetRootWindow, GetHosting, GetFirstHosted, GetNextHosted
  */
-MG_EXPORT HWND GUIAPI GetMainVirtWindowById (LINT id, DWORD search_flags);
+MG_EXPORT HWND GUIAPI GetMainVirtWindowById (HWND hHosting,
+        LINT lId, DWORD dwSearchFlags);
+
+/**
+ * \fn LINT GUIAPI GetWindowId (HWND hWnd)
+ * \brief Get the identifier of a window.
+ *
+ * This function returns the identifier of the specified window \a hWnd.
+ *
+ * \return The identifier of the window. This function returns -1 for
+ *  an invalid window handle. Therefore, you should avoid to use -1 as
+ *  a valid identifier of a window.
+ *
+ * \sa SetWindowId
+ */
+MG_EXPORT LINT GUIAPI GetWindowId (HWND hWnd);
+
+/**
+ * \fn LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId)
+ * \brief Set the identifier of a window.
+ *
+ * This function sets the identifier of the specified window \a hWnd to
+ * \a lNewId and returns the old identifier.
+ *
+ * \return The old identifier of the window. This function returns -1 for
+ *  an invalid window handle. Therefore, you should avoid to use -1 as
+ *  a valid identifier of a window.
+ *
+ * \sa GetWindowId
+ */
+MG_EXPORT LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId);
 
 /**
  * \fn HWND GUIAPI GetRootWindow (void)
