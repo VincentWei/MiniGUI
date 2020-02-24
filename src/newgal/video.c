@@ -854,7 +854,8 @@ void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
     return;
 
 notsupport:
-    _WRN_PRINTF ("Not support GAL_UpdateRects for surface: %p\n", surface);
+    if (this)
+        _DBG_PRINTF ("No UpdateRects method for NEWGAL engine (%s)\n", this->name);
 }
 
 int __mg_convert_region_to_rects (const CLIPRGN * rgn,
