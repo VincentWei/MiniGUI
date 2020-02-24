@@ -3027,9 +3027,17 @@ struct _search_context {
 
 static PMAINWIN search_win_tree_dfs (struct _search_context *ctxt)
 {
-    PMAINWIN hosted = GetFirstHosted (ctxt->hosting);
+    PMAINWIN hosting = ctxt->hosting;
+    PMAINWIN hosted = GetFirstHosted (hosting);
 
     while (hosted) {
+        PMAINWIN found;
+
+        ctxt->hosting = hosted;
+        if ((found = search_win_tree_dfs (ctxt))) {
+            return found;
+        }
+
         if (hosted->id == ctxt->id &&
                 (((ctxt->flags & WIN_SEARCH_FILTER_MAIN) &&
                 hosted->WinType == TYPE_MAINWIN) ||
@@ -3038,13 +3046,7 @@ static PMAINWIN search_win_tree_dfs (struct _search_context *ctxt)
             return hosted;
         }
 
-        hosted = GetFirstHosted (hosted);
-    }
-
-    hosted = GetNextHosted (ctxt->hosting, hosted);
-    if (hosted) {
-        ctxt->hosting = hosted;
-        return search_win_tree_dfs (ctxt);
+        hosted = GetNextHosted (hosting, hosted);
     }
 
     return NULL;
@@ -3052,9 +3054,12 @@ static PMAINWIN search_win_tree_dfs (struct _search_context *ctxt)
 
 static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
 {
-    PMAINWIN hosted = GetFirstHosted (ctxt->hosting);
+    PMAINWIN hosting = ctxt->hosting;
+    PMAINWIN hosted = GetFirstHosted (hosting);
 
     while (hosted) {
+        PMAINWIN found;
+
         if (hosted->id == ctxt->id &&
                 (((ctxt->flags & WIN_SEARCH_FILTER_MAIN) &&
                 hosted->WinType == TYPE_MAINWIN) ||
@@ -3063,13 +3068,12 @@ static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
             return hosted;
         }
 
-        hosted = GetNextHosted (ctxt->hosting, hosted);
-    }
-
-    hosted = GetFirstHosted (ctxt->hosting);
-    if (hosted) {
         ctxt->hosting = hosted;
-        return search_win_tree_bfs (ctxt);
+        if ((found = search_win_tree_bfs (ctxt))) {
+            return found;
+        }
+
+        hosted = GetNextHosted (hosting, hosted);
     }
 
     return NULL;
@@ -3931,19 +3935,19 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
     while (hosted) {
         PVIRTWIN next = hosted->pNextHosted;
 
-        if (MG_IS_VIRTUAL_WINDOW ((HWND)hosted)) {
+        if (hosted->WinType == TYPE_VIRTWIN) {
             if (DestroyVirtualWindow ((HWND)hosted)) {
                 VirtualWindowCleanup ((HWND)hosted);
             }
             else
                 goto broken;
         }
-        else if (IsDialog((HWND)hosted)) {
+        else if (((PMAINWIN)hosted)->dwExStyle & WS_EX_DIALOGBOX) {
             if (!EndDialog ((HWND)hosted, IDCANCEL))
                 goto broken;
         }
         else {
-            assert (MG_IS_MAIN_WINDOW ((HWND)hosted));
+            assert (hosted->WinType == TYPE_MAINWIN);
             if (DestroyMainWindow ((HWND)hosted)) {
                 MainWindowCleanup ((HWND)hosted);
             }
@@ -3960,6 +3964,10 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
 
     /* kill all timers of this window */
     KillTimer (hVirtWnd, 0);
+
+    if (pVirtWin->pHosting)
+        guiRemoveHostedMainWindow ((PMAINWIN)pVirtWin->pHosting,
+                (PMAINWIN)pVirtWin);
 
     /* make the window to be invalid for PeekMessageEx, PostMessage etc */
     pVirtWin->DataType = TYPE_WINTODEL;
@@ -4358,11 +4366,9 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
 #endif
 
-    /*
-     * We should add the new main window in system and then
+    /* We should add the new main window in system and then
      * SendMessage MSG_CREATE for application to create
-     * child windows.
-     */
+     * child windows. */
     if (SendMessage ((HWND)pWin, MSG_CREATE,
                 (WPARAM)pWin->pHosting, (LPARAM)pCreateInfo)) {
         SendMessage(HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)pWin, 0);
@@ -4435,7 +4441,7 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
         PMAINWIN next = hosted->pNextHosted;
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-        if (MG_IS_VIRTUAL_WINDOW ((HWND)hosted)) {
+        if (hosted->WinType == TYPE_VIRTWIN) {
             if (DestroyVirtualWindow ((HWND)hosted)) {
                 VirtualWindowCleanup ((HWND)hosted);
             }
@@ -4444,13 +4450,12 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
         }
         else
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
-        if (IsDialog((HWND)hosted)) {
+        if (pWin->dwExStyle & WS_EX_DIALOGBOX) {
             if (!EndDialog ((HWND)hosted, IDCANCEL))
                 return FALSE;
         }
         else {
-            assert (MG_IS_MAIN_WINDOW ((HWND)hosted));
-
+            assert (hosted->WinType == TYPE_MAINWIN);
             if (DestroyMainWindow ((HWND)hosted))
                 MainWindowCleanup ((HWND)hosted);
             else
