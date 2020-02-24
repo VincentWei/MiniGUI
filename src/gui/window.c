@@ -3075,22 +3075,32 @@ static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
     return NULL;
 }
 
-HWND GUIAPI GetMainVirtWindowById (LINT id, DWORD search_flags)
+HWND GUIAPI GetMainVirtWindowById (HWND hHosting,
+        LINT lId, DWORD dwSearchFlags)
 {
     MSGQUEUE* pMsgQueue;
     PMAINWIN pHosting;
-    struct _search_context ctxt = { id, search_flags };
+    struct _search_context ctxt = { lId, dwSearchFlags };
 
-    if ((pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
-        return HWND_INVALID;
+    if (hHosting == HWND_NULL) {
+        if ((pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
+            return HWND_INVALID;
+        }
+
+        if ((pHosting = pMsgQueue->pRootMainWin) == NULL) {
+            return HWND_NULL;
+        }
     }
+    else {
+        if ((pMsgQueue = getMsgQueueIfWindowInThisThread (hHosting)) == NULL) {
+            return HWND_INVALID;
+        }
 
-    if ((pHosting = pMsgQueue->pRootMainWin) == NULL) {
-        return HWND_NULL;
+        pHosting = (PMAINWIN)hHosting;
     }
 
     ctxt.hosting = pHosting;
-    if ((search_flags & WIN_SEARCH_METHOD_MASK) == WIN_SEARCH_METHOD_DFS) {
+    if ((dwSearchFlags & WIN_SEARCH_METHOD_MASK) == WIN_SEARCH_METHOD_DFS) {
         // depth first search
         return (HWND)search_win_tree_dfs (&ctxt);
     }
@@ -3098,6 +3108,26 @@ HWND GUIAPI GetMainVirtWindowById (LINT id, DWORD search_flags)
         // breadth first search
         return (HWND)search_win_tree_bfs (&ctxt);
     }
+}
+
+LINT GUIAPI GetWindowId (HWND hWnd)
+{
+    MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
+
+    return ((PMAINWIN)hWnd)->id;
+}
+
+LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId)
+{
+    LINT lOldId;
+    PMAINWIN pWin;
+
+    MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
+    pWin = (PMAINWIN)hWnd;
+
+    lOldId = pWin->id;
+    pWin->id = lNewId;
+    return lOldId;
 }
 
 HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
@@ -3819,8 +3849,8 @@ BOOL GUIAPI IsWindowInThisThread (HWND hWnd)
     return (getMsgQueueIfWindowInThisThread (hWnd) != NULL);
 }
 
-HWND GUIAPI CreateVirtualWindow (HWND hHosting,
-        const char* spCaption, LINT id, WNDPROC WndProc, DWORD dwAddData)
+HWND GUIAPI CreateVirtualWindow (HWND hHosting, WNDPROC WndProc,
+        const char* spCaption, LINT id, DWORD dwAddData)
 {
     PVIRTWIN pVirtWin;
     PMSGQUEUE pMsgQueue;
@@ -3860,7 +3890,8 @@ HWND GUIAPI CreateVirtualWindow (HWND hHosting,
         }
     }
 
-    if (SendMessage ((HWND)pVirtWin, MSG_CREATE, 0, (LPARAM)dwAddData)) {
+    if (SendMessage ((HWND)pVirtWin, MSG_CREATE,
+                (WPARAM)pVirtWin->pHosting, (LPARAM)dwAddData)) {
         goto err;
     }
 
@@ -4158,7 +4189,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         pWin->pHosting = getMainWindowPtr (pCreateInfo->hHosting);
 
     /* leave the pHosting is NULL for the first window of this thread. */
-#else
+#else   /* defined _MGRM_THREADS */
     /* you must create main window in the main thread for non-threads mods */
     if (getMsgQueueForThisThread () != __mg_dsk_msg_queue) {
         goto err;
@@ -4169,7 +4200,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
         pWin->pHosting = __mg_dsk_win;
 
     pWin->pMsgQueue = __mg_dsk_msg_queue;
-#endif
+#endif  /* not defined _MGRM_THREADS */
 
     pWin->pMainWin      = pWin;
     pWin->hParent       = 0;
@@ -4332,7 +4363,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
      * SendMessage MSG_CREATE for application to create
      * child windows.
      */
-    if (SendMessage ((HWND)pWin, MSG_CREATE, 0, (LPARAM)pCreateInfo)) {
+    if (SendMessage ((HWND)pWin, MSG_CREATE,
+                (WPARAM)pWin->pHosting, (LPARAM)pCreateInfo)) {
         SendMessage(HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)pWin, 0);
         goto err;
     }
