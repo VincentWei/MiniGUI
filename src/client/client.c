@@ -90,8 +90,11 @@ ON_UNLOCK_CLIENT_REQ  OnUnlockClientReq = NULL;
 
 #define TIMEOUT_START_REPEAT    20
 #define TIMEOUT_REPEAT          10
-static struct timeval my_timeout;
 
+#if 0   /* deprecated code */
+/* set the timer to 10ms can make the client respond more faster */
+
+static struct timeval my_timeout;
 void __mg_set_select_timeout (unsigned int usec)
 {
     my_timeout.tv_sec = 0;
@@ -108,10 +111,10 @@ void __mg_set_select_timeout (unsigned int usec)
     else {
         my_timeout.tv_usec = USEC_10MS * TIMEOUT_START_REPEAT;
     }
-#else /* set the timer to 10ms can make the client respond more faster */
-    my_timeout.tv_usec = USEC_10MS;
 #endif
+    my_timeout.tv_usec = USEC_10MS;
 }
+#endif  /* deprecated code */
 
 BOOL client_ClientStartup (void)
 {
@@ -124,7 +127,7 @@ BOOL client_ClientStartup (void)
     FD_SET (conn_fd, &__mg_dsk_msg_queue->rfdset);
     __mg_dsk_msg_queue->maxfd = conn_fd;
 
-    __mg_set_select_timeout (0);
+    // __mg_set_select_timeout (0);
 
     /* ignore the SIGPIPE signal */
     siga.sa_handler = SIG_IGN;
@@ -405,8 +408,10 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
         esetptr = &eset;
     }
 
-    if (wait)
-        sel_timeout = my_timeout;
+    if (wait) {
+        sel_timeout.tv_sec = 0;
+        sel_timeout.tv_usec = USEC_10MS;
+    }
     else {  /* check fd only: for HavePendingMessage function */
         sel_timeout.tv_sec = 0;
         sel_timeout.tv_usec = 0;

@@ -325,7 +325,7 @@ static inline int ClientRequest (const REQUEST* request,
 }
 #endif /* not defined _MGUI_MINIGUI_H */
 
-void __mg_set_select_timeout (unsigned int usec);
+//void __mg_set_select_timeout (unsigned int usec);
 void __mg_start_client_desktop (void);
 
 void __mg_update_window (HWND hwnd, int left, int top, int right, int bottom);
