@@ -73,13 +73,12 @@
 
 BOOL GUIAPI RegisterResFromFile (HDC hdc, const char* file)
 {
-    if (!file)
-    {
+    if (!file) {
         _WRN_PRINTF ("SYSRES>RegisterResFromFile: file is NULL\n");
         return FALSE;
     }
 
-    return LoadResource(file, RES_TYPE_IMAGE,(DWORD)HDC_SCREEN)!=NULL;
+    return LoadResource(file, RES_TYPE_IMAGE, (DWORD)HDC_SCREEN)!=NULL;
 }
 
 BOOL GUIAPI RegisterResFromMem (HDC hdc, const char* file,
@@ -150,13 +149,15 @@ HICON GUIAPI LoadSystemIconEx (HDC hdc, const char* rdr_name,
     HICON hIcon;
     MEM_RES* dwMem;
     const WINDOW_ELEMENT_RENDERER* rdr;
+    const char* ext;
+    size_t size;
 
     rdr = GetWindowRendererFromName (rdr_name);
 
     if (!rdr)
         return 0;
 
-    strcpy(szValue, "icon/");
+    strcpy (szValue, "icon/");
     iconname = szValue + strlen(szValue);
 
     if (GetMgEtcValue (rdr->name, szItemName,
@@ -166,19 +167,31 @@ HICON GUIAPI LoadSystemIconEx (HDC hdc, const char* rdr_name,
         return 0;
     }
 
+    ext = __mg_get_extension (szValue);
     //load resource didnot support which param, so, we must
     //get the mem of this icon, and then load it
-    dwMem = LoadResource(szValue,RES_TYPE_MEM_RES, 0);
-    if(dwMem)
-    {
-        hIcon = LoadIconFromMem(hdc,dwMem->data, which);
-        ReleaseRes(Str2Key(szValue));
+    dwMem = LoadResource (szValue, RES_TYPE_MEM_RES, (DWORD)&size);
+    if (dwMem) {
+        if (ext && strcasecmp (ext, "ico")) {
+            /* XXX: for bitmap icon, two same copies for large and small */
+            hIcon = LoadBitmapIconFromMem (hdc, dwMem->data, size, ext);
+        }
+        else {
+            hIcon = LoadIconFromMem (hdc, dwMem->data, which);
+        }
+        ReleaseRes (Str2Key (szValue));
     }
-    else{
+    else {
         //load from file
         char szfile[MAX_PATH+1];
         sprintf(szfile, "%s/%s",__sysres_get_system_res_path(), szValue);
-        hIcon = LoadIconFromFile(hdc, szfile, which);
+        if (ext && strcasecmp (ext, "ico")) {
+            /* XXX: for bitmap icon, two same copies for large and small */
+            hIcon = LoadBitmapIconFromFile (hdc, szfile);
+        }
+        else {
+            hIcon = LoadIconFromFile (hdc, szfile, which);
+        }
     }
 
     return hIcon;
