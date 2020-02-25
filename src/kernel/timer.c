@@ -91,7 +91,7 @@ void __mg_update_tick_count (void *data)
         __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
     }
 #else   /* defined _MGRM_PROCESSES */
-    __mg_tick_counter += __mg_os_get_time_ticks ();
+    __mg_tick_counter = __mg_os_get_time_ticks ();
 #endif  /* not defined _MGRM_PROCESSES */
 
     /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
@@ -246,23 +246,17 @@ int __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter)
     if (msg_queue) {
         int i;
         TIMER** timer_slots = msg_queue->timer_slots;
-        DWORD ticks_current;
-#ifdef _MGRM_PROCESSES
-        ticks_current = SHAREDRES_TIMER_COUNTER;
-#else
-        ticks_current = __mg_tick_counter;
-#endif
 
         for (i = 0; i < DEF_NR_TIMERS; i++) {
             if (timer_slots[i]) {
-                if (ticks_current >= timer_slots[i]->ticks_expected) {
+                if (__mg_tick_counter >= timer_slots[i]->ticks_expected) {
                     /* setting timer flag is simple, we do not need to lock
                        msgq, or else we may encounter dead lock here */
                     msg_queue->expired_timer_mask |= (0x01UL << i);
                     POST_MSGQ (msg_queue);
 
                     timer_slots[i]->ticks_expected += timer_slots[i]->interv;
-                    timer_slots[i]->ticks_fired = ticks_current;
+                    timer_slots[i]->ticks_fired = __mg_tick_counter;
                     nr++;
                 }
 #if 0   /* deprecated code */
@@ -298,7 +292,6 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD interv,
     int slot = -1;
     TIMER** timer_slots;
     PMSGQUEUE pMsgQueue;
-    DWORD ticks_current;
 
     if (id == 0) {
         _WRN_PRINTF ("bad identifier (%ld).\n", id);
@@ -330,8 +323,13 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD interv,
                 slot = i;
         }
         else if (timer_slots[i]->hWnd == hWnd && timer_slots[i]->id == id) {
-            _WRN_PRINTF ("duplicated call to SetTimerEx (%p, %ld).\n", hWnd, id);
-            goto badret;
+            /* Since 5.0.0: we reset timer parameters for duplicated call of
+               this function */
+            timer_slots[i]->interv = interv;
+            timer_slots[i]->ticks_expected = __mg_tick_counter + interv;
+            timer_slots[i]->ticks_fired = 0;
+            timer_slots[i]->proc = timer_proc;
+            return TRUE;
         }
     }
 
@@ -342,25 +340,17 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD interv,
 
     timer_slots[slot] = mg_slice_new (TIMER);
 
-#ifdef _MGRM_PROCESSES
-    ticks_current = SHAREDRES_TIMER_COUNTER;
-#else
-    ticks_current = __mg_tick_counter;
-#endif
-
     timer_slots[slot]->hWnd = hWnd;
     timer_slots[slot]->id = id;
     timer_slots[slot]->interv = interv;
-    timer_slots[slot]->ticks_expected = ticks_current + interv;
+    timer_slots[slot]->ticks_expected = __mg_tick_counter + interv;
     timer_slots[slot]->ticks_fired = 0;
     timer_slots[slot]->proc = timer_proc;
 
-    pMsgQueue->nr_timers++;
+    _DBG_PRINTF ("ticks_expected (%d): %lu, tick_counter: %lu\n",
+            slot, timer_slots[slot]->ticks_expected, __mg_tick_counter);
 
-#ifdef _MGRM_PROCESSES
-    if (!mgIsServer)
-        __mg_set_select_timeout (USEC_10MS * interv);
-#endif
+    pMsgQueue->nr_timers++;
 
     return TRUE;
 
@@ -368,6 +358,7 @@ badret:
     return FALSE;
 }
 
+#if 0   /* deprected code */
 #ifdef _MGRM_PROCESSES
 static void reset_select_timeout (TIMER** timer_slots)
 {
@@ -383,6 +374,7 @@ static void reset_select_timeout (TIMER** timer_slots)
     __mg_set_select_timeout (USEC_10MS * interv);
 }
 #endif
+#endif  /* deprecated code */
 
 void __mg_remove_timer (MSGQUEUE* msg_queue, int slot)
 {
@@ -399,11 +391,6 @@ void __mg_remove_timer (MSGQUEUE* msg_queue, int slot)
         mg_slice_delete (TIMER, timer_slots[slot]);
         timer_slots [slot] = NULL;
         msg_queue->nr_timers--;
-
-#ifdef _MGRM_PROCESSES
-        if (!mgIsServer)
-            reset_select_timeout (timer_slots);
-#endif
     }
 }
 
@@ -446,11 +433,6 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
                     break;
             }
         }
-
-#ifdef _MGRM_PROCESSES
-        if (!mgIsServer && killed)
-            reset_select_timeout (msg_queue->timer_slots);
-#endif
     }
     else {
         _WRN_PRINTF ("called for non message thread\n");
@@ -476,17 +458,10 @@ BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD interv,
         for (i = 0; i < DEF_NR_TIMERS; i++) {
             if (timer_slots[i] &&
                     timer_slots[i]->hWnd == hWnd && timer_slots[i]->id == id) {
-                DWORD ticks_current;
-
-#ifdef _MGRM_PROCESSES
-                ticks_current = SHAREDRES_TIMER_COUNTER;
-#else
-                ticks_current = __mg_tick_counter;
-#endif
                 /* Should clear old timer flags */
                 msg_queue->expired_timer_mask &= ~(0x01UL << i);
                 timer_slots[i]->interv = interv;
-                timer_slots[i]->ticks_expected = ticks_current + interv;
+                timer_slots[i]->ticks_expected = __mg_tick_counter + interv;
                 timer_slots[i]->ticks_fired = 0;
                 if (timer_proc != (TIMERPROC)INV_PTR)
                     timer_slots[i]->proc = timer_proc;
