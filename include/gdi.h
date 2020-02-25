@@ -5585,7 +5585,7 @@ MG_EXPORT HICON GUIAPI LoadBitmapIconFromFile (HDC hdc,
         const char* file_name);
 
 /**
- * \fn HICON GUIAPI LoadBitmapIconFromMem (HDC hdc, const void* mem, int size,
+ * \fn HICON GUIAPI LoadBitmapIconFromMem (HDC hdc, const void* mem, size_t size,
  *      const char* ext)
  * \brief Loads an icon from memory.
  *
@@ -5602,7 +5602,7 @@ MG_EXPORT HICON GUIAPI LoadBitmapIconFromFile (HDC hdc,
  * \sa LoadBitmapIconEx
  */
 MG_EXPORT HICON GUIAPI LoadBitmapIconFromMem (HDC hdc,
-        const void* mem, int size, const char* ext);
+        const void* mem, size_t size, const char* ext);
 
 /**
  * \fn BOOL GUIAPI DestroyIcon (HICON hicon)
@@ -11211,13 +11211,13 @@ MG_EXPORT int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP pBitmap,
 
 /**
  * \fn int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP pBitmap, \
-                const void* mem, int size, const char* ext)
+                const void* mem, size_t size, const char* ext)
  * \brief Loads a device-dependent bitmap from memory.
  *
  * \sa LoadBitmapEx
  */
 MG_EXPORT int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP pBitmap,
-                const void* mem, int size, const char* ext);
+                const void* mem, size_t size, const char* ext);
 
 /**
  * \fn void GUIAPI UnloadBitmap (PBITMAP pBitmap)
@@ -11387,7 +11387,7 @@ MG_EXPORT int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal,
 
 /**
  * \fn int GUIAPI LoadMyBitmapFromMem (PMYBITMAP my_bmp, RGB* pal, \
-                const void* mem, int size, const char* ext)
+                const void* mem, size_t size, const char* ext)
  * \brief Loads a MYBITMAP object from memory.
  *
  * This function loads a MYBITMAP object from memory.
@@ -11401,7 +11401,7 @@ MG_EXPORT int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal,
  * \sa LoadMyBitmapEx, MYBITMAP
  */
 MG_EXPORT int GUIAPI LoadMyBitmapFromMem (PMYBITMAP my_bmp, RGB* pal,
-                const void* mem, int size, const char* ext);
+                const void* mem, size_t size, const char* ext);
 
 /**
  * \fn void GUIAPI UnloadMyBitmap (PMYBITMAP my_bmp)
@@ -11827,7 +11827,7 @@ MG_EXPORT int GUIAPI PaintImageFromFile (HDC hdc, int x, int y,
 
 /**
  * \fn int GUIAPI PaintImageFromMem (HDC hdc, int x, int y, \
-                const void* mem, int size, const char* ext);
+                const void* mem, size_t size, const char* ext);
  * \brief Paints an image from memory on device directly.
  *
  * \param hdc The device context.
@@ -11842,7 +11842,7 @@ MG_EXPORT int GUIAPI PaintImageFromFile (HDC hdc, int x, int y,
  * \sa PaintImageEx
  */
 MG_EXPORT int GUIAPI PaintImageFromMem (HDC hdc, int x, int y,
-                const void* mem, int size, const char* ext);
+                const void* mem, size_t size, const char* ext);
 
 /**
  * \fn int GUIAPI StretchPaintImageEx (HDC hdc, int x, int y, int w, int h, \
@@ -11899,7 +11899,7 @@ MG_EXPORT int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y,
 
 /**
  * \fn int GUIAPI StretchPaintImageFromMem (HDC hdc, int x, int y, \
- *               int w, int h, const void* mem, int size, const char* ext)
+ *               int w, int h, const void* mem, size_t size, const char* ext)
  * \brief Paints an image from memory on device directly.
  *
  * \param hdc The device context.
@@ -11916,7 +11916,7 @@ MG_EXPORT int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y,
  * \sa StretchPaintImageEx
  */
 MG_EXPORT int GUIAPI StretchPaintImageFromMem (HDC hdc, int x, int y,
-                int w, int h, const void* mem, int size, const char* ext);
+                int w, int h, const void* mem, size_t size, const char* ext);
 
 #ifdef _MGHAVE_FIXED_MATH
 

@@ -5968,7 +5968,7 @@ typedef DWORD RES_KEY;
 typedef struct _INNER_RES {
     RES_KEY key;
     const Uint8* data;
-    int data_len;
+    size_t data_len;
 
     /* A special param recognized by the TYPE_OPS; normally is NULL.
      * If the data is a raw png, jpeg, bmp file content,
@@ -6051,7 +6051,7 @@ enum emResType {
 /* the return value of LoadResource with type RES_TYPE_MEM_RES */
 typedef struct _MEM_RES {
     Uint8 *data;
-    int data_len;
+    size_t data_len;
 } MEM_RES;
 
 typedef struct _FONT_RES {

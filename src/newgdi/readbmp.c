@@ -562,8 +562,8 @@ int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP bmp, const char* file_name)
     return ret;
 }
 
-int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP bmp, const void* mem, int size,
-                              const char* ext)
+int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP bmp,
+        const void* mem, size_t size, const char* ext)
 {
     int ret;
     MG_RWops* area;
@@ -713,8 +713,8 @@ int GUIAPI PaintImageFromFile (HDC hdc, int x, int y, const char *file_name)
     return ret;
 }
 
-int GUIAPI PaintImageFromMem (HDC hdc, int x, int y, const void* mem,
-                int size, const char *ext)
+int GUIAPI PaintImageFromMem (HDC hdc, int x, int y,
+        const void* mem, size_t size, const char *ext)
 {
     int ret;
     MG_RWops* area;
@@ -1056,7 +1056,7 @@ int GUIAPI StretchPaintImageFromFile (HDC hdc, int x, int y, int w, int h,
 }
 
 int GUIAPI StretchPaintImageFromMem (HDC hdc, int x, int y, int w, int h,
-                const void* mem, int size, const char *ext)
+        const void* mem, size_t size, const char *ext)
 {
     int ret;
     MG_RWops* area;

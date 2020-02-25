@@ -316,7 +316,7 @@ int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal, const char* file_na
 }
 
 int GUIAPI LoadMyBitmapFromMem (PMYBITMAP my_bmp, RGB* pal, const void* mem,
-                                int size, const char* ext)
+                                size_t size, const char* ext)
 {
     MG_RWops* area;
     int ret_val;

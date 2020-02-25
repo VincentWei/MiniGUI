@@ -579,7 +579,7 @@ HICON GUIAPI LoadBitmapIconFromFile (HDC hdc, const char* file_name)
     return ico;
 }
 
-HICON GUIAPI LoadBitmapIconFromMem (HDC hdc, const void* mem, int size,
+HICON GUIAPI LoadBitmapIconFromMem (HDC hdc, const void* mem, size_t size,
         const char* ext)
 {
     PICON ico;
