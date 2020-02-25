@@ -84,11 +84,35 @@ void __mg_update_tick_count (void *data)
 {
 #if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
+        __mg_tick_counter = __mg_os_get_time_ticks ();
+        SHAREDRES_TIMER_COUNTER = __mg_tick_counter;
+    }
+    else {
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
+    }
+#else   /* defined _MGRM_PROCESSES */
+    __mg_tick_counter += __mg_os_get_time_ticks ();
+#endif  /* not defined _MGRM_PROCESSES */
+
+    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
+       message, and the interval for the timer of desktop changes to 0.05s. */
+    if (__mg_tick_counter >
+            __mg_dsk_msg_queue->last_ticks_desktop + DESKTOP_TIMER_INERTVAL) {
+        __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+#ifdef _MGRM_THREADS    /* only wake up desktop for threads mode */
+        POST_MSGQ (__mg_dsk_msg_queue);
+#endif
+        __mg_dsk_msg_queue->last_ticks_desktop = __mg_tick_counter;
+    }
+
+#if 0  /* deprecated code */
+#if defined(_MGRM_PROCESSES)
+    if (mgIsServer) {
         DWORD elapsed_ticks;
 
         /* Since 5.0.0, we use elapsed time in ms to count the ticks */
         elapsed_ticks = __mg_os_get_elapsed_ms ();
-        elapsed_ticks = (elapsed_ticks + 9) / 10;
+        elapsed_ticks = (elapsed_ticks + 5) / 10;
 
         __mg_tick_counter += elapsed_ticks;
         SHAREDRES_TIMER_COUNTER = __mg_tick_counter;
@@ -101,7 +125,7 @@ void __mg_update_tick_count (void *data)
 
     /* Since 5.0.0, we use elapsed time in ms to count the ticks */
     elapsed_ticks = __mg_os_get_elapsed_ms ();
-    elapsed_ticks = (elapsed_ticks + 9) / 10;
+    elapsed_ticks = (elapsed_ticks + 5) / 10;
     __mg_tick_counter += elapsed_ticks;
 #endif  /* not defined _MGRM_PROCESSES */
 
@@ -115,6 +139,7 @@ void __mg_update_tick_count (void *data)
 #endif
         __mg_dsk_msg_queue->last_ticks_desktop = __mg_tick_counter;
     }
+#endif  /* deprecated code */
 }
 
 #ifdef __NOUNIX__
@@ -191,7 +216,7 @@ BOOL mg_InitTimer (BOOL use_sys_timer)
 {
     __mg_tick_counter = 0;
 
-    __mg_os_start_time_ms();
+    __mg_os_start_time();
 
     if (use_sys_timer) {
         install_system_timer ();
@@ -290,8 +315,11 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD interv,
         goto badret;
     }
 
-    if (MG_UNLIKELY (!getMainWinIfWindowInThisThread (hWnd))) {
+    /* Since 5.0.0: only check hWnd if timer_proc is NULL */
+    if (MG_UNLIKELY (timer_proc == NULL &&
+                !getMainWinIfWindowInThisThread (hWnd))) {
         _WRN_PRINTF ("called for a window not in current thread\n");
+        assert (0);
         goto badret;
     }
 
@@ -486,7 +514,8 @@ BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
     if (timer_slots) {
         for (i = 0; i < DEF_NR_TIMERS; i++) {
             if (timer_slots[i] &&
-                    timer_slots[i]->hWnd == hWnd && timer_slots[i]->id == id) {
+                    timer_slots[i]->hWnd == hWnd &&
+                    timer_slots[i]->id == id) {
                 return TRUE;
             }
         }
@@ -519,14 +548,19 @@ BOOL GUIAPI HaveFreeTimer (void)
 
 DWORD GUIAPI GetTickCount (void)
 {
-#ifdef _MGRM_PROCESSES
-    return SHAREDRES_TIMER_COUNTER;
-#elif defined(_MGRM_STANDALONE)
-    __mg_tick_counter = __mg_os_get_time_ms()/10;
+#if defined(_MGRM_PROCESSES)
+    if (mgIsServer) {
+        __mg_tick_counter = __mg_os_get_time_ticks ();
+        SHAREDRES_TIMER_COUNTER = __mg_tick_counter;
+    }
+    else {
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
+    }
+#else   /* defined _MGRM_PROCESSES */
+    __mg_tick_counter = __mg_os_get_time_ticks ();
+#endif  /* not defined _MGRM_PROCESSES */
+
     return __mg_tick_counter;
-#else
-    return __mg_tick_counter;
-#endif
 }
 
 #if 0   /* deprecated code */
