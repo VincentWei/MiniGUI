@@ -4867,7 +4867,7 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
 #endif
 
 /**
- * \var typedef int (* WNDPROC)(HWND, int, WPARAM, LPARAM)
+ * \var typedef LRESULT (* WNDPROC)(HWND, int, WPARAM, LPARAM)
  * \brief Type of the window callback procedure.
  */
 typedef LRESULT (* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
@@ -6348,15 +6348,20 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      * may run in another thread under MiniGUI-Threads. The MiniGUI
      * messaging functions such as \a PostMessage(), \a SendMessage(),
      * \a SendNotifyMessage(), and the window callback procedure
-     * provide a flexible, efficient, safe, and flexible data transfer
+     * provide a flexible, efficient, safe, and easy-to-use data transfer
      * and synchronization mechanism for your multithreaded applications.
      *
-     * But if we want to use the MiniGUI messaging mechanism for a general
-     * thread without a main window, how to do this?
+     * For example, you can send or post a message to a window from a
+     * general purpose thread which may download a file from the remote
+     * server under MiniGUI-Threads.
      *
-     * Furthermore, can we use the MiniGUI messaging mechanism under
+     * But can we use the MiniGUI messaging mechanism under
      * MiniGUI-Processes and MiniGUI-Standalone runtime modes for
-     * multithreading purpose?
+     * multithreading purpose? For example, we may download a file in a
+     * general thread and inform a window when the file is ready.
+     *
+     * Furthermore, if we want to use the MiniGUI messaging mechanism in
+     * a general thread to handle messages from other threads, how to do this?
      *
      * The virtual window provides a solution for the requirements above.
      * A virtual window is a special window object which does not have
