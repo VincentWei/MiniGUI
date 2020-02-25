@@ -182,11 +182,11 @@ enum {
 
 /* Number of timers. */
 #define DEF_NR_TIMERS           NR_BITS_DWORD
-#define USEC_1S                 1000000
-#define USEC_10MS               10000
-#define USEC_TIMEOUT            300000      // 300ms
+#define USEC_1S                 1000000UL
+#define USEC_10MS               10000UL
+#define USEC_TIMEOUT            300000UL    // 300ms
 #define MAX_IDLE_COUNTER        (USEC_TIMEOUT/USEC_10MS)
-#define DESKTOP_TIMER_INERTVAL  50          // every 50 ticks, 500ms
+#define DESKTOP_TIMER_INERTVAL  50UL        // every 50 ticks, 500ms
 
 /* round n to multiple of m */
 #define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
