@@ -8226,14 +8226,14 @@ MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
 /**
  * \fn HWND GUIAPI GetHostedById (HWND hHosting,
  *      LINT lId, DWORD dwSearchFflags)
- * \brief Retrieve the main window or virtual window by identifier.
+ * \brief Retrieve a hosted main window or virtual window by identifier.
  *
  * All main windows and/or virtual windows in a thread form a window tree.
  * The root window of the tree may be HWND_DESKTOP or the first main/virtual
  * window created in the thread.
  *
  * This function retrieves the first window which has the specified identifier
- * \a id in the window tree in the current thread.
+ * \a id in the window tree of the current thread.
  *
  * \param hHosting The handle to a main or virtual window in the thread,
  *  which will be the root of the sub window tree to search. If it is
@@ -8252,9 +8252,9 @@ MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
  *
  * \return The handle to the first main window or virtual window which has the
  *  specified identifier in the searching sub window tree.
- *  If the current thread is not a message thread, it
- *  returns HWND_INVALID. If there is no window matches the identifier, it
- *  returns HWND_NULL.
+ *  If the current thread is not a message thread, it returns HWND_INVALID.
+ *  If there is no window matches the identifier and the search flags,
+ *  it returns HWND_NULL.
  *
  * \sa GetRootWindow, GetHosting, GetFirstHosted, GetNextHosted
  */
@@ -8309,29 +8309,29 @@ MG_EXPORT LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId);
 MG_EXPORT HWND GUIAPI GetRootWindow (void);
 
 /**
- * \fn HWND GUIAPI GetHosting (HWND hMainWnd)
+ * \fn HWND GUIAPI GetHosting (HWND hWnd)
  * \brief Retrieve the hosting window of a main window or a virtual window.
  *
- * All main windows and/or virtual windows in a thread form a window tree.
- * The root window of the tree may be HWND_DESKTOP or the first main/virtual
- * window created in the thread.
+ * All main windows and/or virtual windows created by a thread form a
+ * window hosting tree. The root window of the tree may be HWND_DESKTOP
+ * or the first main/virtual window created by the thread.
  *
  * This function retrieves the hosting window of the specified main window
  * or virtual window \a hWnd.
  *
  * For a root window in the current thread, this function returns HWND_NULL.
  *
- * \param hMainWnd The handle to the main window.
+ * \param hWnd The handle to the main window.
  *
- * \return The handle to the hosting main window. A valid window must have a
- *  hosting window. If error occurs, for example, an invalid handle, the
- *  specified window is not in the current thread, or the current thread
- *  is not a message thread, this function returns HWND_INVALID.
- *  For a root window in the current thread, this function returns HWND_NULL.
+ * \return The handle to the hosting window. If error occurs, for example,
+ *  an invalid handle, the specified window is not in the current thread,
+ *  or the current thread is not a message thread, this function returns
+ *  HWND_INVALID. For a root window in the current thread, this function
+ *  returns HWND_NULL.
  *
  * \sa GetRootWindow, GetFirstHosted, GetNextHosted
  */
-MG_EXPORT HWND GUIAPI GetHosting (HWND hMainWnd);
+MG_EXPORT HWND GUIAPI GetHosting (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetFirstHosted (HWND hHosting)
@@ -8344,12 +8344,12 @@ MG_EXPORT HWND GUIAPI GetHosting (HWND hMainWnd);
  * This function retrieves the first hosted main/virtual window of
  * the specified main window \a hMainWnd.
  *
- * \param hHosting The handle to the hosting main window.
+ * \param hHosting The handle to a main window or a virtual window.
  *
- * \return The handle to the first hosted main window. If an invalid window
+ * \return The handle to the first hosted window. If an invalid window
  *  handle is passed for \a hHosting, HWND_INVALID will be returned.
- *  If the specified window do not have a hosted window, this function returns
- *  HWND_NULL.
+ *  If the specified window do not have a hosted window, this function
+ *  returns HWND_NULL.
  *
  * \sa GetHosting, GetNextHosted
  */
@@ -8365,18 +8365,18 @@ MG_EXPORT HWND GUIAPI GetFirstHosted (HWND hHosting);
  *
  * This function retrieves the next hosted main/virtual window of the specified
  * main/virtual window \a hHosting. If \a hHosted is HWND_NULL, it is
- * equivalent to GetFirstHosted(hHosting).
+ * equivalent to call GetFirstHosted(hHosting).
 
  * \param hHosting The handle to the hosting window.
  * \param hHosted The handle to a known hosted window. This function
  *        will return the next hosted window.
  *
- * \return The handle to the next hosted main window.
- *  It returns HWND_NULL when \a hHosted is the last hosted main window.
+ * \return The handle to the next hosted main or virtual window.
+ *  It returns HWND_NULL when \a hHosted is the last hosted window.
  *  If invalid window handles are passed, or if \a hHosted is not a hosted
  *  window of \a hHosting, this function returns HWND_INVALID.
  *
- * \sa GetFirstHosted
+ * \sa GetHosting, GetFirstHosted
  */
 MG_EXPORT HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted);
 
@@ -8491,9 +8491,9 @@ MG_EXPORT HWND GUIAPI SetFocusChild (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetActiveWindow (void)
- * \brief Retrieve the main window handle to the active main window.
+ * \brief Retrieve the main window handle of the active main window.
  *
- * This function retrieves the main window handle to the active main window
+ * This function retrieves the main window handle of the active main window
  * which receives the input.
  *
  * \return The handle to the active main window.
@@ -9609,7 +9609,7 @@ MG_EXPORT NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd,
 
 /**
  * \fn NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd)
- * \brief Gets the notification callback procedure of a control.
+ * \brief Get the notification callback procedure of a control.
  *
  * This function gets the new notification callback procedure of
  * the control of \a hwnd.
@@ -10316,7 +10316,7 @@ MG_EXPORT BOOL GUIAPI SetCaretPos (HWND hWnd, int x, int y);
 
 /**
  * \fn BOOL GUIAPI GetCaretPos (HWND hWnd, PPOINT pPt)
- * \brief Gets the caret position.
+ * \brief Get the caret position.
  *
  * This function copies the caret's position, in client coordinates,
  * to the specified POINT structure \a pPt.
@@ -11406,7 +11406,7 @@ MG_EXPORT void GUIAPI DestroyAllControls (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetDlgDefPushButton (HWND hWnd)
- * \brief Gets the default push button control in a window.
+ * \brief Get the default push button control in a window.
  *
  * This function gets the handle to the default push button
  * (with BS_DEFPUSHBUTTON style) in the specified window \a hWnd.
@@ -11419,7 +11419,7 @@ MG_EXPORT HWND GUIAPI GetDlgDefPushButton (HWND hWnd);
 
 /**
  * \fn LINT GUIAPI GetDlgCtrlID (HWND hwndCtl)
- * \brief Gets the integer identifier of a control.
+ * \brief Get the integer identifier of a control.
  *
  * This function gets the integer identifier of the control \a hwndCtl.
  *

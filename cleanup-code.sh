@@ -143,6 +143,8 @@ tab2space() {
 
 # sed -i 's/\<pAdd\>/pSyncMsg/g' `grep '\<pAdd\>' -rl include/ src/`
 
-sed -i 's/\<isWindowInThisThread\>/getMainWinIfWindowInThisThread/g' `grep '\<isWindowInThisThread\>' -rl include/ src/`
+# sed -i 's/\<isWindowInThisThread\>/getMainWinIfWindowInThisThread/g' `grep '\<isWindowInThisThread\>' -rl include/ src/`
+
+# sed -i 's/\<GetMainVirtWindowById\>/GetHostedById/g' `grep '\<GetMainVirtWindowById\>' -rl include/ src/`
 
 exit 0
