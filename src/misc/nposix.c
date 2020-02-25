@@ -465,12 +465,9 @@ void __mg_os_time_delay (int ms)
 
 /* XXX: win32 implementation is not tested */
 static DWORD startup_time_win32;
-void __mg_os_start_time_ms (void)
+void __mg_os_start_time (void)
 {
     startup_time_win32 = timeGetTime();
-
-    /* call __mg_os_get_elapsed_ms to initialze the last time */
-    __mg_os_get_elapsed_ms ();
 }
 
 DWORD __mg_os_get_time_ms (void)
@@ -484,6 +481,19 @@ DWORD __mg_os_get_time_ms (void)
     return current - startup_time_win32;
 }
 
+DWORD __mg_os_get_time_ticks (void)
+{
+    DWORD current = timeGetTime();
+    if (current < startup_time_win32) {
+        // overflowed
+        DWORD ticks = (startup_time_win32 - current) / 10;
+        return BITMASK_DWORD/10 - ticks;
+    }
+
+    return (current - startup_time_win32) / 10;
+}
+
+#if 0   /* deprecated code */
 DWORD __mg_os_get_elapsed_ms (void)
 {
     static DWORD last;
@@ -503,19 +513,17 @@ DWORD __mg_os_get_elapsed_ms (void)
     last = current;
     return elapsed;
 }
+#endif  /* deprecated code */
 
 #elif defined (HAVE_CLOCK_GETTIME)
 
 static struct timespec timeval_startup;
-void __mg_os_start_time_ms (void)
+void __mg_os_start_time (void)
 {
     clock_gettime (CLOCK_MONOTONIC, &timeval_startup);
-
-    /* call __mg_os_get_elapsed_ms to init last time*/
-    __mg_os_get_elapsed_ms ();
 }
 
-DWORD __mg_os_get_time_ms(void)
+DWORD __mg_os_get_time_ms (void)
 {
     DWORD ds, dms;
     struct timespec current;
@@ -539,6 +547,31 @@ DWORD __mg_os_get_time_ms(void)
     return ds * 1000 + dms;
 }
 
+DWORD __mg_os_get_time_ticks (void)
+{
+    DWORD ds, dms;
+    struct timespec current;
+
+    clock_gettime(CLOCK_MONOTONIC, &current);
+    ds = (current.tv_sec - timeval_startup.tv_sec);
+
+    if (current.tv_sec == timeval_startup.tv_sec) {
+        dms = (current.tv_nsec - timeval_startup.tv_nsec) / 10000000L;
+    }
+    else if (current.tv_nsec >= timeval_startup.tv_nsec) {
+        dms = (current.tv_nsec - timeval_startup.tv_nsec) / 10000000L;
+    }
+    else {
+        assert(ds > 0);
+
+        ds--;
+        dms = 100L - (timeval_startup.tv_nsec - current.tv_nsec) / 10000000L;
+    }
+
+    return ds * 100 + dms;
+}
+
+#if 0   /* deprecated code */
 DWORD __mg_os_get_elapsed_ms (void)
 {
     static struct timespec last;
@@ -565,13 +598,12 @@ DWORD __mg_os_get_elapsed_ms (void)
     return ds * 1000 + dms;
 }
 
-#if 0   /* deprecated code */
 #include <unistd.h>
 #include <poll.h>
 #include <sys/time.h>
 
 static struct timeval timeval_startup;
-void __mg_os_start_time_ms(void)
+void __mg_os_start_time(void)
 {
     gettimeofday(&timeval_startup, NULL);
 }
@@ -603,7 +635,7 @@ DWORD __mg_os_get_time_ms(void)
 
 #else   /* defined HAVE_CLOCK_GETTIME */
 
-#error "Please implement __mg_os_start_time_ms, __mg_os_get_time_ms, and __mg_os_get_elapsed_ms for your OS"
+#error "Please implement __mg_os_start_time and __mg_os_get_time_ticks for your OS"
 
 #endif  /* otherwise */
 
