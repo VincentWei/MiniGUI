@@ -3462,7 +3462,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
         if (Msg.message == MSG_MOUSEMOVE) {
             LOCK_MOUSEMOVE_SEM();
             SHAREDRES_MOUSEMOVECLIENT = target_client;
-            ++ SHAREDRES_MOUSEMOVESERIAL;
+            SHAREDRES_MOUSEMOVESERIAL++;
             UNLOCK_MOUSEMOVE_SEM();
         }
         else {
@@ -4540,8 +4540,11 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
                 dskMouseMessageHandler (message, flags, x, y);
         }
 #ifdef _MGHAVE_MENU
-        else if (sg_ptmi)
-            PopupMenuTrackProc (sg_ptmi, message, x, y);
+        else if (sg_ptmi) {
+            if (PopupMenuTrackProc (sg_ptmi, message, x, y) == 0)
+                return 0;
+            dskMouseMessageHandler (message, flags, x, y);
+        }
 #endif
         else
             dskMouseMessageHandler (message, flags, x, y);
@@ -4706,9 +4709,6 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
             }
         }
 #endif  /* deprecated code */
-
-        _WRN_PRINTF ("got MSG_TIMER message for desktop (%lu)\n",
-                __mg_tick_counter);
 
         dskOnTimer ();
         break;

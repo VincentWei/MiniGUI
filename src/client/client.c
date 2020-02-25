@@ -152,6 +152,8 @@ int GUIAPI GetSockFD2Server (void)
     return conn_fd;
 }
 
+#include "debug.h"
+
 static void process_socket_message (MSG *msg)
 {
     if (msg->message == MSG_UPDATECLIWIN &&
@@ -161,8 +163,9 @@ static void process_socket_message (MSG *msg)
                 LOSWORD(msg->lParam), HISWORD(msg->lParam));
     }
     else {
-        if (msg->hwnd == 0) {
+        if (msg->hwnd == HWND_NULL) {
             msg->hwnd = HWND_DESKTOP;
+            //dump_message (msg, __func__);
             QueueDeskMessage (msg);
         }
         else if (__mg_client_check_hwnd (msg->hwnd, __mg_client_id)) {
@@ -468,8 +471,9 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
             msg.lParam = MAKELONG(mouse_x, mouse_y);
             kernel_QueueMessage (msg_queue, &msg);
             n++;
-        }
 
+            //dump_message (&msg, __func__);
+        }
     }
 
     /* Since 5.0.0: always check timer */
@@ -499,7 +503,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
         else {           /* process event from server */
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
-            process_socket_message(&Msg);
+            process_socket_message (&Msg);
         }
     }
 
