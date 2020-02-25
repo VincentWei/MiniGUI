@@ -450,8 +450,14 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
     }
 
     /* handle intput event (mouse/touch-screen or keyboard) */
-    if (evt & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
-    if (evt & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
+    if (evt & IAL_MOUSEEVENT) {
+        ParseEvent (msg_queue, IAL_MOUSEEVENT);
+        nevts++;
+    }
+    if (evt & IAL_KEYEVENT) {
+        ParseEvent (msg_queue, IAL_KEYEVENT);
+        nevts++;
+    }
     if (evt & IAL_EVENT_EXTRA) {
         MSG msg;
         msg.hwnd = HWND_DESKTOP;
@@ -467,8 +473,10 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
                     msg.wParam = extra.wparams[i];
                     msg.lParam = extra.lparams[i];
                     if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
-                            HOOK_GOON)
+                            HOOK_GOON) {
                         kernel_QueueMessage (msg_queue, &msg);
+                        nevts++;
+                    }
                     n++;
                 }
             }
@@ -477,25 +485,28 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
                 msg.message = MSG_EXIN_END_CHANGES;
                 msg.wParam = n;
                 msg.lParam = 0;
-                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                        HOOK_GOON) {
                     kernel_QueueMessage (msg_queue, &msg);
+                    nevts++;
+                }
             }
         }
         else {
-            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
+            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON) {
                 kernel_QueueMessage (msg_queue, &msg);
+                nevts++;
+            }
         }
     }
     else if (evt == 0) {
         ParseEvent (msg_queue, 0);
-
-        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-            msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
-
-        nevts += __mg_check_expired_timers (msg_queue,
-                SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
-        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
     }
+
+    /* Since 5.0.0: Always check timers */
+    nevts += __mg_check_expired_timers (msg_queue,
+            SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 
     /* go through registered listening fds */
     nevts += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);

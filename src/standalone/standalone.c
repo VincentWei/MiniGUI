@@ -176,9 +176,6 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
     }
 }
 
-extern void  __mg_os_start_time_ms(void);
-extern DWORD __mg_os_get_time_ms(void);
-
 BOOL GUIAPI salone_StandAloneStartup (void)
 {
     /* VW: do not use signal based interval timer; since 4.0 */
@@ -238,28 +235,12 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
 #ifdef __NOUNIX__
     levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
-
-    /* update __mg_tick_counter */
-    if (wait) {
-        //__mg_tick_counter += 10;
-        /**
-        10 is too fast, the "repeat_threshold" is 5, use ++, repeate 5 times
-        **/
-        __mg_tick_counter++;
-    }
 #elif defined (_MGGAL_BF533)
     levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
-
-    /* update __mg_tick_counter */
-    if (wait) {
-        __mg_tick_counter += 1;
-    }
 #else
     levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
                 wait?&sel_timeout:&sel_timeout_nd, &extra);
-    /* update __mg_tick_counter */
-    __mg_tick_counter = __mg_os_get_time_ms()/10;
 #endif
 
     if (levt < 0) {
@@ -271,8 +252,14 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
     }
 
     /* handle intput event (mouse/touch-screen or keyboard) */
-    if (levt & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
-    if (levt & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
+    if (levt & IAL_MOUSEEVENT) {
+        nevts++;
+        ParseEvent (msg_queue, IAL_MOUSEEVENT);
+    }
+    if (levt & IAL_KEYEVENT) {
+        nevts++;
+        ParseEvent (msg_queue, IAL_KEYEVENT);
+    }
     if (levt & IAL_EVENT_EXTRA) {
         MSG msg;
         msg.hwnd = HWND_DESKTOP;
@@ -288,34 +275,42 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
                     msg.wParam = extra.wparams[i];
                     msg.lParam = extra.lparams[i];
                     if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
-                            HOOK_GOON)
+                            HOOK_GOON) {
                         kernel_QueueMessage (msg_queue, &msg);
+                        nevts++;
+                    }
                     n++;
                 }
             }
+
 
             if (n > 0) {
                 msg.message = MSG_EXIN_END_CHANGES;
                 msg.wParam = n;
                 msg.lParam = 0;
-                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON) {
                     kernel_QueueMessage (msg_queue, &msg);
+                    nevts++;
+                }
             }
         }
         else {
-            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
+            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON) {
                 kernel_QueueMessage (msg_queue, &msg);
+                nevts++;
+            }
         }
     }
     else if (levt == 0) {
         ParseEvent (msg_queue, 0);
-
-        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-            msg_queue->old_tick_count = __mg_tick_counter;
-        nevts += __mg_check_expired_timers (msg_queue,
-                __mg_tick_counter - msg_queue->old_tick_count);
-        msg_queue->old_tick_count = __mg_tick_counter;
     }
+
+    /* Since 5.0.0: always check timers */
+    __mg_update_tick_count (NULL);
+
+    nevts += __mg_check_expired_timers (msg_queue,
+            __mg_tick_counter - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = __mg_tick_counter;
 
     /* go through registered listen fds */
     nevts += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);

@@ -287,25 +287,14 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
         }
         return FALSE;
     }
-    else if (retval == 0) {
-        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-            msg_queue->old_tick_count = __mg_tick_counter;
-        n += __mg_check_expired_timers (msg_queue,
-                __mg_tick_counter - msg_queue->old_tick_count);
-        msg_queue->old_tick_count = __mg_tick_counter;
-    }
-    else if (rsetptr || wsetptr || esetptr) {
+
+    n += __mg_check_expired_timers (msg_queue,
+            __mg_tick_counter - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = __mg_tick_counter;
+
+    if (rsetptr || wsetptr || esetptr) {
         n += __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
     }
-
-#if 0
-    if (wait && n == 0) {
-        n = handle_idle_message (msg_queue);
-    }
-    else {
-        msg_queue->idle_counter = 0;
-    }
-#endif
 
     return n > 0;
 }
@@ -327,21 +316,9 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
     if (timeout_ms > 0)
         __mg_os_time_delay (timeout_ms);
 
-    if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-        msg_queue->old_tick_count = __mg_tick_counter;
     n = __mg_check_expired_timers (msg_queue,
             __mg_tick_counter - msg_queue->old_tick_count);
     msg_queue->old_tick_count = __mg_tick_counter;
-
-#if 0
-    if (wait && n == 0) {
-        n = handle_idle_message (msg_queue);
-    }
-    else {
-        msg_queue->idle_counter = 0;
-    }
-#endif
-
     return n > 0;
 }
 
@@ -381,6 +358,7 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
     // pMsgQueue->first_timer_slot = 0;
     // pMsgQueue->expired_timer_mask = 0;
     // memset (pMsgQueue->timer_slots, 0, sizeof (pMsgQueue->timer_slots));
+    pMsgQueue->old_tick_count = __mg_tick_counter;
 
 #ifdef HAVE_SELECT
     /* Since 5.0.0, MiniGUI supports listening file descriptors

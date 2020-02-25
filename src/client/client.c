@@ -465,13 +465,12 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
             n++;
         }
 
-        if (MG_UNLIKELY (msg_queue->old_tick_count == 0))
-            msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
-
-        n += __mg_check_expired_timers (msg_queue,
-                SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
-        msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
     }
+
+    /* Since 5.0.0: always check timer */
+    n += __mg_check_expired_timers (msg_queue,
+            SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 
     old_timer = __mg_tick_counter;
     repeat_timeout = TIMEOUT_START_REPEAT;
