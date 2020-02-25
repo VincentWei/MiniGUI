@@ -251,11 +251,11 @@ void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
         return;
     }
 
+#if 1   /* Since 5.0.0, use NotifyWindow */
     if (NotifyWindow (parent, id, code, add_data)) {
         _DBG_PRINTF ("failed to notify parent window (%p)\n", parent);
     }
-
-#if 0   /* deprecated code */
+#else   /* deprecated code */
     NOTIFPROC notif_proc;
     notif_proc = GetNotificationCallback (hwnd);
 
