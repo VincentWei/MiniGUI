@@ -214,7 +214,7 @@ MG_EXPORT MG_RWops* MGUI_RWFromFile(const char *file, const char *mode);
 MG_EXPORT MG_RWops* MGUI_RWFromFP(FILE *fp, int autoclose);
 
 /**
- * \fn MG_RWops* MGUI_RWFromMem(void *mem, int size)
+ * \fn MG_RWops* MGUI_RWFromMem(void *mem, size_t size)
  * \brief Creates an MG_RWops object from a block of memory.
  *
  * This function creates an MG_RWops object from a block of memory pointed to
@@ -230,7 +230,7 @@ MG_EXPORT MG_RWops* MGUI_RWFromFP(FILE *fp, int autoclose);
 MG_EXPORT MG_RWops* MGUI_RWFromMem(void *mem, size_t size);
 
 /**
- * \fn void MGUI_InitMemRW (MG_RWops* area, void *mem, int size)
+ * \fn void MGUI_InitMemRW (MG_RWops* area, void *mem, size_t size)
  * \brief Initializes an MG_RWops object from a block of memory.
  *
  * This function initializes an MG_RWops object pointed to by \a area
