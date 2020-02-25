@@ -269,9 +269,11 @@ static void sig_handler (int v)
     else if (v == SIGINT) {
         _exit(1); /* force to quit */
     }
+#if 0   /* since 5.0.0, deprecated code */
     else if (v == SIGTERM) {
         ExitGUISafely (-1);
     }
+#endif  /* since 5.0.0, deprecated code */
     else {
         exit(1); /* force to quit */
     }
@@ -624,5 +626,25 @@ void TerminateGUI (int rcByGUI)
     mg_TerminateSliceAllocator();
 }
 #endif /* ifndef _MG_MINIMALGDI */
+
+/* XXX: We need a better policy to exit MiniGUI safely by giving a chance
+   for all windows to save data. */
+void GUIAPI ExitGUISafely (int exitcode)
+{
+#ifdef _MGRM_PROCESSES
+    if (mgIsServer)
+#endif
+    {
+/* see src/kernel/desktop-*.c */
+#   define IDM_CLOSEALLWIN (MINID_RESERVED + 1) 
+
+        SendNotifyMessage (HWND_DESKTOP, MSG_COMMAND, IDM_CLOSEALLWIN, 0);
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        __mg_join_all_message_threads ();
+        SendMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+        pthread_join (__mg_dsk_msg_queue->th, NULL);
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+    }
+}
 
 #endif /* !_MGRM_THREADS */
