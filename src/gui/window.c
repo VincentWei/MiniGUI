@@ -3079,7 +3079,7 @@ static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
     return NULL;
 }
 
-HWND GUIAPI GetMainVirtWindowById (HWND hHosting,
+HWND GUIAPI GetHostedById (HWND hHosting,
         LINT lId, DWORD dwSearchFlags)
 {
     MSGQUEUE* pMsgQueue;

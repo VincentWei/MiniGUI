@@ -8224,7 +8224,7 @@ MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
 #define WIN_SEARCH_FILTER_VIRT  0x0001
 
 /**
- * \fn HWND GUIAPI GetMainVirtWindowById (HWND hHosting,
+ * \fn HWND GUIAPI GetHostedById (HWND hHosting,
  *      LINT lId, DWORD dwSearchFflags)
  * \brief Retrieve the main window or virtual window by identifier.
  *
@@ -8258,7 +8258,7 @@ MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
  *
  * \sa GetRootWindow, GetHosting, GetFirstHosted, GetNextHosted
  */
-MG_EXPORT HWND GUIAPI GetMainVirtWindowById (HWND hHosting,
+MG_EXPORT HWND GUIAPI GetHostedById (HWND hHosting,
         LINT lId, DWORD dwSearchFlags);
 
 /**
