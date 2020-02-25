@@ -1085,6 +1085,11 @@ static void* mem_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
         switch (src_type) {
         case REF_SRC_INNER: {
             res->data = (MEM_RES*)&(res->source.inner->data);
+            /* Since 5.0.0, return data size if user_param is not null */
+            if (usr_param) {
+                *(size_t*)usr_param =
+                    ((MEM_RES*)&(res->source.inner->data))->data_len;
+            }
             break;
         }
         default:
