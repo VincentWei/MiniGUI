@@ -156,7 +156,7 @@ static HCURSOR load_cursor_from_mem (const void* area)
 #if 0
     DWORD32 size;
 #endif
-    DWORD32 offset, imagesize, imagew, imageh;
+    DWORD32 offset = 0, imagesize = 0, imagew = 0, imageh = 0;
 
     p += sizeof (WORD16);
     wTemp = MGUI_ReadLE16Mem (&p);
@@ -189,7 +189,7 @@ static HCURSOR load_cursor_from_mem (const void* area)
     p += sizeof (DWORD32);
     imagew = MGUI_ReadLE32Mem (&p);
     imageh = MGUI_ReadLE32Mem (&p);
-    if (imagew > 32 || imageh > 32) {
+    if (imagew != CURSORWIDTH || imageh != (CURSORHEIGHT*2)) {
         goto error;
     }
 
@@ -213,7 +213,9 @@ static HCURSOR load_cursor_from_mem (const void* area)
                         p + (imagesize - MONOSIZE), p, colornum);
 
 error:
-    _WRN_PRINTF ("LoadCursorFromMem: failed when loading cursor from %p\n", area);
+    _WRN_PRINTF ("LoadCursorFromMem: failed when loading cursor from %p: "
+            "w(%d), h(%d), xhot(%d), yhot(%d), imagew(%d), imageh(%d), colornum(%d)\n",
+            area, w, h, xhot, yhot, (int)imagew, (int)imageh, colornum);
     return 0;
 }
 
