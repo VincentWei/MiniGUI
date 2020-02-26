@@ -52,6 +52,11 @@
 #ifndef GUI_INTERNALS_H
     #define GUI_INTERNALS_H
 
+#include "common.h"
+#include "minigui.h"
+#include "gdi.h"
+#include "window.h"
+
 #include "constants.h"
 #include "cliprect.h"
 #include "zorder.h"
