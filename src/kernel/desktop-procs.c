@@ -801,7 +801,7 @@ static intptr_t cliFreeZOrderMaskRect (PMAINWIN pWin)
     req.data = &info;
     req.len_data = sizeof(ZORDERMASKRECTOPINFO);
 
-    if ((ret = ClientRequest (&req, &ret, sizeof (intptr_t))) < 0) {
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0) {
         return -1;
     }
     return ret;
@@ -3040,7 +3040,8 @@ static int cliRegisterHookWin (HWND hwnd, DWORD flags)
     req.id = REQID_REGISTERHOOK;
     req.data = &info;
     req.len_data = sizeof (REGHOOKINFO);
-    ClientRequest (&req, &retval, sizeof (int));
+    if (ClientRequest (&req, &retval, sizeof (int)) < 0)
+        return -1;
 
     return retval;
 }
@@ -3060,9 +3061,27 @@ static int cliUnregisterHookWin (HWND hwnd)
     req.id = REQID_REGISTERHOOK;
     req.data = &info;
     req.len_data = sizeof (REGHOOKINFO);
-    ClientRequest (&req, &retval, sizeof (int));
+    if (ClientRequest (&req, &retval, sizeof (int)) < 0)
+        return -1;
 
     return retval;
+}
+
+static int cliCalculateDefaultPosition (CALCPOSINFO* info)
+{
+    RECT retrc;
+    REQUEST req;
+
+    assert (!mgIsServer);
+
+    req.id = REQID_CALCPOSITION;
+    req.data = info;
+    req.len_data = sizeof (CALCPOSINFO);
+    if (ClientRequest (&req, &retrc, sizeof (RECT)) < 0)
+        return -1;
+
+    info->rc = retrc;
+    return 0;
 }
 
 #if 0   /* Since 5.0.0, deprecated */
@@ -4651,6 +4670,16 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
             return dskRegisterMsgQueue ((MSGQUEUE*)lParam);
         return dskUnregisterMsgQueue ((MSGQUEUE*)lParam);
 #endif
+
+    /* Since 5.0.0 */
+    case MSG_CALC_POSITION:
+        if (mgIsServer) {
+            dskCalculateDefaultPosition (0, (CALCPOSINFO*)lParam);
+            return 0;
+        }
+        else
+            return cliCalculateDefaultPosition ((CALCPOSINFO*)lParam);
+        break;
 
     case MSG_IME_REGISTER:
         if (mgIsServer)

@@ -2445,6 +2445,11 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         return dskUnregisterMsgQueue ((MSGQUEUE*)lParam);
 #endif
 
+    /* Since 5.0.0 */
+    case MSG_CALC_POSITION:
+        dskCalculateDefaultPosition (0, (CALCPOSINFO*)lParam);
+        return 0;
+
     case MSG_IME_REGISTER:
         return dskRegisterIMEWnd ((HWND)wParam);
 

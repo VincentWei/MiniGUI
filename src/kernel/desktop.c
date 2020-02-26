@@ -4853,3 +4853,137 @@ static inline int post_quit_to_all_message_threads (void)
 }
 
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+
+/* Since 5.0.0 */
+static int dskCalculateDefaultPosition (int cli, CALCPOSINFO* info)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+    DWORD zt_type = ZOF_TYPE_NULL;
+    int level, first;
+
+    zi = get_zorder_info (cli);
+    nodes = GET_ZORDERNODE(zi);
+
+#ifdef _MGRM_PROCESSES
+    if (cli == 0)
+        zt_type = ZOF_TYPE_GLOBAL;
+    else
+#endif
+    switch (info->ex_style & WS_EX_WINTYPE_MASK) {
+    case WS_EX_WINTYPE_TOOLTIP:
+        zt_type = ZOF_TYPE_TOOLTIP;
+        break;
+
+#ifdef _MGRM_PROCESSES
+    case WS_EX_WINTYPE_GLOBAL:
+        zt_type = ZOF_TYPE_GLOBAL;
+        break;
+#endif
+
+    case WS_EX_WINTYPE_SCREENLOCK:
+        zt_type = ZOF_TYPE_SCREENLOCK;
+        break;
+
+    case WS_EX_WINTYPE_DOCKER:
+        zt_type = ZOF_TYPE_DOCKER;
+        break;
+
+    case WS_EX_WINTYPE_LAUNCHER:
+        zt_type = ZOF_TYPE_LAUNCHER;
+        break;
+
+    case WS_EX_WINTYPE_HIGHER:
+        zt_type = ZOF_TYPE_HIGHER;
+        break;
+
+    default:
+        zt_type = ZOF_TYPE_NORMAL;
+        break;
+    }
+
+#ifdef _MGRM_PROCESSES
+    /* check the special types */
+    switch (zt_type) {
+    case ZOF_TYPE_TOOLTIP:
+        if (zi->first_tooltip > 0 &&
+                nodes [zi->first_tooltip].cli != cli) {
+            zt_type = ZOF_TYPE_HIGHER;
+        }
+        break;
+
+    case ZOF_TYPE_GLOBAL:
+        if (cli != 0) {
+            zt_type = ZOF_TYPE_HIGHER;
+        }
+        break;
+
+    case ZOF_TYPE_SCREENLOCK:
+        if (zi->first_screenlock > 0 &&
+                nodes [zi->first_screenlock].cli != cli) {
+            zt_type = ZOF_TYPE_HIGHER;
+        }
+        break;
+
+    case ZOF_TYPE_DOCKER:
+        if (zi->first_docker > 0 &&
+                nodes [zi->first_docker].cli != cli) {
+            zt_type = ZOF_TYPE_HIGHER;
+        }
+        break;
+
+    case ZOF_TYPE_LAUNCHER:
+        if (zi->first_launcher > 0 &&
+                nodes [zi->first_launcher].cli != cli) {
+            zt_type = ZOF_TYPE_NORMAL;
+        }
+        break;
+    }
+#endif  /* defined _MGRM_PROCESSES */
+
+    level = ZOF_TYPE_TO_LEVEL_IDX (zt_type);
+    first = zi->first_in_levels[level];
+
+#ifdef _MGSCHEMA_COMPOSITING   /* not defined _MGSCHEMA_COMPOSITING */
+    DO_COMPSOR_OP_ARGS (calc_mainwin_pos,
+            __mg_get_layer_from_zi(zi), zt_type, first, info);
+#else   /* defined _MGSCHEMA_COMPOSITING */
+    /* give a default size first */
+    if (IsRectEmpty (&info->rc)) {
+
+        info->rc.left = 0;
+        info->rc.top = 0;
+        if (info->ex_style & WS_EX_DIALOGBOX) {
+            info->rc.right = g_rcScr.right / 2;
+            info->rc.bottom = g_rcScr.bottom / 3;
+        }
+        else {
+            info->rc.right = g_rcScr.right / 2;
+            info->rc.bottom = g_rcScr.bottom;
+        }
+    }
+
+    if (info->ex_style & WS_EX_DIALOGBOX) {
+        // center the window vertically and horinzontally
+        int width = info->rc.right - info->rc.left;
+        int height = info->rc.bottom - info->rc.top;
+
+        OffsetRect (&info->rc, (g_rcScr.right - width) >> 1,
+                    (g_rcScr.bottom - height) >> 1);
+    }
+    else {
+        if (first == 0) {
+            info->rc.left = 0;
+            info->rc.top = 0;
+        }
+        else {
+            info->rc = nodes[first].rc;
+            OffsetRect (&info->rc,
+                    DEF_OVERLAPPED_OFFSET_X, DEF_OVERLAPPED_OFFSET_Y);
+        }
+    }
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+
+    return 0;
+}
+

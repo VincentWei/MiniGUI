@@ -346,11 +346,10 @@ ret:
 static int calc_position (int cli, int clifd, void* buff, size_t len)
 {
     CALCPOSINFO* info = (CALCPOSINFO*)buff;
-    RECT rc = info->rc;
 
-    SendMessage (HWND_DESKTOP, MSG_CALC_POSITION, (WPARAM)info, (LPARAM)&rc);
+    SendMessage (HWND_DESKTOP, MSG_CALC_POSITION, (WPARAM)cli, (LPARAM)info);
 
-    return ServerSendReply (clifd, &rc, sizeof (RECT));
+    return ServerSendReply (clifd, &info->rc, sizeof (RECT));
 }
 
 static int create_cursor (int cli, int clifd, void* buff, size_t len)
