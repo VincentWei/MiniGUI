@@ -54,13 +54,15 @@
 #ifndef RES_MANAGER_H
 #define RES_MANAGER_H
 
+#include "map.h"
+
 typedef struct _RES_TYPE_INFO{
     short type;
     unsigned short flag;
     int ops_ref;
     int def_source;
     RES_TYPE_OPS *ops;
-}RES_TYPE_INFO;
+} RES_TYPE_INFO;
 #define RETIF_AUTO_DELETE 0x01
 
 typedef struct _RES_ENTRY{
@@ -72,7 +74,7 @@ typedef struct _RES_ENTRY{
     unsigned short refcnt;
     RES_KEY key;
     struct _RES_ENTRY* next;
-}RES_ENTRY;
+} RES_ENTRY;
 
 #define REF_IN_USE      0x80  //the entry is or not in used
 #define REF_INNER_SRC_COPYED  0x40 //inner res is copyed from usr
@@ -97,6 +99,9 @@ typedef struct _HASH_TABLE {
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+/* Since 5.0.0, the map for system bitmaps */
+extern map_t* __mg_sys_bmp_map;
 
 BOOL mg_InitResManager(int hash_table_size);
 void TerminateResManager(void);
