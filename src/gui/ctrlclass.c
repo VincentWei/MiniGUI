@@ -145,7 +145,8 @@ extern BOOL RegisterAnimationControl (void);
 extern BOOL RegisterScrollBarControl (void);
 #endif
 
-#define LEN_CCITABLE    26
+#define LEN_CCITABLE    32
+#define HASH_KEY(name)  (int)(Str2Key ((name)) % LEN_CCITABLE)
 
 static PCTRLCLASSINFO ccitable[LEN_CCITABLE];
 
@@ -313,8 +314,9 @@ PCTRLCLASSINFO gui_GetControlClassInfo (const char* szClassName)
     if (szClassName == NULL) return NULL;
 
     strncpy (szName, szClassName, MAXLEN_CLASSNAME);
-    szName[MAXLEN_CLASSNAME] = '\0';
+    szName [MAXLEN_CLASSNAME] = '\0';
 
+#if 0  /* deprecated code */
     if (!isalpha ((int)szName[0])) return NULL;
 
     while (szName[i]) {
@@ -324,7 +326,11 @@ PCTRLCLASSINFO gui_GetControlClassInfo (const char* szClassName)
     }
 
     cci = ccitable [szName[0] - 'A'];
+#endif  /* deprecated code */
 
+    /* Since 5.0.0, we use Str2Key as the hash function */
+    i = HASH_KEY (szName);
+    cci = ccitable [i];
     while (cci) {
 
         if (strcmp (cci->name, szName) == 0)
@@ -420,7 +426,9 @@ int gui_AddNewControlClass (PWNDCLASS pWndClass)
     int i=0;
 
     strncpy (szClassName, pWndClass->spClassName, MAXLEN_CLASSNAME);
+    szClassName [MAXLEN_CLASSNAME] = 0;
 
+#if 0   /* deprecated code */
     if (!isalpha ((int)szClassName[0])) return ERR_CTRLCLASS_INVNAME;
 
     while (szClassName[i]) {
@@ -432,6 +440,10 @@ int gui_AddNewControlClass (PWNDCLASS pWndClass)
     }
 
     i = szClassName[0] - 'A';
+#endif  /* deprecated code */
+
+    /* since 5.0.0, we use Str2Key as the hash function */
+    i = HASH_KEY(szClassName);
     cci = ccitable [i];
     if (cci) {
 
@@ -483,7 +495,9 @@ int gui_DeleteControlClass (const char* szClassName)
     if (szClassName == NULL) return ERR_CTRLCLASS_INVNAME;
 
     strncpy (szName, szClassName, MAXLEN_CLASSNAME);
+    szName [MAXLEN_CLASSNAME] = 0;
 
+#if 0   /* deprecated code */
     if (!isalpha ((int)szName[0])) return ERR_CTRLCLASS_INVNAME;
 
     while (szName[i]) {
@@ -493,6 +507,10 @@ int gui_DeleteControlClass (const char* szClassName)
     }
 
     i = szName[0] - 'A';
+#endif  /* deprecated code */
+
+    /* Since 5.0.0, we use Str2Key as the hash function */
+    i = HASH_KEY (szName);
     head = ccitable [i];
 
     cci = head;
