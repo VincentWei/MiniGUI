@@ -2947,6 +2947,9 @@ typedef struct _WINMASKINFO {
     #define MSGTHREAD_SIGNIN        0x00
     #define MSGTHREAD_SIGNOUT       0x01
 
+/* Since 5.0.0: for calculating the default position */
+#define MSG_CALC_POSITION       0x014B
+
 /**
  * \def MSG_DOESNEEDIME
  * \brief Sends to a window to query whether the window needs to open
@@ -2958,7 +2961,7 @@ typedef struct _WINMASKINFO {
  * The application should handle this message and return TRUE when
  * the window need IME window.  Default window procedure returns FALSE.
  *
- * \note This is an asynchronical message.
+ * \note This is an asynchronous message.
  */
 #define MSG_DOESNEEDIME     0x0150
 
@@ -3209,7 +3212,7 @@ MG_EXPORT BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hMainWnd);
 
 /**
  * \fn BOOL HavePendingMessage (HWND hMainWnd)
- * \brief Checks if there is any pending message in the message queue of
+ * \brief Check if there is any pending message in the message queue of
  * a main window.
  *
  * This function checks whether there is any pending message in the
@@ -4170,7 +4173,7 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  */
 #define WS_NONE             0x00000000L
 
-/* bits in this mask are only for main windows and controls */
+/* bits in this mask are only for main windows */
 #define WS_CAPTIONBAR_MASK  0xF0000000L
 
 /**
@@ -4218,48 +4221,35 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
 #define WS_MINIMIZE         0x02000000L
 #define WS_MAXIMIZE         0x01000000L
 
-/* bits in this mask are reused for main windows */
-#define WS_FRAME_MASK       0x00E00000L
+/* bits in this mask are reuse for main windows and controls;
+   bits have different meanings for main windows and controls.*/
+#define WS_REUSE_MASK           0x00E00000L
 
 /**
  * \def WS_DLGFRAME
  * \brief The main window has a fixed frame, i.e. user can not
  *        drag the border of the window.
  */
-#define WS_DLGFRAME         0x00800000L
+#define WS_DLGFRAME             0x00800000L
 
 /**
  * \def WS_THICKFRAME
  * \brief Creates a main window with thick frame.
  */
-#define WS_THICKFRAME       0x00400000L
+#define WS_THICKFRAME           0x00400000L
 
 /**
  * \def WS_THINFRAME
  * \brief Creates a main window with thin frame.
  */
-#define WS_THINFRAME        0x00200000L
-
-/* bits in this mask only for main window */
-#define WS_MAINWIN_ONLY_MASK    0x00100000L
-
-/**
- * \def WS_ALWAYSTOP
- * \brief Indicates the main window is always on top of others.
- *
- * Since 5.0.0.
- */
-#define WS_ALWAYSTOP        0x00100000L
-
-/* bits in this mask are reused for controls */
-#define WS_CONTROL_MASK     0x00C00000L
+#define WS_THINFRAME            0x00200000L
 
 /**
  * \def WS_GROUP
  * \brief Indicates the control is the leader of a group.
  * \note This style is valid only for controls.
  */
-#define WS_GROUP            0x00800000L
+#define WS_GROUP                0x00800000L
 
 /**
  * \def WS_TABSTOP
@@ -4267,38 +4257,49 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  *        using Tab key.
  * \note This style is valid only for controls.
  */
-#define WS_TABSTOP          0x00400000L
+#define WS_TABSTOP              0x00400000L
+
+/**
+ * \def WS_ALWAYSTOP
+ * \brief Indicates the main window is always on top of others.
+ *
+ * Since 5.0.0.
+ */
+#define WS_ALWAYSTOP            0x00100000L
 
 /* bits in this mask are both for main windows and controls */
-#define WS_MISC_MASK        0x000F0000L
+#define WS_MISC_MASK            0x000F0000L
 
 /**
  * \def WS_CHILD
  * \brief Indicates the window is a child.
  */
-#define WS_CHILD            0x00080000L
+#define WS_CHILD                0x00080000L
 
 /**
  * \def WS_VSCROLL
  * \brief Creates a window with vertical scroll bar.
  */
-#define WS_VSCROLL          0x00040000L
+#define WS_VSCROLL              0x00040000L
 
 /**
  * \def WS_HSCROLL
  * \brief Creates a window with horizontal scroll bar.
  */
-#define WS_HSCROLL          0x00020000L
+#define WS_HSCROLL              0x00020000L
 
 /**
  * \def WS_BORDER
  * \brief Creates a window with border.
  */
-#define WS_BORDER           0x00010000L
+#define WS_BORDER               0x00010000L
 
 /* Obsolete styles, back-compatibility definitions. */
-#define WS_OVERLAPPED       0x00000000L
-#define WS_ABSSCRPOS        0x00000000L
+#define WS_OVERLAPPED           0x00000000L
+#define WS_ABSSCRPOS            0x00000000L
+
+#define WS_MAINWIN_ONLY_MASK    (WS_CAPTIONBAR_MASK | WS_ALWAYSTOP)
+#define WS_CONTROL_ONLY_MASK    (WS_CTRLMASK)
 
 /**
  * \def WS_EX_NONE
@@ -4607,6 +4608,22 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  * \brief The dialog won't show immediately after it is created.
  */
 #define WS_EX_DLGHIDE           0x00100000L
+
+/**
+ * \def WS_EX_AUTOPOSITION
+ * \brief The position of the main window will be determined by system.
+ *
+ * If a main window has this extend style when creating it, MiniGUI will
+ * determine the position of the main window. If the width or the height of
+ * the window specified in MAINWINCREATE structure is zero, MiniGUI will
+ * also determine a default size for the main window.
+ *
+ * Under the compositing schema, the compositor is responsible to calculate
+ * the position and the size for a main window.
+ *
+ * Since 5.0.0
+ */
+#define WS_EX_AUTOPOSITION      0x00200000L
 
 /**
  * \def WS_EX_NOCLOSEBOX
@@ -7234,7 +7251,7 @@ MG_EXPORT BOOL GUIAPI EnableWindow (HWND hWnd, BOOL fEnable);
 
 /**
  * \fn BOOL GUIAPI IsWindowEnabled (HWND hWnd)
- * \brief Determines whether the specified window is enabled for mouse
+ * \brief Determine whether the specified window is enabled for mouse
  *        and keyboard input.
  *
  * This function returns the enable/disable state of the window specified by
@@ -8030,7 +8047,7 @@ MG_EXPORT void GUIAPI ScreenToWindow (HWND hWnd, int* x, int* y);
 
 /**
  * \fn BOOL GUIAPI IsMainWindow (HWND hWnd)
- * \brief Determines whether a window is a main window.
+ * \brief Determine whether a window is a main window.
  *
  * This function determines whether the specified window \a hWnd is
  * a main window or not.
@@ -8062,7 +8079,7 @@ MG_EXPORT BOOL GUIAPI IsVirtualWindow (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI IsControl (HWND hWnd)
- * \brief Determines whether a window is a control.
+ * \brief Determine whether a window is a control.
  *
  * This function determines whether the specified window \a hWnd is a control.
  *
@@ -8076,7 +8093,7 @@ MG_EXPORT BOOL GUIAPI IsControl (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI IsWindow (HWND hWnd)
- * \brief Determines whether a window handle identifies an existing window.
+ * \brief Determine whether a window handle identifies an existing window.
  *
  * This function determines whether the specified window handle \a hWnd
  * identifies an existing window.
@@ -8091,7 +8108,7 @@ MG_EXPORT BOOL GUIAPI IsWindow (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI IsDialog (HWND hWnd)
- * \brief Determines whether a window handle identifies a dialog window.
+ * \brief Determine whether a window handle identifies a dialog window.
  *
  * This function determines whether the specified window handle \a hWnd
  * identifies a dialog window.
@@ -9682,6 +9699,9 @@ typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD);
  * \a timer_proc by passing \a hWnd, \a id, and the tick count when this
  * timer had expired to this callback procedure.
  *
+ * Since 5.0.0, if the specified timer already exists when you call
+ * this function, MiniGUI will reset the timer by using the new parameters.
+ *
  * \param hWnd The window receives the MSG_TIMER message. If \a timer_proc
  *        is not NULL, MiniGUI will call \a timer_proc instead sending
  *        MSG_TIMER message to this window. If you use timer callback
@@ -9775,7 +9795,7 @@ MG_EXPORT BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
 
 /**
  * \fn BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
- * \brief Determines whether a timer is installed.
+ * \brief Determine whether a timer is installed.
  *
  * This function determines whether a timer with identifier \a id for
  * a window \a hwnd has been installed in the current thread.
@@ -10708,7 +10728,7 @@ MG_EXPORT int GUIAPI DestroyMenu (HMENU hmnu);
 
 /**
  * \fn int GUIAPI IsMenu (HMENU hmnu)
- * \brief Determines whether a handle is a menu handle.
+ * \brief Determine whether a handle is a menu handle.
  *
  * This function determines whether the handle specified by \a hmnu is a
  * menu handle.
@@ -10870,7 +10890,7 @@ MG_EXPORT BOOL GUIAPI HiliteMenuBarItem (HWND hwnd, int pos, UINT flag);
 
 /**
  * \fn int GUIAPI GetMenuItemCount (HMENU hmnu)
- * \brief Determines the number of items in a menu.
+ * \brief Determine the number of items in a menu.
  *
  * This function determines the number of items in the specified menu \a hmnu.
  *
@@ -11025,7 +11045,7 @@ MG_EXPORT UINT GUIAPI EnableMenuItem (HMENU hmnu, LINT item, UINT flag);
 /**
  * \fn LINT GUIAPI CheckMenuRadioItem (HMENU hmnu, LINT first, LINT last, \
  *               LINT checkitem, UINT flag)
- * \brief Checks a specified menu item and makes it a radio item.
+ * \brief Check a specified menu item and makes it a radio item.
  *
  * This function checks a specified menu item and makes it a radio item.
  * At the same time, the function unchecks all other menu items in the
@@ -11703,7 +11723,7 @@ MG_EXPORT void GUIAPI CheckRadioButton (HWND hDlg,
 
 /**
  * \fn int GUIAPI IsDlgButtonChecked (HWND hDlg, LINT idButton)
- * \brief Determines whether a button control has a check mark next to it or
+ * \brief Determine whether a button control has a check mark next to it or
  *        whether a three-state button control is grayed, checked, or neither.
  *
  * This function determines whether the button control whose identifier is
