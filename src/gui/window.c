@@ -4236,8 +4236,17 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 
     /* Since 5.0.0: calculate the default postion */
     if (pWin->dwStyle & WS_EX_AUTOPOSITION) {
-        SendMessage (HWND_DESKTOP, MSG_CALC_POSITION,
-                (WPARAM)pWin, (LPARAM)pCreateInfo);
+        CALCPOSINFO info = { pWin->dwStyle, pWin->dwExStyle,
+            {pCreateInfo->lx, pCreateInfo->ty,
+                pCreateInfo->rx, pCreateInfo->by} };
+
+        // we ignore the retval. may fail for client of procs runmode
+        SendMessage (HWND_DESKTOP, MSG_CALC_POSITION, 0, (LPARAM)&info);
+
+        pCreateInfo->lx = info.rc.left;
+        pCreateInfo->ty = info.rc.top;
+        pCreateInfo->rx = info.rc.right;
+        pCreateInfo->by = info.rc.bottom;
     }
 
 #ifdef __TARGET_FMSOFT__
