@@ -388,6 +388,7 @@ static void delete_entry_data(RES_ENTRY* entry)
 */
 
 /* Since 5.0.0: functions for system bitmap map */
+map_t* __mg_sys_bmp_map;
 static void* copy_key_string (const void *key)
 {
     return strdup (key);
