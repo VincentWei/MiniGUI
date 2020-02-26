@@ -5748,6 +5748,7 @@ HDC GUIAPI BeginPaint (HWND hWnd)
 
 void GUIAPI EndPaint (HWND hWnd, HDC hdc)
 {
+    BOOL synced = FALSE;
     PMAINWIN pWin;
 
     MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
@@ -5761,6 +5762,8 @@ void GUIAPI EndPaint (HWND hWnd, HDC hdc)
             __mg_update_secondary_dc (pWin, hdc, real_dc,
                     &pWin->pMainWin->update_rc, HT_CLIENT);
             ReleaseDC (real_dc);
+            SyncUpdateDC (real_dc);
+            synced = TRUE;
         }
     }
 
@@ -5790,6 +5793,9 @@ void GUIAPI EndPaint (HWND hWnd, HDC hdc)
         ShowCaretEx (hWnd, FALSE);
     }
 #endif
+
+    if (!synced)
+        SyncUpdateDC (hdc);
 }
 
 BOOL RegisterWindowClass (PWNDCLASS pWndClass)

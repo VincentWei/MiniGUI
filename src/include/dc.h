@@ -157,10 +157,11 @@ typedef BOOL (* CB_BITMAP_SCALER_FUNC )(
 /* Device Context */
 struct tagDC
 {
-    short DataType;  /* the data type, always be TYPE_HDC */
-    short DCType;    /* the dc type */
+    unsigned char DataType;  /* the data type, always be TYPE_HDC */
+    unsigned char DCType;    /* the dc type */
+    unsigned char inuse;
+    unsigned char bIsClient;
 
-    BOOL inuse;
     HWND hwnd;
 
     /* surface of this DC */
@@ -258,7 +259,6 @@ struct tagDC
     CLIPRGN  ecrgn;
 
     /* device rect */
-    BOOL bIsClient;
     RECT DevRC;
 
 #ifndef _MGSCHEMA_COMPOSITING
@@ -697,9 +697,8 @@ static inline void release_valid_dc (PMAINWIN pWin, HDC hdc)
             ReleaseSecondarySubDC (hdc);
     }
     else {
-        if (pWin->privCDC != hdc) {
+        if (pWin->privCDC != hdc)
             ReleaseDC (hdc);
-        }
     }
 }
 

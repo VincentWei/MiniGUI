@@ -2289,14 +2289,13 @@ void GUIAPI ReleaseDC (HDC hDC)
 
     pdc = dc_HDC2PDC(hDC);
 
-    if (pdc->alpha_pixel_format) {
-        GAL_FreeFormat (pdc->alpha_pixel_format);
-        pdc->alpha_pixel_format = NULL;
+    /* Call SyncUpdateDC at the end of EndPaint to elimiate flickers.
+    if (pdc->bIsClient) {
+        LOCK (&__mg_gdilock);
+        GAL_SyncUpdate (pdc->surface);
+        UNLOCK (&__mg_gdilock);
     }
-
-    LOCK (&__mg_gdilock);
-    GAL_SyncUpdate (pdc->surface);
-    UNLOCK (&__mg_gdilock);
+    */
 
     pWin = (PMAINWIN)(pdc->hwnd);
     if (pWin && pWin->privCDC == hDC) {
@@ -2375,6 +2374,12 @@ void GUIAPI ReleaseDC (HDC hDC)
 #endif /* not defined _MGSCHEMA_COMPOSITING */
     }
     else {
+        /* since 5.0.0, only free pixel format for dc from slots */
+        if (pdc->alpha_pixel_format) {
+            GAL_FreeFormat (pdc->alpha_pixel_format);
+            pdc->alpha_pixel_format = NULL;
+        }
+
         EmptyClipRgn (&pdc->lcrgn);
         MAKE_REGION_INFINITE(&pdc->lcrgn);
         EmptyClipRgn (&pdc->ecrgn);
