@@ -267,7 +267,7 @@ char * __mg_msgstr2 [] =
     "MSG_QUERYENDSESSION",   // 0x00C1
     "MSG_ENDSESSION",        // 0x00C2
     "MSG_REINITSESSION",     // 0x00C3
-    "",                      // 0x00C4
+    "MSG_REINITDESKOPS",     // 0x00C4
     "",                      // 0x00C5
     "",                      // 0x00C6
     "",                      // 0x00C7
