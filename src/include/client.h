@@ -187,12 +187,6 @@ typedef struct _MovedClientInfo {
     int zo_shmid;
 } MOVEDCLIENTINFO;
 
-typedef struct _CalcPosInfo {
-    DWORD style;
-    DWORD ex_style;
-    RECT  rc;
-} CALCPOSINFO;
-
 #define ID_ZOOP_ALLOC               1
 #define ID_ZOOP_FREE                2
 #define ID_ZOOP_MOVE2TOP            3
