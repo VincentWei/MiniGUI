@@ -6635,7 +6635,7 @@ typedef struct _MAINWINCREATE {
 #ifdef _MGSCHEMA_COMPOSITING
     /**
      * The background color of the main window.
-     * Note that under compositing schema, if you specify the main windows's
+     * Note that under compositing schema, if you specify the main window's
      * surface type other than the default, you must use this field
      * to specify the background color of the main window instead of
      * the pixel value (\a iBkColor).
