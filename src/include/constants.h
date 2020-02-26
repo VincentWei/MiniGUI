@@ -113,6 +113,10 @@ enum {
 #define RADIUS_WINDOW_CORNERS       7
 #define RADIUS_POPUPMENU_CORNERS    7
 
+/* Since 5.0.0; default offsets for overlapped windows */
+#define DEF_OVERLAPPED_OFFSET_X     30
+#define DEF_OVERLAPPED_OFFSET_Y     30
+
 /* constants for MiniGUI-Processes runtime mode */
 #ifdef _MGRM_PROCESSES
 
