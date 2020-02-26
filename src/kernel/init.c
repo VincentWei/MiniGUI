@@ -473,15 +473,6 @@ int GUIAPI InitGUI (int args, const char *agr[])
     InstallSEGVHandler ();
 #endif
 
-    /*
-     * Load system resource here.
-     */
-    step++;
-    if (!mg_InitSystemRes ()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: Can not init system resource!\n");
-        goto failure1;
-    }
-
     /* Init GDI. */
     step++;
     if(!mg_InitGDI()) {
@@ -493,6 +484,15 @@ int GUIAPI InitGUI (int args, const char *agr[])
     step++;
     if (!mg_InitScreenDC ()) {
         _ERR_PRINTF ("KERNEL>InitGUI: Can not init screen DC!\n");
+        goto failure1;
+    }
+
+    /*
+     * Load system resource here.
+     */
+    step++;
+    if (!mg_InitSystemRes ()) {
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not init system resource!\n");
         goto failure1;
     }
 
@@ -647,8 +647,9 @@ void GUIAPI TerminateGUI (int not_used)
     mg_TerminateLWEvent ();
 
     mg_TerminateScreenDC ();
-    mg_TerminateGDI ();
     mg_TerminateLFManager ();
+    mg_TerminateSystemRes ();
+    mg_TerminateGDI ();
     mg_TerminateGAL ();
 
 #ifdef _MGHAVE_ADV_2DAPI

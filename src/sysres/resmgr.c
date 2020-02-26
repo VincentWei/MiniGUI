@@ -455,9 +455,6 @@ void TerminateResManager()
 {
     int i;
 
-    /* Since 5.0.0, destroy the map for system bitmaps */
-    __mg_map_destroy (__mg_sys_bmp_map);
-
     //delete all entries
     RES_LOCK();
     for(i=0; i<hash_table.size; i++){
@@ -487,6 +484,10 @@ void TerminateResManager()
     user_types = NULL;
     user_type_count = 0;
     UNINIT_LOCKER();
+
+    /* Since 5.0.0, destroy the map for system bitmaps */
+    __mg_map_destroy (__mg_sys_bmp_map);
+
 }
 
 const char* __sysres_get_system_res_path()

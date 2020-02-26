@@ -161,7 +161,7 @@ void mg_TerminateDesktop (void)
     DestroyFreeClipRectList (&sg_FreeClipRectList);
     DestroyFreeClipRectList (&sg_FreeInvRectList);
 
-    mg_TerminateSystemRes ();
+    //mg_TerminateSystemRes ();
     //dongjunjie avoid double free
     __mg_dsk_win = 0;
 }

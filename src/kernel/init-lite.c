@@ -121,18 +121,21 @@ int InitGUI (int argc, const char* agr[])
         _ERR_PRINTF ("KERNEL>InitGUI: failed to initialize slice allocator!\n");
         return step;
     }
+    atexit (mg_TerminateSliceAllocator);
 
     if (!mg_InitFixStr ()) {
         err_message (step, "Can not initialize Fixed String heap!\n");
         return step;
     }
     step++;
+    atexit (mg_TerminateFixStr);
 
     if (!mg_InitMisc ()) {
         err_message (step, "Can not initialize miscellous things!");
         return step;
     }
     step++;
+    atexit (mg_TerminateMisc);
 
     /* Init GAL engine. */
     switch (mg_InitGAL (engine, mode)) {
@@ -176,9 +179,6 @@ int InitGUI (int argc, const char* agr[])
 
 void TerminateGUI (int rcByGUI)
 {
-    mg_TerminateMisc ();
-    mg_TerminateFixStr ();
-    mg_TerminateSliceAllocator();
 }
 
 #warning ExitGUISafely?
@@ -352,6 +352,7 @@ int InitGUI (int argc, const char* agr[])
         return step;
     }
     step++;
+    atexit (mg_TerminateSliceAllocator);
 
     if (!mg_InitFixStr ()) {
         err_message (step, "Can not initialize Fixed String heap!\n");
@@ -434,16 +435,6 @@ int InitGUI (int argc, const char* agr[])
 #endif
         InstallSEGVHandler ();
 
-    /** initialize icon bitmap resource.*/
-    if (mg_InitSystemRes () == FALSE) {
-        _ERR_PRINTF ("KERNEL>IniGUI: init system res error!\n");
-        return step;
-    }
-    step++;
-    /* DK[11/29/10]: For fix bug 4440, avoid double free. */
-/*     atexit (mg_TerminateSystemRes);
- */
-
     if (!mg_InitGDI ()) {
         err_message (step, "Initialization of GDI resource failure!\n");
         return step;
@@ -458,6 +449,14 @@ int InitGUI (int argc, const char* agr[])
     }
     step++;
     atexit (mg_TerminateScreenDC);
+
+    /** initialize icon bitmap resource.*/
+    if (mg_InitSystemRes () == FALSE) {
+        _ERR_PRINTF ("KERNEL>IniGUI: init system res error!\n");
+        return step;
+    }
+    step++;
+    atexit (mg_TerminateSystemRes);
 
 #if 0
     g_rcScr.left = 0;
@@ -623,7 +622,6 @@ void TerminateGUI (int rcByGUI)
     deleteThreadInfoKey();
 #endif
 
-    mg_TerminateSliceAllocator();
 }
 #endif /* ifndef _MG_MINIMALGDI */
 

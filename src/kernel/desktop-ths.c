@@ -207,7 +207,7 @@ void mg_TerminateDesktop (void)
     // Since 5.0.0
     __mg_free_hook_wins (0);
 
-    mg_TerminateSystemRes ();
+    // mg_TerminateSystemRes ();
     // dongjunjie avoid double free
     __mg_dsk_win = 0;
 }
