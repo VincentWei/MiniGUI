@@ -114,12 +114,24 @@
 
 // Move the current client to another layer
 #define REQID_MOVETOLAYER           0x0021
+// Calculate the position a main window with WS_EX_AUTOPOSITION
+#define REQID_CALCPOSITION          0x0022
+
+#define REQID_SYS_LAST              REQID_CALCPOSITION
 
 /*
  * XXX: To fellows who need to add a new REQID,
- * please make sure your new ID _less_ than MAX_SYS_REQID
+ * please make sure the your new ID is _LESS_ than MAX_SYS_REQID
  * (defined in /include/minigui.h).
  */
+
+/* Make sure the MAX_SYS_REQID is large enough for system requests */
+#define MGUI_COMPILE_TIME_ASSERT(name, x)               \
+       typedef int MGUI_dummy_ ## name[((x)?1:0) * 2 - 1]
+
+MGUI_COMPILE_TIME_ASSERT(sys_request_id, MAX_SYS_REQID >= REQID_SYS_LAST);
+
+#undef MGUI_COMPILE_TIME_ASSERT
 
 /* Since 5.0.0 */
 typedef struct _SharedSurfInfo {
@@ -174,6 +186,12 @@ typedef struct _MovedClientInfo {
     GHANDLE layer;
     int zo_shmid;
 } MOVEDCLIENTINFO;
+
+typedef struct _CalcPosInfo {
+    DWORD style;
+    DWORD ex_style;
+    RECT  rc;
+} CALCPOSINFO;
 
 #define ID_ZOOP_ALLOC               1
 #define ID_ZOOP_FREE                2
