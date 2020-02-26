@@ -213,7 +213,7 @@ typedef COOLBARITEMINFO *PCOOLBARITEMINFO;
 
 /**
  * \def CBM_ENABLE
- * \brief Sets an item to be enabled or disabled.
+ * \brief Set an item to be enabled or disabled.
  *
  * \code
  * CBM_ENABLE

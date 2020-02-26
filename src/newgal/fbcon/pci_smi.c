@@ -825,7 +825,7 @@ static void SMI_WaitIdle (_THIS)
 #endif
 }
 
-/* Sets video mem colorkey and accelerated blit function */
+/* Set video mem colorkey and accelerated blit function */
 static int SMI_SetHWColorKey (_THIS, GAL_Surface *surface, Uint32 key)
 {
     return 0;

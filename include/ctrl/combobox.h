@@ -238,7 +238,7 @@ extern "C" {
 
 /**
  * \def CB_GETEDITSEL
- * \brief Gets the starting and ending character positions of the current
+ * \brief Get the starting and ending character positions of the current
  *        selection.
  *
  * An application sends a CB_GETEDITSEL message to get the starting and ending
@@ -285,7 +285,7 @@ extern "C" {
 
 /**
  * \def CB_SETEDITSEL
- * \brief Sets the starting and ending character positions of the current
+ * \brief Set the starting and ending character positions of the current
  *        selection.
  *
  * An application sends a CB_SETEDITSEL message to set the starting and ending
@@ -419,7 +419,7 @@ extern "C" {
 
 /**
  * \def CB_GETLBTEXTLEN
- * \brief Gets the string length of an item in the list box.
+ * \brief Get the string length of an item in the list box.
  *
  * An application sends a CB_GETLBTEXTLEN message to get the string length
  * of a specified item in the list box of a combo box.
@@ -556,7 +556,7 @@ extern "C" {
 
 /**
  * \def CB_SETITEMADDDATA
- * \brief Sets a 32-bit data value with the specified item.
+ * \brief Set a 32-bit data value with the specified item.
  *
  * An application sends an CB_SETITEMADDDATA message to associate a 32-bit data
  * value specified in the lParam parameter with an item in the list box that
@@ -598,7 +598,7 @@ extern "C" {
 
 /**
  * \def CB_SETITEMHEIGHT
- * \brief Sets the height of all items of the list box in a combo box.
+ * \brief Set the height of all items of the list box in a combo box.
  *
  * An application sends an CB_SETITEMHEIGHT message to set the height of
  * all items of the list box in a combo box.
@@ -619,7 +619,7 @@ extern "C" {
 
 /**
  * \def CB_GETITEMHEIGHT
- * \brief Gets the height of items of the list box in a combo box.
+ * \brief Get the height of items of the list box in a combo box.
  *
  * \code
  * CB_GETITEMHEIGHT
@@ -686,7 +686,7 @@ extern "C" {
 
 /**
  * \def CB_SETSPINFORMAT
- * \brief Sets the format string of value for CBS_AUTOSPIN type.
+ * \brief Set the format string of value for CBS_AUTOSPIN type.
  *
  * \code
  * CB_SETSPINFORMAT
@@ -725,7 +725,7 @@ extern "C" {
 
 /**
  * \def CB_GETSPINRANGE
- * \brief Gets the range of the spin box in a combo box.
+ * \brief Get the range of the spin box in a combo box.
  *
  * \code
  * CB_GETSPINRANGE
@@ -763,7 +763,7 @@ extern "C" {
 
 /**
  * \def CB_GETSPINVALUE
- * \brief Gets the current value of the spin box in a combo box.
+ * \brief Get the current value of the spin box in a combo box.
  *
  * \code
  * CB_GETSPINVALUE
@@ -798,7 +798,7 @@ extern "C" {
 
 /**
  * \def CB_GETSPINPACE
- * \brief Gets the pace and the fast pace of the spin box in a combo box.
+ * \brief Get the pace and the fast pace of the spin box in a combo box.
  *
  * \code
  * CB_GETSPINPACE
@@ -856,7 +856,7 @@ extern "C" {
 
 /**
  * \def CB_SETSTRCMPFUNC
- * \brief Sets the STRCMP function used to sort items.
+ * \brief Set the STRCMP function used to sort items.
  *
  * An application sends a CB_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items in the combo-box.
@@ -889,7 +889,7 @@ extern "C" {
 
 /**
  * \def CB_GETCHILDREN
- * \brief Gets the handles to the children of a ComboBox control.
+ * \brief Get the handles to the children of a ComboBox control.
  *
  * An application sends a CB_GETCHILDREN message to get the handles
  * to the children of a ComboBox control.

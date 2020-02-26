@@ -147,6 +147,10 @@ tab2space() {
 
 # sed -i 's/\<GetMainVirtWindowById\>/GetHostedById/g' `grep '\<GetMainVirtWindowById\>' -rl include/ src/`
 
-sed -i 's/\<__mg_os_start_time_ms\>/__mg_os_start_time/g' `grep '\<__mg_os_start_time_ms\>' -rl include/ src/`
+# sed -i 's/\<__mg_os_start_time_ms\>/__mg_os_start_time/g' `grep '\<__mg_os_start_time_ms\>' -rl include/ src/`
+
+sed -i 's/\<Gets\>/Get/g' `grep '\<Gets\>' -rl include/ src/`
+sed -i 's/\<Sets\>/Set/g' `grep '\<Sets\>' -rl include/ src/`
+sed -i 's/\<Retrieves\>/Retrieve/g' `grep '\<Retrieves\>' -rl include/ src/`
 
 exit 0

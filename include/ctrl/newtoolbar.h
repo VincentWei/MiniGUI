@@ -346,7 +346,7 @@ typedef NTBITEMINFO* PNTBITEMINFO;
 
 /**
  * \def NTBM_SETITEM
- * \brief Sets the information of an item in a newtoolbar control.
+ * \brief Set the information of an item in a newtoolbar control.
  *
  * \code
  * NTBM_SETITEM
@@ -386,7 +386,7 @@ typedef NTBITEMINFO* PNTBITEMINFO;
 
 /**
  * \def NTBM_SETBITMAP
- * \brief Sets the bitmap of  a newtoolbar control.
+ * \brief Set the bitmap of  a newtoolbar control.
  *
  * \code
  * NTBM_SETBITMAP

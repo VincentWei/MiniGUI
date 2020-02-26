@@ -137,7 +137,7 @@ extern "C" {
 
 /**
  * \def TBM_SETRANGE
- * \brief Sets the range of minimum and maximum logical positions for the
+ * \brief Set the range of minimum and maximum logical positions for the
  *         slider in a trackbar.
  *
  * \code
@@ -158,7 +158,7 @@ extern "C" {
 
 /**
  * \def TBM_GETMIN
- * \brief Gets the minimum logical position for the slider.
+ * \brief Get the minimum logical position for the slider.
  *
  * \code
  * TBM_GETMIN
@@ -173,7 +173,7 @@ extern "C" {
 
 /**
  * \def TBM_SETPOS
- * \brief Sets the current logical position of the slider.
+ * \brief Set the current logical position of the slider.
  *
  * \code
  * TBM_SETPOS
@@ -191,7 +191,7 @@ extern "C" {
 
 /**
  * \def TBM_GETPOS
- * \brief Gets the current logical position of the slider.
+ * \brief Get the current logical position of the slider.
  *
  * \code
  * TBM_GETPOS
@@ -206,10 +206,10 @@ extern "C" {
 
 /**
  * \def TBM_SETLINESIZE
- * \brief Sets the number of logical positions moved in response to keyboard
+ * \brief Set the number of logical positions moved in response to keyboard
  *     input from the arrow keys.
  *
- * Sets the number of logical positions the trackbar's slider moves in response
+ * Set the number of logical positions the trackbar's slider moves in response
  * to keyboard input from the arrow keys. The logical positions are the integer
  * increments in the trackbar's range of minimum to maximum slider positions.
  *
@@ -229,10 +229,10 @@ extern "C" {
 
 /**
  * \def TBM_GETLINESIZE
- * \brief Gets the number of logical positions moved in response to keyboard
+ * \brief Get the number of logical positions moved in response to keyboard
  *     input from the arrow keys.
  *
- * Gets the number of logical positions the trackbar's slider moves in response
+ * Get the number of logical positions the trackbar's slider moves in response
  * to keyboard input from the arrow keys. The logical positions are the integer
  * increments in the trackbar's range of minimum to maximum slider positions.
  *
@@ -249,10 +249,10 @@ extern "C" {
 
 /**
  * \def TBM_SETPAGESIZE
- * \brief Sets the number of logical positions moved in response to keyboard
+ * \brief Set the number of logical positions moved in response to keyboard
  *         input from page keys..
  *
- * Sets the number of logical positions the trackbar's slider moves in response
+ * Set the number of logical positions the trackbar's slider moves in response
  * to keyboard input form page keys, such as PAGE DOWN or PAGE UP keys. The
  * logical positions are the integer increments in the trackbar's range of
  * minimum to maximum slider positions.
@@ -273,10 +273,10 @@ extern "C" {
 
 /**
  * \def TBM_GETPAGESIZE
- * \brief Gets the number of logical positions moved in response to keyboard
+ * \brief Get the number of logical positions moved in response to keyboard
  *        input from page keys..
  *
- * Gets the number of logical positions the trackbar's slider moves in response
+ * Get the number of logical positions the trackbar's slider moves in response
  * to keyboard input form page keys, such as PAGE DOWN or PAGE UP keys. The
  * logical positions are the integer increments in the trackbar's range of
  * minimum to maximum slider positions.
@@ -294,7 +294,7 @@ extern "C" {
 
 /**
  * \def TBM_SETTIP
- * \brief Sets the start and end tip strings.
+ * \brief Set the start and end tip strings.
  *
  * \code
  * TBM_SETTIP
@@ -314,7 +314,7 @@ extern "C" {
 
 /**
  * \def TBM_GETTIP
- * \brief Gets the start and end tip strings.
+ * \brief Get the start and end tip strings.
  *
  * \code
  * TBM_GETTIP
@@ -336,7 +336,7 @@ extern "C" {
 
 /**
  * \def TBM_SETTICKFREQ
- * \brief Sets the interval frequency for tick marks in a trackbar.
+ * \brief Set the interval frequency for tick marks in a trackbar.
  *
  * \code
  * TBM_SETTICKFREQ
@@ -354,7 +354,7 @@ extern "C" {
 
 /**
  * \def TBM_GETTICKFREQ
- * \brief Gets the interval frequency for tick marks in a trackbar.
+ * \brief Get the interval frequency for tick marks in a trackbar.
  *
  * \code
  * TBM_GETTICKFREQ
@@ -369,7 +369,7 @@ extern "C" {
 
 /**
  * \def TBM_SETMIN
- * \brief Sets the minimum logical position for the slider in a trackbar.
+ * \brief Set the minimum logical position for the slider in a trackbar.
  *
  * \code
  * TBM_SETMIN
@@ -387,7 +387,7 @@ extern "C" {
 
 /**
  * \def TBM_SETMAX
- * \brief Sets the maximum logical position for the slider in a trackbar.
+ * \brief Set the maximum logical position for the slider in a trackbar.
  *
  * \code
  * TBM_SETMAX
@@ -405,7 +405,7 @@ extern "C" {
 
 /**
  * \def TBM_GETMAX
- * \brief Gets the maximum logical position for the slider in a trackbar.
+ * \brief Get the maximum logical position for the slider in a trackbar.
  *
  * \code
  * TBM_GETMAX

@@ -550,7 +550,7 @@ rgb2hsva (float r, float g, float b,
 
 /*
    Assumes (r,g,b) range from 0 to 255
-   Sets h in degrees: 0 to 360. s,v in [0,255]
+   Set h in degrees: 0 to 360. s,v in [0,255]
    */
     static void
 RGB2HSV (Uint8 r, Uint8 g, Uint8 b,

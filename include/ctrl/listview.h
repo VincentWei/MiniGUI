@@ -407,7 +407,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_FILLSUBITEM
- * \brief Sets the content of a subitem, indentified by rows and columns.
+ * \brief Set the content of a subitem, indentified by rows and columns.
  *
  * \code
  * LVM_FILLSUBITEM
@@ -526,7 +526,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_SETSUBITEMCOLOR
- * \brief Sets the text color of a subitem.
+ * \brief Set the text color of a subitem.
  *
  * \code
  * LVM_SETSUBITEMCOLOR
@@ -570,7 +570,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 /**
  *
  * \def LVM_GETSUBITEMTEXT
- * \brief Retrieves the text of a listview subitem.
+ * \brief Retrieve the text of a listview subitem.
  *
  * \code
  * LVM_GETSUBITEMTEXT
@@ -595,7 +595,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETITEMCOUNT
- * \brief Gets the number of all the items(rows) in a listview.
+ * \brief Get the number of all the items(rows) in a listview.
  *
  * \code
  * LVM_GETITEMCOUNT
@@ -610,7 +610,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETCOLUMNCOUNT
- * \brief Gets the number of all the columns in listview.
+ * \brief Get the number of all the columns in listview.
  *
  * \code
  * LVM_GETCOLUMNCOUNT
@@ -625,7 +625,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETSELECTEDITEM
- * \brief Gets the current selected item.
+ * \brief Get the current selected item.
  *
  * \code
  * LVM_GETSELECTEDITEM
@@ -713,7 +713,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETSUBITEMLEN
- * \brief Gets the text length of the subitem.
+ * \brief Get the text length of the subitem.
  *
  * \code
  * LVM_GETSUBITEMLEN
@@ -737,7 +737,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_SETCOLUMN
- * \brief Sets the attributes of a list view column.
+ * \brief Set the attributes of a list view column.
  *
  * \code
  * LVM_SETCOLUMN
@@ -755,7 +755,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_SETSUBITEMTEXT
- * \brief Sets the text of a subitem.
+ * \brief Set the text of a subitem.
  *
  * \code
  * LVM_SETSUBITEMTEXT
@@ -779,7 +779,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_SETSUBITEM
- * \brief Sets the attributes of a subitem.
+ * \brief Set the attributes of a subitem.
  *
  * \code
  * LVM_SETSUBITEM
@@ -803,7 +803,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETCOLUMN
- * \brief Retrieves the information about a listview column.
+ * \brief Retrieve the information about a listview column.
  *
  * \code
  * LVM_GETCOLUMN
@@ -824,7 +824,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETCOLUMNWIDTH
- * \brief Retrieves the width of a listview column.
+ * \brief Retrieve the width of a listview column.
  *
  * \code
  * LVM_GETCOLUMNWIDTH
@@ -842,7 +842,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETITEM
- * \brief Retrieves the item's attributes.
+ * \brief Retrieve the item's attributes.
  *
  * \code
  * LVM_GETITEM
@@ -864,7 +864,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETITEMSTATE
- * \brief Retrieves the state of a listview item.
+ * \brief Retrieve the state of a listview item.
  *
  * \code
  * LVM_GETITEMSTATE
@@ -885,7 +885,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETSELECTEDCOLUMN
- * \brief Retrieves the index of the currently selected column of a listview.
+ * \brief Retrieve the index of the currently selected column of a listview.
  *
  * \code
  * LVM_GETSELECTEDCOLUMN
@@ -900,7 +900,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETSELECTEDCOUNT
- * \brief Retrieves the number of the selected items in a listview.
+ * \brief Retrieve the number of the selected items in a listview.
  *
  * \code
  * LVM_GETSELECTEDCOUNT
@@ -915,7 +915,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETTOPVISIBLE
- * \brief Retrieves the index of the topmost visible item in a listview.
+ * \brief Retrieve the index of the topmost visible item in a listview.
  *
  * \code
  * LVM_GETTOPVISIBLE
@@ -1015,7 +1015,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETITEMADDDATA
- * \brief Gets the 32-bit data value associated with an item.
+ * \brief Get the 32-bit data value associated with an item.
  *
  * An application sends an LVM_GETITEMADDDATA message to a listview to get the
  * 32-bit data value stored for the item with index of \a wParam;
@@ -1088,7 +1088,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_SETSTRCMPFUNC
- * \brief Sets the STRCMP function used to sort items.
+ * \brief Set the STRCMP function used to sort items.
  *
  * An application sends a LVM_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items in the Listview control.
@@ -1174,7 +1174,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_SETCUSTOMDRAW
- * \brief Sets the customized drawing functions of listview.
+ * \brief Set the customized drawing functions of listview.
  *
  * \code
  * LVM_SETCUSTOMDRAW

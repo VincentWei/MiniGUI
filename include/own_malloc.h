@@ -461,7 +461,7 @@ struct mallinfo mallinfo(void);
 
 /*
   mallopt(int parameter_number, int parameter_value)
-  Sets tunable parameters The format is to provide a
+  Set tunable parameters The format is to provide a
   (parameter-number, parameter-value) pair.  mallopt then sets the
   corresponding parameter to the argument value if it can (i.e., so
   long as the value is meaningful), and returns 1 if successful else

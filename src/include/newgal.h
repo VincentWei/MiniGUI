@@ -421,7 +421,7 @@ int GAL_Flip (GAL_Surface *screen);
 #endif
 
 /*
- * Sets a portion of the colormap for the given 8-bit surface.  If 'surface'
+ * Set a portion of the colormap for the given 8-bit surface.  If 'surface'
  * is not a palettized surface, this function does nothing, returning 0.
  * If all of the colors were set as passed to GAL_SetColors(), it will
  * return 1.  If not all the color entries were set exactly as given,
@@ -439,7 +439,7 @@ int GAL_SetColors (GAL_Surface *surface,
                         GAL_Color *colors, int firstcolor, int ncolors);
 
 /*
- * Sets a portion of the colormap for a given 8-bit surface.
+ * Set a portion of the colormap for a given 8-bit surface.
  * 'flags' is one or both of:
  * GAL_LOGPAL  -- set logical palette, which controls how blits are mapped
  *                to/from the surface,
@@ -658,7 +658,7 @@ void GAL_UnlockSurface (GAL_Surface *surface);
 #endif
 
 /*
- * Sets the color key (transparent pixel) in a blittable surface.
+ * Set the color key (transparent pixel) in a blittable surface.
  * If 'flag' is GAL_SRCCOLORKEY (optionally OR'd with GAL_RLEACCEL),
  * 'key' will be the transparent pixel in the source image of a blit.
  * GAL_RLEACCEL requests RLE acceleration for the surface if present,
@@ -737,7 +737,7 @@ static inline void RECT2GAL_Rect (const RECT *rc, GAL_Rect *gal_rect)
 }
 
 /*
- * Sets the clipping rectangle for the destination surface in a blit.
+ * Set the clipping rectangle for the destination surface in a blit.
  *
  * If the clip rectangle is NULL, clipping will be disabled.
  * If the clip rectangle doesn't intersect the surface, the function will
@@ -751,7 +751,7 @@ static inline void RECT2GAL_Rect (const RECT *rc, GAL_Rect *gal_rect)
 GAL_bool GAL_SetClipRect (GAL_Surface *surface, GAL_Rect *rect);
 
 /*
- * Gets the clipping rectangle for the destination surface in a blit.
+ * Get the clipping rectangle for the destination surface in a blit.
  * 'rect' must be a pointer to a valid rectangle which will be filled
  * with the correct values.
  */

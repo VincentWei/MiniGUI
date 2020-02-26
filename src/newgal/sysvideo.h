@@ -112,7 +112,7 @@ struct GAL_VideoDevice {
     void (*UpdateMouse)(_THIS);
 #endif
 
-    /* Sets the color entries { firstcolor .. (firstcolor+ncolors-1) }
+    /* Set the color entries { firstcolor .. (firstcolor+ncolors-1) }
        of the physical palette to those in 'colors'. If the device is
        using a software palette (GAL_HWPALETTE not set), then the
        changes are reflected in the logical palette of the screen
@@ -193,7 +193,7 @@ struct GAL_VideoDevice {
     int (*MoveCursor)(_THIS, int x, int y);
 #endif
 
-    /* Sets the hardware accelerated blit function, if any, based
+    /* Set the hardware accelerated blit function, if any, based
        on the current flags of the surface (colorkey, alpha, etc.)
      */
     int (*CheckHWBlit)(_THIS, GAL_Surface *src, GAL_Surface *dst);
@@ -201,10 +201,10 @@ struct GAL_VideoDevice {
     /* Fills a surface rectangle with the given color */
     int (*FillHWRect)(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);
 
-    /* Sets video mem colorkey and accelerated blit function */
+    /* Set video mem colorkey and accelerated blit function */
     int (*SetHWColorKey)(_THIS, GAL_Surface *surface, Uint32 key);
 
-    /* Sets per surface hardware alpha value */
+    /* Set per surface hardware alpha value */
     int (*SetHWAlpha)(_THIS, GAL_Surface *surface, Uint8 value);
 
 #if 0

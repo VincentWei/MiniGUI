@@ -209,7 +209,7 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVM_GETROOT
- * \brief Gets the root item of a treeview control.
+ * \brief Get the root item of a treeview control.
  *
  * \code
  * TVM_GETROOT
@@ -285,7 +285,7 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVM_GETSELITEM
- * \brief Gets the selected item.
+ * \brief Get the selected item.
  *
  * \code
  * TVM_GETSELITEM
@@ -300,7 +300,7 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVM_SETSELITEM
- * \brief Sets the selected item.
+ * \brief Set the selected item.
  *
  * \code
  * TVM_SETSELITEM
@@ -439,7 +439,7 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVM_SETSTRCMPFUNC
- * \brief Sets the STRCMP function used to sort items.
+ * \brief Set the STRCMP function used to sort items.
  *
  * An application sends a TVM_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items in the TreeView control.

@@ -264,7 +264,7 @@ MG_EXPORT void DestroyAnimation (ANIMATION* anim, BOOL free_it);
 
 /**
  * \def ANM_SETANIMATION
- * \brief Sets the animation object for the control.
+ * \brief Set the animation object for the control.
  *
  * An application can send ANM_SETANIMATION to set the animation object of a control.
  *
@@ -282,7 +282,7 @@ MG_EXPORT void DestroyAnimation (ANIMATION* anim, BOOL free_it);
 
 /**
  * \def ANM_GETANIMATION
- * \brief Gets the animation object of the control.
+ * \brief Get the animation object of the control.
  *
  * An application can send ANM_GETANIMATION to retrive the animation object of a control.
  *

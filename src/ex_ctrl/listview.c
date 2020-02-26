@@ -91,7 +91,7 @@ rect.right = p1->x + p1->width - 1;  \
 rect.top = LV_HDR_TOP;     \
 rect.bottom = plvdata->nHeadHeight;
 
-/* Gets the text rect of a subitem */
+/* Get the text rect of a subitem */
 #define LV_GET_SUBITEM_TEXTRECT(rect, textrect)  \
     textrect.left = rect.left + 2;     \
 textrect.top = rect.top + 2;       \
@@ -822,7 +822,7 @@ lvFillSubItem (PITEMDATA pi, int subItem, const char *pszText, PLVDATA plvdata)
     return 0;
 }
 
-/* Sets the text color of the subitem */
+/* Set the text color of the subitem */
     static int
 lvSetSubItemTextColor (PITEMDATA pitem, int subItem, int color, PLVDATA plvdata)
 {

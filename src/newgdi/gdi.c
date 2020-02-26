@@ -2805,7 +2805,7 @@ BOOL dc_GenerateMemDCECRgn(PDC pdc, BOOL fForce)
     return TRUE;
 }
 /**
-* Function: Gets a secondary sub DC for a child window.
+* Function: Get a secondary sub DC for a child window.
 *
 * secondary_dc: The secondary DC.
 * hwnd_child: The handle to the child of the main window.

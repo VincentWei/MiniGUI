@@ -95,7 +95,7 @@ static void WaitIdle(_THIS)
         ;
 }
 
-/* Sets video mem colorkey and accelerated blit function */
+/* Set video mem colorkey and accelerated blit function */
 static int SetHWColorKey(_THIS, GAL_Surface *surface, Uint32 key)
 {
     return 0;

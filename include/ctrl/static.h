@@ -270,7 +270,7 @@ extern "C" {
 
 /**
  * \def STM_GETIMAGE
- * \brief Retrieves a handle to the image.
+ * \brief Retrieve a handle to the image.
  *
  * An application sends an STM_GETIMAGE message to retrieve a handle
  * to the image associated with a static control.

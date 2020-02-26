@@ -477,7 +477,7 @@ MG_EXPORT GHANDLE GUIAPI JoinLayer (const char* layer_name,
 /**
  * \fn GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
                 int* nr_clients, BOOL* is_topmost, int* cli_active)
- * \brief Gets information of a layer by a client.
+ * \brief Get information of a layer by a client.
  *
  * You can get the information of a layer through this function.
  * The information will be returned through the pointer arguments
@@ -608,7 +608,7 @@ typedef void (* ON_UNLOCK_CLIENT_REQ) (void);
 
 /**
  * \var ON_LOCK_CLIENT_REQ OnLockClientReq
- * \brief Sets to a function to lock a client request.
+ * \brief Set to a function to lock a client request.
  *
  * \note Only available for the client of MiniGUI-Processes.
  *
@@ -618,7 +618,7 @@ extern MG_EXPORT ON_LOCK_CLIENT_REQ  OnLockClientReq;
 
 /**
  * \var ON_TRYLOCK_CLIENT_REQ OnTrylockClientReq
- * \brief Sets to a function to lock a client request.
+ * \brief Set to a function to lock a client request.
  *
  * \note Only available for the client of MiniGUI-Processes.
  *
@@ -627,7 +627,7 @@ extern MG_EXPORT ON_LOCK_CLIENT_REQ  OnLockClientReq;
 extern MG_EXPORT ON_TRYLOCK_CLIENT_REQ  OnTrylockClientReq;
 /**
  * \var ON_UNLOCK_CLIENT_REQ OnUnlockClientReq
- * \brief Sets to a function to unlock a client request.
+ * \brief Set to a function to unlock a client request.
  *
  * \note Only available for the client of MiniGUI-Processes.
  *
@@ -689,7 +689,7 @@ typedef void (* ON_ZNODE_OPERATION) (int op, int cli, int idx_znode);
 
 /**
  * \var ON_NEW_DEL_CLIENT OnNewDelClient
- * \brief Sets to a function to handle a comming in (going away)
+ * \brief Set to a function to handle a comming in (going away)
  *        connection of client.
  *
  * When a client is connecting to or disconnecting from the server, MiniGUI
@@ -714,7 +714,7 @@ extern MG_EXPORT ON_NEW_DEL_CLIENT OnNewDelClient;
 
 /**
  * \var ON_CHANGE_LAYER OnChangeLayer
- * \brief Sets to a function to handle events of layers.
+ * \brief Set to a function to handle events of layers.
  *
  * When a layer is changing, MiniGUI will call this function to tell
  * you the event and the layer or the client which leads to the event.
@@ -745,7 +745,7 @@ extern MG_EXPORT ON_CHANGE_LAYER OnChangeLayer;
 
 /**
  * \var ON_ZNODE_OPERATION OnZNodeOperation
- * \brief Sets to a function to handle events of z-node.
+ * \brief Set to a function to handle events of z-node.
  *
  * After the server does an operation on a z-node, MiniGUI will call
  * this function to tell you the event and the layer, the client, and
@@ -853,7 +853,7 @@ MG_EXPORT MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
 
 /**
  * \fn BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
- * \brief Sets topmost layer from the server.
+ * \brief Set topmost layer from the server.
  *
  * This function sets the specified layer \a layer to be the topmost layer.
  *
@@ -1476,7 +1476,7 @@ MG_EXPORT int GUIAPI GetClientByPID (int pid);
 
 /**
  * \fn BOOL GUIAPI SetTopmostClient (int cli)
- * \brief Sets topmost layer by a client identifier.
+ * \brief Set topmost layer by a client identifier.
  *
  * This function sets the topmost layer by the specified client
  * identifier \a cli. It will bring the layer contains the client
@@ -1935,7 +1935,7 @@ static inline int ClientRequest (const REQUEST* request,
 
 /**
  * \fn int GUIAPI GetSockFD2Server (void)
- * \brief Gets the file descriptor of the socket connected to the server.
+ * \brief Get the file descriptor of the socket connected to the server.
  *
  * This function returns the file descriptor of the socket connected
  * to the server, i.e. mginit.
@@ -2066,7 +2066,7 @@ MG_EXPORT BOOL GUIAPI RegisterRequestHandlerV1 (int req_id,
 
 /**
  * \fn REQ_HANDLER GUIAPI GetRequestHandler (int req_id)
- * \brief Gets the request handler by request identifier.
+ * \brief Get the request handler by request identifier.
  *
  * This function returns the request handler of the specified request
  * identifier \a req_id.
@@ -2089,7 +2089,7 @@ MG_EXPORT REQ_HANDLER GUIAPI GetRequestHandler (int req_id);
 
 /**
  * \fn REQ_HANDLER_V1 GUIAPI GetRequestHandlerV1 (int req_id)
- * \brief Gets the extended request handler by a request identifier.
+ * \brief Get the extended request handler by a request identifier.
  *
  * This function returns the request handler of the specified request
  * identifier \a req_id.
@@ -2112,7 +2112,7 @@ MG_EXPORT REQ_HANDLER_V1 GUIAPI GetRequestHandlerV1 (int req_id);
 
 /**
  * \fn void* GUIAPI GetRequestHandlerEx (int req_id, int* handler_ver)
- * \brief Gets the request handler and the version by request identifier.
+ * \brief Get the request handler and the version by request identifier.
  *
  * This function returns the request handler and the version of
  * the specified request identifier \a req_id.
@@ -2558,7 +2558,7 @@ static inline GHANDLE GUIAPI JoinLayer (const char* layer_name,
 /**
  * \fn BOOL GUIAPI SetMouseCalibrationParameters (const POINT* src_pts,
                 const POINT* dst_pts)
- * \brief Sets the parameters for doing mouse calibration.
+ * \brief Set the parameters for doing mouse calibration.
  *
  * This function set the parameters for doing mouse calibration.
  * You should pass five source points and five destination points.
@@ -2589,7 +2589,7 @@ MG_EXPORT BOOL GUIAPI SetMouseCalibrationParameters (const POINT* src_pts,
 
 /**
  * \fn void GUIAPI GetOriginalMousePosition (int* x, int* y)
- * \brief Gets the original mouse position.
+ * \brief Get the original mouse position.
  *
  * \param x The pointer used to return the x coordinate of original mouse
  *        position.
@@ -2811,7 +2811,7 @@ extern MG_EXPORT char ETCFILEPATH [];
 /**
  * \fn int GUIAPI GetValueFromEtcFile (const char* pEtcFile,
                 const char* pSection, const char* pKey, char* pValue, int iLen)
- * \brief Gets value from a configuration file.
+ * \brief Get value from a configuration file.
  *
  * This function gets the value of the key \a pKey in the section \a pSection
  * of the configuration file \a pEtcFile, and saves the value to the buffer
@@ -2825,7 +2825,7 @@ extern MG_EXPORT char ETCFILEPATH [];
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Gets value successfullly.
+ * \retval ETC_OK               Get value successfullly.
  * \retval ETC_FILENOTFOUND     Can not find the specified configuration file.
  * \retval ETC_SECTIONNOTFOUND  Can not find the specified section in the
  *                              configuration file.
@@ -2844,7 +2844,7 @@ MG_EXPORT int GUIAPI GetValueFromEtcFile (const char* pEtcFile,
 /**
  * \fn int GUIAPI GetIntValueFromEtcFile (const char* pEtcFile,
                 const char* pSection, const char* pKey, int* value)
- * \brief Gets integer value from a configuration file.
+ * \brief Get integer value from a configuration file.
  *
  * This function gets the integer value of the key \a pKey in the section
  * \a pSection of the configuration file \a pEtcFile, and returns the
@@ -2857,7 +2857,7 @@ MG_EXPORT int GUIAPI GetValueFromEtcFile (const char* pEtcFile,
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Gets value successfullly.
+ * \retval ETC_OK               Get value successfullly.
  * \retval ETC_FILENOTFOUND     Can not find the specified configuration file.
  * \retval ETC_SECTIONNOTFOUND  Can not find the specified section in the
  *                              configuration file.
@@ -2884,7 +2884,7 @@ MG_EXPORT int GUIAPI GetIntValueFromEtcFile (const char* pEtcFile,
 /**
  * \fn int GUIAPI SetValueToEtcFile (const char* pEtcFile,
                 const char* pSection, const char* pKey, char* pValue)
- * \brief Sets a value in a configuration file.
+ * \brief Set a value in a configuration file.
  *
  * This function sets the value of the key \a pKey in the section \a pSection
  * of the configuration file \a pEtcFile to be the string pointed to by
@@ -2897,7 +2897,7 @@ MG_EXPORT int GUIAPI GetIntValueFromEtcFile (const char* pEtcFile,
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Sets value successfullly.
+ * \retval ETC_OK               Set value successfullly.
  * \retval ETC_FILEIOFAILED     File I/O operation error occurred.
  * \retval ETC_TMPFILEFAILED    Can not create temporary file.
  *
@@ -2922,7 +2922,7 @@ MG_EXPORT int GUIAPI SetValueToEtcFile (const char* pEtcFile,
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Gets value successfullly.
+ * \retval ETC_OK               Get value successfullly.
  * \retval ETC_FILEIOFAILED     File I/O operation error occurred.
  * \retval ETC_SECTIONNOTFOUND  Can not find the specified section in the
  *                              etc object.
@@ -2945,7 +2945,7 @@ MG_EXPORT int GUIAPI RemoveSectionInEtcFile (const char* pEtcFile,
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Gets value successfullly.
+ * \retval ETC_OK               Get value successfullly.
  * \retval ETC_FILEIOFAILED     File I/O operation error occurred.
  * \retval ETC_SECTIONNOTFOUND  Can not find the specified section in the
  *                              etc object.
@@ -2979,7 +2979,7 @@ MG_EXPORT GHANDLE GUIAPI LoadEtcFile (const char * pEtcFile);
  *
  * \return ETC_OK on success, 0 < on error.
  *
- * \retval ETC_OK               Sets the etc object successfullly.
+ * \retval ETC_OK               Set the etc object successfullly.
  * \retval ETC_INVALIDOBJ       Invalid etc object.
  * \retval ETC_FILEIOFAILED     File I/O operation error occurred.
  *
@@ -3005,7 +3005,7 @@ MG_EXPORT int GUIAPI UnloadEtcFile (GHANDLE hEtc);
 /**
  * \fn int GUIAPI GetValueFromEtc (GHANDLE hEtc, const char* pSection,
                 const char* pKey, char* pValue, int iLen)
- * \brief Gets value from a configuration etc object.
+ * \brief Get value from a configuration etc object.
  *
  * This function gets value from an etc object, similar to GetValueFromEtcFile.
  * This function gets the value of the key \a pKey in the section \a pSection
@@ -3021,7 +3021,7 @@ MG_EXPORT int GUIAPI UnloadEtcFile (GHANDLE hEtc);
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Gets value successfullly.
+ * \retval ETC_OK               Get value successfullly.
  * \retval ETC_INVALIDOBJ       Invalid etc object.
  * \retval ETC_SECTIONNOTFOUND  Can not find the specified section in the
  *                              configuration file.
@@ -3036,7 +3036,7 @@ MG_EXPORT int GUIAPI GetValueFromEtc (GHANDLE hEtc, const char* pSection,
 /**
  * \fn int GUIAPI GetIntValueFromEtc (GHANDLE hEtc, const char* pSection,
                 const char* pKey, int* pValue)
- * \brief Gets the integer value from a configuration etc object.
+ * \brief Get the integer value from a configuration etc object.
  *
  * \sa GetValueFromEtc, GetIntValueFromEtcFile
  */
@@ -3046,7 +3046,7 @@ MG_EXPORT int GUIAPI GetIntValueFromEtc (GHANDLE hEtc, const char* pSection,
 /**
  * \def SetValueToEtc(GHANDLE hEtc, const char* pSection,
                 const char* pKey, char* pValue)
- * \brief Sets the value in the etc object.
+ * \brief Set the value in the etc object.
  *
  * This fuctions sets the value in the etc object, somewhat similiar
  * to \sa SetValueToEtcFile.
@@ -3079,7 +3079,7 @@ MG_EXPORT GHANDLE GUIAPI FindSectionInEtc (GHANDLE hEtc,
 /**
  * \fn int GUIAPI GetValueFromEtcSec (GHANDLE hSect,
                 const char* pKey, char* pValue, int iLen)
- * \brief Gets value from an etc section object.
+ * \brief Get value from an etc section object.
  *
  * This function gets value from an etc section object, similar
  * to GetValueFromEtc. It gets the value of the key \a pKey in the
@@ -3094,7 +3094,7 @@ MG_EXPORT GHANDLE GUIAPI FindSectionInEtc (GHANDLE hEtc,
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Gets value successfullly.
+ * \retval ETC_OK               Get value successfullly.
  * \retval ETC_INVALIDOBJ       Invalid etc object.
  * \retval ETC_KEYNOTFOUND      Can not find the specified key in the section.
  * \retval ETC_READONLYOBJ      The section object is read-only.
@@ -3107,7 +3107,7 @@ MG_EXPORT int GUIAPI GetValueFromEtcSec (GHANDLE hSect,
 /**
  * \fn int GUIAPI GetIntValueFromEtcSec (GHANDLE hSect,
                 const char* pKey, int* pValue)
- * \brief Gets an integer value from an etc section object.
+ * \brief Get an integer value from an etc section object.
  *
  * This function gets an integer value from an etc section object,
  * similar to GetIntValueFromEtc. It gets the value of the key \a pKey
@@ -3120,7 +3120,7 @@ MG_EXPORT int GUIAPI GetValueFromEtcSec (GHANDLE hSect,
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Gets value successfullly.
+ * \retval ETC_OK               Get value successfullly.
  * \retval ETC_INVALIDOBJ       Invalid etc object.
  * \retval ETC_KEYNOTFOUND      Can not find the specified key in the section.
  * \retval ETC_INTCONV          Can not convert the value string to an integer.
@@ -3133,7 +3133,7 @@ MG_EXPORT int GUIAPI GetIntValueFromEtcSec (GHANDLE hSect,
 /**
  * \fn int GUIAPI SetValueToEtcSec (GHANDLE hSect,
                 const char* pKey, char* pValue)
- * \brief Sets the value in the etc section object.
+ * \brief Set the value in the etc section object.
  *
  * This fuctions sets the value in the etc section object \a hSect,
  * somewhat similiar to SetValueToEtc \sa SetValueToEtc.
@@ -3155,7 +3155,7 @@ MG_EXPORT int GUIAPI SetValueToEtcSec (GHANDLE hSect,
  *
  * \return ETC_OK on success, < 0 on error.
  *
- * \retval ETC_OK               Gets value successfullly.
+ * \retval ETC_OK               Get value successfullly.
  * \retval ETC_INVALIDOBJ       Invalid etc object.
  * \retval ETC_READONLYOBJ      The etc object is read-only.
  * \retval ETC_SECTIONNOTFOUND  Can not find the specified section in the
@@ -3171,7 +3171,7 @@ extern MG_EXPORT GHANDLE hMgEtc;
 /**
  *  \fn static inline int GetMgEtcValue(const char* pSection,
                         const char *pKey, char *pValue, int iLen)
- * \brief Gets value from MiniGUI configuration etc object
+ * \brief Get value from MiniGUI configuration etc object
  *
  * This fuctions gets the value from MiniGUi configuration etc object,
  * somewhat similiar to GetValueFromEtcFile and GetValueFromEtc
@@ -3191,7 +3191,7 @@ static inline int GetMgEtcValue(const char* pSection,
 /**
  * \fn static inline int GetMgEtcIntValue (const char *pSection,
                        const char* pKey, int *value)
- * \brief Gets integer value from MiniGUI configuration etc object
+ * \brief Get integer value from MiniGUI configuration etc object
  *
  * This fuctions get integer value from MiniGUI configuration etc object
  * some what similiar to GetIntValueFromEtcFile and GetIntValueFromEtc
@@ -3301,7 +3301,7 @@ MG_EXPORT int GUIAPI DestroyClipBoard (const char* cb_name);
 /**
  * \fn int GUIAPI SetClipBoardData (const char* cb_name,
                 void* data, size_t n, int cbop)
- * \brief Sets the data of a clipboard.
+ * \brief Set the data of a clipboard.
  *
  * This function sets the data into the clipboard named \a cb_name.
  *
@@ -3326,7 +3326,7 @@ MG_EXPORT int GUIAPI SetClipBoardData (const char* cb_name,
 
 /**
  * \fn size_t GUIAPI GetClipBoardDataLen (const char* cb_name)
- * \brief Gets the length of the data of a clipboard.
+ * \brief Get the length of the data of a clipboard.
  *
  * This function gets the data length of the clipboard named \a cb_name.
  *
@@ -3341,7 +3341,7 @@ MG_EXPORT size_t GUIAPI GetClipBoardDataLen (const char* cb_name);
 /**
  * \fn size_t GUIAPI GetClipBoardData (const char* cb_name,
                 void* data, size_t n)
- * \brief Gets the data of a clipboard.
+ * \brief Get the data of a clipboard.
  *
  * This function gets the all data from the clipboard named \a cb_name.
  *
@@ -3359,7 +3359,7 @@ MG_EXPORT size_t GUIAPI GetClipBoardData (const char* cb_name,
 /**
  * \fn int GUIAPI GetClipBoardByte (const char* cb_name,
                 int index, unsigned char* byte);
- * \brief Gets a byte from a clipboard.
+ * \brief Get a byte from a clipboard.
  *
  * This function gets a byte from the clipboard named \a cb_name.
  *
@@ -3387,7 +3387,7 @@ MG_EXPORT int GUIAPI GetClipBoardByte (const char* cb_name,
 
 /**
  * \fn DWORD GUIAPI GetTickCount (void)
- * \brief Retrieves the tick counts that have elapsed since MiniGUI was started.
+ * \brief Retrieve the tick counts that have elapsed since MiniGUI was started.
  *
  * This function retrieves the tick counts that have elapsed since MiniGUI
  * was started. It is limited to the resolution of the system timer, i.e.
@@ -3433,7 +3433,7 @@ MG_EXPORT void GUIAPI Tone (int frequency_hz, int duration_ms);
 
 /**
  * \fn void* GUIAPI GetOriginalTermIO (void)
- * \brief Gets \a termios structure of the original terminal before
+ * \brief Get \a termios structure of the original terminal before
  *        initializing MiniGUI.
  *
  * \return The pointer to the original \a termios structure.
@@ -3662,7 +3662,7 @@ MG_EXPORT BOOL GUIAPI DestroyCursor (HCURSOR hcsr);
 
 /**
  * \fn HCURSOR GUIAPI GetSystemCursor (int csrid)
- * \brief Gets the handle to a system cursor by its identifier.
+ * \brief Get the handle to a system cursor by its identifier.
  *
  * MiniGUI creates (MAX_SYSCURSORINDEX + 1) system cursors for application.
  * You can use \a GetSystemCursor to get the handle to these system cursors.
@@ -3722,7 +3722,7 @@ MG_EXPORT HCURSOR GUIAPI GetSystemCursor (int csrid);
 
 /**
  * \fn HCURSOR GUIAPI GetCurrentCursor (void)
- * \brief Gets the handle to the current cursor.
+ * \brief Get the handle to the current cursor.
  *
  * This function retrives the current cursor and returns its handle.
  *
@@ -3844,7 +3844,7 @@ MG_EXPORT void GUIAPI ClipCursor (const RECT* prc);
 
 /**
  * \fn void GUIAPI GetClipCursor (RECT* prc)
- * \brief Gets the current cursor clipping rectangle.
+ * \brief Get the current cursor clipping rectangle.
  *
  * This function copies the current clipping rectangle to
  * a RECT pointed to by \a prc.
@@ -3856,7 +3856,7 @@ MG_EXPORT void GUIAPI GetClipCursor (RECT* prc);
 
 /**
  * \fn void GUIAPI GetCursorPos (POINT* ppt)
- * \brief Gets position of the current cursor.
+ * \brief Get position of the current cursor.
  *
  * This function copies the current mouse cursor position to
  * a POINT structure pointed to by \a ppt.
@@ -3870,7 +3870,7 @@ MG_EXPORT void GUIAPI GetCursorPos (POINT* ppt);
 
 /**
  * \fn void GUIAPI SetCursorPos (int x, int y)
- * \brief Sets position of the current cursor.
+ * \brief Set position of the current cursor.
  *
  * This function sets mouse cursor position with the given
  * arguments: \a (\a x,\a y).
@@ -3906,7 +3906,7 @@ MG_EXPORT HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL set_def);
 
 /**
  * \fn HCURSOR GUIAPI GetDefaultCursor (void)
- * \brief Gets the default cursor.
+ * \brief Get the default cursor.
  *
  * This function gets the current default cursor.
  *
@@ -3990,7 +3990,7 @@ static inline int GUIAPI ShowCursor (BOOL fShow) {
 
 /**
  * \fn BOOL GUIAPI GetKeyStatus (UINT uKey)
- * \brief Gets a key or a mouse button status.
+ * \brief Get a key or a mouse button status.
  *
  * This function gets a key or a mouse button status, returns TRUE
  * when pressed, or FALSE when released. \a uKey indicates
@@ -4017,7 +4017,7 @@ MG_EXPORT BOOL GUIAPI GetKeyStatus (UINT uKey);
 
 /**
  * \fn DWORD GUIAPI GetShiftKeyStatus (void)
- * \brief Gets status of the shift keys.
+ * \brief Get status of the shift keys.
  *
  * This function gets ths status of the shift keys, the returned value
  * indicates the status of shift keys -- CapsLock, ScrollLock, NumLock,
@@ -4059,7 +4059,7 @@ MG_EXPORT DWORD GUIAPI GetShiftKeyStatus (void);
 
 /**
  * \fn void GUIAPI GetKeyboardState (BYTE* kbd_state)
- * \brief Gets status of all keys on keyboard.
+ * \brief Get status of all keys on keyboard.
  *
  * This function gets the status of all keys on keyboard.
  *
@@ -4476,7 +4476,7 @@ extern MG_EXPORT const char** local_SysText;
 
 /**
  * \fn const char** GUIAPI GetSysTextInUTF8 (const char* language)
- * \brief Gets the localized system text array in UTF-8 for
+ * \brief Get the localized system text array in UTF-8 for
  *        a specified language.
  *
  * This function returns the localized system text array in UTF-8 encode

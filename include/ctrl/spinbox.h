@@ -100,7 +100,7 @@ typedef SPININFO *PSPININFO;
 
 /**
  * \fn void GetSpinBoxSize (DWORD dwStyle, int* w, int* h)
- * \brief Gets size of a vertical spin box control.
+ * \brief Get size of a vertical spin box control.
  *
  * The spin box control in MiniGUI has fixed size.
  * This function gets the size of a spin box control.
@@ -167,7 +167,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_SETTARGET
- * \brief Sets the target window of the spinbox.
+ * \brief Set the target window of the spinbox.
  *
  * When the user click the up/left or down/right arrow of the spin box, it will
  * emulate the down and up of the key SCANCODE_CURSORBLOCKUP or
@@ -190,7 +190,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_GETTARGET
- * \brief Gets the target window of the spinbox.
+ * \brief Get the target window of the spinbox.
  *
  * \code
  * SPM_GETTARGET
@@ -205,7 +205,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_SETINFO
- * \brief Sets the parameter information of the spinbox.
+ * \brief Set the parameter information of the spinbox.
  *
  * \code
  * SPM_SETINFO
@@ -225,7 +225,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_GETINFO
- * \brief Gets the parameter infos of the spinbox.
+ * \brief Get the parameter infos of the spinbox.
  *
  * \code
  * SPM_GETINFO
@@ -305,7 +305,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_SETCUR
- * \brief Sets the current position in the range of the spinbox.
+ * \brief Set the current position in the range of the spinbox.
  *
  * \code
  * SPM_SETCUR
@@ -323,7 +323,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_GETCUR
- * \brief Gets the current position in the range of the spinbox.
+ * \brief Get the current position in the range of the spinbox.
  *
  * \code
  * SPM_GETCUR

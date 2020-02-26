@@ -163,7 +163,7 @@ MG_EXPORT BOOL scrollview_is_item_selected (HSVITEM hsvi);
 
 /**
  * \fn int scrollview_set_item_height (HWND hWnd, HSVITEM hsvi, int height)
- * \brief Sets the height of an item
+ * \brief Set the height of an item
  */
 MG_EXPORT int scrollview_set_item_height (HWND hWnd, HSVITEM hsvi, int height);
 
@@ -310,7 +310,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETITEMDRAW
- * \brief Sets the drawing operation of an item.
+ * \brief Set the drawing operation of an item.
  *
  * Scrollview item drawing function will be called when doing with MSG_PAINT message,
  * scrollview window should define this function if it want to draw an customed item.
@@ -351,7 +351,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETCONTWIDTH
- * \brief Sets the scrollview content area (scrollable area) width.
+ * \brief Set the scrollview content area (scrollable area) width.
  *
  * Scrollable area of a scrolled window is always larger than the visible area.
  *
@@ -371,7 +371,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETCONTHEIGHT
- * \brief Sets the scrollview content area (scrollable area) height.
+ * \brief Set the scrollview content area (scrollable area) height.
  *
  * Scrollable area of a scrolled window is always larger than the visible area.
  *
@@ -391,7 +391,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETCTRL
- * \brief Gets the control handle in the scrollview window by control id.
+ * \brief Get the control handle in the scrollview window by control id.
  *
  * \code
  * SVM_GETCTRL
@@ -424,7 +424,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETITEMOPS
- * \brief Sets the item operations of the items in the scrollview.
+ * \brief Set the item operations of the items in the scrollview.
  *
  * Normally item operations should be set before adding items.
  *
@@ -444,7 +444,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETMARGINS
- * \brief Gets the margin values of the scrollview.
+ * \brief Get the margin values of the scrollview.
  *
  * Application should use a RECT structure to get left, top, right, and bottom margins.
  *
@@ -464,7 +464,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETMARGINS
- * \brief Sets the margin values of the scrollview.
+ * \brief Set the margin values of the scrollview.
  *
  * Application should use a RECT structure to give left, top, right, and bottom margins.
  * If you want to change a margin value, give a value large than zero, or else -1.
@@ -485,7 +485,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETLEFTMARGIN
- * \brief Gets the left margin value of the scrollview.
+ * \brief Get the left margin value of the scrollview.
  *
  * \code
  * SVM_GETLEFTMARGIN
@@ -500,7 +500,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETTOPMARGIN
- * \brief Gets the top margin value of the scrollview.
+ * \brief Get the top margin value of the scrollview.
  *
  * \code
  * SVM_GETTOPMARGIN
@@ -515,7 +515,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETRIGHTMARGIN
- * \brief Gets the right margin value of the scrollview.
+ * \brief Get the right margin value of the scrollview.
  *
  * \code
  * SVM_GETRIGHTMARGIN
@@ -530,7 +530,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETBOTTOMMARGIN
- * \brief Gets the bottom margin value of the scrollview.
+ * \brief Get the bottom margin value of the scrollview.
  *
  * \code
  * SVM_GETBOTTOMMARGIN
@@ -545,7 +545,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETVISIBLEWIDTH
- * \brief Gets the width of the visible content area.
+ * \brief Get the width of the visible content area.
  *
  * \code
  * SVM_GETVISIBLEWIDTH
@@ -560,7 +560,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETVISIBLEHEIGHT
- * \brief Gets the height of the visible content area.
+ * \brief Get the height of the visible content area.
  *
  * \code
  * SVM_GETVISIBLEHEIGHT
@@ -575,7 +575,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETCONTWIDTH
- * \brief Gets the width of the content area.
+ * \brief Get the width of the content area.
  *
  * \code
  * SVM_GETCONTWIDTH
@@ -590,7 +590,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETCONTHEIGHT
- * \brief Gets the height of the content area.
+ * \brief Get the height of the content area.
  *
  * \code
  * SVM_GETCONTHEIGHT
@@ -605,7 +605,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETCONTRANGE
- * \brief Sets the width and height of the content area.
+ * \brief Set the width and height of the content area.
  *
  * If you want to change width and height, give a value large than zero.
  * If you give -1, this value will remain untouched.
@@ -627,7 +627,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETCONTENTX
- * \brief Gets the content x offset in the viewport.
+ * \brief Get the content x offset in the viewport.
  *
  * \code
  * SVM_GETCONTENTX
@@ -642,7 +642,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETCONTENTY
- * \brief Gets the content y offset in the viewport.
+ * \brief Get the content y offset in the viewport.
  *
  * \code
  * SVM_GETCONTENTY
@@ -657,7 +657,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETCONTPOS
- * \brief Sets the content offset position in the viewport.
+ * \brief Set the content offset position in the viewport.
  *
  * \code
  * SVM_SETCONTPOS
@@ -676,7 +676,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETCURSEL
- * \brief Gets the index of the current hilighted scrollview item.
+ * \brief Get the index of the current hilighted scrollview item.
  *
  * An application sends an this message to a scrollview window to get the index of
  * the currently selected item, if there is one, in a single-selection scrollview.
@@ -775,7 +775,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETITEMINIT
- * \brief Sets the init operation of the items in the scrollview.
+ * \brief Set the init operation of the items in the scrollview.
  *
  * Normally item operations should be set before adding items.
  * The initialization callback function will be called when adding an item.
@@ -796,7 +796,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETITEMDESTROY
- * \brief Sets the destroy operation of the items in the scrollview.
+ * \brief Set the destroy operation of the items in the scrollview.
  *
  * Normally item operations should be set before adding items.
  * The destroy callback function will be called when deleting an item
@@ -817,7 +817,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETITEMCMP
- * \brief Sets the item compare function.
+ * \brief Set the item compare function.
  *
  * \code
  * SVM_SETITEMCMP
@@ -852,7 +852,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETCONTAINERPROC
- * \brief Sets the window procedure of the container window in the scrollview.
+ * \brief Set the window procedure of the container window in the scrollview.
  *
  * \code
  * SVM_SETCONTAINERPROC
@@ -870,7 +870,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETFOCUSCHILD
- * \brief Gets the focus control in the scrollview.
+ * \brief Get the focus control in the scrollview.
  *
  * \code
  * SVM_GETFOCUSCHILD
@@ -885,7 +885,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETHSCROLLVAL
- * \brief Gets the horizontal scroll value.
+ * \brief Get the horizontal scroll value.
  *
  * \code
  * SVM_GETHSCROLLVAL
@@ -900,7 +900,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETVSCROLLVAL
- * \brief Gets the vertical scroll value.
+ * \brief Get the vertical scroll value.
  *
  * \code
  * SVM_GETVSCROLLVAL
@@ -915,7 +915,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETHSCROLLPAGEVAL
- * \brief Gets the horizontal page scroll value.
+ * \brief Get the horizontal page scroll value.
  *
  * \code
  * SVM_GETHSCROLLPAGEVAL
@@ -930,7 +930,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETVSCROLLPAGEVAL
- * \brief Gets the vertical page scroll value.
+ * \brief Get the vertical page scroll value.
  *
  * \code
  * SVM_GETVSCROLLPAGEVAL
@@ -945,7 +945,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETSCROLLVAL
- * \brief Sets the horizontal and vertical scroll value.
+ * \brief Set the horizontal and vertical scroll value.
  *
  * \code
  * SVM_SETSCROLLVAL
@@ -964,7 +964,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETSCROLLPAGEVAL
- * \brief Sets the horizontal and vertical page value.
+ * \brief Set the horizontal and vertical page value.
  *
  * \code
  * SVM_SETSCROLLPAGEVAL
@@ -1000,7 +1000,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETITEMCOUNT
- * \brief Gets the total number of the items.
+ * \brief Get the total number of the items.
  *
  * \return Number of the items.
  */
@@ -1008,7 +1008,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETITEMADDDATA
- * \brief Gets the additional data of the item
+ * \brief Get the additional data of the item
  *
  * \code
  * SVM_GETITEMADDDATA
@@ -1029,7 +1029,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETITEMADDDATA
- * \brief Sets the additional data of the item
+ * \brief Set the additional data of the item
  *
  * \code
  * SVM_SETITEMADDDATA
@@ -1069,7 +1069,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_SETITEMHEIGHT
- * \brief Sets the height of an item
+ * \brief Set the height of an item
  *
  * \code
  * SVM_SETITEMHEIGHT
@@ -1089,7 +1089,7 @@ typedef SVITEMINFO* PSVITEMINFO;
 
 /**
  * \def SVM_GETFIRSTVISIBLEITEM
- * \brief Gets the index of the first visible item
+ * \brief Get the index of the first visible item
  *
  * \code
  * SVM_GETFIRSTVISIBLEITEM

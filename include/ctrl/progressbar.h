@@ -116,9 +116,9 @@ extern "C" {
 
 /**
  * \def PBM_SETRANGE
- * \brief Sets the limits of the range.
+ * \brief Set the limits of the range.
  *
- * Sets the upper and lower limits of the progress bar control's range,
+ * Set the upper and lower limits of the progress bar control's range,
  * and redraws the bar to reflect the new ranges.
  *
  * \code
@@ -155,9 +155,9 @@ extern "C" {
 
 /**
  * \def PBM_SETPOS
- * \brief Sets the progress bar control's current position.
+ * \brief Set the progress bar control's current position.
  *
- * Sets the progress bar control's current position as specified by nPos,
+ * Set the progress bar control's current position as specified by nPos,
  * and redraw the bar to reflect the new position.
  *
  * \code

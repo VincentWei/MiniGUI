@@ -235,7 +235,7 @@ MG_EXPORT PBITMAP iconview_set_item_bitmap(GHANDLE hivi, PBITMAP pbmp);
 
 /**
  * \def IVM_SETITEMSIZE
- * \brief Sets the item width and height of an iconview control
+ * \brief Set the item width and height of an iconview control
  *
  * All the items have the same item size. This message should be sent
  * before you add items to iconview control.

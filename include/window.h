@@ -827,7 +827,7 @@ extern DWORD __mg_interval_time;
 
 /**
  * \def MSG_SETCURSOR
- * \brief Sets cursor shape in the client area.
+ * \brief Set cursor shape in the client area.
  *
  * This message is posted to the window under the cursor when the user moves
  * the mouse in order to give the chance to change the cursor shape.
@@ -1266,7 +1266,7 @@ extern DWORD __mg_interval_time;
 
 /**
  * \def MSG_NCSETCURSOR
- * \brief Sets cursor shape in the non-client area.
+ * \brief Set cursor shape in the non-client area.
  *
  * This message is posted to the window under the cursor when the user moves
  * the mouse in order to give the chance to change the cursor shape.
@@ -3330,7 +3330,7 @@ MG_EXPORT LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg,
 /**
  * \fn void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
             WPARAM wParam, LPARAM lParam)
- * \brief Sets the auto-repeat message.
+ * \brief Set the auto-repeat message.
  *
  * This function sets the auto-repeat message. When the default message
  * procedure receives an MSG_IDLE message, the default handler will send
@@ -3619,7 +3619,7 @@ MG_EXPORT int GUIAPI PostQuitMessage (HWND hWnd);
 
 /**
  * \fn BOOL SetKeyboardLayout (const char* kbd_layout)
- * \brief Sets a new keyboard layout.
+ * \brief Set a new keyboard layout.
  *
  * This function sets the keymaps to translate key scancodes to MSG_CHAR
  * or MSG_KEYSYM messages. The default keymaps is for US PC keyboard
@@ -7303,7 +7303,7 @@ MG_EXPORT gal_pixel GUIAPI GetWindowBkColor (HWND hWnd);
 
 /**
  * \fn gal_pixel GUIAPI SetWindowBkColor (HWND hWnd, gal_pixel new_bkcolor)
- * \brief Sets the background color of a window.
+ * \brief Set the background color of a window.
  *
  * This function sets the background color of the specified window \a hWnd
  * to be new pixel value \a new_backcolor. You should call \a UpdateWindow
@@ -7337,7 +7337,7 @@ MG_EXPORT PLOGFONT GUIAPI GetWindowFont (HWND hWnd);
 
 /**
  * \fn PLOGFONT GUIAPI SetWindowFont (HWND hWnd, PLOGFONT pLogFont)
- * \brief Sets the default font of a window.
+ * \brief Set the default font of a window.
  *
  * This function sets the default font of the specified window \a hWnd
  * to be the logical font \a pLogFont. This function will send an
@@ -7372,7 +7372,7 @@ MG_EXPORT HCURSOR GUIAPI GetWindowCursor (HWND hWnd);
 
 /**
  * \fn HCURSOR GUIAPI SetWindowCursor (HWND hWnd, HCURSOR hNewCursor)
- * \brief Sets the current cursor of a window.
+ * \brief Set the current cursor of a window.
  *
  * This function sets the current cursor of the specified window \a hWnd with
  * argument \a hNewCursor.
@@ -7401,7 +7401,7 @@ MG_EXPORT HICON GUIAPI GetWindowIcon (HWND hWnd);
 
 /**
  * \fn HICON GUIAPI SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
- * \brief Sets the current icon of a window.
+ * \brief Set the current icon of a window.
  *
  * This function sets the current icon of the specified window \a hWnd with
  * argument \a hIcon.
@@ -7520,7 +7520,7 @@ MG_EXPORT WNDPROC GUIAPI GetWindowCallbackProc (HWND hWnd);
 
 /**
  * \fn WNDPROC GUIAPI SetWindowCallbackProc (HWND hWnd, WNDPROC newProc)
- * \brief Sets the callback procedure of a window.
+ * \brief Set the callback procedure of a window.
  *
  * This function sets the window callback procedure of the specified window
  * \a hWnd to be the procedure \a newProc.
@@ -7553,7 +7553,7 @@ MG_EXPORT DWORD GUIAPI GetWindowAdditionalData (HWND hWnd);
 
 /**
  * \fn DWORD GUIAPI SetWindowAdditionalData (HWND hWnd, DWORD newData)
- * \brief Sets the first additional data of a window.
+ * \brief Set the first additional data of a window.
  *
  * This function sets the first additional data of the specified window
  * \a hWnd.
@@ -7587,7 +7587,7 @@ MG_EXPORT DWORD GUIAPI GetWindowAdditionalData2 (HWND hWnd);
 
 /**
  * \fn DWORD GUIAPI SetWindowAdditionalData2 (HWND hWnd, DWORD newData)
- * \brief Sets the second additional data of a window.
+ * \brief Set the second additional data of a window.
  *
  * This function sets the second additional data of the specified window
  * \a hWnd.
@@ -7624,7 +7624,7 @@ MG_EXPORT DWORD GUIAPI GetWindowClassAdditionalData (HWND hWnd);
 
 /**
  * \fn DWORD GUIAPI SetWindowClassAdditionalData (HWND hWnd, DWORD newData)
- * \brief Sets the additional data of a control class.
+ * \brief Set the additional data of a control class.
  *
  * This function sets the additional data of the control class to which
  * the specified control \a hWnd belongs.
@@ -7655,7 +7655,7 @@ MG_EXPORT const char* GUIAPI GetWindowCaption (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI SetWindowCaption (HWND hWnd, const char* spCaption)
- * \brief Sets the caption of a window.
+ * \brief Set the caption of a window.
  *
  * This function sets the caption of the specified window \a hWnd.
  *
@@ -8421,7 +8421,7 @@ MG_EXPORT int GUIAPI GetWindowText (HWND hWnd, char* spString, int nMaxLen);
 
 /**
  * \fn BOOL GUIAPI SetWindowText (HWND hWnd, const char* spString)
- * \brief Sets the text of a window.
+ * \brief Set the text of a window.
  *
  * This function copies the string in the buffer pointed to by \a spString
  * to be the text of the specified window \a hWnd. The function sets
@@ -8469,7 +8469,7 @@ MG_EXPORT HWND GUIAPI SetNullFocus (HWND hParent);
 
 /**
  * \fn HWND GUIAPI SetFocusChild (HWND hWnd)
- * \brief Sets the active child of a window.
+ * \brief Set the active child of a window.
  *
  * This function sets the specified window \a hWnd as the active child of
  * its parent.
@@ -8509,7 +8509,7 @@ MG_EXPORT HWND GUIAPI GetActiveWindow (void);
 
 /**
  * \fn HWND GUIAPI SetActiveWindow (HWND hMainWnd)
- * \brief Sets a main window to be the active main window.
+ * \brief Set a main window to be the active main window.
  *
  * This function sets the specified main window \a hMainWnd to be the
  * active main window which receives the input.
@@ -8552,7 +8552,7 @@ MG_EXPORT HWND GUIAPI GetCapture(void);
 
 /**
  * \fn HWND GUIAPI SetCapture(HWND hWnd)
- * \brief Sets the mouse capture to the specified window.
+ * \brief Set the mouse capture to the specified window.
  *
  * This function sets the mouse capture to the specified window \a hWnd.
  * Once a window has captured the mouse, all mouse input is directed to
@@ -9131,7 +9131,7 @@ MG_EXPORT BOOL GUIAPI GetScrollRange (HWND hWnd, int iSBar,
 
 /**
  * \fn BOOL GUIAPI SetScrollPos (HWND hWnd, int iSBar, int iNewPos)
- * \brief Sets the position of the scroll box (thumb) of the specified
+ * \brief Set the position of the scroll box (thumb) of the specified
  * scroll bar.
  *
  * This function sets the position of the scroll box (thumb) of the specified
@@ -9156,7 +9156,7 @@ MG_EXPORT BOOL GUIAPI SetScrollPos (HWND hWnd, int iSBar, int iNewPos);
 /**
  * \fn BOOL GUIAPI SetScrollRange (HWND hWnd, int iSBar, \
  *               int iMinPos, int iMaxPos)
- * \brief Sets the minimum and maximum position values for the specified
+ * \brief Set the minimum and maximum position values for the specified
  * scroll bar.
  *
  * This function sets the minimum and maximum position values for the
@@ -9253,7 +9253,7 @@ typedef struct _SCROLLINFO
 /**
  * \fn BOOL GUIAPI SetScrollInfo (HWND hWnd, int iSBar, \
  *                const SCROLLINFO* lpsi, BOOL fRedraw)
- * \brief Sets the parameters of a scroll bar.
+ * \brief Set the parameters of a scroll bar.
  *
  * This function sets the parameters of a scroll bar, including the
  * minimum and maximum scrolling positions, the page size, and the position
@@ -9475,7 +9475,7 @@ MG_EXPORT BOOL GUIAPI GetWindowClassInfo (PWNDCLASS pWndClass);
 
 /**
  * \fn BOOL GUIAPI SetWindowClassInfo (const WNDCLASS* pWndClass)
- * \brief Sets the information of the specified window class.
+ * \brief Set the information of the specified window class.
  *
  * This function sets the information of a window class.
  * The window class to be operated is specified by \a pWndClass->spClassName.
@@ -9921,7 +9921,7 @@ MG_EXPORT int GUIAPI GetIMEStatus (int StatusCode);
 
 /**
  * \fn int GUIAPI SetIMEStatus (int StatusCode, int Value)
- * \brief Sets the status of the current IME window.
+ * \brief Set the status of the current IME window.
  *
  * This function sets the status of the current IME window.
  *
@@ -9953,7 +9953,7 @@ MG_EXPORT int GUIAPI GetIMETargetInfo (IME_TARGET_INFO *info);
 
 /**
  * \fn int GUIAPI SetIMETargetInfo (const IME_TARGET_INFO *info)
- * \brief Sets the target info of the current IME window.
+ * \brief Set the target info of the current IME window.
  *
  * This function sets the target info of the current IME window.
  *
@@ -9988,7 +9988,7 @@ MG_EXPORT int GUIAPI GetIMEPos (POINT* pt);
 
 /**
  * \fn int GUIAPI SetIMEPos (POINT* pt)
- * \brief Sets the position of the current IME window.
+ * \brief Set the position of the current IME window.
  *
  * NOTE that this function is deprecated.
  *
@@ -10195,7 +10195,7 @@ MG_EXPORT UINT GUIAPI GetCaretBlinkTime (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI SetCaretBlinkTime (HWND hWnd, UINT uTime)
- * \brief Sets the caret blink time to the specified number of milliseconds.
+ * \brief Set the caret blink time to the specified number of milliseconds.
  *
  * This function sets the caret blink time to the specified number of
  * milliseconds. The blink time is the elapsed time, in milliseconds,
@@ -11605,7 +11605,7 @@ MG_EXPORT LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem,
 /**
  * \fn BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem, \
  *               UINT uValue, BOOL bSigned)
- * \brief Sets the text of a control in a dialog box to the string
+ * \brief Set the text of a control in a dialog box to the string
  *        representation of a specified integer value.
  *
  * This function sets the text of the control whose identifier is \a nIDDlgItem
@@ -11630,7 +11630,7 @@ MG_EXPORT BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem,
 /**
  * \fn BOOL GUIAPI SetDlgItemText (HWND hDlg, int nIDDlgItem, \
  *               const char* lpString)
- * \brief Sets the title or text of a control in a dialog box.
+ * \brief Set the title or text of a control in a dialog box.
  *
  * This function sets the title or text of the control whose identifier
  * is \a nIDDlgItem in the dialog box \a hDlg to the string pointed to

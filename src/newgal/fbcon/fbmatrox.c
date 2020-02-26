@@ -74,13 +74,13 @@ static void WaitIdle(_THIS)
     mga_waitidle();
 }
 
-/* Sets video mem colorkey and accelerated blit function */
+/* Set video mem colorkey and accelerated blit function */
 static int SetHWColorKey(_THIS, GAL_Surface *surface, Uint32 key)
 {
     return(0);
 }
 
-/* Sets per surface hardware alpha value */
+/* Set per surface hardware alpha value */
 #if 0
 static int SetHWAlpha(_THIS, GAL_Surface *surface, Uint8 value)
 {

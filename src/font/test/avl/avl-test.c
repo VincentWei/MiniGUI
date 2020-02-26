@@ -93,7 +93,7 @@ static void usage (void)
 }
 
 /* Parses command-line arguments from null-terminated array |args|.
-   Sets up |options| appropriately to correspond. */
+   Set up |options| appropriately to correspond. */
 static void
 parse_command_line (char **args, struct test_options *options)
 {

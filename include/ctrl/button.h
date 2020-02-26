@@ -420,7 +420,7 @@ extern "C" {
 
 /**
  * \def BM_GETCHECK
- * \brief Retrieves the check state of a radio button or check box.
+ * \brief Retrieve the check state of a radio button or check box.
  *
  * An application sends a BM_GETCHECK message to retrieve
  * the check state of a radio button or check box.
@@ -443,7 +443,7 @@ extern "C" {
 
 /**
  * \def BM_SETCHECK
- * \brief Sets the check state of a radio button or check box.
+ * \brief Set the check state of a radio button or check box.
  *
  * An application sends a BM_SETCHECK message to set
  * the check state of a radio button or check box.
@@ -469,7 +469,7 @@ extern "C" {
 
 /**
  * \def BM_GETSTATE
- * \brief Gets the state of a button or check box.
+ * \brief Get the state of a button or check box.
  *
  * An application sends a BM_GETSTATE message to
  * determine the state of a button or check box.
@@ -488,7 +488,7 @@ extern "C" {
 
 /**
  * \def BM_SETSTATE
- * \brief Sets the state of a button.
+ * \brief Set the state of a button.
  *
  * An application sends a BM_SETSTATE message to set the state of a
  * button.
@@ -569,7 +569,7 @@ extern "C" {
 
 /**
  * \def BM_GETIMAGE
- * \brief Retrieves the handle to the image.
+ * \brief Retrieve the handle to the image.
  *
  * An application sends a BM_GETIMAGE message to
  * retrieve a handle to the image (icon or bitmap) associated with the button.

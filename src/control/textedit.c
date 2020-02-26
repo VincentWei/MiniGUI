@@ -154,7 +154,7 @@ static void print_selected (TextDoc *txtdoc)
 /* ------------------------------ text document/buffer ------------------------ */
 
 /*
- * set_current_node : Sets a node as the current insertion/selection node,
+ * set_current_node : Set a node as the current insertion/selection node,
  *                    must be called when the current node is/will be changed.
  * Params           : newnode - the new node with insertion/selection point
  *                    bSel    - insertion or selection
@@ -602,7 +602,7 @@ static TextMark* get_start_mark (PTEDATA ptedata)
         return &txtdoc->selection;
 }
 
-/* Gets the start and end selection points in a text node */
+/* Get the start and end selection points in a text node */
 static void
 get_selection_points (PTEDATA ptedata, TextNode *node, int *pos_start, int *pos_end)
 {
@@ -1354,7 +1354,7 @@ static void textedit_set_svlist (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
 }
 
 /*
- * set_caret_pos : Sets the caret/selection position in a node according to
+ * set_caret_pos : Set the caret/selection position in a node according to
  *                 x,y values
  */
 static int
@@ -2263,7 +2263,7 @@ static int te_select_all (HWND hWnd, PTEDATA ptedata)
 #endif
 
 /*
- * te_set_position : Sets insertion or selection position
+ * te_set_position : Set insertion or selection position
  * Params          : mark - insertion or selection point
  */
 static TextNode*

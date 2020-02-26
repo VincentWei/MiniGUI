@@ -503,7 +503,7 @@ typedef struct _GRIDCELLDATA
 #define  GRIDM_DELCOLUMN      0xF219
 /**
  * \def GRIDM_GETROWCOUNT
- * \brief Gets the number of all rows in the grid control.
+ * \brief Get the number of all rows in the grid control.
  *
  * An application sends an GRIDM_GETROWCOUNT message to get the number of all rows in the grid control.
  *
@@ -519,7 +519,7 @@ typedef struct _GRIDCELLDATA
 #define  GRIDM_GETROWCOUNT    0xF21A
 /**
  * \def GRIDM_GETCOLCOUNT
- * \brief Gets the number of all columns in the grid control.
+ * \brief Get the number of all columns in the grid control.
  *
  * An application sends an GRIDM_GETCOLCOUNT message to get the number of all columns in the grid control.
  *
@@ -535,7 +535,7 @@ typedef struct _GRIDCELLDATA
 #define  GRIDM_GETCOLCOUNT    0xF21B
 /**
  * \def GRIDM_SETNUMFORMAT
- * \brief Sets the number format of a cell in the grid control. the format is
+ * \brief Set the number format of a cell in the grid control. the format is
  * just same as format in c printf.
  *
  * An application sends an GRIDM_SETNUMFORMAT message to
@@ -557,7 +557,7 @@ typedef struct _GRIDCELLDATA
 
 /**
  * \def GRIDM_SETSELECTED
- * \brief Sets the selected cell(s) in the grid control.
+ * \brief Set the selected cell(s) in the grid control.
  *
  * An application sends an GRIDM_SETSELECTED message to
  * set the selected cell(s) in the grid control.
@@ -577,7 +577,7 @@ typedef struct _GRIDCELLDATA
 
 /**
  * \def GRIDM_GETSELECTED
- * \brief Gets the selected cell(s) in the grid control.
+ * \brief Get the selected cell(s) in the grid control.
  *
  * An application sends an GRIDM_GETSELECTED message to
  * get the selected cell(s) in the grid control.

@@ -327,7 +327,7 @@ typedef MENUBUTTONITEM* PMENUBUTTONITEM;
 
 /**
  * \def MBM_SETSTRCMPFUNC
- * \brief Sets the STRCMP function used to sort items.
+ * \brief Set the STRCMP function used to sort items.
  *
  * An application sends a MBM_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items in the menubutton.

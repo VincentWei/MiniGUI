@@ -179,7 +179,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETCURDAY
- * \brief Gets the day number of the current selected date.
+ * \brief Get the day number of the current selected date.
  *
  * \code
  * MCM_GETCURDAY
@@ -194,7 +194,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETCURMONTH
- * \brief Gets the month number of the current selected date.
+ * \brief Get the month number of the current selected date.
  *
  * \code
  * MCM_GETCURMONTH
@@ -209,7 +209,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETCURYEAR
- * \brief Gets the year number of the current selected date.
+ * \brief Get the year number of the current selected date.
  *
  * \code
  * MCM_GETCURYEAR
@@ -224,7 +224,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETCURWEEKDAY
- * \brief Gets the weekday number of the current selected date.
+ * \brief Get the weekday number of the current selected date.
  *
  * \code
  * MCM_GETCURWEEKDAY
@@ -239,7 +239,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETCURMONLEN
- * \brief Gets the month length of the current selected date.
+ * \brief Get the month length of the current selected date.
  *
  * \code
  * MCM_GETCURMONLEN
@@ -302,7 +302,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_SETTODAY
- * \brief Sets the currently selected date as the date of "today".
+ * \brief Set the currently selected date as the date of "today".
  *
  * \code
  * MCM_SETTODAY
@@ -315,7 +315,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETFIRSTWEEKDAY
- * \brief Gets the weekday of the first day of this month.
+ * \brief Get the weekday of the first day of this month.
  *
  * \code
  * MCM_GETFIRSTWEEKDAY
@@ -330,7 +330,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETCURDATE
- * \brief Gets the currently selected date.
+ * \brief Get the currently selected date.
  *
  * \code
  * MCM_GETCURDATE
@@ -346,7 +346,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETTODAY
- * \brief Gets the date of "today".
+ * \brief Get the date of "today".
  *
  * \code
  * MCM_GETTODAY
@@ -363,7 +363,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETMINREQRECTW
- * \brief Gets the minimum width required to display a full month in a month
+ * \brief Get the minimum width required to display a full month in a month
  *         calendar control.
  *
  * \code
@@ -379,7 +379,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETMINREQRECTH
- * \brief Gets the minimum height required to display a full month in a month
+ * \brief Get the minimum height required to display a full month in a month
  *         calendar control.
  *
  * \code
@@ -395,7 +395,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_SETCURDATE
- * \brief Sets the currently selected date.
+ * \brief Set the currently selected date.
  *
  * \code
  * MCM_SETCURDATE
@@ -412,7 +412,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_SETCOLOR
- * \brief Sets the color of the monthcalendar control.
+ * \brief Set the color of the monthcalendar control.
  *
  * \code
  * MCM_SETCOLOR
@@ -429,7 +429,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_GETCOLOR
- * \brief Gets the color of the monthcalendar control.
+ * \brief Get the color of the monthcalendar control.
  *
  * \code
  * MCM_GETCOLOR
@@ -445,7 +445,7 @@ typedef MCCOLORINFO *PMCCOLORINFO;
 
 /**
  * \def MCM_SETDAYCOLOR
- * \brief Sets the color of a specified date .
+ * \brief Set the color of a specified date .
  *
  * \code
  * MCM_SETDAYCOLOR

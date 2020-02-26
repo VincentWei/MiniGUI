@@ -861,7 +861,7 @@ typedef DWORD32 RGBCOLOR;
 
 /**
  * \def GetRValue(rgba)
- * \brief Gets the red component from a RGBA quadruple value \a rgba.
+ * \brief Get the red component from a RGBA quadruple value \a rgba.
  *
  * You can make a RGBA triple by using MakeRGBA.
  *
@@ -870,7 +870,7 @@ typedef DWORD32 RGBCOLOR;
 #define GetRValue(rgba)      ((BYTE)(rgba))
 /**
  * \def GetGValue(rgba)
- * \brief Gets the green component from a RGBA quadruple value \a rgba.
+ * \brief Get the green component from a RGBA quadruple value \a rgba.
  *
  * You can make a RGBA triple by using MakeRGBA.
  *
@@ -879,7 +879,7 @@ typedef DWORD32 RGBCOLOR;
 #define GetGValue(rgba)      ((BYTE)(((DWORD32)(rgba)) >> 8))
 /**
  * \def GetBValue(rgba)
- * \brief Gets the blue component from a RGBA quadruple value \a rgba.
+ * \brief Get the blue component from a RGBA quadruple value \a rgba.
  *
  * You can make a RGBA triple by using MakeRGBA.
  *
@@ -888,7 +888,7 @@ typedef DWORD32 RGBCOLOR;
 #define GetBValue(rgba)      ((BYTE)((DWORD32)(rgba) >> 16))
 /**
  * \def GetAValue(rgba)
- * \brief Gets the alpha component from a RGBA quadruple value \a rgba.
+ * \brief Get the alpha component from a RGBA quadruple value \a rgba.
  *
  * You can make a RGBA triple by using MakeRGBA.
  *

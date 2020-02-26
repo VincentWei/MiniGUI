@@ -233,7 +233,7 @@ extern "C" {
 
 /**
  * \def EM_GETSEL
- * \brief Gets the selected string in the edit control.
+ * \brief Get the selected string in the edit control.
  *
  * \code
  * EM_GETSEL
@@ -254,7 +254,7 @@ extern "C" {
 
 /**
  * \def EM_SETSEL
- * \brief Sets the selected point in the edit control and makes
+ * \brief Set the selected point in the edit control and makes
  *        the text between insertion point and selection point selected.
  *
  *        Generally, you should send EM_SETCARETPOS first to set insertion
@@ -308,7 +308,7 @@ extern "C" {
 
 /**
  * \def EM_GETSELPOS
- * \brief Gets the position of the selection point.
+ * \brief Get the position of the selection point.
  *
  * \code
  * EM_GETSELPOS
@@ -380,7 +380,7 @@ extern "C" {
 
 /**
  * \def EM_SETLFDISPCHAR
- * \brief Sets the char used to represent the line seperator.
+ * \brief Set the char used to represent the line seperator.
  *
  * In default case, the line sperator will not be shown.
  * If the char used to represent the line seperator is not zero,
@@ -400,7 +400,7 @@ extern "C" {
 
 /**
  * \def EM_SETLINESEP
- * \brief Sets the line seperator.
+ * \brief Set the line seperator.
  *
  * In default case, the line sperator is Line Feed
  * characters(LF , ASCII 10, '\n').
@@ -424,7 +424,7 @@ extern "C" {
 
 /**
  * \def EM_GETCARETPOS
- * \brief Gets the position of the caret.
+ * \brief Get the position of the caret.
  *
  * \code
  * EM_GETCARETPOS
@@ -448,7 +448,7 @@ extern "C" {
 
 /**
  * \def EM_SETCARETPOS
- * \brief Sets the position of the caret.
+ * \brief Set the position of the caret.
  *
  * \code
  * EM_SETCARETPOS
@@ -482,7 +482,7 @@ extern "C" {
 
 /**
  * \def EM_GETLINECOUNT
- * \brief Gets the line number.
+ * \brief Get the line number.
  *
  * \code
  * EM_GETLINECOUNT
@@ -498,7 +498,7 @@ extern "C" {
 
 /**
  * \def EM_GETLINEHEIGHT
- * \brief Gets the height of a line.
+ * \brief Get the height of a line.
  *
  * \code
  * EM_GETLINEHEIGHT
@@ -514,7 +514,7 @@ extern "C" {
 
 /**
  * \def EM_SETLINEHEIGHT
- * \brief Sets the height of a line.
+ * \brief Set the height of a line.
  *
  * \code
  * EM_SETLINEHEIGHT
@@ -679,7 +679,7 @@ extern "C" {
 
 /**
  * \def EM_SETREADONLY
- * \brief Sets or removes the read-only style (ES_READONLY) in an edit control.
+ * \brief Set or removes the read-only style (ES_READONLY) in an edit control.
  *
  * \code
  * EM_SETREADONLY
@@ -715,7 +715,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_SETDRAWSELECTFUNC
- * \brief Sets the callback function on drawing selected chars
+ * \brief Set the callback function on drawing selected chars
  *
  * \code
  * EM_SETDRAWSELECTFUNC
@@ -731,7 +731,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_SETGETCARETWIDTHFUNC
- * \brief Sets the callback function on getting caret width
+ * \brief Set the callback function on getting caret width
  *
  * \code
  * EM_SETGETCARETWIDTHFUNC
@@ -907,7 +907,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_SETTITLETEXT
- * \brief Sets the title text displayed before content text.
+ * \brief Set the title text displayed before content text.
  *
  * \code
  * EM_SETTITLETEXT
@@ -924,7 +924,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_GETTITLETEXT
- * \brief Gets the title text displayed before content text.
+ * \brief Get the title text displayed before content text.
  *
  * \code
  * EM_GETTITLETEXT
@@ -946,7 +946,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_SETTIPTEXT
- * \brief Sets the tip text displayed when content is empty.
+ * \brief Set the tip text displayed when content is empty.
  *
  * \code
  * EM_SETTIPTEXT
@@ -962,7 +962,7 @@ typedef int (*ED_DRAWSEL_FUNC) (HWND, HDC, int, int, const char*, int, int);
 
 /**
  * \def EM_GETTIPTEXT
- * \brief Gets the tip text displayed when content is empty.
+ * \brief Get the tip text displayed when content is empty.
  *
  * \code
  * EM_GETTIPTEXT
@@ -1002,14 +1002,14 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_GETNUMOFPARAGRAPHS
- * \brief Gets the number of paragraphs in textedit control.
+ * \brief Get the number of paragraphs in textedit control.
  *
  * \return The number of paragraphs.
  */
 #define EM_GETNUMOFPARAGRAPHS   0xF0E0
 /**
  * \def EM_GETPARAGRAPHLENGTH
- * \brief Gets the specified paragraph length in textedit control.
+ * \brief Get the specified paragraph length in textedit control.
  *
  * \code
  * EM_GETPARAGRAPHLENGTH
@@ -1021,7 +1021,7 @@ typedef struct _TEXTPOSINFO {
 #define EM_GETPARAGRAPHLENGTH  0xF0E1
 /**
  * \def EM_GETPARAGRAPHTEXT
- * \brief Gets the specified paragraph text from textedit control.
+ * \brief Get the specified paragraph text from textedit control.
  *
  * \code
  * EM_GETPARAGRAPHTEXT
@@ -1055,7 +1055,7 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_SETCARETPOSBYLINE
- * \brief Sets the selected point in the edit control and makes
+ * \brief Set the selected point in the edit control and makes
  *        the text between insertion point and selection point selected.
  *        This is set by really line. That means if you set the TES_AUTOWRAP,
  *        the line number you set, the caret pos line number you see. This is
@@ -1085,7 +1085,7 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_GETCARETPOSBYLINE
- * \brief Gets the position of the caret.
+ * \brief Get the position of the caret.
  *
  * \code
  * EM_GETCARETPOSBYLINE
@@ -1113,7 +1113,7 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_GETSELPOSBYLINE
- * \brief Gets the position of the selection point.
+ * \brief Get the position of the selection point.
  *
  * \code
  * EM_GETSELPOSBYLINE
@@ -1134,7 +1134,7 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_GETPARAGRAPHLENGTHINMCHAR
- * \brief Gets the specified paragraph length in textedit control.
+ * \brief Get the specified paragraph length in textedit control.
  * in text not charactors.
  *
  * \code
@@ -1148,7 +1148,7 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_GETLINELENGTHINMCHAR
- * \brief Gets the specified line length in textedit control.
+ * \brief Get the specified line length in textedit control.
  * in charactors not byte.
  *
  * \code
@@ -1162,7 +1162,7 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_GETLINELENGTH
- * \brief Gets the specified line length in textedit control.
+ * \brief Get the specified line length in textedit control.
  *
  * \code
  * EM_GETLINELENGTH
@@ -1175,7 +1175,7 @@ typedef struct _TEXTPOSINFO {
 
 /**
  * \def EM_GETLINETEXT
- * \brief Gets the specified line text from textedit control.
+ * \brief Get the specified line text from textedit control.
  *
  * \code
  * EM_GETLINETEXT

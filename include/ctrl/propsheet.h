@@ -126,7 +126,7 @@ extern "C" {
 
 /**
  * \def PSM_GETACTIVEPAGE
- * \brief Gets the handle of current active page.
+ * \brief Get the handle of current active page.
  *
  * Sends this message to retreive the propsheet window's active page.
  *
@@ -163,7 +163,7 @@ extern "C" {
 
 /**
  * \def PSM_GETPAGE
- * \brief Gets the handle of a page by index.
+ * \brief Get the handle of a page by index.
  *
  * Sends this message to retreive the handle to a page by index.
  *
@@ -183,7 +183,7 @@ extern "C" {
 
 /**
  * \def PSM_GETACTIVEINDEX
- * \brief Gets the index of the current active page.
+ * \brief Get the index of the current active page.
  *
  * Sends this message to retreive the index of the propsheet window's active page.
  *
@@ -200,7 +200,7 @@ extern "C" {
 
 /**
  * \def PSM_GETPAGEINDEX
- * \brief Gets the index of a page by handle.
+ * \brief Get the index of a page by handle.
  *
  * Sends this message to retreive the index to a page by handle.
  *
@@ -220,7 +220,7 @@ extern "C" {
 
 /**
  * \def PSM_GETPAGECOUNT
- * \brief Gets the number of pages of the propsheet.
+ * \brief Get the number of pages of the propsheet.
  *
  * Sends this message to retreive the number of pages currently in the propsheet.
  *
@@ -237,7 +237,7 @@ extern "C" {
 
 /**
  * \def PSM_GETTITLELENGTH
- * \brief Gets the length of a page title.
+ * \brief Get the length of a page title.
  *
  * Sends this message to retreive the title length of a page.
  *
@@ -257,7 +257,7 @@ extern "C" {
 
 /**
  * \def PSM_GETTITLE
- * \brief Gets a page title.
+ * \brief Get a page title.
  *
  * Sends this message to retreive the title of a page.
  *
@@ -279,7 +279,7 @@ extern "C" {
 
 /**
  * \def PSM_SETTITLE
- * \brief Sets a page title.
+ * \brief Set a page title.
  *
  * Sends this message to specify the title of a page.
  *

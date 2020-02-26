@@ -368,7 +368,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETSEL
- * \brief Gets the selected state for an specified item.
+ * \brief Get the selected state for an specified item.
  *
  * An application sends an LB_GETSEL message to a list box to get the selected
  * state for an item specified in the wParam parameter.
@@ -419,7 +419,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETCURSEL
- * \brief Gets the index of the currently selected or highlighted item.
+ * \brief Get the index of the currently selected or highlighted item.
  *
  * An application sends an LB_GETCURSEL message to a list box to get the index of
  * the currently selected item, if there is one, in a single-selection list box.
@@ -462,7 +462,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETTEXT
- * \brief Retrieves the text of an item in list box.
+ * \brief Retrieve the text of an item in list box.
  *
  * An application sends an LB_GETTEXT message to a list box to retrieve the text
  * of an item.
@@ -490,7 +490,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETTEXTLEN
- * \brief Gets the length of text of item specified in a list box.
+ * \brief Get the length of text of item specified in a list box.
  *
  * An application sends an LB_GETTEXTLEN message to a list box to get the length
  * of text of the item specified in the \a wParam parameter.
@@ -511,7 +511,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETCOUNT
- * \brief Gets the number of items in the list box.
+ * \brief Get the number of items in the list box.
  *
  * An application sends an LB_GETCOUNT message to a list box to get the number
  * of items in the list box.
@@ -541,7 +541,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETTOPINDEX
- * \brief Gets the index to the first visible item in the list box.
+ * \brief Get the index to the first visible item in the list box.
  *
  * An application sends an LB_GETTOPINDEX message to get the index to the first
  * visible item in the list box. Initially, the first visible item is item 0, but
@@ -586,7 +586,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETSELCOUNT
- * \brief Gets the number of selected items in a multiple-selection list box.
+ * \brief Get the number of selected items in a multiple-selection list box.
  *
  * An application sends an LB_GETSELCOUNT message to a list box to get the number
  * of selected items in a multiple-selection list box.
@@ -604,7 +604,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETSELITEMS
- * \brief Gets the numbers of selected items.
+ * \brief Get the numbers of selected items.
  *
  * An application sends an LB_GETSELITEMS message to a list box to fill a buffer
  * with an array of integers that specify the item numbers of selected items in
@@ -681,7 +681,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETITEMRECT
- * \brief Retrieves the dimensions of the rectangle.
+ * \brief Retrieve the dimensions of the rectangle.
  *
  * An application sends an LB_GETITEMRECT message to a list box to retrieve
  * the dimensions of the rectangle that bounds an item as it is currently
@@ -706,7 +706,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETITEMDATA
- * \brief Gets item data in a list box if the box has LBS_CHECKBOX
+ * \brief Get item data in a list box if the box has LBS_CHECKBOX
  *          and/or LBS_USEICON styles.
  *
  * An application sends LB_GETITEMDATA message to a list box to retrive the
@@ -735,7 +735,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_SETITEMDATA
- * \brief Sets item data in a list box if the box has LBS_CHECKBOX
+ * \brief Set item data in a list box if the box has LBS_CHECKBOX
  *          and/or LBS_USEICON styles.
  *
  * An application sends LB_SETITEMDATA message to a list box to set the
@@ -768,7 +768,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_SETCARETINDEX
- * \brief Sets the focus rectangle to the item at the specified index.
+ * \brief Set the focus rectangle to the item at the specified index.
  *
  * An application sends an LB_SETCARETINDEX message to set the focus rectangle
  * to the item at the specified index in a multiple-selection list box.
@@ -804,7 +804,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_SETITEMHEIGHT
- * \brief Sets the height of all items.
+ * \brief Set the height of all items.
  *
  * An application sends an LB_SETITEMHEIGHT message to set the height of
  * all items in a list box.
@@ -825,7 +825,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETITEMHEIGHT
- * \brief Gets the height in pixels of an item specified in the wParam parameter.
+ * \brief Get the height in pixels of an item specified in the wParam parameter.
  *
  * An application sends an LB_GETITEMHEIGHT message to a list box to get the
  * height in pixels of an item specified in the wParam parameter.
@@ -892,7 +892,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_SETTEXT
- * \brief Sets text of the specified item.
+ * \brief Set text of the specified item.
  *
  * \code
  * LB_SETTEXT
@@ -914,7 +914,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETCHECKMARK
- * \brief Gets check mark status of an item.
+ * \brief Get check mark status of an item.
  *
  * \code
  * LB_GETCHECKMARK
@@ -937,7 +937,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_SETCHECKMARK
- * \brief Sets check mark status of an item.
+ * \brief Set check mark status of an item.
  *
  * \code
  * LB_SETCHECKMARK
@@ -962,7 +962,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETITEMADDDATA
- * \brief Gets the 32-bit data value associated with an item.
+ * \brief Get the 32-bit data value associated with an item.
  *
  * An application sends an LB_GETITEMADDDATA message to a list box to get the
  * 32-bit data value the list box has stored for the item with index of
@@ -1012,7 +1012,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_SETSTRCMPFUNC
- * \brief Sets the STRCMP function used to sort items.
+ * \brief Set the STRCMP function used to sort items.
  *
  * An application sends an LB_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items.
@@ -1043,7 +1043,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_SETITEMDISABLE
- * \brief Sets the item disable.
+ * \brief Set the item disable.
  *
  * An application sends an LB_SETITEMDISABLE message to set a
  * item to disable.
@@ -1079,7 +1079,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_SETITEMBOLD
- * \brief Sets the item display use bold font.
+ * \brief Set the item display use bold font.
  *
  * An application sends an LB_SETITEMBOLD message to set a
  * item display use bold font.

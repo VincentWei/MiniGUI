@@ -1967,7 +1967,7 @@ static HWND dskGetActiveWindow (int* cli)
 }
 
 /*
- * Sets the active main window.
+ * Set the active main window.
  */
 static HWND dskSetActiveWindow (PMAINWIN pWin)
 {
