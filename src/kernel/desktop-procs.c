@@ -4377,8 +4377,8 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
         __mg_init_local_sys_text ();
         hDesktopDC = GetDC (HWND_DESKTOP);
 
-        if(dsk_ops->init)
-            dt_context = dsk_ops->init();
+        if (dsk_ops->init)
+            dt_context = dsk_ops->init (hDesktopDC);
 #ifdef _MGHAVE_MENU
         sg_DesktopMenu = srvCreateDesktopMenu ();
 #endif
@@ -4392,6 +4392,13 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
         sg_DesktopMenu = srvCreateDesktopMenu ();
 #endif
         SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
+        break;
+
+    case MSG_REINITDESKOPS:
+        if (dsk_ops->init) {
+            dt_context = dsk_ops->init (hDesktopDC);
+            SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
+        }
         break;
 
     case MSG_ENDSESSION:

@@ -2331,8 +2331,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         hDesktopDC = GetDC (HWND_DESKTOP);
 
         dsk_ops = &def_dsk_ops;
-        if(dsk_ops->init)
-            dt_context = dsk_ops->init();
+        if (dsk_ops->init)
+            dt_context = dsk_ops->init (hDesktopDC);
 #ifdef _MGHAVE_MENU
         sg_DesktopMenu = dskCreateDesktopMenu ();
 #endif
@@ -2352,6 +2352,13 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 #endif
 
         SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
+        break;
+
+    case MSG_REINITDESKOPS:
+        if (dsk_ops->init) {
+            dt_context = dsk_ops->init (hDesktopDC);
+            SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
+        }
         break;
 
     case MSG_ENDSESSION:

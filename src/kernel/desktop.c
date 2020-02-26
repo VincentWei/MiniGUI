@@ -4145,9 +4145,9 @@ static int dskGetBgPicturePos (void)
     return -1;
 }
 
-static PBITMAP dskLoadBgPicture (void)
+static PBITMAP dskLoadBgPicture (HDC hdc)
 {
-    return (PBITMAP)GetSystemBitmapEx (__mg_def_renderer->name,
+    return (PBITMAP)GetSystemBitmapEx2 (hdc, __mg_def_renderer->name,
             SYSBMP_BGPICTURE);
 }
 
@@ -4197,7 +4197,7 @@ static void dskGetBgPictureXY (int pos, int w, int h, int* x, int* y)
     }
 }
 
-static void* def_init(void)
+static void* def_init (HDC dc_desktop)
 {
     PBITMAP bg_bmp = NULL;
     int pic_x = 0, pic_y = 0;
@@ -4214,7 +4214,7 @@ static void* def_init(void)
     if (pos < 0)
         bg_bmp = NULL;
     else
-        bg_bmp = dskLoadBgPicture ();
+        bg_bmp = dskLoadBgPicture (dc_desktop);
 
     if (bg_bmp)
         dskGetBgPictureXY (pos,
@@ -4250,18 +4250,14 @@ DESKTOPOPS* GUIAPI SetCustomDesktopOperationSet (DESKTOPOPS* usr_dsk_ops)
     }
 
     if (dsk_ops->deinit) {
-        dsk_ops->deinit(dt_context);
-    }
-
-    if (usr_dsk_ops->init) {
-        dt_context = usr_dsk_ops->init();
+        dsk_ops->deinit (dt_context);
     }
 
     tmp_ops = dsk_ops;
     dsk_ops = usr_dsk_ops;
 
-    SendMessage(HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
-
+    /* Since 5.0.0 */
+    SendMessage (HWND_DESKTOP, MSG_REINITDESKOPS, 0, 0);
     return tmp_ops;
 }
 
