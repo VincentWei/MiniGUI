@@ -104,7 +104,7 @@ static void vt_switch_requested(int signo)
         return;
     }
 
-    /* Checks whether a switch is needed and not blocked */
+    /* Check whether a switch is needed and not blocked */
     if (console_active == console_should_be_active)
         return;
 

@@ -785,7 +785,7 @@ typedef LISTBOXITEMINFO* PLISTBOXITEMINFO;
 
 /**
  * \def LB_GETCARETINDEX
- * \brief Determines the index of the item that has the focus rectangle.
+ * \brief Determine the index of the item that has the focus rectangle.
  *
  * An application sends an LB_GETCARETINDEX message to a list box to determine
  * the index of the item that has the focus rectangle in a multiple-selection

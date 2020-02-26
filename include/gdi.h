@@ -1015,7 +1015,7 @@ MG_EXPORT BOOL GUIAPI SetClipRgn (PCLIPRGN pRgn, const RECT* pRect);
 
 /**
  * \fn BOOL GUIAPI IsEmptyClipRgn (const CLIPRGN* pRgn)
- * \brief Determines whether a region is an empty region.
+ * \brief Determine whether a region is an empty region.
  *
  * This function determines whether the region pointed to by \a pRgn is
  * an empty region.
@@ -1077,7 +1077,7 @@ MG_EXPORT BOOL GUIAPI SubtractClipRect (PCLIPRGN pRgn, const RECT* pRect);
 
 /**
  * \fn BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y)
- * \brief Determines whether a point is in a region.
+ * \brief Determine whether a point is in a region.
  *
  * This function determines whether a point \a (x,y) is in the region pointed
  * to by \a region.
@@ -1094,7 +1094,7 @@ MG_EXPORT BOOL GUIAPI PtInRegion (const PCLIPRGN region, int x, int y);
 
 /**
  * \fn BOOL GUIAPI RectInRegion (PCLIPRGN region, const RECT* rect)
- * \brief Determines whether a rectangle is intersected with a region.
+ * \brief Determine whether a rectangle is intersected with a region.
  *
  * This function determines whether the rect \a rect is intersected with
  * the region pointed to by \a region.
@@ -3519,7 +3519,7 @@ MG_EXPORT BOOL GUIAPI MonotoneVerticalPolygonGenerator (void* context,
 
 /**
  * \fn BOOL GUIAPI PolygonIsMonotoneVertical (const POINT* pts, int vertices)
- * \brief Checks a polygon is monotone vertical or not.
+ * \brief Check a polygon is monotone vertical or not.
  *
  * This function checks if the given polygon is monotone vertical.
  *
@@ -4696,7 +4696,7 @@ MG_EXPORT void GUIAPI IncludeClipRect (HDC hdc, const RECT* prc);
 
 /**
  * \fn BOOL GUIAPI PtVisible (HDC hdc, int x, int y)
- * \brief Checks whether a point is visible.
+ * \brief Check whether a point is visible.
  *
  * This function checks whether the point specified by \a (x,y) is visible, i.e.
  * it is within the current visible clipping region of the device context
@@ -4855,7 +4855,7 @@ MG_EXPORT void GUIAPI GetBoundsRect (HDC hdc, RECT* pRect);
 
 /**
  * \fn BOOL GUIAPI RectVisible (HDC hdc, const RECT* pRect)
- * \brief Checks whether the specified rectangle is visible.
+ * \brief Check whether the specified rectangle is visible.
  *
  * This function checks whether the rectangle pointed to by \a pRect is
  * visible, i.e. it is intersected with the current visible region of the
@@ -5780,7 +5780,7 @@ static inline void InflateRectToPt (RECT* prc, int x, int y)
 
 /**
  * \fn BOOL PtInRect(const RECT* prc, int x, int y)
- * \brief Determines whether a point lies within an rectangle.
+ * \brief Determine whether a point lies within an rectangle.
  *
  * This function determines whether the specified point \a (x,y) lies within
  * the specified rectangle \a prc.
@@ -5802,7 +5802,7 @@ static inline BOOL PtInRect(const RECT* prc, int x, int y)
 
 /**
  * \fn BOOL GUIAPI IsRectEmpty (const RECT* prc)
- * \brief Determines whether an rectangle is empty.
+ * \brief Determine whether an rectangle is empty.
  *
  * This function determines whether the specified rectangle \a prc is empty.
  * An empty rectangle is one that has no area; that is, the coordinates
@@ -5816,7 +5816,7 @@ MG_EXPORT BOOL GUIAPI IsRectEmpty (const RECT* prc);
 
 /**
  * \fn BOOL GUIAPI EqualRect (const RECT* prc1, const RECT* prc2)
- * \brief Determines whether two rectangles are equal.
+ * \brief Determine whether two rectangles are equal.
  *
  * This function determines whether the two specified rectangles
  * (\a prc1 and \a prc2) are equal by comparing the coordinates of
@@ -5864,7 +5864,7 @@ MG_EXPORT BOOL GUIAPI IntersectRect (RECT* pdrc,
 
 /**
  * \fn BOOL GUIAPI IsCovered (const RECT* prc1, const RECT* prc2)
- * \brief Determines whether one rectangle is covered by another.
+ * \brief Determine whether one rectangle is covered by another.
  *
  * This function determines whether one rectangle (\a prc1)
  * is covered by another rectangle (\a prc2).
@@ -5881,7 +5881,7 @@ MG_EXPORT BOOL GUIAPI IsCovered (const RECT* prc1, const RECT* prc2);
 
 /**
  * \fn BOOL GUIAPI DoesIntersect (const RECT* psrc1, const RECT* psrc2)
- * \brief Determines whether two rectangles intersect.
+ * \brief Determine whether two rectangles intersect.
  *
  * This function determines whether two rectangles (\a psrc1 and \a psrc2)
  * intersect.
@@ -10017,10 +10017,10 @@ MG_EXPORT Uchar32 GUIAPI UCharToFullSizeKana (Uchar32 uc);
 /** Converts a glyph to small Kana. */
 MG_EXPORT Uchar32 GUIAPI UCharToSmallKana (Uchar32 uc);
 
-/** Determines is the given Unicode character an Arabic vowel. */
+/** Determine is the given Unicode character an Arabic vowel. */
 MG_EXPORT BOOL GUIAPI UCharIsArabicVowel(Uchar32 uc);
 
-/** Determines the canonical combining class of a Unicode character.*/
+/** Determine the canonical combining class of a Unicode character.*/
 MG_EXPORT int GUIAPI UCharCombiningClass (Uchar32 uc);
 
 /**
@@ -10744,7 +10744,7 @@ typedef struct _DTFIRSTLINE
  *    Draws without clipping. \a DrawText is somewhat faster when DT_NOCLIP is
  *    used.
  *  - DT_CALCRECT\n
- *    Determines the width and the height of the rectangle. If there are
+ *    Determine the width and the height of the rectangle. If there are
  *    multiple lines of text, \a DrawText uses the width of the rectangle
  *    pointed to by the \a lpRect parameter and extends the base of the
  *    rectangle to bound the last line of text. If there is only one line of
@@ -11023,7 +11023,7 @@ MG_EXPORT BOOL GUIAPI RegisterBitmapFileType (const char *ext,
 
 /**
  * \fn const char* GUIAPI CheckBitmapType (MG_RWops* fp)
- * \brief Checks the type of the bitmap in a data source.
+ * \brief Check the type of the bitmap in a data source.
  *
  * This function checks the type of the bitmap in the data source \a fp,
  * and returns the extension of this type of bitmap file.

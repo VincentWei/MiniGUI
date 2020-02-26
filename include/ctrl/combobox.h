@@ -637,7 +637,7 @@ extern "C" {
 
 /**
  * \def CB_GETDROPPEDSTATE
- * \brief Determines whether the list box of a combo box is dropped down.
+ * \brief Determine whether the list box of a combo box is dropped down.
  *
  * \code
  * CB_GETIDROPSTATE
@@ -705,7 +705,7 @@ extern "C" {
 
 /**
  * \def CB_SETSPINRANGE
- * \brief Determines the range of the spin box in a combo box.
+ * \brief Determine the range of the spin box in a combo box.
  *
  * \code
  * CB_SETSPINRANGE
@@ -745,7 +745,7 @@ extern "C" {
 
 /**
  * \def CB_SETSPINVALUE
- * \brief Determines the value of the spin box in a combo box.
+ * \brief Determine the value of the spin box in a combo box.
  *
  * \code
  * CB_SETSPINVALUE
@@ -778,7 +778,7 @@ extern "C" {
 
 /**
  * \def CB_SETSPINPACE
- * \brief Determines the pace and the fast pace of the spin box in a combo box.
+ * \brief Determine the pace and the fast pace of the spin box in a combo box.
  *
  * \code
  * CB_SETSPINPACE

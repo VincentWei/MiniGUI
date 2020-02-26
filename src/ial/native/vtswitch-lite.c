@@ -157,7 +157,7 @@ static void vt_switch_requested(int signo)
 }
 
 /* poll_console_switch:
- *  Checks whether a switch is needed and not blocked; if so,
+ *  Check whether a switch is needed and not blocked; if so,
  *  makes the switch.
  */
 static void poll_console_switch (void)

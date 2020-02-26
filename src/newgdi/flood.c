@@ -151,7 +151,7 @@ static int flooder (FLOODER_INFO* fi, int x, int y)
 }
 
 /* check_flood_line:
- *  Checks a line segment, using the scratch buffer is to store a list of
+ *  Check a line segment, using the scratch buffer is to store a list of
  *  segments which have already been drawn in order to minimise the required
  *  number of tests.
  */
