@@ -57,10 +57,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef _MGRM_THREADS
-#include <pthread.h>
-#endif
-
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -70,11 +66,12 @@
 #include "sysres.h"
 #include "misc.h"
 #include "resmgr.h"
+#include "sysres.h"
 
 BOOL GUIAPI RegisterResFromFile (HDC hdc, const char* file)
 {
     if (!file) {
-        _WRN_PRINTF ("SYSRES>RegisterResFromFile: file is NULL\n");
+        _WRN_PRINTF ("file is NULL\n");
         return FALSE;
     }
 
@@ -84,47 +81,45 @@ BOOL GUIAPI RegisterResFromFile (HDC hdc, const char* file)
 BOOL GUIAPI RegisterResFromMem (HDC hdc, const char* file,
         const unsigned char* data, size_t data_size)
 {
-    if (!data || !file)
-    {
-        _WRN_PRINTF ("SYSRES>RegisterResFromMem: file or data is NULL\n");
+    if (!data || !file) {
+        _WRN_PRINTF ("file or data is NULL\n");
         return FALSE;
     }
 
     {
-    INNER_RES inner_res = {
-        Str2Key(file),
-        (void*)data,
-        data_size,
-        (void*)((char*)strrchr(file,'.')+1)
-    };
+        INNER_RES inner_res = {
+            Str2Key(file),
+            (void*)data,
+            data_size,
+            (void*)((char*)strrchr(file,'.')+1)
+        };
 
-    if(AddInnerRes(&inner_res, 1, TRUE) == 0)
-    {
-        return LoadResource(file, RES_TYPE_IMAGE, (DWORD)hdc) != NULL;
+        if (AddInnerRes(&inner_res, 1, TRUE) == 0) {
+            return LoadResource(file, RES_TYPE_IMAGE, (DWORD)hdc) != NULL;
+        }
     }
-    }
-    return 0;
+
+    return FALSE;
 }
 
 BOOL GUIAPI RegisterResFromBitmap (const char* file, const BITMAP* bmp)
 {
-    if (!bmp || !file)
-    {
-        _WRN_PRINTF ("SYSRES>RegisterResFromBitmap: file or bitmap is NULL\n");
+    if (!bmp || !file) {
+        _WRN_PRINTF ("file or bitmap is NULL\n");
         return FALSE;
     }
 
     {
-    INNER_RES inner_res = {
-        Str2Key(file),
-        (void*)bmp,
-        sizeof(BITMAP),
-        NULL
-    };
+        INNER_RES inner_res = {
+            Str2Key(file),
+            (void*)bmp,
+            sizeof(BITMAP),
+            NULL
+        };
 
-    if(AddInnerRes(&inner_res, 1, TRUE) == 0){
-        return LoadResource(file, RES_TYPE_IMAGE, 0) != NULL;
-    }
+        if (AddInnerRes(&inner_res, 1, TRUE) == 0){
+            return LoadResource(file, RES_TYPE_IMAGE, 0) != NULL;
+        }
     }
 
     return FALSE;
@@ -132,12 +127,12 @@ BOOL GUIAPI RegisterResFromBitmap (const char* file, const BITMAP* bmp)
 
 const BITMAP* GUIAPI RetrieveRes (const char *file)
 {
-    return (BITMAP*)GetResource(Str2Key(file));
+    return (BITMAP*)GetResource (Str2Key(file));
 }
 
 void GUIAPI UnregisterRes (const char* file)
 {
-    ReleaseRes(Str2Key(file));
+    ReleaseRes (Str2Key(file));
 }
 
 /****************************** System resource support *********************/
@@ -162,7 +157,7 @@ HICON GUIAPI LoadSystemIconEx (HDC hdc, const char* rdr_name,
 
     if (GetMgEtcValue (rdr->name, szItemName,
             iconname, sizeof(szValue)-(iconname-szValue)) < 0 ) {
-        _WRN_PRINTF ("SYSRES: can't get %s's value from section %s in etc.\n",
+        _WRN_PRINTF ("can't get %s's value from section %s in etc.\n",
                 szItemName, rdr->name);
         return 0;
     }
@@ -208,7 +203,7 @@ BOOL InitRendererSystemIcon (const char* rdr_name,
      */
     if (GetMgEtcValue (rdr_name, "iconnumber",
                             szValue, 10) < 0) {
-        _WRN_PRINTF ("SYSRES: can't get icon number for LFRDR %s.\n", rdr_name);
+        _WRN_PRINTF ("can't get icon number for LFRDR %s.\n", rdr_name);
         return FALSE;
     }
 
@@ -264,57 +259,134 @@ HICON GUIAPI LoadSystemIcon (const char* szItemName, int which)
     return LoadSystemIconEx (HDC_SCREEN, rdr->name, szItemName, which);
 }
 
+/* Since 5.0.0 */
 const BITMAP* GUIAPI
-GetSystemBitmapEx (const char* rdr_name, const char* id)
+GetSystemBitmapEx2 (HDC hdc, const char* rdr_name, const char* id)
 {
     char file[MAX_NAME + 1] = "bmp/";
-    char *filename = file + strlen(file);
+    char *filename = file + strlen (file);
+    char key [MAX_NAME + 64];
+    int nr_written;
+    Uint32 Rmask, Gmask, Bmask, Amask;
+    map_entry_t* entry;
 
-    if (GetMgEtcValue (rdr_name, id, filename, sizeof(file)-(filename-file)) < 0 ) {
-        _WRN_PRINTF ("SYSRES: Can't get bitmap file name for LFRDR %s: %s!\n",
+    if (GetMgEtcValue (rdr_name, id,
+                filename, sizeof(file)-(filename-file)) < 0 ) {
+        _WRN_PRINTF ("can't get bitmap file name for LFRDR %s: %s!\n",
                     rdr_name, id);
         return NULL;
     }
 
-    return LoadBitmapFromRes(HDC_SCREEN, file);
-
-}
-
-const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
-{
-    const WINDOWINFO* win_info;
-
-    if (hWnd == HWND_NULL) {
-        return NULL;//SystemBitmap + id;
+    /* XXX: we use the RGBA masks for different pixel formats.
+       This does not work for surface with pallete. */
+    Rmask = GetGDCapability (hdc, GDCAP_RMASK);
+    Gmask = GetGDCapability (hdc, GDCAP_GMASK);
+    Bmask = GetGDCapability (hdc, GDCAP_BMASK);
+    Amask = GetGDCapability (hdc, GDCAP_AMASK);
+    nr_written = snprintf (key, sizeof (key), "%s-%s-%x%x%x%x", file, id,
+            Rmask, Gmask, Bmask, Amask);
+    if (nr_written > sizeof (key)) {
+        _WRN_PRINTF ("key was truncated\n");
     }
 
-    win_info = GetWindowInfo(hWnd);
-    return GetSystemBitmapEx (win_info->we_rdr->name, id);
+    if ((entry = __mg_map_find (__mg_sys_bmp_map, key))) {
+        return (BITMAP*)entry->val;
+    }
+    else {
+        BITMAP* bmp;
+        MYBITMAP* mybmp;
+        RGB* pal;
+
+        if ((mybmp = LoadMyBitmapFromRes (file, &pal)) == NULL)
+            goto error;
+
+        bmp = malloc (sizeof (BITMAP));
+        if (ExpandMyBitmap (hdc, bmp, mybmp, pal, 0)) {
+            free (bmp);
+            goto error;
+        }
+
+        if (__mg_map_insert (__mg_sys_bmp_map, key, bmp)) {
+            UnloadBitmap (bmp);
+            free (bmp);
+            goto error;
+        }
+
+        return bmp;
+    }
+
+error:
+    return NULL;
 }
 
 const BITMAP* GUIAPI GetSystemBitmap (HWND hWnd, const char* id)
 {
+    HDC hdc;
+    const BITMAP* bmp;
     const WINDOWINFO* win_info;
 
     if (hWnd == HWND_NULL)
         return NULL;
 
-    win_info = GetWindowInfo(hWnd);
-    return GetSystemBitmapEx (win_info->we_rdr->name, id);
+    win_info = GetWindowInfo (hWnd);
+    
+    hdc = GetDC (hWnd);
+    bmp = GetSystemBitmapEx2 (hdc, win_info->we_rdr->name, id);
+    ReleaseDC (hdc);
+
+    return bmp;
 }
 
 BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name, const char* id)
 {
     char file[MAX_NAME + 1] = "bmp/";
     char* file_name;
+    char key [MAX_NAME + 64];
+    int nr_written;
+    Uint32 Rmask, Gmask, Bmask, Amask;
+    map_entry_t* entry;
 
-    file_name = file+strlen(file);
+    file_name = file + strlen(file);
 
-    if (GetMgEtcValue (rdr_name, id, file_name, sizeof(file)-(file_name - file)) < 0 )
+    if (GetMgEtcValue (rdr_name, id,
+                file_name, sizeof(file) - (file_name - file)) < 0)
         return FALSE;
 
-    if (!LoadBitmapFromRes (HDC_SCREEN, file))
-        return FALSE;
+    /* XXX: we use the RGBA masks for different pixel formats.
+       This does not work for surface with pallete. */
+    Rmask = GetGDCapability (hdc, GDCAP_RMASK);
+    Gmask = GetGDCapability (hdc, GDCAP_GMASK);
+    Bmask = GetGDCapability (hdc, GDCAP_BMASK);
+    Amask = GetGDCapability (hdc, GDCAP_AMASK);
+    nr_written = snprintf (key, sizeof (key), "%s-%s-%x%x%x%x", file, id,
+            Rmask, Gmask, Bmask, Amask);
+    if (nr_written > sizeof (key)) {
+        _WRN_PRINTF ("key was truncated\n");
+    }
+
+    if ((entry = __mg_map_find (__mg_sys_bmp_map, key))) {
+        return TRUE;
+    }
+    else {
+        BITMAP* bmp;
+        MYBITMAP* mybmp;
+        RGB* pal;
+
+        if ((mybmp = LoadMyBitmapFromRes (file, &pal)) == NULL)
+            return FALSE;
+
+        bmp = malloc (sizeof (BITMAP));
+        if (ExpandMyBitmap (hdc, bmp, mybmp, pal, 0)) {
+            free (bmp);
+            return FALSE;
+        }
+
+        if (__mg_map_insert (__mg_sys_bmp_map, key, bmp)) {
+            UnloadBitmap (bmp);
+            free (bmp);
+            return FALSE;
+        }
+    }
 
     return TRUE;
 }
@@ -323,12 +395,32 @@ void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name, const char* i
 {
     char file[MAX_NAME + 1] = "bmp/";
     char* filename = file + strlen(file);
+    char key [MAX_NAME + 64];
+    int nr_written;
+    Uint32 Rmask, Gmask, Bmask, Amask;
 
-    if (GetMgEtcValue (rdr_name, id, filename, sizeof(file)-(filename-file)) < 0 )
+    if (GetMgEtcValue (rdr_name, id,
+                filename, sizeof(file) - (filename - file)) < 0)
         return;
 
-    ReleaseRes(Str2Key(file));
+    /* XXX: we use the RGBA masks for different pixel formats.
+       This does not work for surface with pallete. */
+    Rmask = GetGDCapability (hdc, GDCAP_RMASK);
+    Gmask = GetGDCapability (hdc, GDCAP_GMASK);
+    Bmask = GetGDCapability (hdc, GDCAP_BMASK);
+    Amask = GetGDCapability (hdc, GDCAP_AMASK);
+    nr_written = snprintf (key, sizeof (key), "%s-%s-%x%x%x%x", file, id,
+            Rmask, Gmask, Bmask, Amask);
+    if (nr_written > sizeof (key)) {
+        _WRN_PRINTF ("key was truncated\n");
+    }
 
+    if (__mg_map_erase (__mg_sys_bmp_map, key)) {
+        _WRN_PRINTF ("not registered system bitmap: %s.%s\n", rdr_name, id);
+        return;
+    }
+
+    ReleaseRes (Str2Key (file));
 }
 
 /* The hash table size should be a prime. The following table gives all primes
@@ -366,4 +458,20 @@ void mg_TerminateSystemRes (void)
 {
     TerminateResManager();
 }
+
+#if 0   /* deprecated code */
+/* This function is redundant absolutely. Since 5.0.0, it is defined as an alias
+   of GetSystemBitmap. */
+const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
+{
+    const WINDOWINFO* win_info;
+
+    if (hWnd == HWND_NULL) {
+        return NULL;
+    }
+
+    win_info = GetWindowInfo(hWnd);
+    return GetSystemBitmapEx (win_info->we_rdr->name, id);
+}
+#endif  /* deprecated code */
 
