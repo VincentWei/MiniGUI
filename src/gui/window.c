@@ -4227,12 +4227,25 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     pWin->dwStyle       = pCreateInfo->dwStyle;
     pWin->dwExStyle     = pCreateInfo->dwExStyle;
 
-    /* Since 5.0.0: normalize the window styles */
-    pWin->dwStyle       &= ~WS_MAINWIN_ONLY_MASK;
+    /* Since 5.0.0: clear the control-only style bits */
+    pWin->dwStyle       &= ~WS_CONTROL_ONLY_MASK;
     if (pWin->dwExStyle & WS_EX_TOPMOST) {
         pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
         pWin->dwExStyle |= WS_EX_WINTYPE_HIGHER;
     }
+
+    /* Since 5.0.0: calculate the default postion */
+    if (pWin->dwStyle & WS_EX_AUTOPOSITION) {
+        SendMessage (HWND_DESKTOP, MSG_CALC_POSITION,
+                (WPARAM)pWin, (LPARAM)pCreateInfo);
+    }
+
+#ifdef __TARGET_FMSOFT__
+    pCreateInfo->lx += __mg_mainwin_offset_x;
+    pCreateInfo->rx += __mg_mainwin_offset_x;
+    pCreateInfo->ty += __mg_mainwin_offset_y;
+    pCreateInfo->by += __mg_mainwin_offset_y;
+#endif
 
 #ifdef _MGHAVE_MENU
     pWin->hMenu         = pCreateInfo->hMenu;
@@ -4327,13 +4340,6 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 
     /** reset menu size */
     ResetMenuSize ((HWND)pWin);
-
-#ifdef __TARGET_FMSOFT__
-    pCreateInfo->lx += __mg_mainwin_offset_x;
-    pCreateInfo->rx += __mg_mainwin_offset_x;
-    pCreateInfo->ty += __mg_mainwin_offset_y;
-    pCreateInfo->by += __mg_mainwin_offset_y;
-#endif
 
     SendMessage ((HWND)pWin, MSG_SIZECHANGING,
             (WPARAM)&pCreateInfo->lx, (LPARAM)&pWin->left);
@@ -5880,6 +5886,8 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     else
         pNewCtrl->spCaption = "";
 
+    /* Since 5.0.0: clear style bits for main window only */
+    dwStyle &= ~WS_MAINWIN_ONLY_MASK;
     pNewCtrl->dwStyle   = dwStyle | WS_CHILD | cci->dwStyle;
     pNewCtrl->dwExStyle = dwExStyle | cci->dwExStyle;
 
