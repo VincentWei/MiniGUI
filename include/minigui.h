@@ -2427,7 +2427,7 @@ int MiniGUIAppMain
 typedef struct _DESKTOPOPS {
 
     /** called when starting a new session, and return a context */
-    void* (*init) (void);
+    void* (*init) (HDC dc_desktop);
 
     /** called when terminating a seesion */
     void (*deinit) (void* context);
