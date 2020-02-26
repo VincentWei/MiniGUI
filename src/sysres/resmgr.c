@@ -487,7 +487,6 @@ void TerminateResManager()
 
     /* Since 5.0.0, destroy the map for system bitmaps */
     __mg_map_destroy (__mg_sys_bmp_map);
-
 }
 
 const char* __sysres_get_system_res_path()

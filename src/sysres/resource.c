@@ -386,6 +386,8 @@ BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name, const char* id)
             free (bmp);
             return FALSE;
         }
+
+        _DBG_PRINTF ("Registered system bitmap for key: %s\n", key);
     }
 
     return TRUE;
@@ -416,7 +418,7 @@ void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name, const char* i
     }
 
     if (__mg_map_erase (__mg_sys_bmp_map, key)) {
-        _WRN_PRINTF ("not registered system bitmap: %s.%s\n", rdr_name, id);
+        _WRN_PRINTF ("not registered system bitmap for key: %s\n", key);
         return;
     }
 

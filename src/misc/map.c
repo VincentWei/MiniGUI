@@ -101,8 +101,19 @@ map_t* __mg_map_create (copy_key_fn copy_key, free_key_fn free_key,
     if (!(map = calloc (1, sizeof(map_t))))
         return NULL;
 
+    map->copy_key = copy_key;
+    map->free_key = free_key;
+    map->copy_val = copy_val;
+    map->free_val = free_val;
+    map->comp_key = comp_key;
+
     WRLOCK_INIT (map);
     return map;
+}
+
+int __mg_map_get_size (map_t* map)
+{
+    return map->size;
 }
 
 int __mg_map_destroy (map_t* map)

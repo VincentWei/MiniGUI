@@ -85,6 +85,7 @@ map_entry_t* __mg_map_find (map_t* map, const void* key);
 int   __mg_map_insert (map_t* map, const void* key, const void* val);
 void* __mg_map_find_or_insert (map_t* map, const void* key, const void* val);
 int   __mg_map_erase (map_t* map, void* key);
+int   __mg_map_get_size (map_t* map);
 
 #ifdef __cplusplus
 }
