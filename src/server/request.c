@@ -343,6 +343,16 @@ ret:
     return ServerSendReply (clifd, &moved_info, sizeof (MOVEDCLIENTINFO));
 }
 
+static int calc_position (int cli, int clifd, void* buff, size_t len)
+{
+    CALCPOSINFO* info = (CALCPOSINFO*)buff;
+    RECT rc = info->rc;
+
+    SendMessage (HWND_DESKTOP, MSG_CALC_POSITION, (WPARAM)info, (LPARAM)&rc);
+
+    return ServerSendReply (clifd, &rc, sizeof (RECT));
+}
+
 static int create_cursor (int cli, int clifd, void* buff, size_t len)
 {
     HCURSOR hcsr;
@@ -853,6 +863,7 @@ static struct req_request {
     { NULL, 0 },
 #endif
     { move_to_layer, 0 },
+    { calc_position, 0 },
 };
 
 BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
