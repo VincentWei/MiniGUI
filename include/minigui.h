@@ -154,6 +154,12 @@ extern "C" {
 #define ZNIT_TOPMOST_TOOLWIN    (ZNIT_HIGHER_TOOLWIN)
 #define ZNIT_TOPMOST_CONTROL    (ZNIT_HIGHER_CONTROL)
 
+typedef struct _CalcPosInfo {
+    DWORD style;
+    DWORD ex_style;
+    RECT  rc;
+} CALCPOSINFO;
+
     /**
      * \defgroup rect_vars Global Rectangles
      * @{
@@ -1560,7 +1566,7 @@ typedef struct _CompositorOps {
      * a main window with the extended style WS_EX_AUTOPOSITION.
      */
     void (*calc_mainwin_pos) (CompositorCtxt* ctxt, MG_Layer* layer,
-            DWORD style, DWORD ex_style, RECT* rc_wnd);
+            DWORD zt_type, int first_for_type, CALCPOSINFO* info);
 
     /**
      * This operation will be called when there was a layer operation.
