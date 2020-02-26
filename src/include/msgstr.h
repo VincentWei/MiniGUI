@@ -397,7 +397,7 @@ char * __mg_msgstr3 [] =
     "MSG_UPDATECLIWIN",       // 0x0148
     "MSG_LAYERCHANGED",       // 0x0149
     "MSG_MANAGE_MSGTHREAD",   // 0x014A
-    "",                       // 0x014B
+    "MSG_CALC_POSITION",      // 0x014B
     "",                       // 0x014C
     "",                       // 0x014D
     "",                       // 0x014E
