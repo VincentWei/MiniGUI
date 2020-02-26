@@ -58,8 +58,8 @@
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
-#define WRLOCK_INIT(rwlock)     pthread_rwlock_init ((rwlock), NULL)
-#define WRLOCK_DESTROY(rwlock)  pthread_rwlock_destroy ((rwlock))
+#define WRLOCK_INIT(map)        pthread_rwlock_init (&(map)->rwlock, NULL)
+#define WRLOCK_DSTR(map)     pthread_rwlock_destroy (&(map)->rwlock)
 
 #define RDLOCK_MAP(map)         pthread_rwlock_rdlock (&(map)->rwlock)
 #define WRLOCK_MAP(map)         pthread_rwlock_wrlock (&(map)->rwlock)
@@ -101,7 +101,7 @@ map_t* __mg_map_create (copy_key_fn copy_key, free_key_fn free_key,
     if (!(map = calloc (1, sizeof(map_t))))
         return NULL;
 
-    WRLOCK_INIT (&map->rwlock);
+    WRLOCK_INIT (map);
     return map;
 }
 
@@ -112,7 +112,7 @@ int __mg_map_destroy (map_t* map)
 
     __mg_map_clear (map);
 
-    WRLOCK_DESTROY (&map->rwlock);
+    WRLOCK_DSTR (map);
 
     free (map);
     return 0;
