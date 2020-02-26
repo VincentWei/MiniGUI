@@ -329,7 +329,12 @@ PCTRLCLASSINFO gui_GetControlClassInfo (const char* szClassName)
 #endif  /* deprecated code */
 
     /* Since 5.0.0, we use Str2Key as the hash function */
+    while (szName[i]) {
+        szName[i] = toupper (szName[i]);
+        i++;
+    }
     i = HASH_KEY (szName);
+
     cci = ccitable [i];
     while (cci) {
 
@@ -443,7 +448,12 @@ int gui_AddNewControlClass (PWNDCLASS pWndClass)
 #endif  /* deprecated code */
 
     /* since 5.0.0, we use Str2Key as the hash function */
-    i = HASH_KEY(szClassName);
+    while (szClassName[i]) {
+        szClassName[i] = toupper (szClassName[i]);
+        i++;
+    }
+    i = HASH_KEY (szClassName);
+
     cci = ccitable [i];
     if (cci) {
 
@@ -454,7 +464,6 @@ int gui_AddNewControlClass (PWNDCLASS pWndClass)
             cci = cci->next;
         }
     }
-    cci = ccitable[i];
 
     newcci = malloc (sizeof (CTRLCLASSINFO));
 
@@ -474,6 +483,7 @@ int gui_AddNewControlClass (PWNDCLASS pWndClass)
     newcci->dwAddData   = pWndClass->dwAddData;
     newcci->nUseCount   = 0;
 
+    cci = ccitable [i];
     if (cci) {
         while (cci->next)
             cci = cci->next;
@@ -510,9 +520,13 @@ int gui_DeleteControlClass (const char* szClassName)
 #endif  /* deprecated code */
 
     /* Since 5.0.0, we use Str2Key as the hash function */
+    while (szName[i]) {
+        szName[i] = toupper (szName[i]);
+        i++;
+    }
     i = HASH_KEY (szName);
-    head = ccitable [i];
 
+    head = ccitable [i];
     cci = head;
     prev = head;
     while (cci) {
