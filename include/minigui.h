@@ -1556,6 +1556,13 @@ typedef struct _CompositorOps {
             int zidx, void* data);
 
     /**
+     * This operation calculate the default position and size for
+     * a main window with the extended style WS_EX_AUTOPOSITION.
+     */
+    void (*calc_mainwin_pos) (CompositorCtxt* ctxt, MG_Layer* layer,
+            DWORD style, DWORD ex_style, RECT* rc_wnd);
+
+    /**
      * This operation will be called when there was a layer operation.
      * For more information, please refer to \a OnChangeLayer.
      */
