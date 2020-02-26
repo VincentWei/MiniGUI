@@ -562,6 +562,49 @@ static void rebuild_wins_region (CompositorCtxt* ctxt)
     }
 }
 
+static void calc_mainwin_pos (CompositorCtxt* ctxt, MG_Layer* layer,
+            DWORD zt_type, int first_for_type, CALCPOSINFO* info)
+{
+    /* give a default size first */
+    if (IsRectEmpty (&info->rc)) {
+
+        info->rc.left = 0;
+        info->rc.top = 0;
+        if (info->ex_style & WS_EX_DIALOGBOX) {
+            info->rc.right = g_rcScr.right / 2;
+            info->rc.bottom = g_rcScr.bottom / 3;
+        }
+        else {
+            info->rc.right = g_rcScr.right / 2;
+            info->rc.bottom = g_rcScr.bottom;
+        }
+    }
+
+    if (info->ex_style & WS_EX_DIALOGBOX) {
+        // center the window vertically and horinzontally
+        int width = info->rc.right - info->rc.left;
+        int height = info->rc.bottom - info->rc.top;
+
+        OffsetRect (&info->rc, (g_rcScr.right - width) >> 1,
+                    (g_rcScr.bottom - height) >> 1);
+    }
+    else {
+        if (first_for_type == 0) {
+            info->rc.left = 0;
+            info->rc.top = 0;
+        }
+        else {
+            const ZNODEHEADER* znode_hdr;
+            znode_hdr =
+                ServerGetWinZNodeHeader (layer, first_for_type, NULL, FALSE);
+
+            info->rc = znode_hdr->rc;
+            OffsetRect (&info->rc,
+                    DEF_OVERLAPPED_OFFSET_X, DEF_OVERLAPPED_OFFSET_Y);
+        }
+    }
+}
+
 static void purge_ppp_data (CompositorCtxt* ctxt, int zidx, void* data)
 {
     EmptyClipRgn ((CLIPRGN*)data);
@@ -809,6 +852,7 @@ CompositorOps __mg_fallback_compositor = {
     initialize: initialize,
     terminate: terminate,
     refresh: refresh,
+    calc_mainwin_pos: calc_mainwin_pos,
     purge_ppp_data: purge_ppp_data,
     purge_win_data: purge_win_data,
     on_dirty_ppp: on_dirty_ppp,
