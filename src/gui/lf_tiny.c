@@ -1034,15 +1034,14 @@ static void draw_focus_frame (HDC hdc, const RECT *pRect, DWORD color)
 static int
 calc_we_area (HWND hWnd, int which, RECT* we_area);
 
-static void draw_normal_item
-(HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
+static void draw_normal_item (HWND hWnd, HDC hdc, const RECT* pRect, DWORD color)
 {
     RECT rc;
     const BITMAP* bg_bmp = NULL;
     const WINDOWINFO* win_info = GetWindowInfo (hWnd);
     gal_pixel old_bc;
 
-    bg_bmp = GetSystemBitmapEx (wnd_rdr_tiny.name, BGPIC_CUSTOM);
+    bg_bmp = GetSystemBitmapEx2 (hdc, wnd_rdr_tiny.name, BGPIC_CUSTOM);
 
     if (bg_bmp == NULL)
     {
@@ -1273,7 +1272,7 @@ static void draw_radio_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     const BITMAP* radio_bmp;
 
     radio_bmp =
-        GetSystemBitmapEx (wnd_rdr_tiny.name, SYSBMP_RADIOBUTTON);
+        GetSystemBitmapEx2 (hdc, wnd_rdr_tiny.name, SYSBMP_RADIOBUTTON);
 
     w = pRect->right - pRect->left;
     h = pRect->bottom - pRect->top;
@@ -1311,7 +1310,7 @@ static void draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     const BITMAP* check_bmp;
 
     check_bmp =
-        GetSystemBitmapEx (wnd_rdr_tiny.name, SYSBMP_CHECKBUTTON);
+        GetSystemBitmapEx2 (hdc, wnd_rdr_tiny.name, SYSBMP_CHECKBUTTON);
 
     w = pRect->right - pRect->left;
     h = pRect->bottom - pRect->top;
@@ -2678,13 +2677,11 @@ draw_custom_hotspot (HWND hWnd, HDC hdc, int ht_code, int state)
         }
     }
 
-    bg_bmp = GetSystemBitmapEx (wnd_rdr_tiny.name, BGPIC_CUSTOM);
-    if (NULL == bg_bmp)
-    {
+    bg_bmp = GetSystemBitmapEx2 (hdc, wnd_rdr_tiny.name, BGPIC_CUSTOM);
+    if (NULL == bg_bmp) {
         erase_bkgnd (hWnd, hdc, &rc);
     }
-    else
-    {
+    else {
         if (0 == calc_we_area (hWnd, HT_TINY_BTNBAR, &rc))
         {
             gui_fill_box_with_bitmap_part_except_incompatible (hdc, rc.left, rc.top, RECTW (rc),
@@ -3785,7 +3782,7 @@ erase_background (HWND hWnd, HDC hdc, const RECT *rect)
     PMAINWIN pWin;
 
     pWin = MG_GET_WINDOW_PTR (hWnd);
-    bg_bmp = GetSystemBitmapEx (wnd_rdr_tiny.name, BGPIC_CUSTOM);
+    bg_bmp = GetSystemBitmapEx2 (hdc, wnd_rdr_tiny.name, BGPIC_CUSTOM);
 
     if (bg_bmp){
         SelectClipRect (hdc, rect);

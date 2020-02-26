@@ -1348,7 +1348,7 @@ static void draw_radio_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     const BITMAP* radio_bmp;
 
     radio_bmp =
-        GetSystemBitmapEx (__mg_wnd_rdr_flat.name, SYSBMP_RADIOBUTTON);
+        GetSystemBitmapEx2 (hdc, __mg_wnd_rdr_flat.name, SYSBMP_RADIOBUTTON);
 
     /*
      * We do not scale the image, but restrict the output in the specified
@@ -1389,7 +1389,7 @@ static void draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status
     const BITMAP* check_bmp;
 
     check_bmp =
-        GetSystemBitmapEx (__mg_wnd_rdr_flat.name, SYSBMP_CHECKBUTTON);
+        GetSystemBitmapEx2 (hdc, __mg_wnd_rdr_flat.name, SYSBMP_CHECKBUTTON);
 
     /*
      * We do not scale the image, but restrict the output in the specified

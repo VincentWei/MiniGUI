@@ -1540,7 +1540,7 @@ static void
 draw_radio_button (HWND hWnd, HDC hdc, const RECT* pRect, int status)
 {
     const BITMAP* bmp =
-        GetSystemBitmapEx (wnd_rdr_fashion.name, SYSBMP_RADIOBUTTON);
+        GetSystemBitmapEx2 (hdc, wnd_rdr_fashion.name, SYSBMP_RADIOBUTTON);
 
     _draw_radio_button (hWnd, hdc, pRect, status, bmp);
 }
@@ -1549,7 +1549,7 @@ static void
 draw_check_button (HWND hWnd, HDC hdc, const RECT* pRect, int status)
 {
     const BITMAP* bmp =
-        GetSystemBitmapEx (wnd_rdr_fashion.name, SYSBMP_CHECKBUTTON);
+        GetSystemBitmapEx2 (hdc, wnd_rdr_fashion.name, SYSBMP_CHECKBUTTON);
 
     _draw_check_button (hdc, pRect, status, bmp);
 }
