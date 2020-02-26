@@ -12,7 +12,7 @@ if MG_MINIMALGDI
 libmisc_la_SOURCES = misc.c math.c rwops.c nposix.c
 else
 libmisc_la_SOURCES = misc.c systext.c rwops.c endianrw.c nposix.c clipboard.c \
-                math.c about.c license.c anon_file.c \
+                math.c about.c license.c anon_file.c rbtree.c map.c \
                 $(LITE_SRCS)
 endif
 
