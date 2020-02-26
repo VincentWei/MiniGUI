@@ -96,7 +96,7 @@ BOOL RegisterMenuButtonControl (void)
 #endif
     WndClass.WinProc     = MenuButtonCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 static BOOL mbInitMenuButtonData (MENUBTNDATA* mb_data, int len)

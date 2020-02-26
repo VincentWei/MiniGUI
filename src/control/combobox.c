@@ -102,7 +102,7 @@ BOOL RegisterComboBoxControl (void)
 #endif
     WndClass.WinProc     = ComboBoxCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 static LRESULT AutoSpinEditBoxProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

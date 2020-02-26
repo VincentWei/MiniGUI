@@ -360,7 +360,7 @@ BOOL RegisterStaticControl (void)
 #endif
     WndClass.WinProc     = StaticControlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #endif /* _MGCTRL_STATIC */

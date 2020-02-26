@@ -120,7 +120,7 @@ BOOL RegisterTreeViewControl (void)
 #endif
     WndClass.WinProc     = TreeViewCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 void TreeViewControlCleanup (void)

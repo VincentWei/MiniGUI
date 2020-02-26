@@ -223,8 +223,8 @@ PCONTROL gui_Control (HWND hWnd);   // check whether hWnd is control
                                 // and return pointer to control hWnd.
 
 /* Undisclosed APIs */
-MG_EXPORT int AddNewControlClass (PWNDCLASS pWndClass);
-MG_EXPORT BOOL SetWindowExStyle (HWND hWnd, DWORD dwExStyle);
+MG_EXPORT int gui_AddNewControlClass (PWNDCLASS pWndClass);
+MG_EXPORT BOOL gui_SetWindowExStyle (HWND hWnd, DWORD dwExStyle);
 
 #ifdef _DEBUG_CTRL
 void dbg_DumpCtrlClassInfoTable (void);

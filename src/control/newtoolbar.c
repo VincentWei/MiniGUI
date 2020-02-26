@@ -95,7 +95,7 @@ BOOL RegisterNewToolbarControl (void)
 #endif
     WndClass.WinProc     = NewToolbarCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 

@@ -2415,7 +2415,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         return dskBroadcastMessage ((PMSG)lParam);
 
     case MSG_REGISTERWNDCLASS:
-        return AddNewControlClass ((PWNDCLASS)lParam);
+        return gui_AddNewControlClass ((PWNDCLASS)lParam);
 
     case MSG_UNREGISTERWNDCLASS:
         return gui_DeleteControlClass ((const char*)lParam);

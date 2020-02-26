@@ -160,7 +160,7 @@ BOOL RegisterPropSheetControl (void)
     WndClass.iBkColor    = PIXEL_lightgray;
     WndClass.WinProc     = PropSheetCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 static int DefPSProc(HWND hwnd, int message, WPARAM wParam, LPARAM lParam);

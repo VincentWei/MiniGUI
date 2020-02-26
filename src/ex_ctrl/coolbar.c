@@ -90,7 +90,7 @@ BOOL RegisterCoolBarControl (void)
 #endif
     WndClass.WinProc     = CoolBarCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 static COOLBARITEMDATA* GetCurTag (int posx, int posy, PCOOLBARCTRL pdata)

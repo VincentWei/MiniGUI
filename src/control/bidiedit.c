@@ -114,7 +114,7 @@ BOOL RegisterBIDISLEditControl (void)
 #endif
     WndClass.WinProc     = SLEditCtrlProc;
 
-    if (AddNewControlClass (&WndClass) != ERR_OK)
+    if (gui_AddNewControlClass (&WndClass) != ERR_OK)
         return FALSE;
 
     return TRUE;

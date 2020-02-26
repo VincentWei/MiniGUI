@@ -84,7 +84,7 @@ BOOL RegisterAnimationControl (void)
 #endif
     WndClass.WinProc     = AnimationCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #define ANIM_STATUS_STOP        0

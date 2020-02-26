@@ -292,7 +292,7 @@ BOOL RegisterScrollWndControl (void)
 #endif
     WndClass.WinProc     = ScrollWndCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 /* ------------------------------------ container --------------------------- */
@@ -369,7 +369,7 @@ static BOOL RegisterContainer (void)
 #endif
     WndClass.WinProc     = DefaultContainerProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #endif /* _MGCTRL_SCROLLVIEW */

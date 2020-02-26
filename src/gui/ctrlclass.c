@@ -307,7 +307,7 @@ void mg_TerminateControlClass ()
 PCTRLCLASSINFO gui_GetControlClassInfo (const char* szClassName)
 {
     PCTRLCLASSINFO cci;
-    int i=0;
+    int i = 0;
     char szName [MAXLEN_CLASSNAME + 1];
 
     if (szClassName == NULL) return NULL;
@@ -385,7 +385,7 @@ int gui_ControlClassDataOp (int Operation, PWNDCLASS pWndClass)
     return ERR_OK;
 }
 
-int GetCtrlClassAddData (const char* szClassName, DWORD* pAddData)
+int gui_GetCtrlClassAddData (const char* szClassName, DWORD* pAddData)
 {
     PCTRLCLASSINFO cci;
 
@@ -399,7 +399,7 @@ int GetCtrlClassAddData (const char* szClassName, DWORD* pAddData)
     return ERR_CTRLCLASS_INVNAME;
 }
 
-int SetCtrlClassAddData (const char* szClassName, DWORD dwAddData)
+int gui_SetCtrlClassAddData (const char* szClassName, DWORD dwAddData)
 {
     PCTRLCLASSINFO cci;
 
@@ -413,7 +413,7 @@ int SetCtrlClassAddData (const char* szClassName, DWORD dwAddData)
     return ERR_CTRLCLASS_INVNAME;
 }
 
-int AddNewControlClass (PWNDCLASS pWndClass)
+int gui_AddNewControlClass (PWNDCLASS pWndClass)
 {
     PCTRLCLASSINFO cci, newcci;
     char szClassName [MAXLEN_CLASSNAME + 2];
@@ -541,7 +541,7 @@ void gui_EmptyControlClassInfoTable ()
     }
 }
 
-BOOL SetWindowExStyle (HWND hWnd, DWORD dwExStyle)
+BOOL gui_SetWindowExStyle (HWND hWnd, DWORD dwExStyle)
 {
     PMAINWIN pWin;
     PCONTROL pCtrl;

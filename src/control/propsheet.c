@@ -101,7 +101,7 @@ BOOL RegisterPropSheetControl (void)
 #endif
     WndClass.WinProc     = PropSheetCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 /**************************internal functions******************************/
