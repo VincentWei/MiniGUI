@@ -2138,6 +2138,9 @@ extern DWORD __mg_interval_time;
 #define MSG_ENDSESSION      0x00C2
 #define MSG_REINITSESSION   0x00C3
 
+/* Since 5.0.0 */
+#define MSG_REINITDESKOPS   0x00C4
+
 #define MSG_ERASEDESKTOP    0x00CE
 #define MSG_PAINTDESKTOP    0x00CF
 
@@ -5913,7 +5916,7 @@ MG_EXPORT BOOL GUIAPI RegisterResFromMem (HDC hdc, const char* file,
 MG_EXPORT BOOL GUIAPI RegisterResFromBitmap (const char* file, const BITMAP* bmp);
 
 /**
- * \fn MG_EXPORT const BITMAP* RetrieveRes (const char *file)
+ * \fn const BITMAP* RetrieveRes (const char *file)
  * \brief Get a BITMAP object from cache according to the specified resource
  * file name.
  *
@@ -5942,37 +5945,40 @@ MG_EXPORT const BITMAP* GUIAPI RetrieveRes (const char *file);
 MG_EXPORT void GUIAPI UnregisterRes (const char *file);
 
 /**
- * \fn BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name, \
- *                const char* id);
+ * \fn BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name,
+ *      const char* id);
  * \brief Register a device-dependent bitmap from id to BITMAP cache.
  *
- * This function load a device-dependent bitmap from id and register it to
- * BITMAP cache.
+ * This function loads a device-dependent bitmap for the specified window
+ * elemeent renderer named \a rdr_name and the identifier \a id, and registers
+ * it to the system BITMAP cache.
  *
  * \param hdc The device context.
  * \param rdr_name The name of window element renderer. NULL for default
  *        renderer.
- * \param id The id of system image.
+ * \param id The identifier of the system bitmap.
  *
  * \return TRUE on success, FALSE on error.
  *
+ * \sa UnregisterSystemBitmap
  */
 MG_EXPORT BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name,
         const char* id);
 
 /**
- * \fn void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name, \
- *                const char* id);
- * \brief Unregister a BITMAP object from BITMAP cache.
+ * \fn void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name,
+ *      const char* id);
+ * \brief Unregister a BITMAP object from the system BITMAP cache.
  *
- * This function unregister a BITMAP object from BITMAP cache.
+ * This function unregisters the BITMAP object identified by \a id for the
+ * window element renderer named by \a rdr_name.
  *
  * \param hdc The device context.
  * \param rdr_name The name of window element renderer. NULL for default
  *        renderer.
  * \param id The id of system image.
  *
- *
+ * \sa RegisterSystemBitmap
  */
 MG_EXPORT void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name,
         const char* id);
@@ -6294,23 +6300,41 @@ MG_EXPORT int AddResRef (RES_KEY key);
  */
 MG_EXPORT int ReleaseRes (RES_KEY key);
 
-#define LoadBitmapFromRes(hdc, res_name) \
-    (PBITMAP)LoadResource(res_name, RES_TYPE_IMAGE, (DWORD)hdc)
+#define LoadMyBitmapFromRes(res_name, pal)                      \
+    (MYBITMAP*)LoadResource(res_name,                           \
+            RES_TYPE_MYBITMAP, (DWORD)(pal))
 
-#define GetBitmapFromRes(key) (BITMAP*)GetResource(key)
+#define GetMyBitmapFromRes(key)                                 \
+    (MYBITMAP*)GetResource(key)
 
-#define GetIconFromRes(key) (HICON)GetResource(key)
+#define LoadBitmapFromRes(hdc, res_name)                        \
+    (BITMAP*)LoadResource(res_name, RES_TYPE_IMAGE, (DWORD)hdc)
+
+#define GetBitmapFromRes(key)                                   \
+    (BITMAP*)GetResource(key)
+
+#define GetIconFromRes(key)                                     \
+    (HICON)GetResource(key)
 
 #ifndef _MGHAVE_CURSOR
-#define GetCursorFromRes(key) (HCURSOR)GetResource(key)
+#define GetCursorFromRes(key)                                   \
+    (HCURSOR)GetResource(key)
 #endif
 
-#define GetEtcFromRes(key) (GHANDLE)GetResource(key)
+#define GetEtcFromRes(key)                                      \
+    (GHANDLE)GetResource(key)
 
-#define LoadLogicFontFromRes(font_name)  (PLOGFONT)LoadResource(font_name, RES_TYPE_FONT, 0)
-#define GetLogicFontFromRes(font_name)   (PLOGFONT)GetResource(Str2Key(font_name))
-#define ReleaseLogicFont(font)  ReleaseRes(((FONT_RES*)(font))->key)
-#define ReleaseLogicFontByName(font_name)  ReleaseRes(Str2Key(font_name))
+#define LoadLogicFontFromRes(font_name)                         \
+    (PLOGFONT)LoadResource(font_name, RES_TYPE_FONT, 0)
+
+#define GetLogicFontFromRes(font_name)                          \
+    (PLOGFONT)GetResource(Str2Key(font_name))
+
+#define ReleaseLogicFont(font)                                  \
+    ReleaseRes(((FONT_RES*)(font))->key)
+
+#define ReleaseLogicFontByName(font_name)                       \
+    ReleaseRes(Str2Key(font_name))
 
 /**
  * \fn RES_KEY Str2Key (const char* str);
@@ -8853,10 +8877,46 @@ static inline void GUIAPI ScrollWindow (HWND hWnd, int dx, int dy,
 #define SYSBMP_LOGO                "logo"
 
 /**
- * \fn MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name, const char* id)
+ * \fn const BITMAP* GUIAPI GetSystemBitmapEx2 (HDC hdc,
+ *      const char* rdr_name, const char* id)
  * \brief Retrieve the system bitmap object by identifier.
  *
- * This function returns the system bitmap object by its identifier.
+ * This function retrieves and returns the system bitmap object specified by
+ * the renderer name \a rdr_name and the identifier \a id. This function
+ * returns the BITMAP object which is compliant to the specified device context
+ * \a hdc.
+ *
+ * \param hdc The handle to the device context.
+ * \param rdr_name The renderer name.
+ * \param id The identifier of the system bitmap object, can be
+ *           one of the following values:
+ *
+ *      - SYSBMP_RADIOBUTTON\n
+ *      - SYSBMP_CHECKBUTTON\n
+ *      - SYSBMP_BGPICTURE\n
+ *
+ * \return The pointer to the system bitmap object.
+ *
+ * \note Since 5.0.0, if you use the compositing schema, a main window may
+ *  use a private surface which is not compliant to the screen surface. Under
+ *  this situation, you should use this function to load the system bitmap
+ *  object instead of using \a GetSystemBitmapEx.
+ *
+ * \sa GetSystemBitmapEx
+ *
+ * Since 5.0.0.
+ */
+MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapEx2 (HDC hdc,
+        const char* rdr_name, const char* id);
+
+/**
+ * \fn const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name,
+ *      const char* id)
+ * \brief Retrieve the system bitmap object by identifier.
+ *
+ * This function retrieves and returns the system bitmap object by the renderer
+ * name \a rdr_name and the identifier \a id. This function returns a BITMAP
+ * object which complies which is compliant to HDC_SCREEN.
  *
  * \param rdr_name The renderer name.
  * \param id The identifier of the system bitmap object, can be
@@ -8870,38 +8930,22 @@ static inline void GUIAPI ScrollWindow (HWND hWnd, int dx, int dy,
  *
  * \sa GetLargeSystemIcon, GetSmallSystemIcon
  */
-MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name,
-        const char* id);
-
-/**
- * \fn PBITMAP GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
- * \brief Retrieve the system bitmap object by identifier.
- *
- * This function returns the system bitmap object by its identifier.
- *
- * \param hWnd The handle to the window.
- * \param id The identifier of the system bitmap object, can be
- * one of the following values:
- *
- *      - SYSBMP_RADIOBUTTON\n
- *      - SYSBMP_CHECKBUTTON\n
- *      - SYSBMP_BGPICTURE\n
- *
- * \return The pointer to the system bitmap object.
- *
- * \sa GetLargeSystemIcon, GetSmallSystemIcon
- */
-MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id);
+static inline const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name,
+        const char* id)
+{
+    return GetSystemBitmapEx2 (HDC_SCREEN, rdr_name, id);
+}
 
 /**
  * \fn PBITMAP GUIAPI GetSystemBitmap (HWND hWnd, const char* id)
  * \brief Retrieve the system bitmap object by identifier.
  *
- * This function returns the system bitmap object by its identifier.
+ * This function retrieves and returns the system bitmap object by
+ * its identifier \a id for the specified window \a hWnd.
  *
  * \param hWnd The handle to the window.
  * \param id The identifier of the system bitmap object, can be
- * one of the following values:
+ *  one of the following values:
  *
  *      - SYSBMP_RADIOBUTTON\n
  *      - SYSBMP_CHECKBUTTON\n
@@ -8909,9 +8953,17 @@ MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
  *
  * \return The pointer to the system bitmap object.
  *
- * \sa GetLargeSystemIcon, GetSmallSystemIcon
+ * \sa GetSystemBitmapEx2
  */
 MG_EXPORT const BITMAP* GUIAPI GetSystemBitmap (HWND hWnd, const char* id);
+
+/**
+ * \def GetSystemBitmapByHwnd(hWnd, id)
+ * \brief An alias of GetSystemBitmap.
+ *
+ * \sa GetSystemBitmap
+ */
+#define GetSystemBitmapByHwnd(hWnd, id) GetSystemBitmap ((hWnd), (id))
 
 /**
  * \fn void GUIAPI TermSystemBitmapEx (const char* id, \
@@ -8985,7 +9037,7 @@ MG_EXPORT void GUIAPI TermSystemBitmap (HWND hWnd, const char* id, PBITMAP bmp);
  *
  * \return The handle to the loaded icon.
  *
- * \sa LoadSystemBitmap, LoadIconFromFile, DestroyIcon
+ * \sa LoadIconFromFile, DestroyIcon
  */
 MG_EXPORT HICON GUIAPI LoadSystemIconEx (HDC hdc,
         const char* rdr_name, const char* szItemName, int which);
@@ -9002,7 +9054,7 @@ MG_EXPORT HICON GUIAPI LoadSystemIconEx (HDC hdc,
  *
  * \return The handle to the loaded icon.
  *
- * \sa LoadSystemBitmap, LoadIconFromFile, DestroyIcon
+ * \sa LoadIconFromFile, DestroyIcon
  */
 MG_EXPORT HICON GUIAPI LoadSystemIcon (const char* szItemName, int which);
 
