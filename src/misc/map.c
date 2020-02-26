@@ -246,7 +246,7 @@ int __mg_map_insert (map_t* map, const void* key, const void* val)
         if (map->comp_key)
             ret = map->comp_key (key, (*pentry)->key);
         else
-            ret = (int)((intptr_t)key - (intptr_t)entry->key);
+            ret = (int)((intptr_t)key - (intptr_t)(*pentry)->key);
 
         parent = *pentry;
         if (ret < 0)
