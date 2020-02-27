@@ -666,7 +666,7 @@ leave_drawing:
 
 #endif // #if MGUI_BYTEORDER == MGUI_LIL_ENDIAN
 
-static inline HDC get_valid_dc (PMAINWIN pWin, BOOL client)
+static inline HDC get_effective_dc (PMAINWIN pWin, BOOL client)
 {
     if (!(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
             && (pWin->pMainWin->secondaryDC)) {
@@ -690,7 +690,7 @@ static inline HDC get_valid_dc (PMAINWIN pWin, BOOL client)
     }
 }
 
-static inline void release_valid_dc (PMAINWIN pWin, HDC hdc)
+static inline void release_effective_dc (PMAINWIN pWin, HDC hdc)
 {
     if (pWin->pMainWin->secondaryDC) {
         if (pWin->privCDC != hdc)

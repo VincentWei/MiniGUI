@@ -717,7 +717,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //client dc would be diffirent, so we must get the scondaryDC,
     //the update to client dc (dongjunjie 2010/7/28)
     //hdc = GetClientDC ((HWND)pWin);
-    hdc = get_valid_dc (pWin, TRUE);
+    hdc = get_effective_dc (pWin, TRUE);
 
 #ifndef _MGSCHEMA_COMPOSITING
     pcrc = kernel_GetGCRgnInfo ((HWND)pWin)->crgn.head;
@@ -770,7 +770,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
         __mg_update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
         ReleaseDC (real_dc);
     }
-    release_valid_dc(pWin, hdc);
+    release_effective_dc(pWin, hdc);
 
     GetClientRect((HWND)pWin, &rcClient);
 

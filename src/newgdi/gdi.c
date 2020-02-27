@@ -2723,10 +2723,10 @@ HDC GUIAPI GetSecondaryDC (HWND hwnd)
         return pWin->secondaryDC;
     }
     else if (pWin->pMainWin->secondaryDC){
-        return get_valid_dc (pWin, FALSE);
+        return get_effective_dc (pWin, FALSE);
     }
 #else
-    return get_valid_dc (pWin, TRUE);
+    return get_effective_dc (pWin, TRUE);
 #endif
     return HDC_SCREEN;
 }
@@ -2736,7 +2736,7 @@ HDC GUIAPI GetSecondaryClientDC (HWND hwnd)
     PMAINWIN pWin;
     pWin = MG_GET_WINDOW_PTR (hwnd);
 
-    return get_valid_dc (pWin, TRUE);
+    return get_effective_dc (pWin, TRUE);
 }
 
 void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc)
@@ -2747,7 +2747,7 @@ void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc)
 
     if (MG_IS_MAIN_WINDOW(hwnd) && pWin->secondaryDC == hdc)
         return ;
-    release_valid_dc (pWin, hdc);
+    release_effective_dc (pWin, hdc);
 }
 
 BOOL dc_GenerateMemDCECRgn(PDC pdc, BOOL fForce)

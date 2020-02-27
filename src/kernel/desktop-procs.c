@@ -2524,7 +2524,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //BUGFIX: if the MainWindow is AutoSecondaryDC, the secondaryDC and
     //client dc would be diffirent, so we must get the scondaryDC,
     //the update to client dc (dongjunjie 2010/7/28)
-    hdc = get_valid_dc(pWin, TRUE);
+    hdc = get_effective_dc(pWin, TRUE);
 
     pcrc = kernel_GetGCRgnInfo ((HWND)pWin)->crgn.head;
     while (pcrc) {
@@ -2565,7 +2565,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
         __mg_update_secondary_dc(pWin, hdc, real_dc, pswi->rc1, HT_CLIENT);
         ReleaseDC (real_dc);
     }
-    release_valid_dc(pWin, hdc);
+    release_effective_dc(pWin, hdc);
 
     GetClientRect((HWND)pWin, &rcClient);
 

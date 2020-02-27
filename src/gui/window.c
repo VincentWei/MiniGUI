@@ -896,7 +896,7 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
 
     if(hdc == 0)
     {
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         fGetDC = TRUE;
     }
 
@@ -923,7 +923,7 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
         if (pWin->pMainWin->secondaryDC) {
             draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
         }
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
         return TRUE;
     }
 
@@ -1098,7 +1098,7 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
     }
 
     default:
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
         return FALSE;
     }
 
@@ -1113,7 +1113,7 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
     }
 
     if (fGetDC)
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
 
     pWin->hscroll.status &= ~_status;
     pWin->vscroll.status &= ~_status;
@@ -1505,21 +1505,21 @@ static void wndHandleCustomHotspot (PMAINWIN pWin,
         movePos = location;
         hilitePos = HT_UNKNOWN;
 
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         if (rdr->draw_custom_hotspot)
             rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
                     LFRDR_BTN_STATUS_PRESSED);
         if (pWin->pMainWin->secondaryDC) {
             draw_secondary_nc_area (pWin, rdr, hdc, location);
         }
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
 
         if (rdr->on_click_hotspot)
             rdr->on_click_hotspot ((HWND)pWin, location);
         break;
 
     case MSG_NCLBUTTONUP:
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         if (rdr->draw_custom_hotspot && (downPos != HT_UNKNOWN)) {
             rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
                     LFRDR_BTN_STATUS_NORMAL);
@@ -1527,7 +1527,7 @@ static void wndHandleCustomHotspot (PMAINWIN pWin,
         if (pWin->pMainWin->secondaryDC) {
             draw_secondary_nc_area (pWin, rdr, hdc, location);
         }
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
 
         downPos = HT_UNKNOWN;
         movePos = HT_UNKNOWN;
@@ -1535,7 +1535,7 @@ static void wndHandleCustomHotspot (PMAINWIN pWin,
         break;
 
     case MSG_NCMOUSEMOVE:
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         if (downPos != HT_UNKNOWN) {
             if (rdr->draw_custom_hotspot) {
                 if (movePos == downPos && location != downPos)
@@ -1565,7 +1565,7 @@ static void wndHandleCustomHotspot (PMAINWIN pWin,
         if (pWin->pMainWin->secondaryDC) {
             draw_secondary_nc_area (pWin, rdr, hdc, location);
         }
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
 
         break;
     }
@@ -2270,7 +2270,7 @@ static void wndEraseBackground(const PMAINWIN pWin,
         GetWindowInfo ((HWND)pWin)->we_rdr;
 
     if (hdc == 0) {
-        hdc = get_valid_dc ((PMAINWIN)pWin, TRUE);
+        hdc = get_effective_dc ((PMAINWIN)pWin, TRUE);
         fGetDC = TRUE;
     }
 
@@ -2304,7 +2304,7 @@ static void wndEraseBackground(const PMAINWIN pWin,
 #endif
 
     if (fGetDC) {
-        release_valid_dc ((PMAINWIN)pWin, hdc);
+        release_effective_dc ((PMAINWIN)pWin, hdc);
     }
 }
 
@@ -2320,7 +2320,7 @@ static void wndDrawNCFrame(MAINWIN* pWin, HDC hdc, const RECT* prcInvalid)
         return;
 
     if (hdc == 0) {
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         fGetDC = TRUE;
     }
 
@@ -2384,7 +2384,7 @@ static void wndDrawNCFrame(MAINWIN* pWin, HDC hdc, const RECT* prcInvalid)
 #endif
 
     if (fGetDC)
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
 }
 
 /* this function is CONTROL safe. */
@@ -2393,7 +2393,7 @@ static void wndActiveMainWindow (PMAINWIN pWin, BOOL fActive)
     HDC hdc;
     const WINDOWINFO  *wnd_info;
 
-    hdc = get_valid_dc (pWin, FALSE);
+    hdc = get_effective_dc (pWin, FALSE);
     wnd_info = GetWindowInfo ((HWND)pWin);
 
     wnd_info->we_rdr->draw_caption ((HWND)pWin, hdc, fActive);
@@ -2410,7 +2410,7 @@ static void wndActiveMainWindow (PMAINWIN pWin, BOOL fActive)
         draw_secondary_nc_area (pWin, wnd_info->we_rdr, hdc, HT_BORDER);
     }
 
-    release_valid_dc (pWin, hdc);
+    release_effective_dc (pWin, hdc);
 }
 
 static LRESULT DefaultPaintMsgHandler(PMAINWIN pWin, UINT message,
@@ -2520,7 +2520,7 @@ static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
 #ifdef _MGRM_PROCESSES
         SendMessage (HWND_DESKTOP, MSG_CHANGECAPTION, (WPARAM) pWin, 0L);
 #endif
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         info = GetWindowInfo ((HWND)pWin);
         SetRectEmpty (&rc);
 
@@ -2556,7 +2556,7 @@ static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
         if (info->we_rdr->draw_custom_hotspot)
             info->we_rdr->draw_custom_hotspot ((HWND)pWin, hdc, 0, 0);
 #endif
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
         break;
     }
 
@@ -5306,12 +5306,12 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
                 InvalidateRect (hWnd, NULL, TRUE);
             else {
                 HDC hdc;
-                hdc = get_valid_dc ((PMAINWIN)pParent, TRUE);
+                hdc = get_effective_dc ((PMAINWIN)pParent, TRUE);
                 BitBlt (hdc, pCtrl->left, pCtrl->top,
                         pCtrl->right - pCtrl->left,
                         pCtrl->bottom - pCtrl->top,
                         hdc, rcResult.left, rcResult.top, 0);
-                release_valid_dc ((PMAINWIN)pParent, hdc);
+                release_effective_dc ((PMAINWIN)pParent, hdc);
             }
             /* set to invisible temporarily. */
             /* FIXME: need more optimization. */
@@ -5370,11 +5370,11 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
                     }
                     else {
                         HDC hdc;
-                        hdc = get_valid_dc ((PMAINWIN)pParent, TRUE);
+                        hdc = get_effective_dc ((PMAINWIN)pParent, TRUE);
                         BitBlt (hdc, rcWindow.left, rcWindow.top,
                                 RECTW(rcWindow), RECTH(rcWindow),
                                 hdc, rcResult.left, rcResult.top, 0);
-                        release_valid_dc ((PMAINWIN)pParent, hdc);
+                        release_effective_dc ((PMAINWIN)pParent, hdc);
 
                         for(pChild = pCtrl->next; pChild; pChild = pChild->next) {
                             if(!(pChild->dwStyle & WS_VISIBLE)
@@ -5661,7 +5661,7 @@ HDC GUIAPI BeginPaint (HWND hWnd)
         pWin->pCaretInfo->fBlink = TRUE;
     }
 
-    hdc = get_valid_dc (pWin, TRUE);
+    hdc = get_effective_dc (pWin, TRUE);
 
 #if 0
     /* FIXME: why do this? */
@@ -5762,7 +5762,7 @@ void GUIAPI EndPaint (HWND hWnd, HDC hdc)
         }
     }
 
-    release_valid_dc (pWin, hdc);
+    release_effective_dc (pWin, hdc);
 
     /* privCDC is not need Release, but need clear lcrgn.*/
     if (pWin->dwExStyle & WS_EX_USEPRIVATECDC)
@@ -6502,7 +6502,7 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
         HDC hdc;
         const WINDOW_ELEMENT_RENDERER* rdr;
 
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         rdr = GetWindowInfo ((HWND)pWin)->we_rdr;
         rdr ->draw_caption ((HWND)pWin, hdc,
                 !(pWin->dwStyle & WS_DISABLED) && (GetActiveWindow () == hWnd));
@@ -6510,7 +6510,7 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
         if (pWin->pMainWin->secondaryDC) {
             draw_secondary_nc_area (pWin, rdr, hdc, HT_CAPTION);
         }
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
     }
     return hOld;
 }

@@ -156,11 +156,12 @@ tab2space() {
 # sed -i 's/\<Determines\>/Determine/g' `grep '\<Determines\>' -rl include/ src/`
 # sed -i 's/\<Checks\>/Check/g' `grep '\<Checks\>' -rl include/ src/`
 
-sed -i 's/\<SetWindowExStyle\>/gui_SetWindowExStyle/g' `grep '\<SetWindowExStyle\>' -rl include/ src/`
-sed -i 's/\<AddNewControlClass\>/gui_AddNewControlClass/g' `grep '\<AddNewControlClass\>' -rl include/ src/`
-sed -i 's/\<SetCtrlClassAddData\>/gui_SetCtrlClassAddData/g' `grep '\<SetCtrlClassAddData\>' -rl include/ src/`
-sed -i 's/\<GetCtrlClassAddData\>/gui_GetCtrlClassAddData/g' `grep '\<GetCtrlClassAddData\>' -rl include/ src/`
+#sed -i 's/\<SetWindowExStyle\>/gui_SetWindowExStyle/g' `grep '\<SetWindowExStyle\>' -rl include/ src/`
+#sed -i 's/\<AddNewControlClass\>/gui_AddNewControlClass/g' `grep '\<AddNewControlClass\>' -rl include/ src/`
+#sed -i 's/\<SetCtrlClassAddData\>/gui_SetCtrlClassAddData/g' `grep '\<SetCtrlClassAddData\>' -rl include/ src/`
+#sed -i 's/\<GetCtrlClassAddData\>/gui_GetCtrlClassAddData/g' `grep '\<GetCtrlClassAddData\>' -rl include/ src/`
 
-# sed -i 's/\<AAA\>/gui_AAA/g' `grep '\<AAA\>' -rl include/ src/`
+sed -i 's/\<get_valid_dc\>/get_effective_dc/g' `grep '\<get_valid_dc\>' -rl include/ src/`
+sed -i 's/\<release_valid_dc\>/release_effective_dc/g' `grep '\<release_valid_dc\>' -rl include/ src/`
 
 exit 0
