@@ -4492,7 +4492,7 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  *
  * Since 5.0.0.
  */
-#define WS_EX_WINTYPE_LAUNCHER      0x00000006L
+#define WS_EX_WINTYPE_LAUNCHER      0x00000007L
 
     /** @} end of main_window_type_styles */
 
