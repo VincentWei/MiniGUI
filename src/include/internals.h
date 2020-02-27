@@ -692,6 +692,9 @@ static inline PMSGQUEUE getMsgQueue (HWND hWnd)
 MSGQUEUE* mg_AllocMsgQueueForThisThread (void);
 void mg_FreeMsgQueueForThisThread (void);
 
+/* Since 5.0.0 */
+int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd);
+
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
 #define TEST_CANCEL pthread_testcancel()
