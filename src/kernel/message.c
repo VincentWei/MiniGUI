@@ -1435,14 +1435,10 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
     return lRet;
 }
 
-/* define this to print debug info of ThrowAwayMessages */
-/* #define _DEBUG_TAM 1 */
-#undef _DEBUG_TAM
-
-int GUIAPI ThrowAwayMessages (HWND hWnd)
+int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 {
+    PMAINWIN    pMainWin = NULL;
     PMSG        pMsg;
-    PMSGQUEUE   pMsgQueue = NULL;
     PQMSG       pQMsg;
     int         nCountN = 0;
     int         nCountS = 0;
@@ -1450,17 +1446,10 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     int         readpos;
     int         slot;
 
-    if (hWnd && hWnd != HWND_INVALID) {
-        PMAINWIN pWin = (PMAINWIN)hWnd;
-        if (pWin->DataType == TYPE_HWND || pWin->DataType == TYPE_WINTODEL) {
-            pMsgQueue = pWin->pMainWin->pMsgQueue;
-        }
-    }
-
-    if (pMsgQueue == NULL)
-        return ERR_INV_HWND;
-
     LOCK_MSGQ (pMsgQueue);
+
+    if (MG_IS_MAIN_WINDOW (hWnd))
+        pMainWin = (PMAINWIN)hWnd;
 
     if (pMsgQueue->pFirstNotifyMsg) {
         pQMsg = pMsgQueue->pFirstNotifyMsg;
@@ -1468,8 +1457,8 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
         while (pQMsg) {
             pMsg = &pQMsg->Msg;
 
-            if (pMsg->hwnd == hWnd || gui_GetMainWindowPtrOfControl (pMsg->hwnd)
-                    == (PMAINWIN)hWnd) {
+            if (pMsg->hwnd == hWnd ||
+                    gui_GetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
                 pMsg->hwnd = HWND_INVALID;
                 nCountN ++;
             }
@@ -1478,9 +1467,8 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
         }
     }
 
-#ifdef _DEBUG_TAM
-    printf ("ThrowAwayMessages: %d notification messages thrown\n", nCountN);
-#endif
+    _DBG_PRINTF ("%d notification messages thrown for window: %p\n",
+            nCountN, hWnd);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     if (pMsgQueue->pFirstSyncMsg) {
@@ -1490,8 +1478,8 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
         while (pSyncMsg) {
             pMsg = &pSyncMsg->Msg;
 
-            if (pMsg->hwnd == hWnd || gui_GetMainWindowPtrOfControl (pMsg->hwnd)
-                            == (PMAINWIN)hWnd) {
+            if (pMsg->hwnd == hWnd ||
+                    gui_GetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
                 pMsg->hwnd = HWND_INVALID;
                 nCountS ++;
 
@@ -1519,41 +1507,31 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
         }
     }
 
-#ifdef _DEBUG_TAM
-    printf ("ThrowAwayMessages: %d sync messages thrown\n", nCountS);
-#endif
-
-#endif
+    _DBG_PRINTF ("%d sync messages thrown for window %p\n", nCountS, hWnd);
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
     readpos = pMsgQueue->readpos;
     while (readpos != pMsgQueue->writepos) {
         pMsg = pMsgQueue->msg + readpos;
 
-        if (pMsg->hwnd == hWnd
-                || gui_GetMainWindowPtrOfControl (pMsg->hwnd) == (PMAINWIN)hWnd) {
+        if (pMsg->hwnd == hWnd ||
+                gui_GetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
             pMsg->hwnd = HWND_INVALID;
             nCountP ++;
         }
 
         readpos++;
-#if 0
-        if (readpos >= pMsgQueue->len) readpos = 0;
-#else
         readpos %= pMsgQueue->len;
-#endif
     }
 
-#ifdef _DEBUG_TAM
-    printf ("ThrowAwayMessages: %d post messages thrown\n", nCountP);
-#endif
+    _DBG_PRINTF ("%d post messages thrown for window %p\n", nCountP, hWnd);
 
     /* clear timer message flags of this window */
     for (slot = 0; slot < DEF_NR_TIMERS; slot++) {
         if (pMsgQueue->expired_timer_mask & (0x01UL << slot)) {
             HWND timer_wnd = pMsgQueue->timer_slots [slot]->hWnd;
-            if (timer_wnd == hWnd
-                    || (MG_IS_MAIN_VIRT_WINDOW (hWnd) &&
-                        gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd)) {
+            if (timer_wnd == hWnd ||
+                     gui_GetMainWindowPtrOfControl (timer_wnd) == pMainWin) {
                 pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
             }
         }
@@ -1562,6 +1540,23 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     UNLOCK_MSGQ (pMsgQueue);
 
     return nCountN + nCountS + nCountP;
+}
+
+int GUIAPI ThrowAwayMessages (HWND hWnd)
+{
+    PMSGQUEUE pMsgQueue = NULL;
+
+    if (hWnd && hWnd != HWND_INVALID) {
+        PMAINWIN pWin = (PMAINWIN)hWnd;
+        if (pWin->DataType == TYPE_HWND || pWin->DataType == TYPE_WINTODEL) {
+            pMsgQueue = pWin->pMainWin->pMsgQueue;
+        }
+    }
+
+    if (pMsgQueue == NULL)
+        return ERR_INV_HWND;
+
+    return __mg_throw_away_messages (pMsgQueue, hWnd);
 }
 
 #ifndef _MGHAVE_VIRTUAL_WINDOW
@@ -1696,7 +1691,8 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return SyncMsg.retval;
 }
 
-LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg,
+        WPARAM wParam, LPARAM lParam)
 {
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
     if (getMainWinIfWindowInThisThread(hWnd))
@@ -1705,7 +1701,8 @@ LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
     return SendSyncMessage (hWnd, msg, wParam, lParam);
 }
 
-LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam)
 {
     WNDPROC WndProc;
 
