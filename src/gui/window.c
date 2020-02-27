@@ -3713,8 +3713,6 @@ static void guiAddNewHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
     }
     else
         pHosting->pFirstHosted = pHosted;
-
-    return;
 }
 
 /* moved here from desktop.c; can be used on virtual window */
@@ -3725,21 +3723,30 @@ static void guiRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
     head = pHosting->pFirstHosted;
     if (head == pHosted) {
         pHosting->pFirstHosted = head->pNextHosted;
-        return;
     }
-
-    while (head) {
-        prev = head;
-        head = head->pNextHosted;
-
-        if (head == pHosted) {
-            prev->pNextHosted = head->pNextHosted;
-            return;
+    else {
+        while (head) {
+            prev = head;
+            head = head->pNextHosted;
+            if (head == pHosted) {
+                prev->pNextHosted = head->pNextHosted;
+                break;
+            }
         }
     }
 
-    return;
+#if 1   /* debug code */
+    head = pHosting->pFirstHosted;
+    while (head) {
+        if (head == pHosted) {
+            assert (0);
+        }
+
+        head = head->pNextHosted;
+    }
+#endif  /* debug code */
 }
+
 /************************* Support for virtual window ************************/
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
@@ -3910,6 +3917,11 @@ err:
         pMsgQueue->pRootMainWin = NULL;
         assert (pMsgQueue->nrWindows == 0);
     }
+
+    /* Since 5.0.0: we must throw away the messages for this window, because
+       there are some messages, have been put into the message queue.
+       Or DispatchMessage will panic. */
+    __mg_throw_away_messages (pMsgQueue, (HWND)pVirtWin);
 
     free (pVirtWin);
     return HWND_INVALID;
@@ -4364,10 +4376,6 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     pWin->pGCRInfo = &pWin->GCRInfo;
 #endif
 
-    /* handle hosting relationship */
-    if (pWin->pHosting)
-        guiAddNewHostedMainWindow (pWin->pHosting, pWin);
-
     if (SendMessage (HWND_DESKTOP, MSG_ADDNEWMAINWIN,
             (WPARAM)pWin, (LPARAM)&ct_info) < 0)
         goto err;
@@ -4384,9 +4392,13 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
      * child windows. */
     if (SendMessage ((HWND)pWin, MSG_CREATE,
                 (WPARAM)pWin->pHosting, (LPARAM)pCreateInfo)) {
-        SendMessage(HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)pWin, 0);
+        SendMessage (HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)pWin, 0);
         goto err;
     }
+
+    /* handle hosting relationship after the main window was created at last */
+    if (pWin->pHosting)
+        guiAddNewHostedMainWindow (pWin->pHosting, pWin);
 
 #if 0
     /* Create private client dc. */
@@ -4416,9 +4428,6 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     return (HWND)pWin;
 
 err:
-    if (pWin->pHosting)
-        guiRemoveHostedMainWindow (pWin->pHosting, pWin);
-
 #ifdef _MGSCHEMA_COMPOSITING
     if (pWin->surf)
         GAL_FreeSurface (pWin->surf);
@@ -4430,6 +4439,11 @@ err:
         pWin->pMsgQueue->pRootMainWin = NULL;
         assert (pWin->pMsgQueue->nrWindows == 0);
     }
+
+    /* Since 5.0.0: we must throw away the messages for this window, because
+       there are some messages, e.g., MSG_CSIZECHANGED, have been put into
+       the message queue.  Or DispatchMessage will panic. */
+    __mg_throw_away_messages (pWin->pMsgQueue, (HWND)pWin);
 
     free (pWin);
     return HWND_INVALID;
@@ -6050,9 +6064,10 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
         goto error;
     }
 
-    //set ctrl as main
-    if(pNewCtrl->dwExStyle & WS_EX_CTRLASMAINWIN){
-        pNewCtrl->next_ctrl_as_main = (PCONTROL)pNewCtrl->pMainWin->hFirstChildAsMainWin;
+    // set ctrl acts as main window
+    if (pNewCtrl->dwExStyle & WS_EX_CTRLASMAINWIN) {
+        pNewCtrl->next_ctrl_as_main =
+            (PCONTROL)pNewCtrl->pMainWin->hFirstChildAsMainWin;
         pMainWin->hFirstChildAsMainWin = (HWND) pNewCtrl;
     }
 
@@ -6093,6 +6108,12 @@ error:
             free (pNewCtrl->pGCRInfo);
 #endif
     }
+
+    /* Since 5.0.0: we must throw away the messages for this window, because
+       there are some messages, have been put into the message queue.
+       Or DispatchMessage will panic. */
+    __mg_throw_away_messages (pMainWin->pMsgQueue, (HWND)pNewCtrl);
+
     free (pNewCtrl);
 
     return HWND_INVALID;
