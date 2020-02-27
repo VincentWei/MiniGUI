@@ -4360,7 +4360,7 @@ static int mTextEditor_onChar(mTextEditor *self, WPARAM eucCode, DWORD keyFlags)
     if (!TE_VALID_OBJ(self) || _read_only(self) || (keyFlags & KS_CTRL))
         return 0;
 
-    if(eucCode == 127 || eucCode == '\b') {
+    if (eucCode == 127 || eucCode == '\b') {
         _remove_chars(self, TRUE);
         return 0;
     }
