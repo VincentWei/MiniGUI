@@ -140,7 +140,8 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         switch (me->event) {
         case ME_MOVED:
             Msg.message = MSG_MOUSEMOVE;
-            SetCursor (GetSystemCursor (IDC_ARROW));
+            /* Since 5.0.0, do not call SetCursor here. */
+            //SetCursor (GetSystemCursor (IDC_ARROW));
             break;
         case ME_LEFTDOWN:
             Msg.message = MSG_LBUTTONDOWN;
