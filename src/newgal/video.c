@@ -931,6 +931,8 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
         if (this->SyncUpdate) {
             rc = this->SyncUpdate (this);
         }
+
+        _DBG_PRINTF ("%d rects updated\n", numrects);
     }
 
     EmptyClipRgn (&surface->update_region);
