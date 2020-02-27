@@ -452,7 +452,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         if (fShow) {
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-            GAL_SyncUpdate (cur_pdc->surface);
+            //GAL_SyncUpdate (cur_pdc->surface);
         }
     }
     else {
@@ -470,7 +470,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
             if (fShow) {
                 GAL_UpdateRect (cur_pdc->surface,
                                 prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-                GAL_SyncUpdate (cur_pdc->surface);
+                //GAL_SyncUpdate (cur_pdc->surface);
             }
             return;
         }
@@ -483,8 +483,9 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         }
 
         if (fShow) {
-            GAL_UpdateRect (cur_pdc->surface, prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-            GAL_SyncUpdate (cur_pdc->surface);
+            GAL_UpdateRect (cur_pdc->surface, prc->left, prc->top,
+                    RECTWP(prc), RECTHP(prc));
+            //GAL_SyncUpdate (cur_pdc->surface);
         }
     }
 }

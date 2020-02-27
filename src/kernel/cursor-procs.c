@@ -935,7 +935,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
             showcursor ();
         }
 
-        GAL_SyncUpdate (__gal_screen);
+        // GAL_SyncUpdate (__gal_screen);
         UNLOCK_CURSOR_SEM ();
 #else /* _MGSCHEMA_SHAREDFB */
         CSR_CURSORX = curx;
@@ -944,7 +944,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
             if (csr_bmp.bmBits) {
                 hidecursor ();
                 showcursor ();
-                GAL_SyncUpdate (__gal_screen);
+                // GAL_SyncUpdate (__gal_screen);
             }
             else {
                 PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
@@ -1113,7 +1113,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         else {
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-            GAL_SyncUpdate (cur_pdc->surface);
+            // GAL_SyncUpdate (cur_pdc->surface);
             UNLOCK_CURSOR_SEM ();
         }
     }
@@ -1153,9 +1153,9 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         }
     }
     else {
-        // For surface other than screen, we call SyncUpdate.
         GAL_UpdateRect (cur_pdc->surface,
                         prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+        // For surface other than screen, we call SyncUpdate.
         GAL_SyncUpdate (cur_pdc->surface);
     }
 }

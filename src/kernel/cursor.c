@@ -448,15 +448,15 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
 
     if (nShowCount >= 0 && pCurCsr) {
         hidecursor();
-        GAL_SyncUpdate (__gal_screen);
     }
 
     pCurCsr = pcsr;
 
     if (nShowCount >= 0 && pCurCsr) {
         showcursor();
-        GAL_SyncUpdate (__gal_screen);
     }
+
+    GAL_SyncUpdate (__gal_screen);
 
     pthread_mutex_unlock(&__mg_mouselock);
     pthread_mutex_unlock(&__mg_gdilock);
@@ -476,7 +476,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
         if (fShow) {
             GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-            GAL_SyncUpdate (cur_pdc->surface);
+            // GAL_SyncUpdate (cur_pdc->surface);
         }
     }
     else {
@@ -498,7 +498,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
                 GAL_UpdateRect (cur_pdc->surface,
                                 prc->left, prc->top, RECTWP(prc), RECTHP(prc));
                 pthread_mutex_unlock(&__mg_mouselock);
-                GAL_SyncUpdate (cur_pdc->surface);
+                // GAL_SyncUpdate (cur_pdc->surface);
             }
             return;
         }
@@ -515,7 +515,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
             pthread_mutex_unlock(&__mg_mouselock);
 
-            GAL_SyncUpdate (cur_pdc->surface);
+            // GAL_SyncUpdate (cur_pdc->surface);
         }
     }
 }
@@ -621,7 +621,7 @@ BOOL kernel_RefreshCursor(int* x, int* y, int* button)
 
 /* Cursor position. */
 
-void GUIAPI GetCursorPos(POINT* ppt)
+void GUIAPI GetCursorPos (POINT* ppt)
 {
     pthread_mutex_lock (&__mg_mouselock);
     ppt->x = __mg_cursor_x;
