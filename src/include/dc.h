@@ -697,8 +697,9 @@ static inline void release_valid_dc (PMAINWIN pWin, HDC hdc)
             ReleaseSecondarySubDC (hdc);
     }
     else {
-        if (pWin->privCDC != hdc)
-            ReleaseDC (hdc);
+        // Since 5.0.0, we always call ReleaseDC even if it is private CDC.
+        // if (pWin->privCDC != hdc)
+        ReleaseDC (hdc);
     }
 }
 
