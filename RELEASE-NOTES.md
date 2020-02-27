@@ -20,7 +20,7 @@ exciting features for MiniGUI:
      on modern desktop computers or smart phones to MiniGUI.
    - New main window types/levels. You now can easily create main windows
      in different z-order levels. This enhancement allows us to create
-     special an app which acts as screen lock, docker, or launcher.
+     a special app which acts as screen lock, docker, or launcher.
    - Virtual Window. You now can easily create message threads under all
      runtime modes to exploit the messaging mechanism of MiniGUI in
      non GUI threads - we call them message threads.
@@ -41,6 +41,8 @@ exciting features for MiniGUI:
      from a bitmap file.
    - Unified the message hook functions for all runtime modes. MiniGUI now
      provides the consistent message hook functions for all runtime modes.
+   - Use the update regions for cumulative updating the screen. This will
+     emilinate the flickers due to the frequently redrawning of controls.
 * ADJUSTMENTS:
    - `g_rcScr` now is defined a macro calling function `GetScreenRect()`.
    - `mgIsServer` now is define a macro calling function `IsServer()`.
@@ -54,8 +56,8 @@ exciting features for MiniGUI:
 The following new features will be developed in the successive versions of
 4.9.x:
 
-- Enhance DRM engine to support compositing schema and MiniGUI-Processes
-  runtime mode.
+- Enhance DRM engine to support MiniGUI-Processes runtime mode and the
+  compositing schema.
 - Enhance other frequently-used GAL engines to support compositing schema.
 - Provide a customized compositor which provides window animation effects as
   an example in `mg-demos`.
