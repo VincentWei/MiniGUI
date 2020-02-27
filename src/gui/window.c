@@ -771,8 +771,6 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
                     secondary_dc, real_dc, update_rc, &clip_rc, &clip_rc);
         }
     }
-
-    //SyncUpdateDC (real_dc);
 }
 
 static void draw_secondary_nc_area (PMAINWIN pWin,
@@ -5746,6 +5744,8 @@ HDC GUIAPI BeginPaint (HWND hWnd)
     return hdc;
 }
 
+/* Since 5.0.0
+   Call SyncUpdateDC only in EndPaint can eliminate flickers effectively. */
 void GUIAPI EndPaint (HWND hWnd, HDC hdc)
 {
     BOOL synced = FALSE;
