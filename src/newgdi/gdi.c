@@ -2289,13 +2289,11 @@ void GUIAPI ReleaseDC (HDC hDC)
 
     pdc = dc_HDC2PDC(hDC);
 
-    /* Call SyncUpdateDC at the end of EndPaint to elimiate flickers.
-    if (pdc->bIsClient) {
-        LOCK (&__mg_gdilock);
-        GAL_SyncUpdate (pdc->surface);
-        UNLOCK (&__mg_gdilock);
-    }
-    */
+    /* Only call SyncUpdateDC when releasing a DC.
+       This will emilinate flickers effectively. */
+    LOCK (&__mg_gdilock);
+    GAL_SyncUpdate (pdc->surface);
+    UNLOCK (&__mg_gdilock);
 
     pWin = (PMAINWIN)(pdc->hwnd);
     if (pWin && pWin->privCDC == hDC) {
