@@ -1046,7 +1046,6 @@ static LRESULT MouseMessageHandler (UINT message, WPARAM flags, int x, int y)
                                     MSG_MOUSEACTIVE, 0, 0);
             }
 
-
             PostMessage ((HWND)pUnderPointer, message + MSG_DT_MOUSEOFF,
                             flags, MAKELONG (x, y));
 
