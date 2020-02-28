@@ -305,29 +305,24 @@ static inline BOOL dc_IsVisible (PDC pdc)
 {
     PCONTROL pCtrl;
 
-#if 0
-    if (pdc->DCType != TYPE_GENDC)
-        return TRUE;
-#else
     if (pdc->DCType != TYPE_GENDC) {
         if (dc_IsMemDC(pdc)){
-            if (!pdc->hwnd) return TRUE;
+            if (!pdc->hwnd)
+                return TRUE;
         }
         else
             return TRUE;
     }
-#endif
 
     if (pdc->hwnd == HWND_DESKTOP)
         return TRUE;
-
-    MG_CHECK_RET (MG_IS_WINDOW(pdc->hwnd), FALSE);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(pdc->hwnd), FALSE);
 
     pCtrl = (PCONTROL)(pdc->hwnd);
-
     do {
-        if (!(pCtrl->dwStyle & WS_VISIBLE))
+        if (!(pCtrl->dwStyle & WS_VISIBLE)) {
             return FALSE;
+        }
 
         pCtrl = pCtrl->pParent;
     } while (pCtrl);
