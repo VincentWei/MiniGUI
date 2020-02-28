@@ -481,7 +481,7 @@ typedef struct _MAINWIN
      * Fields to manage the relationship among main windows and controls.
      */
     HWND hParent;           // the parent of this window.
-                            // for main window, always be HWND_DESKTOP.
+                            // for main window, always be HWND_NULL.
 
     HWND hFirstChild;       // the handle of first child window.
     HWND hActiveChild;      // the currently active child window.
@@ -573,12 +573,6 @@ void mg_TerminateDesktop (void);
 /* send MSG_IME_OPEN/CLOSE message to ime window */
 void __gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd);
 
-/* return main window contains hWnd. */
-PMAINWIN gui_GetMainWindowPtrOfControl (HWND hWnd);
-
-/* check whether hWnd is main window and return pointer to main window hWnd. */
-PMAINWIN gui_CheckAndGetMainWindowPtr (HWND hWnd);
-
 PMAINWIN gui_GetMainWindowPtrUnderPoint (int x, int y);
 
 /* return the next window need to repaint. */
@@ -622,11 +616,21 @@ extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
         (hWnd && hWnd != HWND_INVALID &&                    \
          ((PMAINWIN)hWnd)->DataType == TYPE_HWND)
 
-/* hWnd a normal window, not including HWND_DESKTOP */
-#define MG_IS_NORMAL_WINDOW(hWnd)                           \
-        (hWnd != HWND_DESKTOP && MG_IS_WINDOW(hWnd))
+/* Whether hWnd is an window created by app */
+#define MG_IS_APP_WINDOW(hWnd)                              \
+        (hWnd && hWnd != HWND_INVALID &&                    \
+         hWnd != HWND_DESKTOP &&                            \
+         ((PMAINWIN)hWnd)->DataType == TYPE_HWND)
 
-/* Whether hWnd is a main window */
+/* Changede since 5.0.0.
+   Whether hWnd is a normal window (a main window or a control),
+   not including HWND_DESKTOP */
+#define MG_IS_NORMAL_WINDOW(hWnd)                           \
+        (MG_IS_WINDOW(hWnd) && hWnd != HWND_DESKTOP &&      \
+         (((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN ||      \
+          ((PMAINWIN)hWnd)->WinType == TYPE_CONTROL))
+
+/* Whether hWnd is a main window, including HWND_DESKTOP */
 #define MG_IS_MAIN_WINDOW(hWnd)                             \
         (MG_IS_WINDOW(hWnd) &&                              \
          ((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN)
@@ -636,6 +640,11 @@ extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
         (MG_IS_WINDOW(hWnd) &&                              \
          ((PMAINWIN)hWnd)->WinType == TYPE_VIRTWIN)
 
+/* Whether hWnd is a control window */
+#define MG_IS_CONTROL_WINDOW(hWnd)                          \
+        (MG_IS_WINDOW(hWnd) &&                              \
+         ((PMAINWIN)hWnd)->WinType == TYPE_CONTROL)
+
 /* Whether hWnd is a main window or a virtual window */
 #define MG_IS_MAIN_VIRT_WINDOW(hWnd)                        \
         (MG_IS_WINDOW(hWnd) &&                              \
@@ -644,7 +653,7 @@ extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
 
 /* Whether hWnd is a main window or a control */
 #define MG_IS_NOT_VIRT_WINDOW(hWnd)                         \
-        (MG_IS_WINDOW(hWnd) &&                              \
+        (MG_IS_WINDOW(hWnd) && hWnd != HWND_DESKTOP         \
          (((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN ||      \
           ((PMAINWIN)hWnd)->WinType == TYPE_CONTROL))
 
@@ -652,8 +661,18 @@ extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
         (hWnd != HWND_DESKTOP && MG_IS_MAIN_WINDOW(hWnd))
 
 #define MG_IS_DESTROYED_WINDOW(hWnd)                        \
-        (hWnd && (hWnd != HWND_INVALID) &&                  \
+        (hWnd && hWnd != HWND_INVALID &&                    \
          (((PMAINWIN)hWnd)->DataType == TYPE_WINTODEL))
+
+#define MG_IS_DESTROYED_MAIN_WINDOW(hWnd)                   \
+        (hWnd && hWnd != HWND_INVALID &&                    \
+         (((PMAINWIN)hWnd)->DataType == TYPE_WINTODEL) &&   \
+         (((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN))
+
+#define MG_IS_DESTROYED_VIRT_WINDOW(hWnd)                   \
+        (hWnd && hWnd != HWND_INVALID &&                    \
+         (((PMAINWIN)hWnd)->DataType == TYPE_WINTODEL) &&   \
+         (((PMAINWIN)hWnd)->WinType == TYPE_VIRTWIN))
 
 #define MG_GET_WINDOW_PTR(hWnd)             ((PMAINWIN)hWnd)
 #define MG_GET_MAIN_WINDOW_PTR(hWnd)        ((PMAINWIN)hWnd)
@@ -665,6 +684,24 @@ extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
 
 #define MG_CHECK(condition)                                 \
             if (!(condition)) return
+
+/* check whether hWnd is a main window and return the pointer to it. */
+static inline PMAINWIN checkAndGetMainWindowPtrOfMainWin (HWND hWnd)
+{
+    MG_CHECK_RET (MG_IS_NORMAL_MAIN_WINDOW (hWnd), NULL);
+    return MG_GET_WINDOW_PTR (hWnd);
+}
+
+/* return main window contains a control. */
+static inline PMAINWIN checkAndGetMainWindowPtrOfControl (HWND hWnd)
+{
+    PMAINWIN pWin;
+
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), NULL);
+    pWin = MG_GET_WINDOW_PTR (hWnd);
+
+    return pWin->pMainWin;
+}
 
 /* get main window pointer of a window, including desktop window */
 static inline PMAINWIN getMainWindowPtr (HWND hWnd)
