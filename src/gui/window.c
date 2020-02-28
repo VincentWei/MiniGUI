@@ -310,7 +310,7 @@ HWND GUIAPI ChildWindowFromPointEx (HWND hParent, POINT pt, UINT uFlags)
     unsigned short idx;
     MASKRECT *maskrect;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hParent), HWND_NULL);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hParent), HWND_NULL);
     pWin = MG_GET_WINDOW_PTR (hParent);
 
     pCtrl = (PCONTROL)(pWin->hFirstChild);
@@ -2316,7 +2316,7 @@ static void wndDrawNCFrame(MAINWIN* pWin, HDC hdc, const RECT* prcInvalid)
     BOOL is_active = TRUE;
 
     /* to avoid some unexpected event... */
-    if (!MG_IS_WINDOW ((HWND)pWin))
+    if (!MG_IS_NORMAL_WINDOW ((HWND)pWin))
         return;
 
     if (hdc == 0) {
@@ -2591,7 +2591,7 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
      ** MSG_IDLE, MSG_CARETBLINK:
      */
     if (message == MSG_IDLE) {
-        if (pWin == gui_GetMainWindowPtrOfControl (sg_repeat_msg.hwnd)) {
+        if (pWin == checkAndGetMainWindowPtrOfControl (sg_repeat_msg.hwnd)) {
             SendNotifyMessage (sg_repeat_msg.hwnd,
                     sg_repeat_msg.message,
                     sg_repeat_msg.wParam, sg_repeat_msg.lParam);
@@ -2735,7 +2735,7 @@ LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
     PMAINWIN pWin;
 
     /* Since 5.0.0: for error returns -1 */
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), -1);
 
     pWin = MG_GET_WINDOW_PTR (hWnd);
     switch (pWin->WinType) {
@@ -2789,7 +2789,7 @@ HWND GUIAPI SetFocusChild (HWND hWnd)
 {
     HWND hOldActive;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HWND_INVALID);
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW(hWnd), HWND_INVALID);
 
     if ((hOldActive = set_focus_helper (hWnd)) != HWND_INVALID) {
         do {
@@ -2825,11 +2825,10 @@ HWND GUIAPI SetNullFocus (HWND hParent)
     return hOldActive;
 }
 
-/* NOTE: this function support ONLY main window. */
+/* NOTE: this function works ONLY for main window. */
 HWND GUIAPI SetActiveWindow (HWND hMainWnd)
 {
-    if (!MG_IS_NORMAL_WINDOW(hMainWnd) || !IsMainWindow (hMainWnd))
-        return HWND_INVALID;
+    MG_CHECK_RET (MG_IS_MAIN_WINDOW(hMainWnd), HWND_INVALID);
 
     return (HWND)SendMessage (HWND_DESKTOP,
             MSG_SETACTIVEMAIN, (WPARAM)hMainWnd, 0);
@@ -2865,16 +2864,15 @@ void GUIAPI ReleaseCapture (void)
     SendMessage (HWND_DESKTOP, MSG_SETCAPTURE, 0, 0);
 }
 
-/*************************** Main window and thread **************************/
-
-/* get main window pointer from a handle */
-PMAINWIN gui_CheckAndGetMainWindowPtr (HWND hWnd)
+#if 0   /* deprecated code */
+/* Since 5.0.0, moved to internals.h as inline functions */
+PMAINWIN checkAndGetMainWindowPtrOfMainWin (HWND hWnd)
 {
     MG_CHECK_RET (MG_IS_NORMAL_MAIN_WINDOW(hWnd), NULL);
     return MG_GET_WINDOW_PTR (hWnd);
 }
 
-PMAINWIN gui_GetMainWindowPtrOfControl (HWND hWnd)
+PMAINWIN checkAndGetMainWindowPtrOfControl (HWND hWnd)
 {
     PMAINWIN pWin;
 
@@ -2883,45 +2881,30 @@ PMAINWIN gui_GetMainWindowPtrOfControl (HWND hWnd)
 
     return pWin->pMainWin;
 }
+#endif  /* deprecated code */
 
+/*************************** Window and thread **************************/
 BOOL GUIAPI IsWindow (HWND hWnd)
 {
-    return MG_IS_NORMAL_WINDOW (hWnd);
+    /* XXX: how to check validity of the handle? */
+    return MG_IS_WINDOW (hWnd);
 }
 
 BOOL GUIAPI IsMainWindow (HWND hWnd)
 {
-    PMAINWIN pWin;
-
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
-
-    pWin = MG_GET_WINDOW_PTR(hWnd);
-
-    return (pWin->WinType == TYPE_MAINWIN);
+    return MG_IS_MAIN_WINDOW (hWnd);
 }
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 BOOL GUIAPI IsVirtualWindow (HWND hWnd)
 {
-    PMAINWIN pWin;
-
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
-
-    pWin = MG_GET_WINDOW_PTR(hWnd);
-
-    return (pWin->WinType == TYPE_VIRTWIN);
+    return MG_IS_VIRTUAL_WINDOW (hWnd);
 }
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 BOOL GUIAPI IsControl (HWND hWnd)
 {
-    PMAINWIN pWin;
-
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
-
-    pWin = MG_GET_WINDOW_PTR(hWnd);
-
-    return (pWin->WinType == TYPE_CONTROL);
+    return MG_IS_CONTROL_WINDOW (hWnd);
 }
 
 BOOL GUIAPI IsDialog (HWND hWnd)
@@ -2943,7 +2926,7 @@ HWND GUIAPI GetMainWindowHandle (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_WINDOW(hWnd), HWND_INVALID);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HWND_INVALID);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return (HWND)pWin->pMainWin;
@@ -2953,8 +2936,7 @@ HWND GUIAPI GetParent (HWND hWnd)
 {
     PCONTROL pChildWin = (PCONTROL)hWnd;
 
-    /* Since 5.0.0: not work for virtual window */
-    MG_CHECK_RET (MG_IS_NOT_VIRT_WINDOW(hWnd), HWND_INVALID);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HWND_INVALID);
 
     return (HWND)pChildWin->pParent;
 }
@@ -2971,6 +2953,7 @@ HWND GUIAPI GetRootWindow (void)
     return (HWND)pMsgQueue->pRootMainWin;
 }
 
+/* Since 5.0.0, works for virtual window as well */
 HWND GUIAPI GetHosting (HWND hWnd)
 {
     PMAINWIN pMainWin;
@@ -2982,6 +2965,7 @@ HWND GUIAPI GetHosting (HWND hWnd)
     return pMainWin->pHosting;
 }
 
+/* Since 5.0.0, works for virtual window as well */
 HWND GUIAPI GetFirstHosted (HWND hWnd)
 {
     PMAINWIN pMainWin;
@@ -2993,6 +2977,7 @@ HWND GUIAPI GetFirstHosted (HWND hWnd)
     return pMainWin->pFirstHosted;
 }
 
+/* Since 5.0.0, works for virtual window as well */
 HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted)
 {
     PMAINWIN pHosting;
@@ -3077,8 +3062,8 @@ static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
     return NULL;
 }
 
-HWND GUIAPI GetHostedById (HWND hHosting,
-        LINT lId, DWORD dwSearchFlags)
+/* Since 5.0.0, works for virtual window as well */
+HWND GUIAPI GetHostedById (HWND hHosting, LINT lId, DWORD dwSearchFlags)
 {
     MSGQUEUE* pMsgQueue;
     PMAINWIN pHosting;
@@ -3112,19 +3097,21 @@ HWND GUIAPI GetHostedById (HWND hHosting,
     }
 }
 
+/* Since 5.0.0, works for virtual window as well */
 LINT GUIAPI GetWindowId (HWND hWnd)
 {
-    MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1);
 
     return ((PMAINWIN)hWnd)->id;
 }
 
+/* Since 5.0.0, works for virtual window as well */
 LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId)
 {
     LINT lOldId;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), -1);
     pWin = (PMAINWIN)hWnd;
 
     lOldId = pWin->id;
@@ -3136,11 +3123,11 @@ HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
 {
     PCONTROL pControl, pChild;
 
-    if (hChild == HWND_INVALID) return HWND_INVALID;
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), HWND_INVALID);
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW (hChild), HWND_INVALID);
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HWND_INVALID);
-    pControl = MG_GET_CONTROL_PTR(hWnd);
-
+    pControl = MG_GET_CONTROL_PTR (hWnd);
     pChild = (PCONTROL)hChild;
 
     if (pChild == NULL) {
@@ -3155,15 +3142,10 @@ HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
 
 HWND GUIAPI GetNextMainWindow (HWND hMainWnd)
 {
-    PMAINWIN pMainWin;
+    MG_CHECK_RET (MG_IS_NORMAL_MAIN_WINDOW (hMainWnd), HWND_INVALID);
 
-    if (hMainWnd == HWND_DESKTOP || hMainWnd == 0)
-        pMainWin = NULL;
-    else if (!(pMainWin = gui_CheckAndGetMainWindowPtr (hMainWnd)))
-        return HWND_INVALID;
-
-    return (HWND) SendMessage (HWND_DESKTOP,
-            MSG_GETNEXTMAINWIN, (WPARAM)pMainWin, 0L);
+    return (HWND)SendMessage (HWND_DESKTOP,
+            MSG_GETNEXTMAINWIN, (WPARAM)hMainWnd, 0L);
 }
 
 /*
@@ -3181,7 +3163,8 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
     if ((dx == 0 && dy == 0))
         return -1;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), -1);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     GetClientRect (hWnd, &rcClient);
@@ -3303,7 +3286,8 @@ BOOL GUIAPI EnableScrollBar (HWND hWnd, int iSBar, BOOL bEnable)
     BOOL bPrevState;
     RECT rcBar;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3333,7 +3317,8 @@ BOOL GUIAPI GetScrollPos (HWND hWnd, int iSBar, int* pPos)
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3348,7 +3333,8 @@ BOOL GUIAPI GetScrollRange (HWND hWnd, int iSBar, int* pMinPos, int* pMaxPos)
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3363,9 +3349,9 @@ BOOL GUIAPI SetScrollPos (HWND hWnd, int iSBar, int iNewPos)
 {
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
-    //const WINDOWINFO  *info = GetWindowInfo (hWnd);
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3410,7 +3396,8 @@ BOOL GUIAPI SetScrollRange (HWND hWnd, int iSBar, int iMinPos, int iMaxPos)
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3614,7 +3601,6 @@ BOOL GUIAPI GetScrollInfo (HWND hWnd, int iSBar, PSCROLLINFO lpsi)
 
 BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
 {
-    //
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
     BOOL bPrevState;
@@ -3843,7 +3829,7 @@ BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread)
 
     pMainWin = (PMAINWIN)hWnd;
 
-    if (!MG_IS_WINDOW(hWnd))
+    if (!MG_IS_APP_WINDOW(hWnd))
         return FALSE;
     else {
         pMainWin = pMainWin->pMainWin;
@@ -4003,22 +3989,19 @@ broken:
 BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
 {
     PVIRTWIN pVirtWin;
-    PMSGQUEUE pMsgQueue;
 
-    MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
-    pVirtWin = MG_GET_VIRTUAL_WINDOW_PTR (hVirtWnd);
-
-    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hVirtWnd))) {
-        return FALSE;
-    }
-
-    _DBG_PRINTF ("window(%p), caption(%s)\n", pVirtWin, pVirtWin->spCaption);
-
-    if (!MG_IS_DESTROYED_WINDOW (hVirtWnd)) {
+    if (!MG_IS_DESTROYED_VIRT_WINDOW (hVirtWnd)) {
         _WRN_PRINTF ("Unexpected call: Window(%p) not destroyed yet! "
                 "Please call DestroyVirtualWindow() first\n", hVirtWnd);
         return FALSE;
     }
+
+    if (!getMsgQueueIfWindowInThisThread (hVirtWnd)) {
+        return FALSE;
+    }
+
+    pVirtWin = (PVIRTWIN)hVirtWnd;
+    _DBG_PRINTF ("window(%p), caption(%s)\n", pVirtWin, pVirtWin->spCaption);
 
 #ifdef __THREADX__
     /* to avoid threadx keep pVirtWin's value, which will lead to wrong way */
@@ -4061,9 +4044,9 @@ pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
 #ifdef WIN32
     pthread_t ret;
     memset(&ret, 0, sizeof(pthread_t));
-    MG_CHECK_RET (MG_IS_WINDOW(hMainWnd), ret);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hMainWnd), ret);
 #else
-    MG_CHECK_RET (MG_IS_WINDOW(hMainWnd), 0);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hMainWnd), 0);
 #endif
 
     return ((PMAINWIN)hMainWnd)->th;
@@ -4077,7 +4060,7 @@ int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval)
 {
     pthread_t th;
 
-    if (!(gui_CheckAndGetMainWindowPtr(hWnd)))
+    if (!(checkAndGetMainWindowPtrOfMainWin(hWnd)))
         return -1;
 
     th = GetMainWinThread (hWnd);
@@ -4089,31 +4072,25 @@ int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval)
 BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
 {
     PMAINWIN pMainWin;
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-    PMSGQUEUE pMsgQueue;
-#endif
 
-    MG_CHECK_RET (MG_IS_MAIN_WINDOW (hMainWnd), FALSE);
-    pMainWin = MG_GET_MAIN_WINDOW_PTR (hMainWnd);
-
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!(pMsgQueue = getMsgQueueForThisThread ()) ||
-            pMainWin->pMsgQueue != pMsgQueue) {
-        return FALSE;
-    }
-#endif
-
-    _DBG_PRINTF ("window(%p), caption(%s)\n", pMainWin, pMainWin->spCaption);
-
-    if (!MG_IS_DESTROYED_WINDOW (hMainWnd)) {
+    if (!MG_IS_DESTROYED_MAIN_WINDOW (hMainWnd)) {
         _WRN_PRINTF ("Unexpected call: Window(%p) not destroyed yet! "
                 "Please call DestroyMainualWindow() first\n", hMainWnd);
         return FALSE;
     }
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!getMsgQueueIfWindowInThisThread (hMainWnd)) {
+        return FALSE;
+    }
+#endif
+
+    pMainWin = (PMAINWIN)hMainWnd;
+    _DBG_PRINTF ("window(%p), caption(%s)\n", pMainWin, pMainWin->spCaption);
+
 #ifdef __THREADX__
     /* to avoid threadx keep pMainWin's value, which will lead to wrong way */
-    memset (pMainWin, 0xcc, sizeof(MAINWIN));
+    memset (pMainWin, 0xcc, sizeof (MAINWIN));
 #endif
 
     free (pMainWin);
@@ -4221,7 +4198,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
 #endif  /* not defined _MGRM_THREADS */
 
     pWin->pMainWin      = pWin;
-    pWin->hParent       = 0;
+    pWin->hParent       = HWND_NULL;
     pWin->pFirstHosted  = NULL;
     pWin->pNextHosted   = NULL;
     pWin->DataType      = TYPE_HWND;
@@ -4455,7 +4432,7 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     PMAINWIN hosted;    /* for hosted window list. */
     PMSGQUEUE pMsgQueue;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hWnd)))
         return FALSE;
 
     if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hWnd))) {
@@ -4575,7 +4552,7 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
 /*************************** Main window creation ****************************/
 void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
 {
-    MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
+    MG_CHECK (MG_IS_NORMAL_WINDOW (hWnd));
 
     if (fErase)
         SendAsyncMessage (hWnd, MSG_CHANGESIZE, 0, 0);
@@ -4638,7 +4615,7 @@ void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
 
 void GUIAPI UpdateInvalidClient (HWND hWnd, BOOL fErase)
 {
-    MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
+    MG_CHECK (MG_IS_NORMAL_WINDOW (hWnd));
 
     if (fErase) {
         SendAsyncMessage (hWnd, MSG_CHANGESIZE, 0, 0);
@@ -4671,8 +4648,6 @@ void GUIAPI UpdateInvalidClient (HWND hWnd, BOOL fErase)
  */
 BOOL GUIAPI ShowWindow (HWND hWnd, int iCmdShow)
 {
-    //
-    //PrintInvRgn((PMAINWIN)hWnd, 0);
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
 
     if (IsMainWindow (hWnd)) {
@@ -4792,7 +4767,7 @@ void GUIAPI ScreenToClient (HWND hWnd, int* x, int* y)
     }
 }
 
-void GUIAPI ClientToScreen(HWND hWnd, int* x, int* y)
+void GUIAPI ClientToScreen (HWND hWnd, int* x, int* y)
 {
     PCONTROL pParent;
     PCONTROL pCtrl;
@@ -4979,7 +4954,7 @@ HCURSOR GUIAPI SetWindowCursor (HWND hWnd, HCURSOR hNewCursor)
     return 0;
 }
 
-DWORD GetWindowStyle (HWND hWnd)
+DWORD GUIAPI GetWindowStyle (HWND hWnd)
 {
     PMAINWIN pWin;
 
@@ -5011,7 +4986,7 @@ BOOL GUIAPI IncludeWindowStyle (HWND hWnd, DWORD dwStyle)
     return TRUE;
 }
 
-DWORD GetWindowExStyle (HWND hWnd)
+DWORD GUIAPI GetWindowExStyle (HWND hWnd)
 {
     PMAINWIN pWin;
 
@@ -5047,7 +5022,8 @@ DWORD GUIAPI GetWindowAdditionalData (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), 0);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->dwAddData;
@@ -5058,7 +5034,8 @@ DWORD GUIAPI SetWindowAdditionalData (HWND hWnd, DWORD newData)
     DWORD    oldOne;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0L);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), 0L);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     oldOne = pWin->dwAddData;
@@ -5070,7 +5047,8 @@ DWORD GUIAPI GetWindowAdditionalData2 (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0L);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), (DWORD)-1L);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->dwAddData2;
@@ -5081,7 +5059,8 @@ DWORD GUIAPI SetWindowAdditionalData2 (HWND hWnd, DWORD newData)
     DWORD    oldOne;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0L);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), (DWORD)-1L);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     oldOne = pWin->dwAddData2;
@@ -5091,38 +5070,28 @@ DWORD GUIAPI SetWindowAdditionalData2 (HWND hWnd, DWORD newData)
 
 DWORD GUIAPI GetWindowClassAdditionalData (HWND hWnd)
 {
-    PMAINWIN pWin;
     PCONTROL pCtrl;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0);
-    pWin = MG_GET_WINDOW_PTR (hWnd);
+    /* Since 5.0.0, works for control */
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW(hWnd), (DWORD)-1L);
 
-    if (pWin->WinType == TYPE_CONTROL) {
-        pCtrl = MG_GET_CONTROL_PTR(hWnd);
-        return pCtrl->pcci->dwAddData;
-    }
-
-    return 0;
+    pCtrl = MG_GET_CONTROL_PTR(hWnd);
+    return pCtrl->pcci->dwAddData;
 }
 
 DWORD GUIAPI SetWindowClassAdditionalData (HWND hWnd, DWORD newData)
 {
-    PMAINWIN pWin;
     PCONTROL pCtrl;
+    DWORD oldOne;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0);
-    pWin = MG_GET_WINDOW_PTR (hWnd);
+    /* Since 5.0.0, works for control */
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW(hWnd), (DWORD)-1L);
 
-    if (pWin->WinType == TYPE_CONTROL) {
-        DWORD oldOne;
-
-        pCtrl = MG_GET_CONTROL_PTR(hWnd);
-        oldOne = pCtrl->pcci->dwAddData;
-        pCtrl->pcci->dwAddData = newData;
-        return oldOne;
-    }
-
-    return 0L;
+    /* XXX: send a message to desktop for this operation? */
+    pCtrl = MG_GET_CONTROL_PTR(hWnd);
+    oldOne = pCtrl->pcci->dwAddData;
+    pCtrl->pcci->dwAddData = newData;
+    return oldOne;
 }
 
 const char* GUIAPI GetClassName (HWND hWnd)
@@ -5132,12 +5101,14 @@ const char* GUIAPI GetClassName (HWND hWnd)
 
     pWin = (PMAINWIN)hWnd;
 
-    if (!MG_IS_WINDOW(hWnd))
+    if (!MG_IS_APP_WINDOW (hWnd))
         return NULL;
     else if (hWnd == HWND_DESKTOP)
         return ROOTWINCLASSNAME;
     else if (pWin->WinType == TYPE_MAINWIN)
         return MAINWINCLASSNAME;
+    else if (pWin->WinType == TYPE_VIRTWIN)
+        return VIRTWINCLASSNAME;
     else if (pWin->WinType == TYPE_CONTROL) {
         pCtrl = (PCONTROL)hWnd;
         return pCtrl->pcci->name;
@@ -5151,7 +5122,7 @@ BOOL GUIAPI IsWindowVisible (HWND hWnd)
     PMAINWIN pMainWin;
     PCONTROL pCtrl;
 
-    if ((pMainWin = gui_CheckAndGetMainWindowPtr (hWnd))) {
+    if ((pMainWin = checkAndGetMainWindowPtrOfMainWin (hWnd))) {
         return pMainWin->dwStyle & WS_VISIBLE;
     }
     else if (IsControl (hWnd)) {
@@ -5185,7 +5156,8 @@ WNDPROC GUIAPI GetWindowCallbackProc (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), NULL);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), NULL);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->MainWindowProc;
@@ -5196,7 +5168,8 @@ WNDPROC GUIAPI SetWindowCallbackProc (HWND hWnd, WNDPROC newProc)
     PMAINWIN pWin;
     WNDPROC old_proc;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), NULL);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), NULL);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     old_proc = pWin->MainWindowProc;
@@ -5209,7 +5182,8 @@ const char* GUIAPI GetWindowCaption (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), NULL);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), NULL);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->spCaption;
@@ -5219,10 +5193,11 @@ BOOL GUIAPI SetWindowCaption (HWND hWnd, const char* spCaption)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
-    if (pWin->WinType == TYPE_MAINWIN) {
+    if (pWin->WinType == TYPE_MAINWIN || pWin->WinType == TYPE_VIRTWIN) {
         return SetWindowText (hWnd, spCaption);
     }
     else if (pWin->WinType == TYPE_CONTROL) {
@@ -5247,26 +5222,28 @@ BOOL GUIAPI SetWindowCaption (HWND hWnd, const char* spCaption)
 
 int GUIAPI GetWindowTextLength (HWND hWnd)
 {
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1);
 
     return SendMessage (hWnd, MSG_GETTEXTLENGTH, 0, 0);
 }
 
 int GUIAPI GetWindowText (HWND hWnd, char* spString, int nMaxLen)
 {
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), -1);
 
     return SendMessage (hWnd, MSG_GETTEXT, (WPARAM)nMaxLen, (LPARAM)spString);
 }
 
 BOOL GUIAPI SetWindowText (HWND hWnd, const char* spString)
 {
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), FALSE);
 
     return (SendMessage (hWnd, MSG_SETTEXT, 0, (LPARAM)spString) == 0);
 }
 
-extern BLOCKHEAP __mg_FreeClipRectList;
 /* NOTE: This function is control safe */
 BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
 {
@@ -5344,6 +5321,7 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
             }
             else {
                 if (DoesIntersect ((const RECT*)&rcWindow, (const RECT*)&pCtrl->cl)) {
+                    extern BLOCKHEAP __mg_FreeClipRectList;
                     CLIPRGN rgn;
                     PCLIPRECT  p = NULL;
                     InitClipRgn (&rgn, &__mg_FreeClipRectList);
@@ -5432,9 +5410,7 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
     RECT     rcTemp;
     PINVRGN  pInvRgn;
 
-
     pCtrl = (PCONTROL)hWnd;
-
 
     //invalidate itself
     rcClient.left = rcClient.top = 0;
@@ -5589,8 +5565,12 @@ BOOL GUIAPI InvalidateRect (HWND hWnd, const RECT* prc, BOOL bEraseBkgnd)
 /* TODO: Optimize */
 BOOL GUIAPI InvalidateRegion (HWND hWnd, const CLIPRGN* pRgn, BOOL bErase)
 {
-    const CLIPRECT* crc = pRgn->head;
+    const CLIPRECT* crc;
 
+    MG_CHECK_RET (pRgn != NULL, FALSE);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
+
+    crc = pRgn->head;
     while (crc) {
         if (!InvalidateRect (hWnd, &crc->rc,  bErase))
             return FALSE;
@@ -5621,6 +5601,7 @@ BOOL GUIAPI ValidateRegion (HWND hWnd, const CLIPRGN* pRgn)
 {
     PMAINWIN pWin;
 
+    MG_CHECK_RET (pRgn != NULL, FALSE);
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
@@ -5865,7 +5846,7 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     PCONTROL pNewCtrl;
     RECT rcExpect;
 
-    if (!(pMainWin = gui_GetMainWindowPtrOfControl (hParentWnd)))
+    if (!(pMainWin = checkAndGetMainWindowPtrOfControl (hParentWnd)))
         return HWND_INVALID;
 
 #if 0
@@ -6230,12 +6211,10 @@ NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd, NOTIFPROC notif_proc)
     NOTIFPROC old_proc;
     PCONTROL control = (PCONTROL)hwnd;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hwnd), NULL);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hwnd), NULL);
 
     old_proc = control->notif_proc;
-
     control->notif_proc = notif_proc;
-
     return old_proc;
 }
 
@@ -6243,7 +6222,7 @@ NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd)
 {
     PCONTROL control = (PCONTROL)hwnd;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hwnd), NULL);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hwnd), NULL);
 
     return control->notif_proc;
 }
@@ -6258,17 +6237,19 @@ MSGHOOK GUIAPI RegisterEventHookFunc (int event_type,
             MSG_REGISTERHOOKFUNC, (WPARAM)event_type, (LPARAM)&hook_info);
 }
 
+/* Since 5.0.0, works for virtual window as well */
 BOOL GUIAPI RegisterEventHookWindow (HWND hwnd, DWORD flags)
 {
-    MG_CHECK_RET (MG_IS_WINDOW (hwnd), FALSE);
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hwnd), FALSE);
 
     return (SendMessage (HWND_DESKTOP,
                 MSG_REGISTERHOOKWIN, (WPARAM)hwnd, (LPARAM)flags) == 0);
 }
 
+/* Since 5.0.0, works for virtual window as well */
 BOOL GUIAPI UnregisterEventHookWindow (HWND hwnd)
 {
-    MG_CHECK_RET (MG_IS_WINDOW (hwnd), FALSE);
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hwnd), FALSE);
 
     return (SendMessage (HWND_DESKTOP,
                 MSG_UNREGISTERHOOKWIN, (WPARAM)hwnd, 0) == 0);
@@ -6282,7 +6263,7 @@ HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag)
     static HWND hooked_wnd = NULL;
     HWND old_hook = HWND_NULL;
 
-    MG_CHECK_RET (MG_IS_WINDOW (hwnd), HWND_NULL);
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hwnd), HWND_NULL);
 
     old_hook = hooked_wnd;
     if (hwnd == HWND_NULL) {
@@ -6304,7 +6285,7 @@ HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag)
     static HWND hooked_wnd = NULL;
     HWND old_hook = HWND_NULL;
 
-    MG_CHECK_RET (MG_IS_WINDOW (hwnd), HWND_NULL);
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hwnd), HWND_NULL);
 
     old_hook = hooked_wnd;
     if (hwnd == HWND_NULL) {
@@ -6499,7 +6480,7 @@ int GUIAPI GetIMETargetInfo (IME_TARGET_INFO *info)
 HICON GetWindowIcon (HWND hWnd)
 {
     PMAINWIN pWin;
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hWnd)))
         return 0;
 
     return pWin->hIcon;
@@ -6510,7 +6491,7 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
     PMAINWIN pWin;
     HICON hOld;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hWnd)))
         return 0;
 
     hOld = pWin->hIcon;
@@ -6969,8 +6950,8 @@ BOOL GUIAPI GetWindowRegion (HWND hWnd, CLIPRGN* region)
     int         nr_rects, i;
     RECT        rc;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     MG_CHECK_RET (region != NULL, FALSE);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
 
     pCtrl = (PCONTROL) hWnd;
     if (IsControl (hWnd) && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
@@ -7102,10 +7083,7 @@ BOOL GUIAPI SetMainWindowAlwaysTop (HWND hMainWnd, BOOL fSet)
 {
     PMAINWIN pMainWin;
 
-    if (hMainWnd == HWND_DESKTOP || hMainWnd == 0) {
-        return FALSE;
-    }
-    else if (!(pMainWin = gui_CheckAndGetMainWindowPtr (hMainWnd))) {
+    if (!(pMainWin = checkAndGetMainWindowPtrOfMainWin (hMainWnd))) {
         return FALSE;
     }
 
@@ -7119,10 +7097,7 @@ BOOL GUIAPI SetMainWindowCompositing (HWND hMainWnd, int type, DWORD arg)
     PMAINWIN pMainWin;
     COMPOSITINGINFO info;
 
-    if (hMainWnd == HWND_DESKTOP || hMainWnd == 0) {
-        return FALSE;
-    }
-    else if (!(pMainWin = gui_CheckAndGetMainWindowPtr (hMainWnd))) {
+    if (!(pMainWin = checkAndGetMainWindowPtrOfMainWin (hMainWnd))) {
         return FALSE;
     }
 
