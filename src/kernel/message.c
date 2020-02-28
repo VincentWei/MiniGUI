@@ -1435,6 +1435,9 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
     return lRet;
 }
 
+/* Throw away messages in the message queue for the specified window.
+   If the specified window is a main window, all messages sent
+   to the controls of the main window will be thrown away asw well. */
 int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 {
     PMAINWIN    pMainWin = NULL;
@@ -1458,7 +1461,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
             pMsg = &pQMsg->Msg;
 
             if (pMsg->hwnd == hWnd ||
-                    gui_GetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
+                    checkAndGetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
                 pMsg->hwnd = HWND_INVALID;
                 nCountN ++;
             }
@@ -1479,7 +1482,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
             pMsg = &pSyncMsg->Msg;
 
             if (pMsg->hwnd == hWnd ||
-                    gui_GetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
+                    checkAndGetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
                 pMsg->hwnd = HWND_INVALID;
                 nCountS ++;
 
@@ -1515,7 +1518,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
         pMsg = pMsgQueue->msg + readpos;
 
         if (pMsg->hwnd == hWnd ||
-                gui_GetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
+                checkAndGetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
             pMsg->hwnd = HWND_INVALID;
             nCountP ++;
         }
@@ -1531,7 +1534,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
         if (pMsgQueue->expired_timer_mask & (0x01UL << slot)) {
             HWND timer_wnd = pMsgQueue->timer_slots [slot]->hWnd;
             if (timer_wnd == hWnd ||
-                     gui_GetMainWindowPtrOfControl (timer_wnd) == pMainWin) {
+                     checkAndGetMainWindowPtrOfControl (timer_wnd) == pMainWin) {
                 pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
             }
         }

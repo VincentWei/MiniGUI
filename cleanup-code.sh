@@ -161,7 +161,10 @@ tab2space() {
 #sed -i 's/\<SetCtrlClassAddData\>/gui_SetCtrlClassAddData/g' `grep '\<SetCtrlClassAddData\>' -rl include/ src/`
 #sed -i 's/\<GetCtrlClassAddData\>/gui_GetCtrlClassAddData/g' `grep '\<GetCtrlClassAddData\>' -rl include/ src/`
 
-sed -i 's/\<get_valid_dc\>/get_effective_dc/g' `grep '\<get_valid_dc\>' -rl include/ src/`
-sed -i 's/\<release_valid_dc\>/release_effective_dc/g' `grep '\<release_valid_dc\>' -rl include/ src/`
+# sed -i 's/\<get_valid_dc\>/get_effective_dc/g' `grep '\<get_valid_dc\>' -rl include/ src/`
+# sed -i 's/\<release_valid_dc\>/release_effective_dc/g' `grep '\<release_valid_dc\>' -rl include/ src/`
+
+sed -i 's/\<gui_GetMainWindowPtrOfControl\>/checkAndGetMainWindowPtrOfControl/g' `grep '\<gui_GetMainWindowPtrOfControl\>' -rl include/ src/`
+sed -i 's/\<gui_CheckAndGetMainWindowPtr\>/checkAndGetMainWindowPtrOfMainWin/g' `grep '\<gui_CheckAndGetMainWindowPtr\>' -rl include/ src/`
 
 exit 0
