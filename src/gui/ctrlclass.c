@@ -427,14 +427,15 @@ int gui_SetCtrlClassAddData (const char* szClassName, DWORD dwAddData)
 int gui_AddNewControlClass (PWNDCLASS pWndClass)
 {
     PCTRLCLASSINFO cci, newcci;
-    char szClassName [MAXLEN_CLASSNAME + 2];
-    int i=0;
-
-    strncpy (szClassName, pWndClass->spClassName, MAXLEN_CLASSNAME);
-    szClassName [MAXLEN_CLASSNAME] = 0;
+    char szClassName [MAXLEN_CLASSNAME + 1];
+    int i = 0;
 
 #if 0   /* deprecated code */
-    if (!isalpha ((int)szClassName[0])) return ERR_CTRLCLASS_INVNAME;
+    char szClassName [MAXLEN_CLASSNAME + 2];
+    strncpy (szClassName, pWndClass->spClassName, MAXLEN_CLASSNAME);
+
+    if (!isalpha ((int)szClassName[0]))
+        return ERR_CTRLCLASS_INVNAME;
 
     while (szClassName[i]) {
         szClassName[i] = toupper(szClassName[i]);
@@ -447,11 +448,23 @@ int gui_AddNewControlClass (PWNDCLASS pWndClass)
     i = szClassName[0] - 'A';
 #endif  /* deprecated code */
 
-    /* since 5.0.0, we use Str2Key as the hash function */
-    while (szClassName[i]) {
-        szClassName[i] = toupper (szClassName[i]);
+    /* since 5.0.0, check reserved class names */
+    while (pWndClass->spClassName[i]) {
+        szClassName[i] = toupper (pWndClass->spClassName[i]);
         i++;
+
+        if (i > MAXLEN_CLASSNAME)
+            return ERR_CTRLCLASS_INVLEN;
     }
+    szClassName [i] = 0;
+
+    if (MG_UNLIKELY (strcmp (szClassName, MAINWINCLASSNAME) == 0 ||
+                strcmp (szClassName, VIRTWINCLASSNAME) == 0 ||
+                strcmp (szClassName, ROOTWINCLASSNAME) == 0)) {
+        return ERR_CTRLCLASS_INVNAME;
+    }
+
+    /* since 5.0.0, we use Str2Key as the hash function */
     i = HASH_KEY (szClassName);
 
     cci = ccitable [i];
