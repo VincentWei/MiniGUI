@@ -6455,6 +6455,31 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      *  - MSG_SETTEXT:
      *  - MSG_GETTEXTLENGTH:
      *
+     * The following functions work for a virtual window:
+     *
+     *  - DefaultWindowProc
+     *  - GetWindowId
+     *  - SetWindowId
+     *  - GetThreadByWindow
+     *  - GetWindowAdditionalData
+     *  - SetWindowAdditionalData
+     *  - GetWindowAdditionalData2
+     *  - SetWindowAdditionalData2
+     *  - GetClassName: always returns 'VIRTWINDOW' for a virtual window.
+     *  - GetWindowCallbackProc
+     *  - SetWindowCallbackProc
+     *  - GetWindowCaption
+     *  - SetWindowCaption
+     *  - GetWindowTextLength
+     *  - GetWindowText
+     *  - SetWindowText
+     *  - GetNotificationCallback
+     *  - SetNotificationCallback
+     *  - RegisterEventHookWindow
+     *  - UnregisterEventHookWindow
+     *  - RegisterKeyHookWindow
+     *  - RegisterMouseHookWindow
+     *
      * Since 5.0.0.
      *
      * @{
@@ -8156,7 +8181,7 @@ MG_EXPORT BOOL GUIAPI IsDialog (HWND hWnd);
  *
  * \return The handle to the parent, HWND_INVALID indicates an error.
  *
- * \note For a main window, this function always returns 0.
+ * \note For a main window, this function always returns HWNL_NULL.
  *       For HWND_DESKTOP or an invalid window handle,
  *       HWND_INVALID will be returned.
  *
@@ -9473,6 +9498,7 @@ typedef struct _WNDCLASS {
 typedef WNDCLASS* PWNDCLASS;
 
 #define MAINWINCLASSNAME    ("MAINWINDOW")
+#define VIRTWINCLASSNAME    ("VIRTWINDOW")
 #define ROOTWINCLASSNAME    ("ROOTWINDOW")
 
 /**
