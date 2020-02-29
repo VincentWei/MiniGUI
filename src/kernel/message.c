@@ -636,13 +636,11 @@ static void travel_all_hosted (PMAINWIN pWin,
 {
     PMAINWIN pNext = pWin->pFirstHosted;
     while (pNext) {
-        travel_all_hosted (pNext, cb, data);
-
         cb (pNext, data);
+
+        travel_all_hosted (pNext, cb, data);
         pNext = pNext->pNextHosted;
     }
-
-    cb (pWin, data);
 }
 
 static void _my_travel_cb (PMAINWIN win, void* data)
@@ -661,6 +659,7 @@ int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg)
     msg->time = 0;
 
     if ((win = msg_queue->pRootMainWin)) {
+        _my_travel_cb (win, msg);
         travel_all_hosted (win, _my_travel_cb, msg);
     }
 
@@ -796,12 +795,12 @@ checkagain:
             *pMsg = pMsgQueue->pFirstSyncMsg->Msg;
             SET_PADD (pMsgQueue->pFirstSyncMsg);
             if (IS_MSG_WANTED(pMsg->message)) {
-              if (uRemoveMsg == PM_REMOVE) {
-                  pMsgQueue->pFirstSyncMsg = pMsgQueue->pFirstSyncMsg->pNext;
-              }
+                if (uRemoveMsg == PM_REMOVE) {
+                    pMsgQueue->pFirstSyncMsg = pMsgQueue->pFirstSyncMsg->pNext;
+                }
 
-              UNLOCK_MSGQ (pMsgQueue);
-              return TRUE;
+                UNLOCK_MSGQ (pMsgQueue);
+                return TRUE;
             }
         }
         else
@@ -816,13 +815,13 @@ checkagain:
             SET_PADD (NULL);
 
             if (IS_MSG_WANTED(pMsg->message)) {
-              if (uRemoveMsg == PM_REMOVE) {
-                  pMsgQueue->pFirstNotifyMsg = phead->next;
-                  FREEQMSG (phead);
-              }
+                if (uRemoveMsg == PM_REMOVE) {
+                    pMsgQueue->pFirstNotifyMsg = phead->next;
+                    FREEQMSG (phead);
+                }
 
-              UNLOCK_MSGQ (pMsgQueue);
-              return TRUE;
+                UNLOCK_MSGQ (pMsgQueue);
+                return TRUE;
             }
         }
         else
@@ -851,7 +850,6 @@ checkagain:
     /*
      * check invalidate region of the windows
      */
-
     if (pMsgQueue->dwState & QS_PAINT && IS_MSG_WANTED(MSG_PAINT)) {
         PMAINWIN pHostingRoot;
         HWND hNeedPaint;
@@ -879,11 +877,7 @@ checkagain:
         pMsg->lParam = 0;
         SET_PADD (NULL);
 
-#if 0 //ndef _MGHAVE_VIRTUAL_WINDOW
-        pHostingRoot = __mg_dsk_win;
-#else
         pHostingRoot = pMsgQueue->pRootMainWin;
-#endif
 
         if ((hNeedPaint = msgCheckHostedTree (pHostingRoot))) {
             pMsg->hwnd = hNeedPaint;
