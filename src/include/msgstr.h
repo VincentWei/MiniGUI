@@ -230,7 +230,7 @@ char * __mg_msgstr11 [] =
 char * __mg_msgstr2 [] =
 {
     "MSG_SHOWWINDOW",        // 0x00A0
-    "",                      // 0x00A1
+    "MSG_MOVEWINDOW",        // 0x00A1
     "",                      // 0x00A2
     "",                      // 0x00A3
     "",                      // 0x00A4
@@ -337,7 +337,7 @@ char * __mg_msgstr2 [] =
     "MSG_GETNEXTMAINWIN",    // 0x0103
     "MSG_SETALWAYSTOP",      // 0x0104
     "MSG_SETCOMPOSITING",    // 0x0105
-    "",                      // 0x0106
+    "MSG_DUMPZORDER",        // 0x0106
     "",                      // 0x0107
     "",                      // 0x0108
     "",                      // 0x0109
