@@ -3125,15 +3125,15 @@ HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
 
     /* Since 5.0.0: not work for virtual window */
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), HWND_INVALID);
-    MG_CHECK_RET (MG_IS_CONTROL_WINDOW (hChild), HWND_INVALID);
-
     pControl = MG_GET_CONTROL_PTR (hWnd);
-    pChild = (PCONTROL)hChild;
 
-    if (pChild == NULL) {
+    if (hChild == HWND_NULL) {
         return (HWND)pControl->children;
     }
-    else if (pControl != pChild->pParent) {
+
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW (hChild), HWND_INVALID);
+    pChild = (PCONTROL)hChild;
+    if (pControl != pChild->pParent) {
         return HWND_INVALID;
     }
 
@@ -3142,7 +3142,8 @@ HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
 
 HWND GUIAPI GetNextMainWindow (HWND hMainWnd)
 {
-    MG_CHECK_RET (MG_IS_NORMAL_MAIN_WINDOW (hMainWnd), HWND_INVALID);
+    MG_CHECK_RET (hMainWnd == HWND_NULL || MG_IS_NORMAL_MAIN_WINDOW (hMainWnd),
+            HWND_INVALID);
 
     return (HWND)SendMessage (HWND_DESKTOP,
             MSG_GETNEXTMAINWIN, (WPARAM)hMainWnd, 0L);
