@@ -4186,14 +4186,18 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     /* leave the pHosting is NULL for the first window of this thread. */
 #else   /* defined _MGRM_THREADS */
     /* you must create main window in the main thread for non-threads mods */
-    if (getMsgQueueForThisThread () != __mg_dsk_msg_queue) {
+    if (getMsgQueueForThisThread () != __mg_dsk_msg_queue)
+        goto err;
+
+    pWin->pHosting = getMainWindowPtr (pCreateInfo->hHosting);
+    if (pWin->pHosting == NULL) {
+        pWin->pHosting = __mg_dsk_win;
+    }
+    else if (pWin->pHosting->pMsgQueue != __mg_dsk_msg_queue) {
         goto err;
     }
 
-    pWin->pHosting = getMainWindowPtr (pCreateInfo->hHosting);
-    if (pWin->pHosting == NULL)
-        pWin->pHosting = __mg_dsk_win;
-
+    assert (__mg_dsk_msg_queue->pRootMainWin == __mg_dsk_win);
     pWin->pMsgQueue = __mg_dsk_msg_queue;
 #endif  /* not defined _MGRM_THREADS */
 
@@ -4222,7 +4226,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
     }
 
     /* Since 5.0.0: calculate the default postion */
-    if (pWin->dwStyle & WS_EX_AUTOPOSITION) {
+    if (pWin->dwExStyle & WS_EX_AUTOPOSITION) {
         CALCPOSINFO info = { pWin->dwStyle, pWin->dwExStyle,
             {pCreateInfo->lx, pCreateInfo->ty,
                 pCreateInfo->rx, pCreateInfo->by} };
@@ -4420,7 +4424,8 @@ err:
     /* Since 5.0.0: we must throw away the messages for this window, because
        there are some messages, e.g., MSG_CSIZECHANGED, have been put into
        the message queue.  Or DispatchMessage will panic. */
-    __mg_throw_away_messages (pWin->pMsgQueue, (HWND)pWin);
+    if (pWin->pMsgQueue)
+        __mg_throw_away_messages (pWin->pMsgQueue, (HWND)pWin);
 
     free (pWin);
     return HWND_INVALID;
@@ -5264,7 +5269,8 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
         return FALSE;
     }
 
-    if (IsMainWindow (hWnd) || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+    if (pWin->WinType == TYPE_MAINWIN ||
+            (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
         // Since 5.0.0: check the return value.
         if (SendMessage (HWND_DESKTOP, MSG_MOVEMAINWIN,
                 (WPARAM)hWnd, (LPARAM)(&rcResult)))
@@ -5390,6 +5396,11 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
     if (fPaint) {
         InvalidateRect (hWnd, NULL, TRUE);
     }
+
+    /* Since 5.0.0: send a MSG_MOVEWINDOW notification message */
+    SendNotifyMessage (hWnd, MSG_MOVEWINDOW,
+            MAKELONG(pWin->left, pWin->top),
+            MAKELONG(pWin->right, pWin->bottom));
 
     return TRUE;
 }
