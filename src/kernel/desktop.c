@@ -4524,6 +4524,16 @@ static int dskDumpZOrder (ZORDERINFO* zi)
     from = __kernel_get_next_znode (zi, from);
     while (from > 0) {
 
+#ifdef _MGRM_PROCESSES
+        _WRN_PRINTF ("ZNODE #%d (zidx: %d): hwnd (%p), "
+                "caption (%s), rect (%d, %d, %d, %d), "
+                "visibility (%s)\n",
+                nr, from, nodes[from].hwnd,
+                (mgIsServer ? nodes[from].caption : "N/A"),
+                nodes[from].rc.left, nodes[from].rc.top,
+                nodes[from].rc.right, nodes[from].rc.bottom,
+                (nodes[from].flags & ZOF_VISIBLE) ? "YES" : "NO");
+#else
         _WRN_PRINTF ("ZNODE #%d (zidx: %d): hwnd (%p), "
                 "caption (%s), rect (%d, %d, %d, %d), "
                 "visibility (%s)\n",
@@ -4532,6 +4542,7 @@ static int dskDumpZOrder (ZORDERINFO* zi)
                 nodes[from].rc.left, nodes[from].rc.top,
                 nodes[from].rc.right, nodes[from].rc.bottom,
                 (nodes[from].flags & ZOF_VISIBLE) ? "YES" : "NO");
+#endif
 
         nr++;
         from = __kernel_get_next_znode (zi, from);
