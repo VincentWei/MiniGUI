@@ -4432,11 +4432,19 @@ static int dskDumpZOrder (ZORDERINFO* zi)
     while (from > 0) {
 
 #ifdef _MGRM_PROCESSES
+        const char* caption = "N/A";
+        if (mgIsServer) {
+            caption = nodes[from].caption;
+        }
+        else if (nodes[from].cli == __mg_client_id) {
+            caption = GetWindowCaption (nodes[from].hwnd);
+        }
+
         _WRN_PRINTF ("ZNODE #%d (zidx: %d): hwnd (%p), "
                 "caption (%s), rect (%d, %d, %d, %d), "
                 "visibility (%s)\n",
                 nr, from, nodes[from].hwnd,
-                (mgIsServer ? nodes[from].caption : "N/A"),
+                caption,
                 nodes[from].rc.left, nodes[from].rc.top,
                 nodes[from].rc.right, nodes[from].rc.bottom,
                 (nodes[from].flags & ZOF_VISIBLE) ? "YES" : "NO");
