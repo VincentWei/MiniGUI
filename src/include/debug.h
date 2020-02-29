@@ -59,6 +59,7 @@
 #include "gdi.h"
 #include "window.h"
 #include "internals.h"
+#include "ctrlclass.h"
 #include "timer.h"
 
 #ifdef __cplusplus
@@ -239,6 +240,135 @@ dump_message_queue (const MSGQUEUE* msg_queue, const char* name)
     }
 
     _MG_PRINTF ("----End of message queue for %s\n", name);
+}
+
+static inline void
+dump_window_details (HWND hwnd, const char* name)
+{
+    PMAINWIN main_wnd = (PMAINWIN)hwnd;
+
+    _MG_PRINTF ("Start info of handle (%p) for %s", hwnd, name);
+
+    if (main_wnd->DataType == TYPE_WINTODEL) {
+        _WRN_PRINTF ("The handle (%p) is a %s window to be deleted!\n",
+                hwnd, (main_wnd->WinType == TYPE_MAINWIN) ? "main" : "virtual");
+        return;
+    }
+    else if (main_wnd->DataType != TYPE_HWND) {
+        _ERR_PRINTF ("The handle (%p) is not a window!\n", hwnd);
+        return;
+    }
+
+    if (main_wnd->WinType == TYPE_MAINWIN ||
+            main_wnd->WinType == TYPE_ROOTWIN) {
+        PCONTROL control = (PCONTROL)hwnd;
+
+        _MG_PRINTF ("The handle (*%p) is a main Windown", hwnd);
+
+        _MG_PRINTF ("Rect        -- (%d, %d, %d, %d)\n",
+                        main_wnd->left, main_wnd->top,
+                        main_wnd->right, main_wnd->bottom);
+        _MG_PRINTF ("Client Rect -- (%d, %d, %d, %d)\n",
+                        main_wnd->cl, main_wnd->ct, main_wnd->cr, main_wnd->cb);
+
+        _MG_PRINTF ("Style       -- %lx\n", main_wnd->dwStyle);
+        _MG_PRINTF ("ExStyle     -- %lx\n", main_wnd->dwExStyle);
+
+        _MG_PRINTF ("AddData     -- %lx\n", main_wnd->dwAddData);
+        _MG_PRINTF ("AddData2    -- %lx\n", main_wnd->dwAddData2);
+
+        _MG_PRINTF ("WinProc     -- %p\n", main_wnd->MainWindowProc);
+        _MG_PRINTF ("NotifProc   -- %p\n", main_wnd->NotifProc);
+        _MG_PRINTF ("Caption     -- %s\n", main_wnd->spCaption);
+        _MG_PRINTF ("ID          -- %ld\n", main_wnd->id);
+
+        _MG_PRINTF ("FirstChild  -- %p\n", main_wnd->hFirstChild);
+
+        control = (PCONTROL)main_wnd->hFirstChild;
+        while (control) {
+            _MG_PRINTF ("    Child   -- %p (%ld); class: %s (%d)\n",
+                    control, control->id,
+                    control->pcci->name, control->pcci->nUseCount);
+            control = control->next;
+        }
+
+        _MG_PRINTF ("ActiveChild -- %p\n", main_wnd->hActiveChild);
+        _MG_PRINTF ("Hosting     -- %p\n", main_wnd->pHosting);
+        _MG_PRINTF ("FirstHosted -- %p\n", main_wnd->pFirstHosted);
+        _MG_PRINTF ("NextHosted  -- %p\n", main_wnd->pNextHosted);
+        _MG_PRINTF ("BkColor     -- %x\n", main_wnd->iBkColor);
+        _MG_PRINTF ("Menu        -- %p\n", main_wnd->hMenu);
+        _MG_PRINTF ("Accel       -- %p\n", main_wnd->hAccel);
+        _MG_PRINTF ("Cursor      -- %p\n", main_wnd->hCursor);
+        _MG_PRINTF ("Icon        -- %p\n", main_wnd->hIcon);
+        _MG_PRINTF ("SysMenu     -- %p\n", main_wnd->hSysMenu);
+        _MG_PRINTF ("MsgQueue    -- %p\n", main_wnd->pMsgQueue);
+    }
+    else if (main_wnd->WinType == TYPE_CONTROL) {
+        PCONTROL control = (PCONTROL)hwnd;
+
+        _MG_PRINTF ("The handle (%p) is a control:\n", hwnd);
+
+        _MG_PRINTF ("Rect        -- (%d, %d, %d, %d)\n",
+                        control->left, control->top,
+                        control->right, control->bottom);
+        _MG_PRINTF ("Client Rect -- (%d, %d, %d, %d)\n",
+                        control->cl, control->ct, control->cr, control->cb);
+
+        _MG_PRINTF ("Style       -- %lx\n", control->dwStyle);
+        _MG_PRINTF ("ExStyle     -- %lx\n", control->dwExStyle);
+
+        _MG_PRINTF ("PrivCDC     -- %p\n", control->privCDC);
+
+        _MG_PRINTF ("AddData     -- %lx\n", control->dwAddData);
+        _MG_PRINTF ("AddData2    -- %lx\n", control->dwAddData2);
+
+        _MG_PRINTF ("WinProc     -- %p\n",  control->ControlProc);
+        _MG_PRINTF ("NotifProc   -- %p\n",  main_wnd->NotifProc);
+
+        _MG_PRINTF ("Caption     -- %s\n",  control->spCaption);
+        _MG_PRINTF ("ID          -- %ld\n", control->id);
+
+        _MG_PRINTF ("FirstChild  -- %p\n",  control->children);
+        _MG_PRINTF ("ActiveChild -- %p\n",  control->active);
+        _MG_PRINTF ("Parent      -- %p\n",  control->pParent);
+        _MG_PRINTF ("Next        -- %p\n",  control->next);
+
+        control = (PCONTROL)control->children;
+        while (control) {
+            _MG_PRINTF ("    Child   -- %p (%ld); class: %s (%d)\n",
+                    control, control->id,
+                    control->pcci->name, control->pcci->nUseCount);
+            control = control->next;
+        }
+    }
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    else if (main_wnd->WinType == TYPE_VIRTWIN) {
+        PVIRTWIN virt_wnd = (PVIRTWIN)hwnd;
+
+        _MG_PRINTF ("The handle (*%p) is a virtual Window", hwnd);
+
+        _MG_PRINTF ("AddData     -- %lx\n", main_wnd->dwAddData);
+        _MG_PRINTF ("AddData2    -- %lx\n", main_wnd->dwAddData2);
+
+        _MG_PRINTF ("WinProc     -- %p\n", main_wnd->MainWindowProc);
+        _MG_PRINTF ("NotifProc   -- %p\n", main_wnd->NotifProc);
+        _MG_PRINTF ("Caption     -- %s\n", main_wnd->spCaption);
+        _MG_PRINTF ("ID          -- %d\n", main_wnd->id);
+
+        _MG_PRINTF ("Hosting     -- %p\n", main_wnd->pHosting);
+        _MG_PRINTF ("FirstHosted -- %p\n", main_wnd->pFirstHosted);
+        _MG_PRINTF ("NextHosted  -- %p\n", main_wnd->pNextHosted);
+
+        _MG_PRINTF ("MsgQueue    -- %p\n", main_wnd->pMsgQueue);
+    }
+#endif  /* defined  _MGHAVE_VIRTUAL_WINDOW */
+    else {
+        _ERR_PRINTF ("The handle (%p) has a bad window type: %d!\n", hwnd,
+                (int)main_wnd->WinType);
+    }
+
+    _MG_PRINTF ("End of info for handle (%p) of %s", hwnd, name);
 }
 
 #ifdef __cplusplus
