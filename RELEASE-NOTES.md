@@ -38,7 +38,7 @@ exciting features for MiniGUI:
      utilize the hardware cursors if your graphics device support it.
      You can also load a cursor from a PNG file.
    - Support for loading icon from a bitmap file. You can now load an icon
-     from a bitmap file.
+     from a bitmap file such as a PNG file.
    - Unified the message hook functions for all runtime modes. MiniGUI now
      provides the consistent message hook functions for all runtime modes.
    - Use the update regions for cumulative updating the screen. This will
