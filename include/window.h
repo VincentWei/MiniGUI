@@ -2035,8 +2035,8 @@ extern DWORD __mg_interval_time;
  * \def MSG_SHOWWINDOW
  * \brief Indicates that the window has been shown or hidden.
  *
- * This message is sent to the window when the window has been shown
- * or hidden (due to the calling of the function ShowWindow).
+ * This message is sent to the window as a notification after the window
+ * has been shown or hidden (due to the calling of the function ShowWindow).
  *
  * \code
  * MSG_SHOWWINDOW
@@ -2056,6 +2056,29 @@ extern DWORD __mg_interval_time;
  * \sa ShowWindow
  */
 #define MSG_SHOWWINDOW      0x00A0
+
+/**
+ * \def MSG_MOVEWINDOW
+ * \brief Indicates that the window has been moved.
+ *
+ * This message is sent to the window as a notification after the window
+ * has been moved (due to the calling of the function MoveWindow).
+ *
+ * \code
+ * MSG_MOVEWINDOW
+ * int lx = LOSWORD(wParam);
+ * int ty = HISWORD(wParam);
+ * int rx = LOSWORD(lParam);
+ * int by = HISWORD(lParam);
+ * \endcode
+ *
+ * \param lx, ty, rx, by The new rectangle coordinates of the window.
+ *
+ * \sa MoveWindow
+ *
+ * Since 5.0.0
+ */
+#define MSG_MOVEWINDOW      0x00A1
 
 /**
  * \def MSG_ERASEBKGND
@@ -2432,6 +2455,7 @@ typedef struct _COMPOSITINGINFO {
 
 /* Since 5.0.0 */
 #define MSG_SETCOMPOSITING  0x0105
+#define MSG_DUMPZORDER      0x0106
 
 #define MSG_SHOWGLOBALCTRL  0x010A
 #define MSG_HIDEGLOBALCTRL  0x010B
