@@ -7120,3 +7120,132 @@ BOOL GUIAPI SetMainWindowCompositing (HWND hMainWnd, int type, DWORD arg)
 }
 #endif /* defined _MGSCHEMA_COMPOSITING */
 
+#ifdef _DEBUG
+void GUIAPI DumpWindow (FILE* fp, HWND hwnd)
+{
+    PMAINWIN main_wnd = (PMAINWIN)hwnd;
+
+    fprintf (fp, "Start info of handle (%p) for %s", hwnd, name);
+
+    if (main_wnd->DataType == TYPE_WINTODEL) {
+        fprintf (fp, "The handle (%p) is a %s window to be deleted!\n",
+                hwnd, (main_wnd->WinType == TYPE_MAINWIN) ? "main" : "virtual");
+        return;
+    }
+    else if (main_wnd->DataType != TYPE_HWND) {
+        fprintf (fp, "The handle (%p) is not a window!\n", hwnd);
+        return;
+    }
+
+    if (main_wnd->WinType == TYPE_MAINWIN ||
+            main_wnd->WinType == TYPE_ROOTWIN) {
+        PCONTROL control = (PCONTROL)hwnd;
+
+        fprintf (fp, "The handle (*%p) is a main Windown", hwnd);
+
+        fprintf (fp, "Rect        -- (%d, %d, %d, %d)\n",
+                        main_wnd->left, main_wnd->top,
+                        main_wnd->right, main_wnd->bottom);
+        fprintf (fp, "Client Rect -- (%d, %d, %d, %d)\n",
+                        main_wnd->cl, main_wnd->ct, main_wnd->cr, main_wnd->cb);
+
+        fprintf (fp, "Style       -- %lx\n", main_wnd->dwStyle);
+        fprintf (fp, "ExStyle     -- %lx\n", main_wnd->dwExStyle);
+
+        fprintf (fp, "AddData     -- %lx\n", main_wnd->dwAddData);
+        fprintf (fp, "AddData2    -- %lx\n", main_wnd->dwAddData2);
+
+        fprintf (fp, "WinProc     -- %p\n", main_wnd->MainWindowProc);
+        fprintf (fp, "NotifProc   -- %p\n", main_wnd->NotifProc);
+        fprintf (fp, "Caption     -- %s\n", main_wnd->spCaption);
+        fprintf (fp, "ID          -- %ld\n", main_wnd->id);
+
+        fprintf (fp, "FirstChild  -- %p\n", main_wnd->hFirstChild);
+
+        control = (PCONTROL)main_wnd->hFirstChild;
+        while (control) {
+            fprintf (fp, "    Child   -- %p (%ld); class: %s (%d)\n",
+                    control, control->id,
+                    control->pcci->name, control->pcci->nUseCount);
+            control = control->next;
+        }
+
+        fprintf (fp, "ActiveChild -- %p\n", main_wnd->hActiveChild);
+        fprintf (fp, "Hosting     -- %p\n", main_wnd->pHosting);
+        fprintf (fp, "FirstHosted -- %p\n", main_wnd->pFirstHosted);
+        fprintf (fp, "NextHosted  -- %p\n", main_wnd->pNextHosted);
+        fprintf (fp, "BkColor     -- %x\n", main_wnd->iBkColor);
+        fprintf (fp, "Menu        -- %p\n", main_wnd->hMenu);
+        fprintf (fp, "Accel       -- %p\n", main_wnd->hAccel);
+        fprintf (fp, "Cursor      -- %p\n", main_wnd->hCursor);
+        fprintf (fp, "Icon        -- %p\n", main_wnd->hIcon);
+        fprintf (fp, "SysMenu     -- %p\n", main_wnd->hSysMenu);
+        fprintf (fp, "MsgQueue    -- %p\n", main_wnd->pMsgQueue);
+    }
+    else if (main_wnd->WinType == TYPE_CONTROL) {
+        PCONTROL control = (PCONTROL)hwnd;
+
+        fprintf (fp, "The handle (%p) is a control:\n", hwnd);
+
+        fprintf (fp, "Rect        -- (%d, %d, %d, %d)\n",
+                        control->left, control->top,
+                        control->right, control->bottom);
+        fprintf (fp, "Client Rect -- (%d, %d, %d, %d)\n",
+                        control->cl, control->ct, control->cr, control->cb);
+
+        fprintf (fp, "Style       -- %lx\n", control->dwStyle);
+        fprintf (fp, "ExStyle     -- %lx\n", control->dwExStyle);
+
+        fprintf (fp, "PrivCDC     -- %p\n", control->privCDC);
+
+        fprintf (fp, "AddData     -- %lx\n", control->dwAddData);
+        fprintf (fp, "AddData2    -- %lx\n", control->dwAddData2);
+
+        fprintf (fp, "WinProc     -- %p\n",  control->ControlProc);
+        fprintf (fp, "NotifProc   -- %p\n",  main_wnd->NotifProc);
+
+        fprintf (fp, "Caption     -- %s\n",  control->spCaption);
+        fprintf (fp, "ID          -- %ld\n", control->id);
+
+        fprintf (fp, "FirstChild  -- %p\n",  control->children);
+        fprintf (fp, "ActiveChild -- %p\n",  control->active);
+        fprintf (fp, "Parent      -- %p\n",  control->pParent);
+        fprintf (fp, "Next        -- %p\n",  control->next);
+
+        control = (PCONTROL)control->children;
+        while (control) {
+            fprintf (fp, "    Child   -- %p (%ld); class: %s (%d)\n",
+                    control, control->id,
+                    control->pcci->name, control->pcci->nUseCount);
+            control = control->next;
+        }
+    }
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    else if (main_wnd->WinType == TYPE_VIRTWIN) {
+        PVIRTWIN virt_wnd = (PVIRTWIN)hwnd;
+
+        fprintf (fp, "The handle (*%p) is a virtual Window", hwnd);
+
+        fprintf (fp, "AddData     -- %lx\n", main_wnd->dwAddData);
+        fprintf (fp, "AddData2    -- %lx\n", main_wnd->dwAddData2);
+
+        fprintf (fp, "WinProc     -- %p\n", main_wnd->MainWindowProc);
+        fprintf (fp, "NotifProc   -- %p\n", main_wnd->NotifProc);
+        fprintf (fp, "Caption     -- %s\n", main_wnd->spCaption);
+        fprintf (fp, "ID          -- %d\n", main_wnd->id);
+
+        fprintf (fp, "Hosting     -- %p\n", main_wnd->pHosting);
+        fprintf (fp, "FirstHosted -- %p\n", main_wnd->pFirstHosted);
+        fprintf (fp, "NextHosted  -- %p\n", main_wnd->pNextHosted);
+
+        fprintf (fp, "MsgQueue    -- %p\n", main_wnd->pMsgQueue);
+    }
+#endif  /* defined  _MGHAVE_VIRTUAL_WINDOW */
+    else {
+        fprintf (fp, "The handle (%p) has a bad window type: %d!\n", hwnd,
+                (int)main_wnd->WinType);
+    }
+
+    fprintf (fp, "End of info for handle (%p) of %s", hwnd, name);
+}
+#endif  /* defined _DEBUG */
