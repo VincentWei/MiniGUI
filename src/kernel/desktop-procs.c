@@ -2693,7 +2693,7 @@ static HWND dskGetNextMainWindow (PMAINWIN pWin)
     lock_zi_for_read (zi);
 
     from = __kernel_get_next_znode (zi, from);
-    while (from) {
+    while (from > 0) {
         hwnd = nodes[from].hwnd;
 
         if ((nodes[from].cli == __mg_client_id) &&
@@ -2999,6 +2999,11 @@ static LRESULT dskWindowMessageHandler (UINT message,
     case MSG_SETCOMPOSITING:
         return dskSetMainWinCompositing (pWin, (const COMPOSITINGINFO*)lParam);
 #endif
+
+    /* Since 5.0.0 */
+    case MSG_DUMPZORDER:
+         dskDumpZOrder (__mg_zorder_info);
+         break;
    }
 
    return 0;
