@@ -277,12 +277,12 @@ dump_window_details (HWND hwnd, const char* name)
         _MG_PRINTF ("AddData     -- %lx\n", main_wnd->dwAddData);
         _MG_PRINTF ("AddData2    -- %lx\n", main_wnd->dwAddData2);
 
-        _MG_PRINTF ("WinProc     -- %p\n", main_wnd->MainWindowProc);
-        _MG_PRINTF ("NotifProc   -- %p\n", main_wnd->NotifProc);
-        _MG_PRINTF ("Caption     -- %s\n", main_wnd->spCaption);
+        _MG_PRINTF ("WinProc     -- %p\n",  main_wnd->MainWindowProc);
+        _MG_PRINTF ("NotifProc   -- %p\n",  main_wnd->NotifProc);
+        _MG_PRINTF ("Caption     -- %s\n",  main_wnd->spCaption);
         _MG_PRINTF ("ID          -- %ld\n", main_wnd->id);
 
-        _MG_PRINTF ("FirstChild  -- %p\n", main_wnd->hFirstChild);
+        _MG_PRINTF ("FirstChild  -- %p\n",  main_wnd->hFirstChild);
 
         control = (PCONTROL)main_wnd->hFirstChild;
         while (control) {
@@ -292,17 +292,17 @@ dump_window_details (HWND hwnd, const char* name)
             control = control->next;
         }
 
-        _MG_PRINTF ("ActiveChild -- %p\n", main_wnd->hActiveChild);
-        _MG_PRINTF ("Hosting     -- %p\n", main_wnd->pHosting);
-        _MG_PRINTF ("FirstHosted -- %p\n", main_wnd->pFirstHosted);
-        _MG_PRINTF ("NextHosted  -- %p\n", main_wnd->pNextHosted);
-        _MG_PRINTF ("BkColor     -- %x\n", main_wnd->iBkColor);
-        _MG_PRINTF ("Menu        -- %p\n", main_wnd->hMenu);
-        _MG_PRINTF ("Accel       -- %p\n", main_wnd->hAccel);
-        _MG_PRINTF ("Cursor      -- %p\n", main_wnd->hCursor);
-        _MG_PRINTF ("Icon        -- %p\n", main_wnd->hIcon);
-        _MG_PRINTF ("SysMenu     -- %p\n", main_wnd->hSysMenu);
-        _MG_PRINTF ("MsgQueue    -- %p\n", main_wnd->pMsgQueue);
+        _MG_PRINTF ("ActiveChild -- %p\n",  main_wnd->hActiveChild);
+        _MG_PRINTF ("Hosting     -- %p\n",  main_wnd->pHosting);
+        _MG_PRINTF ("FirstHosted -- %p\n",  main_wnd->pFirstHosted);
+        _MG_PRINTF ("NextHosted  -- %p\n",  main_wnd->pNextHosted);
+        _MG_PRINTF ("BkColor     -- %x\n",  main_wnd->iBkColor);
+        _MG_PRINTF ("Menu        -- %p\n",  main_wnd->hMenu);
+        _MG_PRINTF ("Accel       -- %p\n",  main_wnd->hAccel);
+        _MG_PRINTF ("Cursor      -- %p\n",  main_wnd->hCursor);
+        _MG_PRINTF ("Icon        -- %p\n",  main_wnd->hIcon);
+        _MG_PRINTF ("SysMenu     -- %p\n",  main_wnd->hSysMenu);
+        _MG_PRINTF ("MsgQueue    -- %p\n",  main_wnd->pMsgQueue);
     }
     else if (main_wnd->WinType == TYPE_CONTROL) {
         PCONTROL control = (PCONTROL)hwnd;
@@ -318,13 +318,13 @@ dump_window_details (HWND hwnd, const char* name)
         _MG_PRINTF ("Style       -- %lx\n", control->dwStyle);
         _MG_PRINTF ("ExStyle     -- %lx\n", control->dwExStyle);
 
-        _MG_PRINTF ("PrivCDC     -- %p\n", control->privCDC);
+        _MG_PRINTF ("PrivCDC     -- %p\n",  control->privCDC);
 
         _MG_PRINTF ("AddData     -- %lx\n", control->dwAddData);
         _MG_PRINTF ("AddData2    -- %lx\n", control->dwAddData2);
 
         _MG_PRINTF ("WinProc     -- %p\n",  control->ControlProc);
-        _MG_PRINTF ("NotifProc   -- %p\n",  main_wnd->NotifProc);
+        _MG_PRINTF ("NotifProc   -- %p\n",  control->NotifProc);
 
         _MG_PRINTF ("Caption     -- %s\n",  control->spCaption);
         _MG_PRINTF ("ID          -- %ld\n", control->id);
@@ -348,19 +348,19 @@ dump_window_details (HWND hwnd, const char* name)
 
         _MG_PRINTF ("The handle (*%p) is a virtual Window", hwnd);
 
-        _MG_PRINTF ("AddData     -- %lx\n", main_wnd->dwAddData);
-        _MG_PRINTF ("AddData2    -- %lx\n", main_wnd->dwAddData2);
+        _MG_PRINTF ("AddData     -- %lx\n", virt_wnd->dwAddData);
+        _MG_PRINTF ("AddData2    -- %lx\n", virt_wnd->dwAddData2);
 
-        _MG_PRINTF ("WinProc     -- %p\n", main_wnd->MainWindowProc);
-        _MG_PRINTF ("NotifProc   -- %p\n", main_wnd->NotifProc);
-        _MG_PRINTF ("Caption     -- %s\n", main_wnd->spCaption);
-        _MG_PRINTF ("ID          -- %d\n", main_wnd->id);
+        _MG_PRINTF ("WinProc     -- %p\n",  virt_wnd->WndProc);
+        _MG_PRINTF ("NotifProc   -- %p\n",  virt_wnd->NotifProc);
+        _MG_PRINTF ("Caption     -- %s\n",  virt_wnd->spCaption);
+        _MG_PRINTF ("ID          -- %ld\n", virt_wnd->id);
 
-        _MG_PRINTF ("Hosting     -- %p\n", main_wnd->pHosting);
-        _MG_PRINTF ("FirstHosted -- %p\n", main_wnd->pFirstHosted);
-        _MG_PRINTF ("NextHosted  -- %p\n", main_wnd->pNextHosted);
+        _MG_PRINTF ("Hosting     -- %p\n",  virt_wnd->pHosting);
+        _MG_PRINTF ("FirstHosted -- %p\n",  virt_wnd->pFirstHosted);
+        _MG_PRINTF ("NextHosted  -- %p\n",  virt_wnd->pNextHosted);
 
-        _MG_PRINTF ("MsgQueue    -- %p\n", main_wnd->pMsgQueue);
+        _MG_PRINTF ("MsgQueue    -- %p\n",  virt_wnd->pMsgQueue);
     }
 #endif  /* defined  _MGHAVE_VIRTUAL_WINDOW */
     else {

@@ -107,7 +107,7 @@ typedef struct _CONTROL
     LINT  id;               // the identifier of child window.
 
     WNDPROC ControlProc;    // the window procedure of this control.
-    NOTIFPROC notif_proc;   // the notification callback procedure.
+    NOTIFPROC NotifProc;    // the notification callback procedure.
 
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.

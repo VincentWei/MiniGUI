@@ -5991,7 +5991,7 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     pNewCtrl->old_under_pointer = NULL;
     pNewCtrl->primitive = NULL;
 
-    pNewCtrl->notif_proc = NULL;
+    pNewCtrl->NotifProc = NULL;
 
     pNewCtrl->pMainWin = (PMAINWIN)pMainWin;
     pNewCtrl->pParent  = (PCONTROL)hParentWnd;
@@ -6225,8 +6225,8 @@ NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd, NOTIFPROC notif_proc)
 
     MG_CHECK_RET (MG_IS_APP_WINDOW(hwnd), NULL);
 
-    old_proc = control->notif_proc;
-    control->notif_proc = notif_proc;
+    old_proc = control->NotifProc;
+    control->NotifProc = notif_proc;
     return old_proc;
 }
 
@@ -6236,7 +6236,7 @@ NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd)
 
     MG_CHECK_RET (MG_IS_APP_WINDOW(hwnd), NULL);
 
-    return control->notif_proc;
+    return control->NotifProc;
 }
 
 /****************************** Hook support ********************************/
@@ -7196,13 +7196,13 @@ void GUIAPI DumpWindow (FILE* fp, HWND hwnd)
         fprintf (fp, "Style       -- %lx\n", control->dwStyle);
         fprintf (fp, "ExStyle     -- %lx\n", control->dwExStyle);
 
-        fprintf (fp, "PrivCDC     -- %p\n", control->privCDC);
+        fprintf (fp, "PrivCDC     -- %p\n",  control->privCDC);
 
         fprintf (fp, "AddData     -- %lx\n", control->dwAddData);
         fprintf (fp, "AddData2    -- %lx\n", control->dwAddData2);
 
         fprintf (fp, "WinProc     -- %p\n",  control->ControlProc);
-        fprintf (fp, "NotifProc   -- %p\n",  main_wnd->NotifProc);
+        fprintf (fp, "NotifProc   -- %p\n",  control->NotifProc);
 
         fprintf (fp, "Caption     -- %s\n",  control->spCaption);
         fprintf (fp, "ID          -- %ld\n", control->id);
@@ -7226,19 +7226,19 @@ void GUIAPI DumpWindow (FILE* fp, HWND hwnd)
 
         fprintf (fp, "The handle (*%p) is a virtual Window", hwnd);
 
-        fprintf (fp, "AddData     -- %lx\n", main_wnd->dwAddData);
-        fprintf (fp, "AddData2    -- %lx\n", main_wnd->dwAddData2);
+        fprintf (fp, "AddData     -- %lx\n", virt_wnd->dwAddData);
+        fprintf (fp, "AddData2    -- %lx\n", virt_wnd->dwAddData2);
 
-        fprintf (fp, "WinProc     -- %p\n", main_wnd->MainWindowProc);
-        fprintf (fp, "NotifProc   -- %p\n", main_wnd->NotifProc);
-        fprintf (fp, "Caption     -- %s\n", main_wnd->spCaption);
-        fprintf (fp, "ID          -- %d\n", main_wnd->id);
+        fprintf (fp, "WinProc     -- %p\n",  virt_wnd->WndProc);
+        fprintf (fp, "NotifProc   -- %p\n",  virt_wnd->NotifProc);
+        fprintf (fp, "Caption     -- %s\n",  virt_wnd->spCaption);
+        fprintf (fp, "ID          -- %ld\n", virt_wnd->id);
 
-        fprintf (fp, "Hosting     -- %p\n", main_wnd->pHosting);
-        fprintf (fp, "FirstHosted -- %p\n", main_wnd->pFirstHosted);
-        fprintf (fp, "NextHosted  -- %p\n", main_wnd->pNextHosted);
+        fprintf (fp, "Hosting     -- %p\n",  virt_wnd->pHosting);
+        fprintf (fp, "FirstHosted -- %p\n",  virt_wnd->pFirstHosted);
+        fprintf (fp, "NextHosted  -- %p\n",  virt_wnd->pNextHosted);
 
-        fprintf (fp, "MsgQueue    -- %p\n", main_wnd->pMsgQueue);
+        fprintf (fp, "MsgQueue    -- %p\n",  virt_wnd->pMsgQueue);
     }
 #endif  /* defined  _MGHAVE_VIRTUAL_WINDOW */
     else {
