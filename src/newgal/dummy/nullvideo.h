@@ -53,10 +53,13 @@
 #define _THIS    GAL_VideoDevice *this
 
 /* Private display data */
-
 struct GAL_PrivateVideoData {
-    int w, h;
-    void *buffer;
+    int     w, h;
+    void *  buffer;
+#if defined(_MGRM_PROCESSES) && defined (_MGSCHEMA_SHAREDFB)
+    int     fd;   // the file descriptor of the shared frame buffer object
+    size_t  length;
+#endif
 };
 
 #endif /* _GAL_nullvideo_h */
