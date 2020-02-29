@@ -173,7 +173,6 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
     pWin->idx_znode = dskAllocZOrderNode (pWin);
 
     if (pWin->idx_znode <= 0) {
-        _WRN_PRINTF ("Failed to allocate znode for main window.\n");
         return -1;
     }
 
@@ -322,8 +321,7 @@ static void dskMoveToTopMost (PMAINWIN pWin, int reason, LPARAM lParam)
     dskHideGlobalControl (pWin, reason, lParam);
     dskMove2Top (0, pWin->idx_znode);
 
-    // activate this main window.
-    if ( !(pWin->dwStyle & WS_VISIBLE) ) {
+    if (!(pWin->dwStyle & WS_VISIBLE)) {
         pWin->dwStyle |= WS_VISIBLE;
 
         dskShowWindow (0, pWin->idx_znode);
@@ -335,6 +333,7 @@ static void dskMoveToTopMost (PMAINWIN pWin, int reason, LPARAM lParam)
         SendAsyncMessage ((HWND)pWin, MSG_NCPAINT, 0, 0);
     }
 
+    // activate this main window.
     if (reason != RCTM_SHOWCTRL)
         dskSetActiveWindow (pWin);
 }
@@ -1551,7 +1550,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         lock_zi_for_read (zi);
 
         from = __kernel_get_next_znode (zi, from);
-        while (from) {
+        while (from > 0) {
             hwnd = nodes[from].hwnd;
 
             if ((pWin = checkAndGetMainWindowPtrOfMainWin (hwnd)) &&
@@ -1565,6 +1564,10 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         unlock_zi_for_read (zi);
         return (LRESULT)hwnd;
     }
+
+    case MSG_DUMPZORDER:
+         dskDumpZOrder (__mg_zorder_info);
+         break;
 
     /* Since 5.0.0 */
     case MSG_SETALWAYSTOP:
