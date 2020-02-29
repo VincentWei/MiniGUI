@@ -256,6 +256,9 @@ static GAL_Surface *DUMMY_SetVideoMode(_THIS, GAL_Surface *current,
         free (this->hidden->buffer);
     }
 
+    pitch = width * ((bpp + 7) / 8);
+    pitch = (pitch + 3) & ~3;
+
     this->hidden->buffer = malloc (pitch * height);
     if (!this->hidden->buffer) {
         _ERR_PRINTF ("NEWGAL>DUMMY: "
