@@ -89,9 +89,9 @@
 
 struct timeval __mg_event_timeout;
 
-static int timeoutusec;
-static int repeatusec;
-static int dblclicktime;
+static DWORD timeoutusec;
+static DWORD repeatusec;
+static DWORD dblclicktime;
 
 #ifndef _MGRM_THREADS
 static DWORD timeout_threshold;
@@ -370,6 +370,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             __mg_license_on_input();
 
             interval = __mg_tick_counter - time1;
+
             if (interval <= dblclicktime)
                 me->event = ME_LEFTDBLCLICK;
             else
