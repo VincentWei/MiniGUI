@@ -160,7 +160,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
                 return(NULL);
             }
             /* This is important for bitmaps */
-            memset(surface->pixels, 0, surface->h*surface->pitch);
+            //memset(surface->pixels, 0, surface->h*surface->pitch);
             surface->flags &= ~GAL_HWSURFACE;
         }
     }
