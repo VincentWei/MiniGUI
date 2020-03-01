@@ -2265,15 +2265,20 @@ static int resize_window_surface (PMAINWIN pWin, const RECT* prcResult)
     int nh = RECTHP(prcResult);
 
     if (pWin->surf->w < nw || pWin->surf->h < nh) {
-        GAL_Rect rect = { 0, 0, pWin->surf->w, pWin->surf->h };
         GAL_Surface* new_surf;
 
         new_surf = GAL_CreateSurfaceForZNodeAs (pWin->surf, nw, nh);
         if (new_surf == NULL)
             return -2;
 
-        GAL_BlitSurface (pWin->surf, &rect, new_surf, &rect);
+        GAL_SetClipRect (new_surf, NULL);
+        GAL_SetColorKey (pWin->surf, 0, 0); // disable color key
+        GAL_SetAlpha (pWin->surf, 0, 0);    // disable alpha
+        GAL_BlitSurface (pWin->surf, NULL, new_surf, NULL);
+        memcpy (new_surf->dirty_info, pWin->surf->dirty_info,
+                sizeof (GAL_DirtyInfo));
         GAL_FreeSurface (pWin->surf);
+
         pWin->surf = new_surf;
         if (pWin->surf->shared_header)
             return pWin->surf->shared_header->fd;
