@@ -114,7 +114,7 @@ typedef enum
  * This function outputs a grayed text at the specified position.
  *
  * \param hdc The device context.
- * \param hwnd Tell the function to draw with the color definitions of this window.
+ * \param hwnd Tell the function to draw with the color definitions of the window.
  * \param x The x-coordinate of start point.
  * \param y The y-coordinate of start point.
  * \param szText The null-terminated text to be output.
@@ -172,9 +172,9 @@ MG_EXPORT void ResetToolTipWin (HWND hwnd, int x, int y,
 
 /**
  * \fn void DestroyToolTipWin (HWND hwnd)
- * \brief Destroies a tool tip window.
+ * \brief Destroy a tool tip window.
  *
- * This function destroies the specified tool tip window \a hwnd, which
+ * This function destroys the specified tool tip window \a hwnd, which
  * is returned by \a CreateToolTipWin.
  *
  * \param hwnd The handle to the tool tip window.
@@ -199,9 +199,24 @@ MG_EXPORT void DestroyToolTipWin (HWND hwnd);
  * \a SetNotificationCallback to receive and handle the notification from
  * its children in the procedure.
  *
- * If you have set the notification callback procedure for the parent,
- * MiniGUI will call the callback procedure eventually, instead of dispatching
- * a MSG_COMMAND message to the window procedure.
+ * However, there was a bug in the old implementation. This function will
+ * check and call the notification callback procedure of the control itself
+ * instead of its parent.
+ *
+ * Therefore, since 5.0.0, we adjusted the implementation of this function
+ * as follow:
+ *
+ *  - This function first checks and calls the notification callback procedure
+ *    of the control itself if you had set.
+ *  - If not, this function calls the new API \a NotifyWindow to send
+ *    the notification to the parent of the control.
+ *
+ * The first step keeps the backward compatibility. And we recommend that
+ * you set the notification callback procedure for the parent in the
+ * future code. If you have set the notification callback procedure for
+ * the parent, MiniGUI will call the callback procedure eventually,
+ * instead of dispatching a MSG_COMMAND message to the window procedure of
+ * the parent.
  *
  * Note that if the control has \a WS_EX_NOPARENTNOTIFY style, this function
  * will not notify the parent.
@@ -229,7 +244,7 @@ MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code,
  * \param id The identifier of current control.
  * \param code The notification code.
  *
- * \note This function is actually a macro of NotifyParentEx with
+ * \note This function is actually a macro of \a NotifyParentEx with
  *       \a dwAddData being zero.
  *
  * \sa NotifiyParentEx
