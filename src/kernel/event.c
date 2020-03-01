@@ -564,8 +564,10 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             // Mouse button status
             if (oldbutton & IAL_MOUSE_LEFTBUTTON)
                 status |= KS_LEFTBUTTON;
-            else if (oldbutton & IAL_MOUSE_RIGHTBUTTON)
+            if (oldbutton & IAL_MOUSE_RIGHTBUTTON)
                 status |= KS_RIGHTBUTTON;
+            if (oldbutton & IAL_MOUSE_MIDDLEBUTTON)
+                status |= KS_MIDDLEBUTTON;
         }
         ke->status = status;
 #ifdef _MGRM_PROCESSES
@@ -867,8 +869,10 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             // Mouse button status
             if (oldbutton & IAL_MOUSE_LEFTBUTTON)
                 status |= KS_LEFTBUTTON;
-            else if (oldbutton & IAL_MOUSE_RIGHTBUTTON)
+            if (oldbutton & IAL_MOUSE_RIGHTBUTTON)
                 status |= KS_RIGHTBUTTON;
+            if (oldbutton & IAL_MOUSE_MIDDLEBUTTON)
+                status |= KS_MIDDLEBUTTON;
         }
         ke->status = status;
         memcpy (oldkeystate, keystate, nr_keys);
