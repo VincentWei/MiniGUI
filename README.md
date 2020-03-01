@@ -119,6 +119,8 @@ on your Ubuntu Linux.
     * libjpeg64-dev
     * libpng12-dev (use libpng-dev on Ubuntu Linux 18.04 LTS)
     * libfreetype6-dev
+    * libharfbuzz-dev (need customize include path on Ubuntu Linux 20.04 LTS
+        by ./configure --with-hb-includes=/usr/include/harfbuzz)
 
 ### Building MiniGUI Core
 
