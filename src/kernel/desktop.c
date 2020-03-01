@@ -130,24 +130,24 @@ static const int _zof_types_for_level [] = {
 typedef BOOL (* CB_ONE_ZNODE) (void* context,
                 const ZORDERINFO* zi, ZORDERNODE* node);
 
+#if 0   /* deprecated code */
+PGCRINFO kernel_GetGCRgnInfo (HWND hWnd)
+{
+    return ((PMAINWIN)hWnd)->pGCRInfo;
+}
+#endif  /* deprecated code */
+
 typedef struct _DEF_CONTEXT
 {
     PBITMAP bg;
     int x, y;
 } DEF_CONTEXT;
 
-#ifndef _MGSCHEMA_COMPOSITING
-PGCRINFO kernel_GetGCRgnInfo (HWND hWnd)
-{
-    return ((PMAINWIN)hWnd)->pGCRInfo;
-}
-#endif /* not defined _MGSCHEMA_COMPOSITING */
-
 #if defined(_MGRM_PROCESSES)
 static DEF_CONTEXT g_def_context;
 #endif
 
-static ZORDERINFO* get_zorder_info (int cli)
+static inline ZORDERINFO* get_zorder_info (int cli)
 {
 #if defined (_MGRM_THREADS) || defined (_MGRM_STANDALONE)
     return __mg_zorder_info;
@@ -697,7 +697,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     hdc = get_effective_dc (pWin, TRUE);
 
 #ifndef _MGSCHEMA_COMPOSITING
-    pcrc = kernel_GetGCRgnInfo ((HWND)pWin)->crgn.head;
+    pcrc = pWin->pGCRInfo->crgn.head;
 #else
     crcOne.next = crcOne.prev = NULL;
     crcOne.rc.left = pWin->pMainWin->left;
@@ -770,7 +770,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 #ifndef _MGSCHEMA_COMPOSITING
     prgn = CreateClipRgn ();
     lock_zi_for_read (__mg_zorder_info);
-    CopyRegion (prgn, &kernel_GetGCRgnInfo((HWND)pWin)->crgn);
+    CopyRegion (prgn, &pWin->pGCRInfo->crgn);
     pcrc = prgn->head;
     unlock_zi_for_read (__mg_zorder_info);
 #else
@@ -882,8 +882,8 @@ void __mg_lock_recalc_gcrinfo (PDC pdc)
     unsigned short idx;
     CLIPRGN invisible_rgn;
 
-    gcrinfo = kernel_GetGCRgnInfo (pdc->hwnd);
     mainwin = (PMAINWIN)(pdc->hwnd);
+    gcrinfo = mainwin->pGCRInfo;
 
 #ifdef _MGRM_THREADS
     pthread_mutex_lock (&pdc->pGCRInfo->lock);

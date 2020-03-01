@@ -110,7 +110,6 @@ PLOGFONT g_SysLogFont[1];   // TODO: bad coding
 #define salone_StandAloneStartup()            TRUE
 #define salone_StandAloneCleanup()
 #define salone_IdleHandler4StandAlone(qmsg)   NULL
-#define kernel_GetGCRgnInfo(hwnd)             NULL
 #define GetWindowFont(hwnd)                   NULL
 #define mg_InitControlClass()                 TRUE
 #define mg_InitAccel()                        TRUE

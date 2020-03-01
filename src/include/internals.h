@@ -578,11 +578,6 @@ PMAINWIN gui_GetMainWindowPtrUnderPoint (int x, int y);
 /* return the next window need to repaint. */
 HWND kernel_CheckInvalidRegion (PMAINWIN pWin);
 
-#ifndef _MGSCHEMA_COMPOSITING
-/* return global clipping region of window. */
-PGCRINFO kernel_GetGCRgnInfo (HWND hWnd);
-#endif
-
 /* internal variables */
 typedef struct _TRACKMENUINFO* PTRACKMENUINFO;
 

@@ -1875,7 +1875,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 #else   /* not defined _MGSCHEMA_COMPOSITING */
         RECT minimal;
 
-        pdc->pGCRInfo = kernel_GetGCRgnInfo (hWnd);
+        pdc->pGCRInfo = ((PMAINWIN)hWnd)->pGCRInfo;
 
         LOCK_GCRINFO (pdc);
 

@@ -2526,7 +2526,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
     //the update to client dc (dongjunjie 2010/7/28)
     hdc = get_effective_dc(pWin, TRUE);
 
-    pcrc = kernel_GetGCRgnInfo ((HWND)pWin)->crgn.head;
+    pcrc = pWin->pGCRInfo->crgn.head;
     while (pcrc) {
         RECT rcMove;
 
@@ -2585,7 +2585,7 @@ static int dskScrollMainWindow (PMAINWIN pWin, PSCROLLWINDOWINFO pswi)
 #endif
     }
 
-    pcrc = kernel_GetGCRgnInfo ((HWND)pWin)->crgn.head;
+    pcrc = pWin->pGCRInfo->crgn.head;
     while (pcrc) {
         BOOL bNeedInvalidate = FALSE;
         RECT rcMove;

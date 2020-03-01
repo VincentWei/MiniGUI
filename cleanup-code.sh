@@ -164,7 +164,7 @@ tab2space() {
 # sed -i 's/\<get_valid_dc\>/get_effective_dc/g' `grep '\<get_valid_dc\>' -rl include/ src/`
 # sed -i 's/\<release_valid_dc\>/release_effective_dc/g' `grep '\<release_valid_dc\>' -rl include/ src/`
 
-sed -i 's/\<gui_GetMainWindowPtrOfControl\>/checkAndGetMainWindowPtrOfControl/g' `grep '\<gui_GetMainWindowPtrOfControl\>' -rl include/ src/`
-sed -i 's/\<gui_CheckAndGetMainWindowPtr\>/checkAndGetMainWindowPtrOfMainWin/g' `grep '\<gui_CheckAndGetMainWindowPtr\>' -rl include/ src/`
+# sed -i 's/\<gui_GetMainWindowPtrOfControl\>/checkAndGetMainWindowPtrOfControl/g' `grep '\<gui_GetMainWindowPtrOfControl\>' -rl include/ src/`
+# sed -i 's/\<gui_CheckAndGetMainWindowPtr\>/checkAndGetMainWindowPtrOfMainWin/g' `grep '\<gui_CheckAndGetMainWindowPtr\>' -rl include/ src/`
 
 exit 0
