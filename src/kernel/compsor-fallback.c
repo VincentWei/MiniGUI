@@ -601,6 +601,15 @@ static void calc_mainwin_pos (CompositorCtxt* ctxt, MG_Layer* layer,
             info->rc = znode_hdr->rc;
             OffsetRect (&info->rc,
                     DEF_OVERLAPPED_OFFSET_X, DEF_OVERLAPPED_OFFSET_Y);
+
+            /* adjust to a reasonable postion */
+            if (info->rc.top > (g_rcScr.bottom * 3 / 4)) {
+                OffsetRect (&info->rc, 0, -info->rc.top);
+            }
+
+            if (info->rc.left > (g_rcScr.right * 3 / 4)) {
+                OffsetRect (&info->rc, -info->rc.left, 0);
+            }
         }
     }
 }

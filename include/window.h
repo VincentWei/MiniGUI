@@ -4641,9 +4641,9 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  * \brief The position of the main window will be determined by system.
  *
  * If a main window has this extend style when creating it, MiniGUI will
- * determine the position of the main window. If the width or the height of
- * the window specified in MAINWINCREATE structure is zero, MiniGUI will
- * also determine a default size for the main window.
+ * determine the position in the screen for the main window. If the width
+ * or the height of the window specified in MAINWINCREATE structure is zero,
+ * MiniGUI will also determine a default size for the main window.
  *
  * Under the compositing schema, the compositor is responsible to calculate
  * the position and the size for a main window.

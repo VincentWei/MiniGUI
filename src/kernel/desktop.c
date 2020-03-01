@@ -4413,6 +4413,15 @@ static int dskCalculateDefaultPosition (int cli, CALCPOSINFO* info)
             info->rc = nodes[first].rc;
             OffsetRect (&info->rc,
                     DEF_OVERLAPPED_OFFSET_X, DEF_OVERLAPPED_OFFSET_Y);
+
+            /* adjust to a reasonable postion */
+            if (info->rc.top > (g_rcScr.bottom * 3 / 4)) {
+                OffsetRect (&info->rc, 0, -info->rc.top);
+            }
+
+            if (info->rc.left > (g_rcScr.right * 3 / 4)) {
+                OffsetRect (&info->rc, -info->rc.left, 0);
+            }
         }
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
