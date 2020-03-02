@@ -121,7 +121,7 @@ BOOL client_ClientStartup (void)
     struct sigaction siga;
 
     /* connect to server */
-    if ( (conn_fd = cli_conn (CS_PATH, 'a')) < 0)
+    if ((conn_fd = cli_conn (CS_PATH, 'a')) < 0)
         return FALSE;
 
     FD_SET (conn_fd, &__mg_dsk_msg_queue->rfdset);
@@ -574,6 +574,8 @@ GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
 
         __mg_zorder_info = zi;
     }
+
+    __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
 
     __mg_start_client_desktop ();
 
