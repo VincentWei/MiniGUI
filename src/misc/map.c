@@ -59,7 +59,7 @@
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
 #define WRLOCK_INIT(map)        pthread_rwlock_init (&(map)->rwlock, NULL)
-#define WRLOCK_DSTR(map)     pthread_rwlock_destroy (&(map)->rwlock)
+#define WRLOCK_DSTR(map)        pthread_rwlock_destroy (&(map)->rwlock)
 
 #define RDLOCK_MAP(map)         pthread_rwlock_rdlock (&(map)->rwlock)
 #define WRLOCK_MAP(map)         pthread_rwlock_wrlock (&(map)->rwlock)
@@ -334,6 +334,81 @@ int __mg_map_insert_ex (map_t* map, const void* key,
     return 0;
 }
 
+int __mg_map_find_replace_or_insert (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt)
+{
+    map_entry_t **pentry;
+    map_entry_t *entry;
+    map_entry_t *parent;
+
+    if (map == NULL)
+        return -1;
+
+    RDLOCK_MAP (map);
+
+    pentry = (map_entry_t**)&(map->root.rb_node);
+    entry = NULL;
+    parent = NULL;
+    while (*pentry) {
+        int ret;
+       
+        if (map->comp_key) {
+            ret = map->comp_key (key, (*pentry)->key);
+        }
+        else
+            ret = (int)((intptr_t)key - (intptr_t)entry->key);
+
+        parent = *pentry;
+        if (ret < 0)
+            pentry = (map_entry_t**)&((*pentry)->node.rb_left);
+        else if (ret > 0)
+            pentry = (map_entry_t**)&((*pentry)->node.rb_right);
+        else {
+            entry = *pentry;
+            break;
+        }
+    }
+
+    UNLOCK_MAP (map);
+
+    if (entry == NULL) {
+        entry = new_entry (map, key, val, free_val_alt);
+
+        WRLOCK_MAP (map);
+
+        rb_link_node (&entry->node,
+                (struct rb_node*)parent, (struct rb_node**)pentry);
+        __mg_rb_insert_color (&entry->node, &map->root);
+
+        map->size++;
+
+        UNLOCK_MAP (map);
+    }
+    else {
+        WRLOCK_MAP (map);
+
+        if (entry->free_val_alt) {
+            entry->free_val_alt (entry->val);
+        }
+        else if (map->free_val) {
+            map->free_val (entry->val);
+        }
+
+        if (map->copy_val) {
+            entry->val = map->copy_val (val);
+        }
+        else
+            entry->val = (void*)val;
+
+        entry->free_val_alt = free_val_alt;
+
+        UNLOCK_MAP (map);
+    }
+
+    return 0;
+}
+
+#if 0   /* deprecated code */
 void* __mg_map_find_or_insert_ex (map_t* map, const void* key,
         const void* val, free_val_fn free_val_alt)
 {
@@ -387,4 +462,5 @@ void* __mg_map_find_or_insert_ex (map_t* map, const void* key,
 
     return entry->val;
 }
+#endif  /* deprecated code */
 
