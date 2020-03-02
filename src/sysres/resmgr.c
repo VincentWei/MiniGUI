@@ -388,28 +388,13 @@ static void delete_entry_data(RES_ENTRY* entry)
 */
 
 /* Since 5.0.0: functions for system bitmap map */
-map_t* __mg_sys_bmp_map;
-static void* copy_key_string (const void *key)
-{
-    return strdup (key);
-}
-
-static void free_key_string (void *key)
-{
-    free (key);
-}
-
-static int comp_key_string (const void *key1, const void *key2)
-{
-    return strcmp (key1, key2);
-}
-
 static void free_val_bitmap (void *val)
 {
     UnloadBitmap (val);
     free (val);
 }
 
+map_t* __mg_sys_bmp_map;
 BOOL mg_InitResManager(int hash_table_size)
 {
     char szpath[MAX_PATH+1];
@@ -457,33 +442,32 @@ void TerminateResManager()
 
     //delete all entries
     RES_LOCK();
-    for(i=0; i<hash_table.size; i++){
+    for(i = 0; i < hash_table.size; i++){
         RES_ENTRY * entry = hash_table.entries[i];
-        while(entry)
-        {
+        while (entry) {
             RES_ENTRY* etmp = entry;
             entry = entry->next;
-            if(etmp->data)
-                delete_entry_data(etmp);
-            DELETE(etmp);
+            if (etmp->data)
+                delete_entry_data (etmp);
+            DELETE (etmp);
         }
         hash_table.entries[i] = NULL;
     }
 
     //delete entrys
-    release_hash_table(&hash_table);
+    release_hash_table (&hash_table);
 
-    RES_UNLOCK();
+    RES_UNLOCK ();
     //delete the respaths
-    for(i=0; res_paths[i]; i++){
-        DELETE(res_paths[i]);
+    for (i = 0; res_paths[i]; i++){
+        DELETE (res_paths[i]);
         res_paths[i] = NULL;
     }
     //delete types
-    DELETE(user_types);
+    DELETE (user_types);
     user_types = NULL;
     user_type_count = 0;
-    UNINIT_LOCKER();
+    UNINIT_LOCKER ();
 
     /* Since 5.0.0, destroy the map for system bitmaps */
     __mg_map_destroy (__mg_sys_bmp_map);
