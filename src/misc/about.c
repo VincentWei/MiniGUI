@@ -161,13 +161,6 @@ static void InitAboutDialogCreateInfo (PMAINWINCREATE pCreateInfo, char* caption
     }
 
     pCreateInfo->iBkColor = RGBA2Pixel(HDC_SCREEN, 0xFF, 0xFF, 0xFF, 0x80);
-#ifdef _MGSCHEMA_COMPOSITING
-    pCreateInfo->dwBkColor = MakeRGBA (
-            SysPixelColor[IDX_COLOR_darkgray].r,
-            SysPixelColor[IDX_COLOR_darkgray].g,
-            SysPixelColor[IDX_COLOR_darkgray].b,
-            0xA0);
-#endif
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }
@@ -227,8 +220,13 @@ HWND GUIAPI OpenAboutDialog (HWND hHosting)
     InitAboutDialogCreateInfo (&CreateInfo, caption);
     CreateInfo.hHosting = hHosting;
 
-    hMainWnd = CreateMainWindowEx2 (&CreateInfo, NULL, NULL,
-            ST_PIXEL_ARGB8888, CT_ALPHAPIXEL, 0x80, 0, 0);
+    hMainWnd = CreateMainWindowEx2 (&CreateInfo, 0L, NULL, NULL,
+            ST_PIXEL_ARGB8888,
+            MakeRGBA (SysPixelColor[IDX_COLOR_darkgray].r,
+                SysPixelColor[IDX_COLOR_darkgray].g,
+                SysPixelColor[IDX_COLOR_darkgray].b,
+                0xA0),
+            CT_ALPHAPIXEL, 0x80);
 
     if (hMainWnd == HWND_INVALID)
         return HWND_INVALID;
