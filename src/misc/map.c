@@ -184,17 +184,6 @@ static void erase_entry (map_t* map, map_entry_t *entry)
     map->size--;
 }
 
-int __mg_map_erase (map_t* map, void* key)
-{
-    map_entry_t* entry = __mg_map_find (map, key);
-    if (entry) {
-        erase_entry (map, entry);
-        return 0;
-    }
-
-    return -1;
-}
-
 int __mg_map_clear (map_t* map)
 {
     if (map == NULL)
@@ -210,14 +199,12 @@ int __mg_map_clear (map_t* map)
     return 0;
 }
 
-map_entry_t* __mg_map_find (map_t* map, const void* key)
+static map_entry_t *find_entry (map_t* map, const void* key)
 {
     map_entry_t* entry = NULL;
 
     if (map == NULL)
         return NULL;
-
-    RDLOCK_MAP (map);
 
     entry = (map_entry_t*)(map->root.rb_node);
     while (entry) {
@@ -238,23 +225,59 @@ map_entry_t* __mg_map_find (map_t* map, const void* key)
             break;
     }
 
+    return entry;
+}
+
+map_entry_t* __mg_map_find (map_t* map, const void* key)
+{
+    map_entry_t* entry = NULL;
+
+    if (map == NULL)
+        return NULL;
+
+    RDLOCK_MAP (map);
+
+    entry = find_entry (map, key);
+
     UNLOCK_MAP (map);
     return entry;
+}
+
+int __mg_map_erase (map_t* map, void* key)
+{
+    int retval = -1;
+    map_entry_t* entry = NULL;
+
+    WRLOCK_MAP (map);
+
+    entry = find_entry (map, key);
+    if (entry) {
+        erase_entry (map, entry);
+        retval = 0;
+    }
+
+    UNLOCK_MAP (map);
+    return retval;
 }
 
 int __mg_map_replace (map_t* map, const void* key,
         const void* val, free_val_fn free_val_alt)
 {
+    int retval = -1;
     map_entry_t* entry = NULL;
 
-    entry = __mg_map_find (map, key);
-    if (entry == NULL)
-        return -1;
-
-    if (val == entry->val)
-        return 0;
-
     WRLOCK_MAP (map);
+
+    entry = find_entry (map, key);
+    if (entry == NULL) {
+        goto ret;
+    }
+
+    retval = 0;
+    /* XXX: is this reasonable? */
+    if (val == entry->val) {
+        goto ret;
+    }
 
     if (entry->free_val_alt) {
         entry->free_val_alt (entry->val);
@@ -271,9 +294,9 @@ int __mg_map_replace (map_t* map, const void* key,
 
     entry->free_val_alt = free_val_alt;
 
+ret:
     UNLOCK_MAP (map);
-
-    return 0;
+    return retval;
 }
 
 int __mg_map_insert_ex (map_t* map, const void* key,
@@ -344,7 +367,7 @@ int __mg_map_find_replace_or_insert (map_t* map, const void* key,
     if (map == NULL)
         return -1;
 
-    RDLOCK_MAP (map);
+    WRLOCK_MAP (map);
 
     pentry = (map_entry_t**)&(map->root.rb_node);
     entry = NULL;
@@ -369,24 +392,17 @@ int __mg_map_find_replace_or_insert (map_t* map, const void* key,
         }
     }
 
-    UNLOCK_MAP (map);
-
     if (entry == NULL) {
         entry = new_entry (map, key, val, free_val_alt);
 
-        WRLOCK_MAP (map);
 
         rb_link_node (&entry->node,
                 (struct rb_node*)parent, (struct rb_node**)pentry);
         __mg_rb_insert_color (&entry->node, &map->root);
 
         map->size++;
-
-        UNLOCK_MAP (map);
     }
     else {
-        WRLOCK_MAP (map);
-
         if (entry->free_val_alt) {
             entry->free_val_alt (entry->val);
         }
@@ -401,10 +417,9 @@ int __mg_map_find_replace_or_insert (map_t* map, const void* key,
             entry->val = (void*)val;
 
         entry->free_val_alt = free_val_alt;
-
-        UNLOCK_MAP (map);
     }
 
+    UNLOCK_MAP (map);
     return 0;
 }
 
