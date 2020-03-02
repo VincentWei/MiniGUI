@@ -6986,7 +6986,7 @@ MG_EXPORT BOOL GUIAPI DestroyMainWindow (HWND hWnd);
 typedef void (*CB_FREE_LOCAL_DATA) (DWORD local_data);
 
 /**
- * \fn SetWindowLocalData (HWND hwnd, const char* data_name,
+ * \fn BOOL GUIAPI SetWindowLocalData (HWND hwnd, const char* data_name,
         DWORD local_data, CB_FREE_LOCAL_DATA cb_free)
  * \brief Set the local data bound with a name for a window.
  *
@@ -6998,12 +6998,13 @@ typedef void (*CB_FREE_LOCAL_DATA) (DWORD local_data);
  *
  * \param hwnd The handle to the window, which can be a main window, a virtual
  *  window or a control.
- * \param data_name The name for the local data.
+ * \param data_name The name of the local data.
  * \param local_data The value of the local data.
  * \param cb_free A callback function which will be called automatically by the
  *  system to free the local data when the window is being destroyed or the local
  *  data is being removed or overwritten. If it is NULL, the system does nothing
  *  to the local data.
+ *
  * \return TRUE on success, FALSE on error.
  *
  * \sa GetWindowLocalData, RemoveWindowLocalData 
@@ -7026,6 +7027,7 @@ MG_EXPORT BOOL GUIAPI SetWindowLocalData (HWND hwnd, const char* data_name,
  * \param hwnd The handle to the window, which can be a main window, a virtual
  *  window or a control.
  * \param data_name The name for the local data.
+ *
  * \return TRUE on success, FALSE on error.
  *
  * \sa SetWindowLocalData, GetWindowLocalData 
