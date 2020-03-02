@@ -4146,10 +4146,10 @@ static void ResetMenuSize (HWND hwnd)
     }
 }
 
-HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
+HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-        unsigned int surf_flag, int ct, DWORD ct_arg,
-        LINT id, LINT reserved)
+        unsigned int surf_flag, DWORD bkgnd_color,
+        int ct, DWORD ct_arg)
 {
     PMAINWIN pWin;
     COMPOSITINGINFO ct_info = { ct, ct_arg };
@@ -4351,8 +4351,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
                 pWin->bottom - pWin->top);
     if ((surf_flag & ST_PIXEL_MASK) != ST_PIXEL_DEFAULT) {
         pWin->iBkColor = GAL_MapRGBA (pWin->surf->format,
-                GetRValue (pCreateInfo->dwBkColor), GetGValue (pCreateInfo->dwBkColor),
-                GetBValue (pCreateInfo->dwBkColor), GetAValue (pCreateInfo->dwBkColor));
+                GetRValue (bkgnd_color), GetGValue (bkgnd_color),
+                GetBValue (bkgnd_color), GetAValue (bkgnd_color));
     }
 #else
     pWin->pGCRInfo = &pWin->GCRInfo;
