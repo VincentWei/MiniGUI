@@ -134,7 +134,29 @@ static int subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
     return nr_subtracted;
 }
 
-static int get_lucent_win_znodes_above (CompositorCtxt* ctxt, int from)
+#if 0   /* deprecated code */
+/*
+ * This helper is useful for transparent or blur popup menus
+ * The fallback compositor only supports opaque popup menus.
+ */
+static void subtract_opaque_ppp_znodes (CompositorCtxt* ctxt)
+{
+    int i, nr_ppp;
+
+    // subtract opaque menu znodes
+    nr_ppp = ServerGetPopupMenusCount();
+    for (i = 0; i < nr_ppp; i++) {
+        const ZNODEHEADER* znode_hdr;
+        CLIPRGN* rgn;
+
+        znode_hdr = ServerGetPopupMenuZNodeHeader (i, (void**)rgn, FALSE);
+        if (znode_hdr && znode_hdr->ct == CT_OPAQUE) {
+            SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
+        }
+    }
+}
+
+static inline int get_lucent_win_znodes_above (CompositorCtxt* ctxt, int from)
 {
     int nr_lucent = 0;
     int prev;
@@ -164,26 +186,38 @@ static int get_lucent_win_znodes_above (CompositorCtxt* ctxt, int from)
     return nr_lucent;
 }
 
-/*
- * This helper is useful for transparent or blur popup menus
- * The fallback compositor only supports opaque popup menus.
-static void subtract_opaque_ppp_znodes (CompositorCtxt* ctxt)
+static inline void subtract_all_opaque_win_znodes (CompositorCtxt* ctxt,
+        CLIPRGN* dirty_rgn)
 {
-    int i, nr_ppp;
+    int next;
 
-    // subtract opaque menu znodes
-    nr_ppp = ServerGetPopupMenusCount();
-    for (i = 0; i < nr_ppp; i++) {
+    if (IsEmptyClipRgn (dirty_rgn)) {
+        return;
+    }
+
+    next = ServerGetNextZNode (NULL, 0, NULL);
+    while (next > 0) {
         const ZNODEHEADER* znode_hdr;
         CLIPRGN* rgn;
 
-        znode_hdr = ServerGetPopupMenuZNodeHeader (i, (void**)rgn, FALSE);
-        if (znode_hdr && znode_hdr->ct == CT_OPAQUE) {
-            SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
+        znode_hdr = ServerGetWinZNodeHeader (NULL, next, (void**)&rgn, FALSE);
+        assert (znode_hdr);
+
+        if ((znode_hdr->flags & ZNIF_VISIBLE) &&
+               (znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE) {
+
+            SubtractRegion (dirty_rgn, dirty_rgn, rgn);
+
+            if (IsEmptyClipRgn (dirty_rgn)) {
+                return;
+            }
         }
+
+        next = ServerGetNextZNode (NULL, next, NULL);
     }
 }
-*/
+
+#endif  /* deprecated code */
 
 static inline void tile_dirty_region_for_wallpaper (CompositorCtxt* ctxt)
 {
@@ -370,16 +404,12 @@ static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
     ServerReleaseWinZNodeHeader (NULL, from);
 }
 
-static void composite_all_lucent_win_znodes (CompositorCtxt* ctxt,
-        const CLIPRGN* dirty_rgn)
+static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
+        const CLIPRGN* dirty_rgn, int zidx)
 {
     int prev;
 
-    if (IsEmptyClipRgn (dirty_rgn)) {
-        return;
-    }
-
-    prev = ServerGetPrevZNode (NULL, 0, NULL);
+    prev = ServerGetPrevZNode (NULL, zidx, NULL);
     while (prev > 0) {
         const ZNODEHEADER* znode_hdr;
         CLIPRGN* rgn;
@@ -461,11 +491,6 @@ static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
         return;
     }
 
-    /* save dirty region for compositing the lucent znodes above
-       the current znode. */
-    if (get_lucent_win_znodes_above (ctxt, from))
-        CopyRegion (&tmp_rgn, &ctxt->dirty_rgn);
-
     /* compositing the current window znode and the znodes below it */
     if (from <= 0)
         next = ServerGetNextZNode (NULL, 0, NULL);
@@ -473,15 +498,29 @@ static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
         next = from;
 
     while (next > 0) {
+
+        if (!IsEmptyClipRgn (&ctxt->dirty_rgn)) {
+            // save dirty region for compositing the lucent znodes above
+            // the current znode.
+            CopyRegion (&tmp_rgn, &ctxt->dirty_rgn);
+        }
+        else
+            break;
+
         composite_opaque_win_znode (ctxt, next);
+        composite_all_lucent_win_znodes_above (ctxt, &tmp_rgn, next);
+
         next = ServerGetNextZNode (NULL, next, NULL);
     }
 
     /* compositing the wallpaper */
-    composite_wallpaper (ctxt);
+    if (!IsEmptyClipRgn (&ctxt->dirty_rgn)) {
+        composite_wallpaper (ctxt);
 
-    /* composite all lucent znodes intersected with dirty region. */
-    composite_all_lucent_win_znodes (ctxt, &tmp_rgn);
+        /* composite all lucent znodes intersected with dirty region. */
+        CopyRegion (&tmp_rgn, &ctxt->dirty_rgn);
+        composite_all_lucent_win_znodes_above (ctxt, &tmp_rgn, 0);
+    }
 
     EmptyClipRgn (&tmp_rgn);
     SyncUpdateDC (HDC_SCREEN_SYS);
