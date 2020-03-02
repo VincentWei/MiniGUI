@@ -72,6 +72,7 @@ typedef struct _map_entry_t {
     struct rb_node  node;
     void*           key;
     void*           val;
+    free_val_fn     free_val_alt;   // alternative free function per entry
 } map_entry_t;
 
 map_t* __mg_map_create (copy_key_fn copy_key, free_key_fn free_key,
@@ -82,10 +83,29 @@ int __mg_map_clear (map_t* map);
 int __mg_map_get_size (map_t* map);
 
 map_entry_t* __mg_map_find (map_t* map, const void* key);
-int   __mg_map_insert (map_t* map, const void* key, const void* val);
-void* __mg_map_find_or_insert (map_t* map, const void* key, const void* val);
-int   __mg_map_erase (map_t* map, void* key);
-int   __mg_map_get_size (map_t* map);
+
+int __mg_map_insert_ex (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt);
+static inline int  __mg_map_insert (map_t* map, const void* key,
+        const void* val)
+{
+    return __mg_map_insert_ex (map, key, val, NULL);
+}
+
+void* __mg_map_find_or_insert_ex (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt);
+
+static inline void* __mg_map_find_or_insert (map_t* map, const void* key,
+        const void* val)
+{
+    return __mg_map_find_or_insert_ex (map, key, val, NULL);
+}
+
+int __mg_map_replace (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt);
+
+int __mg_map_erase (map_t* map, void* key);
+int __mg_map_get_size (map_t* map);
 
 #ifdef __cplusplus
 }

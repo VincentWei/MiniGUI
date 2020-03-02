@@ -129,7 +129,8 @@ int __mg_map_destroy (map_t* map)
     return 0;
 }
 
-static map_entry_t* new_entry (map_t* map, const void* key, const void* val)
+static map_entry_t* new_entry (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt)
 {
     map_entry_t* entry;
 
@@ -146,6 +147,8 @@ static map_entry_t* new_entry (map_t* map, const void* key, const void* val)
         }
         else
             entry->val = (void*)val;
+
+        entry->free_val_alt = free_val_alt;
     }
 
     return entry;
@@ -160,7 +163,10 @@ static void clear_node (map_t* map, struct rb_node* node)
             map->free_key (entry->key);
         }
 
-        if (map->free_val) {
+        if (entry->free_val_alt) {
+            entry->free_val_alt (entry->val);
+        }
+        else if (map->free_val) {
             map->free_val (entry->val);
         }
 
@@ -236,7 +242,42 @@ map_entry_t* __mg_map_find (map_t* map, const void* key)
     return entry;
 }
 
-int __mg_map_insert (map_t* map, const void* key, const void* val)
+int __mg_map_replace (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt)
+{
+    map_entry_t* entry = NULL;
+
+    entry = __mg_map_find (map, key);
+    if (entry == NULL)
+        return -1;
+
+    if (val == entry->val)
+        return 0;
+
+    WRLOCK_MAP (map);
+
+    if (entry->free_val_alt) {
+        entry->free_val_alt (entry->val);
+    }
+    else if (map->free_val) {
+        map->free_val (entry->val);
+    }
+
+    if (map->copy_val) {
+        entry->val = map->copy_val (val);
+    }
+    else
+        entry->val = (void*)val;
+
+    entry->free_val_alt = free_val_alt;
+
+    UNLOCK_MAP (map);
+
+    return 0;
+}
+
+int __mg_map_insert_ex (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt)
 {
     map_entry_t **pentry;
     map_entry_t *entry;
@@ -271,7 +312,7 @@ int __mg_map_insert (map_t* map, const void* key, const void* val)
     }
 
     if (!entry) {
-        entry = new_entry (map, key, val);
+        entry = new_entry (map, key, val, free_val_alt);
         rb_link_node (&entry->node,
                 (struct rb_node*)parent, (struct rb_node**)pentry);
         __mg_rb_insert_color (&entry->node, &map->root);
@@ -293,8 +334,8 @@ int __mg_map_insert (map_t* map, const void* key, const void* val)
     return 0;
 }
 
-void* __mg_map_find_or_insert (map_t* map, const void* key,
-        const void* val)
+void* __mg_map_find_or_insert_ex (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt)
 {
     map_entry_t **pentry;
     map_entry_t *entry;
@@ -331,7 +372,7 @@ void* __mg_map_find_or_insert (map_t* map, const void* key,
     UNLOCK_MAP (map);
 
     if (entry == NULL) {
-        entry = new_entry (map, key, val);
+        entry = new_entry (map, key, val, free_val_alt);
 
         WRLOCK_MAP (map);
 
