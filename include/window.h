@@ -5533,7 +5533,7 @@ typedef struct _WINDOWINFO
     const char*     spCaption;
 
     /** The identifier of window.
-      * \note The type changed from int to LINT since v3.2.
+      * \note The type changed from int to LINT since 3.2.
       */
     LINT            id;
 
@@ -5552,6 +5552,7 @@ typedef struct _WINDOWINFO
     void*           _padding6;
     void*           _padding7;
     void*           _padding8;
+    void*           _padding9;
 
     /** The position and size of the window. N/A for virtual window. */
     int left, top;
@@ -5566,7 +5567,7 @@ typedef struct _WINDOWINFO
     /** The extended styles of window. N/A for virtual window. */
     DWORD dwExStyle;
 
-    /** The index of znode for this window
+    /** The index of z-node for this window
       * (only for a main window and a control as main window. 
       * N/A for virtual window. */
     int idx_znode;
@@ -5589,7 +5590,7 @@ typedef struct _WINDOWINFO
 
     /** The vertical scrollbar information. N/A for virtual window. */
     LFSCROLLBARINFO vscroll;
-    /** The horizital scrollbar information. N/A for virtual window. */
+    /** The horizontal scrollbar information. N/A for virtual window. */
     LFSCROLLBARINFO hscroll;
 
     /** The window renderer. N/A for virtual window. */
@@ -6705,23 +6706,6 @@ typedef struct _MAINWINCREATE {
      */
     gal_pixel iBkColor;
 
-#ifdef _MGSCHEMA_COMPOSITING
-    /**
-     * The background color of the main window.
-     * Note that under compositing schema, if you specify the main window's
-     * surface type other than the default, you must use this field
-     * to specify the background color of the main window instead of
-     * the pixel value (\a iBkColor).
-     *
-     * The value of this field is a 32-bit RGBA quadruple essentially.
-     * You should use a value returned by \a MakeRGBA macro for this field.
-     * Note that if you use the surface type \a ST_PIXEL_DEFAULT when creating
-     * the main window, you can still use the pixel values which compliant
-     * to \a HDC_SCREEN, e.g., values in \a SysPixelIndex array.
-     */
-    DWORD dwBkColor;
-#endif
-
     /** The first private data associated with the main window */
     DWORD dwAddData;
 
@@ -6863,10 +6847,10 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
 #define CT_MAX_VALUE            0xFFFFFF
 
 /**
- * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
- *              const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
- *              unsigned int surf_flag, int compos_type, DWORD ct_arg,
- *              LINT id, LINT reserved)
+ * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
+ *      const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+ *      unsigned int surf_flag, DWORD bkgnd_color,
+ *      int compos_type, DWORD ct_arg)
  * \brief Creates a main window with specified compositing type and identifier.
  *
  * This function creates a main window by using information and the specified
@@ -6874,12 +6858,13 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
  *
  * \param pCreateInfo The pointer to a MAINWINCREATE structure.
  * \param werdr_name The name of window element renderer. NULL for default
- *        renderer.
+ *      renderer.
  * \param we_attrs The pointer to window element attribute table. NULL for
- *        default window attribute table.
+ *      default window attribute table.
+ * \param id The window identifier.
  * \param surf_flag The flag for the surface of the main window
- *        under compositing schema. The value of this argument can be one
- *        of the following values:
+ *      under compositing schema. The value of this argument can be one
+ *      of the following values:
  *          - ST_PIXEL_DEFAULT\n
  *            Creating a surface which compliant to HDC_SCREEN.
  *          - ST_PIXEL_ARGB4444\n
@@ -6891,16 +6876,25 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
  *          - ST_PIXEL_ARGB8888\n
  *            Creating a surface for this main window with
  *            the pixel format ARGB8888.
+ * \param bkgnd_color The background color of the main window if you specify
+ *  the main window's surface type other than the default. In this case,
+ *  you must use this argument to specify the background color of the main
+ *  window instead of the pixel value of the field (\a iBkColor) in
+ *  \a MAINWINCREATE structure.
+ *  The value of this field is a 32-bit RGBA quadruple essentially.
+ *  You can use a value returned by \a MakeRGBA macro for this argument.
+ *  Note that if you use the surface type \a ST_PIXEL_DEFAULT when creating
+ *  the main window, you can still use the pixel values specified in
+ *  \a MAINWINCREATE structure which is compliant to \a HDC_SCREEN, e.g.,
+ *  a value in \a SysPixelIndex array.
  * \param compos_type The compositing type of the main window.
  * \param ct_arg The compositing argument of the main window.
- * \param id The window identifier.
- * \param reserved Reserved for future use.
  *
  * \return The handle to the new main window; HWND_INVALID indicates an error.
  *
  * \note Note When you specify a surface type other than ST_PIXEL_DEFAULT, you
- *       must use \a dwBkColor field in MAINWINCREATE structure to specify
- *       the background color of the main window.
+ *  must use \a bkgnd_color to specify the background color of
+ *  the main window.
  *
  * \sa CreateMainWindowEx, CreateMainWindow, MAINWINCREATE, styles
  *
@@ -6908,10 +6902,10 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
  *
  * \include createmainwindow.c
  */
-MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
-                const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-                unsigned int surf_flag, int compos_type, DWORD ct_arg,
-                LINT id, LINT reserved);
+MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
+        const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+        unsigned int surf_flag, DWORD bkgnd_color,
+        int compos_type, DWORD ct_arg);
 
 /**
  * \fn HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo, \
@@ -6927,25 +6921,31 @@ MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo,
  *      renderer.
  * \param we_attrs The pointer to window element attribute table. NULL for
  *      default window attribute table.
- * \param window_name The window name, reserved for future use before 5.0.0.
- *  Since 5.0.0, this argument will cast to LINT for the identifier of
- *  the main window.
- * \param layer_name The layer name; reserved for future use.
+ * \param window_name The window name, ignored currently.
+ * \param layer_name The layer name, ignored currently.
  *
  * \return The handle to the new main window; HWND_INVALID indicates an error.
  *
  * \sa CreateMainWindow, MAINWINCREATE, styles
  *
+ * \note Since 5.0.0, this function is implemented as an inline function calling
+ *  \a CreateMainWindowEx2. When calling CreateMainWindowEx2:
+ *      - We pass 0 for the identifier.
+ *      - We pass 0xFFFFFFFFUL for the background color.
+ *      - We discard the values passed to window_name and layer_name.
+ *
  * Example:
  *
  * \include createmainwindow.c
+ *
+ * \sa CreateMainWindowEx2
  */
 static inline HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
                 const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
                 const char* window_name, const char* layer_name)
 {
-    return CreateMainWindowEx2 (pCreateInfo, werdr_name, we_attrs,
-            ST_DEFAULT, CT_OPAQUE, 0, (LINT)window_name, (LINT)layer_name);
+    return CreateMainWindowEx2 (pCreateInfo, 0L, werdr_name, we_attrs,
+            ST_DEFAULT, 0xFFFFFFFFUL, CT_OPAQUE, 0);
 }
 
 /**
@@ -6983,9 +6983,85 @@ static inline HWND GUIAPI CreateMainWindow (PMAINWINCREATE pCreateInfo)
  */
 MG_EXPORT BOOL GUIAPI DestroyMainWindow (HWND hWnd);
 
+typedef void (*CB_FREE_LOCAL_DATA) (DWORD local_data);
+
 /**
- * \fn BOOL GUIAPI SetWindowMask (HWND hWnd,  \
- *          const MYBITMAP* mask)
+ * \fn SetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD local_data, CB_FREE_LOCAL_DATA cb_free)
+ * \brief Set the local data bound with a name for a window.
+ *
+ * This function sets the local data as \a local_data which is bound with the
+ * name \a data_name for the specified window \a hwnd. If you passed a non-NULL
+ * function pointer for \a cb_free, the system will call this function to free
+ * the local data when you destroy the window, remove the local data, or when
+ * you call this function to overwrite the old local data for the name.
+ *
+ * \param hwnd The handle to the window, which can be a main window, a virtual
+ *  window or a control.
+ * \param data_name The name for the local data.
+ * \param local_data The value of the local data.
+ * \param cb_free A callback function which will be called automatically by the
+ *  system to free the local data when the window is being destroyed or the local
+ *  data is being removed or overwritten. If it is NULL, the system does nothing
+ *  to the local data.
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa GetWindowLocalData, RemoveWindowLocalData 
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI SetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD local_data, CB_FREE_LOCAL_DATA cb_free);
+
+/**
+ * \fn BOOL GUIAPI RemoveWindowLocalData (HWND hwnd, const char* data_name)
+ * \brief Remove the local data bound with a name for a window.
+ *
+ * This function removes the local data which is bound with the
+ * name \a data_name for the specified window \a hwnd. When you pass NULL
+ * for \a data_name, this function will remove all local data of the window.
+ * Note that this function will call the callback procedure for releasing
+ * the local data, if you had set it, when removing the local data.
+ *
+ * \param hwnd The handle to the window, which can be a main window, a virtual
+ *  window or a control.
+ * \param data_name The name for the local data.
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa SetWindowLocalData, GetWindowLocalData 
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI RemoveWindowLocalData (HWND hwnd, const char* data_name);
+
+/**
+ * \fn BOOL GUIAPI GetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD *local_data, CB_FREE_LOCAL_DATA* cb_free)
+ * \brief Retrieve the local data bound with a name for a window.
+ *
+ * This function retrieves the local data which is bound with the
+ * name \a data_name for the specified window \a hwnd. 
+ *
+ * \param hwnd The handle to the window, which can be a main window, a virtual
+ *  window or a control.
+ * \param data_name The name for the local data.
+ * \param local_data The pointer to a DWORD variable to return the local data
+ *  if it is not NULL.
+ * \param cb_free The pointer to a CB_FREE_LOCAL_DATA variable to return
+ *  the pointer to the callback function which is used to free the local data
+ *  if it is not NULL.
+ *
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa SetWindowLocalData, RemoveWindowLocalData 
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI GetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD *local_data, CB_FREE_LOCAL_DATA* cb_free);
+
+/**
+ * \fn BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask)
  *
  * \brief Set window (a main window, or a child window which is
  * also known as "control")'s Mask Rect with MYBITMAP data.
@@ -7001,8 +7077,7 @@ MG_EXPORT BOOL GUIAPI DestroyMainWindow (HWND hWnd);
 MG_EXPORT BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask);
 
 /**
- * \fn BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc,  \
- *          const BITMAP* mask)
+ * \fn BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask)
  *
  * \brief Set window (a main window, or a child window which is
  * also known as "control")'s Mask Rect with BITMAP data,
