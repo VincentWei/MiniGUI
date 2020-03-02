@@ -61,6 +61,7 @@
 #include "cliprect.h"
 #include "zorder.h"
 #include "list.h"
+#include "map.h"
 
 #ifdef HAVE_SELECT
 #   ifdef HAVE_SYS_SELECT_H
@@ -384,6 +385,8 @@ typedef struct _VIRTWIN
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.
 
+    map_t* mapLocalData;    // the map of local data.
+
     struct _VIRTWIN* pMainWin;      // the main window that contains this window.
                                     // for virtual window, always be itself.
     struct _VIRTWIN* pHosting;      // the hosting virtual window.
@@ -425,6 +428,8 @@ typedef struct _MAINWIN
 
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.
+
+    map_t* mapLocalData;    // the map of local data.
 
     /*
      * The following members are implemented for main window and virtual window.

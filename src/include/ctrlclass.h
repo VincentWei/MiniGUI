@@ -112,6 +112,8 @@ typedef struct _CONTROL
     DWORD dwAddData;        // the additional data.
     DWORD dwAddData2;       // the second addtional data.
 
+    map_t* mapLocalData;    // the map of local data.
+
     /*
      * The following members are only implemented for control.
      */
