@@ -3959,15 +3959,24 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
         goto broken;
     }
 
+    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
+    pVirtWin->DataType = TYPE_WINTODEL;
+
     /* kill all timers of this window */
     KillTimer (hVirtWnd, 0);
 
-    if (pVirtWin->pHosting)
+    /* since 5.0.0: destroy local data map */
+    if (pVirtWin->mapLocalData) {
+        __mg_map_destroy (pVirtWin->mapLocalData);
+        pVirtWin->mapLocalData = NULL;
+    }
+
+    if (pVirtWin->pHosting) {
         guiRemoveHostedMainWindow ((PMAINWIN)pVirtWin->pHosting,
                 (PMAINWIN)pVirtWin);
+        pVirtWin->pHosting = NULL;
+    }
 
-    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
-    pVirtWin->DataType = TYPE_WINTODEL;
     ThrowAwayMessages (hVirtWnd);
 
     if (pVirtWin->spCaption) {
@@ -4478,11 +4487,20 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     if (SendMessage (hWnd, MSG_DESTROY, 0, 0))
         return FALSE;
 
+    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
+    pWin->DataType = TYPE_WINTODEL;
+
     /* destroy all controls of this window */
     DestroyAllControls (hWnd);
 
     /* kill all timers of this window */
     KillTimer (hWnd, 0);
+
+    /* since 5.0.0: destroy local data map */
+    if (pWin->mapLocalData) {
+        __mg_map_destroy (pWin->mapLocalData);
+        pWin->mapLocalData = NULL;
+    }
 
     if (pWin->pHosting)
         guiRemoveHostedMainWindow (pWin->pHosting, pWin);
@@ -4491,9 +4509,6 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
 
     if (sg_repeat_msg.hwnd == hWnd)
         sg_repeat_msg.hwnd = 0;
-
-    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
-    pWin->DataType = TYPE_WINTODEL;
 
     ThrowAwayMessages (hWnd);
 
@@ -6114,14 +6129,22 @@ error:
 
 BOOL GUIAPI DestroyWindow (HWND hWnd)
 {
-    //
     PCONTROL pCtrl;
     PCONTROL pParent;
 
-    if (!IsControl (hWnd)) return FALSE;
+    if (!IsControl (hWnd))
+        return FALSE;
+
+    pCtrl = (PCONTROL)hWnd;
+    pParent = pCtrl->pParent;
 
     if (SendMessage (hWnd, MSG_DESTROY, 0, 0)) {
         return FALSE;
+    }
+
+    if (SendMessage (HWND_DESKTOP, MSG_REMOVECTRLINSTANCE,
+            (WPARAM)pParent, (LPARAM)pCtrl)) {
+        _WRN_PRINTF ("failed to remove the control instance\n");
     }
 
     /* destroy all controls of this window */
@@ -6130,21 +6153,18 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
     /* kill all timers of this window */
     KillTimer (hWnd, 0);
 
-    pCtrl = (PCONTROL)hWnd;
-    pParent = pCtrl->pParent;
+    /* since 5.0.0: destroy local data map */
+    if (pCtrl->mapLocalData) {
+        __mg_map_destroy (pCtrl->mapLocalData);
+        pCtrl->mapLocalData = NULL;
+    }
+
     if (pParent->active == (PCONTROL) hWnd)
         pParent->active = NULL;
     if (pParent->old_under_pointer == (PCONTROL) hWnd)
         pParent->old_under_pointer = NULL;
     if (pParent->primitive == (PCONTROL) hWnd)
         pParent->primitive = NULL;
-
-    if (SendMessage (HWND_DESKTOP,
-                MSG_REMOVECTRLINSTANCE, (WPARAM)pParent, (LPARAM)pCtrl))
-    {
-
-        return FALSE;
-    }
 
     __mg_reset_mainwin_capture_info (pCtrl);
 
@@ -7249,3 +7269,78 @@ void GUIAPI DumpWindow (FILE* fp, HWND hwnd)
     fprintf (fp, "End of info for handle (%p) of %s", hwnd, name);
 }
 #endif  /* defined _DEBUG */
+
+/* Since 5.0.0 */
+BOOL GUIAPI SetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD local_data, CB_FREE_LOCAL_DATA cb_free)
+{
+    PMAINWIN main_win;
+
+    /* Since 5.0.0: for error returns -1 */
+    MG_CHECK_RET (MG_IS_WINDOW(hwnd), FALSE);
+
+    main_win = MG_GET_WINDOW_PTR (hwnd);
+    if (main_win->mapLocalData == NULL && (main_win->mapLocalData =
+                __mg_map_create (copy_key_string,
+                        free_key_string, NULL, NULL, comp_key_string)) == NULL) {
+        return FALSE;
+    }
+
+    if (__mg_map_find_replace_or_insert (main_win->mapLocalData, data_name,
+            (void*)local_data, (free_val_fn)cb_free))
+        return FALSE;
+
+    return TRUE;
+}
+
+/* Since 5.0.0 */
+BOOL GUIAPI RemoveWindowLocalData (HWND hwnd, const char* data_name)
+{
+    PMAINWIN main_win;
+
+    /* Since 5.0.0: for error returns -1 */
+    MG_CHECK_RET (MG_IS_WINDOW(hwnd), FALSE);
+
+    main_win = MG_GET_WINDOW_PTR (hwnd);
+    if (main_win->mapLocalData == NULL)
+        return FALSE;
+
+    if (data_name) {
+        if (__mg_map_erase (main_win->mapLocalData, (void*)data_name))
+            return FALSE;
+    }
+    else {
+        __mg_map_destroy (main_win->mapLocalData);
+        main_win->mapLocalData = NULL;
+    }
+
+    return TRUE;
+}
+
+/* Since 5.0.0 */
+BOOL GUIAPI GetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD *local_data, CB_FREE_LOCAL_DATA* cb_free)
+{
+    PMAINWIN main_win;
+    const map_entry_t* entry = NULL;
+
+    /* Since 5.0.0: for error returns -1 */
+    MG_CHECK_RET (MG_IS_WINDOW(hwnd), FALSE);
+
+    main_win = MG_GET_WINDOW_PTR (hwnd);
+    if (main_win->mapLocalData == NULL)
+        return FALSE;
+
+    if ((entry = __mg_map_find (main_win->mapLocalData, data_name))) {
+        if (local_data)
+            *local_data = (DWORD)entry->val;
+
+        if (cb_free)
+            *cb_free = (CB_FREE_LOCAL_DATA)entry->free_val_alt;
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
