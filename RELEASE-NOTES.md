@@ -34,6 +34,9 @@ exciting features for MiniGUI:
      handle `MSG_FDEVENT` in your window callback procedure to read/write
      from/to the file descriptor. Before this version, this feature only
      available for MiniGUI-Processes runtime mode.
+   - Support for local data of windows. You can now set or retrieve a local data
+     which is bound with a string name for a window. This will give you an
+     eays-to-use interface to manage various data of a window.
    - Support for hardware cursors under compositing schema. MiniGUI now can
      utilize the hardware cursors if your graphics device support it.
      You can also load a cursor from a PNG file.
@@ -75,10 +78,12 @@ On the contrary, the legacy schema of MiniGUI-Processes uses the same
 frame buffer for all processes (and all main windows) in the system.
 So the legacy schema is also called the shared frame buffer schema.
 
-MiniGUI Core implements the default compositor. But you can implement
-your own compositor by writing your own server, i.e., `mginit`. You
-can also implement your own compositor in a shared library which
-can be loaded by MiniGUI Core dynamically.
+MiniGUI Core implements a compositor called 'fallback' as the default
+compositor, which composites the contents of all windows in the classical
+overlapped way.
+But you can implement your own compositor by writing your
+own server, i.e., `mginit`. You can also implement your own compositor
+in a shared library which can be loaded by MiniGUI Core dynamically.
 
 By enabling the compositing schema, MiniGUI now provides a better
 implementation for multi-process environment:
@@ -132,7 +137,7 @@ You can call the following function to set the compositing type and argument
 of a main window:
 
 - `CreateMainWindowEx2` creates a main window with a specific compositing type
-  and argument.
+  and its argument. We can also set a specific pixel type for a main window.
 - `SetMainWindowCompositing` changes the compositing type and argument of a
   main window.
 
@@ -255,6 +260,12 @@ life-cycle:
  - `MSG_GETTEXTLENGTH`:
 
 ### Other enhancements
+
+#### Local data of a window
+
+- `SetWindowLocalData`
+- `GetWindowLocalData`
+- `RemoveWindowLocalData`
 
 #### Hardware cursor
 
