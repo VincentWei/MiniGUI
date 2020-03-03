@@ -5311,104 +5311,15 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
         if (IsWindowVisible (hWnd)
                 && (pParent->InvRgn.frozen == 0)) {
 
-#if 1
             InvalidateRect((HWND)pParent, &rcWindow, TRUE);
             InvalidateRect((HWND)pParent, &rcResult, TRUE);
-#elif 0
-            if (pCtrl->dwExStyle & WS_EX_TRANSPARENT)
-                InvalidateRect (hWnd, NULL, TRUE);
-            else {
-                HDC hdc;
-                hdc = get_effective_dc ((PMAINWIN)pParent, TRUE);
-                BitBlt (hdc, pCtrl->left, pCtrl->top,
-                        pCtrl->right - pCtrl->left,
-                        pCtrl->bottom - pCtrl->top,
-                        hdc, rcResult.left, rcResult.top, 0);
-                release_effective_dc ((PMAINWIN)pParent, hdc);
-            }
-            /* set to invisible temporarily. */
-            /* FIXME: need more optimization. */
-            pCtrl->dwStyle &= ~WS_VISIBLE;
-            InvalidateRect ((HWND)pParent, &rcWindow, TRUE);
-            rcExpect.left = rcResult.left;
-            rcExpect.top = rcResult.top;
-            rcExpect.right = rcResult.left + RECTW (rcWindow);
-            rcExpect.bottom = rcResult.top + RECTH (rcWindow);
-            InvalidateRect ((HWND)pParent, &rcExpect, TRUE);
-            pCtrl->dwStyle |= WS_VISIBLE;
-#else
-            if (pCtrl->dwExStyle & WS_EX_TRANSPARENT) {
-                InvalidateRect ((HWND)pParent, &rcWindow, TRUE);
-                InvalidateRect (hWnd, NULL, TRUE);
-            }
-            else {
-                if (DoesIntersect ((const RECT*)&rcWindow, (const RECT*)&pCtrl->cl)) {
-                    extern BLOCKHEAP __mg_FreeClipRectList;
-                    CLIPRGN rgn;
-                    PCLIPRECT  p = NULL;
-                    InitClipRgn (&rgn, &__mg_FreeClipRectList);
-                    AddClipRect (&rgn, &rcWindow);
-                    SubtractClipRect (&rgn, (const RECT*)&pCtrl->cl);
-                    p = rgn.head;
-                    while(p) {
-                        InvalidateRect((HWND)pParent, &p->rc, TRUE);
-                        p = p->next;
-                    }
-                    EmptyClipRgn (&rgn);
-                }
-                else {
-                    InvalidateRect ((HWND)pParent, &rcWindow, TRUE);
-                }
-                if (RECTH (rcWindow) != RECTH (rcResult)
-                        || RECTW (rcWindow) != RECTW (rcResult))
-                {
-                    fPaint = TRUE;
-                }
-                else {
-                    PCONTROL pChild ;
-                    RECT     rc;
-                    BOOL     flag = TRUE;
-
-                    for (pChild = pParent->children; pChild; pChild = pChild->next) {
-                        if (pChild == pCtrl || !(pChild->dwStyle & WS_VISIBLE)
-                                || (pChild->dwExStyle & WS_EX_CTRLASMAINWIN))
-                            continue;
-
-                        if(IntersectRect(&rc, &rcWindow, (const RECT*)&pChild->cl)) {
-                            flag = FALSE;
-                            break;
-                        }
-                    }
-                    if (!flag) {
-                        InvalidateRect ((HWND)pParent, &rcResult, FALSE);
-                    }
-                    else {
-                        HDC hdc;
-                        hdc = get_effective_dc ((PMAINWIN)pParent, TRUE);
-                        BitBlt (hdc, rcWindow.left, rcWindow.top,
-                                RECTW(rcWindow), RECTH(rcWindow),
-                                hdc, rcResult.left, rcResult.top, 0);
-                        release_effective_dc ((PMAINWIN)pParent, hdc);
-
-                        for(pChild = pCtrl->next; pChild; pChild = pChild->next) {
-                            if(!(pChild->dwStyle & WS_VISIBLE)
-                                    || (pChild->dwExStyle & WS_EX_CTRLASMAINWIN))
-                                continue;
-
-                            if(IntersectRect(&rc, &rcResult, (const RECT*)&pChild->cl)) {
-                                OffsetRect(&rc, - pChild->left, - pChild->top);
-                                InvalidateRect((HWND)pChild, &rc, TRUE);
-                            }
-                        }
-                    }
-                }
-            }
-#endif
         }
     }
 
-    if ((RECTW (rcWindow) != w ) || (RECTH (rcWindow) != h))
+    if ((RECTW (rcWindow) != w ) || (RECTH (rcWindow) != h)) {
         SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
+    }
+
     if (fPaint) {
         InvalidateRect (hWnd, NULL, TRUE);
     }
