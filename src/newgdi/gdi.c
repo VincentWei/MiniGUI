@@ -540,6 +540,8 @@ static void dc_DeinitClipRgnInfo(void)
 }
 
 
+static inline void dc_CalculateDevRC4GenDC (PDC pdc);
+
 /*
  * This function generates effective clip region from
  * local clip region and global clip region.
@@ -547,7 +549,6 @@ static void dc_DeinitClipRgnInfo(void)
  * this function empty effective clip region first,
  * and then intersect local clip region and global clip region.
  */
-
 BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
 {
 #ifdef _MGSCHEMA_COMPOSITING
@@ -626,7 +627,9 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
     return TRUE;
 }
 
-static void dc_CalculateDevRC4MemDC (PDC pdc, RECT* rcDev);
+static void dc_CalculateDevRC4MemDC (PDC pdc);
+
+#include "debug.h"
 
 PDC __mg_check_ecrgn (HDC hdc)
 {
@@ -642,25 +645,8 @@ PDC __mg_check_ecrgn (HDC hdc)
             return NULL;
         }
     }
-    else if (dc_IsMemDC (pdc)) {
-        BOOL bForce = FALSE;
-        if (pdc->hwnd) {
-            // this is a secondary dc or a compositing dc for a window.
-
-            RECT rcDev;
-            // we calcuate the device rectangle and compare it with
-            // the current device rectangle.
-            dc_CalculateDevRC4MemDC (pdc, &rcDev);
-            if (MG_UNLIKELY (rcDev.left != pdc->DevRC.left ||
-                    rcDev.top != pdc->DevRC.top ||
-                    rcDev.right != pdc->DevRC.right ||
-                    rcDev.bottom != pdc->DevRC.bottom))
-                bForce = TRUE;
-        }
-
-        if (!dc_GenerateMemDCECRgn(pdc, bForce)) {
-            return NULL;
-        }
+    else if (dc_IsMemDC (pdc) && !dc_GenerateMemDCECRgn (pdc, FALSE)) {
+        return NULL;
     }
 
     return pdc;
@@ -1842,29 +1828,26 @@ static inline void dc_CalculateDevRC4GenDC (PDC pdc)
         gui_WndRect (pdc->hwnd, &pdc->DevRC);
 }
 
-static void dc_CalculateDevRC4MemDC (PDC pdc, RECT* rcDev)
+static void dc_CalculateDevRC4MemDC (PDC pdc)
 {
     PMAINWIN pWin = (PMAINWIN)pdc->hwnd;
 
     assert (pWin);
 
-    if (rcDev == NULL)
-        rcDev = &pdc->DevRC;
-
 #ifdef _MGSCHEMA_COMPOSITING
     if (pWin->WinType == TYPE_CONTROL &&
             (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
         if (pdc->bIsClient) {
-            rcDev->left = pWin->cl - pWin->left;
-            rcDev->top  = pWin->ct - pWin->top;
-            rcDev->right = pWin->cr - pWin->left;
-            rcDev->bottom = pWin->cb - pWin->top;
+            pdc->DevRC.left = pWin->cl - pWin->left;
+            pdc->DevRC.top  = pWin->ct - pWin->top;
+            pdc->DevRC.right = pWin->cr - pWin->left;
+            pdc->DevRC.bottom = pWin->cb - pWin->top;
         }
         else {
-            rcDev->left = 0;
-            rcDev->top  = 0;
-            rcDev->right = pWin->right - pWin->left;
-            rcDev->bottom = pWin->bottom - pWin->top;
+            pdc->DevRC.left = 0;
+            pdc->DevRC.top  = 0;
+            pdc->DevRC.right = pWin->right - pWin->left;
+            pdc->DevRC.bottom = pWin->bottom - pWin->top;
         }
     }
     else
@@ -1889,10 +1872,10 @@ static void dc_CalculateDevRC4MemDC (PDC pdc, RECT* rcDev)
         off_x = rc1.left - rc2.left;
         off_y = rc1.top  - rc2.top;
 
-        rcDev->left   = off_x;
-        rcDev->top    = off_y;
-        rcDev->right  = MIN((rcDev->left + RECTW(rc1)), RECTW(rc2));
-        rcDev->bottom = MIN((rcDev->top  + RECTH(rc1)), RECTH(rc2));
+        pdc->DevRC.left   = off_x;
+        pdc->DevRC.top    = off_y;
+        pdc->DevRC.right  = MIN((pdc->DevRC.left + RECTW(rc1)), RECTW(rc2));
+        pdc->DevRC.bottom = MIN((pdc->DevRC.top  + RECTH(rc1)), RECTH(rc2));
     }
 }
 
@@ -1999,7 +1982,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         rc_surface.right    = pdc->surface->w;
         rc_surface.bottom   = pdc->surface->h;
 
-        dc_CalculateDevRC4MemDC (pdc, NULL);
+        dc_CalculateDevRC4MemDC (pdc);
 
         /* clipping region more with pdc->DevRC and rc_surface. */
         IntersectRect (&minimal, &pdc->DevRC, &rc_surface);
@@ -2241,7 +2224,6 @@ static GAL_Surface* get_window_surface (HWND hwnd)
     mainwin = ((PMAINWIN)hwnd)->pMainWin;
     ctrl = gui_Control (hwnd);
     if (ctrl && (ctrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
-        _WRN_PRINTF ("surface for ctrl: %p\n", ctrl->surf);
         return ctrl->surf;
     }
 
@@ -2263,8 +2245,8 @@ HDC GUIAPI GetClientDC (HWND hWnd)
 
     LOCK (&dcslot);
     for (i = 0; i < DCSLOTNUMBER; i++) {
-        if (!DCSlot[i].inuse) {
-            DCSlot[i].inuse = TRUE;
+        if (!DCSlot[i].bInUse) {
+            DCSlot[i].bInUse   = TRUE;
             DCSlot[i].DataType = TYPE_HDC;
 #ifdef _MGSCHEMA_COMPOSITING
             DCSlot[i].DCType   = TYPE_MEMDC;
@@ -2301,15 +2283,15 @@ HDC GUIAPI GetDC(HWND hWnd)
     /* allocate an empty dc slot exclusively */
     LOCK (&dcslot);
     for (i = 0; i < DCSLOTNUMBER; i++) {
-        if(!DCSlot[i].inuse) {
-            DCSlot[i].inuse = TRUE;
+        if(!DCSlot[i].bInUse) {
+            DCSlot[i].bInUse   = TRUE;
             DCSlot[i].DataType = TYPE_HDC;
 #ifdef _MGSCHEMA_COMPOSITING
             DCSlot[i].DCType   = TYPE_MEMDC;
             DCSlot[i].surface  = get_window_surface (hWnd);
 #else
             DCSlot[i].DCType   = TYPE_GENDC;
-            DCSlot[i].surface = __gal_screen;
+            DCSlot[i].surface  = __gal_screen;
 #endif
             break;
         }
@@ -2437,7 +2419,7 @@ void GUIAPI ReleaseDC (HDC hDC)
         pdc->oldage = 0;
 #endif
         LOCK (&dcslot);
-        pdc->inuse = FALSE;
+        pdc->bInUse = FALSE;
         UNLOCK(&dcslot);
     }
 }
@@ -2531,9 +2513,9 @@ HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, int width, int height)
     pdc = NULL;
     LOCK (&dcslot);
     for (i = 0; i < DCSLOTNUMBER; i++) {
-        if (!DCSlot[i].inuse) {
+        if (!DCSlot[i].bInUse) {
             pdc = &DCSlot [i];
-            pdc->inuse = TRUE;
+            pdc->bInUse   = TRUE;
             pdc->DataType = pdc_parent->DataType;
             pdc->DCType   = pdc_parent->DCType;
             break;
@@ -2541,11 +2523,11 @@ HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, int width, int height)
     }
     UNLOCK (&dcslot);
 
-    if (pdc == NULL) return HDC_INVALID;
+    if (pdc == NULL)
+        return HDC_INVALID;
 
-    if (!InitSubDC((HDC)pdc, hdc, off_x, off_y, width, height))
-    {
-        pdc->inuse = FALSE;
+    if (!InitSubDC((HDC)pdc, hdc, off_x, off_y, width, height)) {
+        pdc->bInUse = FALSE;
         return HDC_INVALID;
     }
     return (HDC)pdc;
@@ -2562,7 +2544,7 @@ HDC GUIAPI CreatePrivateDC(HWND hwnd)
     MAKE_REGION_INFINITE(&pdc->lcrgn);
     InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
 
-    pdc->inuse    = TRUE;
+    pdc->bInUse   = TRUE;
     pdc->DataType = TYPE_HDC;
 #ifdef _MGSCHEMA_COMPOSITING
     pdc->DCType   = TYPE_MEMDC;
@@ -2587,35 +2569,43 @@ HDC GUIAPI CreatePrivateClientDC(HWND hwnd)
     InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pdc->ecrgn);
 
-    pdc->inuse = TRUE;
+    pdc->bInUse   = TRUE;
     pdc->DataType = TYPE_HDC;
 #ifdef _MGSCHEMA_COMPOSITING
     pdc->DCType   = TYPE_MEMDC;
     pdc->surface  = get_window_surface (hwnd);
 #else
     pdc->DCType   = TYPE_GENDC;
-    pdc->surface = __gal_screen;
+    pdc->surface  = __gal_screen;
 #endif
 
     dc_InitDC(pdc, hwnd, TRUE);
     return (HDC)(pdc);
 }
 
-HDC GUIAPI CreatePrivateSubDC(HDC hdc, int off_x, int off_y, int width, int height)
+HDC GUIAPI CreatePrivateSubDC (HDC hdc, int off_x, int off_y,
+        int width, int height)
 {
-    PDC pdc;
-    if(!(pdc = malloc(sizeof(DC)))) return HDC_INVALID;
+    PDC pdc, pdc_parent;
+
+    pdc_parent = dc_HDC2PDC (hdc);
+    if (pdc_parent == NULL)
+        return HDC_INVALID;
+
+    if (!(pdc = malloc(sizeof(DC))))
+        return HDC_INVALID;
 
     InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pdc->lcrgn);
     InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
 
-    pdc->inuse = TRUE;
+    pdc->bInUse   = TRUE;
     pdc->DataType = TYPE_HDC;
-    pdc->DCType   = TYPE_GENDC;
+    /* XXX: use the parent's type */
+    pdc->DCType   = pdc_parent->DCType;
 
-    if (!InitSubDC((HDC)pdc, hdc, off_x, off_y, width, height)) {
-        free(pdc);
+    if (!InitSubDC ((HDC)pdc, hdc, off_x, off_y, width, height)) {
+        free (pdc);
         return HDC_INVALID;
     }
 
@@ -2722,6 +2712,7 @@ HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc,
     else {
         hdc = pWin->secondaryDC;
     }
+
     if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
         //if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
         PCONTROL pNext;
@@ -2777,7 +2768,7 @@ HDC GUIAPI GetSecondaryDC (HWND hwnd)
         return get_effective_dc (pWin, FALSE);
     }
 
-    return HDC_INVALID;
+    return HDC_SCREEN;
 }
 
 HDC GUIAPI GetSecondaryClientDC (HWND hwnd)
@@ -2807,17 +2798,13 @@ BOOL dc_GenerateMemDCECRgn (PDC pdc, BOOL fForce)
     CLIPRGN ergn;
     PCLIPRECT pcr;
 
-    /* is global clip region is empty? */
+    /* is invisible? */
     if ((!fForce) && (!dc_IsVisible (pdc)))
         return FALSE;
 
     if (fForce) {
         /* copy local clipping region to effective clipping region. */
         ClipRgnCopy (&pdc->ecrgn, &pdc->lcrgn);
-
-        /* Since 5.0.0, we must re-calculate DevRC for a normal window */
-        if (pdc->hwnd)
-            dc_CalculateDevRC4MemDC (pdc, NULL);
 
         /* transfer device coordinates to screen coordinates. */
         pcr = pdc->ecrgn.head;
@@ -2881,11 +2868,11 @@ HDC GUIAPI GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     /* Get a dc slot. */
     LOCK (&dcslot);
     for (i = 0; i < DCSLOTNUMBER; i++) {
-        if(!DCSlot[i].inuse) {
+        if(!DCSlot[i].bInUse) {
             pdc = &DCSlot [i];
-            pdc->inuse = TRUE;
+            pdc->bInUse   = TRUE;
             pdc->DataType = TYPE_HDC;
-            pdc->DCType = TYPE_MEMDC;
+            pdc->DCType   = TYPE_MEMDC;
             break;
         }
     }
@@ -2899,10 +2886,9 @@ HDC GUIAPI GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     pdc->hwnd = hwnd_child;
     pdc->bIsClient = client;
 
-#if 0   /* deprecated code */
+#if 0
     RECT rc1, rc2;
     int off_x, off_y;
-
     /* SubDC is relative the parent_dc's (0,0). */
     if (client) {
         /* 1.get child client_rc relative to screen. */
@@ -2923,9 +2909,11 @@ HDC GUIAPI GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     pdc->DevRC.top    = pdc_parent->DevRC.top  + off_y;
     pdc->DevRC.right  = MIN((pdc->DevRC.left + RECTW(rc1)), RECTW(rc2));
     pdc->DevRC.bottom = MIN((pdc->DevRC.top  + RECTH(rc1)), RECTH(rc2));
-#endif  /* deprecated code */
+#endif
 
-    dc_CalculateDevRC4MemDC (pdc, NULL);
+    assert (pdc_parent->hwnd == ((PMAINWIN)hwnd_child)->pMainWin);
+
+    dc_CalculateDevRC4MemDC (pdc);
 
     pdc->surface = pdc_parent->surface;
 
@@ -3203,12 +3191,12 @@ HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height)
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse = TRUE;
-    pmem_dc->surface = surface;
+    pmem_dc->bInUse   = TRUE;
+    pmem_dc->surface  = surface;
 
-    pmem_dc->DevRC.left = 0;
-    pmem_dc->DevRC.top  = 0;
-    pmem_dc->DevRC.right = width;
+    pmem_dc->DevRC.left   = 0;
+    pmem_dc->DevRC.top    = 0;
+    pmem_dc->DevRC.right  = width;
     pmem_dc->DevRC.bottom = height;
 
     dc_InitMemDCFrom (pmem_dc, pdc);
@@ -3279,7 +3267,7 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
     dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
@@ -3316,7 +3304,7 @@ HDC CreateMemDCFromSurface (GAL_Surface* surface)
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
     surface->refcount++;
 
@@ -3400,7 +3388,7 @@ HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
 
     pdc_sub->DataType = TYPE_HDC;
     pdc_sub->DCType   = TYPE_MEMDC;
-    pdc_sub->inuse    = TRUE;
+    pdc_sub->bInUse   = TRUE;
     pdc_sub->surface  = surface;
 
     pdc_sub->DevRC.left = 0;
@@ -3496,7 +3484,7 @@ HDC GUIAPI CreateMemDCFromBitmap (HDC hdc, const BITMAP* bmp)
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
     dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
@@ -3611,7 +3599,7 @@ HDC GUIAPI CreateMemDCFromMyBitmap (const MYBITMAP* my_bmp, const RGB* pal)
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
     dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
@@ -4117,7 +4105,7 @@ HDC drmCreateDCFromName (GHANDLE video,
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
     dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
@@ -4172,7 +4160,7 @@ HDC drmCreateDCFromHandle (GHANDLE video,
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
     dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
@@ -4227,7 +4215,7 @@ HDC drmCreateDCFromPrimeFd (GHANDLE video,
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
     dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
