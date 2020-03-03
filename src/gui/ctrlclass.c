@@ -150,6 +150,8 @@ extern BOOL RegisterScrollBarControl (void);
 
 static PCTRLCLASSINFO ccitable[LEN_CCITABLE];
 
+#if 0   /* depcreated code */
+/* since 5.0.0, moved to ctrlclass.h as inline */
 PCONTROL gui_Control (HWND hWnd)
 {
     PCONTROL pCtrl;
@@ -161,6 +163,7 @@ PCONTROL gui_Control (HWND hWnd)
 
     return NULL;
 }
+#endif  /* deprecated code */
 
 BOOL mg_InitControlClass ()
 {

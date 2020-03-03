@@ -213,6 +213,16 @@ typedef CONTROL* PCONTROL;
 extern "C" {
 #endif  /* __cplusplus */
 
+/* check whether hWnd is controland return pointer to control hWnd. */
+static inline PCONTROL gui_Control (HWND hWnd)
+{
+    if (hWnd && hWnd != HWND_INVALID &&
+            ((PCONTROL)hWnd)->WinType == TYPE_CONTROL)
+        return (PCONTROL)hWnd;
+
+    return NULL;
+}
+
 BOOL mg_InitControlClass (void);
 void mg_TerminateControlClass (void);
 
@@ -221,12 +231,9 @@ int gui_ControlClassDataOp (int Operation, PWNDCLASS pWndClass);
 
 int gui_DeleteControlClass (const char* szClassName);
 void gui_EmptyControlClassInfoTable (void);
-PCONTROL gui_Control (HWND hWnd);   // check whether hWnd is control
-                                // and return pointer to control hWnd.
 
-/* Undisclosed APIs */
-MG_EXPORT int gui_AddNewControlClass (PWNDCLASS pWndClass);
-MG_EXPORT BOOL gui_SetWindowExStyle (HWND hWnd, DWORD dwExStyle);
+int gui_AddNewControlClass (PWNDCLASS pWndClass);
+BOOL gui_SetWindowExStyle (HWND hWnd, DWORD dwExStyle);
 
 #ifdef _DEBUG_CTRL
 void dbg_DumpCtrlClassInfoTable (void);
