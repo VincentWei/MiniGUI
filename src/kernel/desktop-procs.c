@@ -2268,8 +2268,10 @@ static int resize_window_surface (PMAINWIN pWin, const RECT* prcResult)
         GAL_Surface* new_surf;
 
         new_surf = GAL_CreateSurfaceForZNodeAs (pWin->surf, nw, nh);
-        if (new_surf == NULL)
+        if (new_surf == NULL) {
+            _WRN_PRINTF ("failed to resize surface nw (%d), nh (%d)\n", nw, nh);
             return -2;
+        }
 
         GAL_SetClipRect (new_surf, NULL);
         GAL_SetColorKey (pWin->surf, 0, 0); // disable color key
@@ -2304,8 +2306,9 @@ static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
     dskClientToScreen ((PMAINWIN)(pCtrl->hParent), &rcResult, &newWinRect);
 
-    if ((fd = resize_window_surface (pCtrl, &rcResult)) == -2)
+    if ((fd = resize_window_surface (pCtrl, &newWinRect)) == -2) {
         return -1;
+    }
 
     if (mgIsServer)
         ret = srvMoveWindow (0, pCtrl->idx_znode, &newWinRect,
