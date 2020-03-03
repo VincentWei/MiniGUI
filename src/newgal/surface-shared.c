@@ -473,6 +473,9 @@ GAL_Surface *create_surface_for_znode (GAL_VideoDevice* video,
 {
     GAL_Surface * surface;
 
+    if (width <= 0) width = 8;
+    if (height <= 0) height = 1;
+
     if (IsServer()) {
         surface = GAL_CreateRGBSurface (
             GAL_HWSURFACE, width, height, bpp, Rmask, Gmask, Bmask, Amask);
