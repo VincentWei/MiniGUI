@@ -569,13 +569,8 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
         RECT minimal;
         CLIPRGN ergn;
 
-        /*
-         * update pdc->DevRC, and restrict the effective
-         */
-        if (pdc->bIsClient)
-            gui_WndClientRect (pdc->hwnd, &pdc->DevRC);
-        else
-            gui_WndRect (pdc->hwnd, &pdc->DevRC);
+        /* update pdc->DevRC, and restrict the effective */
+        dc_CalculateDevRC4GenDC (pdc);
 
         /* copy local clipping region to effective clipping region. */
         ClipRgnCopy (&pdc->ecrgn, &pdc->lcrgn);
@@ -631,6 +626,8 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
     return TRUE;
 }
 
+static void dc_CalculateDevRC4MemDC (PDC pdc, RECT* rcDev);
+
 PDC __mg_check_ecrgn (HDC hdc)
 {
     PDC pdc = dc_HDC2PDC(hdc);
@@ -646,7 +643,22 @@ PDC __mg_check_ecrgn (HDC hdc)
         }
     }
     else if (dc_IsMemDC (pdc)) {
-        if (!dc_GenerateMemDCECRgn(pdc, FALSE)) {
+        BOOL bForce = FALSE;
+        if (pdc->hwnd) {
+            // this is a secondary dc or a compositing dc for a window.
+
+            RECT rcDev;
+            // we calcuate the device rectangle and compare it with
+            // the current device rectangle.
+            dc_CalculateDevRC4MemDC (pdc, &rcDev);
+            if (MG_UNLIKELY (rcDev.left != pdc->DevRC.left ||
+                    rcDev.top != pdc->DevRC.top ||
+                    rcDev.right != pdc->DevRC.right ||
+                    rcDev.bottom != pdc->DevRC.bottom))
+                bForce = TRUE;
+        }
+
+        if (!dc_GenerateMemDCECRgn(pdc, bForce)) {
             return NULL;
         }
     }
@@ -1820,6 +1832,70 @@ static CB_COMP_SETPIXEL draw_pixel_ops [NR_ROPS][NR_PIXEL_LEN] =
 };
 /* ===================================================================== */
 
+/* This function calculate the DevRC for the dc */
+
+static inline void dc_CalculateDevRC4GenDC (PDC pdc)
+{
+    if (pdc->bIsClient)
+        gui_WndClientRect (pdc->hwnd, &pdc->DevRC);
+    else
+        gui_WndRect (pdc->hwnd, &pdc->DevRC);
+}
+
+static void dc_CalculateDevRC4MemDC (PDC pdc, RECT* rcDev)
+{
+    PMAINWIN pWin = (PMAINWIN)pdc->hwnd;
+
+    assert (pWin);
+
+    if (rcDev == NULL)
+        rcDev = &pdc->DevRC;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (pWin->WinType == TYPE_CONTROL &&
+            (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+        if (pdc->bIsClient) {
+            rcDev->left = pWin->cl - pWin->left;
+            rcDev->top  = pWin->ct - pWin->top;
+            rcDev->right = pWin->cr - pWin->left;
+            rcDev->bottom = pWin->cb - pWin->top;
+        }
+        else {
+            rcDev->left = 0;
+            rcDev->top  = 0;
+            rcDev->right = pWin->right - pWin->left;
+            rcDev->bottom = pWin->bottom - pWin->top;
+        }
+    }
+    else
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+    {
+        PMAINWIN pMainWin = pWin->pMainWin;
+        RECT rc1, rc2;
+        int off_x, off_y;
+
+        if (pdc->bIsClient) {
+            /* 1.get client rc relative to screen. */
+            gui_WndClientRect (pdc->hwnd, &rc1);
+        }
+        else {
+            /* 2.get window rc relative to screen.*/
+            gui_WndRect (pdc->hwnd, &rc1);
+        }
+        /* 3.main window's rc relative to screen.*/
+        gui_WndRect ((HWND)pMainWin, &rc2);
+
+        /* 4.get the DC's offset relative to the main window.*/
+        off_x = rc1.left - rc2.left;
+        off_y = rc1.top  - rc2.top;
+
+        rcDev->left   = off_x;
+        rcDev->top    = off_y;
+        rcDev->right  = MIN((rcDev->left + RECTW(rc1)), RECTW(rc2));
+        rcDev->bottom = MIN((rcDev->top  + RECTH(rc1)), RECTH(rc2));
+    }
+}
+
 /* This function initializes a DC: set the default parameters. */
 static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 {
@@ -1837,7 +1913,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
     pdc->brushcolor = GAL_MapRGB (pdc->surface->format, 0xFF, 0xFF, 0xFF);
 
     pdc->textcolor = GAL_MapRGB (pdc->surface->format, 0x00, 0x00, 0x00);
-    if (!(pdc->pLogFont = GetWindowFont (hWnd)))
+    if (!(pdc->pLogFont = GetWindowFont (pdc->hwnd)))
         pdc->pLogFont = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
     pdc->tabstop = 8;
     pdc->CurTextPos.x = pdc->CurTextPos.y = 0;
@@ -1867,6 +1943,8 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
     pdc->brush_stipple = NULL;
 #endif
 
+    pdc->bIsClient = bIsClient;
+
     /* Assume that the local clip region is empty. */
     /* Get global clip region info and generate effective clip region. */
     if (dc_IsGeneralDC (pdc)) {
@@ -1875,23 +1953,18 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 #else   /* not defined _MGSCHEMA_COMPOSITING */
         RECT minimal;
 
-        pdc->pGCRInfo = ((PMAINWIN)hWnd)->pGCRInfo;
+        pdc->pGCRInfo = ((PMAINWIN)pdc->hwnd)->pGCRInfo;
 
         LOCK_GCRINFO (pdc);
 
         pdc->oldage = pdc->pGCRInfo->age;
         ClipRgnCopy (&pdc->ecrgn, &pdc->pGCRInfo->crgn);
 
-        pdc->bIsClient = bIsClient;
-        if (bIsClient)
-            gui_WndClientRect (pdc->hwnd, &pdc->DevRC);
-        else
-            gui_WndRect (pdc->hwnd, &pdc->DevRC);
+        dc_CalculateDevRC4GenDC (pdc);
 
         minimal = pdc->DevRC;
 
         pCtrl = gui_Control (pdc->hwnd);
-
         if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
             CLIPRGN ergn;
             InitClipRgn (&ergn, &__mg_FreeClipRectList);
@@ -1911,10 +1984,8 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         UNLOCK_GCRINFO (pdc);
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
     }
-    else if (dc_IsMemDC (pdc) && hWnd != HWND_DESKTOP) {
-        PMAINWIN mainwin = ((PMAINWIN)hWnd)->pMainWin;
-        RECT rc_surface, rc1, rc2, minimal;
-        int off_x, off_y;
+    else if (dc_IsMemDC (pdc) && pdc->hwnd && pdc->hwnd != HWND_DESKTOP) {
+        RECT rc_surface, minimal;
 
         /* initialize the local and effective clipping regions */
         EmptyClipRgn (&pdc->lcrgn);
@@ -1928,33 +1999,15 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         rc_surface.right    = pdc->surface->w;
         rc_surface.bottom   = pdc->surface->h;
 
-        if (bIsClient) {
-            /* 1.get client rc relative to screen. */
-            gui_WndClientRect (hWnd, &rc1);
-        }
-        else {
-            /* 2.get window rc relative to screen.*/
-            gui_WndRect (hWnd, &rc1);
-        }
-        /* 3.main window's rc relative to screen.*/
-        gui_WndRect ((HWND)mainwin, &rc2);
-
-        /* 4.get the DC's offset relative to the main window.*/
-        off_x = rc1.left - rc2.left;
-        off_y = rc1.top  - rc2.top;
-
-        pdc->DevRC.left   = off_x;
-        pdc->DevRC.top    = off_y;
-        pdc->DevRC.right  = MIN((pdc->DevRC.left + RECTW(rc1)), RECTW(rc2));
-        pdc->DevRC.bottom = MIN((pdc->DevRC.top  + RECTH(rc1)), RECTH(rc2));
+        dc_CalculateDevRC4MemDC (pdc, NULL);
 
         /* clipping region more with pdc->DevRC and rc_surface. */
         IntersectRect (&minimal, &pdc->DevRC, &rc_surface);
         SetClipRgn (&pdc->ecrgn, &rc_surface);
         IntersectClipRect (&pdc->lcrgn, &rc_surface);
 
-        /* restrict control's effective region. */
         pCtrl = gui_Control (pdc->hwnd);
+        /* restrict control's effective region. */
         if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
             CLIPRGN ergn;
             InitClipRgn (&ergn, &__mg_FreeClipRectList);
@@ -2188,13 +2241,13 @@ static GAL_Surface* get_window_surface (HWND hwnd)
     mainwin = ((PMAINWIN)hwnd)->pMainWin;
     ctrl = gui_Control (hwnd);
     if (ctrl && (ctrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+        _WRN_PRINTF ("surface for ctrl: %p\n", ctrl->surf);
         return ctrl->surf;
     }
 
     return mainwin->surf;
 }
-
-#endif
+#endif  /* defined _MGSCHEMA_COMPOSITING */
 
 /*
  * Function: HDC GUIAPI GetClientDC (HWND hWnd)
@@ -2334,7 +2387,7 @@ void GUIAPI ReleaseDC (HDC hDC)
         else {
             IntersectClipRect (&pdc->ecrgn, &minimal);
         }
-#else /* not defined _MGSCHEMA_COMPOSITING */
+#else   /* defined _MGSCHEMA_COMPOSITING */
         if (pdc->pGCRInfo) {
             RECT minimal;
             PCONTROL pCtrl;
@@ -2345,10 +2398,7 @@ void GUIAPI ReleaseDC (HDC hDC)
             pdc->oldage = pdc->pGCRInfo->age;
             ClipRgnCopy (&pdc->ecrgn, &pdc->pGCRInfo->crgn);
 
-            if (pdc->bIsClient)
-                gui_WndClientRect (pdc->hwnd, &pdc->DevRC);
-            else
-                gui_WndRect (pdc->hwnd, &pdc->DevRC);
+            dc_CalculateDevRC4GenDC (pdc);
 
             minimal = pdc->DevRC;
 
@@ -2467,8 +2517,10 @@ HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, int width, int height)
 
     parent_width = RECTW (pdc_parent->DevRC);
     parent_height = RECTH (pdc_parent->DevRC);
-    if ((off_x < 0 && pdc_parent->DCType != TYPE_MEMDC) || off_x  >=  parent_width
-            || (off_y < 0 && pdc_parent->DCType != TYPE_MEMDC) || off_y >= parent_height || width <= 0 || height <= 0)
+    if ((off_x < 0 && pdc_parent->DCType != TYPE_MEMDC) ||
+            off_x  >=  parent_width ||
+            (off_y < 0 && pdc_parent->DCType != TYPE_MEMDC) ||
+            off_y >= parent_height || width <= 0 || height <= 0)
         return HDC_INVALID;
 
     if (off_x + width > parent_width)
@@ -2718,17 +2770,14 @@ HDC GUIAPI GetSecondaryDC (HWND hwnd)
     PMAINWIN pWin;
     pWin = MG_GET_WINDOW_PTR (hwnd);
 
-#if 1
     if (MG_IS_MAIN_WINDOW(hwnd) && pWin->secondaryDC) {
         return pWin->secondaryDC;
     }
-    else if (pWin->pMainWin->secondaryDC){
+    else if (pWin->pMainWin->secondaryDC) {
         return get_effective_dc (pWin, FALSE);
     }
-#else
-    return get_effective_dc (pWin, TRUE);
-#endif
-    return HDC_SCREEN;
+
+    return HDC_INVALID;
 }
 
 HDC GUIAPI GetSecondaryClientDC (HWND hwnd)
@@ -2746,11 +2795,12 @@ void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc)
     pWin = MG_GET_WINDOW_PTR (hwnd);
 
     if (MG_IS_MAIN_WINDOW(hwnd) && pWin->secondaryDC == hdc)
-        return ;
+        return;
+
     release_effective_dc (pWin, hdc);
 }
 
-BOOL dc_GenerateMemDCECRgn(PDC pdc, BOOL fForce)
+BOOL dc_GenerateMemDCECRgn (PDC pdc, BOOL fForce)
 {
     PCONTROL pCtrl;
     RECT minimal;
@@ -2764,6 +2814,10 @@ BOOL dc_GenerateMemDCECRgn(PDC pdc, BOOL fForce)
     if (fForce) {
         /* copy local clipping region to effective clipping region. */
         ClipRgnCopy (&pdc->ecrgn, &pdc->lcrgn);
+
+        /* Since 5.0.0, we must re-calculate DevRC for a normal window */
+        if (pdc->hwnd)
+            dc_CalculateDevRC4MemDC (pdc, NULL);
 
         /* transfer device coordinates to screen coordinates. */
         pcr = pdc->ecrgn.head;
@@ -2780,9 +2834,8 @@ BOOL dc_GenerateMemDCECRgn(PDC pdc, BOOL fForce)
             coor_DP2SP (pdc, &pdc->ecrgn.rcBound.right,
                     &pdc->ecrgn.rcBound.bottom);
         }
-        /*
-         * clipping region more with pdc->DevRC.
-         */
+
+        /* clipping region more with pdc->DevRC.  */
         minimal = pdc->DevRC;
         if (pdc->lcrgn.type == NULLREGION)
             EmptyClipRgn(&pdc->ecrgn);
@@ -2819,8 +2872,6 @@ HDC GUIAPI GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
 {
     int i;
     PDC pdc = NULL, pdc_parent;
-    RECT rc1, rc2;
-    int off_x, off_y;
     PCONTROL pCtrl;
     RECT minimal;
     CLIPRGN ergn;
@@ -2848,6 +2899,10 @@ HDC GUIAPI GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     pdc->hwnd = hwnd_child;
     pdc->bIsClient = client;
 
+#if 0   /* deprecated code */
+    RECT rc1, rc2;
+    int off_x, off_y;
+
     /* SubDC is relative the parent_dc's (0,0). */
     if (client) {
         /* 1.get child client_rc relative to screen. */
@@ -2868,10 +2923,13 @@ HDC GUIAPI GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     pdc->DevRC.top    = pdc_parent->DevRC.top  + off_y;
     pdc->DevRC.right  = MIN((pdc->DevRC.left + RECTW(rc1)), RECTW(rc2));
     pdc->DevRC.bottom = MIN((pdc->DevRC.top  + RECTH(rc1)), RECTH(rc2));
+#endif  /* deprecated code */
+
+    dc_CalculateDevRC4MemDC (pdc, NULL);
 
     pdc->surface = pdc_parent->surface;
 
-    dc_InitMemDCFrom(pdc, pdc_parent);
+    dc_InitMemDCFrom (pdc, pdc_parent);
     pdc->hwnd = hwnd_child;
     pdc->bIsClient = client;
 
@@ -2890,14 +2948,11 @@ HDC GUIAPI GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
     CopyRegion (&pdc->ecrgn, &pdc_parent->ecrgn);
 
-    /*
-     * clipping region more with pdc->DevRC.
-     */
+    /* clipping region more with pdc->DevRC. */
     minimal = pdc->DevRC;
 
     /* restrict control's effective region. */
     pCtrl = gui_Control (pdc->hwnd);
-
     if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
         InitClipRgn (&ergn, &__mg_FreeClipRectList);
 
