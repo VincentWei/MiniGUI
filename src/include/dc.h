@@ -158,7 +158,8 @@ struct tagDC
 {
     unsigned char DataType;  /* the data type, always be TYPE_HDC */
     unsigned char DCType;    /* the dc type */
-    unsigned char inuse;
+
+    unsigned char bInUse;
     unsigned char bIsClient;
 
     HWND hwnd;
