@@ -225,22 +225,30 @@ static int dskAddNewMainWindow (PMAINWIN pWin)
 
     /* houhh 20081128, create secondary window dc before
      * InvalidateRect, erase_bk will used this. */
-    if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
+    if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC) {
         pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
+        pWin->update_secdc = ON_UPDSECDC_DEFAULT;
+    }
 
     if (pWin->secondaryDC == HDC_INVALID) {
         /* remove the flag of WS_EX_AUTOSECONDARYDC */
         pWin->dwExStyle = pWin->dwExStyle | WS_EX_AUTOSECONDARYDC;
         pWin->secondaryDC = 0;
+
     }
 
     /* Create private client dc. */
     if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
+#if 0   /* deprecated code */
         if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
             pWin->privCDC = GetSecondarySubDC (pWin->secondaryDC,
                     (HWND)pWin, TRUE);
         else
             pWin->privCDC = CreatePrivateClientDC ((HWND)pWin);
+#else
+        /* since 5.0.0, always call CreatePrivateClientDC */
+        pWin->privCDC = CreatePrivateClientDC ((HWND)pWin);
+#endif
     }
     else
         pWin->privCDC = 0;
@@ -399,11 +407,16 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
 
     /* houhh 20081127.*/
     if ((pWin->dwExStyle & WS_EX_AUTOSECONDARYDC) && pWin->secondaryDC) {
+#if 0   /* deprecated code */
         DeleteSecondaryDC ((HWND)pWin);
+#else   /* deprecated code */
+        __mg_delete_secondary_dc (pWin);
+#endif
         pWin->update_secdc = NULL;
     }
 
     if (pWin->privCDC) {
+#if 0   /* deprecated code */
         if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC) {
             ReleaseSecondarySubDC (pWin->privCDC);
         }
@@ -413,6 +426,10 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
             else
                 DeletePrivateDC (pWin->privCDC);
         }
+#else   /* deprecated code */
+        /* since 5.0.0, always call DeletePrivateDC */
+        DeletePrivateDC (pWin->privCDC);
+#endif
         pWin->privCDC = 0;
     }
 }
