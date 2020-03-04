@@ -70,6 +70,7 @@
 #include "sysfont.h"
 #include "devfont.h"
 #include "drawtext.h"
+#include "debug.h"
 
 /************************* global data define ********************************/
 DC __mg_screen_dc;
@@ -628,8 +629,6 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
 }
 
 static void dc_CalculateDevRC4MemDC (PDC pdc);
-
-#include "debug.h"
 
 PDC __mg_check_ecrgn (HDC hdc)
 {
@@ -1938,6 +1937,11 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 
         pdc->pGCRInfo = ((PMAINWIN)pdc->hwnd)->pGCRInfo;
 
+        /* initialize the local and effective clipping regions */
+        InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
+        MAKE_REGION_INFINITE(&pdc->lcrgn);
+        InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
+
         LOCK_GCRINFO (pdc);
 
         pdc->oldage = pdc->pGCRInfo->age;
@@ -1967,15 +1971,8 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         UNLOCK_GCRINFO (pdc);
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
     }
-    else if (dc_IsMemDC (pdc) && pdc->hwnd && pdc->hwnd != HWND_DESKTOP) {
+    else if (dc_IsMemDC (pdc) && pdc->hwnd != HWND_NULL) {
         RECT rc_surface, minimal;
-
-        /* initialize the local and effective clipping regions */
-        EmptyClipRgn (&pdc->lcrgn);
-        InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
-        MAKE_REGION_INFINITE(&pdc->lcrgn);
-        EmptyClipRgn (&pdc->ecrgn);
-        InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
 
         rc_surface.left     = 0;
         rc_surface.top      = 0;
@@ -1983,6 +1980,11 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         rc_surface.bottom   = pdc->surface->h;
 
         dc_CalculateDevRC4MemDC (pdc);
+
+        /* initialize the local and effective clipping regions */
+        InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
+        MAKE_REGION_INFINITE(&pdc->lcrgn);
+        InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
 
         /* clipping region more with pdc->DevRC and rc_surface. */
         IntersectRect (&minimal, &pdc->DevRC, &rc_surface);
@@ -2005,6 +2007,9 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
         else {
             IntersectClipRect (&pdc->ecrgn, &minimal);
         }
+    }
+    else {
+        /* a memory DC not bound with a window */
     }
 
     /* context info and raster operations. */
@@ -2231,68 +2236,21 @@ static GAL_Surface* get_window_surface (HWND hwnd)
 }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
-/*
- * Function: HDC GUIAPI GetClientDC (HWND hWnd)
- *     This function get the specified window client's DC.
- * Parameter:
- *     HWND hWnd: The window, 0 for screen.
- * Return:
- *     The handle of wanted DC.
- */
+#if 0   /* deprecated code */
 HDC GUIAPI GetClientDC (HWND hWnd)
 {
     int i;
+    PMAINWIN pWin, pMainWin;
+    PDC pdc;
 
-    LOCK (&dcslot);
-    for (i = 0; i < DCSLOTNUMBER; i++) {
-        if (!DCSlot[i].bInUse) {
-            DCSlot[i].bInUse   = TRUE;
-            DCSlot[i].DataType = TYPE_HDC;
-#ifdef _MGSCHEMA_COMPOSITING
-            DCSlot[i].DCType   = TYPE_MEMDC;
-            DCSlot[i].surface  = get_window_surface (hWnd);
-#else
-            DCSlot[i].DCType   = TYPE_GENDC;
-            DCSlot[i].surface  = __gal_screen;
-#endif
-            break;
-        }
-    }
-    UNLOCK (&dcslot);
-
-    if (i >= DCSLOTNUMBER)
-        return HDC_SCREEN;
-
-    dc_InitDC (DCSlot + i, hWnd, TRUE);
-    return (HDC) (DCSlot + i);
-}
-
-/*
- * Function: HDC GUIAPI GetDC(HWND hWnd)
- *     This function get the specified window's DC.
- * Parameter:
- *     HWND hWnd: The window, 0 for screen.
- * Return:
- *     The handle of wanted DC.
- */
-
-HDC GUIAPI GetDC(HWND hWnd)
-{
-    int i;
+    MG_CHECK_RET (MG_IS_GRAPHICS_WINDOW(hWnd), HDC_INVALID);
+    pWin = (PMAINWIN)hWnd;
+    pMainWin = pWin->pMainWin;
 
     /* allocate an empty dc slot exclusively */
     LOCK (&dcslot);
     for (i = 0; i < DCSLOTNUMBER; i++) {
-        if(!DCSlot[i].bInUse) {
-            DCSlot[i].bInUse   = TRUE;
-            DCSlot[i].DataType = TYPE_HDC;
-#ifdef _MGSCHEMA_COMPOSITING
-            DCSlot[i].DCType   = TYPE_MEMDC;
-            DCSlot[i].surface  = get_window_surface (hWnd);
-#else
-            DCSlot[i].DCType   = TYPE_GENDC;
-            DCSlot[i].surface  = __gal_screen;
-#endif
+        if (!DCSlot[i].bInUse) {
             break;
         }
     }
@@ -2301,8 +2259,64 @@ HDC GUIAPI GetDC(HWND hWnd)
     if (i >= DCSLOTNUMBER)
         return HDC_SCREEN;
 
-    dc_InitDC (DCSlot + i, hWnd, FALSE);
-    return (HDC)(DCSlot + i);
+    pdc = DCSlot + i;
+
+    pdc->bInUse   = TRUE;
+    pdc->DataType = TYPE_HDC;
+    /* since 5.0.0, use surface of secondary DC if possible */
+    if (0 && pMainWin->secondaryDC && pWin->WinType == TYPE_CONTROL
+            && !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+        PDC pdc_secondary = dc_HDC2PDC (pMainWin->secondaryDC);
+        pdc->DCType = TYPE_MEMDC;
+        pdc->surface = pdc_secondary->surface;
+    }
+    else {
+#ifdef _MGSCHEMA_COMPOSITING
+        pdc->DCType   = TYPE_MEMDC;
+        pdc->surface  = get_window_surface (hWnd);
+#else
+        pdc->DCType   = TYPE_GENDC;
+        pdc->surface  = __gal_screen;
+#endif
+    }
+
+    dc_InitDC (pdc, hWnd, FALSE);
+    return (HDC)(pdc);
+}
+#endif  /* deprecated code */
+
+HDC GUIAPI GetDCEx (HWND hWnd, BOOL bClient)
+{
+    int i;
+    PDC pdc;
+
+    MG_CHECK_RET (MG_IS_GRAPHICS_WINDOW(hWnd), HDC_INVALID);
+
+    /* allocate an empty dc slot exclusively */
+    LOCK (&dcslot);
+    for (i = 0; i < DCSLOTNUMBER; i++) {
+        if (!DCSlot[i].bInUse) {
+            pdc = DCSlot + i;
+            pdc->bInUse = TRUE;
+            break;
+        }
+    }
+    UNLOCK(&dcslot);
+
+    if (i >= DCSLOTNUMBER)
+        return HDC_SCREEN;
+
+    pdc->DataType = TYPE_HDC;
+#ifdef _MGSCHEMA_COMPOSITING
+    pdc->DCType   = TYPE_MEMDC;
+    pdc->surface  = get_window_surface (hWnd);
+#else
+    pdc->DCType   = TYPE_GENDC;
+    pdc->surface  = __gal_screen;
+#endif
+
+    dc_InitDC (pdc, hWnd, bClient);
+    return (HDC)(pdc);
 }
 
 /*
@@ -2533,26 +2547,36 @@ HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, int width, int height)
     return (HDC)pdc;
 }
 
-HDC GUIAPI CreatePrivateDC(HWND hwnd)
+HDC GUIAPI CreatePrivateDC (HWND hwnd)
 {
+    PMAINWIN pWin, pMainWin;
     PDC pdc;
+
+    MG_CHECK_RET (MG_IS_GRAPHICS_WINDOW(hwnd), HDC_INVALID);
+    pWin = (PMAINWIN)hwnd;
+    pMainWin = pWin->pMainWin;
 
     if (!(pdc = malloc (sizeof(DC))))
         return HDC_INVALID;
 
-    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
-    MAKE_REGION_INFINITE(&pdc->lcrgn);
-    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
-
     pdc->bInUse   = TRUE;
     pdc->DataType = TYPE_HDC;
+    /* since 5.0.0, use surface of secondary DC if possible */
+    if (pMainWin->secondaryDC && !(pWin->WinType == TYPE_CONTROL
+            && (pWin->dwExStyle & WS_EX_CTRLASMAINWIN))) {
+        PDC pdc_secondary = dc_HDC2PDC (pMainWin->secondaryDC);
+        pdc->DCType = TYPE_MEMDC;
+        pdc->surface = pdc_secondary->surface;
+    }
+    else {
 #ifdef _MGSCHEMA_COMPOSITING
-    pdc->DCType   = TYPE_MEMDC;
-    pdc->surface  = get_window_surface (hwnd);
+        pdc->DCType   = TYPE_MEMDC;
+        pdc->surface  = get_window_surface (hwnd);
 #else
-    pdc->DCType   = TYPE_GENDC;
-    pdc->surface  = __gal_screen;
+        pdc->DCType   = TYPE_GENDC;
+        pdc->surface  = __gal_screen;
 #endif
+    }
 
     dc_InitDC (pdc, hwnd, FALSE);
     return (HDC)(pdc);
@@ -2560,26 +2584,37 @@ HDC GUIAPI CreatePrivateDC(HWND hwnd)
 
 HDC GUIAPI CreatePrivateClientDC(HWND hwnd)
 {
+    PMAINWIN pWin, pMainWin;
     PDC pdc;
 
-    if (!(pdc = malloc (sizeof(DC)))) return HDC_INVALID;
+    MG_CHECK_RET (MG_IS_GRAPHICS_WINDOW(hwnd), HDC_INVALID);
+    pWin = (PMAINWIN)hwnd;
+    pMainWin = pWin->pMainWin;
 
-    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
-    MAKE_REGION_INFINITE(&pdc->lcrgn);
-    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
-    MAKE_REGION_INFINITE(&pdc->ecrgn);
+    if (!(pdc = malloc (sizeof(DC))))
+        return HDC_INVALID;
 
     pdc->bInUse   = TRUE;
     pdc->DataType = TYPE_HDC;
-#ifdef _MGSCHEMA_COMPOSITING
-    pdc->DCType   = TYPE_MEMDC;
-    pdc->surface  = get_window_surface (hwnd);
-#else
-    pdc->DCType   = TYPE_GENDC;
-    pdc->surface  = __gal_screen;
-#endif
 
-    dc_InitDC(pdc, hwnd, TRUE);
+    /* since 5.0.0, use surface of secondary DC if possible */
+    if (pMainWin->secondaryDC && !(pWin->WinType == TYPE_CONTROL
+            && (pWin->dwExStyle & WS_EX_CTRLASMAINWIN))) {
+        PDC pdc_secondary = dc_HDC2PDC (pMainWin->secondaryDC);
+        pdc->DCType = TYPE_MEMDC;
+        pdc->surface = pdc_secondary->surface;
+    }
+    else {
+#ifdef _MGSCHEMA_COMPOSITING
+        pdc->DCType   = TYPE_MEMDC;
+        pdc->surface  = get_window_surface (hwnd);
+#else
+        pdc->DCType   = TYPE_GENDC;
+        pdc->surface  = __gal_screen;
+#endif
+    }
+
+    dc_InitDC (pdc, hwnd, TRUE);
     return (HDC)(pdc);
 }
 
@@ -2627,11 +2662,16 @@ void GUIAPI DeletePrivateDC(HDC hdc)
     free (pdc);
 }
 
+/* Since 5.0.0, returns HDC_INVALID if no private CDC */
 HDC GUIAPI GetPrivateClientDC (HWND hwnd)
 {
     PMAINWIN pWin = (PMAINWIN)hwnd;
+    MG_CHECK_RET (MG_IS_GRAPHICS_WINDOW(hwnd), HDC_INVALID);
 
-    return pWin->privCDC;
+    if (pWin->privCDC)
+        return pWin->privCDC;
+
+    return HDC_INVALID;
 }
 
 HDC GUIAPI CreateSecondaryDC(HWND hwnd)
@@ -2644,8 +2684,8 @@ HDC GUIAPI CreateSecondaryDC(HWND hwnd)
     MG_CHECK_RET (MG_IS_MAIN_WINDOW(hwnd), HDC_INVALID);
     pWin = MG_GET_WINDOW_PTR (hwnd);
 
-    width = RECTWP((const RECT*)&pWin->left);
-    height = RECTHP((const RECT*)&pWin->left);
+    width  = pWin->right - pWin->left;
+    height = pWin->bottom - pWin->top;
 
     hdc_ref = GetDC (hwnd);
 
@@ -2665,13 +2705,22 @@ HDC GUIAPI CreateSecondaryDC(HWND hwnd)
     return hdc;
 }
 
+void __mg_delete_secondary_dc (PMAINWIN pMainWin)
+{
+    if (pMainWin->secondaryDC) {
+        DeleteMemDC (pMainWin->secondaryDC);
+        pMainWin->secondaryDC = 0;
+    }
+}
+
 void GUIAPI DeleteSecondaryDC (HWND hwnd)
 {
     PMAINWIN pWin = (PMAINWIN) hwnd;
-    if (pWin->secondaryDC) {
-        DeleteMemDC (pWin->secondaryDC);
-        pWin->secondaryDC = 0;
-    }
+
+    __mg_delete_secondary_dc (pWin);
+
+    /* Since 5.0.0, update private CDC of controls */
+    __mg_update_dc_on_secondary_dc_changed (pWin);
 }
 
 HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc,
@@ -2713,26 +2762,7 @@ HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc,
         hdc = pWin->secondaryDC;
     }
 
-    if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
-        //if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
-        PCONTROL pNext;
-        PCONTROL pCtrl = (PCONTROL)(pWin->hFirstChild);
-        while (pCtrl) {
-            pNext = pCtrl->next;
-            if (pCtrl->dwExStyle & WS_EX_USEPRIVATECDC) {
-                ReleaseSecondarySubDC (pCtrl->privCDC);
-                pCtrl->privCDC = GetSecondarySubDC (pWin->secondaryDC,
-                        (HWND)pCtrl, TRUE);
-            }
-            pCtrl = pNext;
-        }
-        if (!pWin->secondaryDC)
-            DeletePrivateDC(pWin->privCDC);
-        else
-            ReleaseSecondarySubDC (pWin->privCDC);
-        pWin->privCDC = GetSecondarySubDC (secondary_dc,
-                (HWND)pWin, TRUE);
-    }
+    __mg_update_dc_on_secondary_dc_changed (pWin);
 
     pdc->hwnd = hwnd;
     pWin->secondaryDC = secondary_dc;
@@ -2741,36 +2771,29 @@ HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc,
     return hdc;
 }
 
-#if 0
+/* Since 5.0.0, this function always returns the secondary DC
+   of the main window contains the window. */
 HDC GUIAPI GetSecondaryDC (HWND hwnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_MAIN_WINDOW(hwnd), HDC_INVALID);
     pWin = MG_GET_WINDOW_PTR (hwnd);
-
-    if (pWin->secondaryDC) {
-        return pWin->secondaryDC;
-    }
-    return HDC_SCREEN;
-}
-#endif
-
-HDC GUIAPI GetSecondaryDC (HWND hwnd)
-{
-    PMAINWIN pWin;
-    pWin = MG_GET_WINDOW_PTR (hwnd);
+    if (pWin == NULL)
+        return HDC_INVALID;
 
     if (MG_IS_MAIN_WINDOW(hwnd) && pWin->secondaryDC) {
         return pWin->secondaryDC;
     }
     else if (pWin->pMainWin->secondaryDC) {
-        return get_effective_dc (pWin, FALSE);
+        return pWin->pMainWin->secondaryDC;
+        // deprecated since 5.0.0.
+        // return GetDCInSecondarySurface (hwnd, FALSE);
     }
 
     return HDC_SCREEN;
 }
 
+#if 0   /* deprecated code */
 HDC GUIAPI GetSecondaryClientDC (HWND hwnd)
 {
     PMAINWIN pWin;
@@ -2789,6 +2812,116 @@ void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc)
         return;
 
     release_effective_dc (pWin, hdc);
+}
+
+/**
+* Function: Release a secondary sub DC.
+*
+* secondary_subdc: The handle to the secondary sub DC.
+* hwnd_child: The handle to the child.
+*/
+void ReleaseSecondarySubDC (HDC secondary_subdc)
+{
+    ReleaseDC (secondary_subdc);
+}
+
+#endif  /* deprecated code */
+
+HDC GUIAPI GetDCInSecondarySurface (HWND hwnd, BOOL client)
+{
+    int i;
+    PDC pdc = NULL, pdc_secondary;
+    PCONTROL pCtrl;
+    RECT minimal;
+    CLIPRGN ergn;
+    PMAINWIN pMainWin;
+
+    MG_CHECK_RET (MG_IS_GRAPHICS_WINDOW(hwnd), HDC_INVALID);
+    pCtrl = (PCONTROL)hwnd;
+    pMainWin = pCtrl->pMainWin;
+
+    if (pMainWin->secondaryDC &&
+            !(pCtrl->WinType == TYPE_CONTROL &&
+                (pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN))) {
+        pdc_secondary = dc_HDC2PDC (pMainWin->secondaryDC);
+    }
+    else {
+        return GetDCEx (hwnd, client);
+    }
+
+    /* allocate an empty dc slot exclusively */
+    LOCK (&dcslot);
+    for (i = 0; i < DCSLOTNUMBER; i++) {
+        if (!DCSlot[i].bInUse) {
+            pdc = DCSlot + i;
+            pdc->bInUse = TRUE;
+            break;
+        }
+    }
+    UNLOCK(&dcslot);
+
+    if (i >= DCSLOTNUMBER) {
+        _WRN_PRINTF ("No DC slot.\n");
+        return HDC_INVALID;
+    }
+
+    pdc->DataType  = TYPE_HDC;
+    pdc->DCType    = TYPE_MEMDC;
+    pdc->hwnd      = hwnd;
+    pdc->bIsClient = client;
+    pdc->surface   = pdc_secondary->surface;
+
+    dc_CalculateDevRC4MemDC (pdc);
+
+    dc_InitMemDCFrom (pdc, pdc_secondary);
+    pdc->hwnd = hwnd;
+    pdc->bIsClient = client;
+
+    if (!(pdc->pLogFont = GetWindowFont (hwnd)))
+        pdc->pLogFont = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
+
+#ifndef _MGSCHEMA_COMPOSITING
+    pdc->pGCRInfo = NULL;
+    pdc->oldage = 0;
+#endif
+
+    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pdc->lcrgn);
+    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
+    CopyRegion (&pdc->ecrgn, &pdc_secondary->ecrgn);
+
+    /* clipping region more with pdc->DevRC. */
+    minimal = pdc->DevRC;
+
+    /* restrict control's effective region. */
+    if (pCtrl && pCtrl->WinType == TYPE_CONTROL &&
+            !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+        InitClipRgn (&ergn, &__mg_FreeClipRectList);
+
+        if (RestrictControlMemDCECRGNEx (&minimal, pCtrl, &ergn)) {
+            ClipRgnIntersect (&pdc->ecrgn, &pdc->ecrgn, &ergn);
+            EmptyClipRgn (&ergn);
+        }
+        else {
+            EmptyClipRgn (&pdc->ecrgn);
+        }
+    }
+    else {
+        IntersectClipRect (&pdc->ecrgn, &minimal);
+    }
+
+    return (HDC)pdc;
+}
+
+HDC GUIAPI GetEffectiveCDC (HWND hwnd)
+{
+    PMAINWIN pWin = (PMAINWIN)hwnd;
+    MG_CHECK_RET (MG_IS_GRAPHICS_WINDOW(hwnd), HDC_INVALID);
+
+    if (pWin->privCDC)
+        return pWin->privCDC;
+
+    return GetDCInSecondarySurface (hwnd, TRUE);
 }
 
 BOOL dc_GenerateMemDCECRgn (PDC pdc, BOOL fForce)
@@ -2846,128 +2979,6 @@ BOOL dc_GenerateMemDCECRgn (PDC pdc, BOOL fForce)
     }
 
     return TRUE;
-}
-/**
-* Function: Get a secondary sub DC for a child window.
-*
-* secondary_dc: The secondary DC.
-* hwnd_child: The handle to the child of the main window.
-* client: Whether to create a child DC or a window DC.
-*/
-
-HDC GUIAPI GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
-{
-    int i;
-    PDC pdc = NULL, pdc_parent;
-    PCONTROL pCtrl;
-    RECT minimal;
-    CLIPRGN ergn;
-
-    pdc_parent = dc_HDC2PDC (secondary_dc);
-
-    /* Get a dc slot. */
-    LOCK (&dcslot);
-    for (i = 0; i < DCSLOTNUMBER; i++) {
-        if(!DCSlot[i].bInUse) {
-            pdc = &DCSlot [i];
-            pdc->bInUse   = TRUE;
-            pdc->DataType = TYPE_HDC;
-            pdc->DCType   = TYPE_MEMDC;
-            break;
-        }
-    }
-    UNLOCK(&dcslot);
-
-    if (i >= DCSLOTNUMBER) {
-        _WRN_PRINTF ("No DC slot.\n");
-        return HDC_SCREEN;
-    }
-
-    pdc->hwnd = hwnd_child;
-    pdc->bIsClient = client;
-
-#if 0
-    RECT rc1, rc2;
-    int off_x, off_y;
-    /* SubDC is relative the parent_dc's (0,0). */
-    if (client) {
-        /* 1.get child client_rc relative to screen. */
-        gui_WndClientRect (hwnd_child, &rc1);
-    }
-    else {
-        /* 2.get child window rc relative to screen.*/
-        gui_WndRect (hwnd_child, &rc1);
-    }
-    /* 3.parent window relative to screen.*/
-    gui_WndRect (pdc_parent->hwnd, &rc2);
-
-    /* 4.get the child's offset to the parent window rc.*/
-    off_x = rc1.left - rc2.left;
-    off_y = rc1.top  - rc2.top;
-
-    pdc->DevRC.left   = pdc_parent->DevRC.left + off_x;
-    pdc->DevRC.top    = pdc_parent->DevRC.top  + off_y;
-    pdc->DevRC.right  = MIN((pdc->DevRC.left + RECTW(rc1)), RECTW(rc2));
-    pdc->DevRC.bottom = MIN((pdc->DevRC.top  + RECTH(rc1)), RECTH(rc2));
-#endif
-
-    assert (pdc_parent->hwnd == ((PMAINWIN)hwnd_child)->pMainWin);
-
-    dc_CalculateDevRC4MemDC (pdc);
-
-    pdc->surface = pdc_parent->surface;
-
-    dc_InitMemDCFrom (pdc, pdc_parent);
-    pdc->hwnd = hwnd_child;
-    pdc->bIsClient = client;
-
-    if (!(pdc->pLogFont = GetWindowFont (hwnd_child)))
-        pdc->pLogFont = GetSystemFont (SYSLOGFONT_WCHAR_DEF);
-
-#ifndef _MGSCHEMA_COMPOSITING
-    pdc->pGCRInfo = NULL;
-    pdc->oldage = 0;
-#endif
-
-    EmptyClipRgn (&pdc->lcrgn);
-    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
-    MAKE_REGION_INFINITE(&pdc->lcrgn);
-    EmptyClipRgn (&pdc->ecrgn);
-    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
-    CopyRegion (&pdc->ecrgn, &pdc_parent->ecrgn);
-
-    /* clipping region more with pdc->DevRC. */
-    minimal = pdc->DevRC;
-
-    /* restrict control's effective region. */
-    pCtrl = gui_Control (pdc->hwnd);
-    if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
-        InitClipRgn (&ergn, &__mg_FreeClipRectList);
-
-        if (RestrictControlMemDCECRGNEx (&minimal, pCtrl, &ergn)) {
-            ClipRgnIntersect (&pdc->ecrgn, &pdc->ecrgn, &ergn);
-            EmptyClipRgn (&ergn);
-        }
-        else {
-            EmptyClipRgn (&pdc->ecrgn);
-        }
-    }
-    else {
-        IntersectClipRect (&pdc->ecrgn, &minimal);
-    }
-
-    return (HDC)pdc;
-}
-
-/**
-* Function: Release a secondary sub DC.
-*
-* secondary_subdc: The handle to the secondary sub DC.
-* hwnd_child: The handle to the child.
-*/
-void ReleaseSecondarySubDC (HDC secondary_subdc)
-{
-    ReleaseDC (secondary_subdc);
 }
 
 /* LockDC/UnlockDC to get direct access to the pixels in a DC. */
@@ -3270,7 +3281,7 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
@@ -3308,11 +3319,12 @@ HDC CreateMemDCFromSurface (GAL_Surface* surface)
     pmem_dc->surface  = surface;
     surface->refcount++;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
+
 #ifndef _MGSCHEMA_COMPOSITING
     pmem_dc->pGCRInfo = NULL;
     pmem_dc->oldage = 0;
@@ -3417,7 +3429,7 @@ HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
         }
     }
     else {
-        dc_InitDC (pdc_sub, HWND_DESKTOP, FALSE);
+        dc_InitDC (pdc_sub, HWND_NULL, FALSE);
     }
 
 #ifndef _MGSCHEMA_COMPOSITING
@@ -3487,7 +3499,7 @@ HDC GUIAPI CreateMemDCFromBitmap (HDC hdc, const BITMAP* bmp)
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
@@ -3602,7 +3614,7 @@ HDC GUIAPI CreateMemDCFromMyBitmap (const MYBITMAP* my_bmp, const RGB* pal)
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
@@ -4108,7 +4120,7 @@ HDC drmCreateDCFromName (GHANDLE video,
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
@@ -4163,7 +4175,7 @@ HDC drmCreateDCFromHandle (GHANDLE video,
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
@@ -4218,7 +4230,7 @@ HDC drmCreateDCFromPrimeFd (GHANDLE video,
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
@@ -4296,5 +4308,164 @@ BOOL __mg_reset_common_rgba8888_dc (int width, int height, int pitch,
             + pdc->surface->format->BytesPerPixel * pdc->DevRC.left;
 
     return TRUE;
+}
+
+struct _travel_context;
+typedef void (*on_control_fn) (struct _travel_context* ctxt, PCONTROL child);
+
+struct _travel_context {
+    int             nr;
+    PMAINWIN        main_win;
+    PCONTROL        parent;
+    GAL_Surface*    surface;
+    on_control_fn   cb;
+};
+
+static void on_surface_changed_for_control (struct _travel_context* ctxt,
+        PCONTROL ctrl)
+{
+    RECT rc_surface, rc_minimal;
+    PDC pdc = dc_HDC2PDC (ctrl->privCDC);
+
+    _WRN_PRINTF ("called\n");
+
+    pdc->surface = ctxt->surface;
+
+    if (pdc->surface != __gal_screen) {
+        /* recalate the device rectangle of the DC */
+        dc_CalculateDevRC4MemDC (pdc);
+
+        /* regnerate the effective clipping regions */
+        EmptyClipRgn (&pdc->ecrgn);
+        InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
+
+        rc_surface.left     = 0;
+        rc_surface.top      = 0;
+        rc_surface.right    = pdc->surface->w;
+        rc_surface.bottom   = pdc->surface->h;
+
+        /* clipping region more with pdc->DevRC and rc_surface. */
+        IntersectRect (&rc_minimal, &pdc->DevRC, &rc_surface);
+        SetClipRgn (&pdc->ecrgn, &rc_surface);
+        IntersectClipRect (&pdc->lcrgn, &rc_surface);
+
+        /* restrict control's effective region. */
+        if (ctrl && !(ctrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+            CLIPRGN ergn;
+            InitClipRgn (&ergn, &__mg_FreeClipRectList);
+
+            if (RestrictControlMemDCECRGNEx (&rc_minimal, ctrl, &ergn)) {
+                ClipRgnIntersect (&pdc->ecrgn, &pdc->ecrgn, &ergn);
+            }
+            else {
+                EmptyClipRgn (&pdc->ecrgn);
+            }
+        }
+        else {
+            IntersectClipRect (&pdc->ecrgn, &rc_minimal);
+        }
+    }
+    else {
+#ifdef _MGSCHEMA_COMPOSITING
+        assert (0); // never touch here.
+#else   /* defined _MGSCHEMA_COMPOSITING */
+        RECT rc_minimal;
+
+        /* the DC type changed to general DC when failed to create
+           the secondary DC */
+        pdc->DCType = TYPE_GENDC;
+
+        pdc->pGCRInfo = ((PMAINWIN)pdc->hwnd)->pGCRInfo;
+
+        LOCK_GCRINFO (pdc);
+
+        pdc->oldage = pdc->pGCRInfo->age;
+        ClipRgnCopy (&pdc->ecrgn, &pdc->pGCRInfo->crgn);
+
+        dc_CalculateDevRC4GenDC (pdc);
+
+        rc_minimal = pdc->DevRC;
+
+        if (ctrl && !(ctrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+            CLIPRGN ergn;
+            InitClipRgn (&ergn, &__mg_FreeClipRectList);
+
+            if (RestrictControlECRGNEx (&rc_minimal, ctrl, &ergn)) {
+                ClipRgnIntersect (&pdc->ecrgn, &pdc->ecrgn, &ergn);
+                EmptyClipRgn (&ergn);
+            }
+            else {
+                EmptyClipRgn (&pdc->ecrgn);
+            }
+        }
+        else {
+            IntersectClipRect (&pdc->ecrgn, &rc_minimal);
+        }
+
+        UNLOCK_GCRINFO (pdc);
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
+    }
+
+    /* reset the current destination */
+    pdc->cur_dst = (BYTE*)pdc->surface->pixels
+            + pdc->surface->pitch * pdc->DevRC.top
+            + pdc->surface->format->BytesPerPixel * pdc->DevRC.left;
+}
+
+static void travel_children_with_priv_cdc (struct _travel_context* ctxt)
+{
+    PCONTROL child;
+
+    child = (PCONTROL)(ctxt->parent->children);
+    while (child) {
+
+        if (child->privCDC) {
+            ctxt->cb (ctxt, child);
+            ctxt->nr++;
+        }
+
+        ctxt->parent = child;
+        travel_children_with_priv_cdc (ctxt);
+
+        child = child->next;
+    }
+}
+
+#ifdef _MGSCHEMA_COMPOSITING
+void __mg_update_dc_on_surface_resized (PMAINWIN pWin, GAL_Surface* surf)
+{
+    struct _travel_context ctxt = { 0, pWin, (PCONTROL)pWin, surf,
+        on_control_for_surface };
+
+    if (pWin->privCDC) {
+        on_surface_changed_for_control (&ctxt, (PCONTROL)pWin);
+    }
+
+    travel_children_with_priv_cdc (&ctxt);
+}
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+
+void __mg_update_dc_on_secondary_dc_changed (PMAINWIN pMainWin)
+{
+    struct _travel_context ctxt = { 0, pMainWin, (PCONTROL)pMainWin,
+        NULL, on_surface_changed_for_control };
+
+    if (pMainWin->secondaryDC) {
+        ctxt.surface = dc_HDC2PDC(pMainWin->secondaryDC)->surface;
+    }
+    else {
+        /* if failed to create the secondary DC */
+#ifdef _MGSCHEMA_COMPOSITING
+        ctxt.surface = pMainWin->surf;
+#else
+        ctxt.surface = __gal_screen;
+#endif
+    }
+
+    if (pMainWin->privCDC) {
+        on_surface_changed_for_control (&ctxt, (PCONTROL)pMainWin);
+    }
+
+    travel_children_with_priv_cdc (&ctxt);
 }
 
