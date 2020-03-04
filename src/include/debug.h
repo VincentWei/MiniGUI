@@ -85,6 +85,13 @@ dump_rect (const RECT* rect, const char* name)
 }
 
 static inline void
+dump_gal_rect (const GAL_Rect* rect, const char* name)
+{
+    _MG_PRINTF("rect of %s: (%d, %d), (%d X %d)\n", name,
+            rect->x, rect->y, rect->w, rect->h);
+}
+
+static inline void
 dump_window (HWND hwnd, const char* name)
 {
     PMAINWIN main_win = (PMAINWIN)hwnd;
@@ -369,6 +376,16 @@ dump_window_details (HWND hwnd, const char* name)
     }
 
     _MG_PRINTF ("End of info for handle (%p) of %s", hwnd, name);
+}
+
+static inline void
+dump_surface (GAL_Surface* surface, const char* name)
+{
+    _MG_PRINTF ("Surface RGBA masks for %s: %x, %x, %x, %x\n", name,
+            surface->format->Rmask,
+            surface->format->Gmask,
+            surface->format->Bmask,
+            surface->format->Amask);
 }
 
 #ifdef __cplusplus
