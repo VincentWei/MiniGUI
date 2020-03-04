@@ -630,6 +630,12 @@ extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
          (((PMAINWIN)hWnd)->WinType == TYPE_MAINWIN ||      \
           ((PMAINWIN)hWnd)->WinType == TYPE_CONTROL))
 
+/* Changede since 5.0.0.
+   Whether hWnd is a graphics window, a main window, a control, or desktop */
+#define MG_IS_GRAPHICS_WINDOW(hWnd)                         \
+        (MG_IS_WINDOW(hWnd) &&                              \
+         ((PMAINWIN)hWnd)->WinType != TYPE_VIRTWIN)
+
 /* Whether hWnd is a main window, including HWND_DESKTOP */
 #define MG_IS_MAIN_WINDOW(hWnd)                             \
         (MG_IS_WINDOW(hWnd) &&                              \
@@ -891,8 +897,6 @@ void gui_WndRect(HWND hWnd, PRECT prc);
 void gui_WndClientRect(HWND hWnd, PRECT prc);
 
 /* Undisclosed APIs */
-HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client);
-void ReleaseSecondarySubDC (HDC secondary_subdc);
 HDC CreateMemDCFromSurface (struct GAL_Surface* surface);
 struct GAL_Surface* GetSurfaceFromDC (HDC hdc);
 
