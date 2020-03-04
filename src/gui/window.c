@@ -2437,7 +2437,6 @@ static LRESULT DefaultPaintMsgHandler(PMAINWIN pWin, UINT message,
         if (pWin->WinType == TYPE_CONTROL &&
                 pWin->dwExStyle & WS_EX_TRANSPARENT)
             break;
-        _WRN_PRINTF ("hdc in MSG_ERASEBKGND: %p\n", (HDC)wParam);
         wndEraseBackground (pWin, (HDC)wParam, (const RECT*)lParam);
         break;
 
@@ -3112,7 +3111,7 @@ HWND GUIAPI GetHostedById (HWND hHosting, LINT lId, DWORD dwSearchFlags)
 /* Since 5.0.0, works for virtual window as well */
 LINT GUIAPI GetWindowId (HWND hWnd)
 {
-    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1);
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1L);
 
     return ((PMAINWIN)hWnd)->id;
 }
@@ -3123,7 +3122,7 @@ LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId)
     LINT lOldId;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), -1);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), -1L);
     pWin = (PMAINWIN)hWnd;
 
     lOldId = pWin->id;
