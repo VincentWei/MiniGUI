@@ -4204,9 +4204,9 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
     if (pWin->pHosting == NULL)
         pWin->pHosting = getMainWindowPtr (pCreateInfo->hHosting);
 
-    /* leave the pHosting is NULL for the first window of this thread. */
 #else   /* defined _MGRM_THREADS */
-    /* you must create main window in the main thread for non-threads mods */
+
+    /* You must create main window in the main thread for non-threads modes */
     if (getMsgQueueForThisThread () != __mg_dsk_msg_queue)
         goto err;
 
