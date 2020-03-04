@@ -2073,10 +2073,16 @@ static int dskAddNewMainWindow (PMAINWIN pWin, const COMPOSITINGINFO* ct_info)
 
     /* Create private client dc. */
     if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
+#if 0   /* deprecated code */
         if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
-            pWin->privCDC = GetSecondarySubDC (pWin->secondaryDC, (HWND)pWin, TRUE);
+            pWin->privCDC = GetSecondarySubDC (pWin->secondaryDC,
+                    (HWND)pWin, TRUE);
         else
             pWin->privCDC = CreatePrivateClientDC ((HWND)pWin);
+#else   /* deprecated code */
+        /* since 5.0.0, always call CreatePrivateClientDC */
+        pWin->privCDC = CreatePrivateClientDC ((HWND)pWin);
+#endif
     }
     else
         pWin->privCDC = 0;
@@ -2117,11 +2123,16 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
 #endif  /* moved code */
 
     if ((pWin->dwExStyle & WS_EX_AUTOSECONDARYDC) && pWin->secondaryDC) {
+#if 0   /* deprecated code */
         DeleteSecondaryDC ((HWND)pWin);
+#else   /* deprecated code */
+        __mg_delete_secondary_dc (pWin);
+#endif
         pWin->update_secdc = NULL;
     }
 
     if (pWin->privCDC) {
+#if 0   /* deprecated code */
         if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC) {
             ReleaseSecondarySubDC (pWin->privCDC);
         }
@@ -2131,6 +2142,10 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
             else
                 DeletePrivateDC (pWin->privCDC);
         }
+#else   /* deprecated code */
+        /* since 5.0.0, always call DeletePrivateDC */
+        DeletePrivateDC (pWin->privCDC);
+#endif
         pWin->privCDC = 0;
     }
 }
@@ -2316,6 +2331,12 @@ static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
     else
         ret = cliMoveWindow (pCtrl, &newWinRect, fd);
 
+#ifdef _MGSCHEMA_COMPOSITING
+    if (fd >= 0) {
+        __mg_update_dc_on_surface_changed ((HWND)pCtrl, pCtrl->surf);
+    }
+#endif
+
     if (ret == 0 && pCtrl->dwStyle & WS_VISIBLE) {
         SendAsyncMessage ((HWND)pCtrl, MSG_NCPAINT, 0, 0);
         InvalidateRect ((HWND)pCtrl, NULL, TRUE);
@@ -2349,6 +2370,10 @@ static int dskMoveMainWindow (PMAINWIN pWin, RECT* prcExpect)
         ret = cliMoveWindow (pWin, &rcResult, fd);
 
 #ifdef _MGSCHEMA_COMPOSITING
+    if (fd >= 0) {
+        __mg_update_dc_on_surface_changed ((HWND)pCtrl, pCtrl->surf);
+    }
+
     if (pWin->surf->shared_header && pWin->surf->shared_header->fd >= 0) {
         close (pWin->surf->shared_header->fd);
         pWin->surf->shared_header->fd = -1;
@@ -3538,6 +3563,8 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
     pCtrlPtrIn = gui_GetMainWindowPtrUnderPoint (x, y);
 
     if (pCtrlPtrIn && pCtrlPtrIn->WinType == TYPE_CONTROL) {
+        _WRN_PRINTF ("mouse is above the control: %s\n", pCtrlPtrIn->spCaption);
+
         pUnderPointer = pCtrlPtrIn->pMainWin;
         UndHitCode = HT_CLIENT;
         cx = x - pUnderPointer->cl;
