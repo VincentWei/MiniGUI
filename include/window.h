@@ -8463,8 +8463,8 @@ MG_EXPORT LINT GUIAPI GetWindowId (HWND hWnd);
 MG_EXPORT LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId);
 
 /**
- * \fn HWND GUIAPI GetRootWindow (void)
- * \brief Retrieve the root window of current thread.
+ * \fn HWND GUIAPI GetRootWindow (int* nrWins)
+ * \brief Retrieve the root window of the current thread.
  *
  * All main windows and/or virtual windows in a thread form a window tree.
  * The root window of the tree may be HWND_DESKTOP or the first main/virtual
@@ -8472,13 +8472,16 @@ MG_EXPORT LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId);
  *
  * This function retrieves and returns the root window in the current thread.
  *
+ * \param nrWins A pointer to an integer used to return the number of total
+ *  windows in the current thread. It can be NULL.
+ *
  * \return The handle to the root window. If the current thread is not
  *  a message thread, it returns HWND_INVALID. If there is no
  *  any window created in the current thread, it returns HWND_NULL.
  *
  * \sa GetHosting, GetFirstHosted, GetNextHosted, GetMainWindowById
  */
-MG_EXPORT HWND GUIAPI GetRootWindow (void);
+MG_EXPORT HWND GUIAPI GetRootWindow (int* nrWins);
 
 /**
  * \fn HWND GUIAPI GetHosting (HWND hWnd)

@@ -2953,13 +2953,16 @@ HWND GUIAPI GetParent (HWND hWnd)
 }
 
 /* Since 5.0.0 */
-HWND GUIAPI GetRootWindow (void)
+HWND GUIAPI GetRootWindow (int *nrWins)
 {
     MSGQUEUE* pMsgQueue;
 
     if ((pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
         return HWND_INVALID;
     }
+
+    if (nrWins)
+        *nrWins = pMsgQueue->nrWindows;
 
     return (HWND)pMsgQueue->pRootMainWin;
 }
