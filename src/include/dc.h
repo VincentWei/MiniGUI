@@ -240,8 +240,8 @@ struct tagDC
     DC_STEP_X  step_x;
 
     /* === context information. ============================================= */
-    /* DK[01/22/10]:This segment is binary compatible with _COMP_CTXT struct */
-    /* VW[01/18/18]:Adjust the fields sequence for 64-bit to ensure 8-byte alignment */
+    // DK[01/22/10]:This segment is binary compatible with _COMP_CTXT struct
+    // VW[01/18/18]:Adjust the fields order for 64bit to ensure 8-byte alignment
     gal_uint8*  cur_dst;
     void*       user_comp_ctxt;
     gal_pixel   skip_pixel;
@@ -663,50 +663,62 @@ leave_drawing:
 
 static inline HDC get_effective_dc (PMAINWIN pWin, BOOL client)
 {
+#if 0   /* deprecated code */
     if (!(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
             && (pWin->pMainWin->secondaryDC)) {
-        if (client && (pWin->dwExStyle & WS_EX_USEPRIVATECDC)) {
+        if (client && pWin->privCDC) {
             return pWin->privCDC;
         }
         else
-            return GetSecondarySubDC (pWin->pMainWin->secondaryDC,
-                    (HWND)pWin, client);
+            return GetDCInSecondarySurface ((HWND)pWin, client);
     }
     else {
-        if (client && (pWin->dwExStyle & WS_EX_USEPRIVATECDC)) {
+        if (client && pWin->privCDC) {
             return pWin->privCDC;
         }
-        if (client) {
-            return GetClientDC ((HWND)pWin);
-        }
         else {
-            return GetDC ((HWND)pWin);
+            return GetDCEx ((HWND)pWin, client);
         }
     }
+#else   /* deprecated code */
+    if (client && pWin->privCDC)
+        return pWin->privCDC;
+    else
+        return GetDCInSecondarySurface ((HWND)pWin, client);
+#endif
 }
 
 static inline void release_effective_dc (PMAINWIN pWin, HDC hdc)
 {
+#if 0   /* deprecated code */
     if (pWin->pMainWin->secondaryDC) {
         if (pWin->privCDC != hdc)
-            ReleaseSecondarySubDC (hdc);
+            ReleaseDC (hdc);
     }
     else {
-        // Since 5.0.0, we always call ReleaseDC even if it is private CDC.
-        // if (pWin->privCDC != hdc)
-        ReleaseDC (hdc);
+        if (pWin->privCDC != hdc)
+            ReleaseDC (hdc);
     }
+#else   /* deprecated code */
+    // Since 5.0.0, we always call ReleaseDC even if it is private CDC.
+    ReleaseDC (hdc);
+#endif
 }
 
 void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         HDC real_dc, const RECT* rc, DWORD flags);
 
 /* Since 5.0.0.
- * helpers for getting and reseting common RGBA8888 DC for internal use.
- */
+   helpers for getting and reseting common RGBA8888 DC for internal use. */
 HDC __mg_get_common_rgba8888_dc (void);
 BOOL __mg_reset_common_rgba8888_dc (int width, int height, int pitch,
         void* pixels);
+
+/* Since 5.0.0.
+   helpers to update the private client DC of window and it's descendants */
+void __mg_update_dc_on_surface_changed (PMAINWIN pWin, GAL_Surface* surf);
+void __mg_update_dc_on_secondary_dc_changed (PMAINWIN pMainWin);
+void __mg_delete_secondary_dc (PMAINWIN pMainWin);
 
 #ifdef __cplusplus
 }
