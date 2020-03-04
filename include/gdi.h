@@ -1456,15 +1456,38 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
 MG_EXPORT Uint32 GUIAPI GetGDCapability (HDC hdc, int iItem);
 
 /**
- * \fn HDC GUIAPI GetDC (HWND hwnd)
+ * \fn HDC GUIAPI GetDCEx (HWND hWnd, BOOL bClient)
+ * \brief Get a window or client DC of a window.
+ *
+ * This function gets a window or a client DC of the specified \a hwnd, and
+ * returns the handle to the DC. MiniGUI will try to return an unused DC from
+ * the internal DC pool, rather than allocating a new one from the system heap.
+ * Thus, you should release the DC when you finish drawing as soon as possible.
+ *
+ * \param hwnd The handle to the window.
+ * \param bClient Whether to initialize as a window or a client DC;
+ *  TRUE for client DC, FALSE for window DC.
+ *
+ * \return The handle to the DC, HDC_INVALID indicates an error.
+ *
+ * \note You should call \a ReleaseDC to release the DC when you are done.
+ *
+ * \sa GetClientDC, ReleaseDC
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT HDC GUIAPI GetDCEx (HWND hwnd, BOOL bClient);
+
+/**
+ * \fn HDC GUIAPI GetDC (HWND hWnd)
  * \brief Get a window DC of a window.
  *
  * This function gets a window DC of the specified \a hwnd, and returns
  * the handle to the DC. MiniGUI will try to return an unused DC from the
- * internal DC pool, rather than allocate a new one from the system heap.
+ * internal DC pool, rather than allocating a new one from the system heap.
  * Thus, you should release the DC when you finish drawing as soon as possible.
  *
- * \param hwnd The handle to the window.
+ * \param hWnd The handle to the window.
  *
  * \return The handle to the DC, HDC_INVALID indicates an error.
  *
@@ -1472,18 +1495,21 @@ MG_EXPORT Uint32 GUIAPI GetGDCapability (HDC hdc, int iItem);
  *
  * \sa GetClientDC, ReleaseDC
  */
-MG_EXPORT HDC GUIAPI GetDC (HWND hwnd);
+static inline HDC GUIAPI GetDC (HWND hWnd)
+{
+    return GetDCEx (hWnd, FALSE);
+}
 
 /**
- * \fn HDC GUIAPI GetClientDC (HWND hwnd)
+ * \fn HDC GUIAPI GetClientDC (HWND hWnd)
  * \brief Get a client DC of a window.
  *
  * This function gets a client DC of the specified \a hwnd, and returns the
  * handle to the DC. MiniGUI will try to return an unused DC from the
- * internal DC pool, rather than allocate a new one from the system heap.
+ * internal DC pool, rather than allocating a new one from the system heap.
  * Thus, you should release the DC when you finish drawing as soon as possible.
  *
- * \param hwnd The handle to the window.
+ * \param hWnd The handle to the window.
  *
  * \return The handle to the DC, HDC_INVALID indicates an error.
  *
@@ -1491,7 +1517,10 @@ MG_EXPORT HDC GUIAPI GetDC (HWND hwnd);
  *
  * \sa GetDC, ReleaseDC
  */
-MG_EXPORT HDC GUIAPI GetClientDC (HWND hwnd);
+static inline HDC GUIAPI GetClientDC (HWND hWnd)
+{
+    return GetDCEx (hWnd, TRUE);
+}
 
 /**
  * \fn HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, \
@@ -2065,9 +2094,13 @@ MG_EXPORT void GUIAPI UnlockDC (HDC hdc);
  * returns the handle to the DC.
  *
  * When you calling \a CreatePrivateDC function to create a private DC,
- * MiniGUI will create the DC in the system heap, rather than allocate one
+ * MiniGUI will create the DC in the system heap, rather than allocating one
  * from the DC pool. Thus, you can keep up the private DC in the life cycle
  * of the window, and are not needed to release it for using by other windows.
+ *
+ * Since 5.0.0, if the main window which contains the window has secondary
+ * DC, this function will make the private data using the memory surface
+ * for the secondary DC.
  *
  * \param hwnd The handle to the window.
  *
@@ -2086,9 +2119,13 @@ MG_EXPORT HDC GUIAPI CreatePrivateDC (HWND hwnd);
  *
  * When you calling \a CreatePrivateClientDC function to create a private
  * client DC, MiniGUI will create the DC in the system heap, rather than
- * allocate one from the DC pool. Thus, you can keep up the DC in the life
+ * allocating one from the DC pool. Thus, you can keep up the DC in the life
  * cycle of the window, and are not needed to release it for using by
  * other windows.
+ *
+ * Since 5.0.0, if the main window which contains the window has secondary
+ * DC, this function will make the private data using the memory surface
+ * for the secondary DC.
  *
  * \param hwnd The handle to the window.
  *
@@ -2103,12 +2140,12 @@ MG_EXPORT HDC GUIAPI CreatePrivateClientDC (HWND hwnd);
  *         int width, int height)
  * \brief Creates a private SubDC of a window.
  *
- * This function creates a private SubDC of the DC and returns the handle
+ * This function creates a private sub DC of the DC and returns the handle
  * of the SubDC.
  *
  * When you calling \a CreatePrivateSubDC function to create a private
- * Sub DC, MiniGUI will create the DC in the system heap, rather than
- * allocate one from the DC pool. Thus, you can keep up the DC in the life
+ * a sub DC, MiniGUI will create the DC in the system heap, rather than
+ * allocating one from the DC pool. Thus, you can keep up the DC in the life
  * cycle of the window, and are not needed to release it for using by
  * other windows.
  *
@@ -2163,7 +2200,7 @@ MG_EXPORT void GUIAPI DeletePrivateDC (HDC hdc);
 
 /**
  * \fn HDC GUIAPI CreateSecondaryDC (HWND hwnd)
- * \brief Creates a secondary window DC of a window.
+ * \brief Creates a secondary DC for a main window.
  *
  * This function creates a secondary DC for the main window \a hwnd and
  * returns the handle to the secondary DC.
@@ -2171,11 +2208,14 @@ MG_EXPORT void GUIAPI DeletePrivateDC (HDC hdc);
  * When you calling \a CreateSecondaryDC function, MiniGUI will create a
  * memory DC which is compatible with HDC_SCREEN.
  *
+ * When a main window has set a secondary DC, MiniGUI will use the
+ * off-screen surface of the secondary DC to render the content of the main
+ * window and its descendants.
+ *
  * When a main window have the extended style \a WS_EX_AUTOSECONDARYDC,
- * MiniGUI will create a Secondary DC for this main window in the creation
+ * MiniGUI will create a secondary DC for this main window in the creation
  * progress of the main window, and destroy the DC when you destroy the
- * window. MiniGUI will use this Secondary DC and its sub DCs to render
- * the window content and childen.
+ * window.
  *
  * \param hwnd The handle to the window.
  *
@@ -2237,52 +2277,86 @@ MG_EXPORT HDC GUIAPI SetSecondaryDC (HWND hwnd, HDC secondary_dc,
 
 /**
  * \fn HDC GUIAPI GetSecondaryDC (HWND hwnd)
- * \brief Retrives and returns the secondary DC of a specific window.
+ * \brief Retrieve and return the secondary DC of a specific window.
  *
- * This function retrives and returns the secondary DC of the window \a hwnd.
+ * This function retrieves and returns the secondary DC of the main window
+ * which contains the specified window \a hwnd.
  *
- * When a main window have the secondary DC, MiniGUI will use this secondary DC and
- * its sub DCs to render the content of the window and its children.
+ * When a main window has been set the secondary DC, MiniGUI will use the
+ * off-screen surface of the secondary DC to render the content of the main
+ * window and its descendants.
  *
  * \param hwnd The handle to the window.
  *
- * \return The handle to the secondary DC, HDC_SCREEN indicates that
+ * \return The handle to the secondary DC; HDC_SCREEN indicates that
  *         the window has no secondary DC.
  *
- * \sa ReleaseSecondaryDC, SetSecondaryDC
+ * \sa CreateSecondaryDC, SetSecondaryDC
  */
 MG_EXPORT HDC GUIAPI GetSecondaryDC (HWND hwnd);
 
 /**
- * \fn HDC GUIAPI GetSecondaryClientDC (HWND hwnd)
- * \brief Retrives and returns the client secondary DC of a specific window.
+ * \fn HDC GUIAPI GetDCInSecondarySurface (HWND hWnd, BOOL bClient)
+ * \brief Get a window or client DC by using the secondary surface if possible.
  *
- * This function retrives and returns the client secondary DC of the main window \a hwnd.
+ * This function gets a window DC or a client DC by using the surface of
+ * the secondary DC created by the main window which contains the specified
+ * window \a hWnd. MiniGUI will try to return an unused DC from
+ * the internal DC pool, rather than allocating a new one from the system heap.
+ * Thus, you should release the DC when you finish drawing as soon as possible.
  *
- * When a main window have the secondary DC, MiniGUI will use this secondary DC and
- * its sub DCs to render the content of the window and its children.
+ * If the main window which contains this window does not have secondary DC,
+ * this function acts as \a GetDCEx.
  *
- * \param hwnd The handle to the main window.
+ * \param hWnd The handle to the main window.
+ * \param bClient Whether to initialize as a window or client DC.
+ *  TRUE for client DC, FALSE for window DC.
  *
- * \return The handle to the client secondary DC, HDC_SCREEN indicates that
- *         the main window has no secondary DC.
+ * \return The handle to the DC, HDC_INVALID indicates an error.
  *
- * \sa ReleaseSecondaryDC, SetSecondaryDC
+ * \sa GetDCEx, ReleaseDC
  */
-MG_EXPORT HDC GUIAPI GetSecondaryClientDC (HWND hwnd);
+MG_EXPORT HDC GUIAPI GetDCInSecondarySurface (HWND hWnd, BOOL bClient);
+
+/**
+ * \fn HDC GUIAPI GetSecondaryClientDC (HWND hwnd)
+ * \brief Get a client DC of a window by using the secondary surface if possible.
+ *
+ * This function gets a client DC by using the surface of the secondary DC
+ * created by the main window which contains the specified window \a hWnd.
+ * MiniGUI will try to return an unused DC from the internal DC pool,
+ * rather than allocating a new one from the system heap.
+ * Thus, you should release the DC when you finish drawing as soon as possible.
+ *
+ * If the main window which contains this window (or itself) does not have a
+ * secondary DC, this function acts as \a GetClientDC.
+ *
+ * \param hwnd The handle to a main window or a control.
+ *
+ * \return The handle to the DC, HDC_INVALID indicates an error.
+ *
+ * \sa GetDCInSecondarySurface
+ */
+static inline HDC GUIAPI GetSecondaryClientDC (HWND hwnd)
+{
+    return GetDCInSecondarySurface (hwnd, TRUE);
+}
 
 /**
  * \fn void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc)
- * \brief Release the DC returned by \a GetSecondaryDC or \a GetSecondaryClientDC.
+ * \brief Release the DC returned by GetSecondaryClientDC.
  *
  * \param hwnd The handle to the window.
  * \param hdc  The handle to the secondary DC.
  *
- * \return void
+ * \note Deprecated; use ReleaseDC instead.
  *
- * \sa GetSecondaryDC, GetSecondaryClientDC
+ * \sa ReleaseDC
  */
-MG_EXPORT void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc);
+static inline void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc)
+{
+    ReleaseDC (hdc);
+}
 
 /**
  * \fn void GUIAPI DeleteSecondaryDC (HWND hwnd)
@@ -2293,6 +2367,31 @@ MG_EXPORT void GUIAPI ReleaseSecondaryDC (HWND hwnd, HDC hdc);
  * \sa CreateSecondaryDC
  */
 MG_EXPORT void GUIAPI DeleteSecondaryDC (HWND hwnd);
+
+/**
+ * \fn HDC GUIAPI GetEffectiveCDC (HWND hwnd)
+ * \brief Get the effective client DC of a window.
+ *
+ * This function returns an effective client DC of the specified window by
+ * using the following rules:
+ *
+ *  - If the window has private client DC, returns it.
+ *  - If the main window contains the window has a secondary DC, returns a
+ *    client DC by calling GetDCInSecondarySurface.
+ *  - Returns a client DC by calling GetClientDC.
+ *
+ * You should release the client DC as soon as possible when you are done
+ * with it.
+ *
+ * \param hwnd The handle to the window.
+ *
+ * \return The handle to the DC, HDC_INVALID indicates an error.
+ *
+ * \sa GetPrivateClientDC, GetDCInSecondarySurface, GetClientDC, ReleaseDC
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT HDC GUIAPI GetEffectiveCDC (HWND hwnd);
 
 /**
  * \fn BOOL GUIAPI SyncUpdateDC (HDC hdc)
@@ -2694,7 +2793,7 @@ MG_EXPORT BOOL GUIAPI SetPalette (HDC hdc, int start, int len, GAL_Color* cmap);
 
 /**
  * \fn BOOL GUIAPI SetColorfulPalette (HDC hdc)
- * \brief Set a DC with colorfule palette.
+ * \brief Set a DC with colorful palette.
  *
  * This function sets the DC specified by \a hdc with colorful palette.
  *
@@ -2739,15 +2838,14 @@ MG_EXPORT BOOL GUIAPI SelectPalette (HDC hdc, HPALETTE hpal, BOOL reserved);
 
 /**
  * \fn BOOL GUIAPI RealizePalette (HDC hdc)
- *
  * \brief This function maps palette entries from the current
  *        logical palette to the system palette.
  *
- * RealizePalette modifies the palette for the device associated
+ * This function modifies the palette for the device associated
  * with the specified device context.
  *
  * If the device context is a display DC, the physical palette
- * for that device is modified.  RealizePalette will return
+ * for that device is modified. This function will return
  * FALSE if the hdc does not have a settable palette.
  *
  * If the device context is a memory DC, this function will return
@@ -5522,7 +5620,7 @@ MG_EXPORT HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which);
                 const RGB* pal)
  * \brief Creates an icon object from the memory.
  *
- * This function creates an icon from memory data rather than icon file.
+ * This function creates an icon from memory data rather than an icon file.
  * \a w and \a h are the width and the height of the icon respectively.
  * \a pANDBits and \a pXORBits are AND bitmask and XOR bitmask of the icon.
  * MiniGUI currently support mono-color cursor 256-color icon and 16-color icon,
