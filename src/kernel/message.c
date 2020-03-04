@@ -635,10 +635,12 @@ static void travel_all_hosted (PMAINWIN pWin,
     void (*cb) (PMAINWIN, void*), void* data)
 {
     PMAINWIN pNext = pWin->pFirstHosted;
+
     while (pNext) {
-        cb (pNext, data);
 
         travel_all_hosted (pNext, cb, data);
+        cb (pNext, data);
+
         pNext = pNext->pNextHosted;
     }
 }
@@ -648,8 +650,9 @@ static void _my_travel_cb (PMAINWIN win, void* data)
     MSG* msg = (MSG*)data;
 
     msg->hwnd = (HWND)win;
-    kernel_QueueMessage (win->pMsgQueue, msg);
-    msg->time++;
+    if (kernel_QueueMessage (win->pMsgQueue, msg)) {
+        msg->time++;
+    }
 }
 
 int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg)
@@ -659,8 +662,8 @@ int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg)
     msg->time = 0;
 
     if ((win = msg_queue->pRootMainWin)) {
-        _my_travel_cb (win, msg);
         travel_all_hosted (win, _my_travel_cb, msg);
+        _my_travel_cb (win, msg);
     }
 
     return (int)msg->time;
