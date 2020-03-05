@@ -2525,7 +2525,7 @@ static void dskEnableWindow (PMAINWIN pWin, int flags)
 
         if (pWin->dwStyle & WS_DISABLED) {
             if (__mg_captured_wnd &&
-                checkAndGetMainWindowPtrOfControl (__mg_captured_wnd) == pWin)
+                checkAndGetMainWinIfWindow (__mg_captured_wnd) == pWin)
                 __mg_captured_wnd = 0;
 
             if (dskGetActiveWindow (NULL) == (HWND)pWin) {
@@ -2730,7 +2730,7 @@ static HWND dskGetNextMainWindow (PMAINWIN pWin)
         hwnd = nodes[from].hwnd;
 
         if ((nodes[from].cli == __mg_client_id) &&
-                (pWin = checkAndGetMainWindowPtrOfMainWin (hwnd)) &&
+                (pWin = checkAndGetMainWinIfMainWin (hwnd)) &&
                 !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
             break;
         }
@@ -4073,7 +4073,7 @@ static int srvRegisterIMEWnd (HWND hwnd)
     if (__mg_ime_wnd != 0)
         return ERR_IME_TOOMUCHIMEWND;
 
-    if (!checkAndGetMainWindowPtrOfMainWin (hwnd))
+    if (!checkAndGetMainWinIfMainWin (hwnd))
         return ERR_INV_HWND;
 
     __mg_ime_wnd = hwnd;
@@ -4246,7 +4246,7 @@ static void dskOnTimer (void)
     blink_counter = __mg_tick_counter;
 
     if (sg_hCaretWnd != 0
-            && (HWND)checkAndGetMainWindowPtrOfControl (sg_hCaretWnd)
+            && (HWND)checkAndGetMainWinIfWindow (sg_hCaretWnd)
                     == dskGetActiveWindow (NULL)
             && uCounter >= sg_uCaretBTime) {
         PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);

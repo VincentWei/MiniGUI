@@ -326,14 +326,29 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
 
 BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 {
+    int ret;
+
     memset (pMsgQueue, 0, sizeof(MSGQUEUE));
 
     pMsgQueue->dwState = QS_EMPTY;
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    pthread_mutex_init (&pMsgQueue->lock, NULL);
-    sem_init (&pMsgQueue->wait, 0, 0);
-    sem_init (&pMsgQueue->sync_msg, 0, 0);
+    /* since 5.0.0, we use recursive lock */
+    {
+        pthread_mutexattr_t my_attr;
+
+        ret = pthread_mutexattr_init (&my_attr);
+        if (ret) return FALSE;
+        ret = pthread_mutexattr_settype (&my_attr, PTHREAD_MUTEX_RECURSIVE);
+        if (ret) return FALSE;
+        ret = pthread_mutex_init (&pMsgQueue->lock, &my_attr);
+        if (ret) return FALSE;
+        ret = pthread_mutexattr_destroy (&my_attr);
+        if (ret) return FALSE;
+    }
+    ret = sem_init (&pMsgQueue->wait, 0, 0);
+    if (ret) return FALSE;
+    //sem_init (&pMsgQueue->sync_msg, 0, 0);
 #endif
 
     if (iBufferLen <= 0)
@@ -345,7 +360,7 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 #ifdef _MGHAVE_VIRTUAL_WINDOW
         pthread_mutex_destroy (&pMsgQueue->lock);
         sem_destroy (&pMsgQueue->wait);
-        sem_destroy (&pMsgQueue->sync_msg);
+        //sem_destroy (&pMsgQueue->sync_msg);
         return FALSE;
 #endif
     }
@@ -397,7 +412,7 @@ void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue)
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_destroy (&pMsgQueue->lock);
     sem_destroy (&pMsgQueue->wait);
-    sem_destroy (&pMsgQueue->sync_msg);
+    //sem_destroy (&pMsgQueue->sync_msg);
 #endif
 
     __mg_remove_timers_by_msg_queue (pMsgQueue);
@@ -1448,7 +1463,10 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 
     LOCK_MSGQ (pMsgQueue);
 
-    if (MG_IS_MAIN_WINDOW (hWnd))
+    /* for virtual window and main window, use pMainWin to check whether we
+       are throwing a message for controls of a main window.
+       checkAndGetMainWindowIfControl returns NULL for non control */
+    if (MG_IS_MAIN_VIRT_WINDOW (hWnd))
         pMainWin = (PMAINWIN)hWnd;
 
     if (pMsgQueue->pFirstNotifyMsg) {
@@ -1458,7 +1476,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
             pMsg = &pQMsg->Msg;
 
             if (pMsg->hwnd == hWnd ||
-                    checkAndGetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
+                    checkAndGetMainWindowIfControl (pMsg->hwnd) == pMainWin) {
                 pMsg->hwnd = HWND_INVALID;
                 nCountN ++;
             }
@@ -1479,17 +1497,14 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
             pMsg = &pSyncMsg->Msg;
 
             if (pMsg->hwnd == hWnd ||
-                    checkAndGetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
+                    checkAndGetMainWindowIfControl (pMsg->hwnd) == pMainWin) {
                 pMsg->hwnd = HWND_INVALID;
                 nCountS ++;
 
-                /*
-                 * notify the waiting thread and remove the node from
-                 * msg queue
-                 */
+                // notify the waiting thread and remove the node from msg queue
                 pSyncMsg->retval = ERR_MSG_CANCELED;
                 if (pSyncPrev) {
-                    pSyncPrev->pNext = pSyncMsg->pNext ? pSyncMsg->pNext : NULL;
+                    pSyncPrev->pNext = pSyncMsg->pNext;
                 }
                 else {
                     pSyncPrev = pSyncMsg;
@@ -1507,7 +1522,8 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
         }
     }
 
-    _DBG_PRINTF ("%d sync messages thrown for window %p\n", nCountS, hWnd);
+    _DBG_PRINTF ("%d sync messages thrown for window %p, pMainWin (%p)\n",
+            nCountS, hWnd, pMainWin);
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
     readpos = pMsgQueue->readpos;
@@ -1515,7 +1531,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
         pMsg = pMsgQueue->msg + readpos;
 
         if (pMsg->hwnd == hWnd ||
-                checkAndGetMainWindowPtrOfControl (pMsg->hwnd) == pMainWin) {
+                checkAndGetMainWindowIfControl (pMsg->hwnd) == pMainWin) {
             pMsg->hwnd = HWND_INVALID;
             nCountP ++;
         }
@@ -1531,7 +1547,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
         if (pMsgQueue->expired_timer_mask & (0x01UL << slot)) {
             HWND timer_wnd = pMsgQueue->timer_slots [slot]->hWnd;
             if (timer_wnd == hWnd ||
-                     checkAndGetMainWindowPtrOfControl (timer_wnd) == pMainWin) {
+                     checkAndGetMainWindowIfControl (timer_wnd) == pMainWin) {
                 pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
             }
         }
@@ -1609,17 +1625,17 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         SyncMsg.sem_handle = &thinfo->sync_msg;
     }
     else {
-        /* this is not a GUI thread */
+        /* this is not a message thread */
         sem_init (&sync_msg, 0, 0);
         SyncMsg.sem_handle = &sync_msg;
     }
-#else
-    //The following DispatchMessage will need this function is reentrant function,
-    //so we must use unique semaphore.
+#else   /* not defined _SYNC_NEED_REENTERABLE */
+    /* For reentrantable implementation, we use a unique semaphore which is
+       created in the stack. */
     thinfo = mg_GetMsgQueueForThisThread (FALSE);
     sem_init (&sync_msg, 0, 0);
     SyncMsg.sem_handle = &sync_msg;
-#endif
+#endif  /* defined _SYNC_NEED_REENTERABLE */
 
     /* queue the sync message. */
     SyncMsg.Msg.hwnd = hWnd;
@@ -1633,6 +1649,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
      * SendSyncMessage to other thread, because other thread maybe wait
      * for SyncMsg for you.*/
     if (thinfo) {
+#if 0   /* deprecated code */
         MSG msg;
         PMSGQUEUE pMsgQueue = thinfo;
 
@@ -1644,8 +1661,8 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     msg.pSyncMsg = (pMsgQueue->pFirstSyncMsg);
                     pMsgQueue->pFirstSyncMsg = pMsgQueue->pFirstSyncMsg->pNext;
                     UNLOCK_MSGQ (pMsgQueue);
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
+                    TranslateMessage (&msg);
+                    DispatchMessage (&msg);
                 }
                 else {
                     UNLOCK_MSGQ (pMsgQueue);
@@ -1658,6 +1675,27 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 break;
             }
         }
+#else   /* deprecated code */
+        /* tuned since 5.0.0 */
+        MSG msg;
+        PMSGQUEUE msg_queue = thinfo;
+
+        LOCK_MSGQ (msg_queue);
+        while (msg_queue->dwState & QS_SYNCMSG) {
+            if (msg_queue->pFirstSyncMsg) {
+                msg = msg_queue->pFirstSyncMsg->Msg;
+                msg.pSyncMsg = (msg_queue->pFirstSyncMsg);
+                msg_queue->pFirstSyncMsg = msg_queue->pFirstSyncMsg->pNext;
+                TranslateMessage (&msg);
+                DispatchMessage (&msg);
+            }
+            else {
+                msg_queue->dwState &= ~QS_SYNCMSG;
+            }
+        }
+
+        UNLOCK_MSGQ (msg_queue);
+#endif  /* tuned code */
     }
 
     LOCK_MSGQ (pMsgQueue);

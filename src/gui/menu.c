@@ -1297,7 +1297,7 @@ HMENU GUIAPI SetMenu (HWND hwnd, HMENU hmnu)
     PMAINWIN pWin;
     HMENU hOld;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hwnd))) return 0;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return 0;
 
     hOld = pWin->hMenu;
     pWin->hMenu = hmnu;
@@ -1317,7 +1317,7 @@ HMENU GUIAPI GetMenu (HWND hwnd)
 {
     PMAINWIN pWin;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hwnd))) return 0;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return 0;
 
     return pWin->hMenu;
 }
@@ -1326,7 +1326,7 @@ HMENU GUIAPI GetSystemMenu (HWND hwnd, BOOL flag)
 {
     PMAINWIN pWin;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hwnd))) return 0;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return 0;
 
     return pWin->hSysMenu;
 }
@@ -1561,7 +1561,7 @@ HMENU GUIAPI GetMenuBarItemRect (HWND hwnd, int pos, RECT* prc)
     int count;
     SIZE size;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hwnd))) return 0;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return 0;
 
     if (!pWin->hMenu) return 0;
 
@@ -1607,7 +1607,7 @@ static BOOL mnuGetMenuBarRect (HWND hwnd, RECT* prc)
     PMAINWIN pWin;
     int h;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hwnd))) return FALSE;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return FALSE;
 
     prc->left = pWin->cl - pWin->left;
 
@@ -1693,7 +1693,7 @@ int MenuBarHitTest (HWND hwnd, int mx, int my)
     int count;
     SIZE size;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hwnd))) return -1;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return -1;
 
     if (!pWin->hMenu) return -1;
 
@@ -1811,7 +1811,7 @@ void GUIAPI DrawMenuBar (HWND hwnd)
     PMAINWIN pWin;
     HDC hdc;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hwnd))) return;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return;
 
     if (!pWin->hMenu) return;
 

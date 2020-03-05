@@ -167,6 +167,9 @@ tab2space() {
 # sed -i 's/\<gui_GetMainWindowPtrOfControl\>/checkAndGetMainWindowPtrOfControl/g' `grep '\<gui_GetMainWindowPtrOfControl\>' -rl include/ src/`
 # sed -i 's/\<gui_CheckAndGetMainWindowPtr\>/checkAndGetMainWindowPtrOfMainWin/g' `grep '\<gui_CheckAndGetMainWindowPtr\>' -rl include/ src/`
 
-sed -i 's/\<GetSubDCInSecondaryDC\>/GetDCInSecondarySurface/g' `grep '\<GetSubDCInSecondaryDC\>' -rl include/ src/`
+# sed -i 's/\<GetSubDCInSecondaryDC\>/GetDCInSecondarySurface/g' `grep '\<GetSubDCInSecondaryDC\>' -rl include/ src/`
+
+sed -i 's/\<checkAndGetMainWindowPtrOfMainWin\>/checkAndGetMainWinIfMainWin/g' `grep '\<checkAndGetMainWindowPtrOfMainWin\>' -rl include/ src/`
+sed -i 's/\<checkAndGetMainWindowPtrOfControl\>/checkAndGetMainWinIfWindow/g' `grep '\<checkAndGetMainWindowPtrOfControl\>' -rl include/ src/`
 
 exit 0

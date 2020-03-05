@@ -226,7 +226,7 @@ struct _MSGQUEUE
                                 // moved from window structures since 5.0.0.
     pthread_mutex_t lock;       // lock
     sem_t wait;                 // the semaphore for wait message
-    sem_t sync_msg;             // the semaphore for sync message
+    //sem_t sync_msg;           // the semaphore for sync message; deprecated
 #endif
 
     DWORD  dwState;             // message queue states
@@ -692,18 +692,29 @@ extern pthread_mutex_t __mg_gdilock, __mg_mouselock;
             if (!(condition)) return
 
 /* check whether hWnd is a main window and return the pointer to it. */
-static inline PMAINWIN checkAndGetMainWindowPtrOfMainWin (HWND hWnd)
+static inline PMAINWIN checkAndGetMainWinIfMainWin (HWND hWnd)
 {
     MG_CHECK_RET (MG_IS_NORMAL_MAIN_WINDOW (hWnd), NULL);
     return MG_GET_WINDOW_PTR (hWnd);
 }
 
 /* return main window contains a control. */
-static inline PMAINWIN checkAndGetMainWindowPtrOfControl (HWND hWnd)
+static inline PMAINWIN checkAndGetMainWinIfWindow (HWND hWnd)
 {
     PMAINWIN pWin;
 
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), NULL);
+    pWin = MG_GET_WINDOW_PTR (hWnd);
+
+    return pWin->pMainWin;
+}
+
+/* return main window contains a control. */
+static inline PMAINWIN checkAndGetMainWindowIfControl (HWND hWnd)
+{
+    PMAINWIN pWin;
+
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW(hWnd), NULL);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->pMainWin;

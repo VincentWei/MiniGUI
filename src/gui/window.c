@@ -2602,7 +2602,7 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
      ** MSG_IDLE, MSG_CARETBLINK:
      */
     if (message == MSG_IDLE) {
-        if (pWin == checkAndGetMainWindowPtrOfControl (sg_repeat_msg.hwnd)) {
+        if (pWin == checkAndGetMainWinIfWindow (sg_repeat_msg.hwnd)) {
             SendNotifyMessage (sg_repeat_msg.hwnd,
                     sg_repeat_msg.message,
                     sg_repeat_msg.wParam, sg_repeat_msg.lParam);
@@ -2877,13 +2877,13 @@ void GUIAPI ReleaseCapture (void)
 
 #if 0   /* deprecated code */
 /* Since 5.0.0, moved to internals.h as inline functions */
-PMAINWIN checkAndGetMainWindowPtrOfMainWin (HWND hWnd)
+PMAINWIN checkAndGetMainWinIfMainWin (HWND hWnd)
 {
     MG_CHECK_RET (MG_IS_NORMAL_MAIN_WINDOW(hWnd), NULL);
     return MG_GET_WINDOW_PTR (hWnd);
 }
 
-PMAINWIN checkAndGetMainWindowPtrOfControl (HWND hWnd)
+PMAINWIN checkAndGetMainWinIfWindow (HWND hWnd)
 {
     PMAINWIN pWin;
 
@@ -3973,11 +3973,13 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
         goto broken;
     }
 
-    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
-    pVirtWin->DataType = TYPE_WINTODEL;
-
     /* kill all timers of this window */
     KillTimer (hVirtWnd, 0);
+
+    ThrowAwayMessages (hVirtWnd);
+
+    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
+    pVirtWin->DataType = TYPE_WINTODEL;
 
     /* since 5.0.0: destroy local data map */
     if (pVirtWin->mapLocalData) {
@@ -3990,8 +3992,6 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
                 (PMAINWIN)pVirtWin);
         pVirtWin->pHosting = NULL;
     }
-
-    ThrowAwayMessages (hVirtWnd);
 
     if (pVirtWin->spCaption) {
         FreeFixStr (pVirtWin->spCaption);
@@ -4084,7 +4084,7 @@ int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval)
 {
     pthread_t th;
 
-    if (!(checkAndGetMainWindowPtrOfMainWin(hWnd)))
+    if (!(checkAndGetMainWinIfMainWin(hWnd)))
         return -1;
 
     th = GetMainWinThread (hWnd);
@@ -4467,7 +4467,7 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     PMAINWIN hosted;    /* for hosted window list. */
     PMSGQUEUE pMsgQueue;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hWnd)))
+    if (!(pWin = checkAndGetMainWinIfMainWin (hWnd)))
         return FALSE;
 
     if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hWnd))) {
@@ -4507,9 +4507,6 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     if (SendMessage (hWnd, MSG_DESTROY, 0, 0))
         return FALSE;
 
-    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
-    pWin->DataType = TYPE_WINTODEL;
-
     /* destroy all controls of this window */
     DestroyAllControls (hWnd);
 
@@ -4531,6 +4528,9 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
         sg_repeat_msg.hwnd = 0;
 
     ThrowAwayMessages (hWnd);
+
+    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
+    pWin->DataType = TYPE_WINTODEL;
 
     /* houhh 20081127, move these code to desktop.c .*/
 #if 0
@@ -5131,7 +5131,7 @@ BOOL GUIAPI IsWindowVisible (HWND hWnd)
     PMAINWIN pMainWin;
     PCONTROL pCtrl;
 
-    if ((pMainWin = checkAndGetMainWindowPtrOfMainWin (hWnd))) {
+    if ((pMainWin = checkAndGetMainWinIfMainWin (hWnd))) {
         return pMainWin->dwStyle & WS_VISIBLE;
     }
     else if (IsControl (hWnd)) {
@@ -5756,7 +5756,7 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     PCONTROL pNewCtrl;
     RECT rcExpect;
 
-    if (!(pMainWin = checkAndGetMainWindowPtrOfControl (hParentWnd)))
+    if (!(pMainWin = checkAndGetMainWinIfWindow (hParentWnd)))
         return HWND_INVALID;
 
 #if 0
@@ -6405,7 +6405,7 @@ int GUIAPI GetIMETargetInfo (IME_TARGET_INFO *info)
 HICON GetWindowIcon (HWND hWnd)
 {
     PMAINWIN pWin;
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hWnd)))
+    if (!(pWin = checkAndGetMainWinIfMainWin (hWnd)))
         return 0;
 
     return pWin->hIcon;
@@ -6416,7 +6416,7 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
     PMAINWIN pWin;
     HICON hOld;
 
-    if (!(pWin = checkAndGetMainWindowPtrOfMainWin (hWnd)))
+    if (!(pWin = checkAndGetMainWinIfMainWin (hWnd)))
         return 0;
 
     hOld = pWin->hIcon;
@@ -7008,7 +7008,7 @@ BOOL GUIAPI SetMainWindowAlwaysTop (HWND hMainWnd, BOOL fSet)
 {
     PMAINWIN pMainWin;
 
-    if (!(pMainWin = checkAndGetMainWindowPtrOfMainWin (hMainWnd))) {
+    if (!(pMainWin = checkAndGetMainWinIfMainWin (hMainWnd))) {
         return FALSE;
     }
 
@@ -7022,7 +7022,7 @@ BOOL GUIAPI SetMainWindowCompositing (HWND hMainWnd, int type, DWORD arg)
     PMAINWIN pMainWin;
     COMPOSITINGINFO info;
 
-    if (!(pMainWin = checkAndGetMainWindowPtrOfMainWin (hMainWnd))) {
+    if (!(pMainWin = checkAndGetMainWinIfMainWin (hMainWnd))) {
         return FALSE;
     }
 

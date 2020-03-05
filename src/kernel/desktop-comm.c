@@ -549,7 +549,7 @@ static void dskEnableWindow (PMAINWIN pWin, int flags)
 
         if (pWin->dwStyle & WS_DISABLED) {
             if (__mg_captured_wnd &&
-                checkAndGetMainWindowPtrOfControl (__mg_captured_wnd) == pWin)
+                checkAndGetMainWinIfWindow (__mg_captured_wnd) == pWin)
                 __mg_captured_wnd = 0;
 
             if (dskGetActiveWindow () == pWin) {
@@ -944,7 +944,7 @@ static HWND DesktopSetCapture (HWND hwnd)
     HWND hTemp;
 
     _mgs_old_under_p = NULL;
-    _mgs_button_down_main_window = checkAndGetMainWindowPtrOfControl (hwnd);
+    _mgs_button_down_main_window = checkAndGetMainWinIfWindow (hwnd);
     _mgs_down_buttons = DOWN_BUTTON_NONE;
 
     hTemp = __mg_captured_wnd;
@@ -1570,7 +1570,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         while (from > 0) {
             hwnd = nodes[from].hwnd;
 
-            if ((pWin = checkAndGetMainWindowPtrOfMainWin (hwnd)) &&
+            if ((pWin = checkAndGetMainWinIfMainWin (hwnd)) &&
                     !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
                 break;
             }
@@ -2150,7 +2150,7 @@ static int dskRegisterIMEWnd (HWND hwnd)
     if (__mg_ime_wnd != 0)
         return ERR_IME_TOOMUCHIMEWND;
 
-    if (!checkAndGetMainWindowPtrOfMainWin (hwnd))
+    if (!checkAndGetMainWinIfMainWin (hwnd))
         return ERR_INV_HWND;
 
     __mg_ime_wnd = hwnd;
@@ -2546,7 +2546,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         uCounter += (__mg_tick_counter - blink_counter) * 10;
         blink_counter = __mg_tick_counter;
         if (sg_hCaretWnd != 0
-                && checkAndGetMainWindowPtrOfControl (sg_hCaretWnd) ==
+                && checkAndGetMainWinIfWindow (sg_hCaretWnd) ==
                 dskGetActiveWindow()
                 && uCounter >= sg_uCaretBTime) {
             PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);
