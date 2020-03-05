@@ -1803,44 +1803,50 @@ typedef struct _GAL_Rect {
 #define ERR_OK                   0
 
 /**
- * \def ERR_INV_HWND
- * \brief Return value invalid window handle error.
- */
-#define ERR_INV_HWND            -1
-
-/**
  * \def ERR_QUEUE_FULL
  * \brief Return value queue is full error.
  */
-#define ERR_QUEUE_FULL          -2
+#define ERR_QUEUE_FULL          -1
 
 /**
  * \def ERR_INVALID_HANDLE
  * \brief Return value invalid handle error.
  */
-#define ERR_INVALID_HANDLE      -3
+#define ERR_INVALID_HANDLE      -2
+
+/**
+ * \def ERR_INV_HWND
+ * \brief Return value invalid window handle error.
+ */
+#define ERR_INV_HWND            ERR_INVALID_HANDLE
 
 /**
  * \def ERR_INVALID_HMENU
- * \brief Return value invalid menu handle error.
+ * \brief Invalid menu handle.
  */
-#define ERR_INVALID_HMENU       -4
+#define ERR_INVALID_HMENU       ERR_INVALID_HANDLE
+
+/**
+ * \def ERR_MSG_CANCELED
+ * \brief The message handling was canceled.
+ */
+#define ERR_MSG_CANCELED        -3
 
 /**
  * \def ERR_INVALID_POS
- * \brief Return value invalid postion error.
+ * \brief Invalid postion.
  */
 #define ERR_INVALID_POS         -5
 
 /**
  * \def ERR_INVALID_ID
- * \brief Return value invalid id error.
+ * \brief Invalid identifier.
  */
 #define ERR_INVALID_ID          -6
 
 /**
  * \def ERR_RES_ALLOCATION
- * \brief Return value allocation resource error .
+ * \brief Failed to allocate memory.
  */
 #define ERR_RES_ALLOCATION      -7
 
