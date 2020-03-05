@@ -2586,7 +2586,7 @@ typedef struct _WINMASKINFO {
 
 /**
  * \def MSG_ISDIALOG
- * \brief Sends to a window to query whether the window is a dialog window.
+ * \brief Send to a window to query whether the window is a dialog window.
  *
  * \note This is a asynchronical message.
  */
@@ -2979,7 +2979,7 @@ typedef struct _WINMASKINFO {
 
 /**
  * \def MSG_DOESNEEDIME
- * \brief Sends to a window to query whether the window needs to open
+ * \brief Send to a window to query whether the window needs to open
  *        IME window.
  *
  * The system will send this message when the window gain the input focus
@@ -3341,7 +3341,7 @@ MG_EXPORT int GUIAPI PostMessage (HWND hWnd, UINT nMsg,
 
 /**
  * \fn LRESULT SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
- * \brief Sends a message to a window.
+ * \brief Send a message to a window and wait for the handling result.
  *
  * This function sends a message to the window \a hWnd, and will return
  * until the message-handling process returns.
@@ -3350,7 +3350,20 @@ MG_EXPORT int GUIAPI PostMessage (HWND hWnd, UINT nMsg,
  * \param nMsg The identifier of the message.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
- * \return The return value of the message handler.
+ *
+ * \return The return value of the message handler. Two special return values
+ *  are reserved for the errors:
+ *
+ * \retval ERR_INV_HWND Invalid window handle.
+ * \retval ERR_MSG_CANCELED The message handling was canceled by
+ *  the target window. This may occur when the target window which
+ *  is running in another thread is destroyed.
+ *
+ * \note The special return values are negative prime numbers
+ *  (-2 and -3). Therefore, it is safe if you return a valid 4- or 8-byte
+ *  aligned pointer value for the successful result. If you use a negative
+ *  numbers to indicate the error status of your message handler, please
+ *  choose a different value other than -2 or -3.
  *
  * \sa PostMessage
  */
@@ -3384,7 +3397,7 @@ MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
 
 /**
  * \fn int Send2Client (const MSG* msg, int cli)
- * \brief Sends a message to a client.
+ * \brief Send a message to a client.
  *
  * This function sends a message to the specified client \a cli.
  *
@@ -3489,7 +3502,7 @@ MG_EXPORT LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT nMsg,
 /**
  * \fn LRESULT SendAsyncMessage (HWND hWnd, UINT nMsg,
  *      WPARAM wParam, LPARAM lParam)
- * \brief Sends an asynchronical message to a window.
+ * \brief Send an asynchronical message to a window.
  *
  * This function sends the asynchronical message specified by
  * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd
@@ -3527,12 +3540,12 @@ MG_EXPORT LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg,
 /**
  * \fn int SendNotifyMessage (HWND hWnd, UINT nMsg,
  *      WPARAM wParam, LPARAM lParam)
- * \brief Sends a notification message to a window.
+ * \brief Send a notification message to a window.
  *
  * This function sends the notification message specified by
  * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd. This function
- * puts the notification message in the message queue and then returns
- * immediately.
+ * puts the notification message at the tail of the message queue and
+ * returns immediately.
  *
  * \param hWnd The handle to the window.
  * \param nMsg The message identifier.
@@ -3544,6 +3557,28 @@ MG_EXPORT LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg,
  * \sa SendMessage, PostMessage
  */
 MG_EXPORT int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam);
+
+/**
+ * \fn int SendPriorNotifyMessage (HWND hWnd, UINT nMsg,
+ *      WPARAM wParam, LPARAM lParam)
+ * \brief Send a prior notification message to a window.
+ *
+ * This function sends the notification message specified by
+ * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd. This function
+ * puts the notification message at the head of the message queue and
+ * returns immediately.
+ *
+ * \param hWnd The handle to the window.
+ * \param nMsg The message identifier.
+ * \param wParam The first parameter of the message.
+ * \param lParam The second parameter of the message.
+ *
+ * \return 0 if all OK, < 0 on error.
+ *
+ * \sa SendMessage, PostMessage
+ */
+MG_EXPORT int GUIAPI SendPriorNotifyMessage (HWND hWnd, UINT nMsg,
         WPARAM wParam, LPARAM lParam);
 
 /**
@@ -3775,25 +3810,20 @@ MG_EXPORT LRESULT GUIAPI DispatchMessage (PMSG pMsg);
  */
 MG_EXPORT int GUIAPI ThrowAwayMessages (HWND pMainWnd);
 
-#ifndef _MGHAVE_VIRTUAL_WINDOW
-
 /**
  * \fn BOOL EmptyMessageQueue (HWND hWnd)
  * \brief Empty a message queue.
  *
- * This function empties the message queue of the main window \a hWnd.
+ * This function empties the message queue which is used by the window specified
+ * by \a hWnd.
  *
  * \param hWnd The handle to the main window.
  *
  * \return TRUE on all success, FALSE on error.
  *
- * \note Only defined when _MGHAVE_VIRTUAL_WINDOW is enabled.
- *
  * \sa ThrowAwayMessages
  */
 MG_EXPORT BOOL GUIAPI EmptyMessageQueue (HWND hWnd);
-
-#endif /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifdef _MGHAVE_MSG_STRING
 
@@ -11010,7 +11040,7 @@ MG_EXPORT int GUIAPI TrackMenuBar (HWND hwnd, int pos);
  *      - TPM_DESTROY\n
  *        Destroys the popup menu after finishing tracking.
  *      - TPM_SYSCMD\n
- *        Sends an MSG_SYSCOMMAND message to the window when the use select a
+ *        Send an MSG_SYSCOMMAND message to the window when the use select a
  *        menu item.
  * \param x The x coordinate of the position of the popup menu.
  * \param y The y coordinate of the position of the popup menu.
@@ -11783,7 +11813,7 @@ MG_EXPORT HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious);
 /**
  * \fn LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem, \
  *               UINT message, WPARAM wParam, LPARAM lParam)
- * \brief Sends a message to the specified control in a dialog box.
+ * \brief Send a message to the specified control in a dialog box.
  *
  * This function sends a message specified by (\a message, \a wParam, \a lParam)
  * to the specified control whose identifier is \a nIDDlgItem in the dialog
