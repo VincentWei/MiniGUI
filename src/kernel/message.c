@@ -133,7 +133,6 @@
 #endif
 
 #define TEST_IF_QUIT(queue, hWnd)
-#define ERR_MSG_CANCELED    ERR_QUEUE_FULL
 
 #define ALLOCQMSG()         (PQMSG)BlockDataAlloc(&QMSGHeap)
 #define FREEQMSG(pqmsg)     BlockDataFree(&QMSGHeap, pqmsg)
@@ -326,8 +325,6 @@ static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
 
 BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 {
-    int ret;
-
     memset (pMsgQueue, 0, sizeof(MSGQUEUE));
 
     pMsgQueue->dwState = QS_EMPTY;
@@ -335,6 +332,7 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     /* since 5.0.0, we use recursive lock */
     {
+        int ret;
         pthread_mutexattr_t my_attr;
 
         ret = pthread_mutexattr_init (&my_attr);
@@ -345,10 +343,10 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
         if (ret) return FALSE;
         ret = pthread_mutexattr_destroy (&my_attr);
         if (ret) return FALSE;
+        ret = sem_init (&pMsgQueue->wait, 0, 0);
+        if (ret) return FALSE;
+        //sem_init (&pMsgQueue->sync_msg, 0, 0);
     }
-    ret = sem_init (&pMsgQueue->wait, 0, 0);
-    if (ret) return FALSE;
-    //sem_init (&pMsgQueue->sync_msg, 0, 0);
 #endif
 
     if (iBufferLen <= 0)
@@ -481,6 +479,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
     }
 
     if ((msg_que->writepos + 1) % msg_que->len == msg_que->readpos) {
+        // message queue is full.
         UNLOCK_MSGQ(msg_que);
         return FALSE;
     }
@@ -488,11 +487,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
     /* Write the data and advance write pointer */
     msg_que->msg [msg_que->writepos] = *msg;
     msg_que->writepos++;
-#if 0
-    if (msg_que->writepos >= msg_que->len) msg_que->writepos = 0;
-#else
     msg_que->writepos %= msg_que->len;
-#endif
 
 ret:
     msg_que->dwState |= QS_POSTMSG;
@@ -1174,10 +1169,10 @@ LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     WNDPROC WndProc;
 
-    MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
+    MG_CHECK_RET (MG_IS_WINDOW(hWnd), ERR_INV_HWND);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!getMainWinIfWindowInThisThread(hWnd))
+    if (!getMainWinIfWindowInThisThread (hWnd))
         return SendSyncMessage (hWnd, nMsg, wParam, lParam);
 #endif
 
@@ -1188,8 +1183,10 @@ LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 
 }
 
-/* houhh 20090619, send notify message to topmost of queue.*/
-LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+/* Since 5.0.0, delcare as a GUIAPI */
+/* houhh 20090619, send a prior notify message. */
+int GUIAPI SendPriorNotifyMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam)
 {
     PMSGQUEUE pMsgQueue;
     PQMSG pqmsg;
@@ -1208,6 +1205,7 @@ LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
     pqmsg->Msg.message = nMsg;
     pqmsg->Msg.wParam = wParam;
     pqmsg->Msg.lParam = lParam;
+    pqmsg->Msg.time = __mg_tick_counter;
     pqmsg->next = NULL;
 
     if (pMsgQueue->pFirstNotifyMsg == NULL) {
@@ -1449,7 +1447,7 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 
 /* Throw away messages in the message queue for the specified window.
    If the specified window is a main window, all messages sent
-   to the controls of the main window will be thrown away asw well. */
+   to the controls of the main window will be thrown away as well. */
 int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 {
     PMAINWIN    pMainWin = NULL;
@@ -1470,6 +1468,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
         pMainWin = (PMAINWIN)hWnd;
 
     if (pMsgQueue->pFirstNotifyMsg) {
+        PQMSG pPrev = NULL, pNext;
         pQMsg = pMsgQueue->pFirstNotifyMsg;
 
         while (pQMsg) {
@@ -1477,11 +1476,28 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 
             if (pMsg->hwnd == hWnd ||
                     checkAndGetMainWindowIfControl (pMsg->hwnd) == pMainWin) {
+#if 0   /* deprecated code */
                 pMsg->hwnd = HWND_INVALID;
-                nCountN ++;
-            }
+#else   /* deprecated code */
+                // since 5.0.0, we free the msg structure for notify message.
+                if (pPrev) {
+                    pPrev->next = pQMsg->next;
+                }
+                else {
+                    pMsgQueue->pFirstNotifyMsg = pQMsg->next;
+                }
 
-            pQMsg = pQMsg->next;
+                /* keep pPrev unchanged */
+                pNext = pQMsg->next;
+                FREEQMSG (pQMsg);
+                pQMsg = pNext;
+#endif
+                nCountN++;
+            }
+            else {
+                pPrev = pQMsg;
+                pQMsg = pQMsg->next;
+            }
         }
     }
 
@@ -1532,12 +1548,35 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 
         if (pMsg->hwnd == hWnd ||
                 checkAndGetMainWindowIfControl (pMsg->hwnd) == pMainWin) {
-            pMsg->hwnd = HWND_INVALID;
-            nCountP ++;
-        }
 
-        readpos++;
-        readpos %= pMsgQueue->len;
+            nCountP++;
+            pMsg->hwnd = HWND_INVALID;
+
+            int pos = readpos;
+            int old_pos = readpos;
+
+            do {
+                pos++;
+                pos %= pMsgQueue->len;
+
+                if (pos != pMsgQueue->writepos) {
+                    pMsgQueue->msg[old_pos] = pMsgQueue->msg[pos];
+                    old_pos = pos;
+                }
+                else
+                    break;
+
+            } while (1);
+
+            if (pMsgQueue->writepos > 0)
+                pMsgQueue->writepos--;
+            else
+                pMsgQueue->writepos = pMsgQueue->len - 1;
+        }
+        else {
+            readpos++;
+            readpos %= pMsgQueue->len;
+        }
     }
 
     _DBG_PRINTF ("%d post messages thrown for window %p\n", nCountP, hWnd);
@@ -1575,8 +1614,6 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     return __mg_throw_away_messages (pMsgQueue, hWnd);
 }
 
-#ifndef _MGHAVE_VIRTUAL_WINDOW
-
 BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
 {
     PMSGQUEUE   pMsgQueue;
@@ -1584,6 +1621,35 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
 
     if (!(pMsgQueue = getMsgQueueIfWindowInThisThread(hWnd)))
         return FALSE;
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    /* Since 5.0.0, we cancel all sync messages */
+    if (pMsgQueue->pFirstSyncMsg) {
+        PSYNCMSG pSyncMsg, pSyncPrev = NULL;
+        pSyncMsg = pMsgQueue->pFirstSyncMsg;
+
+        while (pSyncMsg) {
+            pSyncMsg->Msg.hwnd = HWND_INVALID;
+
+                // notify the waiting thread and remove the node from msg queue
+            pSyncMsg->retval = ERR_MSG_CANCELED;
+            if (pSyncPrev) {
+                pSyncPrev->pNext = pSyncMsg->pNext;
+            }
+            else {
+                pSyncPrev = pSyncMsg;
+                pSyncMsg = pSyncMsg->pNext;
+                pMsgQueue->pFirstSyncMsg = pSyncMsg;
+                sem_post (pSyncPrev->sem_handle);
+                pSyncPrev = NULL;
+                continue;
+            }
+            sem_post (pSyncMsg->sem_handle);
+            pSyncPrev = pSyncMsg;
+            pSyncMsg = pSyncMsg->pNext;
+        }
+    }
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
     if (pMsgQueue->pFirstNotifyMsg) {
         pQMsg = pMsgQueue->pFirstNotifyMsg;
@@ -1606,7 +1672,7 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
     return TRUE;
 }
 
-#else   /* not defined _MGHAVE_VIRTUAL_WINDOW */
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 
 /* send a synchronous message to a window in a different thread */
 LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
