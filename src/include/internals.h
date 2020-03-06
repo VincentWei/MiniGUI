@@ -720,6 +720,32 @@ static inline PMAINWIN checkAndGetMainWindowIfControl (HWND hWnd)
     return pWin->pMainWin;
 }
 
+static inline PVIRTWIN getVirtWinIfDestroyed (HWND hWnd)
+{
+    PVIRTWIN pVirtWin = (PVIRTWIN)hWnd;
+
+    if (hWnd && hWnd != HWND_INVALID &&
+            (pVirtWin->DataType == TYPE_WINTODEL) &&
+            (pVirtWin->WinType == TYPE_VIRTWIN)) {
+        return pVirtWin;
+    }
+
+    return NULL;
+}
+
+static inline PMAINWIN getMainWinIfDestroyed (HWND hWnd)
+{
+    PMAINWIN pMainWin = (PMAINWIN)hWnd;
+
+    if (hWnd && hWnd != HWND_INVALID &&
+            (pMainWin->DataType == TYPE_WINTODEL) &&
+            (pMainWin->WinType == TYPE_MAINWIN)) {
+        return pMainWin;
+    }
+
+    return NULL;
+}
+
 /* get main window pointer of a window, including desktop window */
 static inline PMAINWIN getMainWindowPtr (HWND hWnd)
 {
@@ -832,6 +858,18 @@ static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
     return NULL;
 }
 
+static inline MSGQUEUE* getMsgQueueIfMainWindowInThisThread (PMAINWIN pMainWin)
+{
+#ifdef WIN32
+    if (pMainWin && pMainWin->pMsgQueue->th.p == pthread_self().p)
+#else
+    if (pMainWin && pMainWin->pMsgQueue->th == pthread_self())
+#endif
+        return pMainWin->pMsgQueue;
+
+    return NULL;
+}
+
 #else   /* define _MGHAVE_VIRTUAL_WINDOW */
 
 #define TEST_CANCEL
@@ -854,6 +892,11 @@ static inline PMAINWIN getMainWinIfWindowInThisThread (HWND hWnd)
 }
 
 static inline MSGQUEUE* getMsgQueueIfWindowInThisThread (HWND hWnd)
+{
+    return __mg_dsk_msg_queue;
+}
+
+static inline MSGQUEUE* getMsgQueueIfMainWindowInThisThread (PMAINWIN pMainWin)
 {
     return __mg_dsk_msg_queue;
 }
