@@ -7648,8 +7648,12 @@ MG_EXPORT DWORD GUIAPI GetWindowExStyle (HWND hWnd);
  * This function removes the specific style of the window
  * specified by \a hWnd.
  *
+ * Since 5.0.0, only the customizable window styles (bits in WS_CTRLMASK)
+ * can be changed by calling this function.
+ *
  * \param hWnd The handle to the window.
  * \param dwStyle The specific style which will be removed.
+ *
  * \return TRUE on success, otherwise FALSE.
  *
  * \sa ExcludeWindowStyle
@@ -7662,6 +7666,9 @@ MG_EXPORT BOOL GUIAPI ExcludeWindowStyle (HWND hWnd, DWORD dwStyle);
  *
  * This function includes the specific style of the window
  * specified by \a hWnd.
+ *
+ * Since 5.0.0, only the customizable window styles (bits in WS_CTRLMASK)
+ * can be changed by calling this function.
  *
  * \param hWnd The handle to the window.
  * \param dwStyle The specific style which will be included.
@@ -7678,6 +7685,10 @@ MG_EXPORT BOOL GUIAPI IncludeWindowStyle (HWND hWnd, DWORD dwStyle);
  * This function removes the specific extended style of the window
  * specified by \a hWnd.
  *
+ * Since 5.0.0, only the customizable window extended styles (bits in
+ * WS_EX_CONTROL_MASK | WS_EX_CONTROL_MASK) can be changed by calling
+ * this function.
+ *
  * \param hWnd The handle to the window.
  * \param dwStyle The specific extended style which will be removed.
  * \return TRUE on success, otherwise FALSE.
@@ -7693,8 +7704,13 @@ MG_EXPORT BOOL GUIAPI ExcludeWindowExStyle (HWND hWnd, DWORD dwStyle);
  * This function includes the specific extended style of the window
  * specified by \a hWnd.
  *
+ * Since 5.0.0, only the customizable window extended styles (bits in
+ * WS_EX_CONTROL_MASK | WS_EX_CONTROL_MASK) can be changed by calling
+ * this function.
+ *
  * \param hWnd The handle to the window.
  * \param dwStyle The specific extended style which will be included.
+ *
  * \return TRUE on success, otherwise FALSE.
  *
  * \sa IncludeWindowStyle
