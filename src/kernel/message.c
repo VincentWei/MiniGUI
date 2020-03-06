@@ -830,6 +830,9 @@ checkagain:
             if (IS_MSG_WANTED(pMsg->message)) {
                 if (uRemoveMsg == PM_REMOVE) {
                     pMsgQueue->pFirstNotifyMsg = phead->next;
+                    // XXX Since 5.0.0, fix the possible memory leak
+                    if (pMsgQueue->pLastNotifyMsg == phead)
+                        pMsgQueue->pLastNotifyMsg = NULL;
                     FREEQMSG (phead);
                 }
 
@@ -1486,6 +1489,10 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
                 else {
                     pMsgQueue->pFirstNotifyMsg = pQMsg->next;
                 }
+
+                // XXX for fixing the possible memory leak
+                if (pMsgQueue->pLastNotifyMsg == pQMsg)
+                    pMsgQueue->pLastNotifyMsg = pPrev;
 
                 /* keep pPrev unchanged */
                 pNext = pQMsg->next;
