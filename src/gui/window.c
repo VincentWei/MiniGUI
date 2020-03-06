@@ -3817,7 +3817,6 @@ MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
         /* hope 4KB is enough for a message thread */
         pthread_attr_setstacksize (attr, stack_size * 1024);
 #endif
-
     }
 
     entry_args.start_routine = start_routine;
