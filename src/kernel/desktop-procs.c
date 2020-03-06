@@ -3170,6 +3170,8 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
         else {
             Send2Client (&Msg, target_client);
         }
+
+        return HOOK_STOP;
     }
 
     if (Msg.message == MSG_LBUTTONUP && down_by == MSG_LBUTTONDOWN) {
@@ -3208,8 +3210,6 @@ static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
     pCtrlPtrIn = gui_GetMainWindowPtrUnderPoint (x, y);
 
     if (pCtrlPtrIn && pCtrlPtrIn->WinType == TYPE_CONTROL) {
-        _WRN_PRINTF ("mouse is above the control: %s\n", pCtrlPtrIn->spCaption);
-
         pUnderPointer = pCtrlPtrIn->pMainWin;
         UndHitCode = HT_CLIENT;
         cx = x - pUnderPointer->cl;
