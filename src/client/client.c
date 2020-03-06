@@ -88,8 +88,8 @@ ON_LOCK_CLIENT_REQ  OnLockClientReq = NULL;
 ON_TRYLOCK_CLIENT_REQ  OnTrylockClientReq = NULL;
 ON_UNLOCK_CLIENT_REQ  OnUnlockClientReq = NULL;
 
-#define TIMEOUT_START_REPEAT    20
-#define TIMEOUT_REPEAT          10
+#define TIMEOUT_START_REPEAT    30
+#define TIMEOUT_REPEAT          5
 
 #if 0   /* deprecated code */
 /* set the timer to 10ms can make the client respond more faster */
@@ -390,7 +390,7 @@ static void check_live (void)
 BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
 {
     static DWORD old_timer;
-    static long repeat_timeout = TIMEOUT_START_REPEAT;
+    static DWORD repeat_timeout = TIMEOUT_START_REPEAT;
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
@@ -440,8 +440,8 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
             Msg.wParam = (WPARAM)__mg_tick_counter;
             Msg.lParam = 0;
             Msg.time = __mg_tick_counter;
-            kernel_QueueMessage (msg_queue, &Msg);
-            n++;
+            // Since 5.0.0, we do not genenrate MSG_TIMEOUT message any more.
+            // kernel_QueueMessage (msg_queue, &Msg);
 
             old_timer = __mg_tick_counter;
             repeat_timeout = TIMEOUT_REPEAT;
@@ -481,9 +481,6 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
             SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
     msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 
-    old_timer = __mg_tick_counter;
-    repeat_timeout = TIMEOUT_START_REPEAT;
-
     if (FD_ISSET (conn_fd, &rset) &&
         (!OnTrylockClientReq || !OnUnlockClientReq ||
          (OnTrylockClientReq && OnUnlockClientReq &&
@@ -511,6 +508,11 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
     n += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
 
     check_live ();
+
+    if (n > 0) {
+        old_timer = __mg_tick_counter;
+        repeat_timeout = TIMEOUT_START_REPEAT;
+    }
 
     return (n > 0);
 }
