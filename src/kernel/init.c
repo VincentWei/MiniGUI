@@ -334,7 +334,9 @@ static BOOL SystemThreads(void)
     // then post the message to the approriate message queue.
     // this thread should also have a higher priority.
     pthread_create (&_th_parsor, NULL, EventLoop, &wait);
-    pthread_detach (_th_parsor);
+    // XXX: Since 5.0.0, event parsor should be joinable
+    //pthread_detach (_th_parsor);
+
     sem_wait (&wait);
 
     sem_destroy (&wait);
@@ -626,6 +628,7 @@ void GUIAPI TerminateGUI (int not_used)
 
     /* Tell event parsor quit */
     _is_minigui_running = 0;
+    pthread_cancel (_th_parsor);
     pthread_join (_th_parsor, NULL);
 
     __mg_license_destroy();
@@ -688,6 +691,7 @@ void GUIAPI ExitGUISafely (int exitcode)
 
     /* Tell event parsor quit */
     _is_minigui_running = 0;
+    pthread_cancel (_th_parsor);
     pthread_join (_th_parsor, NULL);
 }
 
