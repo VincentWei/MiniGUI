@@ -4989,13 +4989,8 @@ BOOL GUIAPI ExcludeWindowStyle (HWND hWnd, DWORD dwStyle)
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
-    dwStyle &= WS_CTRLMASK;
-    if (dwStyle) {
-        pWin->dwStyle &= ~dwStyle;
-        return TRUE;
-    }
-
-    return FALSE;
+    pWin->dwStyle &= ~dwStyle;
+    return TRUE;
 }
 
 BOOL GUIAPI IncludeWindowStyle (HWND hWnd, DWORD dwStyle)
@@ -5005,13 +5000,8 @@ BOOL GUIAPI IncludeWindowStyle (HWND hWnd, DWORD dwStyle)
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
-    dwStyle &= WS_CTRLMASK;
-    if (dwStyle) {
-        pWin->dwStyle |= dwStyle;
-        return TRUE;
-    }
-
-    return FALSE;
+    pWin->dwStyle |= dwStyle;
+    return TRUE;
 }
 
 DWORD GUIAPI GetWindowExStyle (HWND hWnd)
@@ -5031,13 +5021,8 @@ BOOL GUIAPI ExcludeWindowExStyle (HWND hWnd, DWORD dwStyle)
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
-    dwStyle &= (WS_EX_CONTROL_MASK | WS_EX_CONTROL_MASK);
-    if (dwStyle) {
-        pWin->dwExStyle &= ~dwStyle;
-        return TRUE;
-    }
-
-    return FALSE;
+    pWin->dwExStyle &= ~dwStyle;
+    return TRUE;
 }
 
 BOOL GUIAPI IncludeWindowExStyle (HWND hWnd, DWORD dwStyle)
@@ -5047,13 +5032,8 @@ BOOL GUIAPI IncludeWindowExStyle (HWND hWnd, DWORD dwStyle)
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
-    dwStyle &= (WS_EX_CONTROL_MASK | WS_EX_CONTROL_MASK);
-    if (dwStyle) {
-        pWin->dwExStyle |= dwStyle;
-        return TRUE;
-    }
-
-    return FALSE;
+    pWin->dwExStyle |= dwStyle;
+    return TRUE;
 }
 
 DWORD GUIAPI GetWindowAdditionalData (HWND hWnd)
