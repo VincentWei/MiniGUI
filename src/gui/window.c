@@ -4014,18 +4014,17 @@ BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
 {
     PVIRTWIN pVirtWin;
 
-    if (!MG_IS_DESTROYED_VIRT_WINDOW (hVirtWnd)) {
-        _WRN_PRINTF ("Unexpected call: Window(%p) not destroyed yet! "
+    if (!(pVirtWin = getVirtWinIfDestroyed (hVirtWnd))) {
+        _WRN_PRINTF ("Unexpected call: Virtual window (%p) not destroyed yet! "
                 "Please call DestroyVirtualWindow() first\n", hVirtWnd);
         return FALSE;
     }
 
-    if (!getMsgQueueIfWindowInThisThread (hVirtWnd)) {
+    if (!getMsgQueueIfMainWindowInThisThread ((PMAINWIN)pVirtWin)) {
+        _WRN_PRINTF ("Unexpected call: Virtual window (%p) was not created "
+                "in current thread!\n", pVirtWin);
         return FALSE;
     }
-
-    pVirtWin = (PVIRTWIN)hVirtWnd;
-    _DBG_PRINTF ("window(%p), caption(%s)\n", pVirtWin, pVirtWin->spCaption);
 
 #ifdef __THREADX__
     /* to avoid threadx keep pVirtWin's value, which will lead to wrong way */
@@ -4097,20 +4096,19 @@ BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
 {
     PMAINWIN pMainWin;
 
-    if (!MG_IS_DESTROYED_MAIN_WINDOW (hMainWnd)) {
-        _WRN_PRINTF ("Unexpected call: Window(%p) not destroyed yet! "
+    if (!(pMainWin = getMainWinIfDestroyed (hMainWnd))) {
+        _WRN_PRINTF ("Unexpected call: Main window (%p) not destroyed yet! "
                 "Please call DestroyMainualWindow() first\n", hMainWnd);
         return FALSE;
     }
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!getMsgQueueIfWindowInThisThread (hMainWnd)) {
+    if (!getMsgQueueIfMainWindowInThisThread (pMainWin)) {
+        _WRN_PRINTF ("Unexpected call: Main window (%p) was not created "
+                "in current thread!\n", pMainWin);
         return FALSE;
     }
 #endif
-
-    pMainWin = (PMAINWIN)hMainWnd;
-    _DBG_PRINTF ("window(%p), caption(%s)\n", pMainWin, pMainWin->spCaption);
 
 #ifdef __THREADX__
     /* to avoid threadx keep pMainWin's value, which will lead to wrong way */
