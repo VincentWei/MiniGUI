@@ -89,29 +89,24 @@ BOOL BlinkCaret (HWND hWnd);
 void GetCaretBitmaps (PCARETINFO pCaretInfo);
 
 static void RecalcScrollInfo (PMAINWIN pWin, BOOL bIsHBar);
-/* this message will auto-repeat when MSG_IDLE received */
-static MSG sg_repeat_msg = {0, 0, 0, 0};
 
-void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
+/* Since 5.0.0, the auto-repeat message will handled by desktop */
+void GUIAPI SetAutoRepeatMessage (HWND hWnd, UINT uMsg,
         WPARAM wParam, LPARAM lParam)
 {
-    PMAINWIN pWin = (PMAINWIN)hwnd;
+    MSG msg;
 
-    /* if hwnd is zero, disable repeate message */
-    if (hwnd == 0) {
-        sg_repeat_msg.hwnd = 0;
-        sg_repeat_msg.message  = 0;
-        sg_repeat_msg.wParam = 0;
-        sg_repeat_msg.lParam = 0;
-        return;
+    if (hWnd) {
+        if (!MG_IS_NORMAL_WINDOW(hWnd))
+            return;
     }
-    else if (hwnd == HWND_INVALID || pWin->DataType != TYPE_HWND)
-        return;
 
-    sg_repeat_msg.hwnd = hwnd;
-    sg_repeat_msg.message  = msg;
-    sg_repeat_msg.wParam = wParam;
-    sg_repeat_msg.lParam = lParam;
+    msg.hwnd = hWnd;
+    msg.message  = uMsg;
+    msg.wParam = wParam;
+    msg.lParam = lParam;
+
+    SendMessage (HWND_DESKTOP, MSG_SETAUTOREPEAT, 0, (LPARAM)&msg);
 }
 
 static void RecalcClientArea (HWND hWnd)
@@ -2614,11 +2609,13 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
      ** MSG_IDLE, MSG_CARETBLINK:
      */
     if (message == MSG_IDLE) {
+#if 0   /* deprecated code */
         if (pWin == checkAndGetMainWinIfWindow (sg_repeat_msg.hwnd)) {
             SendNotifyMessage (sg_repeat_msg.hwnd,
                     sg_repeat_msg.message,
                     sg_repeat_msg.wParam, sg_repeat_msg.lParam);
         }
+#endif  /* deprecated code */
     }
     else if (message == MSG_CARETBLINK && pWin->dwStyle & WS_VISIBLE) {
         BlinkCaret ((HWND)pWin);
@@ -4533,8 +4530,10 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
 
     SendMessage (HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)hWnd, 0);
 
+#if 0   /* deprecated code */
     if (sg_repeat_msg.hwnd == hWnd)
         sg_repeat_msg.hwnd = 0;
+#endif  /* deprecated code */
 
     ThrowAwayMessages (hWnd);
 
@@ -6087,8 +6086,10 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
         pCtrl->privCDC = 0;
     }
 
+#if 0   /* deprecated code */
     if (sg_repeat_msg.hwnd == hWnd)
         sg_repeat_msg.hwnd = 0;
+#endif  /* deprecated code */
 
     ThrowAwayMessages (hWnd);
 
