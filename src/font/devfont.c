@@ -881,6 +881,10 @@ BOOL font_TerminateIncoreFonts (void)
     font_UninitializeScripteasy();
 #endif
 
+    for (i = 0; i < NR_NULL_FONTS; i++) {
+        font_DelDevFont (_null_font_names[i]);
+    }
+
     return TRUE;
 }
 
