@@ -143,17 +143,10 @@ enum {
   #define SIZE_INVRECTHEAP    32
   #define SIZE_QMSG_HEAP      32
 #else
- #ifndef _MGRM_THREADS
-  #define DEF_MSGQUEUE_LEN    32
-  #define SIZE_CLIPRECTHEAP   16
-  #define SIZE_INVRECTHEAP    32
-  #define SIZE_QMSG_HEAP      32
- #else
-  #define DEF_MSGQUEUE_LEN    32
-  #define SIZE_CLIPRECTHEAP   32
-  #define SIZE_INVRECTHEAP    64
-  #define SIZE_QMSG_HEAP      32
- #endif
+  #define DEF_MSGQUEUE_LEN    NR_BITS_DWORD
+  #define SIZE_CLIPRECTHEAP   NR_BITS_DWORD
+  #define SIZE_INVRECTHEAP    NR_BITS_DWORD
+  #define SIZE_QMSG_HEAP      NR_BITS_DWORD
 #endif
 
 /* constants for fix string module */
