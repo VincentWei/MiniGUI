@@ -2425,9 +2425,7 @@ void GUIAPI ReleaseDC (HDC hDC)
         }
 
         EmptyClipRgn (&pdc->lcrgn);
-        MAKE_REGION_INFINITE(&pdc->lcrgn);
         EmptyClipRgn (&pdc->ecrgn);
-        MAKE_REGION_INFINITE(&pdc->ecrgn);
 #ifndef _MGSCHEMA_COMPOSITING
         pdc->pGCRInfo = NULL;
         pdc->oldage = 0;
