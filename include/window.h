@@ -2446,6 +2446,7 @@ extern DWORD __mg_interval_time;
 
 #define MSG_GETNEXTMAINWIN  0x0103
 
+/* Since 5.0.0 */
 #define MSG_SETALWAYSTOP    0x0104
 
 typedef struct _COMPOSITINGINFO {
@@ -2455,7 +2456,12 @@ typedef struct _COMPOSITINGINFO {
 
 /* Since 5.0.0 */
 #define MSG_SETCOMPOSITING  0x0105
+
+/* Since 5.0.0 */
 #define MSG_DUMPZORDER      0x0106
+
+/* Since 5.0.0 */
+#define MSG_SETAUTOREPEAT   0x0107
 
 #define MSG_SHOWGLOBALCTRL  0x010A
 #define MSG_HIDEGLOBALCTRL  0x010B

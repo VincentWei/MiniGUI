@@ -338,7 +338,7 @@ char * __mg_msgstr2 [] =
     "MSG_SETALWAYSTOP",      // 0x0104
     "MSG_SETCOMPOSITING",    // 0x0105
     "MSG_DUMPZORDER",        // 0x0106
-    "",                      // 0x0107
+    "MSG_SETAUTOREPEAT",     // 0x0107
     "",                      // 0x0108
     "",                      // 0x0109
     "MSG_SHOWGLOBALCTRL",    // 0x010A
