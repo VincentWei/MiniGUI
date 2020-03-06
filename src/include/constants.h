@@ -183,7 +183,7 @@ enum {
 #define USEC_10MS               10000UL
 #define USEC_TIMEOUT            300000UL    // 300ms
 #define MAX_IDLE_COUNTER        (USEC_TIMEOUT/USEC_10MS)
-#define DESKTOP_TIMER_INERTVAL  50UL        // every 50 ticks, 500ms
+#define DESKTOP_TIMER_INERTVAL  10UL        // every 10 ticks, 100ms
 
 /* round n to multiple of m */
 #define ROUND_TO_MULTIPLE(n, m) (((n) + (((m) - 1))) & ~((m) - 1))
