@@ -690,16 +690,19 @@ BOOL wndGetHScrollBarRect (const MAINWIN* pWin,
 
 }
 
-/* rc: position relative to secondary_dc, so need transform
+/* Since 5.0.0, real_dc always is the window DC of the rc: position relative to secondary_dc, so need transform
  * it  relative to real_dc(screen).*/
 void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         HDC real_dc, const RECT* update_rc, DWORD flags)
 {
     RECT wnd_rc, clip_rc, client_rc;
+    PDC pdc_real;
 
-    if (!dc_IsVisible((PDC)secondary_dc))
+    if (!(pdc_real  = dc_HDC2PDC(real_dc)))
         return;
-    if (!pWin->pMainWin->secondaryDC) {
+
+    if (!dc_IsVisible((PDC)secondary_dc) ||
+            !pWin->pMainWin->secondaryDC) {
         return;
     }
 
@@ -712,15 +715,19 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
     }
 
     /* 1. clip_rc.left/clip_rc.top is real_rc update in the screen (coordinate
-     *    relative to screen).
+     *    relative to screen). 
      * 2. clip_rc.left/clip_rc.top need translate update_rc to relative
-     *    position of the the main window.
+     *    to the real_dc's DevRC.
      *
-     * XXX (VW): Use pWin->pMainWin->left and pWin->pMainWin->top to calculate
-     * the offset instead of real_dc's DevRC.
+     * XXX: not considered the global control.
      */
-    clip_rc.left = wnd_rc.left + update_rc->left - pWin->pMainWin->left;
-    clip_rc.top = wnd_rc.top  + update_rc->top  - pWin->pMainWin->top;
+    clip_rc.left = wnd_rc.left + update_rc->left - pdc_real->DevRC.left;
+    clip_rc.top = wnd_rc.top  + update_rc->top  - pdc_real->DevRC.top;
+#ifdef _MGSCHEMA_COMPOSITING
+    /* For compositing schema, we use origin of the main window for offsets */
+    clip_rc.left -= pWin->pMainWin->left;
+    clip_rc.top -= pWin->pMainWin->top;
+#endif
     clip_rc.right  = clip_rc.left + RECTWP(update_rc);
     clip_rc.bottom = clip_rc.top  + RECTHP(update_rc);
 
@@ -734,8 +741,13 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
             ClientToWindow((HWND)pWin->pMainWin, &client_rc.left, &client_rc.top);
             ClientToWindow((HWND)pWin->pMainWin, &client_rc.right, &client_rc.bottom);
         }
-        else
+        else {
+            OffsetRect (&client_rc, -pdc_real->DevRC.left, -pdc_real->DevRC.top);
+#ifdef _MGSCHEMA_COMPOSITING
             OffsetRect (&client_rc, -pWin->pMainWin->left, -pWin->pMainWin->top);
+#endif
+        }
+
         ExcludeClipRect (real_dc, &client_rc);
     }
 
@@ -793,8 +805,9 @@ static void draw_secondary_nc_area (PMAINWIN pWin,
 
     do {
 #if 0
-        /* houhh 20081012, the WS_EX_CTRLASMAINWIN style window have itself's pdc->pGCRInfo
-         * information, so the real_dc's global clip info should use itselft's. */
+        /* houhh 20081012, the WS_EX_CTRLASMAINWIN style window have itself's
+           pdc->pGCRInfo, so for the real_dc's global clip region,
+           we should use itselft's */
         if (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
             real_dc = GetDC ((HWND)pWin);
         else
@@ -809,7 +822,7 @@ static void draw_secondary_nc_area (PMAINWIN pWin,
         if (!IsRectEmpty(&rc)){
             __mg_update_secondary_dc (pWin, hdc, real_dc, &rc, flags);
         }
-    } while (FALSE);
+    } while (0);
 
     if (real_dc)
         ReleaseDC (real_dc);
@@ -2304,8 +2317,8 @@ static void wndEraseBackground(const PMAINWIN pWin,
     if (rdr->erase_background)
         rdr->erase_background ((HWND)pWin, hdc, &rcTemp);
 
-    /* do secondaryDC update when EndPaint().*/
 #if 0
+    /* update secondaryDC in EndPaint().*/
     if (pWin->pMainWin->secondaryDC) {
         HDC real_dc = HDC_INVALID;
         real_dc = GetClientDC ((HWND)pWin->pMainWin);
@@ -5656,8 +5669,8 @@ void GUIAPI EndPaint (HWND hWnd, HDC hdc)
     if (pWin->pMainWin->secondaryDC) {
         if (!IsRectEmpty(&pWin->pMainWin->update_rc)) {
             HDC real_dc = HDC_INVALID;
-            real_dc = GetClientDC ((HWND)pWin->pMainWin);
 
+            real_dc = GetClientDC ((HWND)pWin->pMainWin);
             __mg_update_secondary_dc (pWin, hdc, real_dc,
                     &pWin->pMainWin->update_rc, HT_CLIENT);
             ReleaseDC (real_dc);
