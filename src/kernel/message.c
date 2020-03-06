@@ -528,19 +528,6 @@ HWND kernel_CheckInvalidRegion (PMAINWIN pWin)
     return HWND_NULL;
 }
 
-#if 0
-static PMAINWIN msgGetHostingRoot (PMAINWIN pHosted)
-{
-    PMAINWIN pHosting;
-
-    pHosting = pHosted->pHosting;
-    if (pHosting)
-        return msgGetHostingRoot (pHosting);
-
-    return pHosted;
-}
-#endif
-
 static HWND msgCheckHostedTree (PMAINWIN pHosting)
 {
     HWND hNeedPaint;
@@ -870,23 +857,6 @@ checkagain:
         PMAINWIN pHostingRoot;
         HWND hNeedPaint;
         PMAINWIN pWin;
-
-#if 0 // def _MGHAVE_VIRTUAL_WINDOW
-        /* REMIND this */
-        if (hWnd == HWND_DESKTOP) {
-            pMsg->hwnd = hWnd;
-            pMsg->message = MSG_PAINT;
-            pMsg->wParam = 0;
-            pMsg->lParam = 0;
-            SET_PADD (NULL);
-
-            if (uRemoveMsg == PM_REMOVE) {
-                pMsgQueue->dwState &= ~QS_PAINT;
-            }
-            UNLOCK_MSGQ (pMsgQueue);
-            return TRUE;
-        }
-#endif  /* deprecated code */
 
         pMsg->message = MSG_PAINT;
         pMsg->wParam = 0;
