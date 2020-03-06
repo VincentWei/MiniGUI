@@ -513,7 +513,6 @@ static LRESULT DefaultMouseMsgHandler (PMAINWIN pWin, UINT message,
         if (pUnderPointer && (pUnderPointer->dwStyle & WS_DISABLED))
             pUnderPointer = NULL;
 
-
         if (pUnderPointer) {
             cx = x - pUnderPointer->cl;
             cy = y - pUnderPointer->ct;
