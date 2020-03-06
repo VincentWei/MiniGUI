@@ -71,9 +71,6 @@ HWND __mg_ime_wnd;
 
 IME_STATUS_INFO __mg_ime_status_info;
 
-static HWND sg_hCaretWnd;
-static UINT sg_uCaretBTime;
-
 /* default window procedures */
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 WNDPROC __mg_def_proc[4];
@@ -4475,4 +4472,8 @@ static int dskDumpZOrder (ZORDERINFO* zi)
     unlock_zi_for_read (zi);
     return nr;
 }
+
+static MSG sg_msgAutoRepeat;
+static HWND sg_hCaretWnd;
+static UINT sg_uCaretBTime;
 

@@ -196,13 +196,7 @@ static BOOL InitWndManagementInfo (void)
 #endif
 
     sg_hCaretWnd = 0;
-
     return TRUE;
-}
-
-static void TerminateSharedSysRes (void)
-{
-    return;
 }
 
 static LRESULT DesktopWinProc (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -275,8 +269,6 @@ void mg_TerminateDesktop (void)
     /* Since 5.0.0: message queue for desktop thread was dynamically allocated */
     mg_FreeMsgQueueForThisThread ();
     __mg_dsk_msg_queue = NULL;
-
-    TerminateSharedSysRes ();
 
 #ifndef _MGSCHEMA_COMPOSITING
     DestroyFreeClipRectList (&sg_FreeClipRectList);
@@ -1949,6 +1941,16 @@ static void dskRemoveMainWindow (PMAINWIN pWin)
 #endif
         pWin->privCDC = 0;
     }
+
+    /* since 5.0.0, reset auto-repeat message if target window is the
+       main window being removed or it is contained in this main window */
+    if (checkAndGetMainWinIfWindow (sg_msgAutoRepeat.hwnd) == pWin) {
+        sg_msgAutoRepeat.hwnd = 0;
+    }
+
+    if (checkAndGetMainWinIfWindow (sg_hCaretWnd) == pWin) {
+        sg_hCaretWnd = 0;
+    }
 }
 
 /* Note: no global control for special main windows */
@@ -2682,6 +2684,11 @@ static LRESULT dskWindowMessageHandler (UINT message,
     case MSG_DUMPZORDER:
          dskDumpZOrder (__mg_zorder_info);
          break;
+
+    /* Since 5.0.0 */
+    case MSG_SETAUTOREPEAT:
+        sg_msgAutoRepeat = *(const MSG*)lParam;
+        break;
    }
 
    return 0;
@@ -3120,6 +3127,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     static int down_by;
     int target_client;
     int cur_client;
+    int retval;
     WPARAM wparam = flags;
     LPARAM lparam = MAKELONG (x, y);
     MSG Msg = { HWND_DESKTOP, message, wparam, lparam };
@@ -3159,6 +3167,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
     else
         target_client = down_client;
 
+    retval = HOOK_GOON;
     if (target_client > 0) {
         Msg.hwnd = HWND_NULL;
         if (Msg.message == MSG_MOUSEMOVE) {
@@ -3171,7 +3180,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
             Send2Client (&Msg, target_client);
         }
 
-        return HOOK_STOP;
+        retval = HOOK_STOP;
     }
 
     if (Msg.message == MSG_LBUTTONUP && down_by == MSG_LBUTTONDOWN) {
@@ -3184,7 +3193,7 @@ static int srvPreMouseMessageHandler (UINT message, WPARAM flags, int x, int y)
         down_client = -1;
     }
 
-    return HOOK_GOON;
+    return retval;
 }
 
 static int dskMouseMessageHandler (int message, WPARAM flags, int x, int y)
@@ -3481,9 +3490,19 @@ static int dskOnRemoveCtrlInstance (PCONTROL pParent, PCONTROL pCtrl)
         return 0;
     }
 
-    if ((HWND)pCtrl == __mg_captured_wnd)
+    if ((HWND)pCtrl == __mg_captured_wnd) {
         /* force release the capture */
         __mg_captured_wnd = 0;
+    }
+
+    /* Since 5.0.0 */
+    if ((HWND)pCtrl == sg_hCaretWnd) {
+        sg_hCaretWnd = 0;
+    }
+
+    if ((HWND)pCtrl == sg_msgAutoRepeat.hwnd) {
+        sg_msgAutoRepeat.hwnd = 0;
+    }
 
     return -1;
 }
@@ -3866,39 +3885,6 @@ static void dskRefreshAllWindow (const RECT* invrc)
     unlock_zi_for_read (__mg_zorder_info);
 }
 
-/***********************************************************
- * Handler for MSG_TIMER for the server and all clients.
- **********************************************************/
-static void dskOnTimer (void)
-{
-    static UINT uCounter = 0;
-    static UINT blink_counter = 0;
-
-#if 0   /* deprecated code */
-    /* Since 5.0.0, __mg_check_expired_timers is called in idle handler */
-    static UINT sg_old_counter = 0;
-    if (sg_old_counter == 0)
-        sg_old_counter = __mg_tick_counter;
-
-    __mg_check_expired_timers (NULL, __mg_tick_counter - sg_old_counter);
-    sg_old_counter = __mg_tick_counter;
-#endif  /* deprecated code */
-
-    if (__mg_tick_counter < (blink_counter + 10))
-        return;
-
-    uCounter += (__mg_tick_counter - blink_counter) * 10;
-    blink_counter = __mg_tick_counter;
-
-    if (sg_hCaretWnd != 0
-            && (HWND)checkAndGetMainWinIfWindow (sg_hCaretWnd)
-                    == dskGetActiveWindow (NULL)
-            && uCounter >= sg_uCaretBTime) {
-        PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);
-        uCounter = 0;
-    }
-}
-
 #ifdef _MGMISC_SAVESCREEN
 static void srvSaveScreen (BOOL active)
 {
@@ -4151,6 +4137,33 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
+/* Since 5.0.0, we handle caret blink and auto repeat message here */
+static void dskOnTimer (void)
+{
+    static UINT uCounter = 0;
+    static UINT blink_counter = 0;
+
+    if (sg_msgAutoRepeat.hwnd != 0) {
+        PostMessage (sg_msgAutoRepeat.hwnd, sg_msgAutoRepeat.message,
+                sg_msgAutoRepeat.wParam, sg_msgAutoRepeat.lParam);
+    }
+
+    if (__mg_tick_counter < (blink_counter + 10))
+        return;
+
+    uCounter += (__mg_tick_counter - blink_counter) * 10;
+    blink_counter = __mg_tick_counter;
+
+    if (sg_hCaretWnd != 0
+            && (HWND)checkAndGetMainWinIfWindow (sg_hCaretWnd)
+                    == dskGetActiveWindow (NULL)
+            && uCounter >= sg_uCaretBTime) {
+        PostMessage (sg_hCaretWnd, MSG_CARETBLINK, 0, 0);
+        uCounter = 0;
+    }
+}
+
+
 static LRESULT DesktopWinProc (HWND hWnd, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
@@ -4291,8 +4304,8 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     }
 
     case MSG_TIMEOUT:
-        // Since 5.0.0; only handle the current thread (the only GUI thread).
-        BroadcastMessageInThisThread (MSG_IDLE, wParam, 0);
+        // Since 5.0.0: MSG_IDLE messages will be generated by PeekMessage.
+        // BroadcastMessageInThisThread (MSG_IDLE, wParam, 0);
         break;
 
     case MSG_SRVNOTIFY: {
