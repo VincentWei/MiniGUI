@@ -188,8 +188,7 @@ MG_EXPORT void DestroyToolTipWin (HWND hwnd);
  *      DWORD add_data)
  * \brief Send a notification message to the parent.
  *
- * This function calls \a NotifyWindow to send a notification message
- * to the parent.
+ * This function send a notification message to the parent.
  *
  * In the early version, the notification from a control will be sent to
  * its parent window within a MSG_COMMAND message.
@@ -199,27 +198,12 @@ MG_EXPORT void DestroyToolTipWin (HWND hwnd);
  * \a SetNotificationCallback to receive and handle the notification from
  * its children in the procedure.
  *
- * However, there was a bug in the old implementation. This function will
- * check and call the notification callback procedure of the control itself
- * instead of its parent.
- *
- * Therefore, since 5.0.0, we adjusted the implementation of this function
- * as follow:
- *
- *  - This function first checks and calls the notification callback procedure
- *    of the control itself if you had set.
- *  - If not, this function calls the new API \a NotifyWindow to send
- *    the notification to the parent of the control.
- *
- * The first step keeps the backward compatibility. And we recommend that
- * you set the notification callback procedure for the parent in the
- * future code. If you have set the notification callback procedure for
- * the parent, MiniGUI will call the callback procedure eventually,
- * instead of dispatching a MSG_COMMAND message to the window procedure of
- * the parent.
- *
  * Note that if the control has \a WS_EX_NOPARENTNOTIFY style, this function
  * will not notify the parent.
+ *
+ * Note taht there was a mistake in the implementation. This function will
+ * check and call the notification callback procedure of the control itself
+ * instead of its parent.
  *
  * Since 5.0.0, you can call NotifyWindow to notify any kind of window.
  *

@@ -240,18 +240,33 @@ void GUIAPI DisabledTextOutEx (HDC hdc, HWND hwnd, int x, int y, const char* szT
 /* Since 5.0.0, we use NotifyWindow to send the notification to the parent */
 void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
 {
+#if 1
     NOTIFPROC notif_proc;
+
+    if (GetWindowExStyle (hwnd) & WS_EX_NOPARENTNOTIFY)
+        return;
+
     notif_proc = GetNotificationCallback (hwnd);
 
-    /* XXX: for backward compatibility */
+    if (notif_proc) {
+        notif_proc (hwnd, id, code, add_data);
+    }
+    else {
+        SendNotifyMessage (GetParent (hwnd),
+                MSG_COMMAND, (WPARAM) MAKELONG (id, code), (LPARAM)hwnd);
+    }
+#else
+    /* If we use NotifyWindow, the backward compatibility will be broken */
+    NOTIFPROC notif_proc;
+    if (GetWindowExStyle (hwnd) & WS_EX_NOPARENTNOTIFY)
+        return;
+
+    notif_proc = GetNotificationCallback (hwnd);
     if (notif_proc) {
         notif_proc (hwnd, id, code, add_data);
     }
     else {
         HWND parent;
-
-        if (GetWindowExStyle (hwnd) & WS_EX_NOPARENTNOTIFY)
-            return;
 
         parent = GetParent (hwnd);
         if (parent == HWND_INVALID) {
@@ -263,6 +278,7 @@ void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
             _WRN_PRINTF ("failed to notify parent (%p)\n", parent);
         }
     }
+#endif
 }
 
 LRESULT GUIAPI DefaultPageProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
