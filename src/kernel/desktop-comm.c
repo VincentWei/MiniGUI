@@ -1174,7 +1174,7 @@ static int dskStartDragWindow (PMAINWIN pWin, const DRAGINFO* drag_info)
         SetCursor (GetSystemCursor (IDC_SIZENESW));
         break;
     default:
-        _WRN_PRINTF ("KERNEL>Desktop: Drag and drop window: bad location\n");
+        _WRN_PRINTF ("bad location\n");
         break;
     }
 
@@ -1256,7 +1256,7 @@ static int do_drag_drop_window (UINT msg, int x, int y)
             break;
 
         default:
-            _WRN_PRINTF ("KERNEL>Desktop: do_drag_drop_window: bad location\n");
+            _WRN_PRINTF ("bad location\n");
             break;
         }
 
