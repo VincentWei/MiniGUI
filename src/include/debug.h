@@ -61,6 +61,7 @@
 #include "internals.h"
 #include "ctrlclass.h"
 #include "timer.h"
+#include "newgal.h"
 
 #ifdef __cplusplus
 extern "C" {

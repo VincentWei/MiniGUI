@@ -4430,10 +4430,10 @@ static void travel_children_with_priv_cdc (struct _travel_context* ctxt)
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
-void __mg_update_dc_on_surface_resized (PMAINWIN pWin, GAL_Surface* surf)
+void __mg_update_dc_on_surface_changed (PMAINWIN pWin, GAL_Surface* surf)
 {
     struct _travel_context ctxt = { 0, pWin, (PCONTROL)pWin, surf,
-        on_control_for_surface };
+        on_surface_changed_for_control };
 
     if (pWin->privCDC) {
         on_surface_changed_for_control (&ctxt, (PCONTROL)pWin);

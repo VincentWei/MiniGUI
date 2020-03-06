@@ -2371,7 +2371,7 @@ static int dskMoveMainWindow (PMAINWIN pWin, RECT* prcExpect)
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (fd >= 0) {
-        __mg_update_dc_on_surface_changed ((HWND)pCtrl, pCtrl->surf);
+        __mg_update_dc_on_surface_changed ((HWND)pWin, pWin->surf);
     }
 
     if (pWin->surf->shared_header && pWin->surf->shared_header->fd >= 0) {
