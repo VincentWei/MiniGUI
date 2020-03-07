@@ -96,4 +96,4 @@ cd $DAT_DIR; find . -name \*.dat | sed "s/^\.\/*//g" | sort > ../res.lst; cd ..
 
 rm res.lst
 
-find $C_DIR -name \*.dat.c -exec sed 's/unsigned/MG_LOCAL unsigned/' -i {} \;
+find $C_DIR -name \*.dat.c -exec sed 's/MG_LOCAL MG_LOCAL/MG_LOCAL/' -i {} \;
