@@ -933,6 +933,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
             }
 
             showcursor ();
+            GAL_SyncUpdate (__gal_screen);
         }
 
         // GAL_SyncUpdate (__gal_screen);
@@ -944,7 +945,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
             if (csr_bmp.bmBits) {
                 hidecursor ();
                 showcursor ();
-                // GAL_SyncUpdate (__gal_screen);
+                GAL_SyncUpdate (__gal_screen);
             }
             else {
                 PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
