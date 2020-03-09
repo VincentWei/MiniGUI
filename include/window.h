@@ -4410,6 +4410,13 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
      * an internal window object, so no API is provided for app to create or
      * manage it.
      *
+     * Note that, under MiniGUI-Processes runtime mode, only the first client
+     * creates the first main window in a z-order level other than higher and
+     * normal levels can create another main window in the same z-order level.
+     * And only the server can create a main window in the global z-order level.
+     *
+     * This is a security design for the multi-process runtime environment.
+     *
      * @{
      */
 

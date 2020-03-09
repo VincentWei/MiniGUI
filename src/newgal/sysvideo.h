@@ -191,7 +191,7 @@ struct GAL_VideoDevice {
     /* Move hardware cursor to new position.
        Set to NULL or return -1 if no hardware cursor support. */
     int (*MoveCursor)(_THIS, int x, int y);
-#endif
+#endif /* IS_COMPOSITING_SCHEMA */
 
     /* Set the hardware accelerated blit function, if any, based
        on the current flags of the surface (colorkey, alpha, etc.)

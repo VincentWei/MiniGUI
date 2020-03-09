@@ -1339,7 +1339,7 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  *
  * However, under MiniGUI-Processes with compositing schema, HDC_SCREEN
  * stands for a global shared surface for wallpaper pattern. This surface
- * is the ONLY surface that can be accessed by all processess (including
+ * is the ONLY surface that can be accessed by all processes (including
  * the server and all clients) under compositing schema.
  *
  * This surface will have the same pixel format as the real screen.
@@ -1350,15 +1350,15 @@ MG_EXPORT BOOL GUIAPI InitPolygonRegion (PCLIPRGN dst,
  * in it.
  *
  * On the other hand, you can configure MiniGUI to create a smaller
- * surface than the whole screen as the underlaying surface of HDC_SCREEN,
+ * surface than the whole screen as the underlying surface of HDC_SCREEN,
  * and the compositor may use it as a pattern to tile the content
- * to the whole wallpaer. You can use the key
+ * to the whole wallpaper. You can use the key
  * `compositing_schema.wallpaper_pattern_size` to specify the pattern size,
  * i.e., the size of HDC_SCREEN, in runtime configuration.
  *
  * Because of the change of HDC_SCREEN's connotation, you should avoid
  * to use \a GetGDCapability to determine the screen resolution. Instead,
- * you use the global variable/macro \a g_rcScr or \a the functioin
+ * you use the global variable/macro \a g_rcScr or \a the function
  * GetScreenRect();
  *
  * \sa HDC_SCREEN_SYS, GetScreenRect
