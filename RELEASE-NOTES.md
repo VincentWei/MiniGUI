@@ -3,7 +3,7 @@
 ## Version 4.9.0
 
 The MiniGUI development team announces the availability of MiniGUI 4.9.0.
-This is a unstable release to test some new and exciting features.
+This is a unstable release to show you some new and exciting features.
 We recommend that you test this version and report any bugs and
 incompatibilities in
 
@@ -104,16 +104,16 @@ The major flaws of the compositing schema are as follow:
 - It may need a hardware-accelerated NEWGAL engine to get a smooth
   user experience.
 
-Usage:
+#### Compile-time configuration for compositing schema
 
 - Use `--enable-compositing` to enable the compositing
   schema when you configure the runtime mode of MiniGUI as
   MiniGUI-Processes (`--with-runmode=procs`).
-  Use `--disable-compositing` to enable
-  the legacy schema (the shared frame buffer schema).
+- Use `--disable-compositing` to disable the compositing schema
+  and enable the legacy schema (the shared frame buffer schema).
 
-In order to use the compositing schema on Linux-based system, we introduce
-some new APIs for your new apps.
+Note that, the compositing schema only works under MiniGUI-Processes runtime
+mode.
 
 #### Runtime configuration for compositing schema
 
@@ -131,31 +131,126 @@ wallpaper_pattern_size=full
 compositor=my_compositor.so
 ```
 
-#### Compositing types
+As mentioned above, when using the compositing schema, the client processes
+can not access the ultimate scan out frame buffer. However, MiniGUI provides
+a DC called `HDC_SCREEN` for applications. In order to provide a backward
+compatibility, we implement the `HDC_SCREEN` as a special surface which can be
+shared among all processes of MiniGUI-Processes runtime mode, and the
+compositor can use the contents in this surface to render the wallpaper.
 
-You can call the following function to set the compositing type and argument
-of a main window:
+We call the special surface as the wallpaper pattern. You can specify the
+size via the runtime configuration key `compsoting_schema.wallpaper_patter_size`.
+All contents you rendered by using `HDC_SCREEN` in your applications will
+appears in the shared surface ultimately. And the compositor can use the contents
+in the shared surface to show a wallpaper or just ignore it.
 
-- `CreateMainWindowEx2` creates a main window with a specific compositing type
-  and its argument. We can also set a specific pixel type for a main window.
-- `SetMainWindowCompositing` changes the compositing type and argument of a
-  main window.
+The key in the runtime configuration `compsoiting_schema.compsoitor` specify
+the shared library to load as the default compositor. If it is not specified, or
+failed to load it, MiniGUI will use the built-in compositor: the fallback
+compositor.
 
-MiniGUI provides you the following compositing type:
+The fallback compositor implement a basic compositing manner. It renders the
+contents of all visible main windows in the classic overlapped manner in their
+intrinsic z-order information. But it does not implement the following features:
+
+- no border shadows.
+- no support for complex compositing types, e.g., blurred.
+
+MiniGUI provides you the following compositing types:
 
 - `CT_OPAQUE`: The main window is opaque. This is the default compositing type
-  if you create a main window by calling `CreateMainWindow` and
-  `CreateMainWindowEx`.
+  if you create a main window by calling legacy `CreateMainWindow` and
+  `CreateMainWindowEx` functions.
 - `CT_COLORKEY`: Use a specific color as the transparency key when composting
   the contents of the main window to the screen. You should specify
-  the color along with the compositing argument in a RGBA quadruple value.
+  the color along with the compositing argument in a DWORD representation.
 - `CT_ALPHACHANNEL`: Use a specific alpha channel value when compositing the
   contents of the main window to the screen.
 - `CT_ALPHAPIXEL`: Use the alpha component of the rendering buffer when
   composting the contents of the main window.
 - `CT_BLURRED`: Apply a Gaussian blur to the contents blew of the main window.
+  Generally, when using this composting type, the alpha component of the pixels
+  will go into effect.
 
-### New main window types
+Note that MiniGUI allows a customized compositor to define new compositing types.
+
+#### New APIs for compositing schema
+
+In order to use the compositing schema under MiniGUI-Processes runtime mode,
+we introduce some new APIs for the app:
+
+- `CreateMainWindowEx2`: This function is an extension of `CreateMainWindowEx`.
+  It creates a main window by using the legacy create information and the
+  specified compositing type, the compositing argument, the surface type,
+  the background color, and returns the handle to the new main window:
+   + The compositing type: one of `CT_OPAQUE`, `CT_COLORKEY`,
+     `CT_ALPHACHANNEL`, `CT_ALPHAPIXEL`, `CT_BLURRED`, or other compositing
+     types defined by a customized compositor. By using this argument, you
+     specify how the contents in a main window will be composited to the
+     screen.
+   + The compositing argument: one DWORD value. You generally pass a color
+     for this argument. For example, for the compositing type `CT_COLORKEY`,
+     you need to use this argument to tell the compositing the color acts
+     as the key.
+   + The surface type: you can specify the new main window uses a different
+     surface type instead of the one same as the screen. Here the surface type
+     mainly means the pixel format of the surface. For example, on a screen
+     with RGB656 pixel format, if you want to use the compositing type
+     `CT_ALPHAPIXEL`, you need to create a surface with type `ST_PIXEL_ARGB8888`
+     or `ST_PIXEL_ARGB4444`.
+   + The background color in DWORD representation. When you use a surface type
+     other than `ST_PIXEL_DEFAULT`, you need this argument to pass the background
+     color of the main window in DWORD representation. This is because that
+     you can only pass a pixel value in the default screen surface type via
+     the legacy create information structure.
+- `SetMainWindowCompositing`: This function sets the compositing type and
+  the compositing argument of a main window. By using this function,
+  you can change the compositing type and argument of a main window on the fly.
+
+If you want to develop a new compositor, you may need the following new APIs:
+
+- `ServerRegisterCompositor`: Register a compositor.
+- `ServerUnregisterCompositor`: Un-register a compositor.
+- `ServerSelectCompositor`: Select a compositor.
+- `ServerGetCompositorOps`: Get the operations of a specific compositor.
+
+As mentioned before, MiniGUI will try to load the default compositor defined
+by the runtime configuration key `compositing_schema.compositor` first.
+MiniGUI will call a stub called `__ex_compositor_get` in the shared library to
+get the pointer to the compositor operation structure of the default compositor,
+and select the compositor as the current compositor.
+
+When implementing your customized compositor, you may need the following APIs
+to get the z-order information and z-node information:
+
+- `ServerGetNextZNode` or `ServerGetPrevZNode`: travels the z-order nodes.
+- `ServerGetWinZNodeHeader` and `ServerReleaseWinZNodeHeader`: get/lock and
+  release a z-node of a main window.
+- `ServerGetPopupMenusCount`, `ServerGetPopupMenuZNodeHeader`, and
+  `ServerReleasePopupMenuZNodeHeader`: get/lock and release a z-node of pop-up
+  menus.
+
+By using the information returned by the functions above and the basic GDI
+functions of MiniGUI, you can easily implement a customized compositor.
+
+Note that:
+
+- A compositor always runs in the server, i.e., `mginit`. A client of
+  MiniGUI-Processes can not call these functions.
+- A compositor always compositing the contents from z-nodes to the special DC
+  called `HDC_SCREEN_SYS`. This DC is the only one represents the ultimate
+  screen under compositing schema.
+- You should call `SyncUpdateDC (HDC_SCREEN_SYS);` when you need to update the
+  rendering result to the screen.
+
+You can refer to the source code of the fallback compositor for the usage of
+the functions above:
+
+```
+minigui/src/kernel/compsor-fallback.c
+```
+
+### New main window styles
 
 In this version, we also enhanced the window manager of MiniGUI Core
 to support some special main window types.
@@ -169,17 +264,17 @@ created by clients.
 Since 5.0.0, we introduce a concept of z-order levels for main windows.
 There are eight levels in MiniGUI from top to bottom:
 
-- The tooltip level. 
-- The system/global level.
-- The screen lock level.
-- The docker level.
-- The higher level.
-- The normal level.
-- The launcher level.
+- The tooltip level (`WS_EX_WINTYPE_TOOLTIP`). 
+- The system/global level (`WS_EX_WINTYPE_GLOBAL`).
+- The screen lock level (`WS_EX_WINTYPE_SCREENLOCK`).
+- The docker level (`WS_EX_WINTYPE_DOCKER`).
+- The higher level (`WS_EX_WINTYPE_HIGHER`).
+- The normal level (`WS_EX_WINTYPE_NORMAL`).
+- The launcher level (`WS_EX_WINTYPE_LAUNCHER`).
 - The desktop or wallpaper.
 
-We use new styles like `WS_EX_WINTYPE_GLOBAL` to create main windows in
-different levels. For historical reasons, you can still use the style
+We use new extended styles like `WS_EX_WINTYPE_GLOBAL` to create a main windows
+in different levels. For historical reasons, you can still use the style
 `WS_EX_TOPMOST`, but MiniGUI will create a main window in the higher
 level for this style.
 
@@ -192,6 +287,27 @@ Any MiniGUI process instance has a virtual desktop window. The desktop
 window is an internal object, so no API is provided for app to create
 or manage the desktop window.
 
+Note that, under MiniGUI-Processes runtime mode, only the first client
+creates the first main window in a z-order level other than higher and normal
+levels can create another main window in the same z-order level. And only
+the server can create a main window in the global z-order level.
+
+This is a security design for the multi-process runtime environment.
+
+In this version, we also introduce a new extended style called
+`WS_EX_AUTOPOSITION`.
+
+If a main window has this extended style when creating it, MiniGUI will
+determine the position in the screen for the main window. If the width
+or the height of the window specified in `MAINWINCREATE` structure is zero,
+MiniGUI will also determine a default size for the main window.
+
+Under the compositing schema, the compositor is responsible to calculate
+the position and the size for a main window.
+
+The new `WS_ALWAYSTOP` style can be used to let a main window pinned on
+the top of other main windows in the same z-order level.
+
 ### Virtual window
 
 You know that we can post or send a message to other windows which
@@ -201,12 +317,17 @@ messaging functions such as `PostMessage()`, `SendMessage()`,
 provide a flexible, efficient, safe, and flexible data transfer
 and synchronization mechanism for your multithreaded applications.
 
-But if we want to use the MiniGUI messaging mechanism for a general
-thread without a main window, how to do this?
+For example, you can send or post a message to a window from a
+general purpose thread which may download a file from a remote
+server under MiniGUI-Threads.
 
-Furthermore, can we use the MiniGUI messaging mechanism under
+But can we use the MiniGUI messaging mechanism under
 MiniGUI-Processes and MiniGUI-Standalone runtime modes for
-multithreading purpose?
+multithreading purpose? For example, we may download a file in a
+general thread and inform a window when the file is ready.
+
+Furthermore, if we want to use the MiniGUI messaging mechanism in
+a general thread to handle messages from other threads, how to do this?
 
 The virtual window provides a solution for the requirements above.
 A virtual window is a special window object which does not have
@@ -255,17 +376,87 @@ life-cycle:
  - `MSG_TIMER`: When a timer expired after you call `SetTimer` to
    set up a timer for a virtual window.
  - `MSG_QUIT`: quit the message loop.
- - `MSG_GETTEXT`:
- - `MSG_SETTEXT`:
- - `MSG_GETTEXTLENGTH`:
+ - `MSG_GETTEXT`: TO query the caption of the virtual window.
+ - `MSG_SETTEXT`: To set the caption of the virtual window.
+ - `MSG_GETTEXTLENGTH`: To query the caption length of the virtual window.
 
-### Other enhancements
+You can call `DefaultVirtualWinProc` in your window procedure for a virtual
+window for the default handling of the messages above.
 
-#### Local data of a window
+A virtual window has the following properties:
 
+- The additional data and the additional data 2.
+- The identifier in a LINT value.
+- The notification callback procedure.
+- The caption.
+- The local data.
+
+Therefore, the following APIs can be called for a virtual window:
+
+- `DefaultWindowProc`
+- `GetWindowId`
+- `SetWindowId`
+- `GetThreadByWindow`
+- `GetWindowAdditionalData`
+- `SetWindowAdditionalData`
+- `GetWindowAdditionalData2`
+- `SetWindowAdditionalData2`
+- `GetClassName`: always returns `VIRTWINDOW` for a virtual window.
+- `GetWindowCallbackProc`
+- `SetWindowCallbackProc`
+- `GetWindowCaption`
+- `SetWindowCaption`
+- `GetWindowTextLength`
+- `GetWindowText`
+- `SetWindowText`
+- `GetNotificationCallback`
+- `SetNotificationCallback`
 - `SetWindowLocalData`
 - `GetWindowLocalData`
 - `RemoveWindowLocalData`
+- `RegisterEventHookWindow`
+- `UnregisterEventHookWindow`
+- `RegisterKeyHookWindow`
+- `RegisterMouseHookWindow`
+
+Like a main window, when you want to create a virtual window, you call
+`CreateVirtualWindow`, and when you wan to destroy a virtual window, you call
+`DestroyVirtualWindow`. You must call `VirtualWindowCleanup` to cleanup the
+system resource used by the virtual window after done with it, e.g., after
+quitting the message loop.
+
+### Other enhancements
+
+#### Window identifier
+
+Before 5.0.0, MiniGUI only provides the APIs to retrieve a control based on
+the identifier. Since 5.0.0, now you can calling the following APIs on a
+main window or a virtual window on the basis of identifier:
+
+- `GetWindowId`: return the identifier of a specific window.
+- `SetWindowId`: set the identifier of a specific window.
+
+Note that all main windows and/or virtual windows in a thread form a window tree.
+The root window of the tree may be `HWND_DESKTOP` or the first main/virtual
+window created in the thread. You can call `GetRootWindow` to retrieve the
+root window of the current thread.
+
+You can travel the window tree by calling the old API `GetNextHosted`. But now,
+you can retrieve a hosted main window or virtual window via a specific identifier
+by calling `GetHostedById` function.
+
+#### Local data of a window
+
+Local data of a window is a void object represented in a DWORD value, and it is
+bound with a string name. In a window's life cycle, you can set/get/remove a local
+data which is bound a specific name. This provides a easy-to-use way to manage
+multiple and complex objects of a window.
+
+- `SetWindowLocalData`: set a local data.
+- `GetWindowLocalData`: get a local data.
+- `RemoveWindowLocalData`: remove a local data.
+
+Note that all local data will be removed when you destroy a window.
 
 #### Hardware cursor
 

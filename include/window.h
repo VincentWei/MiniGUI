@@ -6536,6 +6536,9 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      *  - SetWindowText
      *  - GetNotificationCallback
      *  - SetNotificationCallback
+     *  - SetWindowLocalData
+     *  - GetWindowLocalData
+     *  - RemoveWindowLocalData
      *  - RegisterEventHookWindow
      *  - UnregisterEventHookWindow
      *  - RegisterKeyHookWindow
@@ -6883,7 +6886,7 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
 #define CT_MAX_VALUE            0xFFFFFF
 
 /**
- * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
+ * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE create_info, LINT id,
  *      const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
  *      unsigned int surf_flag, DWORD bkgnd_color,
  *      int compos_type, DWORD ct_arg)
@@ -6892,7 +6895,7 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
  * This function creates a main window by using information and the specified
  * compositing type and identifier, then returns the handle to the main window.
  *
- * \param pCreateInfo The pointer to a MAINWINCREATE structure.
+ * \param create_info The pointer to a MAINWINCREATE structure.
  * \param werdr_name The name of window element renderer. NULL for default
  *      renderer.
  * \param we_attrs The pointer to window element attribute table. NULL for
@@ -6938,7 +6941,7 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
  *
  * \include createmainwindow.c
  */
-MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
+MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE create_info, LINT id,
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
         unsigned int surf_flag, DWORD bkgnd_color,
         int compos_type, DWORD ct_arg);

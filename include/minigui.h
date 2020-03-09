@@ -1759,7 +1759,7 @@ MG_EXPORT BOOL GUIAPI ServerUnregisterCompositor (const char* name);
  *
  * \param name The name of the compositor. If the argument is NULL,
  *      this function will return the current compositor.
- *      Use \a DEF_COMPOSITOR_NAME when you want to refer to the
+ *      Use \a COMPSOR_NAME_DEFAULT when you want to refer to the
  *      default compositor.
  * \param ctxt The buffer used to return the compositor context.
  *
