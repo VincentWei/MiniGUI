@@ -8,6 +8,7 @@
    + [Other enhancements](#other-enhancements)
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
+   + [Deprecated APIs](#deprecated-apis)
 
 ## Version 4.9.0
 
