@@ -269,7 +269,7 @@ enable_video_dfb_st7167="no"
 enable_video_stgfb="no"
 
 enable_video_drm="yes"
-enable_video_fbcon="no"
+enable_video_fbcon="yes"
 enable_video_commlcd="no"
 enable_video_shadow="no"
 enable_video_mlshadow="no"
