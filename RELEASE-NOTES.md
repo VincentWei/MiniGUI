@@ -62,7 +62,7 @@ exciting features for MiniGUI:
    - Unified the message hook functions for all runtime modes. MiniGUI now
      provides the consistent message hook functions for all runtime modes.
    - Use the update regions for cumulative updating the screen. This will
-     emilinate the flickers due to the frequently redrawning of controls.
+     eliminate the flickers due to the frequently redrawing of controls.
 * ADJUSTMENTS:
    - `g_rcScr` now is defined a macro calling function `GetScreenRect()`.
    - `mgIsServer` now is define a macro calling function `IsServer()`.
