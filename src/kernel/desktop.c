@@ -3193,12 +3193,14 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
     }
 #endif /* not defined _MGSCHEMA_COMPOSITING */
 
+#ifndef _MGSCHEMA_COMPOSITING
+    /* no need force to close the menu when moving a window
+       under compositing schema */
 #ifdef _MGHAVE_MENU
     if (nodes [idx_znode].flags & ZOF_VISIBLE && zi->cli_trackmenu >= 0)
         srvForceCloseMenu (0);
 #endif
 
-#ifndef _MGSCHEMA_COMPOSITING
     nInvCount = SubtractRect (rcInv, &nodes [idx_znode].rc, rcWin);
 
     if (nodes [idx_znode].flags & ZOF_VISIBLE) {
