@@ -328,7 +328,7 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     int i;
     RECT bound;
 
-#ifdef WIN32    
+#ifdef WIN32
     //win_PCXVFbLock ();
 #else
     shm_lock(semid);
