@@ -290,6 +290,7 @@ int mg_InitIAL (void)
     }
 
     //strcpy (__mg_cur_input->mdev, mdev);
+    __mg_cur_input->mdev = strdup (mdev);
 
     if (!IAL_InitInput (__mg_cur_input, mdev, mtype)) {
         _ERR_PRINTF ("IAL: Failed to initialize the IAL engine: %s.\n", __mg_cur_input->id);
@@ -304,8 +305,12 @@ int mg_InitIAL (void)
 
 void mg_TerminateIAL (void)
 {
-    if (__mg_cur_input && __mg_cur_input->term_input) {
-        IAL_TermInput ();
+    if (__mg_cur_input) {
+        if (__mg_cur_input->mdev)
+            free (__mg_cur_input->mdev);
+
+        if (__mg_cur_input->term_input)
+            IAL_TermInput ();
     }
 }
 
