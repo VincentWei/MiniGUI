@@ -142,7 +142,7 @@ struct GAL_VideoDevice {
     /* Information about the video hardware */
     GAL_VideoInfo info;
 
-#if IS_SHAREDFB_SCHEMA
+#ifdef _MGRM_PROCESSES
     /* Request a surface in video memory */
     void (*RequestHWSurface)(_THIS, const REQ_HWSURFACE* request,
             REP_HWSURFACE* reply);
