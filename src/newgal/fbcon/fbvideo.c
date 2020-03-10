@@ -165,7 +165,7 @@ static GAL_VideoDevice *FB_CreateDevice(int devindex)
     this->SetVideoMode = FB_SetVideoMode;
     this->SetColors = FB_SetColors;
     this->VideoQuit = FB_VideoQuit;
-#if IS_SHAREDFB_SCHEMA
+#ifdef _MGRM_PROCESSES
     this->RequestHWSurface = FB_RequestHWSurface;
 #endif
     this->AllocHWSurface = FB_AllocHWSurface;
@@ -533,7 +533,7 @@ static void print_finfo(struct fb_fix_screeninfo *finfo)
     fprintf(stderr, "tmmio_len = %d\n", finfo->mmio_len);
     fprintf(stderr, "taccel = %d\n", finfo->accel);
 }
-#endif
+#endif  /* FBCON_DEBUG */
 
 static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
@@ -756,7 +756,7 @@ static void FB_DumpHWSurfaces(_THIS)
     }
     fprintf(stderr, "\n");
 }
-#endif
+#endif  /* FBACCEL_DEBUG */
 
 static int FB_InitHWSurfaces(_THIS, GAL_Surface *screen, char *base, int size)
 {
