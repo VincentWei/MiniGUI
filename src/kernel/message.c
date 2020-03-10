@@ -756,9 +756,6 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd,
     pMsgQueue = __mg_dsk_msg_queue;
 #endif
 
-    /* since 5.0.0, reset idle counter */
-    pMsgQueue->idle_counter = 0;
-
     memset (pMsg, 0, sizeof(MSG));
     pMsg->time = __mg_tick_counter;
 
@@ -800,7 +797,7 @@ checkagain:
                 }
 
                 UNLOCK_MSGQ (pMsgQueue);
-                return TRUE;
+                goto got_ret;
             }
         }
         else
@@ -817,14 +814,13 @@ checkagain:
             if (IS_MSG_WANTED(pMsg->message)) {
                 if (uRemoveMsg == PM_REMOVE) {
                     pMsgQueue->pFirstNotifyMsg = phead->next;
-                    // XXX Since 5.0.0, fix the possible memory leak
-                    if (pMsgQueue->pLastNotifyMsg == phead)
+                    if (pMsgQueue->pFirstNotifyMsg == NULL)
                         pMsgQueue->pLastNotifyMsg = NULL;
                     FREEQMSG (phead);
                 }
 
                 UNLOCK_MSGQ (pMsgQueue);
-                return TRUE;
+                goto got_ret;
             }
         }
         else
@@ -843,7 +839,7 @@ checkagain:
                 }
 
                 UNLOCK_MSGQ (pMsgQueue);
-                return TRUE;
+                goto got_ret;
             }
         }
         else
@@ -873,7 +869,7 @@ checkagain:
             pWin = (PMAINWIN) hNeedPaint;
             pMsg->lParam = (LPARAM)(&pWin->InvRgn.rgn);
             UNLOCK_MSGQ (pMsgQueue);
-            return TRUE;
+            goto got_ret;
         }
 
         /* no paint message */
@@ -892,7 +888,7 @@ checkagain:
         }
 
         UNLOCK_MSGQ (pMsgQueue);
-        return TRUE;
+        goto got_ret;
     }
 
     /* handle general timer here */
@@ -948,7 +944,7 @@ checkagain:
                 SET_PADD (NULL);
 
                 UNLOCK_MSGQ (pMsgQueue);
-                return TRUE;
+                goto got_ret;
             }
         }
     }
@@ -985,6 +981,14 @@ checkagain:
 
     /* no message */
     return FALSE;
+
+got_ret:
+    if (pMsg->hwnd != HWND_DESKTOP) {
+        /* since 5.0.0, reset idle counter */
+        pMsgQueue->idle_counter = 0;
+    }
+
+    return TRUE;
 }
 
 #if 0   /* moved code */
@@ -1226,6 +1230,7 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
         pMsgQueue->pFirstNotifyMsg = pMsgQueue->pLastNotifyMsg = pqmsg;
     }
     else {
+        assert (pMsgQueue->pLastNotifyMsg);
         pMsgQueue->pLastNotifyMsg->next = pqmsg;
         pMsgQueue->pLastNotifyMsg = pqmsg;
     }
@@ -1267,13 +1272,14 @@ int GUIAPI NotifyWindow (HWND hWnd, LINT id, int code, DWORD dwAddData)
         pMsgQueue->pFirstNotifyMsg = pMsgQueue->pLastNotifyMsg = pqmsg;
     }
     else {
+        assert (pMsgQueue->pLastNotifyMsg);
         pMsgQueue->pLastNotifyMsg->next = pqmsg;
         pMsgQueue->pLastNotifyMsg = pqmsg;
     }
 
     pMsgQueue->dwState |= QS_NOTIFYMSG;
-
     UNLOCK_MSGQ (pMsgQueue);
+
 #ifdef _MGHAVE_VIRTUAL_WINDOW
     if (!getMainWinIfWindowInThisThread(hWnd))
         POST_MSGQ(pMsgQueue);
@@ -1386,7 +1392,7 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
     if (pMsg->message == MSG_NOTIFICATION) {
         NOTIFPROC NotifProc = GETNOTIFPROC (pMsg->hwnd);
         if (NotifProc) {
-             NotifProc (pMsg->hwnd, (LINT)pMsg->wParam, (int)pMsg->lParam,
+            NotifProc (pMsg->hwnd, (LINT)pMsg->wParam, (int)pMsg->lParam,
                     pMsg->time);
             lRet = 0;
         }
@@ -1423,7 +1429,7 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
    to the controls of the main window will be thrown away as well. */
 int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 {
-    PMAINWIN    pMainWin = NULL;
+    PMAINWIN    pMainWin = (PMAINWIN)hWnd;
     PMSG        pMsg;
     PQMSG       pQMsg;
     int         nCountN = 0;
@@ -1435,10 +1441,14 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
     LOCK_MSGQ (pMsgQueue);
 
     /* for virtual window and main window, use pMainWin to check whether we
-       are throwing a message for controls of a main window.
-       checkAndGetMainWindowIfControl returns NULL for non control */
-    if (MG_IS_MAIN_VIRT_WINDOW (hWnd))
+       should throw away a message for controls of a main window.
+       checkAndGetMainWindowIfControl returns NULL for non control. */
+    if (pMainWin != HWND_NULL && pMainWin != HWND_INVALID &&
+            (pMainWin->WinType == TYPE_MAINWIN ||
+             pMainWin->WinType == TYPE_VIRTWIN))
         pMainWin = (PMAINWIN)hWnd;
+    else
+        pMainWin = NULL;
 
     if (pMsgQueue->pFirstNotifyMsg) {
         PQMSG pPrev = NULL, pNext;
@@ -1452,7 +1462,7 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 #if 0   /* deprecated code */
                 pMsg->hwnd = HWND_INVALID;
 #else   /* deprecated code */
-                // since 5.0.0, we free the msg structure for notify message.
+                // since 5.0.0, we free the msg structure for notification.
                 if (pPrev) {
                     pPrev->next = pQMsg->next;
                 }
@@ -1460,9 +1470,12 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
                     pMsgQueue->pFirstNotifyMsg = pQMsg->next;
                 }
 
-                // XXX for fixing the possible memory leak
-                if (pMsgQueue->pLastNotifyMsg == pQMsg)
-                    pMsgQueue->pLastNotifyMsg = pPrev;
+                if (pMsgQueue->pLastNotifyMsg == pQMsg) {
+                    if (pPrev)
+                        pMsgQueue->pLastNotifyMsg = pPrev;
+                    else
+                        pMsgQueue->pLastNotifyMsg = pMsgQueue->pFirstNotifyMsg;
+                }
 
                 /* keep pPrev unchanged */
                 pNext = pQMsg->next;
