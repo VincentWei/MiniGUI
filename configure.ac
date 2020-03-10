@@ -124,13 +124,13 @@ build_net_ial_engine="no"
 
 dnl common IAL engines
 build_libinput_ial_engine="yes"
-build_console_ial_engine="no"
-build_console_ps2="no"
-build_console_imps2="no"
-build_console_ms="no"
-build_console_ms3="no"
+build_console_ial_engine="yes"
+build_console_ps2="yes"
+build_console_imps2="yes"
+build_console_ms="yes"
+build_console_ms3="yes"
 build_console_gpm="no"
-build_text_mode="no"
+build_text_mode="yes"
 
 dnl the customized ial engine
 build_dlcustom_ial_engine="no"
