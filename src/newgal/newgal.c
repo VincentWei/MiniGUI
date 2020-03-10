@@ -342,7 +342,7 @@ int mg_InitGAL (char* engine, char* mode)
     }
 #endif
 
-#if 0 /* no need when we use the video infor in shared resource */
+#if 0 /* no need when we use the video info in shared resource */
     if (w != __gal_screen->w || h != __gal_screen->h) {
         _ERR_PRINTF ("The resolution specified in MiniGUI.cfg is not "
                      "the same as the actual resolution: %dx%d.\n"
