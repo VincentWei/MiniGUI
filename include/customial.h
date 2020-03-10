@@ -234,6 +234,9 @@ typedef struct tagINPUT {
     // New wait event method for getting extra input events; since 4.0.0
     int (*wait_event_ex) (int maxfd, fd_set *in, fd_set *out,
             fd_set *except, struct timeval *timeout, EXTRA_INPUT_EVENT* extra);
+
+    // since 5.0.0, save the mouse device
+    char*   mdev;
 } INPUT;
 
 #ifdef __cplusplus
@@ -250,5 +253,4 @@ extern void TermCustomInput (void);
 #endif  /* __cplusplus */
 
 #endif  /* GUI_IAL_CUSTOM_H */
-
 
