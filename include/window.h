@@ -6502,6 +6502,9 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      *  - Essentially, a virtual window is a simplified main window.
      *    It consumes very little memory space, but provides a complete
      *    MiniGUI messaging mechanism for a general multithreaded app.
+     *  - When virtual window is enabled (or under MiniGUI-Threads runtime mode),
+     *    you can use the MiniGUI messaging facilities to post or send messages
+     *    to a window, or notify a window from a general thread.
      *
      * A virtual window will get the following system messages in its life
      * life-cycle:
@@ -6519,9 +6522,11 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      *  - MSG_TIMER: When a timer expired after you call \a SetTimer to
      *    set up a timer for a virtual window.
      *  - MSG_QUIT: quit the message loop.
-     *  - MSG_GETTEXT:
-     *  - MSG_SETTEXT:
-     *  - MSG_GETTEXTLENGTH:
+     *  - MSG_GETTEXT: Send to window procedure to get the caption.
+     *  - MSG_SETTEXT: Send to window procedure to set the caption.
+     *  - MSG_GETTEXTLENGTH: Send to window procedure to get the length of caption.
+     *  - MSG_FDEVENT: Send to window procedure when there is a read/write/except
+     *    event on a listened file descriptor.
      *
      * The following functions work for a virtual window:
      *
@@ -6550,6 +6555,8 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      *  - UnregisterEventHookWindow
      *  - RegisterKeyHookWindow
      *  - RegisterMouseHookWindow
+     *  - RegisterListenFD
+     *  - UnregisterListenFD
      *
      * Since 5.0.0.
      *
