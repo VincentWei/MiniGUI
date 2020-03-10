@@ -125,10 +125,10 @@ build_net_ial_engine="no"
 dnl common IAL engines
 build_libinput_ial_engine="yes"
 build_console_ial_engine="yes"
-build_console_ps2="yes"
+build_console_ps2="no"
 build_console_imps2="yes"
-build_console_ms="yes"
-build_console_ms3="yes"
+build_console_ms="no"
+build_console_ms3="no"
 build_console_gpm="no"
 build_text_mode="yes"
 
@@ -478,7 +478,7 @@ AC_ARG_ENABLE(libinputial,
 build_libinput_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleial,
-[  --enable-consoleial      build the console (Linux console) IAL engine <default=no>],
+[  --enable-consoleial      build the console (Linux console) IAL engine <default=yes>],
 build_console_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleps2,
@@ -486,7 +486,7 @@ AC_ARG_ENABLE(consoleps2,
 build_console_ps2=$enableval)
 
 AC_ARG_ENABLE(consoleimps2,
-[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=no>],
+[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=yes>],
 build_console_imps2=$enableval)
 
 AC_ARG_ENABLE(consolems,
@@ -502,7 +502,7 @@ AC_ARG_ENABLE(consolegpm,
 build_console_gpm=$enableval)
 
 AC_ARG_ENABLE(textmode,
-[  --enable-textmode        Linux system have console (text mode) on FrameBuffer <default=no>],
+[  --enable-textmode        Linux system have console (text mode) on Frame Buffer <default=yes>],
 build_text_mode=$enableval)
 
 AC_ARG_ENABLE(rbfsupport,
@@ -1818,6 +1818,7 @@ if test "x$devel_mode" = "xyes"; then
     build_auto_ial_engine="yes"
     build_random_ial_engine="yes"
     build_net_ial_engine="yes"
+    build_console_ial_engine="yes"
 
     build_qpf_support="yes"
 
