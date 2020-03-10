@@ -243,7 +243,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
     }
 
 #if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING)
-    video = GAL_GetVideo(driver_name, TRUE);
+    video = GAL_GetVideo(driver_name, FALSE);
 #else
     video = GAL_GetVideo(driver_name, FALSE);
 #endif
@@ -272,7 +272,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
             int flags = atoi(env);
 
             /* FillRect */
-            video_info->blit_fill = (video_info->blit_fill && (flags & FLAGS_BLIT_FILL)) ? 1 : 0;
+            video_info->blit_fill = (video_info->blit_fill &&(flags & FLAGS_BLIT_FILL)) ? 1 : 0;
             /* BitBlit */
             video_info->blit_hw = (video_info->blit_hw && (flags & FLAGS_BLIT_HW)) ? 1 : 0;
             /* Colorkey */
@@ -539,7 +539,6 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 #ifdef _MGRM_PROCESSES
     if (mgIsServer && !GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags)) {
 #else
-
     if (!GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags)) {
 #endif
         GAL_SetError ("NEWGAL: GAL_GetVideoMode error, "
@@ -646,7 +645,7 @@ void GAL_SetVideoModeInfo(GAL_Surface* screen)
     __gal_screen->offset = 0;
     GAL_SetClipRect(screen, NULL);
 }
-#endif
+#endif  /* _MGSCHEMA_COMPOSITING */
 
 /*
  * Convert a surface into the video pixel format.
