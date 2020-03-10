@@ -502,7 +502,7 @@ AC_ARG_ENABLE(consolegpm,
 build_console_gpm=$enableval)
 
 AC_ARG_ENABLE(textmode,
-[  --enable-textmode        Linux system have console (text mode) on Frame Buffer <default=yes>],
+[  --enable-textmode        Linux system has console (text mode) on Frame Buffer <default=yes>],
 build_text_mode=$enableval)
 
 AC_ARG_ENABLE(rbfsupport,

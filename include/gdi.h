@@ -1464,7 +1464,7 @@ MG_EXPORT Uint32 GUIAPI GetGDCapability (HDC hdc, int iItem);
  * the internal DC pool, rather than allocating a new one from the system heap.
  * Thus, you should release the DC when you finish drawing as soon as possible.
  *
- * \param hwnd The handle to the window.
+ * \param hWnd The handle to the window.
  * \param bClient Whether to initialize as a window or a client DC;
  *  TRUE for client DC, FALSE for window DC.
  *
@@ -1476,7 +1476,7 @@ MG_EXPORT Uint32 GUIAPI GetGDCapability (HDC hdc, int iItem);
  *
  * Since 5.0.0
  */
-MG_EXPORT HDC GUIAPI GetDCEx (HWND hwnd, BOOL bClient);
+MG_EXPORT HDC GUIAPI GetDCEx (HWND hWnd, BOOL bClient);
 
 /**
  * \fn HDC GUIAPI GetDC (HWND hWnd)
@@ -5575,7 +5575,7 @@ MG_EXPORT BOOL GUIAPI SaveMainWindowContent (HWND hWnd, const char* filename);
 
 /**
  * \fn HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
- * \brief Loads an icon from a Windows ICO file.
+ * \brief Load an icon from a Windows ICO file.
  *
  * This function loads an icon from a Windows ICO file named \a filename
  * and creates an icon object. This function can load monochrome, 16-color,
@@ -5596,7 +5596,7 @@ MG_EXPORT HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename,
 
 /**
  * \fn HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
- * \brief Loads an icon from a memory area.
+ * \brief Load an icon from a memory area.
  *
  * This function loads an icon from a memroy area pointed to by \a area.
  * The memory area has the same layout as the M$ Windows ICO file.
@@ -5650,7 +5650,7 @@ MG_EXPORT HICON GUIAPI CreateIconEx (HDC hdc, int w, int h,
 
 /**
  * \fn HICON GUIAPI LoadBitmapIconEx (MG_RWops* area, const char* ext)
- * \brief Loads an icon from a general bitmap data source.
+ * \brief Load an icon from a general bitmap data source.
  *
  * This function loads an icon from the data source \a area, which contains
  * the data of a bitmap in a specific type specified by \a ext.
@@ -5667,8 +5667,8 @@ MG_EXPORT HICON GUIAPI LoadBitmapIconEx (HDC hdc, MG_RWops* area,
         const char* ext);
 
 /**
- * \fn HICON GUIAPI LoadBitmapIconFromFile (HDC hdc, const char* spFileName)
- * \brief Loads an icon from a bitmap file.
+ * \fn HICON GUIAPI LoadBitmapIconFromFile (HDC hdc, const char* file_name)
+ * \brief Load an icon from a bitmap file.
  *
  * This function loads an icon from a bitmap file specified by \a file_name.
  *
@@ -5685,7 +5685,7 @@ MG_EXPORT HICON GUIAPI LoadBitmapIconFromFile (HDC hdc,
 /**
  * \fn HICON GUIAPI LoadBitmapIconFromMem (HDC hdc, const void* mem, size_t size,
  *      const char* ext)
- * \brief Loads an icon from memory.
+ * \brief Load an icon from memory.
  *
  * This function loads an icon from a memory zone specified by \a mem
  * and \a size.
@@ -11223,7 +11223,7 @@ MG_EXPORT BOOL GUIAPI mlsEnableSlaveScreen (HDC dc_mls, BOOL enable);
  * \fn int GUIAPI LoadBitmapEx2 (HDC hdc, PBITMAP pBitmap,
                 MG_RWops* area, const char* ext,
                 CB_ALLOC_BITMAP_BUFF cb_alloc_buff, void* context)
- * \brief Loads a device-dependent bitmap from a general data source.
+ * \brief Load a device-dependent bitmap from a general data source.
  *
  * This function loads a device-dependent bitmap from the data source \a area.
  * This function gives a chance to the caller to allocate the pixel buffer
@@ -11260,7 +11260,7 @@ MG_EXPORT int GUIAPI LoadBitmapEx2 (HDC hdc, PBITMAP pBitmap,
 /**
  * \fn int GUIAPI LoadBitmapEx (HDC hdc, PBITMAP pBitmap, \
                 MG_RWops* area, const char* ext)
- * \brief Loads a device-dependent bitmap from a general data source.
+ * \brief Load a device-dependent bitmap from a general data source.
  *
  * This function loads a device-dependent bitmap from the data source \a area.
  *
@@ -11292,7 +11292,7 @@ static inline int LoadBitmapEx (HDC hdc, PBITMAP pBitmap,
 /**
  * \fn int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP pBitmap, \
                 const char* spFileName)
- * \brief Loads a device-dependent bitmap from a file.
+ * \brief Load a device-dependent bitmap from a file.
  *
  * \sa LoadBitmapEx
  */
@@ -11310,7 +11310,7 @@ MG_EXPORT int GUIAPI LoadBitmapFromFile (HDC hdc, PBITMAP pBitmap,
 /**
  * \fn int GUIAPI LoadBitmapFromMem (HDC hdc, PBITMAP pBitmap, \
                 const void* mem, size_t size, const char* ext)
- * \brief Loads a device-dependent bitmap from memory.
+ * \brief Load a device-dependent bitmap from memory.
  *
  * \sa LoadBitmapEx
  */
@@ -11413,7 +11413,7 @@ MG_EXPORT void* GUIAPI InitMyBitmapSL (MG_RWops* area,
 /**
  * \fn int GUIAPI LoadMyBitmapSL (MG_RWops* area, void* load_info, \
                 MYBITMAP* my_bmp, CB_ONE_SCANLINE cb, void* context)
- * \brief Loads MYBITMAP scanlines from a data source one by one.
+ * \brief Load MYBITMAP scanlines from a data source one by one.
  *
  * This function loads MYBITMAP scanlines from the data source \a area
  * one by one.
@@ -11450,7 +11450,7 @@ MG_EXPORT int GUIAPI CleanupMyBitmapSL (MYBITMAP* my_bmp, void* load_info);
 /**
  * \fn int GUIAPI LoadMyBitmapEx (PMYBITMAP my_bmp, RGB* pal, \
                 MG_RWops* area, const char* ext)
- * \brief Loads a MYBITMAP object from a data source.
+ * \brief Load a MYBITMAP object from a data source.
  *
  * This function loads a MYBITMAP object from the data source \a area.
  *
@@ -11468,7 +11468,7 @@ MG_EXPORT int GUIAPI LoadMyBitmapEx (PMYBITMAP my_bmp, RGB* pal,
 /**
  * \fn int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal, \
                 const char* file_name)
- * \brief Loads a MYBITMAP object from a file.
+ * \brief Load a MYBITMAP object from a file.
  *
  * \sa LoadMyBitmapEx
  */
@@ -11486,7 +11486,7 @@ MG_EXPORT int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal,
 /**
  * \fn int GUIAPI LoadMyBitmapFromMem (PMYBITMAP my_bmp, RGB* pal, \
                 const void* mem, size_t size, const char* ext)
- * \brief Loads a MYBITMAP object from memory.
+ * \brief Load a MYBITMAP object from memory.
  *
  * This function loads a MYBITMAP object from memory.
  *

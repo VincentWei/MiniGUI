@@ -789,7 +789,7 @@ extern MG_EXPORT ON_CHANGE_LAYER OnChangeLayer;
  * The event will be passed through the argument of \a op; the
  * pointers to the layer, the identifier of the client, and the index of
  * the z-node will be passed through the argument of \a layer, \a cli,
- * and \a idx_z-node respectively.
+ * and \a idx_znode respectively.
  *
  * \note Only available for the server of MiniGUI-Processes.
  *
@@ -895,11 +895,11 @@ MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
  * \brief Get the next z-node in the specified layer from the server.
  *
  * This function gets the next z-node of the z-node specified by
- * \a idx_z-node, i.e., the z-node below it, in the specified layer
+ * \a idx_znode, i.e., the z-node below it, in the specified layer
  * \a layer from the server.
  *
  * \param layer The pointer to the layer, NULL for the current topmost layer.
- * \param idx_z-node The initial z-node. If the initial z-node index is
+ * \param idx_znode The initial z-node. If the initial z-node index is
  *        less than or equal to zero, the function will return
  *        the index of the first (the topmost) z-node in the layer.
  * \param cli The client identifier of the next z-node will be returned
@@ -1389,7 +1389,7 @@ MG_EXPORT BOOL GUIAPI ServerSetWinZNodePrivateData (MG_Layer* layer,
         int idx_znode, void* priv_data);
 
 /**
- * \fn BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx,
+ * \fn BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx_znode,
         void* priv_data)
  * \brief Set the private data of the z-node of the specific popup menu.
  *
@@ -1407,7 +1407,7 @@ MG_EXPORT BOOL GUIAPI ServerSetWinZNodePrivateData (MG_Layer* layer,
  *
  * Since 5.0.0
  */
-MG_EXPORT BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx,
+MG_EXPORT BOOL GUIAPI ServerSetPopupMenuZNodePrivateData (int idx_znode,
         void* priv_data);
 
 /**
@@ -1734,7 +1734,6 @@ MG_EXPORT BOOL GUIAPI ServerRegisterCompositor (
  * This function un-registers a compositor.
  *
  * \param name The name of the compositor.
- * \param ops The new compositor object.
  *
  * \return The object represents the compositor implementation.
  *
@@ -2124,7 +2123,7 @@ MG_EXPORT REQ_HANDLER GUIAPI GetRequestHandler (int req_id);
 MG_EXPORT REQ_HANDLER_V1 GUIAPI GetRequestHandlerV1 (int req_id);
 
 /**
- * \fn void* GUIAPI GetRequestHandlerEx (int req_id, int* handler_ver)
+ * \fn void* GUIAPI GetRequestHandlerEx (int req_id, int* version)
  * \brief Get the request handler and the version by request identifier.
  *
  * This function returns the request handler and the version of

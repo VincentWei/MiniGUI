@@ -7205,6 +7205,7 @@ MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
  *      other; thus, a larger value will create more blur. A value of 0 leaves
  *      the input unchanged. Note that the built-in `fallback` compositor
  *      does not support this compositing type.
+ * \param arg The compositing argument.
  *
  * \return return TRUE on success, otherwise FALSE.
  *
