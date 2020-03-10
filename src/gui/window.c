@@ -3984,10 +3984,10 @@ BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
     /* kill all timers of this window */
     KillTimer (hVirtWnd, 0);
 
-    ThrowAwayMessages (hVirtWnd);
-
     /* make the window to be invalid for PeekMessageEx, PostMessage etc */
     pVirtWin->DataType = TYPE_WINTODEL;
+
+    ThrowAwayMessages (hVirtWnd);
 
     /* since 5.0.0: destroy local data map */
     if (pVirtWin->mapLocalData) {
@@ -4535,10 +4535,10 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
         sg_repeat_msg.hwnd = 0;
 #endif  /* deprecated code */
 
-    ThrowAwayMessages (hWnd);
-
     /* make the window to be invalid for PeekMessageEx, PostMessage etc */
     pWin->DataType = TYPE_WINTODEL;
+
+    ThrowAwayMessages (hWnd);
 
     /* houhh 20081127, move these code to desktop.c .*/
 #if 0
