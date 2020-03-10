@@ -14,12 +14,13 @@
 
 The MiniGUI development team announces the availability of MiniGUI 4.9.0,
 which is the first preview release of MiniGUI 5.0.0.
+
 This is an unstable release to show you some new and exciting features.
 Here `unstable` means that the new APIs we introduced in this version
 may change in the official release.
 
 Nevertheless, we did our best to ensure backward compatibility of the
-existed APIs so that old applications can smoothly migrate to the new
+existed APIs so that the old applications can smoothly migrate to the new
 version. We recommend that you test this version and report any bugs and
 incompatibilities in
 
@@ -152,10 +153,10 @@ compositor=my_compositor.so
 
 As mentioned above, when using the compositing schema, the client processes
 can not access the ultimate scan out frame buffer. However, MiniGUI provides
-a DC called `HDC_SCREEN` for applications. In order to provide a backward
-compatibility, we implement the `HDC_SCREEN` as a special surface which can be
-shared among all processes under MiniGUI-Processes runtime mode, and the
-compositor can use the contents in this surface to render the wallpaper.
+a graphics device context called `HDC_SCREEN` for apps. In order to provide
+a backward compatibility, we implement the `HDC_SCREEN` as a special surface
+which can be shared among all processes under MiniGUI-Processes runtime mode,
+and one compositor can use the contents in this surface to render the wallpaper.
 
 We call the special surface as the wallpaper pattern. You can specify the
 size via the runtime configuration key `compsoting_schema.wallpaper_patter_size`.
@@ -168,13 +169,14 @@ the shared library to load as the default compositor. If it is not specified, or
 failed to load it, MiniGUI will use the built-in compositor: the fallback
 compositor.
 
-The fallback compositor implement a basic compositing manner. It renders the
-contents of all visible main windows in the classic overlapped manner in their
+The fallback compositor implement a group of basic compositing actions. It renders
+the contents of all visible main windows in the classical overlapped way in their
 intrinsic z-order information. It keeps as simple as possible, so it does not
 implement the following features:
 
 - no border shadows.
 - no support for complex compositing types, e.g., blurred.
+- no any visual animations.
 
 #### New APIs for compositing schema
 
@@ -192,7 +194,7 @@ we introduce some new APIs for the app:
      screen.
    + The compositing argument: one DWORD value. You generally pass a color
      for this argument. For example, for the compositing type `CT_COLORKEY`,
-     you need to use this argument to tell the compositing the color acts
+     you need to use this argument to tell the compositor the color acts
      as the key.
    + The surface type: you can specify the new main window uses a different
      surface type instead of the one same as the screen. Here the surface type
@@ -202,12 +204,12 @@ we introduce some new APIs for the app:
      or `ST_PIXEL_ARGB4444`.
    + The background color in DWORD representation. When you use a surface type
      other than `ST_PIXEL_DEFAULT`, you need this argument to pass the background
-     color of the main window in DWORD representation. This is because that
+     color of the main window in a DWORD value. This is because that
      you can only pass a pixel value in the default screen surface type via
-     the legacy create information structure.
+     the legacy create information structure (`MAINWINCREATE`).
 - `SetMainWindowCompositing`: This function sets the compositing type and
   the compositing argument of a main window. By using this function,
-  you can change the compositing type and argument of a main window on the fly.
+  you can change the compositing type and the argument of a main window on the fly.
 
 MiniGUI defines the following built-in compositing types:
 
@@ -230,7 +232,7 @@ Note that MiniGUI allows a customized compositor to define new compositing types
 If you want to develop a new compositor, you may need the following new APIs:
 
 - `ServerRegisterCompositor`: Register a compositor.
-- `ServerUnregisterCompositor`: Un-register a compositor.
+- `ServerUnregisterCompositor`: Unregister a compositor.
 - `ServerSelectCompositor`: Select a compositor.
 - `ServerGetCompositorOps`: Get the operations of a specific compositor.
 
@@ -289,7 +291,7 @@ created by clients.
 Since 5.0.0, we introduce a concept of z-order levels for main windows.
 There are eight levels in MiniGUI from top to bottom:
 
-- The tooltip level (`WS_EX_WINTYPE_TOOLTIP`). 
+- The tooltip level (`WS_EX_WINTYPE_TOOLTIP`).
 - The system/global level (`WS_EX_WINTYPE_GLOBAL`).
 - The screen lock level (`WS_EX_WINTYPE_SCREENLOCK`).
 - The docker level (`WS_EX_WINTYPE_DOCKER`).
@@ -298,8 +300,8 @@ There are eight levels in MiniGUI from top to bottom:
 - The launcher level (`WS_EX_WINTYPE_LAUNCHER`).
 - The desktop or wallpaper.
 
-We use new extended styles like `WS_EX_WINTYPE_GLOBAL` to create a main windows
-in different levels. For historical reasons, you can still use the style
+We use new extended styles like `WS_EX_WINTYPE_GLOBAL` to create main windows
+in different levels. For historical reasons, you can still use the legacy style
 `WS_EX_TOPMOST`, but MiniGUI will create a main window in the higher
 level for this style.
 
@@ -330,7 +332,7 @@ MiniGUI will also determine a default size for the main window.
 Under the compositing schema, the compositor is responsible to calculate
 the position and the size for a main window.
 
-The new `WS_ALWAYSTOP` style can be used to let a main window pinned on
+The new `WS_ALWAYSTOP` style can be used to pin a main window on
 the top of other main windows in the same z-order level.
 
 ### Virtual window
@@ -380,10 +382,13 @@ window:
   threads, and you can also create multiple virtual windows in
   one message thread.
 - It is possible to create a virtual window in a GUI thread, although
-  we do not encourage to do this. 
+  we do not encourage to do this.
 - Essentially, a virtual window is a simplified main window.
   It consumes very little memory space, but provides a complete
   MiniGUI messaging mechanism for a general multithreaded app.
+- When virtual window is enabled (or under MiniGUI-Threads runtime mode),
+  you can use the MiniGUI messaging facilities to post or send messages
+  to a window, or notify a window from a general thread.
 
 A virtual window will get the following system messages in its life
 life-cycle:
@@ -401,9 +406,11 @@ life-cycle:
  - `MSG_TIMER`: When a timer expired after you call `SetTimer` to
    set up a timer for a virtual window.
  - `MSG_QUIT`: quit the message loop.
- - `MSG_GETTEXT`: TO query the caption of the virtual window.
+ - `MSG_GETTEXT`: To query the caption of the virtual window.
  - `MSG_SETTEXT`: To set the caption of the virtual window.
  - `MSG_GETTEXTLENGTH`: To query the caption length of the virtual window.
+ - `MSG_FDEVENT`: Send to the window procedure when there is a read/write/except
+   event on a listened file descriptor.
 
 You can call `DefaultVirtualWinProc` in your window procedure for a virtual
 window for the default handling of the messages above.
@@ -443,6 +450,8 @@ Therefore, the following APIs can be called for a virtual window:
 - `UnregisterEventHookWindow`
 - `RegisterKeyHookWindow`
 - `RegisterMouseHookWindow`
+- `RegisterListenFD`
+- `UnregisterListenFD`
 
 Like a main window, when you want to create a virtual window, you call
 `CreateVirtualWindow`, and when you wan to destroy a virtual window, you call
@@ -466,16 +475,16 @@ The root window of the tree may be `HWND_DESKTOP` or the first main/virtual
 window created in the thread. You can call `GetRootWindow` to retrieve the
 root window of the current thread.
 
-You can travel the window tree by calling the old API `GetNextHosted`. But now,
+You can travel the window tree by calling the old API `GetNextHosted`. Since 5.0.0,
 you can retrieve a hosted main window or virtual window via a specific identifier
 by calling `GetHostedById` function.
 
 #### Local data of a window
 
-Local data of a window is a void object represented in a DWORD value, and it is
-bound with a string name. In a window's life cycle, you can set/get/remove a local
-data which is bound a specific name. This provides a easy-to-use way to manage
-multiple and complex objects of a window.
+Local data of a window are some void objects represented in DWORD values, and they
+are bound with different string names. In a window's life cycle, you can set, get,
+or remove a local data which is bound a specific name. This provides a easy-to-use
+way to manage multiple and complex objects of a window.
 
 - `SetWindowLocalData`: set a local data.
 - `GetWindowLocalData`: get a local data.
@@ -533,7 +542,7 @@ Therefore, we introduce a new function to load the system bitmaps:
 - `GetSystemBitmapEx2`. This function will load the system bitmaps for
    the specific device context.
 
-We have changed the built-in look and feel renderers to use the new function
+We have tuned the built-in look and feel renderers to use the new function
 to load the system bitmaps. If you want to use a customized look and feel
 renderer under compositing schema, you must change the code to use the new
 function to load the system bitmaps.
@@ -561,50 +570,69 @@ for a multithreaded application.
 Note that MiniGUI no longer limits the max number of listening file descriptors,
 MiniGUI will try to allocate space to manage all listening file descriptors.
 
-#### Enhanced timer 
+#### Enhanced timer
 
 Since 5.0.0, MiniGUI manages the timers per message thread.
 Under MiniGUI-Threads runtime mode, you can set up 32 (64 on 64-bit
 architecture) timers for each GUI threads. If you enabled virtual window,
 you can also do this for each message thread.
 
-The function `IsTimerInstalled` will check the timers installed for current
-thread, and the function `HaveFreeTimer` will also check the timer slots
+The function `IsTimerInstalled` checks the timers installed for the current
+thread, and the function `HaveFreeTimer` also checks the free timer slots
 for the current thread.
 
 ### Other new APIs
 
-- `IsServer`
-- `MoveToLayer`
-- `ServerMoveClientToLayer`
-- `ServerSendReplyEx`
-- `RegisterRequestHandlerV1`
-- `GetRequestHandlerV1`
-- `GetRequestHandlerEx`
+For MiniGUI-Processes runtime mode:
 
-- `GetScreenRect`
-- `LoadBitmapEx2`
+- `IsServer`: Under MiniGUI-Processes runtime mode, return whether the process
+   is the server (`mginit`) or a client.
+- `MoveToLayer`: Called by a client to move itself to a specific layer. .
+- `ServerMoveClientToLayer`: The server version of `MoveToLayer`.
+- `ServerSendReplyEx`: The extended version of legacy `ServerSendRely`. It can
+   transfer a file descriptor between the server and the client.
+- `RegisterRequestHandlerV1`: To register a request handler in version 1. The
+   request handler can handle the file descriptor received from the client.
+- `GetRequestHandlerV1`: Get the registered request handler in version 1.
+- `GetRequestHandlerEx`: Get the registered request handler and its version.
 
-- `GetThreadByWindow`
-- `IsWindowInThisThread`
-- `IsVirtualWindow`
-- `CreateThreadForMessaging`
-- `SendPriorNotifyMessage`
-- `NotifyWindow`
-- `BroadcastMessageInThisThread`
-- `PreDefVirtualWinProc`
-- `DefaultVirtualWinProc`
+Global scope:
 
-- `GetDCEx`
-- `GetEffectiveCDC`
-- `GetDCInSecondarySurface`
-- `GetWindowElementPixelEx`
-- `DWORD2PixelByWindow`
-- `AreRegionsIntersected`
-- `SyncUpdateSurface`
-- `SyncUpdateDC`
+- `GetScreenRect`: Return a RECT as the screen rectangle.
 
-- `MSG_MOVEWINDOW`: will be sent as a notification after calling `MoveWindow`.
+For MiniGUI-Threads or when virtual window enabled:
+
+- `GetThreadByWindow`: Return the thread identifier of a window.
+- `IsWindowInThisThread`: Determine whether a window is created by the current
+   thread.
+- `IsVirtualWindow`: Determine whether a window is a virtual window.
+- `CreateThreadForMessaging`: Create a thread for messaging.
+
+For messaging mechanism:
+
+- `SendPriorNotifyMessage`: Send a prior notification message. Generally, a
+   notification message is put at the tail of the message list. This function
+   put the notification message at the head of the list.
+- `NotifyWindow`: Send a notification message to a specific window.
+- `BroadcastMessageInThisThread`: Broadcast a message in the current thread.
+- `PreDefVirtualWinProc`: The pre-defined window procedure for a virtual window.
+- `DefaultVirtualWinProc`: The default window procedure for a virtual window.
+
+- `GetDCEx`: A extended version of `GetDC` and `GetClientDC`.
+- `GetEffectiveCDC`: Get a effective device context for painting a window.
+- `GetDCInSecondarySurface`: Get a device content for a main window or a control
+   in the secondary surface if the main window has set the secondary DC.
+- `DWORD2PixelByWindow`: Convert a DWORD color to pixel value for a window..
+- `AreRegionsIntersected`: Determine whether two regions are intersected.
+- `SyncUpdateSurface`: Synchronize the update rectangles of the backing surface of
+   a window to screen.
+- `SyncUpdateDC`: Synchronize the update rectangles of the surface corresponding to
+   a DC to screen.
+- `LoadBitmapEx2`: The extended version of legacy `LoadBitmapEx` function. You can
+   specify a callback to allocate the buffer for the MiniGUI bitmap loader.
+
+- `MSG_MOVEWINDOW`: This message will be sent as a notification after calling
+  `MoveWindow`.
 
 ### Changes leading to incompatibility
 
@@ -751,3 +779,4 @@ We recommend that you no longer use the functions in new applications.
 [HybridOS Foundation Class Library]: https://github.com/FMSoftCN/hybridos/tree/dev/device-side/hfcl
 [CSS Text Module Level 3]: https://www.w3.org/TR/css-text-3/
 [CSS Writing Modes Level 3]: https://www.w3.org/TR/css-writing-modes-3/
+
