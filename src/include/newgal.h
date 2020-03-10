@@ -533,6 +533,54 @@ void GAL_FreeSurface (GAL_Surface *surface);
 
 #ifdef _MGRM_PROCESSES
 
+typedef struct REQ_HWSURFACE {
+    /* for allocation */
+    Uint32 w;
+    Uint32 h;
+    Uint32 pitch;
+
+    /* for free */
+    Uint32 offset;
+    void* bucket;
+} REQ_HWSURFACE;
+
+typedef struct REP_HWSURFACE {
+    Uint32 offset;
+    Uint32 pitch;
+    void*  bucket;
+} REP_HWSURFACE;
+
+#ifdef _MGGAL_NEXUS
+typedef struct _REQ_NEXUS_GETSURFACE {
+    int width;
+    int height;
+} REQ_NEXUS_GETSURFACE;
+
+#include "../newgal/nexus/nexusvideo_pri.h"
+typedef struct _REP_NEXUS_GETSURFACE {
+    int width;
+    int height;
+    unsigned int pitch;
+    NexusPrivate_HWSurface_hwdata hwdata;
+} REP_NEXUS_GETSURFACE;
+#endif
+
+#ifdef _MGGAL_SIGMA8654
+typedef struct _REQ_SIGMA8654_GETSURFACE {
+    int width;
+    int height;
+} REQ_SIGMA8654_GETSURFACE;
+
+#include "../newgal/sigma8654/sigma8654_pri.h"
+typedef struct _REP_SIGMA8654_GETSURFACE {
+    int width;
+    int height;
+    unsigned int pitch;
+    Sigma8654Private_HWSurface_hwdata hwdata;
+} REP_SIGMA8654_GETSURFACE;
+#endif
+
+void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
 #ifdef _MGSCHEMA_COMPOSITING
 
 /* Allocate a shared RGB surface from the specific video device. */
@@ -582,54 +630,6 @@ void GAL_MoveCursor (GAL_Surface* surface, int x, int y);
 
 #else /* defined _MGSCHEMA_COMPOSITING */
 
-typedef struct REQ_HWSURFACE {
-    /* for allocation */
-    Uint32 w;
-    Uint32 h;
-    Uint32 pitch;
-
-    /* for free */
-    Uint32 offset;
-    void* bucket;
-} REQ_HWSURFACE;
-
-typedef struct REP_HWSURFACE {
-    Uint32 offset;
-    Uint32 pitch;
-    void*  bucket;
-} REP_HWSURFACE;
-
-#ifdef _MGGAL_NEXUS
-typedef struct _REQ_NEXUS_GETSURFACE {
-    int width;
-    int height;
-} REQ_NEXUS_GETSURFACE;
-
-#include "../newgal/nexus/nexusvideo_pri.h"
-typedef struct _REP_NEXUS_GETSURFACE {
-    int width;
-    int height;
-    unsigned int pitch;
-    NexusPrivate_HWSurface_hwdata hwdata;
-} REP_NEXUS_GETSURFACE;
-#endif
-
-#ifdef _MGGAL_SIGMA8654
-typedef struct _REQ_SIGMA8654_GETSURFACE {
-    int width;
-    int height;
-} REQ_SIGMA8654_GETSURFACE;
-
-#include "../newgal/sigma8654/sigma8654_pri.h"
-typedef struct _REP_SIGMA8654_GETSURFACE {
-    int width;
-    int height;
-    unsigned int pitch;
-    Sigma8654Private_HWSurface_hwdata hwdata;
-} REP_SIGMA8654_GETSURFACE;
-#endif
-
-void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
 #endif /* not defined _MGSCHEMA_COMPOSITING */
 
 #endif /* _MGRM_PROCESSES */
