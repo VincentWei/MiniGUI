@@ -720,6 +720,10 @@ static GAL_Surface *PCXVFB_SetVideoMode (_THIS, GAL_Surface *current,
             current->pixels = real_pixels + (current->pitch * current->h);
             this->hidden->shadow_screen = current;
 
+            GAL_SetClipRect (this->hidden->real_screen, NULL);
+            GAL_SetColorKey (this->hidden->shadow_screen, 0, 0);
+            GAL_SetAlpha (this->hidden->shadow_screen, 0, 0);
+
 #ifdef _MGSCHEMA_COMPOSITING
             this->info.hw_cursor = 1;
             this->hidden->cursor = NULL;
