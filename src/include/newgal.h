@@ -531,8 +531,6 @@ GAL_Surface *GAL_CreateRGBSurfaceFrom (void *pixels,
                         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 void GAL_FreeSurface (GAL_Surface *surface);
 
-#ifdef _MGRM_PROCESSES
-
 typedef struct REQ_HWSURFACE {
     /* for allocation */
     Uint32 w;
@@ -581,6 +579,7 @@ typedef struct _REP_SIGMA8654_GETSURFACE {
 #endif
 
 void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
+
 #ifdef _MGSCHEMA_COMPOSITING
 
 /* Allocate a shared RGB surface from the specific video device. */
@@ -628,11 +627,7 @@ void GAL_SetCursor (GAL_Surface* surface, int hot_x, int hot_y);
 /* Move cursor. */
 void GAL_MoveCursor (GAL_Surface* surface, int x, int y);
 
-#else /* defined _MGSCHEMA_COMPOSITING */
-
-#endif /* not defined _MGSCHEMA_COMPOSITING */
-
-#endif /* _MGRM_PROCESSES */
+#endif /* defined _MGSCHEMA_COMPOSITING */
 
 #if 0
 /*

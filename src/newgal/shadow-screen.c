@@ -67,6 +67,16 @@
 
 #define CURRENT_VERSION     0
 
+#define CHECK_VERSION_RETVAL(this, retval)                      \
+    if (this->hidden->magic != MAGIC_SHADOW_SCREEN_HEADER ||    \
+            this->hidden->version != CURRENT_VERSION)           \
+        return retval 
+
+#define CHECK_VERSION_NORETVAL(this)                            \
+    if (this->hidden->magic != MAGIC_SHADOW_SCREEN_HEADER ||    \
+            this->hidden->version != CURRENT_VERSION)           \
+        return
+
 /* To use the helpers in this file, please:
   - put the fields at the header of your GAL_PrivateVideoData structure.
   - make sure to use the correct magic and version numbers.
@@ -112,16 +122,6 @@ static inline int boxtop (_THIS)
 }
 
 #include "cursor.h"
-
-#define CHECK_VERSION_RETVAL(this, retval)                      \
-    if (this->hidden->magic != MAGIC_SHADOW_SCREEN_HEADER ||    \
-            this->hidden->version != CURRENT_VERSION)           \
-        return retval 
-
-#define CHECK_VERSION_NORETVAL(this)                            \
-    if (this->hidden->magic != MAGIC_SHADOW_SCREEN_HEADER ||    \
-            this->hidden->version != CURRENT_VERSION)           \
-        return
 
 int shadowScreen_SetCursor (_THIS, GAL_Surface *surface, int hot_x, int hot_y)
 {
