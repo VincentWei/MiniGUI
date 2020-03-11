@@ -291,6 +291,8 @@ BOOL mg_InitScreenDC (void)
 
 void mg_TerminateScreenDC (void)
 {
+#if 0   /* deprecated code */
+    /* Since 5.0.0, do not call any GDI functions here */
     RECT rcScr = GetScreenRect ();
 
     SelectClipRect (HDC_SCREEN, &rcScr);
@@ -300,11 +302,16 @@ void mg_TerminateScreenDC (void)
 #endif
         FillBox (HDC_SCREEN, rcScr.left, rcScr.top,
                        rcScr.right, rcScr.bottom);
+    SelectClipRect (HDC_SCREEN_SYS, &rcScr);
+#endif  /* deprecated code */
 
+    EmptyClipRgn (&__mg_screen_dc.lcrgn);
+    EmptyClipRgn (&__mg_screen_dc.ecrgn);
     if (__mg_screen_dc.alpha_pixel_format)
         free (__mg_screen_dc.alpha_pixel_format);
 
-    SelectClipRect (HDC_SCREEN_SYS, &rcScr);
+    EmptyClipRgn (&__mg_screen_sys_dc.lcrgn);
+    EmptyClipRgn (&__mg_screen_sys_dc.ecrgn);
     if (__mg_screen_sys_dc.alpha_pixel_format)
         free (__mg_screen_sys_dc.alpha_pixel_format);
 
@@ -312,6 +319,7 @@ void mg_TerminateScreenDC (void)
 
     DESTROY_LOCK (&__mg_gdilock);
     DESTROY_LOCK (&dcslot);
+
     /* [2010/06/02] DongJunJie : fix a dead-lock bug of mgncs. */
     DestroyFreeClipRectList (&__mg_FreeClipRectList);
 }
