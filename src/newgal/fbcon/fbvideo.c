@@ -113,8 +113,6 @@ static BOOL FB_SyncUpdate (_THIS)
 
     if (shadowScreen_BlitToReal (this) == 0)
         return TRUE;
-    else
-        _WRN_PRINTF ("failed to call shadowScreen_BlitToReal\n");
 
     return FALSE;
 }
@@ -250,12 +248,12 @@ static int FB_EnterGraphicsMode (_THIS)
         /* open tty, enter graphics mode */
         ttyfd = open (tty_dev, O_RDWR);
         if (ttyfd < 0) {
-            fprintf (stderr,"NEWGAL>FBCON: Can't open %s: %m\n", tty_dev);
+            _WRN_PRINTF ("Can't open %s: %m\n", tty_dev);
             goto fail;
         }
         if (ioctl (ttyfd, KDSETMODE, KD_GRAPHICS) == -1) {
-            fprintf (stderr,"NEWGAL>FBCON: Error when setting the terminal to graphics mode: %m\n");
-            fprintf (stderr,"NEWGAL>FBCON: Maybe is not a console.\n");
+            _WRN_PRINTF ("Error when setting the terminal to graphics mode: %m\n");
+            _WRN_PRINTF ("Maybe is not a console.\n");
             goto fail;
         }
 #ifdef _MGRM_PROCESSES
@@ -463,15 +461,11 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
         case FB_ACCEL_MATROX_MGAG100:
         /*case FB_ACCEL_MATROX_MGAG200: G200 acceleration broken! */
         case FB_ACCEL_MATROX_MGAG400:
-#ifdef FBACCEL_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: Matrox hardware accelerator!\n");
-#endif
+            _DBG_PRINTF ("Matrox hardware accelerator!\n");
             FB_MatroxAccel(this, finfo.accel);
             break;
         case FB_ACCEL_3DFX_BANSHEE:
-#ifdef FBACCEL_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: 3DFX hardware accelerator!\n");
-#endif
+            _DBG_PRINTF ("3DFX hardware accelerator!\n");
             FB_3DfxAccel (this, finfo.accel);
             break;
 
@@ -480,17 +474,13 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
         case FB_ACCEL_NEOMAGIC_NM2230:
         case FB_ACCEL_NEOMAGIC_NM2360:
         case FB_ACCEL_NEOMAGIC_NM2380:
-#ifdef FBACCEL_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: NeoMagic hardware accelerator!\n");
-#endif
+            _DBG_PRINTF ("NeoMagic hardware accelerator!\n");
             FB_NeoMagicAccel (this, finfo.accel);
             break;
 #endif
 
         default:
-#ifdef FBACCEL_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: Unknown hardware accelerator!\n");
-#endif
+            _DBG_PRINTF ("Unknown hardware accelerator!\n");
             break;
         }
     }
@@ -596,11 +586,12 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         GAL_SetError("NEWGAL>FBCON: Couldn't get console screen info\n");
         return(NULL);
     }
+
 #ifdef FBCON_DEBUG
-    fprintf(stderr, "NEWGAL>FBCON: Printing original finfo:\n");
+    fprintf (stderr, "Printing original finfo:\n");
     print_finfo(&finfo);
 
-    fprintf(stderr, "NEWGAL>FBCON: Printing original vinfo:\n");
+    fprintf (stderr, "Printing original vinfo:\n");
     print_vinfo(&vinfo);
 #endif
 
@@ -629,7 +620,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         vinfo.blue.length = vinfo.blue.offset = 0;
         vinfo.transp.length = vinfo.transp.offset = 0;
 #ifdef FBCON_DEBUG
-        fprintf(stderr, "NEWGAL>FBCON: Printing wanted vinfo:\n");
+        fprintf (stderr, "Printing wanted vinfo:\n");
         print_vinfo(&vinfo);
 #endif
         if (ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0) {
@@ -751,6 +742,10 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (mgIsServer) {
+        // this is a trick in order that GAL_CreateRGBSurface tries to
+        // allocate hardware surface first.
+        GAL_PublicSurface = current;
+
         /* create shadow screen */
         this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
                 current->w, current->h,
@@ -871,11 +866,6 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
         int extra;
 
         reply->bucket = NULL;
-        /* Temporarily, we only allow surfaces the same width as display.
-           Some blitters require the pitch between two hardware surfaces
-           to be the same.  Others have interesting alignment restrictions.
-           Until someone who knows these details looks at the code...
-        */
         if (request->pitch > GAL_VideoSurface->pitch) {
 #ifdef FBCON_DEBUG
             GAL_SetError("NEWGAL>FBCON: Surface requested wider than screen\n");
@@ -883,11 +873,18 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
             return;
         }
 
-        reply->pitch = GAL_VideoSurface->pitch;
+        /* Before 5.0.0, we only allow surfaces the same width as display.
+           Because some blitters require the pitch between two hardware surfaces
+           to be the same.  Others have interesting alignment restrictions.
+           Until someone who knows these details looks at the code...
+
+           reply->pitch = GAL_VideoSurface->pitch;
+
+           Since 5.0.0, we use the original pitch to save the memory use.
+        */
+        reply->pitch = request->pitch;
         size = request->h * reply->pitch;
-#ifdef FBCON_DEBUG
-        fprintf(stderr, "NEWGAL>FBCON: Allocating bucket of %d bytes\n", size);
-#endif
+        _DBG_PRINTF ("Allocating bucket of %d bytes\n", size);
 
         /* Quick check for available mem */
         if (size > surfaces_memleft) {
@@ -915,9 +912,7 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
         if (extra) {
             vidmem_bucket *newbucket;
 
-#ifdef FBCON_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: Adding new free bucket of %d bytes\n", extra);
-#endif
+            _DBG_PRINTF ("Adding new free bucket of %d bytes\n", extra);
             newbucket = (vidmem_bucket *)malloc(sizeof(*newbucket));
             if (newbucket == NULL) {
                 GAL_OutOfMemory();
@@ -938,9 +933,7 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
         bucket->used = 1;
         bucket->size = size;
         bucket->dirty = 0;
-#ifdef FBCON_DEBUG
-        fprintf(stderr, "NEWGAL>FBCON: Allocated %d bytes at %p\n", bucket->size, bucket->base);
-#endif
+        _DBG_PRINTF ("Allocated %d bytes at %p\n", bucket->size, bucket->base);
         surfaces_memleft -= size;
 
         reply->bucket = bucket;
@@ -957,18 +950,14 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
         }
         if (bucket && bucket->used) {
         /* Add the memory back to the total */
-#ifdef FBCON_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: Freeing bucket of %d bytes\n", bucket->size);
-#endif
+            _DBG_PRINTF ("Freeing bucket of %d bytes\n", bucket->size);
             surfaces_memleft += bucket->size;
 
             /* Can we merge the space with surrounding buckets? */
             bucket->used = 0;
             if (bucket->next && ! bucket->next->used) {
-#ifdef FBCON_DEBUG
-                fprintf(stderr, "NEWGAL>FBCON: Merging with next bucket, for %d total bytes\n",
+                _DBG_PRINTF ("Merging with next bucket, for %d total bytes\n",
                                 bucket->size+bucket->next->size);
-#endif
                 freeable = bucket->next;
                 bucket->size += bucket->next->size;
                 bucket->next = bucket->next->next;
@@ -978,10 +967,8 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
                 free(freeable);
             }
             if (bucket->prev && ! bucket->prev->used) {
-#ifdef FBCON_DEBUG
-                fprintf(stderr, "NEWGAL>FBCON: Merging with previous bucket, for %d total bytes\n",
+                _DBG_PRINTF ("Merging with previous bucket, for %d total bytes\n",
                                 bucket->prev->size+bucket->size);
-#endif
                 freeable = bucket;
                 bucket->prev->size += bucket->size;
                 bucket->prev->next = bucket->next;
