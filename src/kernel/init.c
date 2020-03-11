@@ -283,11 +283,6 @@ static inline void deleteThreadInfoKey (void)
 {
     pthread_key_delete (__mg_threadinfo_key);
 }
-
-MSGQUEUE* mg_GetMsgQueueForThisThread (void)
-{
-    return (MSGQUEUE*) pthread_getspecific (__mg_threadinfo_key);
-}
 */
 
 /************************** System Initialization ****************************/
@@ -624,7 +619,6 @@ void GUIAPI TerminateGUI (int not_used)
 
     /* Since 5.0.0 */
     SendNotifyMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
-    __mg_join_all_message_threads ();
     pthread_join (__mg_dsk_msg_queue->th, NULL);
 
     /* Tell event parsor quit */

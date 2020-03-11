@@ -4247,6 +4247,7 @@ int __mg_join_all_message_threads (void)
     int nr = 0;
     struct list_head *l, *tmp;
     void* res;
+    pthread_t th = pthread_self();
 
     list_for_each (l, &msg_queue_list) {
         MSGQUEUE *msg_queue = (MSGQUEUE*)l;
@@ -4256,6 +4257,9 @@ int __mg_join_all_message_threads (void)
 
     list_for_each_safe (l, tmp, &msg_queue_list) {
         MSGQUEUE *msg_queue = (MSGQUEUE*)l;
+        if (th == msg_queue->th) {
+            continue;
+        }
         pthread_join (msg_queue->th, &res);
         if (res == PTHREAD_CANCELED) {
             list_del (&msg_queue->list);
@@ -4268,14 +4272,19 @@ int __mg_join_all_message_threads (void)
     return nr;
 }
 
-static inline int post_quit_to_all_message_threads (void)
+static inline int post_quit_to_all_message_threads (BOOL no_self)
 {
     int nr = 0;
     struct list_head *l;
+    pthread_t th = pthread_self();
 
     list_for_each (l, &msg_queue_list) {
         MSGQUEUE *msg_queue = (MSGQUEUE*)l;
         dump_message_queue (msg_queue, __func__);
+        if (no_self && th == msg_queue->th) {
+            continue;
+        }
+
         msg_queue->dwState |= QS_QUIT;
         POST_MSGQ (msg_queue);
         nr++;

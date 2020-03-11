@@ -1105,32 +1105,6 @@ static void unlock_zorder_info (void)
                 pthread_mutex_unlock (&pWin->pGCRInfo->lock);
         }
     }
-
-#if 0   /* deprecated code */
-    static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
-        ZNIDX_LAUNCHER };
-
-    /* Since 5.0.0 */
-    for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
-        pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
-        if (pWin)
-            pthread_mutex_unlock (&pWin->pGCRInfo->lock);
-    }
-
-    slot = __mg_zorder_info->first_topmost;
-    for (; slot > 0; slot = nodes[slot].next) {
-        pWin = (PMAINWIN)(nodes[slot].hwnd);
-        if (pWin)
-            pthread_mutex_unlock (&pWin->pGCRInfo->lock);
-    }
-
-    slot = __mg_zorder_info->first_normal;
-    for (; slot > 0; slot = nodes[slot].next) {
-        pWin = (PMAINWIN)(nodes[slot].hwnd);
-        if (pWin)
-            pthread_mutex_unlock (&pWin->pGCRInfo->lock);
-    }
-#endif  /* deprecated code */
 }
 
 #endif  /* define _MGRM_THREADS */
@@ -1612,136 +1586,6 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
         }
     }
 
-#if 0   /* deprecated code */
-    /* Since 5.0.0 */
-    slot = ZNIDX_SCREENLOCK;
-    if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
-            pWin->WinType == TYPE_MAINWIN) {
-        if (pWin->dwStyle & WS_VISIBLE)
-            mii.state       = MFS_ENABLED;
-        else
-            mii.state       = MFS_DISABLED;
-
-        mii.id              = id;
-        mii.typedata        = (DWORD)pWin->spCaption;
-        mii.itemdata        = (DWORD)pWin;
-        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
-
-        id++;
-        iPos++;
-    }
-
-    /* Since 5.0.0 */
-    slot = ZNIDX_DOCKER;
-    if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
-            pWin->WinType == TYPE_MAINWIN) {
-        if (pWin->dwStyle & WS_VISIBLE)
-            mii.state       = MFS_ENABLED;
-        else
-            mii.state       = MFS_DISABLED;
-
-        mii.id              = id;
-        mii.typedata        = (DWORD)pWin->spCaption;
-        mii.itemdata        = (DWORD)pWin;
-        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
-
-        id++;
-        iPos++;
-    }
-
-    if (iPos != 0) {
-        mii.type            = MFT_SEPARATOR;
-        mii.state           = 0;
-        mii.id              = 0;
-        mii.typedata        = 0;
-        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
-        iPos ++;
-        mii.type            = MFT_STRING;
-    }
-
-    slot = __mg_zorder_info->first_topmost;
-    for (; slot > 0; slot = nodes[slot].next) {
-        pWin = (PMAINWIN)(nodes[slot].hwnd);
-        if (pWin && pWin->WinType == TYPE_MAINWIN &&
-                !(nodes[slot].flags & ZOF_IF_ALWAYSTOP)) {
-            if (pWin->dwStyle & WS_VISIBLE)
-                mii.state       = MFS_ENABLED;
-            else
-                mii.state       = MFS_DISABLED;
-        }
-        else {
-            continue;
-        }
-
-        mii.id              = id;
-        mii.typedata        = (DWORD)pWin->spCaption;
-        mii.itemdata        = (DWORD)pWin;
-        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
-
-        id++;
-        iPos++;
-    }
-
-    if (iPos != 0) {
-        mii.type            = MFT_SEPARATOR;
-        mii.state           = 0;
-        mii.id              = 0;
-        mii.typedata        = 0;
-        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
-        iPos ++;
-        mii.type            = MFT_STRING;
-    }
-
-    slot = __mg_zorder_info->first_normal;
-    for (; slot > 0; slot = nodes[slot].next) {
-        pWin = (PMAINWIN)(nodes[slot].hwnd);
-        if (pWin && pWin->WinType == TYPE_MAINWIN) {
-            if (pWin->dwStyle & WS_VISIBLE)
-                mii.state       = MFS_ENABLED;
-            else
-                mii.state       = MFS_DISABLED;
-        }
-        else {
-            continue;
-        }
-
-        mii.id              = id;
-        mii.typedata        = (DWORD)pWin->spCaption;
-        mii.itemdata        = (DWORD)pWin;
-        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
-
-        id++;
-        iPos++;
-    }
-
-    /* Since 5.0.0 */
-    slot = ZNIDX_LAUNCHER;
-    if ((pWin = (PMAINWIN)(nodes[slot].hwnd)) &&
-            pWin->WinType == TYPE_MAINWIN) {
-
-        mii.type            = MFT_SEPARATOR;
-        mii.state           = 0;
-        mii.id              = 0;
-        mii.typedata        = 0;
-        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
-        iPos ++;
-        mii.type            = MFT_STRING;
-
-        if (pWin->dwStyle & WS_VISIBLE)
-            mii.state       = MFS_ENABLED;
-        else
-            mii.state       = MFS_DISABLED;
-
-        mii.id              = id;
-        mii.typedata        = (DWORD)pWin->spCaption;
-        mii.itemdata        = (DWORD)pWin;
-        InsertMenuItem(hWinMenu, iPos, TRUE, &mii);
-
-        id++;
-        iPos++;
-    }
-#endif   /* deprecated code */
-
     nCount = GetMenuItemCount (hDesktopMenu);
     for (iPos = nCount; iPos > 5; iPos --)
         DeleteMenu (hDesktopMenu, iPos - 1, MF_BYPOSITION);
@@ -1750,77 +1594,36 @@ static void dskUpdateDesktopMenu (HMENU hDesktopMenu)
 }
 #endif
 
-static int dskDesktopCommand (HMENU hDesktopMenu, int id)
+static void close_all_main_window (void)
 {
     int level, slot;
+    PMAINWIN pWin;
     ZORDERNODE* nodes = GET_ZORDERNODE(__mg_zorder_info);
 
+    for (level = 0; level < NR_ZORDER_LEVELS; level++) {
+        slot = __mg_zorder_info->first_in_levels[level];
+        for (; slot > 0; slot = nodes[slot].next) {
+            pWin = (PMAINWIN)(nodes[slot].hwnd);
+            if (pWin && (pWin->WinType == TYPE_MAINWIN))
+                SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+        }
+    }
+}
+
+static int dskDesktopCommand (HMENU hDesktopMenu, int id)
+{
     if (id == IDM_REDRAWBG)
         SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
     else if (id == IDM_CLOSEALLWIN) {
-        PMAINWIN pWin;
-
-        for (level = 0; level < NR_ZORDER_LEVELS; level++) {
-            slot = __mg_zorder_info->first_in_levels[level];
-            for (; slot > 0; slot = nodes[slot].next) {
-                pWin = (PMAINWIN)(nodes[slot].hwnd);
-                if (pWin && (pWin->WinType == TYPE_MAINWIN)
-#ifndef _MGRM_THREADS
-                        && (pWin->pHosting == __mg_dsk_win)
-#else
-                        && (pWin->pHosting == NULL)
-#endif
-                   )
-                        SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-            }
-        }
-
-#if 0   /* deprecated code */
-        static int fixed_slots [] = { ZNIDX_SCREENLOCK, ZNIDX_DOCKER,
-            ZNIDX_LAUNCHER };
-
-        /* Since 5.0.0 */
-        for (slot = 0; slot < TABLESIZE(fixed_slots); slot++) {
-            pWin = (PMAINWIN)(nodes[fixed_slots[slot]].hwnd);
-            if (pWin && (pWin->WinType != TYPE_CONTROL)
-#ifndef _MGRM_THREADS
-                    && (pWin->pHosting == __mg_dsk_win)
-#else
-                    && (pWin->pHosting == NULL)
-#endif
-            )
-                PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-        }
-
-        slot = __mg_zorder_info->first_topmost;
-        for (; slot > 0; slot = nodes[slot].next) {
-            pWin = (PMAINWIN)(nodes[slot].hwnd);
-            if (pWin && (pWin->WinType != TYPE_CONTROL)
-#ifndef _MGRM_THREADS
-                    && (pWin->pHosting == __mg_dsk_win)
-#else
-                    && (pWin->pHosting == NULL)
-#endif
-            )
-                PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-        }
-
-        slot = __mg_zorder_info->first_normal;
-        for (; slot > 0; slot = nodes[slot].next) {
-            pWin = (PMAINWIN)(nodes[slot].hwnd);
-            if (pWin && (pWin->WinType == TYPE_MAINWIN)
-#ifndef _MGRM_THREADS
-                    && (pWin->pHosting == __mg_dsk_win)
-#else
-                    && (pWin->pHosting == NULL)
-#endif
-               )
-                    PostMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-        }
-#endif  /* deprecated code */
+        close_all_main_window ();
     }
     else if (id == IDM_ENDSESSION) {
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        //close_all_main_window ();
+        post_quit_to_all_message_threads (TRUE);
+#else
         SendNotifyMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
     }
 #ifdef _MGHAVE_MENU
     else if (id >= IDM_FIRSTWINDOW) {
@@ -2220,10 +2023,6 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
 
     case MSG_ENDSESSION:
         __mg_screensaver_destroy ();
-
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-        post_quit_to_all_message_threads ();
-#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
         if (hDesktopDC)
             ReleaseDC (hDesktopDC);

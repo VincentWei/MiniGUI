@@ -169,7 +169,8 @@ tab2space() {
 
 # sed -i 's/\<GetSubDCInSecondaryDC\>/GetDCInSecondarySurface/g' `grep '\<GetSubDCInSecondaryDC\>' -rl include/ src/`
 
-sed -i 's/\<checkAndGetMainWindowPtrOfMainWin\>/checkAndGetMainWinIfMainWin/g' `grep '\<checkAndGetMainWindowPtrOfMainWin\>' -rl include/ src/`
-sed -i 's/\<checkAndGetMainWindowPtrOfControl\>/checkAndGetMainWinIfWindow/g' `grep '\<checkAndGetMainWindowPtrOfControl\>' -rl include/ src/`
+# sed -i 's/\<checkAndGetMainWindowPtrOfMainWin\>/checkAndGetMainWinIfMainWin/g' `grep '\<checkAndGetMainWindowPtrOfMainWin\>' -rl include/ src/`
+# sed -i 's/\<checkAndGetMainWindowPtrOfControl\>/checkAndGetMainWinIfWindow/g' `grep '\<checkAndGetMainWindowPtrOfControl\>' -rl include/ src/`
 
+sed -i 's/\<mg_GetMsgQueueForThisThread\>/getMsgQueueForThisThread/g' `grep '\<mg_GetMsgQueueForThisThread\>' -rl include/ src/`
 exit 0
