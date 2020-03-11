@@ -39,6 +39,8 @@ COMMON_SRCS =       \
     videomem-bucket.c   \
     surface-shared.c    \
     surface-cursor.c    \
+    shadow-screen.h     \
+    shadow-screen.c     \
     $(NULL_FILE)
 
 libnewgal_la_SOURCES = $(COMMON_SRCS)
