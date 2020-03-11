@@ -74,14 +74,13 @@
 #include "fbmatrox.h"
 #include "fbneomagic.h"
 
+// #define FBCON_DEBUG     1
+// #define FBACCEL_DEBUG   1
+
 #ifdef _MGGAL_SIGMA8654
 extern int sigma8654_hdmi_init();
 extern int sigma8654_hdmi_quit();
 #endif
-/*
-#define FBCON_DEBUG     1
-#define FBACCEL_DEBUG   1
-*/
 
 /* Initialization/Query functions */
 static int FB_GetFBInfo(VIDEO_MEM_INFO *video_mem_info);
