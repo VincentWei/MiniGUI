@@ -1,6 +1,6 @@
-Version 4.9.0 (2019/02/28)
+Version 4.9.1 (2019/03/11)
 
-This is a developing version (target version is 5.0.0), an unstable version.
+This is the second preview version of MiniGUI 5.0.0, an unstable version.
 
 Other packages for MiniGUI resource, tools, components, and samples:
 

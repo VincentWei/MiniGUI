@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 4.9.1](#version-491)
+   + [What's new in this version](#whats-new-in-this-version)
 - [Version 4.9.0](#version-490)
    + [What's new in this version](#whats-new-in-this-version)
    + [Compositing schema](#compositing-schema)
@@ -9,6 +11,27 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 4.9.1
+
+The MiniGUI development team announces the availability of MiniGUI 4.9.1,
+which is the second preview release of MiniGUI 5.0.0.
+
+This is an unstable release to show you some new and exciting features.
+Here `unstable` means that the new APIs we introduced in this version
+may change in the official release.
+
+Nevertheless, we did our best to ensure backward compatibility of the
+existed APIs so that the old applications can smoothly migrate to the new
+version. We recommend that you test this version and report any bugs and
+incompatibilities in
+
+<https://github.com/VincentWei/minigui/tree/dev-4-1>
+
+### What's new in this version
+
+- Tune the `fbcon` (Linux Frame Buffer) engine to support compositing schema.
+- Fix some bugs.
 
 ## Version 4.9.0
 
