@@ -2195,16 +2195,22 @@ static int create_memdc_for_menu (TRACKMENUINFO* ptmi)
     wo.x = ptmi->rc.left;
     wo.y = ptmi->rc.top;
 
-    SetMapMode(ptmi->dc, MM_ANISOTROPIC);
-    SetWindowOrg(ptmi->dc, &wo);
+    SetMapMode (ptmi->dc, MM_ANISOTROPIC);
+    SetWindowOrg (ptmi->dc, &wo);
     return 0;
 }
 
 static void delete_memdc_for_menu (TRACKMENUINFO* ptmi)
 {
     if (ptmi->dc != HDC_INVALID) {
+        GAL_Surface *surf = GetSurfaceFromDC (ptmi->dc);
+
         DeleteMemDC (ptmi->dc);
         ptmi->dc = HDC_INVALID;
+
+        /* we must free the surface here, or it can not be freed actually
+           due to the referenced count. */
+        GAL_FreeSurface (surf);
     }
 }
 
