@@ -102,14 +102,7 @@ typedef struct _XVFBPalEntry {
 
 /* Private display data */
 struct GAL_PrivateVideoData {
-    unsigned char* shmrgn;
-    XVFBHeader* hdr;
-
-    /* Since 5.0.0.
-     * When double buffering supported, the real surface represents the ultimate
-     * frame buffer, and the shadow screen represents the rendering surface.
-     * When double buffering disabled, both are NULL.
-     */
+    int magic, version;
     GAL_Surface *real_screen, *shadow_screen;
 
     RECT dirty_rc;
@@ -120,6 +113,9 @@ struct GAL_PrivateVideoData {
     int csr_x, csr_y;
     int hot_x, hot_y;
 #endif
+
+    unsigned char* shmrgn;
+    XVFBHeader* hdr;
 };
 
 #endif /* _GAL_pcxvfb_h */

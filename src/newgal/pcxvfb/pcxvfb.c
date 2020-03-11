@@ -92,6 +92,7 @@ typedef int key_t;
 #include "misc.h"
 #include "newgal.h"
 #include "../sysvideo.h"
+#include "../shadow-screen.h"
 #include "pcxvfb.h"
 
 #endif                  /* end ECOS */
@@ -223,113 +224,14 @@ static void PCXVFB_DeleteDevice (GAL_VideoDevice *device)
     free (device);
 }
 
-#ifdef _MGSCHEMA_COMPOSITING
-static inline int boxleft (_THIS)
-{
-    if (this->hidden->cursor == NULL)
-        return -100;
-    return this->hidden->csr_x - this->hidden->hot_x;
-}
-
-static inline int boxtop (_THIS)
-{
-    if (this->hidden->cursor == NULL)
-        return -100;
-    return this->hidden->csr_y - this->hidden->hot_y;
-}
-
-#include "cursor.h"
-
-static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects);
-static BOOL PCXVFB_SyncUpdate (_THIS);
-
-static int PCXVFB_SetCursor (_THIS, GAL_Surface *surface, int hot_x, int hot_y)
-{
-    GAL_Rect rect;
-
-    if (this->hidden->cursor == surface &&
-            this->hidden->hot_x == hot_x &&
-            this->hidden->hot_y == hot_y) {
-        return 0;
-    }
-
-    /* update screen to hide old cursor */
-    if (this->hidden->cursor) {
-        rect.x = boxleft (this);
-        rect.y = boxtop (this);
-        rect.w = CURSORWIDTH;
-        rect.h = CURSORHEIGHT;
-
-        this->hidden->cursor = NULL;
-        PCXVFB_UpdateRects (this, 1, &rect);
-    }
-
-    this->hidden->cursor = surface;
-    this->hidden->hot_x = hot_x;
-    this->hidden->hot_y = hot_y;
-
-    /* update screen to show new cursor */
-    if (this->hidden->cursor) {
-        rect.x = boxleft (this);
-        rect.y = boxtop (this);
-        rect.w = CURSORWIDTH;
-        rect.h = CURSORHEIGHT;
-        PCXVFB_UpdateRects (this, 1, &rect);
-    }
-
-    PCXVFB_SyncUpdate (this);
-    return 0;
-}
-
-static int PCXVFB_MoveCursor (_THIS, int x, int y)
-{
-    if (this->hidden->csr_x == x &&
-             this->hidden->csr_y == y) {
-        return 0;
-    }
-
-    if (this->hidden->cursor) {
-        GAL_Surface* tmp;
-        GAL_Rect rect;
-        rect.x = boxleft (this);
-        rect.y = boxtop (this);
-        rect.w = CURSORWIDTH;
-        rect.h = CURSORHEIGHT;
-
-        /* update screen to hide cursor */
-        tmp = this->hidden->cursor;
-        this->hidden->cursor = NULL;
-        PCXVFB_UpdateRects (this, 1, &rect);
-
-        /* update screen to show cursor */
-        this->hidden->cursor = tmp;
-        this->hidden->csr_x = x;
-        this->hidden->csr_y = y;
-
-        rect.x = boxleft (this);
-        rect.y = boxtop (this);
-        rect.w = CURSORWIDTH;
-        rect.h = CURSORHEIGHT;
-        PCXVFB_UpdateRects (this, 1, &rect);
-        PCXVFB_SyncUpdate (this);
-    }
-    else {
-        this->hidden->csr_x = x;
-        this->hidden->csr_y = y;
-    }
-
-    return 0;
-}
-
-#endif /* _MGSCHEMA_COMPOSITING */
-
+#if 0   /* deprecated code: call common helpers for shadow screen */
 static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
     int i;
     RECT bound;
 
 #ifdef WIN32
-    //win_PCXVFbLock ();
+    win_PCXVFbLock ();
 #else
     shm_lock(semid);
 #endif
@@ -358,62 +260,25 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     this->hidden->dirty_rc = bound;
 
 #ifdef WIN32
-    //win_PCXVFbUnlock ();
+    win_PCXVFbUnlock ();
 #else
     shm_unlock(semid);
 #endif
 }
+#endif  /* deprecated code */
 
 static BOOL PCXVFB_SyncUpdate (_THIS)
 {
-    RECT bound;
-
     if (IsRectEmpty (&this->hidden->dirty_rc))
         return FALSE;
 
 #ifdef WIN32
-    //win_PCXVFbLock ();
+    win_PCXVFbLock ();
 #else
     shm_lock(semid);
 #endif
 
-    bound = this->hidden->dirty_rc;
-
-    /* Since 5.0.0; blit dirty content to the ultimate buffer */
-    if (this->hidden->real_screen) {
-        GAL_Rect src_rect, dst_rect;
-        src_rect.x = bound.left;
-        src_rect.y = bound.top;
-        src_rect.w = RECTW (bound);
-        src_rect.h = RECTH (bound);
-        dst_rect = src_rect;
-
-        GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
-                this->hidden->real_screen, &dst_rect);
-#ifdef _MGSCHEMA_COMPOSITING
-        if (this->hidden->cursor) {
-            RECT csr_rc, eff_rc;
-            csr_rc.left = boxleft (this);
-            csr_rc.top = boxtop (this);
-            csr_rc.right = csr_rc.left + CURSORWIDTH;
-            csr_rc.bottom = csr_rc.top + CURSORHEIGHT;
-
-            if (IntersectRect (&eff_rc, &csr_rc, &bound)) {
-                src_rect.x = eff_rc.left - csr_rc.left;
-                src_rect.y = eff_rc.top - csr_rc.top;
-                src_rect.w = RECTW (eff_rc);
-                src_rect.h = RECTH (eff_rc);
-
-                dst_rect.x = eff_rc.left;
-                dst_rect.y = eff_rc.top;
-                dst_rect.w = src_rect.w;
-                dst_rect.h = src_rect.h;
-                GAL_BlitSurface (this->hidden->cursor, &src_rect,
-                        this->hidden->real_screen, &dst_rect);
-            }
-        }
-#endif
-    }
+    shadowScreen_BlitToReal (this);
 
     this->hidden->hdr->dirty_rc_l = this->hidden->dirty_rc.left;
     this->hidden->hdr->dirty_rc_t = this->hidden->dirty_rc.top;
@@ -422,7 +287,7 @@ static BOOL PCXVFB_SyncUpdate (_THIS)
     this->hidden->hdr->dirty = TRUE;
 
 #ifdef WIN32
-    //win_PCXVFbUnlock ();
+    win_PCXVFbUnlock ();
 #else
     shm_unlock(semid);
 #endif
@@ -447,6 +312,8 @@ static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
         return (0);
     }
     memset (this->hidden, 0, (sizeof *this->hidden));
+    this->hidden->magic = MAGIC_SHADOW_SCREEN_HEADER;
+    this->hidden->version = 0;
 
     /* Set the function pointers */
     this->VideoInit = PCXVFB_VideoInit;
@@ -458,7 +325,7 @@ static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
     this->AllocHWSurface = PCXVFB_AllocHWSurface;
     this->FreeHWSurface = PCXVFB_FreeHWSurface;
 
-    this->UpdateRects = PCXVFB_UpdateRects;
+    this->UpdateRects = shadowScreen_UpdateRects;
     this->SyncUpdate = PCXVFB_SyncUpdate;
 
     this->CheckHWBlit = NULL;
@@ -473,8 +340,7 @@ static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
 
 VideoBootStrap PCXVFB_bootstrap = {
     "pc_xvfb", "PCX Virtual FrameBuffer",
-    PCXVFB_Available, PCXVFB_CreateDevice,
-    TRUE, /* Compositing enabled */
+    PCXVFB_Available, PCXVFB_CreateDevice
 };
 
 #ifndef WIN32
@@ -857,8 +723,8 @@ static GAL_Surface *PCXVFB_SetVideoMode (_THIS, GAL_Surface *current,
 #ifdef _MGSCHEMA_COMPOSITING
             this->info.hw_cursor = 1;
             this->hidden->cursor = NULL;
-            this->SetCursor = PCXVFB_SetCursor;
-            this->MoveCursor = PCXVFB_MoveCursor;
+            this->SetCursor = shadowScreen_SetCursor;
+            this->MoveCursor = shadowScreen_MoveCursor;
 #endif
         }
         else {
