@@ -79,14 +79,6 @@
 #include "drawsemop.h"
 #include "devfont.h"
 
-#ifndef _MG_ENABLE_SCREENSAVER
-#   define SERVER_HAS_NO_MAINWINDOW() (nr_of_all_znodes() == 0)
-#else
-    /* The screensaver occupys one znode */
-#   define SERVER_HAS_NO_MAINWINDOW() (nr_of_all_znodes() == 1)
-#endif
-#   define CLIENT_HAS_NO_MAINWINDOW() (znodes_of_this_client() == 0)
-
 /******************************* global data *********************************/
 PMSGQUEUE __mg_dsk_msg_queue;
 
@@ -3649,25 +3641,29 @@ static BOOL _cb_close_mainwin (void* context,
     return TRUE;
 }
 
+/* this function can be called only by the server */
 static int nr_of_all_znodes (void)
 {
     MG_Layer* layer = mgLayers;
     int count = 0;
-    ZORDERINFO* zi;
 
     while (layer) {
+        ZORDERINFO* zi;
+        int level;
+
         zi = layer->zorder_info;
-        count += zi->nr_topmosts;
-        count += zi->nr_normals;
+        for (level = 0; level < NR_ZORDER_LEVELS; level++) {
+            count += zi->nr_nodes_in_levels[level];
+        }
 
         layer = layer->next;
     }
 
-    if (__mg_zorder_info)
-        count += (__mg_zorder_info->nr_globals - 1);
-
     return count;
 }
+
+#define SERVER_HAS_NO_MAINWINDOW() (nr_of_all_znodes() == 0)
+#define CLIENT_HAS_NO_MAINWINDOW() (znodes_of_this_client() == 0)
 
 static int srvDesktopCommand (int id)
 {
@@ -3681,7 +3677,7 @@ static int srvDesktopCommand (int id)
         unlock_zi_for_read (__mg_zorder_info);
     }
     else if (id == IDM_ENDSESSION) {
-        if ( SERVER_HAS_NO_MAINWINDOW() ){
+        if (SERVER_HAS_NO_MAINWINDOW()) {
             ExitGUISafely (-1);
         }
     }
