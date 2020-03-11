@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -86,18 +86,39 @@ extern int sigma8654_hdmi_quit();
 static int FB_GetFBInfo(VIDEO_MEM_INFO *video_mem_info);
 static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat);
 static GAL_Rect **FB_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags);
-static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current, int width, int height, int bpp, Uint32 flags);
+static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
+        int width, int height, int bpp, Uint32 flags);
 static int FB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors);
 static void FB_VideoQuit(_THIS);
 
 /* Hardware surface functions */
 static int FB_InitHWSurfaces(_THIS, GAL_Surface *screen, char *base, int size);
 static void FB_FreeHWSurfaces(_THIS);
-static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
+static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request,
+        REP_HWSURFACE* reply);
 static int FB_AllocHWSurface(_THIS, GAL_Surface *surface);
 static void FB_FreeHWSurface(_THIS, GAL_Surface *surface);
 static void FB_WaitVBL(_THIS);
 static void FB_WaitIdle(_THIS);
+
+#ifdef _MGSCHEMA_COMPOSITING
+
+#include "../shadow-screen.h"
+#include "debug.h"
+
+static BOOL FB_SyncUpdate (_THIS)
+{
+    if (IsRectEmpty (&this->hidden->dirty_rc))
+        return FALSE;
+
+    if (shadowScreen_BlitToReal (this) == 0)
+        return TRUE;
+    else
+        _WRN_PRINTF ("failed to call shadowScreen_BlitToReal\n");
+
+    return FALSE;
+}
+#endif /* _MGSCHEMA_COMPOSITING */
 
 #if 0
 static int FB_LockHWSurface(_THIS, GAL_Surface *surface);
@@ -155,6 +176,11 @@ static GAL_VideoDevice *FB_CreateDevice(int devindex)
         return(0);
     }
     memset(this->hidden, 0, (sizeof *this->hidden));
+    /* For compositing schema, we force to use double buffering */
+#ifdef _MGSCHEMA_COMPOSITING
+    this->hidden->magic = MAGIC_SHADOW_SCREEN_HEADER;
+    this->hidden->version = 0;
+#endif
     wait_vbl = FB_WaitVBL;
     wait_idle = FB_WaitIdle;
 
@@ -561,7 +587,6 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
             return(NULL);
         }
 #endif
-
         /* Restore the original palette */
         FB_RestorePalette (this);
     }
@@ -724,8 +749,43 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         sigma8654_hdmi_init();
 #endif
 
+#ifdef _MGSCHEMA_COMPOSITING
+    if (mgIsServer) {
+        /* create shadow screen */
+        this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
+                current->w, current->h,
+                current->format->BitsPerPixel,
+                current->format->Rmask, current->format->Gmask,
+                current->format->Bmask, current->format->Amask);
+
+        if (this->hidden->shadow_screen) {
+            this->info.hw_cursor = 1;
+            this->hidden->cursor = NULL;
+            this->SetCursor = shadowScreen_SetCursor;
+            this->MoveCursor = shadowScreen_MoveCursor;
+            this->UpdateRects = shadowScreen_UpdateRects;
+            this->SyncUpdate = FB_SyncUpdate;
+
+            this->hidden->real_screen = current;
+            current = this->hidden->shadow_screen;
+
+            GAL_SetClipRect (this->hidden->real_screen, NULL);
+            GAL_SetColorKey (this->hidden->shadow_screen, 0, 0);
+            GAL_SetAlpha (this->hidden->shadow_screen, 0, 0);
+        }
+        else {
+            this->hidden->real_screen = NULL;
+            this->hidden->shadow_screen = NULL;
+        }
+    }
+    else {
+        // client never call SetVideoMode
+        assert (0);
+    }
+#endif /* _MGSCHEMA_COMPOSITING */
+
     /* We're done */
-    return(current);
+    return (current);
 }
 
 #ifdef FBACCEL_DEBUG
@@ -1181,6 +1241,12 @@ static void FB_VideoQuit(_THIS)
         }
     }
 
+#ifdef _MGSCHEMA_COMPOSITING
+    if (mgIsServer && this->hidden->shadow_screen) {
+        GAL_FreeSurface (this->hidden->shadow_screen);
+    }
+#endif
+
     /* Clean up the memory bucket list */
 #ifdef _MGRM_PROCESSES
     if (mgIsServer)
@@ -1231,6 +1297,5 @@ static void FB_VideoQuit(_THIS)
 #endif
         sigma8654_hdmi_quit();
 #endif
-
 }
 

@@ -68,21 +68,25 @@ typedef struct vidmem_bucket {
 
 /* Private display data */
 struct GAL_PrivateVideoData {
+    /* For compositing schema, we force to use double buffering */
+#ifdef _MGSCHEMA_COMPOSITING
+    /* start of header for shadow screen */
+    int magic, version;
+    GAL_Surface *real_screen, *shadow_screen;
+    RECT dirty_rc;
+
+    /* Used to simulate the hardware cursor. */
+    GAL_Surface *cursor;
+    int csr_x, csr_y;
+    int hot_x, hot_y;
+    /* end of header for shadow screen */
+#endif  /* _MGSCHEMA_COMPOSITING */
+
     int console_fd;
     struct fb_var_screeninfo cache_vinfo;
     struct fb_var_screeninfo saved_vinfo;
     int saved_cmaplen;
     __u16 *saved_cmap;
-
-#if 0
-    int current_vt;
-    int saved_vt;
-    int keyboard_fd;
-    int saved_kbd_mode;
-    struct termios saved_kbd_termios;
-
-    int mouse_fd;
-#endif
 
 #ifdef _MGHAVE_PCIACCESS
     int pci_accel_driver;
@@ -93,8 +97,6 @@ struct GAL_PrivateVideoData {
     int mapped_offset;
     char *mapped_io;
     long mapped_iolen;
-    int flip_page;
-    char *flip_address[2];
 
     vidmem_bucket surfaces;
     int surfaces_memtotal;
@@ -102,6 +104,13 @@ struct GAL_PrivateVideoData {
 
     void (*wait_vbl)(_THIS);
     void (*wait_idle)(_THIS);
+
+#if 0   /* deprecated code */
+    int flip_page;
+    char *flip_address[2];
+#define flip_page           (this->hidden->flip_page)
+#define flip_address        (this->hidden->flip_address)
+#endif
 };
 
 /* Old variable names */
@@ -121,8 +130,6 @@ struct GAL_PrivateVideoData {
 #define mapped_offset       (this->hidden->mapped_offset)
 #define mapped_io           (this->hidden->mapped_io)
 #define mapped_iolen        (this->hidden->mapped_iolen)
-#define flip_page           (this->hidden->flip_page)
-#define flip_address        (this->hidden->flip_address)
 #define surfaces            (this->hidden->surfaces)
 #define surfaces_memtotal   (this->hidden->surfaces_memtotal)
 #define surfaces_memleft    (this->hidden->surfaces_memleft)
@@ -132,13 +139,11 @@ struct GAL_PrivateVideoData {
 #ifdef _MGHAVE_PCIACCESS
 
 #define pci_accel_driver    (this->hidden->pci_accel_driver)
-
 /* Defined in pcivideo.c */
-extern int FB_ProbePCIAccelDriver (_THIS, const struct fb_fix_screeninfo* fb_finfo);
+extern int FB_ProbePCIAccelDriver (_THIS, const struct fb_fix_screeninfo* finfo);
 extern int FB_InitPCIAccelDriver (_THIS, const GAL_Surface* current);
 extern int FB_CleanupPCIAccelDriver (_THIS);
-#endif
-
+#endif  /* _MGHAVE_PCIACCESS */
 
 /* Accelerator types that are supported by the driver, but are not
    necessarily in the kernel headers on the system we compile on.
@@ -156,17 +161,17 @@ extern void FB_RestorePaletteFrom(_THIS, int palette_len, __u16 *area);
 
 /* These are utility functions for working with video surfaces */
 
-static __inline__ void FB_AddBusySurface(GAL_Surface *surface)
+static inline void FB_AddBusySurface(GAL_Surface *surface)
 {
     ((vidmem_bucket *)surface->hwdata)->dirty = 1;
 }
 
-static __inline__ int FB_IsSurfaceBusy(GAL_Surface *surface)
+static inline int FB_IsSurfaceBusy(GAL_Surface *surface)
 {
     return ((vidmem_bucket *)surface->hwdata)->dirty;
 }
 
-static __inline__ void FB_WaitBusySurfaces(_THIS)
+static inline void FB_WaitBusySurfaces(_THIS)
 {
     vidmem_bucket *bucket;
 
@@ -179,7 +184,7 @@ static __inline__ void FB_WaitBusySurfaces(_THIS)
     }
 }
 
-static __inline__ void FB_dst_to_xy(_THIS, GAL_Surface *dst, int *x, int *y)
+static inline void FB_dst_to_xy(_THIS, GAL_Surface *dst, int *x, int *y)
 {
     *x = (long)((char *)dst->pixels - mapped_mem)%this->screen->pitch;
     *y = (long)((char *)dst->pixels - mapped_mem)/this->screen->pitch;
