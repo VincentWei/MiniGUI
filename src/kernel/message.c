@@ -176,6 +176,10 @@ MSGQUEUE* mg_AllocMsgQueueForThisThread (void)
     pMsgQueue->th = pthread_self();
     pthread_setspecific (__mg_threadinfo_key, pMsgQueue);
 #endif
+
+    // register this new message queue
+    SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+            MSGTHREAD_SIGNIN, (LPARAM)pMsgQueue);
     return pMsgQueue;
 }
 
@@ -205,29 +209,6 @@ void mg_FreeMsgQueueForThisThread (void)
         _WRN_PRINTF ("message queue for this thread has gone\n");
     }
 }
-
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-/* no use function */
-MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc)
-{
-    MSGQUEUE* pMsgQueue;
-
-    pMsgQueue = (MSGQUEUE*)pthread_getspecific (__mg_threadinfo_key);
-#ifdef __VXWORKS__
-    if (pMsgQueue == (void *)-1) {
-        pMsgQueue = NULL;
-    }
-#endif
-
-    if (pMsgQueue == NULL && alloc) {
-        pMsgQueue = mg_AllocMsgQueueForThisThread ();
-        SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
-                MSGTHREAD_SIGNIN, (LPARAM)pMsgQueue);
-    }
-
-    return pMsgQueue;
-}
-#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 static int handle_idle_message (MSGQUEUE* msg_queue)
 {
@@ -555,7 +536,7 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 
     if (hWnd == HWND_NULL) {
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-        if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE)))
+        if (!(pMsgQueue = getMsgQueueForThisThread ()))
             return FALSE;
 #else
         pMsgQueue = __mg_dsk_msg_queue;
@@ -748,7 +729,7 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd,
         return FALSE;
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (!(pMsgQueue = mg_GetMsgQueueForThisThread (FALSE))) {
+    if (!(pMsgQueue = getMsgQueueForThisThread ())) {
         _WRN_PRINTF ("not a message thread.\n");
         return FALSE;
     }
@@ -1676,7 +1657,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 #define _SYNC_NEED_REENTERABLE
 #ifndef _SYNC_NEED_REENTERABLE
-    if ((thinfo = mg_GetMsgQueueForThisThread (FALSE))) {
+    if ((thinfo = getMsgQueueForThisThread ())) {
         /* avoid to create a new semaphore object, Note: it's not reenterable.*/
         SyncMsg.sem_handle = &thinfo->sync_msg;
     }
@@ -1688,7 +1669,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 #else   /* not defined _SYNC_NEED_REENTERABLE */
     /* For reentrantable implementation, we use a unique semaphore which is
        created in the stack. */
-    thinfo = mg_GetMsgQueueForThisThread (FALSE);
+    thinfo = getMsgQueueForThisThread ();
     sem_init (&sync_msg, 0, 0);
     SyncMsg.sem_handle = &sync_msg;
 #endif  /* defined _SYNC_NEED_REENTERABLE */

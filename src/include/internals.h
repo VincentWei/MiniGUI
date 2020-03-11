@@ -777,12 +777,24 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd);
 
 #ifdef _MGHAVE_VIRTUAL_WINDOW
 
+extern pthread_key_t __mg_threadinfo_key;
+
 #define TEST_CANCEL pthread_testcancel()
 int __mg_join_all_message_threads (void);
 
-MSGQUEUE* mg_GetMsgQueueForThisThread (BOOL alloc);
+static inline MSGQUEUE* getMsgQueueForThisThread (void)
+{
+    MSGQUEUE* pMsgQueue;
 
-extern pthread_key_t __mg_threadinfo_key;
+    pMsgQueue = (MSGQUEUE*)pthread_getspecific (__mg_threadinfo_key);
+#ifdef __VXWORKS__
+    if (pMsgQueue == (void *)-1) {
+        pMsgQueue = NULL;
+    }
+#endif
+
+    return pMsgQueue;
+}
 
 static inline BOOL createThreadInfoKey (void)
 {
