@@ -63,7 +63,7 @@ typedef struct _VIDEO_MEM_INFO
     int video_mem_len;
     int video_mem_offset;
     int video_pitch;
-}VIDEO_MEM_INFO;
+} VIDEO_MEM_INFO;
 
 
 /* Define the GAL video driver structure */
@@ -267,8 +267,6 @@ typedef struct VideoBootStrap {
     const char *desc;
     int (*available)(void);
     GAL_VideoDevice *(*create)(int devindex);
-    /* Since 5.0.0; used to check where the video engine support composition schema */
-    BOOL compositing_enabled;
 } VideoBootStrap;
 
 #ifdef _MGGAL_DUMMY
@@ -383,7 +381,6 @@ extern GAL_VideoDevice *__mg_current_video;
 #define GAL_VideoSurface        (__mg_current_video->screen)
 #define GAL_PublicSurface       (__mg_current_video->screen)
 
-GAL_VideoDevice *GAL_GetVideo (const char* driver_name, BOOL check_compos);
 void Slave_FreeSurface (GAL_Surface *surface);
 
 #endif /* _GAL_sysvideo_h */

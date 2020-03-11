@@ -173,7 +173,7 @@ BLOCKHEAP __mg_free_update_region_list;
 int GAL_VideoInit(const char *driver_name, Uint32 flags);
 void GAL_VideoQuit(void);
 
-GAL_VideoDevice *GAL_GetVideo(const char* driver_name, BOOL check_compos)
+static GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
 {
     GAL_VideoDevice *video;
     int index;
@@ -186,20 +186,15 @@ GAL_VideoDevice *GAL_GetVideo(const char* driver_name, BOOL check_compos)
             if (strncmp(bootstrap[i]->name, driver_name,
                         strlen(bootstrap[i]->name)) == 0) {
                 if (bootstrap[i]->available()) {
-                    if (check_compos && !bootstrap[i]->compositing_enabled)
-                        return NULL;
-
                     video = bootstrap[i]->create(index);
                     break;
                 }
             }
         }
-    } else {
+    }
+    else {
         for (i=0; bootstrap[i]; ++i) {
             if (bootstrap[i]->available()) {
-                if (check_compos && !bootstrap[i]->compositing_enabled)
-                    continue;
-
                 video = bootstrap[i]->create(index);
                 if (video != NULL) {
                     break;
@@ -242,11 +237,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
         GAL_VideoQuit();
     }
 
-#if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING)
-    video = GAL_GetVideo(driver_name, FALSE);
-#else
-    video = GAL_GetVideo(driver_name, FALSE);
-#endif
+    video = GAL_GetVideo(driver_name);
     if (video == NULL) {
         return (-1);
     }
@@ -1466,7 +1457,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     unsigned int w, h, depth;
 
     /* Select the proper video driver */
-    video = GAL_GetVideo(driver_name, FALSE);
+    video = GAL_GetVideo(driver_name);
 
     if (video == NULL) {
         _ERR_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n",
