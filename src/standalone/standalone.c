@@ -162,6 +162,15 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         case ME_RIGHTDBLCLICK:
             Msg.message = MSG_RBUTTONDBLCLK;
             break;
+        case ME_MIDDLEDOWN:
+            Msg.message = MSG_MBUTTONDOWN;
+            break;
+        case ME_MIDDLEUP:
+            Msg.message = MSG_MBUTTONUP;
+            break;
+        case ME_MIDDLEDBLCLICK:
+            Msg.message = MSG_MBUTTONDBLCLK;
+            break;
         }
 
         Msg.lParam = MAKELONG (me->x, me->y);
