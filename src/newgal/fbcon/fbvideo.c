@@ -707,7 +707,8 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     }
 
 #ifdef _MGHAVE_PCIACCESS
-    if (pci_accel_driver) /* Init accelerated hardware via pciaccess */
+    /* BUGFIXING (VM 2020-03-12): merged from 5.0.0 */
+    if (pci_accel_driver > 0) /* Init accelerated hardware via pciaccess */
         FB_InitPCIAccelDriver (this, current);
 #endif
 
@@ -1196,7 +1197,8 @@ static void FB_VideoQuit(_THIS)
         }
 
 #ifdef _MGHAVE_PCIACCESS
-        if (pci_accel_driver) {
+        /* BUGFIXING (VM 2020-03-12): merged from 5.0.0 */
+        if (pci_accel_driver > 0) {
             FB_CleanupPCIAccelDriver (this);
             pci_accel_driver = 0;
         }
