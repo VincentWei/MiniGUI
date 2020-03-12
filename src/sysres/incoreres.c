@@ -85,9 +85,9 @@
 BOOL sysres_init_inner_resource()
 {
 #ifdef _MGINCORE_RES
-    AddInnerRes(__mgir_bmp_inner_res, TABLESIZE(__mgir_bmp_inner_res), FALSE);
-    AddInnerRes(__mgir_icon_inner_res, TABLESIZE(__mgir_icon_inner_res),FALSE);
-    AddInnerRes(__mgir_font_inner_res, TABLESIZE(__mgir_font_inner_res),FALSE);
+    AddInnerRes((INNER_RES*)__mgir_bmp_inner_res, TABLESIZE(__mgir_bmp_inner_res), FALSE);
+    AddInnerRes((INNER_RES*)__mgir_icon_inner_res, TABLESIZE(__mgir_icon_inner_res),FALSE);
+    AddInnerRes((INNER_RES*)__mgir_font_inner_res, TABLESIZE(__mgir_font_inner_res),FALSE);
 #endif
     return TRUE;
 }
