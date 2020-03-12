@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.60)
-AC_INIT(libminigui, 4.0.5)
+AC_INIT(libminigui, 4.0.6)
 AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -16,9 +16,9 @@ dnl Set various version strings - taken gratefully from the SDL sources
 #
 MINIGUI_MAJOR_VERSION=4
 MINIGUI_MINOR_VERSION=0
-MINIGUI_MICRO_VERSION=5
-MINIGUI_INTERFACE_AGE=1
-MINIGUI_BINARY_AGE=1
+MINIGUI_MICRO_VERSION=6
+MINIGUI_INTERFACE_AGE=2
+MINIGUI_BINARY_AGE=2
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
 
 AC_SUBST(MINIGUI_MAJOR_VERSION)
@@ -120,13 +120,13 @@ build_net_ial_engine="no"
 
 dnl common IAL engines
 build_libinput_ial_engine="yes"
-build_console_ial_engine="no"
+build_console_ial_engine="yes"
 build_console_ps2="no"
-build_console_imps2="no"
+build_console_imps2="yes"
 build_console_ms="no"
 build_console_ms3="no"
 build_console_gpm="no"
-build_text_mode="no"
+build_text_mode="yes"
 
 dnl the customized ial engine
 build_dlcustom_ial_engine="no"
@@ -265,7 +265,7 @@ enable_video_dfb_st7167="no"
 enable_video_stgfb="no"
 
 enable_video_drm="yes"
-enable_video_fbcon="no"
+enable_video_fbcon="yes"
 enable_video_commlcd="no"
 enable_video_shadow="no"
 enable_video_mlshadow="no"
@@ -470,7 +470,7 @@ AC_ARG_ENABLE(libinputial,
 build_libinput_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleial,
-[  --enable-consoleial      build the console (Linux console) IAL engine <default=no>],
+[  --enable-consoleial      build the console (Linux console) IAL engine <default=yes>],
 build_console_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleps2,
@@ -478,7 +478,7 @@ AC_ARG_ENABLE(consoleps2,
 build_console_ps2=$enableval)
 
 AC_ARG_ENABLE(consoleimps2,
-[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=no>],
+[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=yes>],
 build_console_imps2=$enableval)
 
 AC_ARG_ENABLE(consolems,
@@ -494,7 +494,7 @@ AC_ARG_ENABLE(consolegpm,
 build_console_gpm=$enableval)
 
 AC_ARG_ENABLE(textmode,
-[  --enable-textmode        Linux system have console (text mode) on FrameBuffer <default=no>],
+[  --enable-textmode        Linux system have console (text mode) on FrameBuffer <default=yes>],
 build_text_mode=$enableval)
 
 AC_ARG_ENABLE(rbfsupport,
