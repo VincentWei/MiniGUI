@@ -3824,6 +3824,9 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
     return (HWND)pWin;
 
 err:
+    /* BUGFIXING (VM 2020-03-12): merged from 5.0.0 */
+    ThrowAwayMessages ((HWND)pWin);
+
 #ifdef _MGRM_THREADS
     if (pWin->pMessages && pWin->pHosting == NULL) {
         mg_FreeMsgQueueThisThread ();
