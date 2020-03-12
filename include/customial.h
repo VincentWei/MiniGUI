@@ -234,6 +234,9 @@ typedef struct tagINPUT {
     // New wait event method for getting extra input events; since 4.0.0
     int (*wait_event_ex) (int maxfd, fd_set *in, fd_set *out,
             fd_set *except, struct timeval *timeout, EXTRA_INPUT_EVENT* extra);
+
+    /* BUGFIXING (VM 2020-03-12): merged from 5.0.0 */
+    char* mdev;
 } INPUT;
 
 #ifdef __cplusplus
