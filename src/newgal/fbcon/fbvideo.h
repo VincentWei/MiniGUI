@@ -74,16 +74,6 @@ struct GAL_PrivateVideoData {
     int saved_cmaplen;
     __u16 *saved_cmap;
 
-#if 0
-    int current_vt;
-    int saved_vt;
-    int keyboard_fd;
-    int saved_kbd_mode;
-    struct termios saved_kbd_termios;
-
-    int mouse_fd;
-#endif
-
 #ifdef _MGHAVE_PCIACCESS
     int pci_accel_driver;
 #endif
