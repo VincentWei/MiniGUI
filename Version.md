@@ -1,4 +1,4 @@
-Version 4.0.5 (2020/01/10)
+Version 4.0.6 (2020/03/31)
 
 This release needs the following packages:
 
