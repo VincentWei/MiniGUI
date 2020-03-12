@@ -189,7 +189,8 @@ static HCURSOR load_cursor_from_mem (const void* area)
     p += sizeof (DWORD32);    
     imagew = MGUI_ReadLE32Mem (&p);
     imageh = MGUI_ReadLE32Mem (&p);
-    if (imagew > 32 || imageh > 32) {
+    /* BUGFIXING (VM 2020-03-12): merged from 5.0.0 */
+    if (imagew != CURSORWIDTH || imageh != (CURSORHEIGHT*2)) {
         goto error;
     }
 
