@@ -2147,7 +2147,8 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 return 0;
         }
 
-        if (wParam == '\b') { //backspace
+        /* BUGFIXING (VM 2020-03-12): merged from 5.0.0 */
+        if (charBuffer [0] == '\b') { //backspace
             int del;
 
             if (sled->editPos == 0 && sled->selStart == sled->selEnd)
