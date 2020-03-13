@@ -6,11 +6,6 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 ## TABLE OF CONTENTS
 
 - [INTRODUCTION](#introduction)
-- [A BRIEF BUILDING INSTRUCTION](#a-brief-building-instruction)
-   + [Prerequisites](#prerequisites)
-   + [Building MiniGUI Core](#building-minigui-core)
-   + [Building whole MiniGUI](#building-whole-minigui)
-   + [Unit Tests](#unit-tests)
 - [NEW FEATURES IN VERSION 5.0.x](#new-features-in-version-50x)
    + [Compositing schema](#compositing-schema)
    + [New main window types](#new-main-window-types)
@@ -19,6 +14,11 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 - [NEW FEATURES IN VERSION 4.0.x](#new-features-in-version-40x)
 - [NEW FEATURES IN VERSION 3.2.x](#new-features-in-version-32x)
 - [THE RUNTIME MODES OF MINIGUI](#the-runtime-modes-of-minigui)
+- [A BRIEF BUILDING INSTRUCTION](#a-brief-building-instruction)
+   + [Prerequisites](#prerequisites)
+   + [Building MiniGUI Core](#building-minigui-core)
+   + [Building whole MiniGUI](#building-whole-minigui)
+   + [Unit Tests](#unit-tests)
 - [HISTORY](#history)
 - [AUTHORS AND COPYING](#authors-and-copying)
    + [Special Statement](#special-statement)
@@ -41,7 +41,7 @@ embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other
 traditional RTOSes, such as RT-Thread, FreeRTOS, RTEMS, VxWorks, ThreadX,
 Nucleus, pSOS, uC/OS-II, and OSE.
 
-This is the source tree of MiniGUI Core, which provides windowing
+This is the source tree of MiniGUI Core, which provides the windowing
 and graphics interfaces as well as a lot of standard controls (toolkit).
 
 Besides MiniGUI Core, FMSoft also provides some components
@@ -108,69 +108,6 @@ and
 We now maintain all documents about MiniGUI on the following public repo:
 
 <https://github.com/VincentWei/minigui-docs>
-
-## A BRIEF BUILDING INSTRUCTION
-
-This instruction assumes that you are using Ubuntu Linux.
-
-### Prerequisites
-
-You should run `apt install <package_name>` to install the following packages
-on your Ubuntu Linux.
-
- * Building tools:
-    * autoconf
- * Dependent libraries (all are optional):
-    * libjpeg64-dev
-    * libpng12-dev (use libpng-dev on Ubuntu Linux 18.04 LTS)
-    * libfreetype6-dev
-
-### Building MiniGUI Core
-
-MiniGUI Core uses GNU autoconf/automake scripts to configure and build the project.
-
-Run
-
-    $ ./configure; make; sudo make install
-
-to configure, make, and install the headers and the libraries. If there is not
-`configure` file, please run
-
-    $ ./autogen.sh
-
-to generate the script.
-
-MiniGUI Core also provides some configuration options to customize the features.
-For more information, please run
-
-    $ ./configure --help
-
-### Building whole MiniGUI
-
-If you are anxious to see the comprehensive demo of MiniGUI Core
-and MiniGUI components, please fetch one of the following repositories
-from GitHub and follow the instructions to build MiniGUI Core,
-MiniGUI components, the samples, and the demonstration programs:
-
-<https://github.com/VincentWei/build-minigui-5.0>
-
-or
-
-<https://github.com/VincentWei/build-minigui-4.0>
-
-or
-
-<https://github.com/VincentWei/build-minigui-3.2>
-
-### Unit Tests
-
-Since MiniGUI 4.0.0, we organize the unit test code of MiniGUI APIs in the
-following repository:
-
-<https://github.com/VincentWei/mg-tests>
-
-If you are interested in hacking the MiniGUI code, please visit this repository.
-
 
 ## NEW FEATURES IN VERSION 5.0.x
 
@@ -378,6 +315,69 @@ resources for clients, manage window objects, and sends mouse
 (or touch screen) and keyboard events to the active top-most client.
 If a client exits or dies for some reasons, it will not damage other
 clients and the server.
+
+
+## A BRIEF BUILDING INSTRUCTION
+
+This instruction assumes that you are using Ubuntu Linux.
+
+### Prerequisites
+
+You should run `apt install <package_name>` to install the following packages
+on your Ubuntu Linux.
+
+ * Building tools:
+    * autoconf
+ * Dependent libraries (all are optional):
+    * libjpeg64-dev
+    * libpng12-dev (use libpng-dev on Ubuntu Linux 18.04 LTS)
+    * libfreetype6-dev
+
+### Building MiniGUI Core
+
+MiniGUI Core uses GNU autoconf/automake scripts to configure and build the project.
+
+Run
+
+    $ ./configure; make; sudo make install
+
+to configure, make, and install the headers and the libraries. If there is not
+`configure` file, please run
+
+    $ ./autogen.sh
+
+to generate the script.
+
+MiniGUI Core also provides some configuration options to customize the features.
+For more information, please run
+
+    $ ./configure --help
+
+### Building whole MiniGUI
+
+If you are anxious to see the comprehensive demo of MiniGUI Core
+and MiniGUI components, please fetch one of the following repositories
+from GitHub and follow the instructions to build MiniGUI Core,
+MiniGUI components, the samples, and the demonstration programs:
+
+<https://github.com/VincentWei/build-minigui-5.0>
+
+or
+
+<https://github.com/VincentWei/build-minigui-4.0>
+
+or
+
+<https://github.com/VincentWei/build-minigui-3.2>
+
+### Unit Tests
+
+Since MiniGUI 4.0.0, we organize the unit test code of MiniGUI APIs in the
+following repository:
+
+<https://github.com/VincentWei/mg-tests>
+
+If you are interested in hacking the MiniGUI code, please visit this repository.
 
 
 ## HISTORY

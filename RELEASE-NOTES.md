@@ -31,6 +31,8 @@ incompatibilities in
 ### What's new in this version
 
 - Tune the `fbcon` (Linux Frame Buffer) engine to support compositing schema.
+- Tune the `commlcd` (common LCD) engine to support cumulative updating and
+  compositing schema.
 - Fix some bugs.
 
 ## Version 4.9.0
