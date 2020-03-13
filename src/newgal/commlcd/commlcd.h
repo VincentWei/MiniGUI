@@ -47,6 +47,8 @@
 #ifndef _GAL_COMMLCD_H
 #define _GAL_COMMLCD_H
 
+#include <semaphore.h>
+
 #include "sysvideo.h"
 
 #include "exstubs.h"
@@ -68,6 +70,7 @@ struct GAL_PrivateVideoData {
     RECT rc_dirty;
     pthread_t update_th;
     pthread_mutex_t update_lock;
+    sem_t sem_update;
 };
 
 struct commlcd_ops {
