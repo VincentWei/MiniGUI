@@ -162,7 +162,7 @@ dump_message (const MSG* msg, const char* name)
             name, msg->message, Message2Str (msg->message),
             msg->hwnd, (PVOID)msg->wParam, (PVOID)msg->lParam);
 #else
-    _MG_PRINTF ("Message(%s): %u, Wnd: %p, wP: %p, lP: %p.\n",
+    _MG_PRINTF ("Message(%s) for %s: %u, Wnd: %p, wP: %p, lP: %p.\n",
 #ifdef _MGHAVE_VIRTUAL_WINDOW
             msg->pSyncMsg?"SYNC":"NORM",
 #else
