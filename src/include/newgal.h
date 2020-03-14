@@ -997,15 +997,15 @@ BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);
 
 GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
         uint32_t name, uint32_t drm_format, uint32_t pixels_off,
-        unsigned int width, unsigned int height, uint32_t pitch);
+        uint32_t width, uint32_t height, uint32_t pitch);
 
 GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
         uint32_t handle, size_t size, uint32_t drm_format, uint32_t pixels_off,
-        unsigned int width, unsigned int height, uint32_t pitch);
+        uint32_t width, uint32_t height, uint32_t pitch);
 
 GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
         int prime_fd, size_t size, uint32_t drm_format, uint32_t pixels_off,
-        unsigned int width, unsigned int height, uint32_t pitch);
+        uint32_t width, uint32_t height, uint32_t pitch);
 #endif /* defined _MGGAL_DRM */
 
 #ifdef __cplusplus
