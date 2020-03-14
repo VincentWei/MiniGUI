@@ -788,14 +788,14 @@ static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 
     info.flags = __gal_fake_screen->flags;
     if (__gal_fake_screen->shared_header) {
-        info.map_size = __gal_fake_screen->shared_header->pixels_size;
-        info.map_size += __gal_fake_screen->shared_header->pixels_off;
+        info.size = __gal_fake_screen->shared_header->pixels_size;
+        info.size += __gal_fake_screen->shared_header->pixels_off;
 
         return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO),
                     __gal_fake_screen->shared_header->fd);
     }
     else {
-        info.map_size = 0;
+        info.size = 0;
         return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), -1);
     }
 }
