@@ -64,6 +64,10 @@
 #include <semaphore.h>
 #endif
 
+#if IS_SHAREDFB_SCHEMA_PROCS
+#include <semaphore.h>
+#endif
+
 #define DISABLE_THREADS
 #define GAL_mutex       int
 
@@ -131,15 +135,10 @@ typedef struct _DirtyInfo {
  * than the creator.
  */
 typedef struct _SharedSurfaceHeader {
-#if 0
-    /* The semaphore for this shared surface */
-    sem_t           sem_lock;
-#else
     /* The number of semphore for this surface.
        The SysV semaphore set id for synchronizing this shared surface:
        SHAREDRES_SEMID_SHARED_SURF. */
     int             sem_num;
-#endif
 
     /* The pid of the creator */
     pid_t           creator;
@@ -159,12 +158,46 @@ typedef struct _SharedSurfaceHeader {
     /* the RGBA masks */
     Uint32          Rmask, Gmask, Bmask, Amask;
 
+    /* the size of the pixels data */
+    size_t          pixels_size;
+    /* the offset of pixels data */
+    off_t           pixels_off;
+} GAL_SharedSurfaceHeader;
+#endif /* IS_COMPOSITING_SCHEMA */
+
+#if IS_SHAREDFB_SCHEMA_PROCS
+/*
+ * Only used by DRM engine.
+ * Note that any process can read and/or write to this shared surface.
+ */
+typedef struct _SharedSurfaceHeader {
+    /* The POSIX semaphore for this shared surface */
+    sem_t           sem_lock;
+
+    /* The pid of the creator */
+    pid_t           creator;
+
+    /* The file descriptor in context of the creator. */
+    int             fd;
+    /* Not zero for hardware surface; zero for dumb surface. */
+    int             byhw;
+    /* The dirty information */
+    RECT            dirty_rc;
+    /* the size of the surface */
+    int             width, height;
+    /* the pitch of the surface */
+    int             pitch;
+    /* the pixel depth */
+    int             depth;
+    /* the RGBA masks */
+    Uint32          Rmask, Gmask, Bmask, Amask;
+
     /* the size of the buffer */
     size_t          buf_size;
     /* the pixels */
     char            buf[0];
 } GAL_SharedSurfaceHeader;
-#endif /* IS_COMPOSITING_SCHEMA */
+#endif  /* IS_SHAREDFB_SCHEMA_PROCS */
 
 /*
  * This structure should be treated as read-only, except for 'pixels',
@@ -957,6 +990,23 @@ BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst,
         BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
 
 #define mg_TerminateGAL GAL_VideoQuit
+
+#ifdef _MGGAL_DRM
+/* functions implemented in DRM engine. */
+BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);
+
+GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
+        uint32_t name, uint32_t drm_format, uint32_t pixels_off,
+        unsigned int width, unsigned int height, uint32_t pitch);
+
+GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
+        uint32_t handle, size_t size, uint32_t drm_format, uint32_t pixels_off,
+        unsigned int width, unsigned int height, uint32_t pitch);
+
+GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
+        int prime_fd, size_t size, uint32_t drm_format, uint32_t pixels_off,
+        unsigned int width, unsigned int height, uint32_t pitch);
+#endif /* defined _MGGAL_DRM */
 
 #ifdef __cplusplus
 }
