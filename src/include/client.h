@@ -101,8 +101,8 @@
 #define REQID_COPYCURSOR        0x001B
 
 /* Since 5.0.0 */
-// Get global wallpaper pattern surface
-#define REQID_GETWPSURFACE          0x001C
+// Get shared surface
+#define REQID_GETSHAREDSURFACE      0x001C
 // Load cursor from PNG file
 #define REQID_LOADCURSOR_PNG        0x001D
 // Load cursor from in-memory PNG
@@ -115,6 +115,9 @@
 // Move the current client to another layer
 #define REQID_MOVETOLAYER           0x0021
 // Calculate the position a main window with WS_EX_AUTOPOSITION
+#define REQID_CALCPOSITION          0x0022
+
+// Get the shared screen surface for client
 #define REQID_CALCPOSITION          0x0022
 
 #define REQID_SYS_LAST              REQID_CALCPOSITION
@@ -135,8 +138,9 @@ MGUI_COMPILE_TIME_ASSERT(sys_request_id, MAX_SYS_REQID >= REQID_SYS_LAST);
 
 /* Since 5.0.0 */
 typedef struct _SharedSurfInfo {
-    Uint32 flags;
-    size_t map_size;
+    Uint32      flags;      // the flags of the surface
+    uint32_t    name;       // when use flinked name
+    size_t      map_size;   // whole size of the surface
 } SHAREDSURFINFO;
 
 typedef struct JoinLayerInfo {

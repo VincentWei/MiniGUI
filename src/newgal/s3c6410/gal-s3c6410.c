@@ -190,7 +190,7 @@ static GAL_VideoDevice *S3C6410_CreateDevice(int devindex)
     device->SetVideoMode = S3C6410_SetVideoMode;
     device->SetColors = S3C6410_SetColors;
     device->VideoQuit = S3C6410_VideoQuit;
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
     device->RequestHWSurface = S3C6410_RequestHWSurface;
 #endif
     device->AllocHWSurface = S3C6410_AllocHWSurface;

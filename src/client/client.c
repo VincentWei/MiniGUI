@@ -192,7 +192,7 @@ int GUIAPI ClientRequestEx2 (const REQUEST* request,
             && (__mg_client_id == 0 && request->id != REQID_JOINLAYER)) {
 #elif defined(_MGSCHEMA_COMPOSITING)
     if (__mg_client_id == 0 && request->id != REQID_JOINLAYER &&
-            request->id != REQID_GETWPSURFACE) {
+            request->id != REQID_GETSHAREDSURFACE) {
 #else
     if (__mg_client_id == 0 && request->id != REQID_JOINLAYER) {
 #endif

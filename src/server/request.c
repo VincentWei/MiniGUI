@@ -727,7 +727,7 @@ static int handle_mlshadow_req (int cli, int clifd, void* buff, size_t len)
 }
 #endif
 
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
 void release_hw_surface (REQ_HWSURFACE* allocated)
 {
     /*[humingming./2010/11/24]: don't call GAL_RequestHWSurface,
@@ -768,23 +768,28 @@ static int req_hw_surface (int cli, int clifd, void* buff, size_t len)
 
     return ServerSendReply (clifd, &reply, sizeof (REP_HWSURFACE));
 }
-#endif /* IS_SHAREDFB_SCHEMA */
+#endif /* IS_SHAREDFB_SCHEMA_PROCS */
 
 #ifdef _MGHAVE_CLIPBOARD
 extern int __mg_clipboard_op (int cli, int clifd, void* buff, size_t len);
 #endif
 
 #if IS_COMPOSITING_SCHEMA
-static int get_wp_surface (int cli, int clifd, void* buff, size_t len)
+/* get the fake screen surface (wallpaper pattern surface) */
+static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 {
+    GHANDLE *handle;
     SHAREDSURFINFO info;
 
+    handle = buff;
+
     assert (__gal_fake_screen);
+    assert (*handle == 0);
 
     info.flags = __gal_fake_screen->flags;
     if (__gal_fake_screen->shared_header) {
-        info.map_size = sizeof (GAL_SharedSurfaceHeader);
-        info.map_size += __gal_fake_screen->shared_header->buf_size;
+        info.map_size = __gal_fake_screen->shared_header->pixels_size;
+        info.map_size += __gal_fake_screen->shared_header->pixels_off;
 
         return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO),
                     __gal_fake_screen->shared_header->fd);
@@ -794,7 +799,24 @@ static int get_wp_surface (int cli, int clifd, void* buff, size_t len)
         return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), -1);
     }
 }
-#endif /* IS_COMPOSITING_SCHEMA */
+#else   /* IS_COMPOSITING_SCHEMA */
+/* get the rendering surface */
+static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
+{
+    int fd = -1;
+    GHANDLE *handle;
+    SHAREDSURFINFO info = { 0, 0 };
+
+#ifdef _MGGAL_DRM
+    handle = buff;
+    extern int __drm_get_shared_screen_surface (GHANDLE, SHAREDSURFINFO*);
+
+    fd = __drm_get_shared_screen_surface (*handle, &info);
+#endif
+
+    return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), fd);
+}
+#endif  /* not IS_COMPOSITING_SCHEMA */
 
 static struct req_request {
     void* handler;
@@ -819,7 +841,7 @@ static struct req_request {
     { set_ime_stat, 0 },
     { get_ime_stat, 0 },
     { register_hook, 0 },
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
     { req_hw_surface, 0 },
 #else
     { NULL, 0 },
@@ -849,13 +871,13 @@ static struct req_request {
     { set_ime_targetinfo, 0 },
     { copy_cursor, 0 },
 #if IS_COMPOSITING_SCHEMA
-    { get_wp_surface, 0 },
+    { get_shared_surface, 0 },
     { load_cursor_png_file, 0 },
     { load_cursor_png_mem, 0 },
     { alloc_sem_for_shared_surf, 0 },
     { free_sem_for_shared_surf, 0 },
 #else
-    { NULL, 0 },
+    { get_shared_surface, 0 },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },

@@ -1843,7 +1843,7 @@ static GAL_VideoDevice *HI3560_CreateDevice (int devindex)
     this->ListModes = HI3560_ListModes;
     this->SetVideoMode = HI3560_SetVideoMode;
     this->VideoQuit = HI3560_VideoQuit;
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
     this->RequestHWSurface = HI3560_RequestHWSurface;
 #endif
     this->AllocHWSurface = HI3560_AllocHWSurface;

@@ -62,9 +62,9 @@
 #endif
 
 #if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_SHAREDFB)
-#   define IS_SHAREDFB_SCHEMA       1
+#   define IS_SHAREDFB_SCHEMA_PROCS 1
 #else
-#   define IS_SHAREDFB_SCHEMA       0
+#   define IS_SHAREDFB_SCHEMA_PROCS 0
 #endif
 
 /* the maximal number of the dirty rects */

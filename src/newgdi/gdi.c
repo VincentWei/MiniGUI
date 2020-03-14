@@ -4080,9 +4080,6 @@ GHANDLE GetVideoHandle (HDC hdc)
 
 #ifdef _MGGAL_DRM
 
-/* implemented in DRI engine. */
-BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);
-
 BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
 {
     PDC pdc = dc_HDC2PDC (hdc);
@@ -4092,14 +4089,8 @@ BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
     return __drm_get_surface_info(pdc->surface, info);
 }
 
-/* implemented in DRI engine. */
-GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
-            uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
-
-HDC drmCreateDCFromName (GHANDLE video,
-            uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch)
+HDC drmCreateDCFromName (GHANDLE video, uint32_t name, uint32_t drm_format,
+        unsigned int width, unsigned int height, uint32_t pitch)
 {
     PDC pmem_dc = NULL;
     GAL_Surface* surface;
@@ -4109,7 +4100,8 @@ HDC drmCreateDCFromName (GHANDLE video,
 
     LOCK (&__mg_gdilock);
     surface = __drm_create_surface_from_name (video, name,
-                drm_format, width, height, pitch);
+            drm_format, sizeof (GAL_SharedSurfaceHeader),
+            width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {
@@ -4146,11 +4138,6 @@ HDC drmCreateDCFromName (GHANDLE video,
 
     return (HDC)pmem_dc;
 }
-
-/* implemented in DRI engine. */
-GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
-            uint32_t handle, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
 
 HDC drmCreateDCFromHandle (GHANDLE video,
             uint32_t handle, unsigned long size, uint32_t drm_format,
@@ -4164,7 +4151,7 @@ HDC drmCreateDCFromHandle (GHANDLE video,
 
     LOCK (&__mg_gdilock);
     surface = __drm_create_surface_from_handle (video, handle, size,
-                drm_format, width, height, pitch);
+                drm_format, 0, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {
@@ -4202,11 +4189,6 @@ HDC drmCreateDCFromHandle (GHANDLE video,
     return (HDC)pmem_dc;
 }
 
-/* implemented in DRI engine. */
-GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
-            int prime_fd, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
-
 HDC drmCreateDCFromPrimeFd (GHANDLE video,
             int prime_fd, unsigned long size, uint32_t drm_format,
             unsigned int width, unsigned int height, uint32_t pitch)
@@ -4219,7 +4201,8 @@ HDC drmCreateDCFromPrimeFd (GHANDLE video,
 
     LOCK (&__mg_gdilock);
     surface =__drm_create_surface_from_prime_fd (video, prime_fd, size,
-                drm_format, width, height, pitch);
+            drm_format, sizeof (GAL_SharedSurfaceHeader),
+            width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {

@@ -357,8 +357,8 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin, const COMPOSITINGINFO* ct_inf
     assert (pWin->surf && pWin->surf->shared_header);
 
     info.surf_flags = pWin->surf->flags;
-    info.surf_size = pWin->surf->shared_header->buf_size;
-    info.surf_size += sizeof (*pWin->surf->shared_header);
+    info.surf_size = pWin->surf->shared_header->pixels_size;
+    info.surf_size += pWin->surf->shared_header->pixels_off;
 
     if (ct_info) {
         info.ct = ct_info->type;
@@ -474,8 +474,8 @@ static intptr_t cliMoveWindow (PMAINWIN pWin, const RECT* rcWin, int fd)
 
 #ifdef _MGSCHEMA_COMPOSITING
     info.surf_flags = pWin->surf->flags;
-    info.surf_size = pWin->surf->shared_header->buf_size;
-    info.surf_size += sizeof (*pWin->surf->shared_header);
+    info.surf_size = pWin->surf->shared_header->pixels_size;
+    info.surf_size += pWin->surf->shared_header->pixels_off;
 #endif
 
     if (ClientRequestEx2 (&req, NULL, 0, fd,
@@ -529,8 +529,8 @@ static intptr_t cliStartTrackPopupMenu (PTRACKMENUINFO ptmi)
         assert (surf->shared_header);
 
         info.surf_flags = surf->flags;
-        info.surf_size = surf->shared_header->buf_size;
-        info.surf_size += sizeof (*surf->shared_header);
+        info.surf_size = surf->shared_header->pixels_size;
+        info.surf_size += surf->shared_header->pixels_off;
         if (ClientRequestEx2 (&req, NULL, 0, surf->shared_header->fd,
                 &ret, sizeof (intptr_t), NULL) < 0)
             return -1;

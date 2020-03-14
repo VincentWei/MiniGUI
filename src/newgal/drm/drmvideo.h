@@ -85,6 +85,15 @@ typedef struct GAL_PrivateVideoData {
 
     /* only valid when using DRM driver */
     uint32_t        console_buff_id;
+
+    /* Since 5.0.0.
+     * When double buffering supported, the real surface represents the ultimate
+     * scan-out frame buffer, and the shadow screen represents the rendering
+     * surface. When double buffering disabled, both are NULL. */
+    GAL_Surface *real_screen, *shadow_screen;
+
+    /* Since 5.0.0. The current dirty rectangle */
+    RECT dirty_rc;
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */

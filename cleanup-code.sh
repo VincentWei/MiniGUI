@@ -172,5 +172,10 @@ tab2space() {
 # sed -i 's/\<checkAndGetMainWindowPtrOfMainWin\>/checkAndGetMainWinIfMainWin/g' `grep '\<checkAndGetMainWindowPtrOfMainWin\>' -rl include/ src/`
 # sed -i 's/\<checkAndGetMainWindowPtrOfControl\>/checkAndGetMainWinIfWindow/g' `grep '\<checkAndGetMainWindowPtrOfControl\>' -rl include/ src/`
 
-sed -i 's/\<mg_GetMsgQueueForThisThread\>/getMsgQueueForThisThread/g' `grep '\<mg_GetMsgQueueForThisThread\>' -rl include/ src/`
+# sed -i 's/\<mg_GetMsgQueueForThisThread\>/getMsgQueueForThisThread/g' `grep '\<mg_GetMsgQueueForThisThread\>' -rl include/ src/`
+
+# sed -i 's/\<IS_SHAREDFB_SCHEMA\>/IS_SHAREDFB_SCHEMA_PROCS/g' `grep '\<IS_SHAREDFB_SCHEMA\>' -rl include/ src/`
+
+sed -i 's/\<REQID_GETWPSURFACE\>/REQID_GETSHAREDSURFACE/g' `grep '\<REQID_GETWPSURFACE\>' -rl include/ src/`
+
 exit 0

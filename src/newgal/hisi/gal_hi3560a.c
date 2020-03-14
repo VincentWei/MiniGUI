@@ -236,7 +236,7 @@ static GAL_VideoDevice *HI3560A_CreateDevice(int devindex)
     device->SetVideoMode = HI3560A_SetVideoMode;
     device->SetColors = HI3560A_SetColors;
     device->VideoQuit = HI3560A_VideoQuit;
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
     device->RequestHWSurface = HI3560A_RequestHWSurface;
 #endif
     device->AllocHWSurface = HI3560A_AllocHWSurface;

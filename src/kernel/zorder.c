@@ -274,7 +274,7 @@ void __kernel_free_z_order_info (ZORDERINFO* zi)
 }
 
 #if 0   /* deprecated code */
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
 
 int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 {
@@ -299,7 +299,7 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     return zorder_shmid;
 }
 
-#else /* not IS_SHAREDFB_SCHEMA */
+#else /* not IS_SHAREDFB_SCHEMA_PROCS */
 
 ZORDERINFO* __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
 {
@@ -378,14 +378,14 @@ ZORDERINFO* __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     return zi;
 }
 
-#endif /* not IS_SHAREDFB_SCHEMA */
+#endif /* not IS_SHAREDFB_SCHEMA_PROCS */
 
 void __kernel_free_z_order_info (ZORDERINFO* zi)
 {
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
     if (shmdt (zi) < 0)
         perror ("Detaches shared zorder nodes");
-#else /* not IS_SHAREDFB_SCHEMA */
+#else /* not IS_SHAREDFB_SCHEMA_PROCS */
 
 #ifdef _MGRM_THREADS
 #ifndef __NOUNIX__
@@ -396,7 +396,7 @@ void __kernel_free_z_order_info (ZORDERINFO* zi)
 #endif /* _MGRM_THREADS */
 
     free (zi);
-#endif /* not IS_SHAREDFB_SCHEMA */
+#endif /* not IS_SHAREDFB_SCHEMA_PROCS */
 }
 
 #endif  /* deprecated code */

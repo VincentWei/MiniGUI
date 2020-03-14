@@ -156,7 +156,7 @@ struct GAL_VideoDevice {
        Set to NULL if no hardware shared surface supported.
        Return the PRIME file descriptor if success, otherwize -1. */
     int (*AllocSharedHWSurface)(_THIS, GAL_Surface *surface,
-            size_t* buf_size, off_t* buf_off, Uint32 rw_modes);
+            size_t* pixels_size, off_t* pixels_off, Uint32 rw_modes);
 
     /* Free a shared surface in hardware video memory.
        Set to NULL if no hardware shared surface supported.
@@ -167,7 +167,7 @@ struct GAL_VideoDevice {
        Set to NULL if no hardware shared surface supported.
        Return 0 if success, otherwize -1. */
     int (*AttachSharedHWSurface)(_THIS, GAL_Surface *surface,
-            int fd, size_t mapsize, BOOL with_rw);
+            int prime_fd, size_t mapsize, BOOL with_rw);
 
     /* Dettach from a shared surface in hardware video memory.
        Set to NULL if no hardware shared surface supported.
@@ -182,7 +182,7 @@ struct GAL_VideoDevice {
     /* Free a dumb surface allocated from hardware.
        Set to NULL if dumb surface is not supported.
        Return 0 if success, otherwise -1. */
-    int (*FreeDumbSurface)(_THIS, GAL_Surface *surface);
+    void (*FreeDumbSurface)(_THIS, GAL_Surface *surface);
 
     /* Set hardware cursor.
        Set to NULL or return -1 if no hardware cursor support. */

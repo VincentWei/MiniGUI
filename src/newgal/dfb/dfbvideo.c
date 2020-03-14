@@ -117,7 +117,7 @@ GAL_FunctionTable mgGALFuncTable = {
     DFB_SetColors,
     DFB_UpdateRects,
     DFB_VideoQuit,
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
     DFB_RequestHWSurface,
 #endif
     DFB_AllocHWSurface,
@@ -167,7 +167,7 @@ static GAL_VideoDevice *DFB_CreateDevice (int devindex)
         device->SetColors = DFB_SetColors;
         device->VideoQuit = DFB_VideoQuit;
         device->UpdateRects = DFB_UpdateRects;
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
         device->RequestHWSurface = DFB_RequestHWSurface;
 #endif
         device->AllocHWSurface = DFB_AllocHWSurface;

@@ -230,18 +230,19 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
     }
     else {
         REQUEST req;
+        GHANDLE handle = 0; // for wallpaper pattern, handle always be zero.
         int fd = -1;
         SHAREDSURFINFO info;
 
-        req.id = REQID_GETWPSURFACE;
-        req.data = &fd;
-        req.len_data = sizeof(int);
+        req.id = REQID_GETSHAREDSURFACE;
+        req.data = &handle;
+        req.len_data = sizeof(GHANDLE);
 
         if ((ClientRequestEx2 (&req, NULL, 0, -1,
                 &info, sizeof (SHAREDSURFINFO), &fd) < 0) || (fd < 0))
             goto empty;
 
-        _DBG_PRINTF ("REQID_GETWPSURFACE: map_size (%lu), flags (0x%x), fd: %d\n",
+        _DBG_PRINTF ("REQID_GETSHAREDSURFACE: map_size (%lu), flags (0x%x), fd: %d\n",
                     info.map_size, info.flags, fd);
         wp_surf = GAL_AttachSharedRGBSurface (fd, info.map_size,
             info.flags, TRUE);

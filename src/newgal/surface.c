@@ -1760,7 +1760,7 @@ void GAL_FreeSurface (GAL_Surface *surface)
 #endif
 }
 
-#if IS_SHAREDFB_SCHEMA
+#if IS_SHAREDFB_SCHEMA_PROCS
 void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
 {
     if (__mg_current_video->RequestHWSurface) {
