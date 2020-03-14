@@ -125,15 +125,18 @@ typedef struct _DrmSurfaceBuffer {
     /** The local handle of the buffer */
     uint32_t handle;
 
+    /** The DRM format of the buffer */
+    uint32_t drm_format;
+
+    /** The whole size in bytes of the buffer */
+    size_t size;
+
     /**
       * The offset from the buffer start to the real pixel data in bytes.
       * It must be equal to or larger than the size of the buffer header.
       * Since 5.0.0.
       */
-    uint32_t offset;
-
-    /** The whole size in bytes of the buffer */
-    size_t size;
+    off_t offset;
 
     /**
       * The mapped address of the buffer;
