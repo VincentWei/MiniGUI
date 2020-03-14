@@ -68,8 +68,14 @@
 #include "newgal.h"
 #include "exstubs.h"
 
+#include "cursor.h"
 #include "pixels_c.h"
 #include "drmvideo.h"
+
+#ifdef _MGRM_PROCESSES
+#include "client.h"
+#include "sharedres.h"
+#endif
 
 #define DRM_DRIVER_NAME "drm"
 
@@ -206,10 +212,18 @@ static uint32_t get_drm_format_from_etc(int* bpp)
     uint32_t format;
     char fourcc[8] = {};
 
-    if (GetMgEtcValue ("drm", "pixelformat",
-            fourcc, 4) < 0) {
-        return get_def_drm_format(*bpp);
+#ifdef _MGRM_PROCESSES
+    if (mgIsServer) {
+#endif
+        if (GetMgEtcValue ("drm", "pixelformat", fourcc, 4) < 0) {
+            return get_def_drm_format(*bpp);
+        }
+#ifdef _MGRM_PROCESSES
     }
+    else {
+        memcpy (fourcc, SHAREDRES_VIDEO_FOURCC, 4);
+    }
+#endif
 
     format = fourcc_code(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
     switch (format) {
@@ -840,14 +854,23 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
     DrmDriverOps* (*get_exdrv) (const char* driver_name, int device_fd);
     char* error;
 
-    filename = getenv ("MG_GAL_DRM_DRIVER");
-    if (filename == NULL) {
-        memset (buff, 0, sizeof (buff));
-        if (GetMgEtcValue ("drm", "exdriver", buff, LEN_SO_NAME) < 0)
-            return NULL;
+#ifdef _MGRM_PROCESSES
+    if (mgIsServer) {
+#endif
+        filename = getenv ("MG_GAL_DRM_DRIVER");
+        if (filename == NULL) {
+            memset (buff, 0, sizeof (buff));
+            if (GetMgEtcValue ("drm", "exdriver", buff, LEN_SO_NAME) < 0)
+                return NULL;
 
-        filename = buff;
+            filename = buff;
+        }
+#ifdef _MGRM_PROCESSES
     }
+    else {
+        filename = SHAREDRES_VIDEO_EXDRIVER;
+    }
+#endif
 
     vdata->exdrv_handle = dlopen (filename, RTLD_LAZY);
     if (!vdata->exdrv_handle) {
@@ -890,12 +913,39 @@ static int open_drm_device(GAL_VideoDevice *device)
 
     free (driver_name);
 
-    if (device->hidden->driver_ops == NULL) {
-        uint64_t has_dumb;
+    /* get capabilities */
+    {
+        uint64_t has_dumb, cursor_width, cursor_height;
 
         /* check whether supports dumb buffer */
         if (drmGetCap(device_fd, DRM_CAP_DUMB_BUFFER, &has_dumb) < 0 ||
                 !has_dumb) {
+            device->hidden->cap_dumb = 0;
+        }
+        else {
+            device->hidden->cap_dumb = 1;
+        }
+
+        if (drmGetCap(device_fd, DRM_CAP_CURSOR_WIDTH, &cursor_width) < 0 ||
+                cursor_width == 0) {
+            device->hidden->cap_cursor_width = 0;
+        }
+        else {
+            device->hidden->cap_cursor_width = cursor_width;
+        }
+
+        if (drmGetCap(device_fd, DRM_CAP_CURSOR_HEIGHT, &cursor_height) < 0 ||
+                cursor_height == 0) {
+            device->hidden->cap_cursor_height = 0;
+        }
+        else {
+            device->hidden->cap_cursor_height = cursor_height;
+        }
+    }
+
+    if (device->hidden->driver_ops == NULL) {
+        /* check whether supports dumb buffer */
+        if (!device->hidden->cap_dumb) {
             _ERR_PRINTF("NEWGAL>DRM: the DRM device '%s' does not support "
                     "dumb buffers\n",
                     device->hidden->dev_name);
@@ -938,11 +988,24 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     }
 
     memset(device->hidden, 0, (sizeof (*device->hidden)));
-    if (GetMgEtcValue ("drm", "device",
-            device->hidden->dev_name, LEN_DEVICE_NAME) < 0) {
-        strcpy(device->hidden->dev_name, "/dev/dri/card0");
-        _WRN_PRINTF("No drm.device defined, use the default '/dev/dri/card0'\n");
+#ifdef _MGRM_PROCESSES
+    if (mgIsServer) {
+#endif
+        if (GetMgEtcValue ("drm", "device",
+                device->hidden->dev_name, LEN_DEVICE_NAME) < 0) {
+            strcpy(device->hidden->dev_name, "/dev/dri/card0");
+            _WRN_PRINTF("No drm.device defined, use default '/dev/dri/card0'\n");
+        }
+#ifdef _MGRM_PROCESSES
     }
+    else {
+        memcpy(device->hidden->dev_name, SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME);
+        if (*device->hidden->dev_name == 0) {
+            strcpy(device->hidden->dev_name, "/dev/dri/card0");
+            _WRN_PRINTF("No drm.device defined, use default '/dev/dri/card0'\n");
+        }
+    }
+#endif
 
     device->hidden->dev_fd = -1;
     open_drm_device(device);
@@ -1007,10 +1070,22 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     device->FreeSharedHWSurface = DRM_FreeSharedHWSurface;
     device->AttachSharedHWSurface = DRM_AttachSharedHWSurface;
     device->DettachSharedHWSurface = DRM_DettachSharedHWSurface;
-    device->AllocDumbSurface = DRM_AllocDumbSurface;
-    device->FreeDumbSurface = DRM_FreeDumbSurface;
-    device->SetCursor = DRM_SetCursor;
-    device->MoveCursor = DRM_MoveCursor;
+    if (device->hidden->cap_dumb) {
+        device->AllocDumbSurface = DRM_AllocDumbSurface;
+        device->FreeDumbSurface = DRM_FreeDumbSurface;
+    }
+    else {
+        device->AllocDumbSurface = NULL;
+        device->FreeDumbSurface = NULL;
+    }
+
+    if (device->hidden->cap_dumb &&
+            device->hidden->cap_cursor_width >= CURSORWIDTH &&
+            device->hidden->cap_cursor_height >= CURSORHEIGHT) {
+        device->info.hw_cursor = 1;
+        device->SetCursor = DRM_SetCursor;
+        device->MoveCursor = DRM_MoveCursor;
+    }
 #endif
 
     /* set accelerated methods in DRM_VideoInit */
@@ -1483,9 +1558,9 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     }
 
     surface_buffer->handle = creq.handle;
+    surface_buffer->drm_format = drm_format;
     //surface_buffer->width = creq.width;
     //surface_buffer->height = creq.height - nr_header_lines;
-    //surface_buffer->drm_format = drm_format;
     //surface_buffer->bpp = bpp;
     //surface_buffer->cpp = cpp;
     //surface_buffer->foreign = 0;
@@ -1980,10 +2055,29 @@ error:
 
 #if IS_SHAREDFB_SCHEMA_PROCS
 
-#include "client.h"
-
 int __drm_get_shared_screen_surface (GHANDLE handle, SHAREDSURFINFO* info)
 {
+    GAL_VideoDevice *this = __mg_current_video;
+    DrmVideoData* vdata = this->hidden;
+
+    assert (handle == 0);
+    if (vdata->buff_name == 0) {
+		struct drm_gem_flink flink;
+
+		memset (&flink, 0, sizeof (flink));
+		flink.handle = vdata->handle;
+		if (drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_FLINK, &flink))
+            return -1;
+
+        vdata->buff_name = flink.name;
+    }
+
+    /* XXX */
+    info->flags = 0;
+    info->name = vdata->buff_name;
+    info->size = vdata->size;
+    info->offset = 0;
+
     return 0;
 }
 
@@ -1991,7 +2085,50 @@ int __drm_get_shared_screen_surface (GHANDLE handle, SHAREDSURFINFO* info)
 static GAL_Surface *DRM_SetVideoMode_Client(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags)
 {
-    return NULL;
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer* surface_buffer;
+    REQUEST req;
+    GHANDLE handle = 0; // for screen surface, handle always be zero.
+    SHAREDSURFINFO info;
+
+    if (vdata->driver_ops == NULL ||
+            vdata->driver_ops->create_buffer_from_name == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_name is not implemented!\n");
+        return NULL;
+    }
+
+    req.id = REQID_GETSHAREDSURFACE;
+    req.data = &handle;
+    req.len_data = sizeof(GHANDLE);
+
+    if ((ClientRequestEx (&req, NULL, 0, &info, sizeof (SHAREDSURFINFO)) < 0)) {
+        return NULL;
+    }
+
+    _DBG_PRINTF ("REQID_GETSHAREDSURFACE: name(%u), flags(%x), "
+            "size (%lu), offset (%lu)\n",
+            info.name, info.flags, info.size, info.offset);
+
+    surface_buffer = vdata->driver_ops->create_buffer_from_name(vdata->driver,
+            info.name);
+    if (surface_buffer == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_name failed: %u!\n",
+                info.name);
+        return NULL;
+    }
+
+    assert (surface_buffer->size == info.size);
+
+    surface_buffer->drm_format = translate_gal_format(current->format);
+    surface_buffer->offset = info.offset;
+
+    current->flags |= (GAL_FULLSCREEN | GAL_HWSURFACE);
+    current->w = SHAREDRES_VIDEO_HRES;
+    current->h = SHAREDRES_VIDEO_VRES;
+    current->pitch = (info.size - info.offset) / SHAREDRES_VIDEO_VRES;
+    current->pixels = surface_buffer->buff + surface_buffer->offset;
+    current->hwdata = (struct private_hwdata *)surface_buffer;
+    return current;
 }
 #endif  /* IS_SHAREDFB_SCHEMA_PROCS */
 
@@ -2181,8 +2318,9 @@ BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info)
             info->width = surface->w;
             info->height = surface->h;
             info->pitch = surface->pitch;
-            //info->drm_format = surface_buffer->drm_format;
+            info->drm_format = surface_buffer->drm_format;
             info->size = surface_buffer->size;
+            info->offset = surface_buffer->offset;
             return TRUE;
         }
     }
@@ -2262,7 +2400,7 @@ error:
 /* called by drmCreateDCFromName */
 GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
             uint32_t name, uint32_t drm_format, uint32_t pixels_off,
-            unsigned int width, unsigned int height, uint32_t pitch)
+            uint32_t width, uint32_t height, uint32_t pitch)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;
     DrmVideoData* vdata = this->hidden;
@@ -2292,6 +2430,8 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
         _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_name failed: %u!\n", name);
         return NULL;
     }
+
+    surface_buffer->drm_format = drm_format;
     surface_buffer->offset = pixels_off;
 
     return create_surface_from_buffer (this, surface_buffer, depth,
@@ -2301,7 +2441,7 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
 /* called by drmCreateDCFromHandle */
 GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
         unsigned long size, uint32_t drm_format, uint32_t pixels_off,
-        unsigned int width, unsigned int height, uint32_t pitch)
+        uint32_t width, uint32_t height, uint32_t pitch)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;
     DrmVideoData* vdata = this->hidden;
@@ -2331,6 +2471,8 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
         _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_handle failed!\n");
         return NULL;
     }
+
+    surface_buffer->drm_format = drm_format;
     surface_buffer->offset = pixels_off;
 
     return create_surface_from_buffer (this, surface_buffer, depth,
@@ -2371,6 +2513,8 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
         _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_prime_fd failed!\n");
         return NULL;
     }
+
+    surface_buffer->drm_format = drm_format;
     surface_buffer->offset = pixels_off;
 
     return create_surface_from_buffer (this, surface_buffer, depth,
