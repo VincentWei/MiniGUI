@@ -93,15 +93,14 @@ typedef struct _DrmDriver DrmDriver;
 
 /**
  * The struct type represents the bufffer can be used by
- * MiniGUI NEWGAL engine for hardware surface.
+ * MiniGUI NEWGAL DRM engine for hardware surface.
  */
 typedef struct _DrmSurfaceBuffer {
+#if 0 /* deprecated fields */
     /** The prime fd of the buffer */
     int prime_fd;
     /** The global name of the buffer */
     uint32_t name;
-    /** The local handle of the buffer */
-    uint32_t handle;
     /** The buffer identifier */
     uint32_t id;
     /** The widht of the buffer */
@@ -119,11 +118,31 @@ typedef struct _DrmSurfaceBuffer {
     uint32_t cpp:8;
     /** Is foreign surface */
     uint32_t foreign:1;
+    /** Is dumb surface. Since 5.0.0. */
+    uint32_t dumb:1;
+#endif  /* deprecated fields */
+
+    /** The local handle of the buffer */
+    uint32_t handle;
+
+    /**
+      * The offset from the buffer start to the real pixel data in bytes.
+      * It must be equal to or larger than the size of the buffer header.
+      * Since 5.0.0.
+      */
+    uint32_t offset;
 
     /** The whole size in bytes of the buffer */
-    unsigned long size;
-    /** The mapped address of the buffer; NULL when the buffer is not mapped yet. */
-    uint8_t* pixels;
+    size_t size;
+
+    /**
+      * The mapped address of the buffer;
+      * NULL when the buffer is not mapped yet.
+      *
+      * The address of the pixel data:
+      *     uint8_t* pixels = this->buff + this->offset;
+      */
+    uint8_t* buff;
 } DrmSurfaceBuffer;
 
 /**
@@ -175,15 +194,16 @@ typedef struct _DrmDriverOps {
 
     /**
      * This operation creates a buffer with the specified pixel format,
-     * width, and height. If succeed, a valid DrmSurfaceBuffer object will
-     * be returned; NULL on error. Note that the field of `pixels` of the
-     * DrmSurfaceBuffer object is NULL until the \a map_buffer was called.
+     * header size, width, and height. If succeed, a valid DrmSurfaceBuffer
+     * object will be returned; NULL on error. Note that the field of `buff`
+     * of the DrmSurfaceBuffer object is NULL until the \a map_buffer was called.
      *
-     * \note The driver must implement this operation.
+     * \note The driver must implement this operation. The pitch (row stride
+     *  in bytes) for the buffer should be returned through \a pitch.
      */
     DrmSurfaceBuffer* (* create_buffer) (DrmDriver *driver,
-            uint32_t drm_format,
-            unsigned int width, unsigned int height);
+            uint32_t drm_format, uint32_t hdr_size,
+            int width, int height, int* pitch);
 
     /**
      * This operation creates a buffer for the given handle
@@ -193,8 +213,7 @@ typedef struct _DrmDriverOps {
      * \note This operation can be NULL.
      */
     DrmSurfaceBuffer* (* create_buffer_from_handle) (DrmDriver *driver,
-            uint32_t handle, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, unsigned int pitch);
+            uint32_t handle, size_t size);
 
     /**
      * This operation creates a buffer for the given system global name
@@ -204,8 +223,7 @@ typedef struct _DrmDriverOps {
      * \note This operation can be NULL.
      */
     DrmSurfaceBuffer* (* create_buffer_from_name) (DrmDriver *driver,
-            uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height, unsigned int pitch);
+            uint32_t name);
 
     /**
      * This operation creates a buffer for the given PRIME file descriptor
@@ -215,8 +233,7 @@ typedef struct _DrmDriverOps {
      * \note This operation can be NULL.
      */
     DrmSurfaceBuffer* (* create_buffer_from_prime_fd) (DrmDriver *driver,
-            int prime_fd, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, unsigned int pitch);
+            int prime_fd, size_t size);
 
     /**
      * This operation maps the buffer into the current process's virtual memory
