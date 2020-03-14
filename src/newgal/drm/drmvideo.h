@@ -58,8 +58,35 @@
 typedef struct drm_mode_info DrmModeInfo;
 
 typedef struct GAL_PrivateVideoData {
+    /* For compositing schema, we force to use double buffering */
+#ifdef _MGSCHEMA_COMPOSITING
+    /* start of header for shadow screen */
+    int magic, version;
+    GAL_Surface *real_screen, *shadow_screen;
+    RECT dirty_rc;
+
+    /* Used to simulate the hardware cursor. */
+    GAL_Surface *cursor;
+    int csr_x, csr_y;
+    int hot_x, hot_y;
+    /* end of header for shadow screen */
+#else   /* defined _MGSCHEMA_COMPOSITING */
+    /* When double buffering supported, the real surface represents the ultimate
+     * scan-out frame buffer, and the shadow screen represents the rendering
+     * surface. When double buffering disabled, both are NULL. */
+    GAL_Surface *real_screen, *shadow_screen;
+
+    /* the global name of the surface buffer */
+    uint32_t    buff_name;
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
+
     char            dev_name[LEN_DEVICE_NAME + 1];
     int             dev_fd;
+
+    /* capabilities */
+    uint32_t        cap_cursor_width:10;
+    uint32_t        cap_cursor_height:10;
+    uint32_t        cap_dumb:1;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;
@@ -86,14 +113,6 @@ typedef struct GAL_PrivateVideoData {
     /* only valid when using DRM driver */
     uint32_t        console_buff_id;
 
-    /* Since 5.0.0.
-     * When double buffering supported, the real surface represents the ultimate
-     * scan-out frame buffer, and the shadow screen represents the rendering
-     * surface. When double buffering disabled, both are NULL. */
-    GAL_Surface *real_screen, *shadow_screen;
-
-    /* Since 5.0.0. The current dirty rectangle */
-    RECT dirty_rc;
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */
