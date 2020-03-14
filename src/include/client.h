@@ -140,7 +140,8 @@ MGUI_COMPILE_TIME_ASSERT(sys_request_id, MAX_SYS_REQID >= REQID_SYS_LAST);
 typedef struct _SharedSurfInfo {
     Uint32      flags;      // the flags of the surface
     uint32_t    name;       // when use flinked name
-    size_t      map_size;   // whole size of the surface
+    size_t      size;       // whole size of the surface
+    off_t       offset;     // offset of pixel data
 } SHAREDSURFINFO;
 
 typedef struct JoinLayerInfo {
