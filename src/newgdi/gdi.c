@@ -4090,7 +4090,7 @@ BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
 }
 
 HDC drmCreateDCFromName (GHANDLE video, uint32_t name, uint32_t drm_format,
-        unsigned int width, unsigned int height, uint32_t pitch)
+        off_t offset, uint32_t width, uint32_t height, uint32_t pitch)
 {
     PDC pmem_dc = NULL;
     GAL_Surface* surface;
@@ -4100,8 +4100,7 @@ HDC drmCreateDCFromName (GHANDLE video, uint32_t name, uint32_t drm_format,
 
     LOCK (&__mg_gdilock);
     surface = __drm_create_surface_from_name (video, name,
-            drm_format, sizeof (GAL_SharedSurfaceHeader),
-            width, height, pitch);
+            drm_format, offset, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {
@@ -4139,9 +4138,9 @@ HDC drmCreateDCFromName (GHANDLE video, uint32_t name, uint32_t drm_format,
     return (HDC)pmem_dc;
 }
 
-HDC drmCreateDCFromHandle (GHANDLE video,
-            uint32_t handle, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch)
+HDC drmCreateDCFromHandle (GHANDLE video, uint32_t handle, size_t size,
+        uint32_t drm_format, off_t offset,
+        uint32_t width, uint32_t height, uint32_t pitch)
 {
     PDC pmem_dc = NULL;
     GAL_Surface* surface;
@@ -4189,15 +4188,18 @@ HDC drmCreateDCFromHandle (GHANDLE video,
     return (HDC)pmem_dc;
 }
 
-HDC drmCreateDCFromPrimeFd (GHANDLE video,
-            int prime_fd, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch)
+HDC drmCreateDCFromPrimeFd (GHANDLE video, int prime_fd, size_t size,
+        uint32_t drm_format, off_t offset,
+        uint32_t width, uint32_t height, uint32_t pitch)
 {
     PDC pmem_dc = NULL;
     GAL_Surface* surface;
 
     if (!(pmem_dc = malloc (sizeof(DC))))
         return HDC_INVALID;
+
+    if (size == 0) {
+    }
 
     LOCK (&__mg_gdilock);
     surface =__drm_create_surface_from_prime_fd (video, prime_fd, size,
