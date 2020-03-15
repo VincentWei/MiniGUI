@@ -60,12 +60,9 @@ typedef struct drm_mode_info DrmModeInfo;
 typedef struct GAL_PrivateVideoData {
     /* For compositing schema, we force to use double buffering */
 #ifdef _MGSCHEMA_COMPOSITING
-    /* start of header for shadow screen */
-    int magic, version;
     GAL_Surface *real_screen, *shadow_screen;
-    RECT dirty_rc;
 
-    /* Used to simulate the hardware cursor. */
+    /* Used to simulate the hardware cursor when hardware cursor not available. */
     GAL_Surface *cursor;
     int csr_x, csr_y;
     int hot_x, hot_y;
@@ -84,10 +81,11 @@ typedef struct GAL_PrivateVideoData {
     int             dev_fd;
 
     /* capabilities */
-    uint32_t        cap_cursor_width:8;
-    uint32_t        cap_cursor_height:8;
+    uint32_t        cap_cursor_width;
+    uint32_t        cap_cursor_height;
     uint32_t        cap_dumb:1;
     uint32_t        dbl_buff:1;
+    uint32_t        scanout_buff_id;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;
@@ -96,24 +94,13 @@ typedef struct GAL_PrivateVideoData {
     DrmModeInfo*    mode_list;
     GAL_Rect**      modes;
 
-    int             bpp;
-    uint32_t        width;
-    uint32_t        height;
-    uint32_t        pitch;
-    uint32_t        size;
-
-    uint32_t        scanout_buff_id;
-    uint8_t*        scanout_fb;
-
     DrmModeInfo*    saved_info;
     drmModeCrtc*    saved_crtc;
 
-    /* only valid when using DUMB frame buffer */
-    uint32_t        handle;
-
-    /* only valid when using DRM driver */
+#if 0   /* deprecated code */
     uint32_t        console_buff_id;
-
+    uint8_t*        scanout_fb;
+#endif  /* deprecated code */
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */
