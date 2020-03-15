@@ -216,16 +216,19 @@ static uint32_t get_drm_format_from_etc(int* bpp)
     if (mgIsServer) {
 #endif
         if (GetMgEtcValue ("drm", "pixelformat", fourcc, 4) < 0) {
-            return get_def_drm_format(*bpp);
+            format = get_def_drm_format(*bpp);
+        }
+        else {
+            format = fourcc_code(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
         }
 #ifdef _MGRM_PROCESSES
+        SHAREDRES_VIDEO_DRM_FORMAT = format;
     }
     else {
-        memcpy (fourcc, SHAREDRES_VIDEO_FOURCC, 4);
+        format = SHAREDRES_VIDEO_DRM_FORMAT;
     }
 #endif
 
-    format = fourcc_code(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
     switch (format) {
     case DRM_FORMAT_RGB332:
     case DRM_FORMAT_BGR233:
@@ -866,6 +869,8 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
             filename = buff;
         }
 #ifdef _MGRM_PROCESSES
+        strncpy (SHAREDRES_VIDEO_EXDRIVER, filename, LEN_EXDRIVER_NAME);
+        SHAREDRES_VIDEO_EXDRIVER[LEN_EXDRIVER_NAME] = 0;
     }
     else {
         filename = SHAREDRES_VIDEO_EXDRIVER;
@@ -997,6 +1002,8 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             _WRN_PRINTF("No drm.device defined, use default '/dev/dri/card0'\n");
         }
 #ifdef _MGRM_PROCESSES
+        // copy to shared resource segment
+        strcpy (SHAREDRES_VIDEO_DEVICE, device->hidden->dev_name);
     }
     else {
         memcpy(device->hidden->dev_name, SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME);
@@ -1012,6 +1019,33 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     if (device->hidden->dev_fd < 0) {
         return NULL;
     }
+
+    /* check double buffering */
+#if IS_COMPOSITING_SCHEMA
+    /* force to use double buffering to compositing schema */
+    device->hidden->dbl_buff = 1;
+#else   /* IS_COMPOSITING_SCHEMA */
+
+# if IS_SHAREDFB_SCHEMA_PROCS
+    if (mgIsServer) {
+# endif /* IS_SHAREDFB_SCHEMA_PROCS */
+        char tmp [8];
+        if (GetMgEtcValue ("drm", "double_buffering", tmp, 8) < 0) {
+            device->hidden->dbl_buff = 0;
+        }
+        else if (strcasecmp (tmp, "true") == 0 ||
+                strcasecmp (tmp, "yes") == 0) {
+            device->hidden->dbl_buff = 1;
+        }
+# if IS_SHAREDFB_SCHEMA_PROCS
+        SHAREDRES_VIDEO_DBL_BUFF = device->hidden->dbl_buff;
+    }
+    else {
+        device->hidden->dbl_buff = SHAREDRES_VIDEO_DBL_BUFF;
+    }
+# endif /* IS_SHAREDFB_SCHEMA_PROCS */
+
+#endif  /* not IS_COMPOSITING_SCHEMA */
 
     device->VideoInit = DRM_VideoInit;
     device->ListModes = DRM_ListModes;

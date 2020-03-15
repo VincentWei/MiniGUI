@@ -84,9 +84,10 @@ typedef struct GAL_PrivateVideoData {
     int             dev_fd;
 
     /* capabilities */
-    uint32_t        cap_cursor_width:10;
-    uint32_t        cap_cursor_height:10;
+    uint32_t        cap_cursor_width:8;
+    uint32_t        cap_cursor_height:8;
     uint32_t        cap_dumb:1;
+    uint32_t        dbl_buff:1;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;
