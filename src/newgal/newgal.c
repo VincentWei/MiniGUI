@@ -230,13 +230,12 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
     }
     else {
         REQUEST req;
-        GHANDLE handle = 0; // for wallpaper pattern, handle always be zero.
         int fd = -1;
         SHAREDSURFINFO info;
 
         req.id = REQID_GETSHAREDSURFACE;
-        req.data = &handle;
-        req.len_data = sizeof(GHANDLE);
+        req.data = SYSSF_WALLPAPER_PATTER;
+        req.len_data = strlen (SYSSF_WALLPAPER_PATTER) + 1;
 
         if ((ClientRequestEx2 (&req, NULL, 0, -1,
                 &info, sizeof (SHAREDSURFINFO), &fd) < 0) || (fd < 0))
