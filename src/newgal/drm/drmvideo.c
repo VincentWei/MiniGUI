@@ -1660,9 +1660,10 @@ static inline uint32_t nr_lines_for_header (uint32_t header_size,
     uint32_t min_pitch = width * cpp;
     uint32_t nr_lines = header_size / min_pitch;
 
-    if (nr_lines == 0)
-        nr_lines = 1;
+    if (header_size % min_pitch)
+        nr_lines++;
 
+    assert (nr_lines > 0);
     return nr_lines;
 }
 
