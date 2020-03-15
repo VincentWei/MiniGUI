@@ -948,7 +948,7 @@ static int open_drm_device(GAL_VideoDevice *device)
         }
     }
 
-    if (device->hidden->driver_ops == NULL) {
+    if (device->hidden->driver == NULL) {
         /* check whether supports dumb buffer */
         if (!device->hidden->cap_dumb) {
             _ERR_PRINTF("NEWGAL>DRM: the DRM device '%s' does not support "
@@ -1634,6 +1634,129 @@ err_destroy:
     return NULL;
 }
 
+static DrmSurfaceBuffer *drm_create_dumb_buffer_from_handle(DrmVideoData* vdata,
+        uint32_t handle, size_t size)
+{
+    int ret;
+    DrmSurfaceBuffer *surface_buffer = NULL;
+    struct drm_mode_map_dumb mreq;
+
+    if ((surface_buffer = malloc (sizeof (DrmSurfaceBuffer))) == NULL) {
+        _WRN_PRINTF("Failed to allocate memory\n");
+        goto error;
+    }
+
+    surface_buffer->handle = handle;
+    surface_buffer->size = size;
+
+    /* prepare buffer for memory mapping */
+    memset(&mreq, 0, sizeof(mreq));
+    mreq.handle = surface_buffer->handle;
+    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
+    if (ret) {
+        _WRN_PRINTF("NEWGAL>DRM: cannot map dumb buffer (%u): %m\n", mreq.handle);
+        goto error;
+    }
+
+    /* perform actual memory mapping */
+    surface_buffer->buff = mmap(0, surface_buffer->size,
+            PROT_READ | PROT_WRITE, MAP_SHARED,
+            vdata->dev_fd, mreq.offset);
+    if (surface_buffer->buff == MAP_FAILED) {
+        _ERR_PRINTF("NEWGAL>DRM: cannot mmap dumb buffer (%u): %m\n", errno);
+        goto error;
+    }
+
+    return surface_buffer;
+
+error:
+    if (surface_buffer)
+        free (surface_buffer);
+
+    return NULL;
+}
+
+static DrmSurfaceBuffer *drm_create_dumb_buffer_from_name(DrmVideoData* vdata,
+        uint32_t name)
+{
+    int ret;
+    struct drm_gem_open oreq;
+    struct drm_mode_map_dumb mreq;
+    struct drm_gem_close creq;
+    DrmSurfaceBuffer *surface_buffer = NULL;
+
+    /* open named buffer */
+    memset(&oreq, 0, sizeof(oreq));
+    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_OPEN, &creq);
+    if (ret < 0) {
+        _WRN_PRINTF("Failed to open named buffer (%d): %m\n", errno);
+        return NULL;
+    }
+
+    surface_buffer = drm_create_dumb_buffer_from_handle (vdata,
+            oreq.handle, oreq.size);
+
+    if (surface_buffer == NULL) {
+        memset(&creq, 0, sizeof(creq));
+        creq.handle = oreq.handle;
+        drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_CLOSE, &creq);
+    }
+
+    return surface_buffer;
+}
+
+static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdata,
+        int prime_fd, size_t size)
+{
+    int ret;
+    uint32_t handle;
+    DrmSurfaceBuffer *surface_buffer;
+
+    if (size == 0) {
+        off_t seek = lseek (prime_fd, 0, SEEK_END);
+        if (seek != -1)
+            size = seek;
+        else {
+            _ERR_PRINTF("NEWGAL>DRM: Failed to get size of buffer from fd (%d): "
+                    "%m\n", prime_fd);
+            return NULL;
+        }
+
+        _DBG_PRINTF("size got by calling lseek: %lu\n", size);
+    }
+
+	ret = drmPrimeFDToHandle (vdata->dev_fd, prime_fd, &handle);
+	if (ret) {
+		_ERR_PRINTF ("NEWGAL>DRM: failed to obtain handle from fd (%d): %m\n",
+                prime_fd);
+        return NULL;
+	}
+
+#if 0
+    surface_buffer->handle = 0;
+    surface_buffer->size = size;
+
+    /* perform actual memory mapping */
+    surface_buffer->buff = mmap(0, size,
+            PROT_READ | PROT_WRITE, MAP_SHARED, prime_fd, 0);
+    if (surface_buffer->buff == MAP_FAILED) {
+        _ERR_PRINTF("NEWGAL>DRM: cannot mmap dumb buffer for prime fd (%d): "
+                "%m\n", prime_fd);
+        goto error;
+    }
+#else
+    surface_buffer = drm_create_dumb_buffer_from_handle (vdata, handle, size);
+    if (surface_buffer == NULL) {
+        struct drm_mode_destroy_dumb dreq;
+        memset(&dreq, 0, sizeof(dreq));
+        dreq.handle = vdata->handle;
+        drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
+    }
+#endif
+
+    return surface_buffer;
+}
+
 static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer)
 {
@@ -1642,6 +1765,7 @@ static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
     if (surface_buffer->buff)
         munmap (surface_buffer->buff, surface_buffer->size);
 
+    /* XXX: we need to distinguish the source of the dumb buffer here. */
     memset (&dreq, 0, sizeof(dreq));
     dreq.handle = surface_buffer->handle;
     drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
@@ -2155,12 +2279,6 @@ static GAL_Surface *DRM_SetVideoMode_Client(_THIS, GAL_Surface *current,
     REQUEST req;
     SHAREDSURFINFO info;
 
-    if (vdata->driver_ops == NULL ||
-            vdata->driver_ops->create_buffer_from_name == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_name is not implemented!\n");
-        goto error;
-    }
-
     req.id = REQID_GETSHAREDSURFACE;
     req.data = SYSSF_REAL_SCREEN;
     req.len_data = strlen (SYSSF_REAL_SCREEN) + 1;
@@ -2503,23 +2621,29 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
         return NULL;
     }
 
-    if (vdata->driver_ops == NULL ||
-            vdata->driver_ops->create_buffer_from_name == NULL) {
-        _WRN_PRINTF ("not hardware accelerated or not implemented method!\n");
-        return NULL;
-    }
-
     depth = translate_drm_format(drm_format, RGBAmasks);
     if (depth == 0) {
-        _WRN_PRINTF("not supported DRM format: %u\n", drm_format);
+        _ERR_PRINTF("NEWGAL>DRM: not supported DRM format: %u\n", drm_format);
         return NULL;
     }
 
-    surface_buffer = vdata->driver_ops->create_buffer_from_name(vdata->driver,
-            name);
-    if (surface_buffer == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_name failed: %u!\n", name);
-        return NULL;
+    if (vdata->driver == NULL ||
+            vdata->driver_ops->create_buffer_from_name == NULL) {
+        surface_buffer = drm_create_dumb_buffer_from_name (vdata, name);
+        if (surface_buffer == NULL) {
+            _ERR_PRINTF ("NEWGAL>DRM: failed to create dumb buffer from name: "
+                    "%u!\n", name);
+            return NULL;
+        }
+    }
+    else {
+        surface_buffer = vdata->driver_ops->create_buffer_from_name(
+                vdata->driver, name);
+        if (surface_buffer == NULL) {
+            _ERR_PRINTF ("NEWGAL>DRM: faile to create buffer from name: %u!\n",
+                    name);
+            return NULL;
+        }
     }
 
     surface_buffer->drm_format = drm_format;
@@ -2544,23 +2668,30 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
         return NULL;
     }
 
-    if (vdata->driver_ops == NULL ||
-            vdata->driver_ops->create_buffer_from_handle == NULL) {
-        _WRN_PRINTF ("not implemented method!\n");
-        return NULL;
-    }
-
     depth = translate_drm_format (drm_format, RGBAmasks);
     if (depth == 0) {
         _ERR_PRINTF ("NEWGAL>DRM: not supported drm format: %u\n", drm_format);
         return NULL;
     }
 
-    surface_buffer = vdata->driver_ops->create_buffer_from_handle (vdata->driver,
-            handle, size);
-    if (surface_buffer == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_handle failed!\n");
-        return NULL;
+    if (vdata->driver == NULL ||
+            vdata->driver_ops->create_buffer_from_handle == NULL) {
+        surface_buffer = drm_create_dumb_buffer_from_handle (vdata,
+                handle, size);
+        if (surface_buffer == NULL) {
+            _ERR_PRINTF ("NEWGAL>DRM: failed to create dumb buffer from handle "
+                    "(%u): %m!\n", handle);
+            return NULL;
+        }
+    }
+    else {
+        surface_buffer = vdata->driver_ops->create_buffer_from_handle (
+                vdata->driver, handle, size);
+        if (surface_buffer == NULL) {
+            _ERR_PRINTF ("NEWGAL>DRM: failed to create buffer from handle (%u): "
+                   "%m!\n", handle);
+            return NULL;
+        }
     }
 
     surface_buffer->drm_format = drm_format;
@@ -2585,12 +2716,6 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
         return NULL;
     }
 
-    if (vdata->driver_ops == NULL ||
-            vdata->driver_ops->create_buffer_from_prime_fd) {
-        _ERR_PRINTF ("NEWGAL>DRM: not implemented method!\n");
-        return NULL;
-    }
-
     depth = translate_drm_format(drm_format, RGBAmasks);
     if (depth == 0) {
         _ERR_PRINTF("NEWGAL>DRM: not supported drm format: %u\n",
@@ -2598,11 +2723,24 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
         return NULL;
     }
 
-    surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd (
-            vdata->driver, prime_fd, size);
-    if (surface_buffer == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_prime_fd failed!\n");
-        return NULL;
+    if (vdata->driver == NULL ||
+            vdata->driver_ops->create_buffer_from_prime_fd == NULL) {
+        surface_buffer = drm_create_dumb_buffer_from_prime_fd (vdata,
+                prime_fd, size);
+        if (surface_buffer == NULL) {
+            _ERR_PRINTF ("NEWGAL>DRM: failed to create dumb buffer from prime "
+                    "fd: %d!\n", prime_fd);
+            return NULL;
+        }
+    }
+    else {
+        surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd (
+                vdata->driver, prime_fd, size);
+        if (surface_buffer == NULL) {
+            _ERR_PRINTF ("NEWGAL>DRM: failed to create buffer from prime "
+                    "fd: %d!\n", prime_fd);
+            return NULL;
+        }
     }
 
     surface_buffer->drm_format = drm_format;
