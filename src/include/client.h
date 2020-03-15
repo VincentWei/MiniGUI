@@ -103,6 +103,12 @@
 /* Since 5.0.0 */
 // Get shared surface
 #define REQID_GETSHAREDSURFACE      0x001C
+    // for compositing schema
+    #define SYSSF_WALLPAPER_PATTER      "syssf-wallpaper-pattern"
+    // for sharedfb schema
+    #define SYSSF_REAL_SCREEN           "syssf-real-screen"
+    #define SYSSF_SHADOW_SCREEN         "syssf-shadow-screen"
+
 // Load cursor from PNG file
 #define REQID_LOADCURSOR_PNG        0x001D
 // Load cursor from in-memory PNG
@@ -138,8 +144,11 @@ MGUI_COMPILE_TIME_ASSERT(sys_request_id, MAX_SYS_REQID >= REQID_SYS_LAST);
 
 /* Since 5.0.0 */
 typedef struct _SharedSurfInfo {
-    Uint32      flags;      // the flags of the surface
+    uint32_t    flags;      // the flags of the surface
+    uint32_t    width, height;
+    uint32_t    pitch;
     uint32_t    name;       // when use flinked name
+    uint32_t    drm_format; // DRM pixel format
     size_t      size;       // whole size of the surface
     off_t       offset;     // offset of pixel data
 } SHAREDSURFINFO;
