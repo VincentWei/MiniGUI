@@ -73,11 +73,11 @@ typedef struct GAL_PrivateVideoData {
 #else   /* defined _MGSCHEMA_COMPOSITING */
     /* When double buffering supported, the real surface represents the ultimate
      * scan-out frame buffer, and the shadow screen represents the rendering
-     * surface. When double buffering disabled, both are NULL. */
+     * surface. When double buffering disabled, shadow_screen is NULL. */
     GAL_Surface *real_screen, *shadow_screen;
 
-    /* the global name of the surface buffer */
-    uint32_t    buff_name;
+    /* the global names of real screen and shadow screen */
+    uint32_t        real_name, shadow_name;
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 
     char            dev_name[LEN_DEVICE_NAME + 1];
