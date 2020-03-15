@@ -778,13 +778,11 @@ extern int __mg_clipboard_op (int cli, int clifd, void* buff, size_t len);
 /* get the fake screen surface (wallpaper pattern surface) */
 static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 {
-    GHANDLE *handle;
+    const char *name = buff;
     SHAREDSURFINFO info;
 
-    handle = buff;
-
     assert (__gal_fake_screen);
-    assert (*handle == 0);
+    assert (strcmp (buff, SYSSF_WALLPAPER_PATTER) == 0);
 
     info.flags = __gal_fake_screen->flags;
     if (__gal_fake_screen->shared_header) {
@@ -804,14 +802,13 @@ static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 {
     int fd = -1;
-    GHANDLE *handle;
+    const char* name = buff;
     SHAREDSURFINFO info = { 0, 0 };
 
 #ifdef _MGGAL_DRM
-    handle = buff;
-    extern int __drm_get_shared_screen_surface (GHANDLE, SHAREDSURFINFO*);
+    extern int __drm_get_shared_screen_surface (const char*, SHAREDSURFINFO*);
 
-    fd = __drm_get_shared_screen_surface (*handle, &info);
+    fd = __drm_get_shared_screen_surface (name, &info);
 #endif
 
     return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), fd);
