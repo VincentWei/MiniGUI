@@ -2089,28 +2089,59 @@ error:
 
 #if IS_SHAREDFB_SCHEMA_PROCS
 
-int __drm_get_shared_screen_surface (GHANDLE handle, SHAREDSURFINFO* info)
+int __drm_get_shared_screen_surface (const char *name, SHAREDSURFINFO* info)
 {
     GAL_VideoDevice *this = __mg_current_video;
     DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer* surface_buffer = NULL;
 
-    assert (handle == 0);
-    if (vdata->buff_name == 0) {
-		struct drm_gem_flink flink;
+    if (strcmp (name, SYSSF_REAL_SCREEN) == 0) {
+        assert (vdata->real_screen);
 
-		memset (&flink, 0, sizeof (flink));
-		flink.handle = vdata->handle;
-		if (drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_FLINK, &flink))
-            return -1;
+        surface_buffer = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
 
-        vdata->buff_name = flink.name;
+        if (vdata->real_name == 0) {
+            struct drm_gem_flink flink;
+
+            memset (&flink, 0, sizeof (flink));
+            flink.handle = surface_buffer->handle;
+            if (drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_FLINK, &flink))
+                return -1;
+
+            vdata->real_name = flink.name;
+        }
+
+        info->flags = vdata->real_screen->flags;
+        info->width = vdata->real_screen->w;
+        info->height = vdata->real_screen->h;
+        info->pitch = vdata->real_screen->pitch;
+        info->name = vdata->real_name;
+    }
+    else if (strcmp (name, SYSSF_SHADOW_SCREEN) == 0 && vdata->shadow_screen) {
+        surface_buffer = (DrmSurfaceBuffer *)vdata->shadow_screen->hwdata;
+        if (vdata->shadow_name == 0) {
+            struct drm_gem_flink flink;
+
+            memset (&flink, 0, sizeof (flink));
+            flink.handle = surface_buffer->handle;
+            if (drmIoctl (vdata->dev_fd, DRM_IOCTL_GEM_FLINK, &flink))
+                return -1;
+
+            vdata->shadow_name = flink.name;
+        }
+
+        info->flags = vdata->shadow_screen->flags;
+        info->name = vdata->shadow_name;
     }
 
-    /* XXX */
-    info->flags = 0;
-    info->name = vdata->buff_name;
-    info->size = vdata->size;
-    info->offset = 0;
+    if (surface_buffer) {
+        info->drm_format = surface_buffer->drm_format;
+        info->size = surface_buffer->size;
+        info->offset = surface_buffer->offset;
+    }
+    else {
+        memset (info, 0, sizeof (*info));
+    }
 
     return 0;
 }
@@ -2122,47 +2153,73 @@ static GAL_Surface *DRM_SetVideoMode_Client(_THIS, GAL_Surface *current,
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer;
     REQUEST req;
-    GHANDLE handle = 0; // for screen surface, handle always be zero.
     SHAREDSURFINFO info;
 
     if (vdata->driver_ops == NULL ||
             vdata->driver_ops->create_buffer_from_name == NULL) {
         _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_name is not implemented!\n");
-        return NULL;
+        goto error;
     }
 
     req.id = REQID_GETSHAREDSURFACE;
-    req.data = &handle;
-    req.len_data = sizeof(GHANDLE);
+    req.data = SYSSF_REAL_SCREEN;
+    req.len_data = strlen (SYSSF_REAL_SCREEN) + 1;
 
     if ((ClientRequestEx (&req, NULL, 0, &info, sizeof (SHAREDSURFINFO)) < 0)) {
-        return NULL;
+        goto error;
     }
 
-    _DBG_PRINTF ("REQID_GETSHAREDSURFACE: name(%u), flags(%x), "
+    _DBG_PRINTF ("REQID_GETSHAREDSURFACE for %s: name(%u), flags(%x), "
             "size (%lu), offset (%lu)\n",
+            SYSSF_REAL_SCREEN,
             info.name, info.flags, info.size, info.offset);
 
-    surface_buffer = vdata->driver_ops->create_buffer_from_name(vdata->driver,
-            info.name);
-    if (surface_buffer == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: create_buffer_from_name failed: %u!\n",
+    vdata->real_screen = __drm_create_surface_from_name (this, info.name,
+            info.drm_format, info.offset, info.width, info.height, info.pitch);
+
+    if (vdata->real_screen == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: failed to create real screen surface: %u!\n",
                 info.name);
-        return NULL;
+        goto error;
     }
 
-    assert (surface_buffer->size == info.size);
+    if (SHAREDRES_VIDEO_DBL_BUFF == 0) {
+        GAL_FreeSurface (current);
+        return vdata->real_screen;
+    }
 
-    surface_buffer->drm_format = translate_gal_format(current->format);
-    surface_buffer->offset = info.offset;
+    /* get shadow surface */
+    req.id = REQID_GETSHAREDSURFACE;
+    req.data = SYSSF_SHADOW_SCREEN;
+    req.len_data = strlen (SYSSF_SHADOW_SCREEN) + 1;
 
-    current->flags |= (GAL_FULLSCREEN | GAL_HWSURFACE);
-    current->w = SHAREDRES_VIDEO_HRES;
-    current->h = SHAREDRES_VIDEO_VRES;
-    current->pitch = (info.size - info.offset) / SHAREDRES_VIDEO_VRES;
-    current->pixels = surface_buffer->buff + surface_buffer->offset;
-    current->hwdata = (struct private_hwdata *)surface_buffer;
-    return current;
+    if ((ClientRequestEx (&req, NULL, 0, &info, sizeof (SHAREDSURFINFO)) < 0)) {
+        goto error;
+    }
+
+    _DBG_PRINTF ("REQID_GETSHAREDSURFACE for %s: name(%u), flags(%x), "
+            "size (%lu), offset (%lu)\n",
+            SYSSF_SHADOW_SCREEN,
+            info.name, info.flags, info.size, info.offset);
+
+    vdata->shadow_screen = __drm_create_surface_from_name (this, info.name,
+            info.drm_format, info.offset, info.width, info.height, info.pitch);
+
+    if (vdata->shadow_screen == NULL) {
+        _ERR_PRINTF ("NEWGAL>DRM: failed to create shadow screen surface: %u!\n",
+                info.name);
+        goto error;
+    }
+
+    GAL_FreeSurface (current);
+    return vdata->shadow_screen;
+
+error:
+    if (vdata->real_screen) {
+        GAL_FreeSurface (vdata->real_screen);
+    }
+
+    return NULL;
 }
 #endif  /* IS_SHAREDFB_SCHEMA_PROCS */
 
