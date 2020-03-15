@@ -480,6 +480,8 @@ int InitGUI (int argc, const char* agr[])
          */
         strncpy (SHAREDRES_VIDEO_ENGINE, engine, LEN_ENGINE_NAME);
         strncpy (SHAREDRES_VIDEO_MODE, mode, LEN_VIDEO_MODE);
+#if 0   /* deprecated code */
+        // these fileds will be initialized by DRM engine.
         if (GetMgEtcValue (engine, "device",
                     SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME) < 0)
             *SHAREDRES_VIDEO_DEVICE = 0;
@@ -489,6 +491,7 @@ int InitGUI (int argc, const char* agr[])
         if (GetMgEtcValue (engine, "exdriver",
                     SHAREDRES_VIDEO_EXDRIVER, LEN_EXDRIVER_NAME) < 0)
             *SHAREDRES_VIDEO_EXDRIVER = 0;
+#endif  /* deprecated code */
 
         SHAREDRES_VIDEO_DPI   = __gal_screen->dpi;
         SHAREDRES_VIDEO_HRES  = __gal_screen->w;
