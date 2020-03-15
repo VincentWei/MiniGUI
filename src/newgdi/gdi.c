@@ -4150,7 +4150,7 @@ HDC drmCreateDCFromHandleEx (GHANDLE video, uint32_t handle, size_t size,
 
     LOCK (&__mg_gdilock);
     surface = __drm_create_surface_from_handle (video, handle, size,
-                drm_format, 0, width, height, pitch);
+                drm_format, offset, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {
@@ -4203,8 +4203,7 @@ HDC drmCreateDCFromPrimeFdEx (GHANDLE video, int prime_fd, size_t size,
 
     LOCK (&__mg_gdilock);
     surface =__drm_create_surface_from_prime_fd (video, prime_fd, size,
-            drm_format, sizeof (GAL_SharedSurfaceHeader),
-            width, height, pitch);
+            drm_format, offset, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {
