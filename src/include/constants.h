@@ -167,13 +167,13 @@ enum {
 #endif
 
 /* constants for engine name and video mode */
+#define LEN_SO_NAME         127 // name length of a shared object (library)
 #define LEN_DEVICE_NAME     127
-#define LEN_EXDRIVER_NAME   127
+#define LEN_EXDRIVER_NAME   LEN_SO_NAME
 #define LEN_ENGINE_NAME     23
 #define LEN_VIDEO_MODE      31
 #define LEN_MTYPE_NAME      23
 #define LEN_FOURCC_FORMAT   7
-#define LEN_SO_NAME         255 // name length of a shared object (library)
 
 /* misc constants and utilities */
 
