@@ -302,7 +302,7 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
     // the file descriptor may have been closed.
     if (surface->shared_header->fd >= 0) {
         close (surface->shared_header->fd);
-        surface->shared_header->fd;
+        surface->shared_header->fd = -1;
     }
     munmap (surface->shared_header,
         surface->shared_header->pixels_size
@@ -325,7 +325,7 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
 GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
         Uint32 flags, BOOL with_wr)
 {
-    GAL_VideoDevice *video;
+    GAL_VideoDevice *video = NULL;
     GAL_Surface *surface;
     void* data_map = MAP_FAILED;
     GAL_SharedSurfaceHeader* hdr;
@@ -425,7 +425,7 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
     return (surface);
 
 error:
-    if (video && surface->hwdata) {
+    if (video && surface && surface->hwdata) {
         assert (video->DettachSharedHWSurface);
         video->DettachSharedHWSurface (video, surface);
     }

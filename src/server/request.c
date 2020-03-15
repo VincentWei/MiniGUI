@@ -778,7 +778,6 @@ extern int __mg_clipboard_op (int cli, int clifd, void* buff, size_t len);
 /* get the fake screen surface (wallpaper pattern surface) */
 static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 {
-    const char *name = buff;
     SHAREDSURFINFO info;
 
     assert (__gal_fake_screen);

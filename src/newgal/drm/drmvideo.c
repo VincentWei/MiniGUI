@@ -1126,7 +1126,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         }
 #   endif   /* not defined _MGSCHEMA_COMPOSITING */
         device->RequestHWSurface = NULL;    // always be NULL
-#endif  /* defined _MGRM_PROCESSES */
+#endif   /* defined _MGRM_PROCESSES */
 
         device->AllocHWSurface = DRM_AllocHWSurface_Accl;
         device->FreeHWSurface = DRM_FreeHWSurface_Accl;
@@ -1150,16 +1150,19 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             device->SetVideoMode = DRM_SetVideoMode_Client;
         }
 
-        if (device->hidden->dbl_buff) {
-            device->UpdateRects = DRM_UpdateRects;
-            device->SyncUpdate = DRM_SyncUpdate;
-        }
-
 #   endif   /* not defined _MGSCHEMA_COMPOSITING */
         device->RequestHWSurface = NULL;    // always be NULL
 #endif  /* defined _MGRM_PROCESSES */
         device->AllocHWSurface = DRM_AllocDumbSurface;
         device->FreeHWSurface = DRM_FreeDumbSurface;
+    }
+
+    if (device->SetVideoMode == NULL)
+        device->SetVideoMode = DRM_SetVideoMode;
+
+    if (device->hidden->dbl_buff) {
+        device->UpdateRects = DRM_UpdateRects;
+        device->SyncUpdate = DRM_SyncUpdate;
     }
 
 #if IS_COMPOSITING_SCHEMA
@@ -1790,7 +1793,6 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_name(DrmVideoData* vdata,
 {
     int ret;
     struct drm_gem_open oreq;
-    struct drm_mode_map_dumb mreq;
     struct drm_gem_close creq;
     DrmSurfaceBuffer *surface_buffer = NULL;
 
@@ -2049,6 +2051,8 @@ error:
             drm_destroy_dumb_buffer (vdata, real_buffer);
         }
     }
+
+    return NULL;
 }
 
 static int DRM_AllocDumbSurface (_THIS, GAL_Surface *surface)
@@ -2560,7 +2564,6 @@ static GAL_Surface *DRM_SetVideoMode_Client(_THIS, GAL_Surface *current,
         int width, int height, int bpp, Uint32 flags)
 {
     DrmVideoData* vdata = this->hidden;
-    DrmSurfaceBuffer* surface_buffer;
     REQUEST req;
     SHAREDSURFINFO info;
 
