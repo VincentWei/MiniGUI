@@ -4089,7 +4089,7 @@ BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
     return __drm_get_surface_info(pdc->surface, info);
 }
 
-HDC drmCreateDCFromName (GHANDLE video, uint32_t name, uint32_t drm_format,
+HDC drmCreateDCFromNameEx (GHANDLE video, uint32_t name, uint32_t drm_format,
         off_t offset, uint32_t width, uint32_t height, uint32_t pitch)
 {
     PDC pmem_dc = NULL;
@@ -4138,7 +4138,7 @@ HDC drmCreateDCFromName (GHANDLE video, uint32_t name, uint32_t drm_format,
     return (HDC)pmem_dc;
 }
 
-HDC drmCreateDCFromHandle (GHANDLE video, uint32_t handle, size_t size,
+HDC drmCreateDCFromHandleEx (GHANDLE video, uint32_t handle, size_t size,
         uint32_t drm_format, off_t offset,
         uint32_t width, uint32_t height, uint32_t pitch)
 {
@@ -4188,7 +4188,7 @@ HDC drmCreateDCFromHandle (GHANDLE video, uint32_t handle, size_t size,
     return (HDC)pmem_dc;
 }
 
-HDC drmCreateDCFromPrimeFd (GHANDLE video, int prime_fd, size_t size,
+HDC drmCreateDCFromPrimeFdEx (GHANDLE video, int prime_fd, size_t size,
         uint32_t drm_format, off_t offset,
         uint32_t width, uint32_t height, uint32_t pitch)
 {

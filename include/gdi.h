@@ -14395,9 +14395,17 @@ MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info);
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromNameEx (GHANDLE video,
         uint32_t name, uint32_t drm_format, off_t offset,
         uint32_t width, uint32_t height, uint32_t pitch);
+
+static inline HDC drmCreateDCFromName (GHANDLE video,
+        uint32_t name, uint32_t drm_format,
+        uint32_t width, uint32_t height, uint32_t pitch)
+{
+    return drmCreateDCFromNameEx (video,
+        name, drm_format, 0, width, height, pitch);
+}
 
 /**
  * This function creates a memory DC with a DRM surface which is created by
@@ -14414,9 +14422,17 @@ MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromPrimeFdEx (GHANDLE video,
         int prime_fd, size_t size, uint32_t drm_format, off_t offset,
         uint32_t width, uint32_t height, uint32_t pitch);
+
+static inline HDC drmCreateDCFromPrimeFd (GHANDLE video,
+        int prime_fd, size_t size, uint32_t drm_format,
+        uint32_t width, uint32_t height, uint32_t pitch)
+{
+    return drmCreateDCFromPrimeFdEx (video,
+        prime_fd, size, drm_format, 0, width, height, pitch);
+}
 
 /**
  * This function creates a memory DC with a DRM surface which is created by
@@ -14433,9 +14449,17 @@ MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
+MG_EXPORT HDC drmCreateDCFromHandleEx (GHANDLE video,
         uint32_t handle, size_t size, uint32_t drm_format, off_t offset,
         uint32_t width, uint32_t height, uint32_t pitch);
+
+static inline HDC drmCreateDCFromHandle (GHANDLE video,
+        uint32_t handle, size_t size, uint32_t drm_format,
+        uint32_t width, uint32_t height, uint32_t pitch)
+{
+    return drmCreateDCFromHandleEx (video,
+        handle, size, drm_format, 0, width, height, pitch);
+}
 
 /** @} end of gdi_drm_fns */
 
