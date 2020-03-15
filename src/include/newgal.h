@@ -165,39 +165,19 @@ typedef struct _SharedSurfaceHeader {
 } GAL_SharedSurfaceHeader;
 #endif /* IS_COMPOSITING_SCHEMA */
 
-#if IS_SHAREDFB_SCHEMA_PROCS
 /*
- * Only used by DRM engine.
- * Note that any process can read and/or write to this shared surface.
+ * The header for shadow surface; used to store the dirty rectangle.
  */
-typedef struct _SharedSurfaceHeader {
-    /* The POSIX semaphore for this shared surface */
+typedef struct _ShadowSurfaceHeader {
+#if IS_SHAREDFB_SCHEMA_PROCS
+    /* The POSIX semaphore for lock the dirty rectangle;
+       only available for sharedfb schema and MiniGUI-Processes runmode. */
     sem_t           sem_lock;
+#endif
 
-    /* The pid of the creator */
-    pid_t           creator;
-
-    /* The file descriptor in context of the creator. */
-    int             fd;
-    /* Not zero for hardware surface; zero for dumb surface. */
-    int             byhw;
     /* The dirty information */
     RECT            dirty_rc;
-    /* the size of the surface */
-    int             width, height;
-    /* the pitch of the surface */
-    int             pitch;
-    /* the pixel depth */
-    int             depth;
-    /* the RGBA masks */
-    Uint32          Rmask, Gmask, Bmask, Amask;
-
-    /* the size of the buffer */
-    size_t          buf_size;
-    /* the pixels */
-    char            buf[0];
-} GAL_SharedSurfaceHeader;
-#endif  /* IS_SHAREDFB_SCHEMA_PROCS */
+} GAL_ShadowSurfaceHeader;
 
 /*
  * This structure should be treated as read-only, except for 'pixels',
