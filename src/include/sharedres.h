@@ -107,6 +107,7 @@ typedef struct tagG_RES {
 #ifdef _MGGAL_DRM
     char video_exdriver [LEN_EXDRIVER_NAME + 1];
     Uint32 video_drm_format;
+    Uint32 video_drm_magic;
     Uint32 video_dbl_buff:1;
 #endif
 
@@ -183,6 +184,7 @@ typedef G_RES* PG_RES;
 #ifdef _MGGAL_DRM
 #define SHAREDRES_VIDEO_EXDRIVER    (((PG_RES)mgSharedRes)->video_exdriver)
 #define SHAREDRES_VIDEO_DRM_FORMAT  (((PG_RES)mgSharedRes)->video_drm_format)
+#define SHAREDRES_VIDEO_DRM_MAGIC   (((PG_RES)mgSharedRes)->video_drm_magic)
 #define SHAREDRES_VIDEO_DBL_BUFF    (((PG_RES)mgSharedRes)->video_dbl_buff)
 #endif
 
