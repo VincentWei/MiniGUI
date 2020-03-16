@@ -707,9 +707,13 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
         _WRN_PRINTF ("NEWGAL>DRM: the buffer size is not large enought!\n");
     }
 
-    if (vdata->driver_ops->map_buffer(vdata->driver, surface_buffer) == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
-        goto error;
+    /* for dumb buffer, already mapped */
+    if (surface_buffer->buff == NULL &&
+            vdata->driver && vdata->driver_ops->map_buffer) {
+        if (vdata->driver_ops->map_buffer(vdata->driver, surface_buffer) == NULL) {
+            _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
+            goto error;
+        }
     }
 
     /* Allocate the surface */
@@ -739,6 +743,10 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     surface->h = height;
     surface->pitch = pitch;
     surface->offset = 0;
+#if IS_COMPOSITING_SCHEMA
+    surface->shared_header = NULL;
+    surface->dirty_info = NULL;
+#endif
     surface->pixels = surface_buffer->buff + surface_buffer->offset;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
 
@@ -938,6 +946,7 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
     }
     else {
         filename = SHAREDRES_VIDEO_EXDRIVER;
+        vdata->ex_driver = strdup(filename);
     }
 #endif
 
@@ -1069,11 +1078,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 #ifdef _MGRM_PROCESSES
     }
     else {
-        memcpy(device->hidden->dev_name, SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME);
-        if (*device->hidden->dev_name == 0) {
-            strcpy(device->hidden->dev_name, "/dev/dri/card0");
-            _WRN_PRINTF("No drm.device defined, use default '/dev/dri/card0'\n");
-        }
+        device->hidden->dev_name = strdup (SHAREDRES_VIDEO_DEVICE);
     }
 #endif
 
@@ -1086,7 +1091,10 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     /* check double buffering */
 #if IS_COMPOSITING_SCHEMA
     /* force to use double buffering to compositing schema */
-    device->hidden->dbl_buff = 1;
+    if (mgIsServer)
+        device->hidden->dbl_buff = 1;
+    else
+        device->hidden->dbl_buff = 0;
 #else   /* IS_COMPOSITING_SCHEMA */
 
 # if IS_SHAREDFB_SCHEMA_PROCS
@@ -1120,8 +1128,9 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         if (mgIsServer) {
             device->SetVideoMode = DRM_SetVideoMode;
         }
-        else
+        else {
             device->SetVideoMode = NULL;    // client never calls this method.
+        }
 #   else    /* defined _MGSCHEMA_COMPOSITING */
         if (mgIsServer) {
             device->SetVideoMode = DRM_SetVideoMode;
@@ -1143,11 +1152,10 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 #   ifdef _MGSCHEMA_COMPOSITING
         if (mgIsServer) {
             device->SetVideoMode = DRM_SetVideoMode;
-            device->UpdateRects = DRM_UpdateRects;
-            device->SyncUpdate = DRM_SyncUpdate;
         }
-        else
+        else {
             device->SetVideoMode = NULL;    // client never calls this method.
+        }
 #   else    /* defined _MGSCHEMA_COMPOSITING */
         if (mgIsServer) {
             device->SetVideoMode = DRM_SetVideoMode;
@@ -1402,40 +1410,54 @@ static int drm_prepare(DrmVideoData* vdata)
 /* DRM engine methods for both dumb buffer and acclerated buffers */
 static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 {
-    int n = 0;
-    struct drm_mode_info *iter;
+#ifdef _MGRM_PROCESSES
+    if (mgIsServer)
+#endif
+    {
+        int n = 0;
+        struct drm_mode_info *iter;
 
-    drm_prepare(this->hidden);
+        drm_prepare(this->hidden);
 
-    for (iter = this->hidden->mode_list; iter; iter = iter->next) {
-        _DBG_PRINTF("mode #%d: %ux%u, conn: %u, crtc: %u\n", n,
-                iter->width, iter->height, iter->conn, iter->crtc);
-        n++;
+        for (iter = this->hidden->mode_list; iter; iter = iter->next) {
+            _DBG_PRINTF("mode #%d: %ux%u, conn: %u, crtc: %u\n", n,
+                    iter->width, iter->height, iter->conn, iter->crtc);
+            n++;
+        }
+
+        if (n == 0) {
+            return -1;
+        }
+
+        this->hidden->modes = calloc(n + 1, sizeof(GAL_Rect*));
+        if (this->hidden->modes == NULL) {
+            _ERR_PRINTF("NEWGAL>DRM: failed to allocate memory for modes (%d)\n",
+                n);
+            return -1;
+        }
+
+        n = 0;
+        for (iter = this->hidden->mode_list; iter; iter = iter->next) {
+            this->hidden->modes[n] = malloc(sizeof(GAL_Rect));
+            this->hidden->modes[n]->x = 0;
+            this->hidden->modes[n]->y = 0;
+            this->hidden->modes[n]->w = iter->width;
+            this->hidden->modes[n]->h = iter->height;
+            n++;
+        }
+
+        vformat->BitsPerPixel = 32;
+        vformat->BytesPerPixel = 4;
     }
+#ifdef _MGRM_PROCESSES
+    else {
+        int bpp, cpp;
+        drm_format_to_bpp (SHAREDRES_VIDEO_DRM_FORMAT, &bpp, &cpp);
 
-    if (n == 0) {
-        return -1;
+        vformat->BitsPerPixel = bpp;
+        vformat->BytesPerPixel = cpp;
     }
-
-    this->hidden->modes = calloc(n + 1, sizeof(GAL_Rect*));
-    if (this->hidden->modes == NULL) {
-        _ERR_PRINTF("NEWGAL>DRM: failed to allocate memory for modes (%d)\n",
-            n);
-        return -1;
-    }
-
-    n = 0;
-    for (iter = this->hidden->mode_list; iter; iter = iter->next) {
-        this->hidden->modes[n] = malloc(sizeof(GAL_Rect));
-        this->hidden->modes[n]->x = 0;
-        this->hidden->modes[n]->y = 0;
-        this->hidden->modes[n]->w = iter->width;
-        this->hidden->modes[n]->h = iter->height;
-        n++;
-    }
-
-    vformat->BitsPerPixel = 32;
-    vformat->BytesPerPixel = 4;
+#endif
 
     if (this->hidden->driver) {
         if (this->hidden->driver_ops->clear_buffer) {
@@ -1711,7 +1733,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     if (hdr_size) {
         creq.width = width;
         nr_header_lines = nr_lines_for_header (hdr_size, width, height, cpp);
-        creq.height += nr_header_lines;
+        creq.height = height + nr_header_lines;
     }
     else {
         creq.width = width;
@@ -1741,6 +1763,9 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     surface_buffer->offset = creq.pitch * nr_header_lines;
     surface_buffer->size = creq.size;
     *pitch = creq.pitch;
+
+    _WRN_PRINTF ("Surface buffer info: w(%u), h(%u), pitch(%u), size (%lu), offset (%lu)\n",
+            width, height, creq.pitch, surface_buffer->size, surface_buffer->offset);
 
     /* prepare buffer for memory mapping */
     memset(&mreq, 0, sizeof(mreq));
@@ -2031,6 +2056,10 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 
         if (vdata->shadow_screen == NULL)
             goto error;
+
+        GAL_SetClipRect (vdata->real_screen, NULL);
+        GAL_SetColorKey (vdata->shadow_screen, 0, 0);
+        GAL_SetAlpha (vdata->shadow_screen, 0, 0);
     }
 
     GAL_FreeSurface (current);
@@ -2158,8 +2187,8 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     }
 
     /* get the prime fd */
-    if (drmPrimeHandleToFD (vdata->dev_fd, surface_buffer->handle, DRM_CLOEXEC,
-                &prime_fd)) {
+    if (drmPrimeHandleToFD (vdata->dev_fd, surface_buffer->handle,
+                DRM_RDWR | DRM_CLOEXEC, &prime_fd)) {
         _WRN_PRINTF ("cannot get prime fd: %m\n");
         goto error;
     }
@@ -2172,6 +2201,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     surface->pixels = surface_buffer->buff + surface_buffer->offset;
     surface->flags |= GAL_HWSURFACE;
     */
+    surface->shared_header = (GAL_SharedSurfaceHeader*)surface_buffer->buff;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
 
     return prime_fd;
@@ -2253,12 +2283,16 @@ static int DRM_DettachSharedHWSurface(_THIS, GAL_Surface *surface)
 
     surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
     if (surface_buffer) {
-        assert (vdata->driver_ops);
-        vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
-        vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
+        if (vdata->driver) {
+            vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
+            vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
+        }
+        else {
+            drm_destroy_dumb_buffer(vdata, surface_buffer);
+        }
+
         surface->pixels = NULL;
         surface->hwdata = NULL;
-
         retval = 0;
     }
 
