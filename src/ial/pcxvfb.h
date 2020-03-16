@@ -64,6 +64,9 @@ extern "C" {
 #define SHOW_HIDE_TYPE      5
 #define XVFB_CLOSE_TYPE     6
 
+/* Since 5.0.0: command */
+#define CMD_TYPE            7
+
 struct PCXVFbKeyData
 {
     unsigned int unicode;
@@ -74,36 +77,35 @@ struct PCXVFbKeyData
 
 typedef struct _XVFBKEYDATA
 {
-        unsigned short key_code;
-        unsigned short key_state;
+    unsigned short key_code;
+    unsigned short key_state;
 } XVFBKEYDATA;
 
 typedef struct _XVFBMOUSEDATA
 {
-        unsigned short x;
-        unsigned short y;
-        unsigned int   button;
+    unsigned short x;
+    unsigned short y;
+    unsigned int   button;
 } XVFBMOUSEDATA;
 
 typedef struct _XVFBEVENTDATA
 {
-        int event_type;
-        union
-        {
-                XVFBKEYDATA   key;
-                XVFBMOUSEDATA mouse;
-        } data;
+    int event_type;
+    union {
+        XVFBKEYDATA   key;
+        XVFBMOUSEDATA mouse;
+    } data;
 } XVFBEVENT;
 
 typedef struct _XVFBCaptionEventData{
-        int event_type;
-        int size;
-        char buff[0];
+    int event_type;
+    int size;
+    char buff[0];
 }XVFBCaptionEventData;
 
 typedef struct _XVFBIMEEventData{
-        int event_type;
-        int ime_open;
+    int event_type;
+    int ime_open;
 }XVFBIMEEventData;
 
 typedef struct _XVFBIMEMSGEventData{
@@ -117,6 +119,13 @@ typedef struct _XVFBShowHideEventData{
     int show;           /* 0 to hide, 1 to show */
 }XVFBShowHideEventData;
 
+/* Since 5.0.0: command */
+#define XVFB_CMD_QUIT   0
+typedef struct _XVFBCmdEventData {
+    int event_type;
+    int cmd;
+} XVFBCmdEventData;
+
 extern int __mg_pcxvfb_server_sockfd;
 extern int __mg_pcxvfb_client_sockfd;
 
@@ -124,8 +133,8 @@ BOOL ial_InitPCXVFBInput (INPUT* input, const char* mdev, const char* mtype);
 void TermPCXVFBInput (void);
 
 MG_EXPORT void GUIAPI VFBOpenIME(int bOpen);
-MG_EXPORT void GUIAPI VFBSetIMETextCallback(void (*setIMEText)(void *, const char* text),
-        void *user_data);
+MG_EXPORT void GUIAPI VFBSetIMETextCallback(void (*setIMEText)(void *,
+            const char* text), void *user_data);
 
 MG_EXPORT void GUIAPI VFBSetCaption(const char* caption);
 MG_EXPORT void GUIAPI VFBShowWindow(int show);
