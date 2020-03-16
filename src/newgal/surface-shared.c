@@ -150,8 +150,6 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
         int fd = -1;
         size_t pixels_size;
         off_t pixels_off;
-        off_t map_size;
-        void* data_map;
         GAL_SharedSurfaceHeader* hdr;
         int byhw = 1;
 
@@ -159,9 +157,12 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
                 video->AllocSharedHWSurface) {
             fd = video->AllocSharedHWSurface (video, surface,
                     &pixels_size, &pixels_off, rw_modes);
+            hdr = surface->shared_header;
         }
 
         if (fd < 0) { // fallback to use software surface
+            off_t map_size;
+            void* data_map;
             off_t file_size;
 
             byhw = 0;
@@ -182,17 +183,17 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             }
 
             surface->video = NULL;
-        }
 
-        map_size = pixels_off + pixels_size;
-        data_map = mmap (NULL, map_size, PROT_READ | PROT_WRITE,
-                MAP_SHARED, fd, 0);
-        if (data_map == MAP_FAILED) {
-            close (fd);
-            goto error;
-        }
+            map_size = pixels_off + pixels_size;
+            data_map = mmap (NULL, map_size, PROT_READ | PROT_WRITE,
+                    MAP_SHARED, fd, 0);
+            if (data_map == MAP_FAILED) {
+                close (fd);
+                goto error;
+            }
 
-        surface->shared_header = hdr = (GAL_SharedSurfaceHeader*)data_map;
+            surface->shared_header = hdr = (GAL_SharedSurfaceHeader*)data_map;
+        }
 
         /* fill fileds of shared header */
         memset (hdr, 0, sizeof(GAL_SharedSurfaceHeader));
