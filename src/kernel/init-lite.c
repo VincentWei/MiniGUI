@@ -582,7 +582,6 @@ void TerminateGUI (int rcByGUI)
     __mg_join_all_message_threads ();
 #endif
 
-    mg_DestroyFreeQMSGList ();
     mg_TerminateAccel ();
     mg_TerminateControlClass ();
 
@@ -615,6 +614,8 @@ void TerminateGUI (int rcByGUI)
         client_ClientCleanup ();
     }
 #endif
+
+    mg_DestroyFreeQMSGList ();
 
 #ifdef _MGHAVE_ADV_2DAPI
     extern void miFreeArcCache (void);
