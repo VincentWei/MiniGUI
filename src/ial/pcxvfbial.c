@@ -689,20 +689,18 @@ BOOL ial_InitPCXVFBInput (INPUT* input, const char* mdev, const char* mtype)
     {
         char path[PATH_MAX], *template;
         template = getenv("MG_ENV_RECORD_IAL");
-        if (template)
-            {
+        if (template) {
 #if 0
-                snprintf(path, sizeof(path), "%s%ld", template, time(NULL));
+            snprintf(path, sizeof(path), "%s%ld", template, time(NULL));
 #else
-                snprintf(path, sizeof(path), "%s", template);
+            snprintf(path, sizeof(path), "%s", template);
 #endif
-                path[sizeof(path)/sizeof(path[0])-1] = 0;
+            path[sizeof(path)/sizeof(path[0])-1] = 0;
 
-                open_rec (path);
-                record_time_start = getcurtime();
-            }
+            open_rec (path);
+            record_time_start = getcurtime();
+        }
     }
-
 
     return TRUE;
 }
@@ -725,6 +723,14 @@ void TermPCXVFBInput (void)
     socket_file[49] = '\0';
 
     if (__mg_pcxvfb_client_sockfd >= 0) {
+        /* Since 5.0.0: send a quit command to XVFB */
+        XVFBCmdEventData cmd = { CMD_TYPE, XVFB_CMD_QUIT };
+
+        if (mg_writesocket (__mg_pcxvfb_client_sockfd, &cmd, sizeof (cmd)) <
+                sizeof (cmd)) {
+            // do nothing
+        }
+
         close(__mg_pcxvfb_client_sockfd);
         __mg_pcxvfb_client_sockfd = -1;
     }
@@ -733,7 +739,7 @@ void TermPCXVFBInput (void)
         __mg_pcxvfb_server_sockfd = -1;
     }
     unlink(socket_file);
-#if defined(_MGRM_PROCESSES) && !defined(_MGRM_STANDALONE)
+#if defined(_MGRM_PROCESSES)
     if (mgIsServer) {
         remove("/tmp/.pcxvfb_tmp");
     }
@@ -741,4 +747,4 @@ void TermPCXVFBInput (void)
 #endif /* WIN32 */
 }
 
-#endif /* _MGGAL_PCXVFB*/
+#endif /* _MGGAL_PCXVFB */
