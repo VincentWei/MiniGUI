@@ -1,4 +1,4 @@
-Version 4.9.1 (2019/03/11)
+Version 5.0.0 (2019/03/31)
 
 This is the second preview version of MiniGUI 5.0.0, an unstable version.
 

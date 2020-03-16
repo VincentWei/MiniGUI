@@ -1,8 +1,6 @@
 # Release Notes
 
-- [Version 4.9.1](#version-491)
-   + [What's new in this version](#whats-new-in-this-version)
-- [Version 4.9.0](#version-490)
+- [Version 4.9.2](#version-492)
    + [What's new in this version](#whats-new-in-this-version)
    + [Compositing schema](#compositing-schema)
    + [New main window styles](#new-main-window-styles)
@@ -12,33 +10,10 @@
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
 
-## Version 4.9.1
+## Version 4.9.2
 
-The MiniGUI development team announces the availability of MiniGUI 4.9.1,
-which is the second preview release of MiniGUI 5.0.0.
-
-This is an unstable release to show you some new and exciting features.
-Here `unstable` means that the new APIs we introduced in this version
-may change in the official release.
-
-Nevertheless, we did our best to ensure backward compatibility of the
-existed APIs so that the old applications can smoothly migrate to the new
-version. We recommend that you test this version and report any bugs and
-incompatibilities in
-
-<https://github.com/VincentWei/minigui/tree/dev-4-1>
-
-### What's new in this version
-
-- Tune the `fbcon` (Linux Frame Buffer) engine to support compositing schema.
-- Tune the `commlcd` (common LCD) engine to support cumulative updating and
-  compositing schema.
-- Fix some bugs.
-
-## Version 4.9.0
-
-The MiniGUI development team announces the availability of MiniGUI 4.9.0,
-which is the first preview release of MiniGUI 5.0.0.
+The MiniGUI development team announces the availability of MiniGUI 4.9.2,
+which is the third preview release of MiniGUI 5.0.0.
 
 This is an unstable release to show you some new and exciting features.
 Here `unstable` means that the new APIs we introduced in this version
@@ -91,6 +66,15 @@ exciting features for MiniGUI:
 * ADJUSTMENTS:
    - `g_rcScr` now is defined a macro calling function `GetScreenRect()`.
    - `mgIsServer` now is define a macro calling function `IsServer()`.
+* TUNNING
+   - Tune the `drm` (DRM) engine to support MiniGUI-Processes runtime mode
+     and compositing schema.
+   - Tune the `fbcon` (Linux Frame Buffer) engine to support compositing schema.
+   - Tune the `commlcd` (common LCD) engine to support cumulative updating and
+     compositing schema.
+   - Tune the `dummy` GAL engine to support MiniGUI-Processes runtime mode.
+     compositing schema.
+   - Fix some bugs.
 * CLEANUP:
    - Cleaned up a lot of internal symbols (the external functions and
      global variables) in order to avoid name polution.
@@ -101,11 +85,7 @@ exciting features for MiniGUI:
 The following new features will be developed in the successive versions of
 4.9.x:
 
-- Enhance DRM engine to support MiniGUI-Processes runtime mode and the
-  compositing schema.
 - Enhance other frequently used GAL engines to support compositing schema.
-- Provide a customized compositor which provides window animation effects as
-  an example in `mg-demos`.
 
 ### Compositing schema
 
