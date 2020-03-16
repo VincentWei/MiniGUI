@@ -1099,6 +1099,11 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 
 # if IS_SHAREDFB_SCHEMA_PROCS
     if (mgIsServer) {
+        if (drmSetMaster(device->hidden->dev_fd)) {
+            _ERR_PRINTF("NEWGAL>DRM: failed to call drmSetMaster: %m\n");
+            return NULL;
+        }
+        drmGetMagic(device->hidden->dev_fd, &device->hidden->auth_magic);
 # endif /* IS_SHAREDFB_SCHEMA_PROCS */
         char tmp [8];
         if (GetMgEtcValue ("drm", "double_buffering", tmp, 8) < 0) {
@@ -1111,6 +1116,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 # if IS_SHAREDFB_SCHEMA_PROCS
     }
     else {
+        drmAuthMagic(device->hidden->dev_fd, SHAREDRES_VIDEO_DRM_MAGIC);
         device->hidden->dbl_buff = SHAREDRES_VIDEO_DBL_BUFF;
     }
 # endif /* IS_SHAREDFB_SCHEMA_PROCS */
@@ -1572,6 +1578,8 @@ static void DRM_CopyVideoInfoToSharedRes(_THIS)
     SHAREDRES_VIDEO_DRM_FORMAT =
         ((DrmSurfaceBuffer*)vdata->real_screen->hwdata)->drm_format;
 
+    SHAREDRES_VIDEO_DRM_MAGIC = vdata->auth_magic;
+
     strncpy (SHAREDRES_VIDEO_EXDRIVER, vdata->ex_driver, LEN_EXDRIVER_NAME);
     SHAREDRES_VIDEO_EXDRIVER[LEN_EXDRIVER_NAME] = 0;
 
@@ -1851,9 +1859,10 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_name(DrmVideoData* vdata,
 
     /* open named buffer */
     memset(&oreq, 0, sizeof(oreq));
-    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_OPEN, &creq);
+    oreq.name = name;
+    ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_OPEN, &oreq);
     if (ret < 0) {
-        _WRN_PRINTF("Failed to open named buffer (%d): %m\n", errno);
+        _WRN_PRINTF("Failed to open named buffer (%u): %m\n", name);
         return NULL;
     }
 
@@ -2025,14 +2034,16 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 
         /* initialize the header */
         hdr = (GAL_ShadowSurfaceHeader *)shadow_buffer->buff;
-#if IS_SHAREDFB_SCHEMA_PROCS
+#if 0   /* deprecated code */
+        IS_SHAREDFB_SCHEMA_PROCS
         ret = sem_init(&hdr->sem_lock, 1, 1);
+        _WRN_PRINTF ("sem_init called\n");
         if (ret) {
             _ERR_PRINTF("NEWGAL>DRM: "
                     "cannot initialize the semaphore lock for dirty rectangle\n");
             goto error;
         }
-#endif
+#endif  /* deprecated code */
         SetRectEmpty (&hdr->dirty_rc);
     }
 
@@ -2580,9 +2591,12 @@ int __drm_get_shared_screen_surface (const char *name, SHAREDSURFINFO* info)
 
             memset (&flink, 0, sizeof (flink));
             flink.handle = surface_buffer->handle;
-            if (drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_FLINK, &flink))
+            if (drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_FLINK, &flink)) {
+                _ERR_PRINTF ("NEWGAL>DRM: failed to flink real screen\n");
                 return -1;
+            }
 
+            _WRN_PRINTF ("flink name of real screen: %u\n", flink.name);
             vdata->real_name = flink.name;
         }
 
@@ -2599,13 +2613,19 @@ int __drm_get_shared_screen_surface (const char *name, SHAREDSURFINFO* info)
 
             memset (&flink, 0, sizeof (flink));
             flink.handle = surface_buffer->handle;
-            if (drmIoctl (vdata->dev_fd, DRM_IOCTL_GEM_FLINK, &flink))
+            if (drmIoctl (vdata->dev_fd, DRM_IOCTL_GEM_FLINK, &flink)) {
+                _ERR_PRINTF ("NEWGAL>DRM: failed to flink shadow screen\n");
                 return -1;
+            }
 
+            _WRN_PRINTF ("flink name of shadow screen: %u\n", flink.name);
             vdata->shadow_name = flink.name;
         }
 
         info->flags = vdata->shadow_screen->flags;
+        info->width = vdata->shadow_screen->w;
+        info->height = vdata->shadow_screen->h;
+        info->pitch = vdata->shadow_screen->pitch;
         info->name = vdata->shadow_name;
     }
 
@@ -2679,6 +2699,9 @@ static GAL_Surface *DRM_SetVideoMode_Client(_THIS, GAL_Surface *current,
         goto error;
     }
 
+    GAL_SetClipRect (vdata->real_screen, NULL);
+    GAL_SetColorKey (vdata->shadow_screen, 0, 0);
+    GAL_SetAlpha (vdata->shadow_screen, 0, 0);
     GAL_FreeSurface (current);
     return vdata->shadow_screen;
 
@@ -2846,7 +2869,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
         ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
 
 #if IS_SHAREDFB_SCHEMA_PROCS
-    sem_wait(&hdr->sem_lock);
+    //sem_wait(&hdr->sem_lock);
 #endif
 
     bound = hdr->dirty_rc;
@@ -2864,7 +2887,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     hdr->dirty_rc = bound;
 
 #if IS_SHAREDFB_SCHEMA_PROCS
-    sem_post(&hdr->sem_lock);
+    //sem_post(&hdr->sem_lock);
 #endif
 }
 
@@ -2880,7 +2903,7 @@ static BOOL DRM_SyncUpdate (_THIS)
         ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
 
 #if IS_SHAREDFB_SCHEMA_PROCS
-    sem_wait(&hdr->sem_lock);
+    //sem_wait(&hdr->sem_lock);
 #endif
 
     if (IsRectEmpty (&hdr->dirty_rc))
@@ -2923,9 +2946,11 @@ static BOOL DRM_SyncUpdate (_THIS)
 #endif  /* _MGSCHEMA_COMPOSITING */
     }
 
+    SetRectEmpty (&hdr->dirty_rc);
+
 ret:
 #if IS_SHAREDFB_SCHEMA_PROCS
-    sem_post(&hdr->sem_lock);
+    //sem_post(&hdr->sem_lock);
 #endif
     return retval;
 }
