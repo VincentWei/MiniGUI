@@ -302,9 +302,7 @@ int mg_InitGAL (char* engine, char* mode)
     if (GAL_VideoInit (engine, 0)) {
         GAL_VideoQuit ();
         _ERR_PRINTF ("NEWGAL: Does not find matched engine: %s.\n", engine);
-        if (IS_COMPOSITING_SCHEMA) {
-            _ERR_PRINTF ("    Or the specified engine does not support compositing schema.\n");
-        }
+        _ERR_PRINTF ("    Or failed to initialize the engine.\n");
         return ERR_NO_MATCH;
     }
 
