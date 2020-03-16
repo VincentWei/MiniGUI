@@ -560,7 +560,8 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     if ((mode != NULL)) {
         /* Sanity check */
         if ((mode->w < width) || (mode->h < height)) {
-            GAL_SetError("NEWGAL: Video mode smaller than requested.\n");
+            GAL_SetError("NEWGAL: Video size (%d x %d) smaller than requested.\n",
+                    mode->w, mode->h);
             return(NULL);
         }
 
