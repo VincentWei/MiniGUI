@@ -304,14 +304,16 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
         close (surface->shared_header->fd);
         surface->shared_header->fd = -1;
     }
-    munmap (surface->shared_header,
-        surface->shared_header->pixels_size
-            + surface->shared_header->pixels_off);
 
     if (surface->shared_header->byhw) {
         assert (video->FreeSharedHWSurface);
         video->FreeSharedHWSurface (video, surface);
         surface->hwdata = NULL;
+    }
+    else {
+        munmap (surface->shared_header,
+            surface->shared_header->pixels_size
+                + surface->shared_header->pixels_off);
     }
 
     surface->pixels = NULL;
