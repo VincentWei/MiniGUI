@@ -165,18 +165,10 @@ typedef struct _SharedSurfaceHeader {
 } GAL_SharedSurfaceHeader;
 #endif /* IS_COMPOSITING_SCHEMA */
 
-/*
- * The header for shadow surface; used to store the dirty rectangle.
- */
+/* The header for shadow screen; used to store the dirty rectangle. */
 typedef struct _ShadowSurfaceHeader {
-#if IS_SHAREDFB_SCHEMA_PROCS
-    /* The POSIX semaphore for lock the dirty rectangle;
-       only available for sharedfb schema and MiniGUI-Processes runmode. */
-    sem_t           sem_lock;
-#endif
-
-    /* The dirty information */
-    RECT            dirty_rc;
+    /* The dirty rectangle */
+    RECT    dirty_rc;
 } GAL_ShadowSurfaceHeader;
 
 /*
