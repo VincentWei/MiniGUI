@@ -800,17 +800,15 @@ static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 /* get the rendering surface */
 static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 {
-    int fd = -1;
     const char* name = buff;
     SHAREDSURFINFO info = { 0, 0 };
 
 #ifdef _MGGAL_DRM
     extern int __drm_get_shared_screen_surface (const char*, SHAREDSURFINFO*);
-
-    fd = __drm_get_shared_screen_surface (name, &info);
+    __drm_get_shared_screen_surface (name, &info);
 #endif
 
-    return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), fd);
+    return ServerSendReply (clifd, &info, sizeof (SHAREDSURFINFO));
 }
 #endif  /* not IS_COMPOSITING_SCHEMA */
 
