@@ -971,6 +971,11 @@ BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst,
 
 #define mg_TerminateGAL GAL_VideoQuit
 
+#ifdef _MGRM_PROCESSES
+/* Since 5.0.0: copy video information to the shared resource */
+BOOL GAL_CopyVideoInfoToSharedRes (void);
+#endif  /* _MGRM_PROCESSES */
+
 #ifdef _MGGAL_DRM
 /* functions implemented in DRM engine. */
 BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);

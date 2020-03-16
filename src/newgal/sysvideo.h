@@ -143,6 +143,8 @@ struct GAL_VideoDevice {
     GAL_VideoInfo info;
 
 #ifdef _MGRM_PROCESSES
+    /* Copy video information to shared resource segment */
+    void (*CopyVideoInfoToSharedRes)(_THIS);
     /* Request a surface in video memory */
     void (*RequestHWSurface)(_THIS, const REQ_HWSURFACE* request,
             REP_HWSURFACE* reply);

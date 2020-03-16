@@ -3677,9 +3677,7 @@ static int srvDesktopCommand (int id)
         unlock_zi_for_read (__mg_zorder_info);
     }
     else if (id == IDM_ENDSESSION) {
-        if (SERVER_HAS_NO_MAINWINDOW()) {
-            ExitGUISafely (-1);
-        }
+        SendMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
     }
 #ifdef _MGHAVE_MENU
     else if (id >= IDM_FIRSTWINDOW && id < IDM_SWITCH_LAYER) {
@@ -4094,10 +4092,8 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
         break;
 
     case MSG_ERASEDESKTOP:
-
         if (dsk_ops->paint_desktop)
             dsk_ops->paint_desktop(dt_context, hDesktopDC, (PRECT)lParam);
-
         break;
 
     case MSG_DT_KEYLONGPRESS:
@@ -4114,6 +4110,7 @@ static int srvSesseionMessageHandler (int message, WPARAM wParam, LPARAM lParam)
 
 #ifdef _MGHAVE_MENU
     case MSG_DT_RBUTTONUP:
+        if (sg_DesktopMenu)
             srvUpdateDesktopMenu ();
 #endif
     case MSG_DT_LBUTTONDOWN:

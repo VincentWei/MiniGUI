@@ -501,6 +501,8 @@ int InitGUI (int argc, const char* agr[])
         SHAREDRES_VIDEO_GMASK = __gal_screen->format->Gmask;
         SHAREDRES_VIDEO_BMASK = __gal_screen->format->Bmask;
         SHAREDRES_VIDEO_AMASK = __gal_screen->format->Amask;
+
+        GAL_CopyVideoInfoToSharedRes();
     }
     else {
         _DBG_PRINTF("Engien info from shared resource: %s %s %d\n",

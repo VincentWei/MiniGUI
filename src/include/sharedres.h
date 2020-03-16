@@ -106,7 +106,6 @@ typedef struct tagG_RES {
     Uint32 video_rmask, video_gmask, video_bmask, video_amask;
 #ifdef _MGGAL_DRM
     char video_exdriver [LEN_EXDRIVER_NAME + 1];
-    // char video_fourcc [LEN_FOURCC_FORMAT + 1];
     Uint32 video_drm_format;
     Uint32 video_dbl_buff:1;
 #endif
@@ -172,7 +171,6 @@ typedef G_RES* PG_RES;
 #define SHAREDRES_VIDEO_ENGINE      (((PG_RES)mgSharedRes)->video_engine)
 #define SHAREDRES_VIDEO_MODE        (((PG_RES)mgSharedRes)->video_mode)
 #define SHAREDRES_VIDEO_DEVICE      (((PG_RES)mgSharedRes)->video_device)
-// #define SHAREDRES_VIDEO_FOURCC      (((PG_RES)mgSharedRes)->video_fourcc)
 #define SHAREDRES_VIDEO_DPI         (((PG_RES)mgSharedRes)->video_dpi)
 #define SHAREDRES_VIDEO_HRES        (((PG_RES)mgSharedRes)->video_hres)
 #define SHAREDRES_VIDEO_VRES        (((PG_RES)mgSharedRes)->video_vres)
@@ -214,7 +212,7 @@ typedef G_RES* PG_RES;
 # define SHAREDRES_SEMID_SHARED_SURF (((PG_RES)mgSharedRes)->semid_shared_surf)
 #endif
 
-#define SHAREDRES_NR_GLOBALS    (((PG_RES)mgSharedRes)->nr_globals)
+#define SHAREDRES_NR_GLOBALS        (((PG_RES)mgSharedRes)->nr_globals)
 #define SHAREDRES_DEF_NR_TOPMOSTS   (((PG_RES)mgSharedRes)->def_nr_topmosts)
 #define SHAREDRES_DEF_NR_NORMALS    (((PG_RES)mgSharedRes)->dev_nr_normals)
 

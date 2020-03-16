@@ -86,6 +86,9 @@ static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors);
 static void DRM_VideoQuit(_THIS);
 static int DRM_Suspend(_THIS);
 static int DRM_Resume(_THIS);
+#ifdef _MGRM_PROCESSES
+static void DRM_CopyVideoInfoToSharedRes(_THIS);
+#endif
 
 /* DRM engine methods for dumb buffer */
 static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
@@ -225,7 +228,6 @@ static uint32_t get_drm_format_from_etc(int* bpp)
             format = fourcc_code(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
         }
 #ifdef _MGRM_PROCESSES
-        SHAREDRES_VIDEO_DRM_FORMAT = format;
     }
     else {
         format = SHAREDRES_VIDEO_DRM_FORMAT;
@@ -850,6 +852,12 @@ static void DRM_DeleteDevice(GAL_VideoDevice *device)
 {
     drm_cleanup(device->hidden);
 
+    if (device->hidden->dev_name)
+        free (device->hidden->dev_name);
+
+    if (device->hidden->ex_driver)
+        free (device->hidden->ex_driver);
+
     if (device->hidden->driver && device->hidden->driver_ops) {
         device->hidden->driver_ops->destroy_driver(device->hidden->driver);
     }
@@ -925,9 +933,8 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
 
             filename = buff;
         }
+        vdata->ex_driver = strdup(filename);
 #ifdef _MGRM_PROCESSES
-        strncpy (SHAREDRES_VIDEO_EXDRIVER, filename, LEN_EXDRIVER_NAME);
-        SHAREDRES_VIDEO_EXDRIVER[LEN_EXDRIVER_NAME] = 0;
     }
     else {
         filename = SHAREDRES_VIDEO_EXDRIVER;
@@ -1032,11 +1039,12 @@ static int open_drm_device(GAL_VideoDevice *device)
 
 static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 {
+    char dev_name [LEN_DEVICE_NAME + 1];
     GAL_VideoDevice *device;
 
     /* Initialize all variables that we clean on shutdown */
     device = (GAL_VideoDevice *)malloc(sizeof(GAL_VideoDevice));
-    if ( device ) {
+    if (device) {
         memset(device, 0, (sizeof (*device)));
         device->hidden = (struct GAL_PrivateVideoData *)
                 calloc(1, (sizeof (*device->hidden)));
@@ -1053,14 +1061,12 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 #ifdef _MGRM_PROCESSES
     if (mgIsServer) {
 #endif
-        if (GetMgEtcValue ("drm", "device",
-                device->hidden->dev_name, LEN_DEVICE_NAME) < 0) {
-            strcpy(device->hidden->dev_name, "/dev/dri/card0");
+        if (GetMgEtcValue ("drm", "device", dev_name, LEN_DEVICE_NAME) < 0) {
+            strcpy(dev_name, "/dev/dri/card0");
             _WRN_PRINTF("No drm.device defined, use default '/dev/dri/card0'\n");
         }
+        device->hidden->dev_name = strdup(dev_name);
 #ifdef _MGRM_PROCESSES
-        // copy to shared resource segment
-        strcpy (SHAREDRES_VIDEO_DEVICE, device->hidden->dev_name);
     }
     else {
         memcpy(device->hidden->dev_name, SHAREDRES_VIDEO_DEVICE, LEN_DEVICE_NAME);
@@ -1095,7 +1101,6 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             device->hidden->dbl_buff = 1;
         }
 # if IS_SHAREDFB_SCHEMA_PROCS
-        SHAREDRES_VIDEO_DBL_BUFF = device->hidden->dbl_buff;
     }
     else {
         device->hidden->dbl_buff = SHAREDRES_VIDEO_DBL_BUFF;
@@ -1126,6 +1131,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         }
 #   endif   /* not defined _MGSCHEMA_COMPOSITING */
         device->RequestHWSurface = NULL;    // always be NULL
+        device->CopyVideoInfoToSharedRes = DRM_CopyVideoInfoToSharedRes;
 #endif   /* defined _MGRM_PROCESSES */
 
         device->AllocHWSurface = DRM_AllocHWSurface_Accl;
@@ -1152,6 +1158,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 
 #   endif   /* not defined _MGSCHEMA_COMPOSITING */
         device->RequestHWSurface = NULL;    // always be NULL
+        device->CopyVideoInfoToSharedRes = DRM_CopyVideoInfoToSharedRes;
 #endif  /* defined _MGRM_PROCESSES */
         device->AllocHWSurface = DRM_AllocDumbSurface;
         device->FreeHWSurface = DRM_FreeDumbSurface;
@@ -1534,6 +1541,24 @@ static int DRM_Suspend(_THIS)
 
     return ret;
 }
+
+#ifdef _MGRM_PROCESSES
+static void DRM_CopyVideoInfoToSharedRes(_THIS)
+{
+    DrmVideoData* vdata = this->hidden;
+
+    SHAREDRES_VIDEO_DRM_FORMAT =
+        ((DrmSurfaceBuffer*)vdata->real_screen->hwdata)->drm_format;
+
+    strncpy (SHAREDRES_VIDEO_EXDRIVER, vdata->ex_driver, LEN_EXDRIVER_NAME);
+    SHAREDRES_VIDEO_EXDRIVER[LEN_EXDRIVER_NAME] = 0;
+
+    strncpy (SHAREDRES_VIDEO_DEVICE, vdata->dev_name, LEN_DEVICE_NAME);
+    SHAREDRES_VIDEO_EXDRIVER[LEN_DEVICE_NAME] = 0;
+
+    SHAREDRES_VIDEO_DBL_BUFF = vdata->dbl_buff;
+}
+#endif  /* _MGRM_PROCESSES */
 
 #if 0   /* deprecated code */
 /*

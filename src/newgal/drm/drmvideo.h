@@ -77,7 +77,8 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        real_name, shadow_name;
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 
-    char            dev_name[LEN_DEVICE_NAME + 1];
+    char*           dev_name;
+    char*           ex_driver;
     int             dev_fd;
 
     /* capabilities */
