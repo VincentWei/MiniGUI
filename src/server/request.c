@@ -781,10 +781,10 @@ static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
     SHAREDSURFINFO info;
 
     assert (__gal_fake_screen);
-    assert (strcmp (buff, SYSSF_WALLPAPER_PATTER) == 0);
 
     info.flags = __gal_fake_screen->flags;
-    if (__gal_fake_screen->shared_header) {
+    if (strcmp (buff, SYSSF_WALLPAPER_PATTER) == 0 &&
+            __gal_fake_screen->shared_header) {
         info.size = __gal_fake_screen->shared_header->pixels_size;
         info.size += __gal_fake_screen->shared_header->pixels_off;
 
