@@ -1764,8 +1764,10 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     surface_buffer->size = creq.size;
     *pitch = creq.pitch;
 
-    _WRN_PRINTF ("Surface buffer info: w(%u), h(%u), pitch(%u), size (%lu), offset (%lu)\n",
-            width, height, creq.pitch, surface_buffer->size, surface_buffer->offset);
+    _DBG_PRINTF ("Surface buffer info: w(%u), h(%u), "
+            "pitch(%u), size (%lu), offset (%lu)\n",
+            width, height, creq.pitch,
+            surface_buffer->size, surface_buffer->offset);
 
     /* prepare buffer for memory mapping */
     memset(&mreq, 0, sizeof(mreq));
