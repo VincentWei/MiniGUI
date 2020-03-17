@@ -299,8 +299,10 @@ BOOL GUIAPI ServerStartup (int nr_globals,
     SHAREDRES_DEF_NR_TOPMOSTS = def_nr_topmosts;
     SHAREDRES_DEF_NR_NORMALS = def_nr_normals;
 
-    if (__mg_init_layers () == -1)
+    if (__mg_init_layers () == -1) {
+        _ERR_PRINTF ("mginit: failed to initialize layers\n");
         return FALSE;
+    }
 
     SHAREDRES_NR_LAYSERS = 1;
     mgTopmostLayer = mgLayers;
@@ -311,8 +313,11 @@ BOOL GUIAPI ServerStartup (int nr_globals,
     mgClients[0].layer = mgTopmostLayer;
 
     /* obtain fd to listen for client requests on */
-    if ( (listenfd = serv_listen (CS_PATH)) < 0)
+    if ((listenfd = serv_listen (CS_PATH)) < 0) {
+        _ERR_PRINTF ("mginit: failed to open socket (%s) to listen: %m\n",
+                CS_PATH);
         goto fail;
+    }
 
     FD_SET (listenfd, &__mg_dsk_msg_queue->rfdset);
     __mg_dsk_msg_queue->maxfd = listenfd;
@@ -326,7 +331,7 @@ BOOL GUIAPI ServerStartup (int nr_globals,
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (!mg_InitCompositor ()) {
-        _ERR_PRINTF ("Can not initialize compositor!");
+        _ERR_PRINTF ("mginit: failed to initialize compositor!\n");
         goto fail;
     }
     atexit (mg_TerminateCompositor);
