@@ -62,11 +62,14 @@ typedef struct GAL_PrivateVideoData {
 #ifdef _MGSCHEMA_COMPOSITING
     GAL_Surface *real_screen, *shadow_screen;
 
+    DrmSurfaceBuffer *cursor_buff;
+    uint32_t cursor_plane_id;
+    uint32_t cursor_buff_id;
+
     /* Used to simulate the hardware cursor when hardware cursor not available. */
     GAL_Surface *cursor;
     int csr_x, csr_y;
     int hot_x, hot_y;
-    /* end of header for shadow screen */
 #else   /* defined _MGSCHEMA_COMPOSITING */
     /* When double buffering supported, the real surface represents the ultimate
      * scan-out frame buffer, and the shadow screen represents the rendering
