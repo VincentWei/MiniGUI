@@ -710,7 +710,7 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     /* for dumb buffer, already mapped */
     if (surface_buffer->buff == NULL &&
             vdata->driver && vdata->driver_ops->map_buffer) {
-        if (vdata->driver_ops->map_buffer(vdata->driver, surface_buffer) == NULL) {
+        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer)) {
             _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
             goto error;
         }
@@ -970,7 +970,7 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
 
     vdata->exdrv_handle = dlopen (filename, RTLD_LAZY);
     if (!vdata->exdrv_handle) {
-        _WRN_PRINTF("failed to open specified external DRM driver: %s (%s)\n",
+        _ERR_PRINTF("NEWGAL>DRM: failed to open external DRM driver: %s (%s)\n",
                 filename, dlerror());
         return NULL;
     }
@@ -979,7 +979,7 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
     get_exdrv = dlsym (vdata->exdrv_handle, "__drm_ex_driver_get");
     error = dlerror();
     if (error) {
-        _WRN_PRINTF("failed to get symbol: %s\n", error);
+        _ERR_PRINTF("NEWGAL>DRM: failed to get symbol: %s\n", error);
         dlclose (vdata->exdrv_handle);
         vdata->exdrv_handle = NULL;
         return NULL;
@@ -1038,7 +1038,7 @@ static int open_drm_device(GAL_VideoDevice *device)
             device->hidden->cap_cursor_height = cursor_height;
         }
 
-        _WRN_PRINTF ("DRM cursor cap: w(%d), h(%d)\n",
+        _DBG_PRINTF ("DRM cursor cap: w(%d), h(%d)\n",
                 (int)cursor_width, (int)cursor_height);
     }
 
@@ -1484,10 +1484,12 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
     }
 #endif
 
+#ifdef _MGSCHEMA_COMPOSITING
     /* we must initialize the video information after created the device */
     if (this->SetCursor) {
         this->info.hw_cursor = 1;
     }
+#endif /* _MGSCHEMA_COMPOSITING */
 
     if (this->hidden->driver) {
         if (this->hidden->driver_ops->clear_buffer) {
@@ -1742,7 +1744,7 @@ static uint32_t check_plane_suitable_for_cursor(DrmVideoData* vdata,
     uint32_t plane_id = 0;
 
     for (i = 0; i < plane->count_formats; i++) {
-        _WRN_PRINTF ("plane format (%d): %c%c%c%c\n", i,
+        _DBG_PRINTF ("plane format (%d): %c%c%c%c\n", i,
                 plane->formats[i], plane->formats[i] >> 8,
                 plane->formats[i] >> 16, plane->formats[i] >> 24);
         if (plane->formats[i] != fourcc)
@@ -1758,11 +1760,11 @@ static uint32_t check_plane_suitable_for_cursor(DrmVideoData* vdata,
             drmModePropertyPtr prop =
                 drmModeGetProperty (vdata->dev_fd, props->props[j]);
 
-            _WRN_PRINTF ("prop name: %s\n", prop->name);
+            _DBG_PRINTF ("prop name: %s\n", prop->name);
             if (strcmp(prop->name, "type") == 0 &&
                     drm_property_type_is(prop, DRM_MODE_PROP_ENUM)) {
                 for (k = 0; k < prop->count_enums; k++) {
-                    _WRN_PRINTF ("prop enum value (%d): %d\n",
+                    _DBG_PRINTF ("prop enum value (%d): %d\n",
                             k, (int)prop->enums[k].value);
                     if (prop->enums[k].value == DRM_PLANE_TYPE_CURSOR) {
                         plane_id = plane->plane_id;
@@ -1931,12 +1933,12 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     creq.bpp = bpp;
     ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq);
     if (ret < 0) {
-        _WRN_PRINTF("Failed to create dumb buffer (%d): %m\n", errno);
+        _ERR_PRINTF("NEWGAL>DRM: Failed to create dumb buffer (%d): %m\n", errno);
         return NULL;
     }
 
     if ((surface_buffer = malloc (sizeof (DrmSurfaceBuffer))) == NULL) {
-        _WRN_PRINTF("Failed to allocate memory\n");
+        _ERR_PRINTF("NEWGAL>DRM: Failed to allocate memory\n");
         goto err_destroy;
     }
 
@@ -1963,7 +1965,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     mreq.handle = surface_buffer->handle;
     ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
     if (ret) {
-        _WRN_PRINTF("NEWGAL>DRM: cannot map dumb buffer (%d): %m\n", errno);
+        _ERR_PRINTF("NEWGAL>DRM: cannot map dumb buffer (%d): %m\n", errno);
         goto err_fb;
     }
 
@@ -1996,7 +1998,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_handle(DrmVideoData* vdata,
     struct drm_mode_map_dumb mreq;
 
     if ((surface_buffer = malloc (sizeof (DrmSurfaceBuffer))) == NULL) {
-        _WRN_PRINTF("Failed to allocate memory\n");
+        _ERR_PRINTF("NEWGAL>DRM: Failed to allocate memory\n");
         goto error;
     }
 
@@ -2008,7 +2010,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_handle(DrmVideoData* vdata,
     mreq.handle = surface_buffer->handle;
     ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
     if (ret) {
-        _WRN_PRINTF("NEWGAL>DRM: cannot map dumb buffer (%u): %m\n", mreq.handle);
+        _ERR_PRINTF("NEWGAL>DRM: cannot map dumb buffer (%u): %m\n", mreq.handle);
         goto error;
     }
 
@@ -2043,7 +2045,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_name(DrmVideoData* vdata,
     oreq.name = name;
     ret = drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_OPEN, &oreq);
     if (ret < 0) {
-        _WRN_PRINTF("Failed to open named buffer (%u): %m\n", name);
+        _ERR_PRINTF("NEWGAL>DRM: Failed to open named buffer (%u): %m\n", name);
         return NULL;
     }
 
@@ -2215,16 +2217,6 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 
         /* initialize the header */
         hdr = (GAL_ShadowSurfaceHeader *)shadow_buffer->buff;
-#if 0   /* deprecated code */
-        IS_SHAREDFB_SCHEMA_PROCS
-        ret = sem_init(&hdr->sem_lock, 1, 1);
-        _WRN_PRINTF ("sem_init called\n");
-        if (ret) {
-            _ERR_PRINTF("NEWGAL>DRM: "
-                    "cannot initialize the semaphore lock for dirty rectangle\n");
-            goto error;
-        }
-#endif  /* deprecated code */
         SetRectEmpty (&hdr->dirty_rc);
     }
 
@@ -2258,10 +2250,13 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 
 #if IS_COMPOSITING_SCHEMA
     if (this->info.hw_cursor && drm_setup_cursor_plane (vdata,
-                DRM_FORMAT_XRGB8888, CURSORWIDTH, CURSORHEIGHT)) {
-        _WRN_PRINTF("cannot setup cursor plane\n");
+                DRM_FORMAT_ARGB8888, CURSORWIDTH, CURSORHEIGHT)) {
+        _WRN_PRINTF("cannot setup plane for hardware cursor\n");
         this->SetCursor = DRM_SetCursor_SW;
         this->MoveCursor = DRM_MoveCursor_SW;
+    }
+    else {
+        _DBG_PRINTF("We are using real hardware cursor\n");
     }
 #endif /* IS_COMPOSITING_SCHEMA */
 
@@ -2366,7 +2361,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
 
     drm_format = translate_gal_format(surface->format);
     if (drm_format == 0) {
-        _WRN_PRINTF("not supported pixel format, "
+        _ERR_PRINTF("NEWGAL>DRM: not supported pixel format, "
                 "RGBA masks (0x%08x, 0x%08x, 0x%08x, 0x%08x)\n",
                 surface->format->Rmask, surface->format->Gmask,
                 surface->format->Bmask, surface->format->Amask);
@@ -2384,15 +2379,15 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     }
 
     if (surface_buffer == NULL) {
-        _WRN_PRINTF("Failed to create shared hardware surface: size (%d x %d)\n",
-                surface->w, surface->h);
+        _ERR_PRINTF("NEWGAL>DRM: Failed to create shared hardware surface: "
+                "size (%d x %d)\n", surface->w, surface->h);
         return -1;
     }
 
     /* get the prime fd */
     if (drmPrimeHandleToFD (vdata->dev_fd, surface_buffer->handle,
                 DRM_RDWR | DRM_CLOEXEC, &prime_fd)) {
-        _WRN_PRINTF ("cannot get prime fd: %m\n");
+        _ERR_PRINTF ("NEWGAL>DRM: cannot get prime fd: %m\n");
         goto error;
     }
 
@@ -2450,14 +2445,14 @@ static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
         surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd (
                 vdata->driver, prime_fd, mapsize);
         if (surface_buffer == NULL) {
-            _WRN_PRINTF ("failed to create buffer from prime fd: %d!\n",
-                    prime_fd);
+            _ERR_PRINTF ("NEWGAL>DRM: failed to create buffer from prime fd: "
+                    "%d!\n", prime_fd);
             goto error;
         }
 
         if (vdata->driver_ops->map_buffer (vdata->driver,
                     surface_buffer) == NULL) {
-            _WRN_PRINTF ("cannot map hardware buffer: %m\n");
+            _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
             goto error;
         }
 
@@ -2504,12 +2499,41 @@ static int DRM_DettachSharedHWSurface(_THIS, GAL_Surface *surface)
 
 static int DRM_SetCursor(_THIS, GAL_Surface *surface, int hot_x, int hot_y)
 {
-    int retval = -1;
+    int i, retval = -1;
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer;
+    uint8_t *src, *dst;
 
-    surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
-    assert (surface_buffer && vdata->cursor_buff);
+    if (surface) {
+        surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
+        assert (vdata->cursor_buff);
+
+        src = surface_buffer->buff + surface_buffer->offset;
+        dst = vdata->cursor_buff->buff + vdata->cursor_buff->offset;
+        for (i = 0; i < surface->h; i++) {
+            memcpy (dst, src, surface->pitch);
+            dst += surface->pitch;
+            src += surface->pitch;
+        }
+
+        if (vdata->hot_x != hot_x || vdata->hot_y != hot_y) {
+            vdata->hot_x = hot_x;
+            vdata->hot_y = hot_y;
+            retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
+                        vdata->saved_info->crtc, vdata->cursor_buff_id, 0,
+                        vdata->csr_x - vdata->hot_x,
+                        vdata->csr_y - vdata->hot_y,
+                        CURSORWIDTH, CURSORHEIGHT,
+                        0, 0, CURSORWIDTH << 16, CURSORHEIGHT << 16);
+        }
+    }
+    else {
+        retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
+                    vdata->saved_info->crtc, vdata->cursor_buff_id, 0,
+                    vdata->csr_x - vdata->hot_x,
+                    vdata->csr_y - vdata->hot_y,
+                    0, 0, 0, 0, 0, 0);
+    }
 
 #if 0
     retval = drmModeSetCursor2 (vdata->dev_fd, vdata->saved_info->crtc,
@@ -2519,20 +2543,6 @@ static int DRM_SetCursor(_THIS, GAL_Surface *surface, int hot_x, int hot_y)
                 vdata->saved_info->crtc, surface_buffer->handle,
                 surface->w, surface->h, hot_x, hot_y);
 #endif
-    {
-        int i;
-        uint8_t *src, *dst;
-
-        src = surface_buffer->buff + surface_buffer->offset;
-        dst = vdata->cursor_buff->buff + vdata->cursor_buff->offset;
-        for (i = 0; i < surface->h; i++) {
-            memcpy (dst, src, surface->pitch);
-            dst += surface->pitch;
-            src += surface->pitch;
-        }
-        retval = 0;
-    }
-
     return retval;
 }
 
@@ -2548,10 +2558,16 @@ static int DRM_MoveCursor(_THIS, int x, int y)
     }
 #endif
 
-    retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
-                vdata->saved_info->crtc, vdata->cursor_buff_id,
-                0, x, y, CURSORWIDTH, CURSORHEIGHT,
-                0, 0, CURSORWIDTH << 16, CURSORHEIGHT << 16);
+    if (vdata->csr_x != x || vdata->csr_y != y) {
+        vdata->csr_x = x;
+        vdata->csr_y = y;
+        retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
+                    vdata->saved_info->crtc, vdata->cursor_buff_id, 0,
+                    vdata->csr_x - vdata->hot_x,
+                    vdata->csr_y - vdata->hot_y,
+                    CURSORWIDTH, CURSORHEIGHT,
+                    0, 0, CURSORWIDTH << 16, CURSORHEIGHT << 16);
+    }
 
     return retval;
 }
@@ -2810,7 +2826,7 @@ int __drm_get_shared_screen_surface (const char *name, SHAREDSURFINFO* info)
                 return -1;
             }
 
-            _WRN_PRINTF ("flink name of real screen: %u\n", flink.name);
+            _DBG_PRINTF ("flink name of real screen: %u\n", flink.name);
             vdata->real_name = flink.name;
         }
 
@@ -2832,7 +2848,7 @@ int __drm_get_shared_screen_surface (const char *name, SHAREDSURFINFO* info)
                 return -1;
             }
 
-            _WRN_PRINTF ("flink name of shadow screen: %u\n", flink.name);
+            _DBG_PRINTF ("flink name of shadow screen: %u\n", flink.name);
             vdata->shadow_name = flink.name;
         }
 
@@ -3122,9 +3138,6 @@ static BOOL DRM_SyncUpdate (_THIS)
         src_rect.w = RECTW (bound);
         src_rect.h = RECTH (bound);
         dst_rect = src_rect;
-
-        _WRN_PRINTF ("calling GAL_BlitSurface: %d, %d, %d, %d\n",
-                src_rect.x, src_rect.y, src_rect.w, src_rect.h);
 
         GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
                 this->hidden->real_screen, &dst_rect);
