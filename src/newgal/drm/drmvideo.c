@@ -769,6 +769,12 @@ error:
     return NULL;
 }
 
+static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
+        uint32_t drm_format, uint32_t hdr_size,
+        int width, int height, int *pitch);
+
+static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
+        DrmSurfaceBuffer *surface_buffer);
 /*
  * The following helpers derived from DRM HOWTO by David Herrmann.
  *
@@ -826,6 +832,18 @@ static void drm_cleanup(DrmVideoData* vdata)
     if (vdata->dbl_buff && vdata->real_screen) {
         GAL_FreeSurface (vdata->real_screen);
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (vdata->cursor_buff_id) {
+        drmModeRmFB(vdata->dev_fd, vdata->cursor_buff_id);
+        vdata->cursor_buff_id = 0;
+    }
+
+    if (vdata->cursor_buff) {
+        drm_destroy_dumb_buffer (vdata, vdata->cursor_buff);
+        vdata->cursor_buff = NULL;
+    }
+#endif  /* _MGSCHEMA_COMPOSITING */
 
     if (vdata->scanout_buff_id) {
         /* remove frame buffer */
@@ -1019,6 +1037,9 @@ static int open_drm_device(GAL_VideoDevice *device)
         else {
             device->hidden->cap_cursor_height = cursor_height;
         }
+
+        _WRN_PRINTF ("DRM cursor cap: w(%d), h(%d)\n",
+                (int)cursor_width, (int)cursor_height);
     }
 
     if (device->hidden->driver == NULL) {
@@ -1203,16 +1224,14 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     if (device->hidden->cap_dumb &&
             device->hidden->cap_cursor_width >= CURSORWIDTH &&
             device->hidden->cap_cursor_height >= CURSORHEIGHT) {
-        device->info.hw_cursor = 1;
         device->SetCursor = DRM_SetCursor;
         device->MoveCursor = DRM_MoveCursor;
     }
     else {
-        device->info.hw_cursor = 1;
         device->SetCursor = DRM_SetCursor_SW;
         device->MoveCursor = DRM_MoveCursor_SW;
     }
-#endif
+#endif /* IS_COMPOSITING_SCHEMA */
 
     /* set accelerated methods in DRM_VideoInit */
     device->CheckHWBlit = NULL;
@@ -1465,6 +1484,11 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
     }
 #endif
 
+    /* we must initialize the video information after created the device */
+    if (this->SetCursor) {
+        this->info.hw_cursor = 1;
+    }
+
     if (this->hidden->driver) {
         if (this->hidden->driver_ops->clear_buffer) {
             this->info.blit_fill = 1;
@@ -1709,6 +1733,163 @@ static int drm_setup_scanout_buffer (DrmVideoData* vdata,
     return ret;
 }
 
+#if IS_COMPOSITING_SCHEMA
+/* check to see whether the plane is ok for cursor */
+static uint32_t check_plane_suitable_for_cursor(DrmVideoData* vdata,
+        drmModePlanePtr plane, uint32_t fourcc)
+{
+    int i, j, k;
+    uint32_t plane_id = 0;
+
+    for (i = 0; i < plane->count_formats; i++) {
+        _WRN_PRINTF ("plane format (%d): %c%c%c%c\n", i,
+                plane->formats[i], plane->formats[i] >> 8,
+                plane->formats[i] >> 16, plane->formats[i] >> 24);
+        if (plane->formats[i] != fourcc)
+            continue;
+
+        drmModeObjectPropertiesPtr props =
+            drmModeObjectGetProperties(vdata->dev_fd, plane->plane_id,
+                    DRM_MODE_OBJECT_PLANE);
+        if (!props)
+            continue;
+
+        for (j = 0; j < props->count_props; j++) {
+            drmModePropertyPtr prop =
+                drmModeGetProperty (vdata->dev_fd, props->props[j]);
+
+            _WRN_PRINTF ("prop name: %s\n", prop->name);
+            if (strcmp(prop->name, "type") == 0 &&
+                    drm_property_type_is(prop, DRM_MODE_PROP_ENUM)) {
+                for (k = 0; k < prop->count_enums; k++) {
+                    _WRN_PRINTF ("prop enum value (%d): %d\n",
+                            k, (int)prop->enums[k].value);
+                    if (prop->enums[k].value == DRM_PLANE_TYPE_CURSOR) {
+                        plane_id = plane->plane_id;
+                        break;
+                    }
+                }
+            }
+
+            drmModeFreeProperty(prop);
+            if (plane_id)
+                break;
+        }
+
+        drmModeFreeObjectProperties (props);
+        if (plane_id)
+            break;
+    }
+
+    return plane_id;
+}
+
+static int drm_setup_cursor_plane (DrmVideoData* vdata, uint32_t drm_format,
+        uint32_t width, uint32_t height)
+{
+    uint32_t plane_id = 0;
+    int pitch;
+    uint32_t handles[4], pitches[4], offsets[4];
+    uint32_t plane_flags = 0;
+    int i, ret = -1;
+    drmModePlaneResPtr plane_res = NULL;
+
+#if 0
+    int pipe = -1;
+    drmModeRes *res;
+
+    res = drmModeGetResources(vdata->dev_fd);
+    if (!res) return ret;
+    for (i = 0; i < res->count_crtcs; i++) {
+        if (vdata->saved_info->crtc == res->crtcs[i]) {
+            pipe = i;
+            break;
+        }
+    }
+    drmModeFreeResources(res);
+    assert (pipe >= 0);
+#endif
+
+    plane_res = drmModeGetPlaneResources (vdata->dev_fd);
+    if (!plane_res) {
+        _WRN_PRINTF( "drmModeGetPlaneResources failed: %m\n");
+        return -1;
+    }
+
+    for (i = 0; i < plane_res->count_planes; i ++) {
+        drmModePlanePtr plane =
+            drmModeGetPlane(vdata->dev_fd, plane_res->planes[i]);
+        if (plane == NULL) {
+            _WRN_PRINTF( "drmModeGetPlane failed: %m\n");
+            break;
+        }
+
+        if ((plane->crtc_id == 0 ||
+                    plane->crtc_id == vdata->saved_info->crtc)) {
+            plane_id = check_plane_suitable_for_cursor(vdata, plane,
+                    drm_format);
+        }
+        else {
+            _WRN_PRINTF( "possible_crtcs: %x, crtc_id: %u\n",
+                    plane->possible_crtcs, plane->crtc_id);
+        }
+
+        drmModeFreePlane(plane);
+        if (plane_id)
+            break;
+    }
+
+    drmModeFreePlaneResources (plane_res);
+
+    if (plane_id == 0) {
+        _WRN_PRINTF( "no available plane for cursor in format %c%c%c%c\n",
+                drm_format, drm_format >> 8, drm_format >> 16, drm_format >> 24);
+        goto error;
+    }
+
+    vdata->cursor_buff = drm_create_dumb_buffer (vdata, drm_format, 0,
+            width, height, &pitch);
+    if (vdata->cursor_buff == NULL)
+        return ret;
+
+    handles[0] = vdata->cursor_buff->handle;
+    pitches[0] = pitch;
+    offsets[0] = 0;
+
+    ret = drmModeAddFB2(vdata->dev_fd, width, height, drm_format,
+            handles, pitches, offsets, &vdata->cursor_buff_id, plane_flags);
+    if (ret) {
+        _WRN_PRINTF ("drmModeAddFB2 failed: %m\n");
+        goto error;
+    }
+
+    /* note src coords (last 4 args) are in Q16 format */
+    if (drmModeSetPlane(vdata->dev_fd, plane_id,
+                vdata->saved_info->crtc, vdata->cursor_buff_id,
+                plane_flags, 0, 0, width, height,
+                0, 0, width << 16, height << 16)) {
+        _WRN_PRINTF ("failed to enable cursor plane: %m\n");
+        goto error;
+    }
+
+    vdata->cursor_plane_id = plane_id;
+    return 0;
+
+error:
+    if (vdata->cursor_buff_id) {
+        drmModeRmFB(vdata->dev_fd, vdata->cursor_buff_id);
+        vdata->cursor_buff_id = 0;
+    }
+
+    if (vdata->cursor_buff) {
+        drm_destroy_dumb_buffer (vdata, vdata->cursor_buff);
+        vdata->cursor_buff = NULL;
+    }
+
+    return ret;
+}
+#endif  /* IS_COMPOSITING_SCHEMA */
+
 static inline uint32_t nr_lines_for_header (uint32_t header_size,
         uint32_t width, uint32_t height, int cpp)
 {
@@ -1772,9 +1953,9 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     surface_buffer->size = creq.size;
     *pitch = creq.pitch;
 
-    _DBG_PRINTF ("Surface buffer info: w(%u), h(%u), "
-            "pitch(%u), size (%lu), offset (%lu)\n",
-            width, height, creq.pitch,
+    _DBG_PRINTF ("Surface buffer info: handle(%u), w(%u), h(%u), "
+            "pitch(%u), size(%lu), offset(%lu)\n",
+            creq.handle, width, height, creq.pitch,
             surface_buffer->size, surface_buffer->offset);
 
     /* prepare buffer for memory mapping */
@@ -1898,12 +2079,12 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdat
         _DBG_PRINTF("size got by calling lseek: %lu\n", size);
     }
 
-	ret = drmPrimeFDToHandle (vdata->dev_fd, prime_fd, &handle);
-	if (ret) {
-		_ERR_PRINTF ("NEWGAL>DRM: failed to obtain handle from fd (%d): %m\n",
+    ret = drmPrimeFDToHandle (vdata->dev_fd, prime_fd, &handle);
+    if (ret) {
+        _ERR_PRINTF ("NEWGAL>DRM: failed to obtain handle from fd (%d): %m\n",
                 prime_fd);
         return NULL;
-	}
+    }
 
 #if 0
     surface_buffer->handle = 0;
@@ -2074,6 +2255,15 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         GAL_SetColorKey (vdata->shadow_screen, 0, 0);
         GAL_SetAlpha (vdata->shadow_screen, 0, 0);
     }
+
+#if IS_COMPOSITING_SCHEMA
+    if (this->info.hw_cursor && drm_setup_cursor_plane (vdata,
+                DRM_FORMAT_XRGB8888, CURSORWIDTH, CURSORHEIGHT)) {
+        _WRN_PRINTF("cannot setup cursor plane\n");
+        this->SetCursor = DRM_SetCursor_SW;
+        this->MoveCursor = DRM_MoveCursor_SW;
+    }
+#endif /* IS_COMPOSITING_SCHEMA */
 
     GAL_FreeSurface (current);
     if (vdata->shadow_screen)
@@ -2319,11 +2509,28 @@ static int DRM_SetCursor(_THIS, GAL_Surface *surface, int hot_x, int hot_y)
     DrmSurfaceBuffer* surface_buffer;
 
     surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
-    if (surface_buffer) {
-        retval = drmModeSetCursor2 (vdata->dev_fd, vdata->saved_crtc->crtc_id,
-                surface_buffer->handle, surface->w, surface->h, hot_x, hot_y);
-        if (retval)
-            _WRN_PRINTF ("failed to call drmModeSetCursor2: %m\n");
+    assert (surface_buffer && vdata->cursor_buff);
+
+#if 0
+    retval = drmModeSetCursor2 (vdata->dev_fd, vdata->saved_info->crtc,
+            surface_buffer->handle, surface->w, surface->h, hot_x, hot_y);
+    if (retval)
+        _WRN_PRINTF ("failed to call drmModeSetCursor2(%u,%u,%d,%d,%d,%d):%m\n",
+                vdata->saved_info->crtc, surface_buffer->handle,
+                surface->w, surface->h, hot_x, hot_y);
+#endif
+    {
+        int i;
+        uint8_t *src, *dst;
+
+        src = surface_buffer->buff + surface_buffer->offset;
+        dst = vdata->cursor_buff->buff + vdata->cursor_buff->offset;
+        for (i = 0; i < surface->h; i++) {
+            memcpy (dst, src, surface->pitch);
+            dst += surface->pitch;
+            src += surface->pitch;
+        }
+        retval = 0;
     }
 
     return retval;
@@ -2334,10 +2541,17 @@ static int DRM_MoveCursor(_THIS, int x, int y)
     int retval = -1;
     DrmVideoData* vdata = this->hidden;
 
-    retval = drmModeMoveCursor (vdata->dev_fd, vdata->saved_crtc->crtc_id, x, y);
+#if 0
+    retval = drmModeMoveCursor (vdata->dev_fd, vdata->cursor_plane_id, x, y);
     if (retval) {
         _WRN_PRINTF ("failed to call drmModeMoveCursor: %m\n");
     }
+#endif
+
+    retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
+                vdata->saved_info->crtc, vdata->cursor_buff_id,
+                0, x, y, CURSORWIDTH, CURSORHEIGHT,
+                0, 0, CURSORWIDTH << 16, CURSORHEIGHT << 16);
 
     return retval;
 }
@@ -2868,10 +3082,6 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     hdr = (GAL_ShadowSurfaceHeader*)
         ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
 
-#if IS_SHAREDFB_SCHEMA_PROCS
-    //sem_wait(&hdr->sem_lock);
-#endif
-
     bound = hdr->dirty_rc;
     for (i = 0; i < numrects; i++) {
         RECT rc;
@@ -2885,10 +3095,8 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     hdr->dirty_rc = bound;
-
-#if IS_SHAREDFB_SCHEMA_PROCS
-    //sem_post(&hdr->sem_lock);
-#endif
+    bound = GetScreenRect();
+    IntersectRect (&hdr->dirty_rc, &hdr->dirty_rc, &bound);
 }
 
 static BOOL DRM_SyncUpdate (_THIS)
@@ -2902,10 +3110,6 @@ static BOOL DRM_SyncUpdate (_THIS)
     hdr = (GAL_ShadowSurfaceHeader*)
         ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
 
-#if IS_SHAREDFB_SCHEMA_PROCS
-    //sem_wait(&hdr->sem_lock);
-#endif
-
     if (IsRectEmpty (&hdr->dirty_rc))
         goto ret;
 
@@ -2918,6 +3122,9 @@ static BOOL DRM_SyncUpdate (_THIS)
         src_rect.w = RECTW (bound);
         src_rect.h = RECTH (bound);
         dst_rect = src_rect;
+
+        _WRN_PRINTF ("calling GAL_BlitSurface: %d, %d, %d, %d\n",
+                src_rect.x, src_rect.y, src_rect.w, src_rect.h);
 
         GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
                 this->hidden->real_screen, &dst_rect);
@@ -2947,11 +3154,7 @@ static BOOL DRM_SyncUpdate (_THIS)
     }
 
     SetRectEmpty (&hdr->dirty_rc);
-
 ret:
-#if IS_SHAREDFB_SCHEMA_PROCS
-    //sem_post(&hdr->sem_lock);
-#endif
     return retval;
 }
 
