@@ -92,41 +92,48 @@ struct _DrmDriver;
 typedef struct _DrmDriver DrmDriver;
 
 /**
- * The struct type represents the bufffer can be used by
- * MiniGUI NEWGAL DRM engine for hardware surface.
+ * The structure type represents the buffer can be used by
+ * MiniGUI NEWGAL DRM engine for a hardware surface.
  */
 typedef struct _DrmSurfaceBuffer {
-#if 0 /* deprecated fields */
-    /** The prime fd of the buffer */
-    int prime_fd;
-    /** The global name of the buffer */
-    uint32_t name;
-    /** The buffer identifier */
-    uint32_t id;
-    /** The widht of the buffer */
-    uint32_t width;
-    /** The height of the buffer */
-    uint32_t height;
-    /** The pitch (row stride in bytes) of the buffer */
-    uint32_t pitch;
-    /** The DRM format of the buffer */
-    uint32_t drm_format;
+    /** The local handle of the buffer */
+    uint32_t handle;
 
+    /**
+      * The prime file descriptor of the buffer.
+      * It has a value >= 0 when this buffer has a prime file descriptor;
+      * otherwise it has the value -1;
+      */
+    int prime_fd;
+
+    /**
+      * The global name of the buffer.
+      * It has value > 0 when this buffer has a global name;
+      * otherwise it has the value 0;
+      */
+    uint32_t name;
+
+    /**
+      * The frame buffer identifier if the buffer has been added as a
+      * frame buffer to the system, otherwise it has the value 0.
+     */
+    uint32_t fb_id;
+
+    /** The DRM format of the buffer. */
+    uint32_t drm_format;
     /** The bits per pixel */
     uint32_t bpp:8;
     /** The bytes per pixel */
     uint32_t cpp:8;
-    /** Is foreign surface */
-    uint32_t foreign:1;
-    /** Is dumb surface. Since 5.0.0. */
+    /** Is it a dumb buffer. Since 5.0.0. */
     uint32_t dumb:1;
-#endif  /* deprecated fields */
 
-    /** The local handle of the buffer */
-    uint32_t handle;
-
-    /** The DRM format of the buffer */
-    uint32_t drm_format;
+    /** The width of the buffer. */
+    uint32_t width;
+    /** The height of the buffer. */
+    uint32_t height;
+    /** The pitch (row stride in bytes) of the buffer. */
+    uint32_t pitch;
 
     /** The whole size in bytes of the buffer */
     size_t size;
@@ -171,7 +178,7 @@ enum DrmColorLogicOp {
 };
 
 /**
- * The struct type defines the operations for a DRI driver.
+ * The structure type defines the operations for a DRM driver.
  */
 typedef struct _DrmDriverOps {
     /**
@@ -182,48 +189,54 @@ typedef struct _DrmDriverOps {
     DrmDriver* (*create_driver) (int device_fd);
 
     /**
-     * This operation destroies the DrmDriver object.
+     * This operation destroys the DrmDriver object.
      *
      * \note The driver must implement this operation.
      */
     void (*destroy_driver) (DrmDriver *driver);
 
     /**
-     * This operation flushs the batch buffer of the driver or the hardware cache.
+     * This operation flushes the batch buffer of the driver or
+     * the hardware cache.
      *
      * \note This operation can be NULL.
      */
     void (* flush_driver) (DrmDriver *driver);
 
     /**
-     * This operation creates a buffer with the specified pixel format,
+     * This operation creates a surface buffer with the specified pixel format,
      * header size, width, and height. If succeed, a valid DrmSurfaceBuffer
      * object will be returned; NULL on error. Note that the field of `buff`
      * of the DrmSurfaceBuffer object is NULL until the \a map_buffer was called.
      *
-     * \note The driver must implement this operation. The pitch (row stride
-     *  in bytes) for the buffer should be returned through \a pitch.
+     * \note The driver must implement this operation and fill all fields of
+     *  the new DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer) (DrmDriver *driver,
             uint32_t drm_format, uint32_t hdr_size,
-            int width, int height, int* pitch);
+            uint32_t width, uint32_t height);
 
     /**
-     * This operation creates a buffer for the given handle
-     * with the specified pixel format, width, and height. If succeed,
-     * a valid DrmSurfaceBuffer object will be returned; NULL on error.
+     * This operation creates a buffer from a given and possibly foreign handle
+     * with the size of the buffer. If succeed, a valid DrmSurfaceBuffer object
+     * will be returned; NULL on error.
      *
-     * \note This operation can be NULL.
+     * \note This operation can be NULL. Note that the handle might was created
+     *  by a foreign module. If implemented, the driver must
+     *  fill the correct prime_fd, handle, name, and size fields of the new
+     *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_handle) (DrmDriver *driver,
             uint32_t handle, size_t size);
 
     /**
      * This operation creates a buffer for the given system global name
-     * with the specified pixel format, width, and height. If succeed,
-     * a valid DrmSurfaceBuffer object will be returned; NULL on error.
+     * If succeed, a valid DrmSurfaceBuffer object will be returned;
+     * NULL on error.
      *
-     * \note This operation can be NULL.
+     * \note This operation can be NULL. If implemented, the driver must
+     *  fill the correct prime_fd, handle, name, and size fields of the new
+     *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_name) (DrmDriver *driver,
             uint32_t name);
@@ -233,7 +246,9 @@ typedef struct _DrmDriverOps {
      * with the specified pixel format, width, height, and pitch. If succeed,
      * a valid DrmSurfaceBuffer object will be returned; NULL on error.
      *
-     * \note This operation can be NULL.
+     * \note This operation can be NULL. If implemented, the driver must
+     *  fill the correct prime_fd, handle, name, and size fields of the new
+     *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_prime_fd) (DrmDriver *driver,
             int prime_fd, size_t size);
@@ -242,19 +257,23 @@ typedef struct _DrmDriverOps {
      * This operation maps the buffer into the current process's virtual memory
      * space, and returns the virtual address. If failed, it returns NULL.
      *
-     * \note The driver must implement this operation.
+     * \note The driver must implement this operation. The driver must
+     *  set a valid value for buff field of the DrmSurfaceBuffer object
+     *  on success.
      */
     uint8_t* (* map_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
 
     /**
      * This operation un-maps a buffer.
      *
-     * \note The driver must implement this operation.
+     * \note The driver must implement this operation. The driver must
+     *  set NULL for buff field of the DrmSurfaceBuffer object
+     *  on success.
      */
     void (* unmap_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
 
     /**
-     * This operation destroies a buffer.
+     * This operation destroys a buffer.
      *
      * \note The driver must implement this operation.
      */
@@ -276,7 +295,7 @@ typedef struct _DrmDriverOps {
      * If succeed, it returns 0.
      *
      * \note If this operation is set as NULL, it will be supposed that
-     * the driver does not support any hardware accelerated blit operation.
+     * the driver does not support any hardware accelerated blitting operation.
      */
     int (* check_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf);
@@ -285,7 +304,7 @@ typedef struct _DrmDriverOps {
      * This operation copies bits from a source buffer to a destination buffer.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated copy blit.
+     * hardware accelerated copy blitting.
      */
     int (* copy_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
@@ -297,7 +316,7 @@ typedef struct _DrmDriverOps {
      * specified to a destination buffer.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blit with alpha.
+     * hardware accelerated blitting with alpha.
      */
     int (* alpha_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
@@ -308,7 +327,7 @@ typedef struct _DrmDriverOps {
      * but skipping the pixel value specified by \a color_key.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blit with color key.
+     * hardware accelerated blitting with color key.
      */
     int (* key_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
@@ -319,7 +338,7 @@ typedef struct _DrmDriverOps {
      * specified to a destination buffer, but skipping the pixel value specified.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blit with alpha and color key.
+     * hardware accelerated blitting with alpha and color key.
      */
     int (* alpha_key_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
@@ -328,8 +347,41 @@ typedef struct _DrmDriverOps {
 
 } DrmDriverOps;
 
-/** Implement this stub to return the DRI driver operations */
-DrmDriverOps* __drm_ex_driver_get (const char* driver_name, int device_fd);
+/** The current version of DRM driver. */
+#define DRM_DRIVER_VERSION  1
+
+/**
+ * Implement this stub to return the DRI driver operations
+ *
+ * This function takes three arguments and returns NULL or
+ * a valid pointer of DrmDriverOps to MiniGUI.
+ *
+ * This function can return different DrmDriverOps to MiniGUI according to
+ * the driver name and device file descriptor. In this way, your DRM engine
+ * driver implementation can support multiple GPUs.
+ *
+ * If the external stub returns NULL, MiniGUI will try to use the dumb
+ * frame buffer instead.
+ *
+ * \param driver_name This argument gives the driver name determined
+ *  by MiniGUI. Generally, it is the kernel driver name for your GPU.
+ *  For example, for Intel i915/i965 GPUs, the driver name will be `i915`.
+ * \param device_fd This argument gives the file descriptor of the
+ *  opened DRI device.
+ * \param version A pointer to an integer which will contain the
+ *  versionc of the DRM engine driver.
+ *
+ * \return NULL or a valid pointer to DrmDriverOps.
+ *
+ * \note We use the version control since 4.0.7. It will be intialized
+ *  to zero by MiniGUI before calling this function. Because an old
+ *  driver for MiniGUI 4.0.6 or earlier will not change the value,
+ *  MiniGUI will deny to load the old driver.
+ *
+ *  The constant \a DRM_DRIVER_VERSION defines the current version code.
+ */
+DrmDriverOps* __drm_ex_driver_get (const char* driver_name, int device_fd,
+        int* version);
 
     /** @} end of external_stubs_dri */
 
