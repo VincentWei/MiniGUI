@@ -64,7 +64,6 @@ typedef struct GAL_PrivateVideoData {
 
     DrmSurfaceBuffer *cursor_buff;
     uint32_t cursor_plane_id;
-    uint32_t cursor_buff_id;
 
     /* Used to simulate the hardware cursor when hardware cursor not available. */
     GAL_Surface *cursor;

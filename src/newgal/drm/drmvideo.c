@@ -385,9 +385,11 @@ static uint32_t translate_gal_format(const GAL_PixelFormat *gal_format)
     return 0;
 }
 
-static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
+static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks,
+        int* ret_cpp)
 {
     int bpp = 0;
+    int cpp = 0;
 
     switch (drm_format) {
     case DRM_FORMAT_RGB332:
@@ -396,6 +398,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x03;
         RGBAmasks[3] = 0x00;
         bpp = 8;
+        cpp = 1;
         break;
 
     case DRM_FORMAT_BGR233:
@@ -404,6 +407,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xC0;
         RGBAmasks[3] = 0x00;
         bpp = 8;
+        cpp = 1;
         break;
 
     case DRM_FORMAT_XRGB4444:
@@ -412,6 +416,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x000F;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_XBGR4444:
@@ -420,6 +425,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x0F00;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_RGBX4444:
@@ -428,6 +434,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x00F0;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_BGRX4444:
@@ -436,6 +443,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xF000;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_ARGB4444:
@@ -444,6 +452,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x000F;
         RGBAmasks[3] = 0xF000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_ABGR4444:
@@ -452,6 +461,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x0F00;
         RGBAmasks[3] = 0xF000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_RGBA4444:
@@ -460,6 +470,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x00F0;
         RGBAmasks[3] = 0x000F;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_BGRA4444:
@@ -468,6 +479,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xF000;
         RGBAmasks[3] = 0x000F;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_XRGB1555:
@@ -476,6 +488,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x001F;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_XBGR1555:
@@ -484,6 +497,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x7C00;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_RGBX5551:
@@ -492,6 +506,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x003E;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_BGRX5551:
@@ -500,6 +515,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xF800;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_ARGB1555:
@@ -508,6 +524,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x001F;
         RGBAmasks[3] = 0x8000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_ABGR1555:
@@ -516,6 +533,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x7C00;
         RGBAmasks[3] = 0x8000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_RGBA5551:
@@ -524,6 +542,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x003E;
         RGBAmasks[3] = 0x0001;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_BGRA5551:
@@ -532,6 +551,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xF800;
         RGBAmasks[3] = 0x0001;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_RGB565:
@@ -540,6 +560,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x001F;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_BGR565:
@@ -548,6 +569,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xF800;
         RGBAmasks[3] = 0x0000;
         bpp = 16;
+        cpp = 2;
         break;
 
     case DRM_FORMAT_RGB888:
@@ -556,6 +578,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x0000FF;
         RGBAmasks[3] = 0x000000;
         bpp = 24;
+        cpp = 3;
         break;
 
     case DRM_FORMAT_BGR888:
@@ -564,6 +587,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xFF0000;
         RGBAmasks[3] = 0x000000;
         bpp = 24;
+        cpp = 3;
         break;
 
     case DRM_FORMAT_XRGB8888:
@@ -572,6 +596,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x000000FF;
         RGBAmasks[3] = 0x00000000;
         bpp = 32;
+        cpp = 4;
         break;
 
     case DRM_FORMAT_XBGR8888:
@@ -580,6 +605,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x00FF0000;
         RGBAmasks[3] = 0x00000000;
         bpp = 32;
+        cpp = 4;
         break;
 
     case DRM_FORMAT_RGBX8888:
@@ -588,6 +614,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x0000FF00;
         RGBAmasks[3] = 0x00000000;
         bpp = 32;
+        cpp = 4;
         break;
 
     case DRM_FORMAT_BGRX8888:
@@ -596,6 +623,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xFF000000;
         RGBAmasks[3] = 0x00000000;
         bpp = 32;
+        cpp = 4;
         break;
 
     case DRM_FORMAT_ARGB8888:
@@ -604,6 +632,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x000000FF;
         RGBAmasks[3] = 0xFF000000;
         bpp = 32;
+        cpp = 4;
         break;
 
     case DRM_FORMAT_ABGR8888:
@@ -612,6 +641,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x00FF0000;
         RGBAmasks[3] = 0xFF000000;
         bpp = 32;
+        cpp = 4;
         break;
 
     case DRM_FORMAT_RGBA8888:
@@ -620,6 +650,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0x0000FF00;
         RGBAmasks[3] = 0x000000FF;
         bpp = 32;
+        cpp = 4;
         break;
 
     case DRM_FORMAT_BGRA8888:
@@ -628,6 +659,7 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         RGBAmasks[2] = 0xFF000000;
         RGBAmasks[3] = 0x000000FF;
         bpp = 32;
+        cpp = 4;
         break;
 
 #if 0
@@ -692,16 +724,18 @@ static int translate_drm_format(uint32_t drm_format, Uint32* RGBAmasks)
         break;
     }
 
+    if (ret_cpp)
+        *ret_cpp = cpp;
+
     return bpp;
 }
 
 static GAL_Surface* create_surface_from_buffer (_THIS,
-        DrmSurfaceBuffer* surface_buffer, int depth, Uint32 *RGBAmasks,
-        uint32_t width, uint32_t height, uint32_t pitch)
+        DrmSurfaceBuffer* surface_buffer, int depth, Uint32 *RGBAmasks)
 {
     DrmVideoData* vdata = this->hidden;
     GAL_Surface* surface = NULL;
-    size_t pixels_size = height * pitch;
+    size_t pixels_size = surface_buffer->height * surface_buffer->pitch;
 
     if (surface_buffer->size < surface_buffer->offset + pixels_size) {
         _WRN_PRINTF ("NEWGAL>DRM: the buffer size is not large enought!\n");
@@ -739,9 +773,9 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     surface->video = this;
     surface->flags = GAL_HWSURFACE;
     surface->dpi = GDCAP_DPI_DEFAULT;
-    surface->w = width;
-    surface->h = height;
-    surface->pitch = pitch;
+    surface->w = surface_buffer->width;
+    surface->h = surface_buffer->height;
+    surface->pitch = surface_buffer->pitch;
     surface->offset = 0;
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;
@@ -771,7 +805,7 @@ error:
 
 static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
         uint32_t drm_format, uint32_t hdr_size,
-        int width, int height, int *pitch);
+        int width, int height);
 
 static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer);
@@ -834,11 +868,6 @@ static void drm_cleanup(DrmVideoData* vdata)
     }
 
 #ifdef _MGSCHEMA_COMPOSITING
-    if (vdata->cursor_buff_id) {
-        drmModeRmFB(vdata->dev_fd, vdata->cursor_buff_id);
-        vdata->cursor_buff_id = 0;
-    }
-
     if (vdata->cursor_buff) {
         drm_destroy_dumb_buffer (vdata, vdata->cursor_buff);
         vdata->cursor_buff = NULL;
@@ -945,8 +974,10 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
 {
     const char* filename = NULL;
     char buff[LEN_SO_NAME + 1];
-    DrmDriverOps* (*get_exdrv) (const char* driver_name, int device_fd);
+    DrmDriverOps* (*get_exdrv) (const char*, int, int*);
     char* error;
+    int version = 0;
+    DrmDriverOps* ops;
 
 #ifdef _MGRM_PROCESSES
     if (mgIsServer) {
@@ -954,8 +985,10 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
         filename = getenv ("MG_GAL_DRM_DRIVER");
         if (filename == NULL) {
             memset (buff, 0, sizeof (buff));
-            if (GetMgEtcValue ("drm", "exdriver", buff, LEN_SO_NAME) < 0)
+            if (GetMgEtcValue ("drm", "exdriver", buff, LEN_SO_NAME) < 0) {
+                vdata->ex_driver = strdup("none");
                 return NULL;
+            }
 
             filename = buff;
         }
@@ -967,6 +1000,9 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
         vdata->ex_driver = strdup(filename);
     }
 #endif
+
+    if (strcmp(filename, "none") == 0)
+        return NULL;
 
     vdata->exdrv_handle = dlopen (filename, RTLD_LAZY);
     if (!vdata->exdrv_handle) {
@@ -985,7 +1021,17 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
         return NULL;
     }
 
-    return get_exdrv (driver_name, device_fd);
+    /* check version here */
+    ops = get_exdrv (driver_name, device_fd, &version);
+    if (version != DRM_DRIVER_VERSION) {
+        _ERR_PRINTF("NEWGAL>DRM: version does not match: required(%d), got(%d)\n",
+                DRM_DRIVER_VERSION, version);
+        dlclose (vdata->exdrv_handle);
+        vdata->exdrv_handle = NULL;
+        return NULL;
+    }
+
+    return ops;
 }
 
 static int open_drm_device(GAL_VideoDevice *device)
@@ -1042,26 +1088,24 @@ static int open_drm_device(GAL_VideoDevice *device)
                 (int)cursor_width, (int)cursor_height);
     }
 
+    device->hidden->dev_fd = device_fd;
+    if (device->hidden->driver_ops) {
+        device->hidden->driver = device->hidden->driver_ops->create_driver(device_fd);
+    }
+
     if (device->hidden->driver == NULL) {
+        _WRN_PRINTF("failed to create DRM driver\n");
+        device->hidden->driver_ops = NULL;
+
         /* check whether supports dumb buffer */
         if (!device->hidden->cap_dumb) {
             _ERR_PRINTF("NEWGAL>DRM: the DRM device '%s' does not support "
                     "dumb buffers\n",
                     device->hidden->dev_name);
             close(device_fd);
+            device->hidden->dev_fd = -1;
             return -EOPNOTSUPP;
         }
-
-        device->hidden->dev_fd = device_fd;
-        device->hidden->driver = NULL;
-        return 0;
-    }
-
-    device->hidden->dev_fd = device_fd;
-    device->hidden->driver = device->hidden->driver_ops->create_driver(device_fd);
-    if (device->hidden->driver == NULL) {
-        _WRN_PRINTF("failed to create DRM driver\n");
-        device->hidden->driver_ops = NULL;
     }
 
     return 0;
@@ -1231,6 +1275,9 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         device->SetCursor = DRM_SetCursor_SW;
         device->MoveCursor = DRM_MoveCursor_SW;
     }
+
+    device->SetCursor = DRM_SetCursor_SW;
+    device->MoveCursor = DRM_MoveCursor_SW;
 #endif /* IS_COMPOSITING_SCHEMA */
 
     /* set accelerated methods in DRM_VideoInit */
@@ -1790,7 +1837,6 @@ static int drm_setup_cursor_plane (DrmVideoData* vdata, uint32_t drm_format,
         uint32_t width, uint32_t height)
 {
     uint32_t plane_id = 0;
-    int pitch;
     uint32_t handles[4], pitches[4], offsets[4];
     uint32_t plane_flags = 0;
     int i, ret = -1;
@@ -1850,16 +1896,17 @@ static int drm_setup_cursor_plane (DrmVideoData* vdata, uint32_t drm_format,
     }
 
     vdata->cursor_buff = drm_create_dumb_buffer (vdata, drm_format, 0,
-            width, height, &pitch);
+            width, height);
     if (vdata->cursor_buff == NULL)
         return ret;
 
     handles[0] = vdata->cursor_buff->handle;
-    pitches[0] = pitch;
-    offsets[0] = 0;
+    pitches[0] = vdata->cursor_buff->pitch;
+    offsets[0] = vdata->cursor_buff->offset;
 
     ret = drmModeAddFB2(vdata->dev_fd, width, height, drm_format,
-            handles, pitches, offsets, &vdata->cursor_buff_id, plane_flags);
+            handles, pitches, offsets, &vdata->cursor_buff->fb_id,
+            plane_flags);
     if (ret) {
         _WRN_PRINTF ("drmModeAddFB2 failed: %m\n");
         goto error;
@@ -1867,7 +1914,7 @@ static int drm_setup_cursor_plane (DrmVideoData* vdata, uint32_t drm_format,
 
     /* note src coords (last 4 args) are in Q16 format */
     if (drmModeSetPlane(vdata->dev_fd, plane_id,
-                vdata->saved_info->crtc, vdata->cursor_buff_id,
+                vdata->saved_info->crtc, vdata->cursor_buff->fb_id,
                 plane_flags, 0, 0, width, height,
                 0, 0, width << 16, height << 16)) {
         _WRN_PRINTF ("failed to enable cursor plane: %m\n");
@@ -1878,11 +1925,6 @@ static int drm_setup_cursor_plane (DrmVideoData* vdata, uint32_t drm_format,
     return 0;
 
 error:
-    if (vdata->cursor_buff_id) {
-        drmModeRmFB(vdata->dev_fd, vdata->cursor_buff_id);
-        vdata->cursor_buff_id = 0;
-    }
-
     if (vdata->cursor_buff) {
         drm_destroy_dumb_buffer (vdata, vdata->cursor_buff);
         vdata->cursor_buff = NULL;
@@ -1906,8 +1948,7 @@ static inline uint32_t nr_lines_for_header (uint32_t header_size,
 }
 
 static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
-        uint32_t drm_format, uint32_t hdr_size,
-        int width, int height, int *pitch)
+        uint32_t drm_format, uint32_t hdr_size, int width, int height)
 {
     struct drm_mode_create_dumb creq;
     struct drm_mode_destroy_dumb dreq;
@@ -1943,21 +1984,23 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     }
 
     surface_buffer->handle = creq.handle;
+    surface_buffer->prime_fd = -1;
+    surface_buffer->name = 0;
+    surface_buffer->fb_id = 0;
     surface_buffer->drm_format = drm_format;
-    //surface_buffer->width = creq.width;
-    //surface_buffer->height = creq.height - nr_header_lines;
-    //surface_buffer->bpp = bpp;
-    //surface_buffer->cpp = cpp;
-    //surface_buffer->foreign = 0;
-    //surface_buffer->dumb = 0;
-
+    surface_buffer->width = creq.width;
+    surface_buffer->height = creq.height - nr_header_lines;
+    surface_buffer->pitch = creq.pitch;
+    surface_buffer->bpp = bpp;
+    surface_buffer->cpp = cpp;
     surface_buffer->offset = creq.pitch * nr_header_lines;
     surface_buffer->size = creq.size;
-    *pitch = creq.pitch;
 
     _DBG_PRINTF ("Surface buffer info: handle(%u), w(%u), h(%u), "
             "pitch(%u), size(%lu), offset(%lu)\n",
-            creq.handle, width, height, creq.pitch,
+            surface_buffer->handle,
+            surface_buffer->width, surface_buffer->height,
+            surface_buffer->pitch,
             surface_buffer->size, surface_buffer->offset);
 
     /* prepare buffer for memory mapping */
@@ -2003,6 +2046,9 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_handle(DrmVideoData* vdata,
     }
 
     surface_buffer->handle = handle;
+    surface_buffer->prime_fd = -1;
+    surface_buffer->name = 0;
+    surface_buffer->fb_id = 0;
     surface_buffer->size = size;
 
     /* prepare buffer for memory mapping */
@@ -2037,7 +2083,6 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_name(DrmVideoData* vdata,
 {
     int ret;
     struct drm_gem_open oreq;
-    struct drm_gem_close creq;
     DrmSurfaceBuffer *surface_buffer = NULL;
 
     /* open named buffer */
@@ -2053,10 +2098,17 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_name(DrmVideoData* vdata,
             oreq.handle, oreq.size);
 
     if (surface_buffer == NULL) {
+        struct drm_gem_close creq;
         memset(&creq, 0, sizeof(creq));
         creq.handle = oreq.handle;
         drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_CLOSE, &creq);
     }
+
+    surface_buffer->handle = oreq.handle;
+    surface_buffer->prime_fd = -1;
+    surface_buffer->name = name;
+    surface_buffer->fb_id = 0;
+    surface_buffer->size = oreq.size;
 
     return surface_buffer;
 }
@@ -2110,21 +2162,41 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdat
     }
 #endif
 
+    surface_buffer->handle = handle;
+    surface_buffer->prime_fd = prime_fd;
+    surface_buffer->name = 0;
+    surface_buffer->fb_id = 0;
+    surface_buffer->size = size;
+
     return surface_buffer;
 }
 
 static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer)
 {
-    struct drm_mode_destroy_dumb dreq;
+    if (surface_buffer->fb_id) {
+        drmModeRmFB (vdata->dev_fd, surface_buffer->fb_id);
+    }
 
     if (surface_buffer->buff)
         munmap (surface_buffer->buff, surface_buffer->size);
 
-    /* XXX: we need to distinguish the source of the dumb buffer here. */
-    memset (&dreq, 0, sizeof(dreq));
-    dreq.handle = surface_buffer->handle;
-    drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
+    assert (surface_buffer->handle);
+
+    if (surface_buffer->name) {
+        struct drm_gem_close creq;
+        memset(&creq, 0, sizeof(creq));
+        creq.handle = surface_buffer->handle;
+        drmIoctl(vdata->dev_fd, DRM_IOCTL_GEM_CLOSE, &creq);
+    }
+    else {
+        struct drm_mode_destroy_dumb dreq;
+
+        memset (&dreq, 0, sizeof(dreq));
+        dreq.handle = surface_buffer->handle;
+        drmIoctl(vdata->dev_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq);
+    }
+
     free (surface_buffer);
 }
 
@@ -2148,7 +2220,6 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
     DrmVideoData* vdata = this->hidden;
     DrmModeInfo* info;
     DrmSurfaceBuffer *real_buffer = NULL, *shadow_buffer = NULL;
-    int real_pitch, shadow_pitch;
     Uint32 RGBAmasks[4];
     int ret;
 
@@ -2157,7 +2228,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         return NULL;
     }
 
-    if (translate_drm_format(drm_format, RGBAmasks) == 0) {
+    if (translate_drm_format(drm_format, RGBAmasks, NULL) == 0) {
         _ERR_PRINTF("NEWGAL>DRM: not supported DRM format: %u\n",
             drm_format);
         return NULL;
@@ -2177,13 +2248,12 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
     if (vdata->driver) {
         assert (vdata->driver_ops->create_buffer);
         real_buffer = vdata->driver_ops->create_buffer(vdata->driver,
-                drm_format, 0, info->width, info->height, &real_pitch);
-
+                drm_format, 0, info->width, info->height);
         vdata->driver_ops->map_buffer(vdata->driver, real_buffer);
     }
     else {
         real_buffer = drm_create_dumb_buffer (vdata, drm_format, 0,
-                info->width, info->height, &real_pitch);
+                info->width, info->height);
     }
 
     if (real_buffer == NULL || real_buffer->buff == NULL) {
@@ -2200,13 +2270,13 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             assert (vdata->driver_ops->create_buffer);
             shadow_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                     drm_format, hdr_size,
-                    info->width, info->height, &shadow_pitch);
+                    info->width, info->height);
             vdata->driver_ops->map_buffer(vdata->driver, shadow_buffer);
         }
         else {
             shadow_buffer = drm_create_dumb_buffer (vdata,
                     drm_format, hdr_size,
-                    info->width, info->height, &shadow_pitch);
+                    info->width, info->height);
         }
 
         if (shadow_buffer == NULL || shadow_buffer->buff == NULL) {
@@ -2224,21 +2294,21 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 
     /* setup real_buffer as the scanout buffer */
     ret = drm_setup_scanout_buffer (vdata, real_buffer->handle,
-            real_buffer->drm_format, info->width, info->height,
-            real_pitch, real_buffer->offset);
+            real_buffer->drm_format, real_buffer->width, real_buffer->height,
+            real_buffer->pitch, real_buffer->offset);
     if (ret) {
         _ERR_PRINTF("NEWGAL>DRM: cannot setup scanout buffer\n");
         goto error;
     }
 
     vdata->real_screen = create_surface_from_buffer (this, real_buffer,
-            bpp, RGBAmasks, info->width, info->height, real_pitch);
+            bpp, RGBAmasks);
     if (vdata->real_screen == NULL)
         goto error;
 
     if (shadow_buffer) {
         vdata->shadow_screen = create_surface_from_buffer (this, shadow_buffer,
-                bpp, RGBAmasks, info->width, info->height, shadow_pitch);
+                bpp, RGBAmasks);
 
         if (vdata->shadow_screen == NULL)
             goto error;
@@ -2324,11 +2394,12 @@ static int DRM_AllocDumbSurface (_THIS, GAL_Surface *surface)
     }
 
     surface_buffer = drm_create_dumb_buffer(vdata, drm_format, 0,
-            surface->w, surface->h, &surface->pitch);
+            surface->w, surface->h);
     if (surface_buffer == NULL) {
         return -1;
     }
 
+    surface->pitch = surface_buffer->pitch;
     surface->pixels = surface_buffer->buff + surface_buffer->offset;
     surface->flags |= GAL_HWSURFACE;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
@@ -2371,14 +2442,15 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     hdr_size = sizeof (GAL_SharedSurfaceHeader);
     if (vdata->driver_ops) {
         surface_buffer = vdata->driver_ops->create_buffer(vdata->driver,
-                drm_format, hdr_size, surface->w, surface->h, &surface->pitch);
+                drm_format, hdr_size, surface->w, surface->h);
+        vdata->driver_ops->map_buffer(vdata->driver, surface_buffer);
     }
     else {
         surface_buffer = drm_create_dumb_buffer(vdata,
-                drm_format, hdr_size, surface->w, surface->h, &surface->pitch);
+                drm_format, hdr_size, surface->w, surface->h);
     }
 
-    if (surface_buffer == NULL) {
+    if (surface_buffer == NULL || surface_buffer->buff == NULL) {
         _ERR_PRINTF("NEWGAL>DRM: Failed to create shared hardware surface: "
                 "size (%d x %d)\n", surface->w, surface->h);
         return -1;
@@ -2399,6 +2471,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     surface->pixels = surface_buffer->buff + surface_buffer->offset;
     surface->flags |= GAL_HWSURFACE;
     */
+    surface->pitch = surface_buffer->pitch;
     surface->shared_header = (GAL_SharedSurfaceHeader*)surface_buffer->buff;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
 
@@ -2423,8 +2496,10 @@ static int DRM_FreeSharedHWSurface(_THIS, GAL_Surface *surface)
 
     surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
     if (surface_buffer) {
-        if (vdata->driver_ops)
+        if (vdata->driver_ops) {
+            vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
             vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
+        }
         else
             drm_destroy_dumb_buffer(vdata, surface_buffer);
 
@@ -2441,8 +2516,8 @@ static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer = NULL;
 
-    if (vdata->driver_ops) {
-        surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd (
+    if (vdata->driver_ops && vdata->driver_ops->create_buffer_from_prime_fd) {
+        surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd(
                 vdata->driver, prime_fd, mapsize);
         if (surface_buffer == NULL) {
             _ERR_PRINTF ("NEWGAL>DRM: failed to create buffer from prime fd: "
@@ -2450,24 +2525,34 @@ static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
             goto error;
         }
 
-        if (vdata->driver_ops->map_buffer (vdata->driver,
+        if (vdata->driver_ops->map_buffer(vdata->driver,
                     surface_buffer) == NULL) {
             _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
             goto error;
         }
+    }
+    else {
+        /* for shared dumb buffer, the caller uses mmap directly */
+        surface_buffer = drm_create_dumb_buffer_from_prime_fd(
+                vdata, prime_fd, mapsize);
+    }
 
+    if (surface_buffer) {
         surface->shared_header = (GAL_SharedSurfaceHeader*)surface_buffer->buff;
         surface->hwdata = (struct private_hwdata *)surface_buffer;
         retval = 0;
     }
 
-    /* for shared dumb buffer, the caller uses mmap directly */
-
     return retval;
 
 error:
     if (surface_buffer) {
-        vdata->driver_ops->destroy_buffer (vdata->driver, surface_buffer);
+        if (vdata->driver_ops &&
+                vdata->driver_ops->create_buffer_from_prime_fd) {
+            vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
+        }
+        else
+            drm_destroy_dumb_buffer(vdata, surface_buffer);
     }
 
     return retval;
@@ -2482,7 +2567,8 @@ static int DRM_DettachSharedHWSurface(_THIS, GAL_Surface *surface)
     surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
     if (surface_buffer) {
         if (vdata->driver) {
-            vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
+            if (surface_buffer->buff)
+                vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
             vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
         }
         else {
@@ -2499,41 +2585,83 @@ static int DRM_DettachSharedHWSurface(_THIS, GAL_Surface *surface)
 
 static int DRM_SetCursor(_THIS, GAL_Surface *surface, int hot_x, int hot_y)
 {
-    int i, retval = -1;
+    int retval = -1;
     DrmVideoData* vdata = this->hidden;
-    DrmSurfaceBuffer* surface_buffer;
-    uint8_t *src, *dst;
+    DrmSurfaceBuffer* surface_buffer = NULL;
+
+    if (this->hidden->cursor == surface &&
+            this->hidden->hot_x == hot_x &&
+            this->hidden->hot_y == hot_y) {
+        return 0;
+    }
+
+    vdata->cursor = surface;
 
     if (surface) {
-        surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
-        assert (vdata->cursor_buff);
+        surface_buffer = (DrmSurfaceBuffer*)vdata->cursor->hwdata;
+#if 1
+        uint8_t *src, *dst;
+        uint32_t i;
+        uint32_t height, pitch;
 
+        assert (vdata->cursor_buff);
         src = surface_buffer->buff + surface_buffer->offset;
         dst = vdata->cursor_buff->buff + vdata->cursor_buff->offset;
-        for (i = 0; i < surface->h; i++) {
-            memcpy (dst, src, surface->pitch);
-            dst += surface->pitch;
-            src += surface->pitch;
+
+        height = MIN(surface_buffer->height, vdata->cursor_buff->height);
+        pitch = MIN(surface_buffer->pitch, vdata->cursor_buff->pitch);
+        for (i = 0; i < height; i++) {
+            memcpy (dst, src, pitch);
+            dst += vdata->cursor_buff->pitch;
+            src += surface_buffer->pitch;
         }
 
         if (vdata->hot_x != hot_x || vdata->hot_y != hot_y) {
             vdata->hot_x = hot_x;
             vdata->hot_y = hot_y;
             retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
-                        vdata->saved_info->crtc, vdata->cursor_buff_id, 0,
+                        vdata->saved_info->crtc, vdata->cursor_buff->fb_id, 0,
                         vdata->csr_x - vdata->hot_x,
                         vdata->csr_y - vdata->hot_y,
-                        CURSORWIDTH, CURSORHEIGHT,
-                        0, 0, CURSORWIDTH << 16, CURSORHEIGHT << 16);
+                        vdata->cursor_buff->width,
+                        vdata->cursor_buff->height,
+                        0, 0,
+                        vdata->cursor_buff->width << 16,
+                        vdata->cursor_buff->height << 16);
         }
     }
+#else
+        if (surface_buffer->fb_id == 0) {
+            uint32_t handles[4], pitches[4], offsets[4];
+
+            handles[0] = surface_buffer->handle;
+            pitches[0] = surface_buffer->pitch;
+            offsets[0] = surface_buffer->offset;
+
+            retval = drmModeAddFB2(vdata->dev_fd,
+                    surface_buffer->width, surface_buffer->height,
+                    surface_buffer->drm_format,
+                    handles, pitches, offsets, &surface_buffer->fb_id,
+                    0);
+            if (retval || !surface_buffer->fb_id)
+                return -1;
+        }
+
+    }
     else {
+        surface_buffer = (DrmSurfaceBuffer*)vdata->cursor_buff;
+    }
+
+    if (surface_buffer) {
         retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
-                    vdata->saved_info->crtc, vdata->cursor_buff_id, 0,
+                    vdata->saved_info->crtc, surface_buffer->fb_id, 0,
                     vdata->csr_x - vdata->hot_x,
                     vdata->csr_y - vdata->hot_y,
-                    0, 0, 0, 0, 0, 0);
+                    surface_buffer->width, surface_buffer->height,
+                    0, 0,
+                    surface_buffer->width << 16, surface_buffer->height << 16);
     }
+#endif
 
 #if 0
     retval = drmModeSetCursor2 (vdata->dev_fd, vdata->saved_info->crtc,
@@ -2551,23 +2679,27 @@ static int DRM_MoveCursor(_THIS, int x, int y)
     int retval = -1;
     DrmVideoData* vdata = this->hidden;
 
+    if (vdata->csr_x != x || vdata->csr_y != y) {
+        vdata->csr_x = x;
+        vdata->csr_y = y;
+
+        retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
+                    vdata->saved_info->crtc, vdata->cursor_buff->fb_id, 0,
+                    vdata->csr_x - vdata->hot_x,
+                    vdata->csr_y - vdata->hot_y,
+                    vdata->cursor_buff->width,
+                    vdata->cursor_buff->height,
+                    0, 0,
+                    vdata->cursor_buff->width << 16,
+                    vdata->cursor_buff->height << 16);
+    }
+
 #if 0
     retval = drmModeMoveCursor (vdata->dev_fd, vdata->cursor_plane_id, x, y);
     if (retval) {
         _WRN_PRINTF ("failed to call drmModeMoveCursor: %m\n");
     }
 #endif
-
-    if (vdata->csr_x != x || vdata->csr_y != y) {
-        vdata->csr_x = x;
-        vdata->csr_y = y;
-        retval = drmModeSetPlane(vdata->dev_fd, vdata->cursor_plane_id,
-                    vdata->saved_info->crtc, vdata->cursor_buff_id, 0,
-                    vdata->csr_x - vdata->hot_x,
-                    vdata->csr_y - vdata->hot_y,
-                    CURSORWIDTH, CURSORHEIGHT,
-                    0, 0, CURSORWIDTH << 16, CURSORHEIGHT << 16);
-    }
 
     return retval;
 }
@@ -2665,143 +2797,6 @@ static int DRM_MoveCursor_SW (_THIS, int x, int y)
 }
 
 #endif  /* IS_COMPOSITING_SCHEMA */
-
-#if 0   /* deprecated code */
-/* DRM engine methods for accelerated buffers */
-static GAL_Surface *DRM_SetVideoMode_Accl(_THIS, GAL_Surface *current,
-        int width, int height, int bpp, Uint32 flags)
-{
-    DrmVideoData* vdata = this->hidden;
-    DrmModeInfo* info;
-    uint32_t drm_format, buff_id;
-    Uint32 RGBAmasks[4];
-    DrmSurfaceBuffer* scanout_buff = NULL;
-
-    drm_format = get_drm_format_from_etc(&bpp);
-    if (drm_format == 0) {
-        return NULL;
-    }
-
-    /* find the connector+CRTC suitable for the resolution requested */
-    info = find_mode(vdata, width, height);
-    if (info == NULL) {
-        _ERR_PRINTF("NEWGAL>DRM: cannot find a CRTC for video mode: %dx%d-%d\n",
-            width, height, bpp);
-        return NULL;
-    }
-
-    _DBG_PRINTF("going setting video mode: %dx%d-%dbpp\n",
-            info->width, info->height, bpp);
-
-#if 0
-    if (drmSetMaster(this->hidden->dev_fd)) {
-        _ERR_PRINTF("NEWGAL>DRM: failed to call drmSetMaster: %m\n");
-        return NULL;
-    }
-#endif
-
-    /* create the scanout buffer */
-    scanout_buff = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
-            0, info->width, info->height, &info->pitch);
-    if (scanout_buff == NULL) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot create scanout buffer: %m\n");
-        goto error;
-    }
-
-    /* set up it as frame buffer */
-    {
-        uint32_t handles[4], pitches[4], offsets[4];
-        handles[0] = scanout_buff->handle;
-        pitches[0] = info->pitch;
-        offsets[0] = scanout_buff->offset;
-
-        if (drmModeAddFB2(vdata->dev_fd,
-                info->width, info->height, drm_format,
-                handles, pitches, offsets, &buff_id, 0) != 0) {
-            _ERR_PRINTF ("NEWGAL>DRM: cannot set up scanout frame buffer: %m\n");
-            goto error;
-        }
-    }
-
-    if (NULL == vdata->driver_ops->map_buffer(vdata->driver, scanout_buff)) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot map scanout frame buffer: %m\n");
-        goto error;
-    }
-
-    vdata->width = info->width;
-    vdata->height = info->height;
-    vdata->bpp = bpp;
-    vdata->pitch = info->pitch;
-    vdata->size = info->pitch * info->height;
-    vdata->handle = 0;
-    vdata->scanout_buff_id = buff_id;
-    vdata->scanout_fb = scanout_buff->buff + scanout_buff->offset;
-
-    _DBG_PRINTF("scanout frame buffer: size (%dx%d), pitch(%d)\n",
-            vdata->width, vdata->height, vdata->pitch);
-
-    /* get console buffer id */
-    vdata->saved_crtc = drmModeGetCrtc(vdata->dev_fd, info->crtc);
-    vdata->console_buff_id = vdata->saved_crtc->buffer_id;
-
-    /* perform actual modesetting on the found connector+CRTC */
-    if (drmModeSetCrtc(vdata->dev_fd, info->crtc, vdata->scanout_buff_id, 0, 0,
-                     &info->conn, 1, &info->mode)) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot set CRTC for connector %u (%d): %m\n",
-            info->conn, errno);
-
-        goto error;
-    }
-
-    this->hidden->saved_info = info;
-
-    /* Allocate the new pixel format for the screen */
-    if (translate_drm_format(drm_format, RGBAmasks) == 0) {
-        _ERR_PRINTF("NEWGAL>DRM: not supported drm format: %u\n",
-            drm_format);
-        return NULL;
-    }
-
-    if (!GAL_ReallocFormat (current, bpp, RGBAmasks[0], RGBAmasks[1],
-            RGBAmasks[2], RGBAmasks[3])) {
-        _ERR_PRINTF ("NEWGAL>DRM: "
-                "failed to allocate new pixel format for requested mode\n");
-        return NULL;
-    }
-
-    _DBG_PRINTF("real screen mode: %dx%d-%dbpp\n",
-        width, height, bpp);
-
-    current->flags |= (GAL_FULLSCREEN | GAL_HWSURFACE);
-    current->w = width;
-    current->h = height;
-    current->pitch = this->hidden->pitch;
-    current->pixels = this->hidden->scanout_fb;
-    current->hwdata = (struct private_hwdata *)scanout_buff;
-
-    /* We're done */
-    return(current);
-
-error:
-
-    if (vdata->saved_crtc) {
-        drmModeFreeCrtc(vdata->saved_crtc);
-        vdata->saved_crtc = NULL;
-    }
-
-    if (scanout_buff) {
-        vdata->driver_ops->unmap_buffer(vdata->driver, scanout_buff);
-        vdata->scanout_fb = NULL;
-    }
-
-    if (vdata->scanout_buff_id) {
-        vdata->driver_ops->destroy_buffer(vdata->driver, scanout_buff);
-        vdata->scanout_buff_id = 0;
-    }
-
-    return NULL;
-}
-#endif   /* deprecated code */
 
 #if IS_SHAREDFB_SCHEMA_PROCS
 
@@ -2960,7 +2955,7 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
     }
 
     surface_buffer = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
-            0, surface->w, surface->h, &surface->pitch);
+            0, surface->w, surface->h);
     if (surface_buffer == NULL) {
         return -1;
     }
@@ -2970,6 +2965,7 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
         goto error;
     }
 
+    surface->pitch = surface_buffer->pitch;
     surface->pixels = surface_buffer->buff + surface_buffer->offset;
     surface->flags |= GAL_HWSURFACE;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
@@ -3112,7 +3108,8 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 
     hdr->dirty_rc = bound;
     bound = GetScreenRect();
-    IntersectRect (&hdr->dirty_rc, &hdr->dirty_rc, &bound);
+    if (!IntersectRect (&hdr->dirty_rc, &hdr->dirty_rc, &bound))
+        SetRectEmpty (&hdr->dirty_rc);
 }
 
 static BOOL DRM_SyncUpdate (_THIS)
@@ -3125,6 +3122,12 @@ static BOOL DRM_SyncUpdate (_THIS)
 
     hdr = (GAL_ShadowSurfaceHeader*)
         ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
+
+    _WRN_PRINTF ("Update bounding rect: %d, %d, %d, %d\n",
+            hdr->dirty_rc.left,
+            hdr->dirty_rc.top,
+            hdr->dirty_rc.right - hdr->dirty_rc.left,
+            hdr->dirty_rc.bottom - hdr->dirty_rc.top);
 
     if (IsRectEmpty (&hdr->dirty_rc))
         goto ret;
@@ -3203,9 +3206,12 @@ BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info)
 
         if (surface_buffer) {
             info->handle = surface_buffer->handle;
-            info->width = surface->w;
-            info->height = surface->h;
-            info->pitch = surface->pitch;
+            info->prime_fd = surface_buffer->prime_fd;
+            info->name = surface_buffer->name;
+            info->fb_id = surface_buffer->fb_id;
+            info->width = surface_buffer->width;
+            info->height = surface_buffer->height;
+            info->pitch = surface_buffer->pitch;
             info->drm_format = surface_buffer->drm_format;
             info->size = surface_buffer->size;
             info->offset = surface_buffer->offset;
@@ -3225,13 +3231,13 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer;
     Uint32 RGBAmasks[4];
-    int depth;
+    int depth, cpp;
 
     if (this && this->VideoInit != DRM_VideoInit) {
         return NULL;
     }
 
-    depth = translate_drm_format(drm_format, RGBAmasks);
+    depth = translate_drm_format(drm_format, RGBAmasks, &cpp);
     if (depth == 0) {
         _ERR_PRINTF("NEWGAL>DRM: not supported DRM format: %u\n", drm_format);
         return NULL;
@@ -3245,6 +3251,7 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
                     "%u!\n", name);
             return NULL;
         }
+        surface_buffer->dumb = 1;
     }
     else {
         surface_buffer = vdata->driver_ops->create_buffer_from_name(
@@ -3254,13 +3261,19 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
                     name);
             return NULL;
         }
+        surface_buffer->dumb = 0;
     }
 
+    surface_buffer->fb_id = 0;
     surface_buffer->drm_format = drm_format;
+    surface_buffer->bpp = depth;
+    surface_buffer->cpp = cpp;
+    surface_buffer->width = width;
+    surface_buffer->height = height;
+    surface_buffer->pitch = pitch;
     surface_buffer->offset = pixels_off;
 
-    return create_surface_from_buffer (this, surface_buffer, depth,
-            RGBAmasks, width, height, pitch);
+    return create_surface_from_buffer (this, surface_buffer, depth, RGBAmasks);
 }
 
 /* called by drmCreateDCFromHandle */
@@ -3272,13 +3285,13 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer;
     Uint32 RGBAmasks[4];
-    int depth;
+    int depth, cpp;
 
     if (this && this->VideoInit != DRM_VideoInit) {
         return NULL;
     }
 
-    depth = translate_drm_format (drm_format, RGBAmasks);
+    depth = translate_drm_format (drm_format, RGBAmasks, &cpp);
     if (depth == 0) {
         _ERR_PRINTF ("NEWGAL>DRM: not supported drm format: %u\n", drm_format);
         return NULL;
@@ -3293,6 +3306,7 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
                     "(%u): %m!\n", handle);
             return NULL;
         }
+        surface_buffer->dumb = 1;
     }
     else {
         surface_buffer = vdata->driver_ops->create_buffer_from_handle (
@@ -3302,13 +3316,19 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
                    "%m!\n", handle);
             return NULL;
         }
+        surface_buffer->dumb = 0;
     }
 
+    surface_buffer->fb_id = 0;
     surface_buffer->drm_format = drm_format;
+    surface_buffer->bpp = depth;
+    surface_buffer->cpp = cpp;
+    surface_buffer->width = width;
+    surface_buffer->height = height;
+    surface_buffer->pitch = pitch;
     surface_buffer->offset = pixels_off;
 
-    return create_surface_from_buffer (this, surface_buffer, depth,
-            RGBAmasks, width, height, pitch);
+    return create_surface_from_buffer (this, surface_buffer, depth, RGBAmasks);
 }
 
 /* called by drmCreateDCFromPrimeFd */
@@ -3320,13 +3340,13 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer;
     Uint32 RGBAmasks[4];
-    int depth;
+    int depth, cpp;
 
     if (this && this->VideoInit != DRM_VideoInit) {
         return NULL;
     }
 
-    depth = translate_drm_format(drm_format, RGBAmasks);
+    depth = translate_drm_format(drm_format, RGBAmasks, &cpp);
     if (depth == 0) {
         _ERR_PRINTF("NEWGAL>DRM: not supported drm format: %u\n",
             drm_format);
@@ -3353,11 +3373,16 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
         }
     }
 
+    surface_buffer->fb_id = 0;
     surface_buffer->drm_format = drm_format;
+    surface_buffer->bpp = depth;
+    surface_buffer->cpp = cpp;
+    surface_buffer->width = width;
+    surface_buffer->height = height;
+    surface_buffer->pitch = pitch;
     surface_buffer->offset = pixels_off;
 
-    return create_surface_from_buffer (this, surface_buffer, depth,
-            RGBAmasks, width, height, pitch);
+    return create_surface_from_buffer (this, surface_buffer, depth, RGBAmasks);
 }
 
 #endif /* _MGGAL_DRM */
