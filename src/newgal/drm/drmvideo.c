@@ -1275,9 +1275,6 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         device->SetCursor = DRM_SetCursor_SW;
         device->MoveCursor = DRM_MoveCursor_SW;
     }
-
-    device->SetCursor = DRM_SetCursor_SW;
-    device->MoveCursor = DRM_MoveCursor_SW;
 #endif /* IS_COMPOSITING_SCHEMA */
 
     /* set accelerated methods in DRM_VideoInit */
