@@ -57,6 +57,7 @@
 #include <sys/sysmacros.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/sendfile.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <drm/drm.h>
@@ -2180,6 +2181,9 @@ static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
 
     assert (surface_buffer->handle);
 
+    if (surface_buffer->prime_fd >= 0)
+        close (surface_buffer->prime_fd);
+
     if (surface_buffer->name) {
         struct drm_gem_close creq;
         memset(&creq, 0, sizeof(creq));
@@ -2259,6 +2263,17 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         return NULL;
     }
 
+    /* get the prime fd */
+    if (drmPrimeHandleToFD (vdata->dev_fd, real_buffer->handle,
+                DRM_RDWR | DRM_CLOEXEC, &real_buffer->prime_fd)) {
+        _WRN_PRINTF ("Failed to get prime fd for real buffer: %m\n");
+    }
+    else {
+        _WRN_PRINTF ("size of real buffer fd (%d): %ld\n",
+                real_buffer->prime_fd,
+                lseek (real_buffer->prime_fd, 0, SEEK_END));
+    }
+
     if (vdata->dbl_buff) {
         GAL_ShadowSurfaceHeader *hdr;
         uint32_t hdr_size = sizeof (GAL_ShadowSurfaceHeader);
@@ -2280,6 +2295,16 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             _ERR_PRINTF("NEWGAL>DRM: "
                     "faile to create and map buffer for shadow screen\n");
             goto error;
+        }
+
+        if (drmPrimeHandleToFD (vdata->dev_fd, shadow_buffer->handle,
+                    DRM_RDWR | DRM_CLOEXEC, &shadow_buffer->prime_fd)) {
+            _WRN_PRINTF ("Failed to get prime fd for shadow buffer: %m\n");
+        }
+        else {
+            _WRN_PRINTF ("size of shadow buffer fd (%d): %ld\n",
+                    shadow_buffer->prime_fd,
+                    lseek (shadow_buffer->prime_fd, 0, SEEK_END));
         }
 
         /* initialize the header */
@@ -2586,16 +2611,8 @@ static int DRM_SetCursor(_THIS, GAL_Surface *surface, int hot_x, int hot_y)
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer = NULL;
 
-    if (this->hidden->cursor == surface &&
-            this->hidden->hot_x == hot_x &&
-            this->hidden->hot_y == hot_y) {
-        return 0;
-    }
-
-    vdata->cursor = surface;
-
     if (surface) {
-        surface_buffer = (DrmSurfaceBuffer*)vdata->cursor->hwdata;
+        surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
 #if 1
         uint8_t *src, *dst;
         uint32_t i;
@@ -3113,25 +3130,59 @@ static BOOL DRM_SyncUpdate (_THIS)
 {
     BOOL retval = FALSE;
     RECT bound;
+    DrmSurfaceBuffer *real_buff, *shadow_buff;
     GAL_ShadowSurfaceHeader* hdr;
 
     assert (this->hidden->dbl_buff && this->hidden->shadow_screen);
 
-    hdr = (GAL_ShadowSurfaceHeader*)
-        ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
-
-    _WRN_PRINTF ("Update bounding rect: %d, %d, %d, %d\n",
-            hdr->dirty_rc.left,
-            hdr->dirty_rc.top,
-            hdr->dirty_rc.right - hdr->dirty_rc.left,
-            hdr->dirty_rc.bottom - hdr->dirty_rc.top);
+    real_buff = (DrmSurfaceBuffer*)this->hidden->real_screen->hwdata;
+    shadow_buff = (DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata;
+    hdr = (GAL_ShadowSurfaceHeader*)shadow_buff->buff;
 
     if (IsRectEmpty (&hdr->dirty_rc))
         goto ret;
 
     bound = hdr->dirty_rc;
 
-    if (this->hidden->real_screen) {
+    if (0 && real_buff->prime_fd >= 0 && shadow_buff->prime_fd >= 0) {
+        if (sendfile (real_buff->prime_fd, shadow_buff->prime_fd, NULL,
+                    real_buff->size) < 0)
+            _WRN_PRINTF ("sendfile from (%d) to (%d) failed (count: %lu): %m\n",
+                    shadow_buff->prime_fd, real_buff->prime_fd, real_buff->size);
+#if 0
+        uint32_t i;
+        off_t shadow_offset, real_offset;
+        size_t count = shadow_buff->cpp * RECTW (bound);
+        shadow_offset = shadow_buff->pitch * bound.top + shadow_buff->cpp * bound.left;
+        shadow_offset += shadow_buff->offset;
+
+        real_offset = real_buff->pitch * bound.top + real_buff->cpp * bound.left;
+        real_offset += real_buff->offset;
+
+        if (lseek (shadow_buff->prime_fd, shadow_offset, SEEK_SET) < 0)
+            _WRN_PRINTF ("lseek for shadow (%d) failed (offset: %ld): %m\n",
+                    shadow_buff->prime_fd, shadow_offset);
+
+        if (lseek (real_buff->prime_fd, real_offset, SEEK_SET) < 0)
+            _WRN_PRINTF ("lseek for real (%d) failed (offset: %ld): %m\n",
+                    real_buff->prime_fd, real_offset);
+
+        for (i = 0; i < RECTH (bound); i++) {
+            if (sendfile (real_buff->prime_fd, shadow_buff->prime_fd, NULL, count) < 0)
+                _WRN_PRINTF ("sendfile from (%d) to (%d) failed (count: %lu) at loop %d: %m\n",
+                        shadow_buff->prime_fd, real_buff->prime_fd, count, i);
+
+            if (lseek (shadow_buff->prime_fd, shadow_buff->pitch, SEEK_CUR) < 0)
+                _WRN_PRINTF ("lseek for shadow (%d) failed: %m\n",
+                        shadow_buff->prime_fd);
+
+            if (lseek (real_buff->prime_fd, real_buff->pitch, SEEK_CUR) < 0)
+                _WRN_PRINTF ("lseek for real (%d) failed: %m\n",
+                        real_buff->prime_fd);
+        }
+#endif
+    }
+    else {
         GAL_Rect src_rect, dst_rect;
         src_rect.x = bound.left;
         src_rect.y = bound.top;
@@ -3141,30 +3192,32 @@ static BOOL DRM_SyncUpdate (_THIS)
 
         GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
                 this->hidden->real_screen, &dst_rect);
-#ifdef _MGSCHEMA_COMPOSITING
-        if (this->hidden->cursor) {
-            RECT csr_rc, eff_rc;
-            csr_rc.left = boxleft (this);
-            csr_rc.top = boxtop (this);
-            csr_rc.right = csr_rc.left + CURSORWIDTH;
-            csr_rc.bottom = csr_rc.top + CURSORHEIGHT;
-
-            if (IntersectRect (&eff_rc, &csr_rc, &bound)) {
-                src_rect.x = eff_rc.left - csr_rc.left;
-                src_rect.y = eff_rc.top - csr_rc.top;
-                src_rect.w = RECTW (eff_rc);
-                src_rect.h = RECTH (eff_rc);
-
-                dst_rect.x = eff_rc.left;
-                dst_rect.y = eff_rc.top;
-                dst_rect.w = src_rect.w;
-                dst_rect.h = src_rect.h;
-                GAL_BlitSurface (this->hidden->cursor, &src_rect,
-                        this->hidden->real_screen, &dst_rect);
-            }
-        }
-#endif  /* _MGSCHEMA_COMPOSITING */
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (this->hidden->cursor) {
+        RECT csr_rc, eff_rc;
+        csr_rc.left = boxleft (this);
+        csr_rc.top = boxtop (this);
+        csr_rc.right = csr_rc.left + CURSORWIDTH;
+        csr_rc.bottom = csr_rc.top + CURSORHEIGHT;
+
+        if (IntersectRect (&eff_rc, &csr_rc, &bound)) {
+            GAL_Rect src_rect, dst_rect;
+            src_rect.x = eff_rc.left - csr_rc.left;
+            src_rect.y = eff_rc.top - csr_rc.top;
+            src_rect.w = RECTW (eff_rc);
+            src_rect.h = RECTH (eff_rc);
+
+            dst_rect.x = eff_rc.left;
+            dst_rect.y = eff_rc.top;
+            dst_rect.w = src_rect.w;
+            dst_rect.h = src_rect.h;
+            GAL_BlitSurface (this->hidden->cursor, &src_rect,
+                    this->hidden->real_screen, &dst_rect);
+        }
+    }
+#endif  /* _MGSCHEMA_COMPOSITING */
 
     SetRectEmpty (&hdr->dirty_rc);
 ret:
