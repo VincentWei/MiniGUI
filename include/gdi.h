@@ -14345,16 +14345,18 @@ MG_EXPORT int drmGetDeviceFD (GHANDLE video);
  * THe struct type defines the DRM surface information.
  */
 typedef struct _DrmSurfaceInfo {
-#if 0   /* deprecated fields */
-    /** The prime fd of the buffer object. */
-    int prime_fd;
-    /** The global name of the buffer object. */
-    uint32_t name;
-    /** The buffer identifier. */
-    uint32_t id;
-#endif  /* deprecated fields */
     /** The local handle of the buffer object. */
     uint32_t handle;
+    /** The prime fd of the buffer object. If it was no exported as a global
+     buffer object, it has the value -1. */
+    int prime_fd;
+    /** The global name of the buffer object. It has the value 0 when it was
+        not expored as global buffer object. */
+    uint32_t name;
+    /** The frame buffer identifier. If the buffer was not added as
+        a frame buffer to the system, it has the value 0. */
+    uint32_t fb_id;
+
     /** The width of the surface. */
     uint32_t width;
     /** The height of the surface. */
