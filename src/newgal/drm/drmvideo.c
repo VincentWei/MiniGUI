@@ -2263,6 +2263,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         return NULL;
     }
 
+#if 0
     /* get the prime fd */
     if (drmPrimeHandleToFD (vdata->dev_fd, real_buffer->handle,
                 DRM_RDWR | DRM_CLOEXEC, &real_buffer->prime_fd)) {
@@ -2273,6 +2274,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
                 real_buffer->prime_fd,
                 lseek (real_buffer->prime_fd, 0, SEEK_END));
     }
+#endif
 
     if (vdata->dbl_buff) {
         GAL_ShadowSurfaceHeader *hdr;
@@ -2297,6 +2299,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             goto error;
         }
 
+#if 0
         if (drmPrimeHandleToFD (vdata->dev_fd, shadow_buffer->handle,
                     DRM_RDWR | DRM_CLOEXEC, &shadow_buffer->prime_fd)) {
             _WRN_PRINTF ("Failed to get prime fd for shadow buffer: %m\n");
@@ -2306,6 +2309,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
                     shadow_buffer->prime_fd,
                     lseek (shadow_buffer->prime_fd, 0, SEEK_END));
         }
+#endif
 
         /* initialize the header */
         hdr = (GAL_ShadowSurfaceHeader *)shadow_buffer->buff;
@@ -2450,7 +2454,6 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     uint32_t drm_format;
     size_t hdr_size;
     DrmSurfaceBuffer* surface_buffer;
-    int prime_fd;
 
     drm_format = translate_gal_format(surface->format);
     if (drm_format == 0) {
@@ -2480,7 +2483,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
 
     /* get the prime fd */
     if (drmPrimeHandleToFD (vdata->dev_fd, surface_buffer->handle,
-                DRM_RDWR | DRM_CLOEXEC, &prime_fd)) {
+                DRM_RDWR | DRM_CLOEXEC, &surface_buffer->prime_fd)) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot get prime fd: %m\n");
         goto error;
     }
@@ -2497,7 +2500,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     surface->shared_header = (GAL_SharedSurfaceHeader*)surface_buffer->buff;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
 
-    return prime_fd;
+    return surface_buffer->prime_fd;
 
 error:
     if (surface_buffer) {
@@ -2537,6 +2540,9 @@ static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
     int retval = -1;
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer = NULL;
+
+    if (lseek(prime_fd, 0, SEEK_END) != mapsize)
+        _WRN_PRINTF("lseek failed on prime fd: %d (%lu)\n", prime_fd, mapsize);
 
     if (vdata->driver_ops && vdata->driver_ops->create_buffer_from_prime_fd) {
         surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd(
