@@ -3144,12 +3144,12 @@ static BOOL DRM_SyncUpdate (_THIS)
 
     bound = hdr->dirty_rc;
 
-    if (0 && real_buff->prime_fd >= 0 && shadow_buff->prime_fd >= 0) {
+#if 0
+    if (real_buff->prime_fd >= 0 && shadow_buff->prime_fd >= 0) {
         if (sendfile (real_buff->prime_fd, shadow_buff->prime_fd, NULL,
                     real_buff->size) < 0)
             _WRN_PRINTF ("sendfile from (%d) to (%d) failed (count: %lu): %m\n",
                     shadow_buff->prime_fd, real_buff->prime_fd, real_buff->size);
-#if 0
         uint32_t i;
         off_t shadow_offset, real_offset;
         size_t count = shadow_buff->cpp * RECTW (bound);
@@ -3180,9 +3180,29 @@ static BOOL DRM_SyncUpdate (_THIS)
                 _WRN_PRINTF ("lseek for real (%d) failed: %m\n",
                         real_buff->prime_fd);
         }
-#endif
     }
-    else {
+#endif
+
+    if (this->hidden->shadow_screen) {
+#if 1
+        uint32_t i;
+        uint8_t *src, *dst;
+        size_t count = shadow_buff->cpp * RECTW (bound);
+
+        src = shadow_buff->buff;
+        src += shadow_buff->pitch * bound.top + shadow_buff->cpp * bound.left;
+        src += shadow_buff->offset;
+
+        dst = real_buff->buff;
+        dst += real_buff->pitch * bound.top + real_buff->cpp * bound.left;
+        dst += real_buff->offset;
+
+        for (i = 0; i < RECTH (bound); i++) {
+            memcpy (dst, src, count);
+            src += shadow_buff->pitch;
+            dst += shadow_buff->pitch;
+        }
+#else
         GAL_Rect src_rect, dst_rect;
         src_rect.x = bound.left;
         src_rect.y = bound.top;
@@ -3192,6 +3212,7 @@ static BOOL DRM_SyncUpdate (_THIS)
 
         GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
                 this->hidden->real_screen, &dst_rect);
+#endif
     }
 
 #ifdef _MGSCHEMA_COMPOSITING
