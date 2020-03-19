@@ -148,7 +148,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
     /* Get the pixels */
     {
         int fd = -1;
-        size_t pixels_size;
+        size_t map_size;
         off_t pixels_off;
         GAL_SharedSurfaceHeader* hdr;
         int byhw = 1;
@@ -156,12 +156,12 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
         if ((flags & GAL_HWSURFACE) == GAL_HWSURFACE &&
                 video->AllocSharedHWSurface) {
             fd = video->AllocSharedHWSurface (video, surface,
-                    &pixels_size, &pixels_off, rw_modes);
+                    &map_size, &pixels_off, rw_modes);
             hdr = surface->shared_header;
         }
 
         if (fd < 0) { // fallback to use software surface
-            off_t map_size;
+            size_t pixels_size;
             void* data_map;
             off_t file_size;
 
@@ -169,12 +169,14 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             pixels_size = (surface->h * surface->pitch);
             pixels_off = sizeof (GAL_SharedSurfaceHeader);
 
-            /* rounde file size to multiple of page size */
             file_size = pixels_off + pixels_size;
+#if 0
+            /* rounde file size to multiple of page size */
             file_size = ROUND_TO_MULTIPLE(file_size, getpagesize ());
             pixels_size = file_size - pixels_off;
+#endif
 
-            _DBG_PRINTF("shared surface: size (%d x %d), pitch (%d), file_size (%lu)\n",
+            _DBG_PRINTF("shared surface (%d x %d): pitch(%d), filesize(%lu)\n",
                     surface->w, surface->h, surface->pitch, file_size);
 
             fd = __mg_create_anonymous_file (file_size, NULL, rw_modes);
@@ -184,7 +186,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 
             surface->video = NULL;
 
-            map_size = pixels_off + pixels_size;
+            map_size = file_size;
             data_map = mmap (NULL, map_size, PROT_READ | PROT_WRITE,
                     MAP_SHARED, fd, 0);
             if (data_map == MAP_FAILED) {
@@ -208,7 +210,7 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
         hdr->Gmask      = Gmask;
         hdr->Bmask      = Bmask;
         hdr->Amask      = Amask;
-        hdr->pixels_size= pixels_size;
+        hdr->map_size   = map_size;
         hdr->pixels_off = pixels_off;
 
         surface->dirty_info = &hdr->dirty_info;
@@ -267,8 +269,7 @@ error:
             else {
                 close (surface->shared_header->fd);
                 munmap (surface->shared_header,
-                    surface->shared_header->pixels_size
-                        + sizeof(GAL_SharedSurfaceHeader));
+                    surface->shared_header->map_size);
             }
 
             surface->shared_header = NULL;
@@ -313,8 +314,7 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
     }
     else {
         munmap (surface->shared_header,
-            surface->shared_header->pixels_size
-                + surface->shared_header->pixels_off);
+            surface->shared_header->map_size);
     }
 
     surface->pixels = NULL;
@@ -459,8 +459,7 @@ void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
     }
     else {
         munmap (surface->shared_header,
-            surface->shared_header->pixels_size
-                + surface->shared_header->pixels_off);
+            surface->shared_header->map_size);
     }
 
     surface->pixels = NULL;

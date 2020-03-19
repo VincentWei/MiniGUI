@@ -158,8 +158,8 @@ typedef struct _SharedSurfaceHeader {
     /* the RGBA masks */
     Uint32          Rmask, Gmask, Bmask, Amask;
 
-    /* the size of the pixels data */
-    size_t          pixels_size;
+    /* the size of the whole buffer */
+    size_t          map_size;
     /* the offset of pixels data */
     off_t           pixels_off;
 } GAL_SharedSurfaceHeader;

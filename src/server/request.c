@@ -567,15 +567,15 @@ extern int Sigma8654_ServerOnGetSurface(REQ_SIGMA8654_GETSURFACE *request,
             REP_SIGMA8654_GETSURFACE *reply);
 static int sigma8654_client_get_surface(int cli, int clifd, void* buff, size_t len)
 {
-        REQ_SIGMA8654_GETSURFACE *request;
-        REP_SIGMA8654_GETSURFACE reply;
+    REQ_SIGMA8654_GETSURFACE *request;
+    REP_SIGMA8654_GETSURFACE reply;
 
-        if (Sigma8654_ServerOnGetSurface(request, &reply) < 0)
-        {
-            fprintf(stderr, "Nexus_ServerOnGetSurface() failed\n");
-            return -1;
-        }
-        return ServerSendReply (clifd, &reply, sizeof (reply));
+    if (Sigma8654_ServerOnGetSurface(request, &reply) < 0)
+    {
+        fprintf(stderr, "Nexus_ServerOnGetSurface() failed\n");
+        return -1;
+    }
+    return ServerSendReply (clifd, &reply, sizeof (reply));
 }
 #endif
 
@@ -585,15 +585,15 @@ extern int Nexus_ServerOnGetSurface(REQ_NEXUS_GETSURFACE *request,
             REP_NEXUS_GETSURFACE *reply);
 static int nexus_client_get_surface(int cli, int clifd, void* buff, size_t len)
 {
-        REQ_NEXUS_GETSURFACE *request;
-        REP_NEXUS_GETSURFACE reply;
+    REQ_NEXUS_GETSURFACE *request;
+    REP_NEXUS_GETSURFACE reply;
 
-        if (Nexus_ServerOnGetSurface(request, &reply) < 0)
-        {
-            fprintf(stderr, "Nexus_ServerOnGetSurface() failed\n");
-            return -1;
-        }
-        return ServerSendReply (clifd, &reply, sizeof (reply));
+    if (Nexus_ServerOnGetSurface(request, &reply) < 0)
+    {
+        fprintf(stderr, "Nexus_ServerOnGetSurface() failed\n");
+        return -1;
+    }
+    return ServerSendReply (clifd, &reply, sizeof (reply));
 }
 #endif
 
@@ -785,9 +785,7 @@ static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
     info.flags = __gal_fake_screen->flags;
     if (strcmp (buff, SYSSF_WALLPAPER_PATTER) == 0 &&
             __gal_fake_screen->shared_header) {
-        info.size = __gal_fake_screen->shared_header->pixels_size;
-        info.size += __gal_fake_screen->shared_header->pixels_off;
-
+        info.size = __gal_fake_screen->shared_header->map_size;
         return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO),
                     __gal_fake_screen->shared_header->fd);
     }
