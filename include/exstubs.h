@@ -127,6 +127,8 @@ typedef struct _DrmSurfaceBuffer {
     uint32_t cpp:8;
     /** Is it a dumb buffer. Since 5.0.0. */
     uint32_t dumb:1;
+    /** Is it a scanout buffer. Since 5.0.0. */
+    uint32_t scanout:1;
 
     /** The width of the buffer. */
     uint32_t width;
@@ -257,11 +259,15 @@ typedef struct _DrmDriverOps {
      * This operation maps the buffer into the current process's virtual memory
      * space, and returns the virtual address. If failed, it returns NULL.
      *
+     * When \a for_scanout is not zero, the buffer will be used for scan out
+     * frame buffer.
+     *
      * \note The driver must implement this operation. The driver must
      *  set a valid value for buff field of the DrmSurfaceBuffer object
      *  on success.
      */
-    uint8_t* (* map_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
+    uint8_t* (* map_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer,
+            int for_scanout);
 
     /**
      * This operation un-maps a buffer.
