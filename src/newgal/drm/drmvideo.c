@@ -745,7 +745,7 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     /* for dumb buffer, already mapped */
     if (surface_buffer->buff == NULL &&
             vdata->driver && vdata->driver_ops->map_buffer) {
-        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer)) {
+        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 0)) {
             _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
             goto error;
         }
@@ -2252,7 +2252,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         assert (vdata->driver_ops->create_buffer);
         real_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                 drm_format, 0, info->width, info->height);
-        vdata->driver_ops->map_buffer(vdata->driver, real_buffer);
+        vdata->driver_ops->map_buffer(vdata->driver, real_buffer, 1);
     }
     else {
         real_buffer = drm_create_dumb_buffer (vdata, drm_format, 0,
@@ -2287,7 +2287,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             shadow_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                     drm_format, hdr_size,
                     info->width, info->height);
-            vdata->driver_ops->map_buffer(vdata->driver, shadow_buffer);
+            vdata->driver_ops->map_buffer(vdata->driver, shadow_buffer, 0);
         }
         else {
             shadow_buffer = drm_create_dumb_buffer (vdata,
@@ -2470,7 +2470,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     if (vdata->driver_ops) {
         surface_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                 drm_format, hdr_size, surface->w, surface->h);
-        vdata->driver_ops->map_buffer(vdata->driver, surface_buffer);
+        vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 0);
     }
     else {
         surface_buffer = drm_create_dumb_buffer(vdata,
@@ -2555,8 +2555,7 @@ static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
             goto error;
         }
 
-        if (vdata->driver_ops->map_buffer(vdata->driver,
-                    surface_buffer) == NULL) {
+        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 0)) {
             _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
             goto error;
         }
@@ -2982,7 +2981,7 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
         return -1;
     }
 
-    if (vdata->driver_ops->map_buffer(vdata->driver, surface_buffer) == NULL) {
+    if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 0)) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
         goto error;
     }
