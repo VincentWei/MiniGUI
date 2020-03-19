@@ -120,7 +120,7 @@ static GAL_Surface *DRM_SetVideoMode_Client(_THIS, GAL_Surface *current,
 #if IS_COMPOSITING_SCHEMA
 /* DRM engine methods for compositing schema */
 static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
-            size_t* pixels_size, off_t* pixels_off, Uint32 rw_modes);
+            size_t* map_size, off_t* pixels_off, Uint32 rw_modes);
 static int DRM_FreeSharedHWSurface(_THIS, GAL_Surface *surface);
 static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
             int prime_fd, size_t mapsize, BOOL with_rw);
@@ -1755,7 +1755,9 @@ static int drm_setup_scanout_buffer (DrmVideoData* vdata,
     ret = drmModeAddFB2(vdata->dev_fd, width, height, drm_format,
             handles, pitches, offsets, &vdata->scanout_buff_id, 0);
     if (ret) {
-        _DBG_PRINTF ("drmModeAddFB2 failed: %m\n");
+        _DBG_PRINTF ("drmModeAddFB2 failed: "
+                "handle(%u), pitch(%u), offset(%u), width(%u), height(%u), format(%x)%m\n",
+                handle, pitch, offset, width, height, drm_format);
         return ret;
     }
 
@@ -2448,7 +2450,7 @@ static void DRM_FreeDumbSurface (_THIS, GAL_Surface *surface)
 
 #if IS_COMPOSITING_SCHEMA
 static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
-            size_t* pixels_size, off_t* pixels_off, Uint32 rw_modes)
+            size_t* map_size, off_t* pixels_off, Uint32 rw_modes)
 {
     DrmVideoData* vdata = this->hidden;
     uint32_t drm_format;
@@ -2488,7 +2490,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
         goto error;
     }
 
-    *pixels_size = surface->h * surface->pitch;
+    *map_size = surface_buffer->size;
     *pixels_off = surface_buffer->offset;
 
     /* go for success */
@@ -2989,6 +2991,13 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
     surface->pixels = surface_buffer->buff + surface_buffer->offset;
     surface->flags |= GAL_HWSURFACE;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
+
+    _WRN_PRINTF("allocated hardware surface: w(%d), h(%d), pitch(%d), "
+            "RGBA masks (0x%08x, 0x%08x, 0x%08x, 0x%08x), pixels: %p\n",
+            surface->w, surface->h, surface->pitch,
+            surface->format->Rmask, surface->format->Gmask,
+            surface->format->Bmask, surface->format->Amask,
+            surface->pixels);
     return 0;
 
 error:
@@ -3136,18 +3145,16 @@ static BOOL DRM_SyncUpdate (_THIS)
 {
     BOOL retval = FALSE;
     RECT bound;
-    DrmSurfaceBuffer *real_buff, *shadow_buff;
     GAL_ShadowSurfaceHeader* hdr;
+    DrmSurfaceBuffer *shadow_buff;
 
     assert (this->hidden->dbl_buff && this->hidden->shadow_screen);
 
-    real_buff = (DrmSurfaceBuffer*)this->hidden->real_screen->hwdata;
     shadow_buff = (DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata;
     hdr = (GAL_ShadowSurfaceHeader*)shadow_buff->buff;
 
     if (IsRectEmpty (&hdr->dirty_rc))
         goto ret;
-
     bound = hdr->dirty_rc;
 
 #if 0
@@ -3190,7 +3197,11 @@ static BOOL DRM_SyncUpdate (_THIS)
 #endif
 
     if (this->hidden->shadow_screen) {
-#if 1
+#if 0
+        DrmSurfaceBuffer *real_buff, *shadow_buff;
+        real_buff = (DrmSurfaceBuffer*)this->hidden->real_screen->hwdata;
+        shadow_buff = (DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata;
+
         uint32_t i;
         uint8_t *src, *dst;
         size_t count = shadow_buff->cpp * RECTW (bound);
@@ -3245,6 +3256,10 @@ static BOOL DRM_SyncUpdate (_THIS)
         }
     }
 #endif  /* _MGSCHEMA_COMPOSITING */
+
+    if (this->hidden->driver && this->hidden->driver_ops->flush_driver) {
+        this->hidden->driver_ops->flush_driver(this->hidden->driver);
+    }
 
     SetRectEmpty (&hdr->dirty_rc);
 ret:
