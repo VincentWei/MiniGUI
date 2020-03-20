@@ -61,7 +61,6 @@ typedef struct GAL_PrivateVideoData {
     /* For compositing schema, we force to use double buffering */
 #ifdef _MGSCHEMA_COMPOSITING
     GAL_Surface *real_screen, *shadow_screen;
-    RECT dirty_rc;
 
     DrmSurfaceBuffer *cursor_buff;
     uint32_t cursor_plane_id;
@@ -79,6 +78,10 @@ typedef struct GAL_PrivateVideoData {
     /* the global names of real screen and shadow screen */
     uint32_t        real_name, shadow_name;
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
+
+#if !IS_SHAREDFB_SCHEMA_PROCS
+    RECT dirty_rc;
+#endif
 
     char*           dev_name;
     char*           ex_driver;
