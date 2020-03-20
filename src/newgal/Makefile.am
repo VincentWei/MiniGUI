@@ -39,6 +39,7 @@ COMMON_SRCS =       \
     videomem-bucket.c   \
     surface-shared.c    \
     surface-cursor.c    \
+    surface-shm.c       \
     shadow-screen.h     \
     shadow-screen.c     \
     $(NULL_FILE)
