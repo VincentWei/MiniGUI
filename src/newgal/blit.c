@@ -77,13 +77,13 @@ static int GAL_SoftBlit(GAL_Surface *src, GAL_Rect *srcrect,
         GAL_loblit RunBlit;
 
         /* Set up the blit information */
-        info.s_pixels = (Uint8 *)src->pixels + src->offset +
+        info.s_pixels = (Uint8 *)src->pixels +
                 (Uint16)srcrect->y*src->pitch +
                 (Uint16)srcrect->x*src->format->BytesPerPixel;
         info.s_width = srcrect->w;
         info.s_height = srcrect->h;
         info.s_skip=src->pitch-info.s_width*src->format->BytesPerPixel;
-        info.d_pixels = (Uint8 *)dst->pixels + dst->offset +
+        info.d_pixels = (Uint8 *)dst->pixels +
                 (Uint16)dstrect->y*dst->pitch +
                 (Uint16)dstrect->x*dst->format->BytesPerPixel;
         info.d_width = dstrect->w;

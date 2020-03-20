@@ -476,7 +476,7 @@ int GAL_RLEBlit(GAL_Surface *src, GAL_Rect *srcrect,
         /* Set up the source and destination pointers */
         x = dstrect->x;
         y = dstrect->y;
-        dstbuf = (Uint8 *)dst->pixels + dst->offset
+        dstbuf = (Uint8 *)dst->pixels
                  + y * dst->pitch + x * src->format->BytesPerPixel;
         srcbuf = (Uint8 *)src->map->sw_data->aux_data;
 
@@ -730,7 +730,7 @@ int GAL_RLEAlphaBlit(GAL_Surface *src, GAL_Rect *srcrect,
 
     x = dstrect->x;
     y = dstrect->y;
-    dstbuf = (Uint8 *)dst->pixels + dst->offset
+    dstbuf = (Uint8 *)dst->pixels
              + y * dst->pitch + x * df->BytesPerPixel;
     srcbuf = (Uint8 *)src->map->sw_data->aux_data + sizeof(RLEDestFormat);
 
@@ -1098,7 +1098,7 @@ static int RLEAlphaSurface(GAL_Surface *surface)
         int x, y;
         int h = surface->h, w = surface->w;
         GAL_PixelFormat *sf = surface->format;
-        Uint32 *src = (Uint32 *)((Uint8 *)surface->pixels + surface->offset);
+        Uint32 *src = (Uint32 *)((Uint8 *)surface->pixels);
         Uint8 *lastline = dst;        /* end of last non-blank line */
 
         /* opaque counts are 8 or 16 bits, depending on target depth */
@@ -1283,7 +1283,7 @@ static int RLEColorkeySurface(GAL_Surface *surface)
         }
 
         /* Set up the conversion */
-        srcbuf = (Uint8 *)surface->pixels+surface->offset;
+        srcbuf = (Uint8 *)surface->pixels;
         maxn = bpp == 4 ? 65535 : 255;
         dst = rlebuf;
         rgbmask = ~surface->format->Amask;

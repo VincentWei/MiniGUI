@@ -57,6 +57,10 @@
 #include "memops.h"
 #include "leaks.h"
 
+#ifdef _MGRM_PROCESSES
+#include <sys/mman.h>   /* for munmap */
+#endif  /* _MGRM_PROCESSES */
+
 /* Public routines */
 /*
  * Create an empty RGB surface of the appropriate depth
@@ -132,7 +136,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     surface->h = height;
     surface->pitch = GAL_CalculatePitch(surface);
     surface->pixels = NULL;
-    surface->offset = 0;
+    surface->pixels_off = 0;
     // for off-screen surface, DPI always be the default value
     surface->dpi = GDCAP_DPI_DEFAULT;
     surface->hwdata = NULL;
@@ -1748,6 +1752,20 @@ void GAL_FreeSurface (GAL_Surface *surface)
         assert (video->FreeHWSurface);
         video->FreeHWSurface (video, surface);
     }
+#ifdef _MGRM_PROCESSES
+    else if ((surface->flags & GAL_HWSURFACE) == GAL_SWSURFACE &&
+            (surface->flags & GAL_PREALLOC) == GAL_PREALLOC &&
+            surface->hwdata) {
+        // This is a surface created in / attached to a named shared memory.
+
+        size_t map_size;
+        uint8_t* buff;
+
+        map_size = (size_t)surface->hwdata;
+        buff = surface->pixels - surface->pixels_off;
+        munmap (buff, map_size);
+    }
+#endif  /* _MGRM_PROCESSES */
     else if (surface->pixels &&
             ((surface->flags & GAL_PREALLOC) != GAL_PREALLOC)) {
         free (surface->pixels);

@@ -586,7 +586,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
         /* Clear the surface to black */
         video->offset_x = 0;
         video->offset_y = 0;
-        mode->offset = 0;
+        mode->pixels_off = 0;
 #ifdef _MGRM_PROCESSES
         if (mgIsServer) {
 #endif
@@ -601,7 +601,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
                 "NEWGAL: Requested mode: %dx%dx%d, obtained mode %dx%dx%d "
                 "(offset %d)\n",
                 width, height, bpp,
-                mode->w, mode->h, mode->format->BitsPerPixel, mode->offset);
+                mode->w, mode->h, mode->format->BitsPerPixel, mode->pixels_off);
 #endif
         mode->w = width;
         mode->h = height;
@@ -634,7 +634,7 @@ void GAL_SetVideoModeInfo(GAL_Surface* screen)
     __mg_current_video->offset_y = 0;
 
     __gal_screen->video = __mg_current_video;
-    __gal_screen->offset = 0;
+    __gal_screen->pixels_off = 0;
     GAL_SetClipRect(screen, NULL);
 }
 #endif  /* _MGSCHEMA_COMPOSITING */
@@ -1245,7 +1245,7 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     surface->h = 0;
     surface->pitch = GAL_CalculatePitch(surface);
     surface->pixels = NULL;
-    surface->offset = 0;
+    surface->pixels_off = 0;
     surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;
@@ -1437,7 +1437,7 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
         /* Clear the surface to black */
         video->offset_x = 0;
         video->offset_y = 0;
-        surface->offset = 0;
+        surface->pixels_off = 0;
 
         surface->w = width;
         surface->h = height;
