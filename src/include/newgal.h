@@ -176,15 +176,17 @@ typedef struct _ShadowSurfaceHeader {
  * which, if not NULL, contains the raw pixel data for the surface.
  */
 typedef struct GAL_Surface {
-    Uint32 flags;                       /* Read-only */
-    GAL_PixelFormat *format;            /* Read-only */
-    void *video;                        /* Read-only */
-    int w, h;                           /* Read-only */
+    void *video;                /* Read-only */
+    GAL_PixelFormat *format;    /* Read-only */
+
+    Uint32 flags;               /* Read-only */
+    Uint32 pixels_off;          /* Read-only; since 5.0.0, replace old offset */
+    int w, h;                   /* Read-only */
+
     /* VW[2018-01-18]: For 64b, use signed int instead of Uint32 for pitch. */
-    int pitch;                          /* Read-only */
-    int dpi;                            /* Read-only */
-    void *pixels;                       /* Read-write */
-    int offset;                         /* Private */
+    int pitch;                  /* Read-only */
+    int dpi;                    /* Read-only */
+    void *pixels;               /* Read-write */
 
     /* Hardware-specific surface info */
     struct private_hwdata *hwdata;
@@ -236,8 +238,7 @@ typedef struct GAL_Surface {
 
 /* Evaluates to true if the surface needs to be locked before access */
 #define GAL_MUSTLOCK(surface)   \
-  (surface->offset ||       \
-  ((surface->flags & (GAL_HWSURFACE|GAL_ASYNCBLIT|GAL_RLEACCEL)) != 0))
+  ((surface->flags & (GAL_HWSURFACE|GAL_ASYNCBLIT|GAL_RLEACCEL)) != 0)
 
 /* Useful for determining the video hardware capabilities */
 typedef struct {
@@ -966,6 +967,12 @@ BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst,
 #ifdef _MGRM_PROCESSES
 /* Since 5.0.0: copy video information to the shared resource */
 BOOL GAL_CopyVideoInfoToSharedRes (void);
+
+/* Since 5.0.0: create/attach a surface in/to named shared memory */
+GAL_Surface * GAL_CreateRGBSurfaceInShm (const char* shm_name, BOOL create,
+        Uint32 rw_modes, Uint32 hdr_size, int width, int height, int depth,
+        Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+
 #endif  /* _MGRM_PROCESSES */
 
 #ifdef _MGGAL_DRM
