@@ -290,8 +290,7 @@ int GAL_CalculateBlit(GAL_Surface *surface)
     if(surface->flags & GAL_RLEACCELOK
        && (surface->flags & GAL_HWACCEL) != GAL_HWACCEL) {
 
-            if(surface->map->identity
-           && (blit_index == 1
+            if(surface->map->identity && (blit_index == 1
                || (blit_index == 3 && !surface->format->Amask))) {
                 if ( GAL_RLESurface(surface) == 0 )
                     surface->map->sw_blit = GAL_RLEBlit;
