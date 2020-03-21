@@ -810,6 +810,20 @@ static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 }
 #endif  /* not IS_COMPOSITING_SCHEMA */
 
+static int authenticate_client (int cli, int clifd, void* buff, size_t len)
+{
+    uint32_t magic;
+    int auth_result = 1;
+
+#ifdef _MGGAL_DRM
+    extern int __drm_auth_client(int, uint32_t);
+    magic = *(uint32_t*)buff;
+    auth_result = __drm_auth_client (cli, magic);
+#endif
+
+    return ServerSendReply (clifd, &auth_result, sizeof (int));
+}
+
 static struct req_request {
     void* handler;
     int version;
@@ -862,21 +876,21 @@ static struct req_request {
     { get_ime_targetinfo, 0 },
     { set_ime_targetinfo, 0 },
     { copy_cursor, 0 },
+    { get_shared_surface, 0 },          // REQID_GETSHAREDSURFACE
 #if IS_COMPOSITING_SCHEMA
-    { get_shared_surface, 0 },
-    { load_cursor_png_file, 0 },
-    { load_cursor_png_mem, 0 },
-    { alloc_sem_for_shared_surf, 0 },
-    { free_sem_for_shared_surf, 0 },
+    { load_cursor_png_file, 0 },        // REQID_LOADCURSOR_PNG
+    { load_cursor_png_mem, 0 },         // REQID_LOADCURSOR_PNG_MEM
+    { alloc_sem_for_shared_surf, 0 },   // REQID_ALLOC_SURF_SEM
+    { free_sem_for_shared_surf, 0 },    // REQID_FREE_SURF_SEM
 #else
-    { get_shared_surface, 0 },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
 #endif
-    { move_to_layer, 0 },
-    { calc_position, 0 },
+    { move_to_layer, 0 },       // REQID_MOVETOLAYER
+    { calc_position, 0 },       // REQID_CALCPOSITION
+    { authenticate_client, 0 }, // REQID_AUTHCLIENT
 };
 
 BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
