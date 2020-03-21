@@ -1049,25 +1049,80 @@ static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
     return ops;
 }
 
+#ifdef _MGRM_PROCESSES
+int __drm_auth_client (int cli, uint32_t magic)
+{
+    GAL_VideoDevice *this = __mg_current_video;
+    DrmVideoData* vdata;
+
+    assert (sizeof(uint32_t) == sizeof(drm_magic_t));
+
+    if (!this || this->VideoInit != DRM_VideoInit) {
+        return -1;
+    }
+
+    vdata = this->hidden;
+    if (drmAuthMagic(vdata->dev_fd, (drm_magic_t)magic)) {
+        _WRN_PRINTF("NEWGAL>DRM: failed to call drmAuthMagic (%u): %m\n", magic);
+        return -1;
+    }
+
+    _DBG_PRINTF("Client (%d) authenticated with magic (%u)\n", cli, magic);
+    return 0;
+}
+#endif  /* _MGRM_PROCESSES */
+
 static int open_drm_device(GAL_VideoDevice *device)
 {
     char *driver_name;
-    int device_fd;
+    int fd;
 
     driver_name = find_driver_for_device(device->hidden->dev_name);
 
     _DBG_PRINTF("Try to load DRM driver: %s\n", driver_name);
 
-    device_fd = drmOpen(driver_name, NULL);
-    if (device_fd < 0) {
+    fd = drmOpen(driver_name, NULL);
+    if (fd < 0) {
         _ERR_PRINTF("NEWGAL>DRM: drmOpen failed\n");
         free(driver_name);
         return -errno;
     }
 
-    device->hidden->driver_ops = load_external_driver (device->hidden,
-            driver_name, device_fd);
+#ifdef _MGRM_PROCESSES
+    if (mgIsServer) {
+        if (drmSetMaster(fd)) {
+            _ERR_PRINTF("NEWGAL>DRM: failed to call drmSetMaster: %m\n");
+            _ERR_PRINTF("    You need to run `mginit` as root.\n");
+            return -EACCES;
+        }
+    }
+    else {
+        drm_magic_t magic;
+        REQUEST req;
+        int auth_result;
 
+        if (drmGetMagic(fd, &magic)) {
+            _DBG_PRINTF("failed to call drmGetMagic: %m\n");
+            return -errno;
+        }
+
+        req.id = REQID_AUTHCLIENT;
+        req.data = &magic;
+        req.len_data = sizeof (magic);
+        if ((ClientRequest (&req, &auth_result, sizeof(int)) < 0)) {
+            _ERR_PRINTF("NEWGAL>DRM: failed to call ClientRequest: %m\n");
+            return -ECOMM;
+        }
+
+        if (auth_result) {
+            _ERR_PRINTF("NEWGAL>DRM: failed to authenticate: %d\n", auth_result);
+            return -EACCES;
+        }
+    }
+#endif /* defined _MGRM_PROCESSES */
+
+    device->hidden->driver_ops = load_external_driver (device->hidden,
+            driver_name, fd);
     free (driver_name);
 
     /* get capabilities */
@@ -1075,7 +1130,7 @@ static int open_drm_device(GAL_VideoDevice *device)
         uint64_t has_dumb, cursor_width, cursor_height;
 
         /* check whether supports dumb buffer */
-        if (drmGetCap(device_fd, DRM_CAP_DUMB_BUFFER, &has_dumb) < 0 ||
+        if (drmGetCap(fd, DRM_CAP_DUMB_BUFFER, &has_dumb) < 0 ||
                 !has_dumb) {
             device->hidden->cap_dumb = 0;
         }
@@ -1083,7 +1138,7 @@ static int open_drm_device(GAL_VideoDevice *device)
             device->hidden->cap_dumb = 1;
         }
 
-        if (drmGetCap(device_fd, DRM_CAP_CURSOR_WIDTH, &cursor_width) < 0 ||
+        if (drmGetCap(fd, DRM_CAP_CURSOR_WIDTH, &cursor_width) < 0 ||
                 cursor_width == 0) {
             device->hidden->cap_cursor_width = 0;
         }
@@ -1091,7 +1146,7 @@ static int open_drm_device(GAL_VideoDevice *device)
             device->hidden->cap_cursor_width = cursor_width;
         }
 
-        if (drmGetCap(device_fd, DRM_CAP_CURSOR_HEIGHT, &cursor_height) < 0 ||
+        if (drmGetCap(fd, DRM_CAP_CURSOR_HEIGHT, &cursor_height) < 0 ||
                 cursor_height == 0) {
             device->hidden->cap_cursor_height = 0;
         }
@@ -1103,9 +1158,9 @@ static int open_drm_device(GAL_VideoDevice *device)
                 (int)cursor_width, (int)cursor_height);
     }
 
-    device->hidden->dev_fd = device_fd;
+    device->hidden->dev_fd = fd;
     if (device->hidden->driver_ops) {
-        device->hidden->driver = device->hidden->driver_ops->create_driver(device_fd);
+        device->hidden->driver = device->hidden->driver_ops->create_driver(fd);
     }
 
     if (device->hidden->driver == NULL) {
@@ -1117,7 +1172,7 @@ static int open_drm_device(GAL_VideoDevice *device)
             _ERR_PRINTF("NEWGAL>DRM: the DRM device '%s' does not support "
                     "dumb buffers\n",
                     device->hidden->dev_name);
-            close(device_fd);
+            close(fd);
             device->hidden->dev_fd = -1;
             return -EOPNOTSUPP;
         }
@@ -1169,15 +1224,9 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     }
 
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer) {
-        if (drmSetMaster(device->hidden->dev_fd)) {
-            _WRN_PRINTF("NEWGAL>DRM: failed to call drmSetMaster: %m\n");
-        }
-        else {
-            drmGetMagic(device->hidden->dev_fd, &device->hidden->auth_magic);
-            _DBG_PRINTF("DRM magic: (%u):\n", device->hidden->auth_magic);
-        }
+    if (mgIsServer)
 #endif /* defined _MGRM_PROCESSES */
+    {
         char tmp [8];
         if (GetMgEtcValue ("drm", "double_buffering", tmp, 8) < 0) {
             device->hidden->dbl_buff = 0;
@@ -1186,13 +1235,9 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
                 strcasecmp (tmp, "yes") == 0) {
             device->hidden->dbl_buff = 1;
         }
-#ifdef _MGRM_PROCESSES
     }
+#ifdef _MGRM_PROCESSES
     else {
-        if (drmAuthMagic(device->hidden->dev_fd, SHAREDRES_VIDEO_DRM_MAGIC)) {
-            _WRN_PRINTF("NEWGAL>DRM: failed to call drmAuthMagic (%u): %m\n",
-                    SHAREDRES_VIDEO_DRM_MAGIC);
-        }
         device->hidden->dbl_buff = SHAREDRES_VIDEO_DBL_BUFF;
     }
 #endif /* defined _MGRM_PROCESSES */
@@ -1647,8 +1692,6 @@ static void DRM_CopyVideoInfoToSharedRes(_THIS)
 
     SHAREDRES_VIDEO_DRM_FORMAT =
         ((DrmSurfaceBuffer*)vdata->real_screen->hwdata)->drm_format;
-
-    SHAREDRES_VIDEO_DRM_MAGIC = vdata->auth_magic;
 
     strncpy (SHAREDRES_VIDEO_EXDRIVER, vdata->ex_driver, LEN_EXDRIVER_NAME);
     SHAREDRES_VIDEO_EXDRIVER[LEN_EXDRIVER_NAME] = 0;
