@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.60)
-AC_INIT(libminigui, 4.0.6)
+AC_INIT(libminigui, 4.0.7)
 AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -16,9 +16,9 @@ dnl Set various version strings - taken gratefully from the SDL sources
 #
 MINIGUI_MAJOR_VERSION=4
 MINIGUI_MINOR_VERSION=0
-MINIGUI_MICRO_VERSION=6
-MINIGUI_INTERFACE_AGE=2
-MINIGUI_BINARY_AGE=2
+MINIGUI_MICRO_VERSION=7
+MINIGUI_INTERFACE_AGE=0
+MINIGUI_BINARY_AGE=0
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
 
 AC_SUBST(MINIGUI_MAJOR_VERSION)
@@ -885,26 +885,22 @@ CheckFBCON()
 dnl Find the DRM includes
 CheckDRM()
 {
-    if test "x$runtime_mode" = "xprocs"; then
-        enable_video_drm="no; DRI engine does not support MiniGUI-Processes runtime mode currently"
-    else
-        AC_ARG_ENABLE(videodrm,
-    [  --enable-videodrm      include Linux DRI NEWGAL engine <default=yes>],
-        enable_video_drm=$enableval)
-        if test "x$enable_video_drm" = "xyes"; then
-            PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_drm="yes",
-                video_drm="no; Linux DRI NEWGAL engine requires libdrm 2.4+")
-            if test "x$video_drm" = "xyes"; then
-                AC_DEFINE(_MGGAL_DRM, 1,
-                    [Define if include Linux DRI NEWGAL engine])
-                VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
-                VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
-                DEP_LIBS="$DEP_LIBS -ldrm -ldl"
-                DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/libdrm"
-                AC_SUBST(DRM_INC_DIR)
-            else
-                AC_MSG_WARN([$video_drm])
-            fi
+    AC_ARG_ENABLE(videodrm,
+[  --enable-videodrm      include Linux DRI NEWGAL engine <default=yes>],
+    enable_video_drm=$enableval)
+    if test "x$enable_video_drm" = "xyes"; then
+        PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_drm="yes",
+            video_drm="no; Linux DRI NEWGAL engine requires libdrm 2.4+")
+        if test "x$video_drm" = "xyes"; then
+            AC_DEFINE(_MGGAL_DRM, 1,
+                [Define if include Linux DRI NEWGAL engine])
+            VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
+            VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
+            DEP_LIBS="$DEP_LIBS -ldrm -ldl"
+            DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/libdrm"
+            AC_SUBST(DRM_INC_DIR)
+        else
+            AC_MSG_WARN([$video_drm])
         fi
     fi
 }
