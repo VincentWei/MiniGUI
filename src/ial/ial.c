@@ -133,8 +133,7 @@
     #include "linux-libinput.h"
 #endif
 
-#define LEN_ENGINE_NAME        16
-#define LEN_MTYPE_NAME         16
+#define LEN_MTYPE_NAME         23
 
 static INPUT inputs [] =
 {

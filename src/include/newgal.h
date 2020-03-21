@@ -57,6 +57,14 @@
 
 #include "gdi.h"
 
+#define LEN_SO_NAME         127 // name length of a shared object (library)
+#define LEN_DEVICE_NAME     127
+#define LEN_EXDRIVER_NAME   LEN_SO_NAME
+#define LEN_ENGINE_NAME     23
+#define LEN_VIDEO_MODE      31
+#define LEN_MTYPE_NAME      23
+#define LEN_FOURCC_FORMAT   7
+
 #define DISABLE_THREADS
 #define GAL_mutex       int
 

@@ -64,8 +64,7 @@
 
 GAL_Surface* __gal_screen;
 
-#define LEN_ENGINE_NAME 10
-#define LEN_MODE        20
+#define LEN_MODE        LEN_VIDEO_MODE
 
 BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* depth)
 {
