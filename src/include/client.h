@@ -123,10 +123,10 @@
 // Calculate the position a main window with WS_EX_AUTOPOSITION
 #define REQID_CALCPOSITION          0x0022
 
-// Get the shared screen surface for client
-#define REQID_CALCPOSITION          0x0022
+// Authenticate client
+#define REQID_AUTHCLIENT            0x0023
 
-#define REQID_SYS_LAST              REQID_CALCPOSITION
+#define REQID_SYS_LAST              REQID_AUTHCLIENT
 
 /*
  * XXX: To fellows who need to add a new REQID,
