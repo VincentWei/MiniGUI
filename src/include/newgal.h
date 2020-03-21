@@ -978,8 +978,6 @@ GAL_Surface * GAL_CreateRGBSurfaceInShm (const char* shm_name, BOOL create,
 #ifdef _MGGAL_DRM
 /* functions implemented in DRM engine. */
 BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);
-int __drm_get_shared_screen_surface (const char*, SHAREDSURFINFO*);
-int __drm_auth_client(int, uint32_t);
 
 GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
         uint32_t name, uint32_t drm_format, uint32_t pixels_off,
