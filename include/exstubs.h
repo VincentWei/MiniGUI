@@ -158,28 +158,6 @@ typedef struct _DrmSurfaceBuffer {
 } DrmSurfaceBuffer;
 
 /**
- * The color logic operations.
- */
-enum DrmColorLogicOp {
-   COLOR_LOGICOP_CLEAR = 0,
-   COLOR_LOGICOP_NOR = 1,
-   COLOR_LOGICOP_AND_INVERTED = 2,
-   COLOR_LOGICOP_COPY_INVERTED = 3,
-   COLOR_LOGICOP_AND_REVERSE = 4,
-   COLOR_LOGICOP_INVERT = 5,
-   COLOR_LOGICOP_XOR = 6,
-   COLOR_LOGICOP_NAND = 7,
-   COLOR_LOGICOP_AND = 8,
-   COLOR_LOGICOP_EQUIV = 9,
-   COLOR_LOGICOP_NOOP = 10,
-   COLOR_LOGICOP_OR_INVERTED = 11,
-   COLOR_LOGICOP_COPY = 12,
-   COLOR_LOGICOP_OR_REVERSE = 13,
-   COLOR_LOGICOP_OR = 14,
-   COLOR_LOGICOP_SET = 15
-};
-
-/**
  * The structure type defines the operations for a DRM driver.
  */
 typedef struct _DrmDriverOps {
@@ -311,22 +289,25 @@ typedef struct _DrmDriverOps {
      *
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated copy blitting.
+     *
+     * \note Currently, the logical operation is ignored.
      */
     int (* copy_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
             DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
-            enum DrmColorLogicOp logic_op);
+            ColorLogicalOp logic_op);
 
     /**
-     * This operation blits pixles from a source buffer with the source alpha value
-     * specified to a destination buffer.
+     * This operation blits pixles from a source buffer with the source alpha
+     * value specified to a destination buffer.
      *
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated blitting with alpha.
      */
     int (* alpha_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint8_t alpha);
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            uint8_t alpha);
 
     /**
      * This operation blits pixles from a source buffer to a destination buffer,
@@ -337,11 +318,13 @@ typedef struct _DrmDriverOps {
      */
     int (* key_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint32_t color_key);
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            uint32_t color_key);
 
     /**
-     * This operation blits pixles from a source buffer with the source alpha value
-     * specified to a destination buffer, but skipping the pixel value specified.
+     * This operation blits pixles from a source buffer with the source alpha
+     * value specified to a destination buffer, but skipping the pixel value
+     * specified.
      *
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated blitting with alpha and color key.
@@ -350,6 +333,21 @@ typedef struct _DrmDriverOps {
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
             DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
             uint8_t alpha, uint32_t color_key);
+
+    /**
+     * This operation blits pixles from a source buffer with the source alpha
+     * value of pixels to the destination buffer, and with the specified color
+     * compositing/blending method (\a ColorBlendMethod).
+     *
+     * \note If this operation is set as NULL, the driver does not support
+     * hardware accelerated blitting with alpha on basis per pixel.
+     *
+     * \note Currently, the color compositing/blending method is ignored.
+     */
+    int (* alpha_pixel_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            ColorBlendMethod blend_method);
 
 } DrmDriverOps;
 
