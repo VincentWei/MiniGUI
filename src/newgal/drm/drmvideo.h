@@ -86,7 +86,6 @@ typedef struct GAL_PrivateVideoData {
     char*           dev_name;
     char*           ex_driver;
     int             dev_fd;
-    drm_magic_t     auth_magic;
 
     /* capabilities */
     uint32_t        cap_cursor_width;
