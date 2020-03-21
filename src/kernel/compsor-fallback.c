@@ -300,6 +300,8 @@ static void composite_wallpaper_rect (CompositorCtxt* ctxt,
                 RECT eff_rc;
                 if (IntersectRect (&eff_rc, dirty_rc, &rc)) {
                     SelectClipRect (HDC_SCREEN_SYS, &eff_rc);
+                    SetMemDCColorKey (HDC_SCREEN, 0, 0);
+                    SetMemDCAlpha (HDC_SCREEN, 0, 0);
                     BitBlt (HDC_SCREEN, 0, 0, RECTW (rc), RECTH (rc),
                             HDC_SCREEN_SYS, rc.left, rc.top, 0);
                 }
@@ -423,6 +425,7 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
 
             switch (znode_hdr->ct & CT_SYSTEM_MASK) {
             case CT_COLORKEY:
+                SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
                 SetMemDCColorKey (znode_hdr->mem_dc,
                         MEMDC_FLAG_SRCCOLORKEY,
                         DWORD2Pixel (znode_hdr->mem_dc, znode_hdr->ct_arg));
@@ -439,6 +442,7 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
                 break;
 
             case CT_ALPHAPIXEL:
+                SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
                 SetMemDCAlpha (znode_hdr->mem_dc,
                         MEMDC_FLAG_SRCPIXELALPHA, 0);
                 break;
