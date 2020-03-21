@@ -1573,13 +1573,6 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
     }
 #endif
 
-#ifdef _MGSCHEMA_COMPOSITING
-    /* we must initialize the video information after created the device */
-    if (this->SetCursor) {
-        this->info.hw_cursor = 1;
-    }
-#endif /* _MGSCHEMA_COMPOSITING */
-
     if (this->hidden->driver) {
         if (this->hidden->driver_ops->clear_buffer) {
             this->info.blit_fill = 1;
@@ -1876,11 +1869,6 @@ static int drm_setup_cursor_plane (DrmVideoData* vdata, uint32_t drm_format,
                 drm_format, drm_format >> 8, drm_format >> 16, drm_format >> 24);
         goto error;
     }
-
-    vdata->cursor_buff = drm_create_dumb_buffer (vdata, drm_format, 0,
-            width, height);
-    if (vdata->cursor_buff == NULL)
-        return ret;
 
     handles[0] = vdata->cursor_buff->handle;
     pitches[0] = vdata->cursor_buff->pitch;
@@ -2312,14 +2300,11 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         GAL_SetClipRect (vdata->real_screen, NULL);
         GAL_SetColorKey (vdata->shadow_screen, 0, 0);
         GAL_SetAlpha (vdata->shadow_screen, 0, 0);
-
     }
 
 #if IS_COMPOSITING_SCHEMA
-    if (this->info.hw_cursor) {
-        drm_setup_cursor_plane (vdata,
-                DRM_FORMAT_ARGB8888, CURSORWIDTH, CURSORHEIGHT);
-    }
+    drm_setup_cursor_plane (vdata,
+            DRM_FORMAT_ARGB8888, CURSORWIDTH, CURSORHEIGHT);
 
     if (vdata->cursor_buff && !vdata->cursor_plane_id) {
         _DBG_PRINTF("We are using legacy hardware cursor\n");
@@ -2336,12 +2321,13 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         this->FreeDumbSurface = NULL;
     }
     else {
-        _WRN_PRINTF("We are using software cursor\n");
+        _WRN_PRINTF("We are using software-simulated hardware cursor\n");
         this->SetCursor = DRM_SetCursor_SW;
         this->MoveCursor = DRM_MoveCursor_SW;
         this->AllocDumbSurface = NULL;
         this->FreeDumbSurface = NULL;
     }
+    this->info.hw_cursor = 1;
 #endif /* IS_COMPOSITING_SCHEMA */
 
     GAL_FreeSurface (current);
@@ -2662,7 +2648,6 @@ static int DRM_SetCursor_Plane(_THIS, GAL_Surface *surface, int hot_x, int hot_y
 {
     int retval = -1;
     DrmVideoData* vdata = this->hidden;
-    DrmSurfaceBuffer* surface_buffer = NULL;
 
     if (vdata->cursor == surface &&
             vdata->hot_x == hot_x &&
@@ -2672,21 +2657,20 @@ static int DRM_SetCursor_Plane(_THIS, GAL_Surface *surface, int hot_x, int hot_y
 
     vdata->cursor = surface;
     if (surface) {
-        surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
         uint8_t *src, *dst;
         uint32_t i;
         uint32_t height, pitch;
 
         assert (vdata->cursor_buff);
-        src = surface_buffer->buff + surface_buffer->offset;
+        src = surface->pixels;
         dst = vdata->cursor_buff->buff + vdata->cursor_buff->offset;
 
-        height = MIN(surface_buffer->height, vdata->cursor_buff->height);
-        pitch = MIN(surface_buffer->pitch, vdata->cursor_buff->pitch);
+        height = MIN(surface->h, vdata->cursor_buff->height);
+        pitch = MIN(surface->pitch, vdata->cursor_buff->pitch);
         for (i = 0; i < height; i++) {
             memcpy (dst, src, pitch);
             dst += vdata->cursor_buff->pitch;
-            src += surface_buffer->pitch;
+            src += surface->pitch;
         }
 
     }
@@ -3042,7 +3026,7 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
     surface->flags |= GAL_HWSURFACE;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
 
-    _WRN_PRINTF("allocated hardware surface: w(%d), h(%d), pitch(%d), "
+    _DBG_PRINTF("allocated hardware surface: w(%d), h(%d), pitch(%d), "
             "RGBA masks (0x%08x, 0x%08x, 0x%08x, 0x%08x), pixels: %p\n",
             surface->w, surface->h, surface->pitch,
             surface->format->Rmask, surface->format->Gmask,
