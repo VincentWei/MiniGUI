@@ -1406,3 +1406,15 @@ int GAL_SuspendVideo(void)
     return 0;
 }
 
+#ifdef _MGRM_PROCESSES
+BOOL GAL_CopyVideoInfoToSharedRes (void)
+{
+    if (__mg_current_video && __mg_current_video->CopyVideoInfoToSharedRes) {
+        __mg_current_video->CopyVideoInfoToSharedRes(__mg_current_video);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+#endif  /* _MGRM_PROCESSES */
+

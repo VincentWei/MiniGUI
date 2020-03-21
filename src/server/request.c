@@ -601,6 +601,34 @@ static int req_hw_surface (int cli, int clifd, void* buff, size_t len)
 extern int clipboard_op (int cli, int clifd, void* buff, size_t len);
 #endif
 
+static int authenticate_client (int cli, int clifd, void* buff, size_t len)
+{
+    int auth_result = 1;
+
+#ifdef _MGGAL_DRM
+    uint32_t magic;
+    extern int __drm_auth_client(int, uint32_t);
+    magic = *(uint32_t*)buff;
+    auth_result = __drm_auth_client (cli, magic);
+#endif
+
+    return ServerSendReply (clifd, &auth_result, sizeof (int));
+}
+
+/* get the rendering surface */
+static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
+{
+    SHAREDSURFINFO info = { 0, 0 };
+
+#ifdef _MGGAL_DRM
+    const char* name = buff;
+    extern int __drm_get_shared_screen_surface (const char*, SHAREDSURFINFO*);
+    __drm_get_shared_screen_surface (name, &info);
+#endif
+
+    return ServerSendReply (clifd, &info, sizeof (SHAREDSURFINFO));
+}
+
 static REQ_HANDLER handlers [MAX_REQID] =
 {
     load_cursor,
@@ -646,6 +674,8 @@ static REQ_HANDLER handlers [MAX_REQID] =
     get_ime_targetinfo,
     set_ime_targetinfo,
     copy_cursor,
+    authenticate_client,
+    get_shared_surface,
 };
 
 BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)

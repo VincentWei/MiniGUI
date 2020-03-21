@@ -95,12 +95,31 @@
 #define REQID_GETIMEPOS        0x0019
 #define REQID_SETIMEPOS        0x001A
 
-#define REQID_COPYCURSOR        0x001B
+#define REQID_COPYCURSOR       0x001B
+
+// Since 4.0.7: Authenticate client
+#define REQID_AUTHCLIENT       0x001C
+
+// Since 4.0.7: Get shared surface
+#define REQID_GETSHAREDSURFACE      0x001D
+    // for sharedfb schema
+    #define SYSSF_REAL_SCREEN           "syssf-real-screen"
 
 /*
- * XXX: To fellows who need to add a new REQID, please make sure your new ID _less_ than MAX_SYS_REQID (defined in /include/minigui.h).
+ * XXX: To fellows who need to add a new REQID, please make sure your
+ * new ID _less_ than MAX_SYS_REQID (defined in /include/minigui.h).
  */
 
+/* Since 4.0.7 */
+typedef struct _SharedSurfInfo {
+    uint32_t    flags;      // the flags of the surface
+    uint32_t    width, height;
+    uint32_t    pitch;
+    uint32_t    name;       // when use flink name
+    uint32_t    drm_format; // DRM pixel format
+    size_t      size;       // whole size of the surface
+    off_t       offset;     // offset of pixel data
+} SHAREDSURFINFO;
 
 typedef struct JoinLayerInfo
 {

@@ -108,6 +108,8 @@ void kernel_ShowCursorForGDI(BOOL fShow, void* pdc)
 
 int InitGUI (int argc, const char* agr[])
 {
+    char engine [LEN_ENGINE_NAME + 1];
+    char mode [LEN_VIDEO_MODE + 1];
     int step = 1;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
@@ -135,7 +137,7 @@ int InitGUI (int argc, const char* agr[])
     step++;
 
     /* Init GAL engine. */
-    switch (mg_InitGAL ()) {
+    switch (mg_InitGAL (engine, mode)) {
     case ERR_CONFIG_FILE:
         err_message (step, "Reading configuration failure!");
         return step;
@@ -302,6 +304,8 @@ static BOOL InstallSEGVHandler (void)
 
 int InitGUI (int argc, const char* agr[])
 {
+    char engine [LEN_ENGINE_NAME + 1];
+    char mode [LEN_VIDEO_MODE + 1];
     int step = 1;
 
     __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
@@ -379,7 +383,7 @@ int InitGUI (int argc, const char* agr[])
 #endif
 
     /* Init GAL engine. */
-    switch (mg_InitGAL ()) {
+    switch (mg_InitGAL (engine, mode)) {
     case ERR_CONFIG_FILE:
         err_message (step, "Reading configuration failure!");
         return step;
@@ -444,6 +448,22 @@ int InitGUI (int argc, const char* agr[])
         }
         atexit (kernel_UnloadSharedResource);
         SHAREDRES_TERMIOS = savedtermio;
+
+        /* Since 4.0.7
+         * Copy the video engine information to the shared resource segement
+         */
+        strncpy (SHAREDRES_VIDEO_ENGINE, engine, LEN_ENGINE_NAME);
+        strncpy (SHAREDRES_VIDEO_MODE, mode, LEN_VIDEO_MODE);
+        SHAREDRES_VIDEO_DPI   = __gal_screen->dpi;
+        SHAREDRES_VIDEO_HRES  = __gal_screen->w;
+        SHAREDRES_VIDEO_VRES  = __gal_screen->h;
+        SHAREDRES_VIDEO_DEPTH = __gal_screen->format->BitsPerPixel;
+        SHAREDRES_VIDEO_RMASK = __gal_screen->format->Rmask;
+        SHAREDRES_VIDEO_GMASK = __gal_screen->format->Gmask;
+        SHAREDRES_VIDEO_BMASK = __gal_screen->format->Bmask;
+        SHAREDRES_VIDEO_AMASK = __gal_screen->format->Amask;
+
+        GAL_CopyVideoInfoToSharedRes();
     }
 
     step++;

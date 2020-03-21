@@ -13734,14 +13734,18 @@ MG_EXPORT int drmGetDeviceFD (GHANDLE video);
  * THe struct type defines the DRM surface information.
  */
 typedef struct _DrmSurfaceInfo {
-    /** The prime fd of the buffer object. */
-    int prime_fd;
-    /** The global name of the buffer object. */
-    uint32_t name;
     /** The local handle of the buffer object. */
     uint32_t handle;
-    /** The buffer identifier. */
-    uint32_t id;
+    /** The prime fd of the buffer object. If it was no exported as a global
+     buffer object, it has the value -1. */
+    int prime_fd;
+    /** The global name of the buffer object. It has the value 0 when it was
+        not expored as global buffer object. */
+    uint32_t name;
+    /** The frame buffer identifier. If the buffer was not added as
+        a frame buffer to the system, it has the value 0. */
+    uint32_t fb_id;
+
     /** The width of the surface. */
     uint32_t width;
     /** The height of the surface. */
@@ -13751,7 +13755,9 @@ typedef struct _DrmSurfaceInfo {
     /** The DRM pixel format. */
     uint32_t drm_format;
     /** Size in bytes of the buffer object. */
-    unsigned long size;
+    size_t size;
+    /** The offset from the buffer start to the real pixel data. */
+    off_t offset;
 } DrmSurfaceInfo;
 
 /**
@@ -13773,15 +13779,24 @@ MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info);
  * \param video The video handle.
  * \param name The name handle of the DRM surface.
  * \param drm_format The DRM pixel format.
+ * \param offset The offset from the buffer start to the real pixel data.
  * \param width The width of the DRM surface.
  * \param height The height of the DRM surface.
  * \param pitch The pitch (row stride) of the DRM surface.
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
-            uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
+MG_EXPORT HDC drmCreateDCFromNameEx (GHANDLE video,
+        uint32_t name, uint32_t drm_format, off_t offset,
+        uint32_t width, uint32_t height, uint32_t pitch);
+
+static inline HDC drmCreateDCFromName (GHANDLE video,
+        uint32_t name, uint32_t drm_format,
+        uint32_t width, uint32_t height, uint32_t pitch)
+{
+    return drmCreateDCFromNameEx (video,
+        name, drm_format, 0, width, height, pitch);
+}
 
 /**
  * This function creates a memory DC with a DRM surface which is created by
@@ -13791,15 +13806,24 @@ MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
  * \param prime_fd The PRIME file descriptor.
  * \param size The size of the DRM surface in bytes.
  * \param drm_format The DRM pixel format.
+ * \param offset The offset from the buffer start to the real pixel data.
  * \param width The width of the DRM surface.
  * \param height The height of the DRM surface.
  * \param pitch The pitch (row stride) of the DRM surface.
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
-            int prime_fd, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
+MG_EXPORT HDC drmCreateDCFromPrimeFdEx (GHANDLE video,
+        int prime_fd, size_t size, uint32_t drm_format, off_t offset,
+        uint32_t width, uint32_t height, uint32_t pitch);
+
+static inline HDC drmCreateDCFromPrimeFd (GHANDLE video,
+        int prime_fd, size_t size, uint32_t drm_format,
+        uint32_t width, uint32_t height, uint32_t pitch)
+{
+    return drmCreateDCFromPrimeFdEx (video,
+        prime_fd, size, drm_format, 0, width, height, pitch);
+}
 
 /**
  * This function creates a memory DC with a DRM surface which is created by
@@ -13809,15 +13833,24 @@ MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
  * \param handle The handle of the DRM surface.
  * \param size The size of the DRM surface in bytes.
  * \param drm_format The DRM pixel format.
+ * \param offset The offset from the buffer start to the real pixel data.
  * \param width The width of the DRM surface.
  * \param height The height of the DRM surface.
  * \param pitch The pitch (row stride) of the DRM surface.
  *
  * \return The handle to the memory DC for success, HDC_INVALID for failure.
  */
-MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
-            uint32_t handle, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
+MG_EXPORT HDC drmCreateDCFromHandleEx (GHANDLE video,
+        uint32_t handle, size_t size, uint32_t drm_format, off_t offset,
+        uint32_t width, uint32_t height, uint32_t pitch);
+
+static inline HDC drmCreateDCFromHandle (GHANDLE video,
+        uint32_t handle, size_t size, uint32_t drm_format,
+        uint32_t width, uint32_t height, uint32_t pitch)
+{
+    return drmCreateDCFromHandleEx (video,
+        handle, size, drm_format, 0, width, height, pitch);
+}
 
 /** @} end of gdi_drm_fns */
 

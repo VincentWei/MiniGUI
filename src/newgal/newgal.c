@@ -87,12 +87,10 @@ BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* depth)
     return TRUE;
 }
 
-int mg_InitGAL (void)
+int mg_InitGAL (char* engine, char* mode)
 {
     int i;
     int w, h, depth;
-    char engine [LEN_ENGINE_NAME + 1];
-    char mode [LEN_MODE + 1];
 
 #if defined (WIN32) || !defined(__NOUNIX__)
 	char* env_value;

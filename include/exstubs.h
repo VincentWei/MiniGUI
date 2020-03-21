@@ -92,64 +92,226 @@ struct _DrmDriver;
 typedef struct _DrmDriver DrmDriver;
 
 /**
- * The struct type represents the bufffer can be used by
- * MiniGUI NEWGAL engine for hardware surface.
+ * The structure type represents the buffer can be used by
+ * MiniGUI NEWGAL DRM engine for a hardware surface.
  */
 typedef struct _DrmSurfaceBuffer {
-    /** The prime fd of the buffer */
-    int prime_fd;
-    /** The global name of the buffer */
-    uint32_t name;
     /** The local handle of the buffer */
     uint32_t handle;
-    /** The buffer identifier */
-    uint32_t id;
-    /** The widht of the buffer */
-    uint32_t width;
-    /** The height of the buffer */
-    uint32_t height;
-    /** The pitch (row stride in bytes) of the buffer */
-    uint32_t pitch;
-    /** The DRM format of the buffer */
-    uint32_t drm_format;
 
+    /**
+      * The prime file descriptor of the buffer.
+      * It has a value >= 0 when this buffer has a prime file descriptor;
+      * otherwise it has the value -1;
+      */
+    int prime_fd;
+
+    /**
+      * The global name of the buffer.
+      * It has value > 0 when this buffer has a global name;
+      * otherwise it has the value 0;
+      */
+    uint32_t name;
+
+    /**
+      * The frame buffer identifier if the buffer has been added as a
+      * frame buffer to the system, otherwise it has the value 0.
+     */
+    uint32_t fb_id;
+
+    /** The DRM format of the buffer. */
+    uint32_t drm_format;
     /** The bits per pixel */
     uint32_t bpp:8;
     /** The bytes per pixel */
     uint32_t cpp:8;
-    /** Is foreign surface */
-    uint32_t foreign:1;
+    /** Is it a dumb buffer. Since 5.0.0. */
+    uint32_t dumb:1;
+    /** Is it a scanout buffer. Since 5.0.0. */
+    uint32_t scanout:1;
+
+    /** The width of the buffer. */
+    uint32_t width;
+    /** The height of the buffer. */
+    uint32_t height;
+    /** The pitch (row stride in bytes) of the buffer. */
+    uint32_t pitch;
 
     /** The whole size in bytes of the buffer */
-    unsigned long size;
-    /** The mapped address of the buffer; NULL when the buffer is not mapped yet. */
-    uint8_t* pixels;
+    size_t size;
+
+    /**
+      * The offset from the buffer start to the real pixel data in bytes.
+      * It must be equal to or larger than the size of the buffer header.
+      * Since 5.0.0.
+      */
+    off_t offset;
+
+    /**
+      * The mapped address of the buffer;
+      * NULL when the buffer is not mapped yet.
+      *
+      * The address of the pixel data:
+      *     uint8_t* pixels = this->buff + this->offset;
+      */
+    uint8_t* buff;
 } DrmSurfaceBuffer;
 
 /**
- * The color logic operations.
+ * The color blend mothed.
+ *
+ * See [Compositing and Blending Level 1](https://www.w3.org/TR/compositing-1/)
  */
-enum DrmColorLogicOp {
-   COLOR_LOGICOP_CLEAR = 0,
-   COLOR_LOGICOP_NOR = 1,
-   COLOR_LOGICOP_AND_INVERTED = 2,
-   COLOR_LOGICOP_COPY_INVERTED = 3,
-   COLOR_LOGICOP_AND_REVERSE = 4,
-   COLOR_LOGICOP_INVERT = 5,
-   COLOR_LOGICOP_XOR = 6,
-   COLOR_LOGICOP_NAND = 7,
-   COLOR_LOGICOP_AND = 8,
-   COLOR_LOGICOP_EQUIV = 9,
-   COLOR_LOGICOP_NOOP = 10,
-   COLOR_LOGICOP_OR_INVERTED = 11,
-   COLOR_LOGICOP_COPY = 12,
-   COLOR_LOGICOP_OR_REVERSE = 13,
-   COLOR_LOGICOP_OR = 14,
-   COLOR_LOGICOP_SET = 15
-};
+typedef enum {
+    /** Porter Duff rule: source over destination */
+    COLOR_BLEND_PD_SRC_OVER = 0,
+    /** Porter Duff rule: destination over source */
+    COLOR_BLEND_PD_DST_OVER,
+    /** Porter Duff rule: clear */
+    COLOR_BLEND_PD_CLEAR,
+    /** Porter Duff rule: source */
+    COLOR_BLEND_PD_SRC,
+    /** Porter Duff rule: destination */
+    COLOR_BLEND_PD_DST,
+    /** Porter Duff rule: souorce in destination */
+    COLOR_BLEND_PD_SRC_IN,
+    /** Porter Duff rule: destination in souorce */
+    COLOR_BLEND_PD_DST_IN,
+    /** Porter Duff rule: source held out by destination */
+    COLOR_BLEND_PD_SRC_OUT,
+    /** Porter Duff rule: destination held out by source */
+    COLOR_BLEND_PD_DST_OUT,
+    /** Porter Duff rule: source atop destination */
+    COLOR_BLEND_PD_SRC_ATOP,
+    /** Porter Duff rule: destination atop source */
+    COLOR_BLEND_PD_DST_ATOP,
+    /** Porter Duff rule: source xor destination */
+    COLOR_BLEND_PD_XOR,
+    /** Porter Duff rule: plus */
+    COLOR_BLEND_PD_PLUS,
+    /** Porter Duff rule: modulate */
+    COLOR_BLEND_PD_MODULATE,
+
+    COLOR_BLEND_PD_FIRST = COLOR_BLEND_PD_SRC_OVER,
+    COLOR_BLEND_PD_LAST = COLOR_BLEND_PD_MODULATE,
+
+    /**
+     * Separable blend mode: normal
+     * The blending formula simply selects the source color.
+     */
+    COLOR_BLEND_SP_NORMAL,
+    /**
+     * Separable blend mode: multiply
+     * Darkens by multiplying colors: Sc·Dc.
+     */
+    COLOR_BLEND_SP_MULTIPLY,
+    /**
+     * Separable blend mode: screen
+     * Complements product of complements: Sc + Dc - Sc·Dc.
+     */
+    COLOR_BLEND_SP_SCREEN,
+    /**
+     * Separable blend mode: overlay
+     * Inverse of hard-light.
+     */
+    COLOR_BLEND_SP_OVERLAY,
+    /**
+     * Separable blend mode: darken
+     * Minimum of colors: min(Sc, Dc).
+     */
+    COLOR_BLEND_SP_DARKEN,
+    /**
+     * Separable blend mode: lighten
+     * Maximum of colors: max(Sc, Dc).
+     */
+    COLOR_BLEND_SP_LIGHTEN,
+    /**
+     * Separable blend mode: color-dodge
+     * Brightens destination based on source.
+     */
+    COLOR_BLEND_SP_COLOR_DODGE,
+    /**
+     * Separable blend mode: color-burn
+     * Darkens destination based on source.
+     */
+    COLOR_BLEND_SP_COLOR_BURN,
+    /**
+     * Separable blend mode: hard-light
+     * Similar to effect of harsh spotlight.
+     */
+    COLOR_BLEND_SP_HARD_LIGHT,
+    /**
+     * Separable blend mode: soft-light
+     * Similar to effect of soft spotlight.
+     */
+    COLOR_BLEND_SP_SOFT_LIGHT,
+    /**
+     * Separable blend mode: difference
+     * Subtracts the darker from the lighter: Abs(Dc - Sc).
+     */
+    COLOR_BLEND_SP_DIFFERENCE,
+    /**
+     * Separable blend mode: exclusion
+     * Similar to Difference but lower contrast.
+     */
+    COLOR_BLEND_SP_EXCLUSION,
+
+    COLOR_BLEND_SP_FIRST = COLOR_BLEND_SP_NORMAL,
+    COLOR_BLEND_SP_LAST = COLOR_BLEND_SP_EXCLUSION,
+
+    /**
+     * Non-Separable blend mode: hue
+     * Creates a color with the hue of the source color and
+     * the saturation and luminosity of the backdrop color.
+     */
+    COLOR_BLEND_NS_HUE,
+    /**
+     * Non-Separable blend mode: saturation
+     * Creates a color with the saturation of the source color and
+     * the hue and luminosity of the backdrop color.
+     */
+    COLOR_BLEND_NS_SATURATION,
+    /**
+     * Non-Separable blend mode: color
+     * Creates a color with the hue and saturation of the source color
+     * and the luminosity of the backdrop color.
+     */
+    COLOR_BLEND_NS_COLOR,
+    /**
+     * Non-Separable blend mode: luminosity
+     * Creates a color with the luminosity of the source color and
+     * the hue and saturation of the backdrop color.
+     */
+    COLOR_BLEND_NS_LUMINOSITY,
+
+    COLOR_BLEND_NS_FIRST = COLOR_BLEND_NS_HUE,
+    COLOR_BLEND_NS_LAST = COLOR_BLEND_NS_LUMINOSITY,
+} ColorBlendMethod;
 
 /**
- * The struct type defines the operations for a DRI driver.
+ * The color logical operations.
+ */
+typedef enum {
+   COLOR_LOGICOP_CLEAR = 0,
+   COLOR_LOGICOP_NOR,
+   COLOR_LOGICOP_AND_INVERTED,
+   COLOR_LOGICOP_COPY_INVERTED,
+   COLOR_LOGICOP_AND_REVERSE,
+   COLOR_LOGICOP_INVERT,
+   COLOR_LOGICOP_XOR,
+   COLOR_LOGICOP_NAND,
+   COLOR_LOGICOP_AND,
+   COLOR_LOGICOP_EQUIV,
+   COLOR_LOGICOP_NOOP0,
+   COLOR_LOGICOP_OR_INVERTED1,
+   COLOR_LOGICOP_COPY,
+   COLOR_LOGICOP_OR_REVERSE,
+   COLOR_LOGICOP_OR,
+   COLOR_LOGICOP_SET,
+} ColorLogicalOp;
+
+/**
+ * The structure type defines the operations for a DRM driver.
  */
 typedef struct _DrmDriverOps {
     /**
@@ -160,81 +322,95 @@ typedef struct _DrmDriverOps {
     DrmDriver* (*create_driver) (int device_fd);
 
     /**
-     * This operation destroies the DrmDriver object.
+     * This operation destroys the DrmDriver object.
      *
      * \note The driver must implement this operation.
      */
     void (*destroy_driver) (DrmDriver *driver);
 
     /**
-     * This operation flushs the batch buffer of the driver or the hardware cache.
+     * This operation flushes the batch buffer of the driver or
+     * the hardware cache.
      *
      * \note This operation can be NULL.
      */
     void (* flush_driver) (DrmDriver *driver);
 
     /**
-     * This operation creates a buffer with the specified pixel format,
-     * width, and height. If succeed, a valid DrmSurfaceBuffer object will
-     * be returned; NULL on error. Note that the field of `pixels` of the
-     * DrmSurfaceBuffer object is NULL until the \a map_buffer was called.
+     * This operation creates a surface buffer with the specified pixel format,
+     * header size, width, and height. If succeed, a valid DrmSurfaceBuffer
+     * object will be returned; NULL on error. Note that the field of `buff`
+     * of the DrmSurfaceBuffer object is NULL until the \a map_buffer was called.
      *
-     * \note The driver must implement this operation.
+     * \note The driver must implement this operation and fill all fields of
+     *  the new DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer) (DrmDriver *driver,
-            uint32_t drm_format,
-            unsigned int width, unsigned int height);
+            uint32_t drm_format, uint32_t hdr_size,
+            uint32_t width, uint32_t height);
 
     /**
-     * This operation creates a buffer for the given handle
-     * with the specified pixel format, width, and height. If succeed,
-     * a valid DrmSurfaceBuffer object will be returned; NULL on error.
+     * This operation creates a buffer from a given and possibly foreign handle
+     * with the size of the buffer. If succeed, a valid DrmSurfaceBuffer object
+     * will be returned; NULL on error.
      *
-     * \note This operation can be NULL.
+     * \note This operation can be NULL. Note that the handle might was created
+     *  by a foreign module. If implemented, the driver must
+     *  fill the correct prime_fd, handle, name, and size fields of the new
+     *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_handle) (DrmDriver *driver,
-            uint32_t handle, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, unsigned int pitch);
+            uint32_t handle, size_t size);
 
     /**
      * This operation creates a buffer for the given system global name
-     * with the specified pixel format, width, and height. If succeed,
-     * a valid DrmSurfaceBuffer object will be returned; NULL on error.
+     * If succeed, a valid DrmSurfaceBuffer object will be returned;
+     * NULL on error.
      *
-     * \note This operation can be NULL.
+     * \note This operation can be NULL. If implemented, the driver must
+     *  fill the correct prime_fd, handle, name, and size fields of the new
+     *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_name) (DrmDriver *driver,
-            uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height, unsigned int pitch);
+            uint32_t name);
 
     /**
      * This operation creates a buffer for the given PRIME file descriptor
      * with the specified pixel format, width, height, and pitch. If succeed,
      * a valid DrmSurfaceBuffer object will be returned; NULL on error.
      *
-     * \note This operation can be NULL.
+     * \note This operation can be NULL. If implemented, the driver must
+     *  fill the correct prime_fd, handle, name, and size fields of the new
+     *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_prime_fd) (DrmDriver *driver,
-            int prime_fd, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, unsigned int pitch);
+            int prime_fd, size_t size);
 
     /**
      * This operation maps the buffer into the current process's virtual memory
      * space, and returns the virtual address. If failed, it returns NULL.
      *
-     * \note The driver must implement this operation.
+     * When \a for_scanout is not zero, the buffer will be used for scan out
+     * frame buffer.
+     *
+     * \note The driver must implement this operation. The driver must
+     *  set a valid value for buff field of the DrmSurfaceBuffer object
+     *  on success.
      */
-    uint8_t* (* map_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
+    uint8_t* (* map_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer,
+            int for_scanout);
 
     /**
      * This operation un-maps a buffer.
      *
-     * \note The driver must implement this operation.
+     * \note The driver must implement this operation. The driver must
+     *  set NULL for buff field of the DrmSurfaceBuffer object
+     *  on success.
      */
     void (* unmap_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
 
     /**
-     * This operation destroies a buffer.
+     * This operation destroys a buffer.
      *
      * \note The driver must implement this operation.
      */
@@ -256,7 +432,7 @@ typedef struct _DrmDriverOps {
      * If succeed, it returns 0.
      *
      * \note If this operation is set as NULL, it will be supposed that
-     * the driver does not support any hardware accelerated blit operation.
+     * the driver does not support any hardware accelerated blitting operation.
      */
     int (* check_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf);
@@ -265,51 +441,104 @@ typedef struct _DrmDriverOps {
      * This operation copies bits from a source buffer to a destination buffer.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated copy blit.
+     * hardware accelerated copy blitting.
+     *
+     * \note Currently, the logical operation is ignored.
      */
     int (* copy_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
             DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
-            enum DrmColorLogicOp logic_op);
+            ColorLogicalOp logic_op);
 
     /**
-     * This operation blits pixles from a source buffer with the source alpha value
-     * specified to a destination buffer.
+     * This operation blits pixles from a source buffer with the source alpha
+     * value specified to a destination buffer.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blit with alpha.
+     * hardware accelerated blitting with alpha.
      */
     int (* alpha_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint8_t alpha);
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            uint8_t alpha);
 
     /**
      * This operation blits pixles from a source buffer to a destination buffer,
      * but skipping the pixel value specified by \a color_key.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blit with color key.
+     * hardware accelerated blitting with color key.
      */
     int (* key_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc, uint32_t color_key);
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            uint32_t color_key);
 
     /**
-     * This operation blits pixles from a source buffer with the source alpha value
-     * specified to a destination buffer, but skipping the pixel value specified.
+     * This operation blits pixles from a source buffer with the source alpha
+     * value specified to a destination buffer, but skipping the pixel value
+     * specified.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blit with alpha and color key.
+     * hardware accelerated blitting with alpha and color key.
      */
     int (* alpha_key_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
             DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
             uint8_t alpha, uint32_t color_key);
 
+    /**
+     * This operation blits pixles from a source buffer with the source alpha
+     * value of pixels to the destination buffer, and with the specified color
+     * compositing/blending method (\a ColorBlendMethod).
+     *
+     * \note If this operation is set as NULL, the driver does not support
+     * hardware accelerated blitting with alpha on basis per pixel.
+     *
+     * \note Currently, the color compositing/blending method is ignored.
+     */
+    int (* alpha_pixel_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            ColorBlendMethod blend_method);
+
 } DrmDriverOps;
 
-/** Implement this stub to return the DRI driver operations */
-DrmDriverOps* __drm_ex_driver_get (const char* driver_name, int device_fd);
+/** The current version of DRM driver. */
+#define DRM_DRIVER_VERSION  1
+
+/**
+ * Implement this stub to return the DRI driver operations
+ *
+ * This function takes three arguments and returns NULL or
+ * a valid pointer of DrmDriverOps to MiniGUI.
+ *
+ * This function can return different DrmDriverOps to MiniGUI according to
+ * the driver name and device file descriptor. In this way, your DRM engine
+ * driver implementation can support multiple GPUs.
+ *
+ * If the external stub returns NULL, MiniGUI will try to use the dumb
+ * frame buffer instead.
+ *
+ * \param driver_name This argument gives the driver name determined
+ *  by MiniGUI. Generally, it is the kernel driver name for your GPU.
+ *  For example, for Intel i915/i965 GPUs, the driver name will be `i915`.
+ * \param device_fd This argument gives the file descriptor of the
+ *  opened DRI device.
+ * \param version A pointer to an integer which will contain the
+ *  versionc of the DRM engine driver.
+ *
+ * \return NULL or a valid pointer to DrmDriverOps.
+ *
+ * \note We use the version control since 4.0.7. It will be intialized
+ *  to zero by MiniGUI before calling this function. Because an old
+ *  driver for MiniGUI 4.0.6 or earlier will not change the value,
+ *  MiniGUI will deny to load the old driver.
+ *
+ *  The constant \a DRM_DRIVER_VERSION defines the current version code.
+ */
+DrmDriverOps* __drm_ex_driver_get (const char* driver_name, int device_fd,
+        int* version);
 
     /** @} end of external_stubs_dri */
 

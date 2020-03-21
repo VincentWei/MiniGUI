@@ -757,7 +757,7 @@ extern GAL_Surface* __gal_screen;
 #define GAL_BMask(surface)          (surface->format->Bmask)
 #define GAL_AMask(surface)          (surface->format->Amask)
 
-extern int mg_InitGAL (void);
+extern int mg_InitGAL (char* engine, char* mode);
 
 /* Since 4.0.0; suspend/resume video device, for switching virtual terminals */
 extern int GAL_SuspendVideo(void);
@@ -777,6 +777,29 @@ extern BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst,
         BYTE* dstrow, Uint32 pixel, MYBITMAP_CONTXT* mybmp);
 
 #define mg_TerminateGAL GAL_VideoQuit
+
+#ifdef _MGRM_PROCESSES
+/* Since 4.0.7: copy video information to the shared resource segment */
+BOOL GAL_CopyVideoInfoToSharedRes (void);
+#endif  /* _MGRM_PROCESSES */
+
+#ifdef _MGGAL_DRM
+/* functions implemented in DRM engine. */
+BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);
+int __drm_auth_client (int, uint32_t);
+
+GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
+        uint32_t name, uint32_t drm_format, uint32_t pixels_off,
+        uint32_t width, uint32_t height, uint32_t pitch);
+
+GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
+        uint32_t handle, size_t size, uint32_t drm_format, uint32_t pixels_off,
+        uint32_t width, uint32_t height, uint32_t pitch);
+
+GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
+        int prime_fd, size_t size, uint32_t drm_format, uint32_t pixels_off,
+        uint32_t width, uint32_t height, uint32_t pitch);
+#endif /* defined _MGGAL_DRM */
 
 #ifdef __cplusplus
 }

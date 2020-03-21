@@ -102,10 +102,10 @@ struct GAL_VideoDevice {
     GAL_Surface *(*SetVideoMode)(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags);
 
+#if 0
     /* Toggle the fullscreen mode */
     int (*ToggleFullScreen)(_THIS, int on);
 
-#if 0
     /* This is called after the video mode has been set, to get the
        initial mouse state.  It should queue events as necessary to
        properly represent the current mouse focus and position.
@@ -141,6 +141,8 @@ struct GAL_VideoDevice {
     GAL_VideoInfo info;
 
 #ifndef _MGRM_THREADS
+    /* Copy video information to shared resource segment */
+    void (*CopyVideoInfoToSharedRes)(_THIS);
     /* Request a surface in video memory */
     void (*RequestHWSurface)(_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
 #endif

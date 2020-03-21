@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2019, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2019 ~ 2020, Beijing FMSoft Technologies Co., Ltd.
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -55,13 +55,18 @@
 
 /* Private display data */
 
-#define LEN_DEVICE_NAME     31
-
 typedef struct drm_mode_info DrmModeInfo;
 
 typedef struct GAL_PrivateVideoData {
-    char            dev_name[LEN_DEVICE_NAME + 1];
+    char*           dev_name;
+    char*           ex_driver;
+    GAL_Surface*    real_screen;
     int             dev_fd;
+    /* capabilities */
+    uint32_t        scanout_buff_id;
+    /* the global names of real screen and shadow screen */
+    uint32_t        real_name;
+    uint32_t        cap_dumb:1;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;
@@ -70,23 +75,8 @@ typedef struct GAL_PrivateVideoData {
     DrmModeInfo*    mode_list;
     GAL_Rect**      modes;
 
-    int             bpp;
-    uint32_t        width;
-    uint32_t        height;
-    uint32_t        pitch;
-    uint32_t        size;
-
-    uint32_t        scanout_buff_id;
-    uint8_t*        scanout_fb;
-
     DrmModeInfo*    saved_info;
     drmModeCrtc*    saved_crtc;
-
-    /* only valid when using DUMB frame buffer */
-    uint32_t        handle;
-
-    /* only valid when using DRM driver */
-    uint32_t        console_buff_id;
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */

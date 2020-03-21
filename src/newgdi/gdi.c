@@ -3754,10 +3754,7 @@ MG_EXPORT GHANDLE GetVideoHandle (HDC hdc)
 
 #ifdef _MGGAL_DRM
 
-/* implemented in DRI engine. */
-BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info);
-
-MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
+BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
 {
     PDC pdc = dc_HDC2PDC (hdc);
     if (pdc->surface->video != (GHANDLE)video)
@@ -3766,14 +3763,8 @@ MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
     return __drm_get_surface_info(pdc->surface, info);
 }
 
-/* implemented in DRI engine. */
-GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
-            uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
-
-MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
-            uint32_t name, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch)
+HDC drmCreateDCFromNameEx (GHANDLE video, uint32_t name, uint32_t drm_format,
+        off_t offset, uint32_t width, uint32_t height, uint32_t pitch)
 {
     PDC pmem_dc = NULL;
     GAL_Surface* surface;
@@ -3783,7 +3774,7 @@ MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
 
     LOCK (&__mg_gdilock);
     surface = __drm_create_surface_from_name (video, name,
-                drm_format, width, height, pitch);
+            drm_format, offset, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {
@@ -3797,16 +3788,14 @@ MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->inuse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
-    pmem_dc->pGCRInfo = NULL;
-    pmem_dc->oldage = 0;
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
@@ -3819,14 +3808,9 @@ MG_EXPORT HDC drmCreateDCFromName (GHANDLE video,
     return (HDC)pmem_dc;
 }
 
-/* implemented in DRI engine. */
-GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
-            uint32_t handle, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
-
-MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
-            uint32_t handle, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch)
+HDC drmCreateDCFromHandleEx (GHANDLE video, uint32_t handle, size_t size,
+        uint32_t drm_format, off_t offset,
+        uint32_t width, uint32_t height, uint32_t pitch)
 {
     PDC pmem_dc = NULL;
     GAL_Surface* surface;
@@ -3836,7 +3820,7 @@ MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
 
     LOCK (&__mg_gdilock);
     surface = __drm_create_surface_from_handle (video, handle, size,
-                drm_format, width, height, pitch);
+                drm_format, offset, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {
@@ -3850,16 +3834,14 @@ MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->inuse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
-    pmem_dc->pGCRInfo = NULL;
-    pmem_dc->oldage = 0;
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
@@ -3872,14 +3854,9 @@ MG_EXPORT HDC drmCreateDCFromHandle (GHANDLE video,
     return (HDC)pmem_dc;
 }
 
-/* implemented in DRI engine. */
-GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
-            int prime_fd, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch);
-
-MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
-            int prime_fd, unsigned long size, uint32_t drm_format,
-            unsigned int width, unsigned int height, uint32_t pitch)
+HDC drmCreateDCFromPrimeFdEx (GHANDLE video, int prime_fd, size_t size,
+        uint32_t drm_format, off_t offset,
+        uint32_t width, uint32_t height, uint32_t pitch)
 {
     PDC pmem_dc = NULL;
     GAL_Surface* surface;
@@ -3887,9 +3864,12 @@ MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
     if (!(pmem_dc = malloc (sizeof(DC))))
         return HDC_INVALID;
 
+    if (size == 0) {
+    }
+
     LOCK (&__mg_gdilock);
     surface =__drm_create_surface_from_prime_fd (video, prime_fd, size,
-                drm_format, width, height, pitch);
+            drm_format, offset, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
     if (!surface) {
@@ -3903,16 +3883,14 @@ MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
 
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
-    pmem_dc->inuse    = TRUE;
+    pmem_dc->inuse   = TRUE;
     pmem_dc->surface  = surface;
 
-    dc_InitDC (pmem_dc, HWND_DESKTOP, FALSE);
+    dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
     InitClipRgn (&pmem_dc->lcrgn, &__mg_FreeClipRectList);
     MAKE_REGION_INFINITE(&pmem_dc->lcrgn);
     InitClipRgn (&pmem_dc->ecrgn, &__mg_FreeClipRectList);
-    pmem_dc->pGCRInfo = NULL;
-    pmem_dc->oldage = 0;
 
     pmem_dc->DevRC.left = 0;
     pmem_dc->DevRC.top  = 0;
@@ -3925,4 +3903,4 @@ MG_EXPORT HDC drmCreateDCFromPrimeFd (GHANDLE video,
     return (HDC)pmem_dc;
 }
 
-#endif
+#endif  /* _MGGAL_DRM */
