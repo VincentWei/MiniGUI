@@ -3069,7 +3069,12 @@ static int DRM_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
     src_buf = (DrmSurfaceBuffer*)src->hwdata;
     dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
 
-    if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
+    if ((src->flags & GAL_SRCPIXELALPHA) == GAL_SRCPIXELALPHA) {
+        return vdata->driver_ops->alpha_pixel_blit(vdata->driver,
+            src_buf, src_rc, dst_buf, dst_rc,
+            COLOR_BLEND_PD_SRC_OVER);
+    }
+    else if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
             (src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
         return vdata->driver_ops->alpha_key_blit(vdata->driver,
             src_buf, src_rc, dst_buf, dst_rc,
@@ -3106,7 +3111,11 @@ static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
     src->flags |= GAL_HWACCEL;
 
     /* Set the surface attributes */
-    if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
+    if ((src->flags & GAL_SRCPIXELALPHA) == GAL_SRCPIXELALPHA &&
+            (vdata->driver_ops->alpha_pixel_blit == NULL)) {
+        src->flags &= ~GAL_HWACCEL;
+    }
+    else if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
             (src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY &&
             (vdata->driver_ops->alpha_key_blit == NULL)) {
         src->flags &= ~GAL_HWACCEL;
