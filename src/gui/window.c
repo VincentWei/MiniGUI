@@ -4261,7 +4261,7 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
             {pCreateInfo->lx, pCreateInfo->ty,
                 pCreateInfo->rx, pCreateInfo->by} };
 
-        // we ignore the retval. may fail for client of procs runmode
+        // we ignore the retval. may fail for client under procs runmode
         SendMessage (HWND_DESKTOP, MSG_CALC_POSITION, 0, (LPARAM)&info);
 
         pCreateInfo->lx = info.rc.left;
