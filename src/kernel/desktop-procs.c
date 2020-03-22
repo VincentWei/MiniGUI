@@ -961,28 +961,31 @@ static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
         if (cli == 0) {
             PMAINWIN pwin = (PMAINWIN)hwnd;
             surf = pwin->surf;
+            // increase refcount for not freed by DeleteMemDC in dskMoveWindow.
+            surf->refcount++;
         }
         else {
             surf = GAL_AttachSharedRGBSurface (fd, surf_size, surf_flags, TRUE);
             close (fd);
         }
-    }
 
-    if (surf) {
-        memdc = CreateMemDCFromSurface (surf);
-        if (memdc == HDC_INVALID) {
-            if (cli > 0) {
-                GAL_FreeSurface (surf);
+        if (surf) {
+            memdc = CreateMemDCFromSurface (surf);
+            if (memdc == HDC_INVALID) {
+                if (cli > 0) {
+                    GAL_FreeSurface (surf);
+                }
+
+                _ERR_PRINTF("KERNEL: failed to create new memory dc for znode\n");
+                return -1;
             }
-
-            _ERR_PRINTF("KERNEL: failed to create new memory dc for znode\n");
+        }
+        else {
+            _ERR_PRINTF("KERNEL: failed to attach to shared surface\n");
             return -1;
         }
     }
-    else if (fd >= 0) {
-        _ERR_PRINTF("KERNEL: failed to attach to shared surface\n");
-        return -1;
-    }
+
 #endif /* def _MGSCHEMA_COMPOSITING */
 
     ret = dskMoveWindow (cli, idx_znode, memdc, rcWin);
