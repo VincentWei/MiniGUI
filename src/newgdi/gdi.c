@@ -2011,6 +2011,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
             else {
                 EmptyClipRgn (&pdc->ecrgn);
             }
+            EmptyClipRgn (&ergn);
         }
         else {
             IntersectClipRect (&pdc->ecrgn, &minimal);
@@ -2387,6 +2388,7 @@ void GUIAPI ReleaseDC (HDC hDC)
             else {
                 EmptyClipRgn (&pdc->ecrgn);
             }
+            EmptyClipRgn (&ergn);
         }
         else {
             IntersectClipRect (&pdc->ecrgn, &minimal);
@@ -2839,7 +2841,6 @@ HDC GUIAPI GetDCInSecondarySurface (HWND hwnd, BOOL client)
     PDC pdc = NULL, pdc_secondary;
     PCONTROL pCtrl;
     RECT minimal;
-    CLIPRGN ergn;
     PMAINWIN pMainWin;
 
     MG_CHECK_RET (MG_IS_GRAPHICS_WINDOW(hwnd), HDC_INVALID);
@@ -2902,6 +2903,8 @@ HDC GUIAPI GetDCInSecondarySurface (HWND hwnd, BOOL client)
     /* restrict control's effective region. */
     if (pCtrl && pCtrl->WinType == TYPE_CONTROL &&
             !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+        CLIPRGN ergn;
+
         InitClipRgn (&ergn, &__mg_FreeClipRectList);
 
         if (RestrictControlMemDCECRGNEx (&minimal, pCtrl, &ergn)) {
@@ -2911,6 +2914,7 @@ HDC GUIAPI GetDCInSecondarySurface (HWND hwnd, BOOL client)
         else {
             EmptyClipRgn (&pdc->ecrgn);
         }
+        EmptyClipRgn (&ergn);
     }
     else {
         IntersectClipRect (&pdc->ecrgn, &minimal);
@@ -2934,7 +2938,6 @@ BOOL dc_GenerateMemDCECRgn (PDC pdc, BOOL fForce)
 {
     PCONTROL pCtrl;
     RECT minimal;
-    CLIPRGN ergn;
     PCLIPRECT pcr;
 
     /* is invisible? */
@@ -2969,6 +2972,7 @@ BOOL dc_GenerateMemDCECRgn (PDC pdc, BOOL fForce)
         /* restrict control's effective region. */
         pCtrl = gui_Control (pdc->hwnd);
         if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+            CLIPRGN ergn;
             InitClipRgn (&ergn, &__mg_FreeClipRectList);
 
             if (RestrictControlMemDCECRGNEx (&minimal, pCtrl, &ergn)) {
@@ -2978,6 +2982,7 @@ BOOL dc_GenerateMemDCECRgn (PDC pdc, BOOL fForce)
             else {
                 EmptyClipRgn (&pdc->ecrgn);
             }
+            EmptyClipRgn (&ergn);
         }
         else {
             IntersectClipRect (&pdc->ecrgn, &minimal);
@@ -3210,7 +3215,6 @@ HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height)
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
-    surface->refcount++;
 
     pmem_dc->DevRC.left   = 0;
     pmem_dc->DevRC.top    = 0;
@@ -3287,7 +3291,6 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
-    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -3325,7 +3328,6 @@ HDC CreateMemDCFromSurface (GAL_Surface* surface)
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
-    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -3506,7 +3508,6 @@ HDC GUIAPI CreateMemDCFromBitmap (HDC hdc, const BITMAP* bmp)
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
-    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -3622,7 +3623,6 @@ HDC GUIAPI CreateMemDCFromMyBitmap (const MYBITMAP* my_bmp, const RGB* pal)
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
-    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -3691,7 +3691,6 @@ void GUIAPI DeleteMemDC (HDC hdc)
 
     pmem_dc = dc_HDC2PDC(hdc);
 
-    pmem_dc->surface->refcount--;
     GAL_FreeSurface (pmem_dc->surface);
 
     if (pmem_dc->alpha_pixel_format) {
@@ -4121,7 +4120,6 @@ HDC drmCreateDCFromNameEx (GHANDLE video, uint32_t name, uint32_t drm_format,
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
-    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -4172,7 +4170,6 @@ HDC drmCreateDCFromHandleEx (GHANDLE video, uint32_t handle, size_t size,
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
-    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -4226,7 +4223,6 @@ HDC drmCreateDCFromPrimeFdEx (GHANDLE video, int prime_fd, size_t size,
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
-    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -4358,6 +4354,7 @@ static void on_surface_changed_for_control (struct _travel_context* ctxt,
             else {
                 EmptyClipRgn (&pdc->ecrgn);
             }
+            EmptyClipRgn (&ergn);
         }
         else {
             IntersectClipRect (&pdc->ecrgn, &rc_minimal);
