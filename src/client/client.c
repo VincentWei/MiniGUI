@@ -175,15 +175,12 @@ int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_
     if (mgIsServer)
         return -1;
 
-#ifdef _MGGAL_MLSHADOW
-    if ((request->id != REQID_MLSHADOW_CLIREQ) 
-            && (__mg_client_id == 0 && request->id != REQID_JOINLAYER)) {
-#elif defined(_MGGAL_NEXUS)
-    if ((request->id != REQID_NEXUS_CLIENT_GET_SURFACE)
-            && (__mg_client_id == 0 && request->id != REQID_JOINLAYER)) {
-#else
-    if (__mg_client_id == 0 && request->id != REQID_JOINLAYER) {
-#endif
+    if (__mg_client_id == 0 &&
+            request->id != REQID_AUTHCLIENT &&
+            request->id != REQID_GETSHAREDSURFACE &&
+            request->id != REQID_NEXUS_CLIENT_GET_SURFACE &&
+            request->id != REQID_MLSHADOW_CLIREQ &&
+            request->id != REQID_JOINLAYER) {
         fprintf (stderr, "CLIENT: please call JoinLayer first.\n");
         exit (255);
         return -1;
