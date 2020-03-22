@@ -358,7 +358,8 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
     int    i, evt, clifd, nread;
     pid_t  pid;
     uid_t  uid;
-    struct timeval sel_timeout = {0, 0};
+    struct timeval sel_timeout = {0, 10000};
+    struct timeval sel_timeout_nd = {0, 0};
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
@@ -396,7 +397,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
 
     extra.params_mask = 0;
     if ((evt = IAL_WaitEvent (__mg_dsk_msg_queue->maxfd, &rset, wsetptr, esetptr,
-                wait?NULL:(&sel_timeout), &extra)) < 0) {
+                wait?&sel_timeout:&sel_timeout_nd, &extra)) < 0) {
 
         /* It is time to check event again. */
         if (errno == EINTR) {
