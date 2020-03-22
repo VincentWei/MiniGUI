@@ -3210,6 +3210,7 @@ HDC GUIAPI CreateCompatibleDCEx (HDC hdc, int width, int height)
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
+    surface->refcount++;
 
     pmem_dc->DevRC.left   = 0;
     pmem_dc->DevRC.top    = 0;
@@ -3286,6 +3287,7 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
+    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -3504,6 +3506,7 @@ HDC GUIAPI CreateMemDCFromBitmap (HDC hdc, const BITMAP* bmp)
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
+    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -3619,6 +3622,7 @@ HDC GUIAPI CreateMemDCFromMyBitmap (const MYBITMAP* my_bmp, const RGB* pal)
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
+    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -3687,6 +3691,7 @@ void GUIAPI DeleteMemDC (HDC hdc)
 
     pmem_dc = dc_HDC2PDC(hdc);
 
+    pmem_dc->surface->refcount--;
     GAL_FreeSurface (pmem_dc->surface);
 
     if (pmem_dc->alpha_pixel_format) {
@@ -4116,6 +4121,7 @@ HDC drmCreateDCFromNameEx (GHANDLE video, uint32_t name, uint32_t drm_format,
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
+    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -4166,6 +4172,7 @@ HDC drmCreateDCFromHandleEx (GHANDLE video, uint32_t handle, size_t size,
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
+    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -4219,6 +4226,7 @@ HDC drmCreateDCFromPrimeFdEx (GHANDLE video, int prime_fd, size_t size,
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
     pmem_dc->surface  = surface;
+    surface->refcount++;
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
