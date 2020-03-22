@@ -348,7 +348,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
     }
 
     timeout_count = __mg_tick_counter + timeout_threshold;
-    // There was a event occurred.
+    // There was an event occurred.
     if (event & IAL_MOUSEEVENT) {
         if (!IAL_UpdateMouse ())
             return 0;
@@ -459,6 +459,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
 #endif
                  ke->event = KE_KEYUP;
                  ke->scancode = i;
+                 olddownkey = 0;
                  break;
             }
         }
@@ -577,6 +578,15 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         memcpy (oldkeystate, keystate, nr_keys);
 #endif
         memcpy (&old_lwe, lwe, sizeof (LWEVENT));
+        if (old_lwe.type == LWETYPE_MOUSE) {
+            _WRN_PRINTF ("old low level event type reset to mouse\n");
+        }
+        else if (old_lwe.type == LWETYPE_KEY) {
+            _WRN_PRINTF ("old low level event type reset to key\n");
+        }
+        else {
+            _WRN_PRINTF ("old low level event type reset to none\n");
+        }
         return 1;
     }
 
@@ -597,6 +607,16 @@ mouseret:
     SHAREDRES_SHIFTSTATUS = status;
 #endif
     memcpy (&old_lwe, lwe, sizeof (LWEVENT));
+
+    if (old_lwe.type == LWETYPE_MOUSE) {
+        _WRN_PRINTF ("old low level event type reset to mouse\n");
+    }
+    else if (old_lwe.type == LWETYPE_KEY) {
+        _WRN_PRINTF ("old low level event type reset to key\n");
+    }
+    else {
+        _WRN_PRINTF ("old low level event type reset to none\n");
+    }
     return 1;
 }
 
@@ -765,6 +785,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             if(oldkeystate[i] && !keystate[i]) {
                  ke->event = KE_KEYUP;
                  ke->scancode = i;
+                 olddownkey = 0;
                  break;
             }
         }
