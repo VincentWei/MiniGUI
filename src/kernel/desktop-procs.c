@@ -4369,7 +4369,7 @@ static LRESULT DesktopWinProc (HWND hWnd, UINT message,
     /* Since 5.0.0 */
     case MSG_CALC_POSITION:
         if (mgIsServer) {
-            dskCalculateDefaultPosition (0, (CALCPOSINFO*)lParam);
+            dskCalculateDefaultPosition ((int)wParam, (CALCPOSINFO*)lParam);
             return 0;
         }
         else
