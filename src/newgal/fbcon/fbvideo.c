@@ -152,6 +152,10 @@ static int FB_Available(void)
 
 static void FB_DeleteDevice(GAL_VideoDevice *device)
 {
+    if (device->hidden->shadow_screen) {
+        GAL_FreeSurface (device->hidden->real_screen);
+    }
+
     free(device->hidden);
     free(device);
 }
