@@ -2246,7 +2246,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
     DrmVideoData* vdata = this->hidden;
 
-    if (vdata->driver_ops->flush_driver)
+    if (vdata->driver && vdata->driver_ops->flush_driver)
         vdata->driver_ops->flush_driver(vdata->driver);
 }
 
