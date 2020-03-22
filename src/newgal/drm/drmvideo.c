@@ -3290,6 +3290,14 @@ static BOOL DRM_SyncUpdate (_THIS)
         this->hidden->driver_ops->flush_driver(this->hidden->driver);
     }
 
+    {
+        drmModeClip clip = { bound.left, bound.top,
+            bound.right, bound.bottom };
+
+        drmModeDirtyFB(this->hidden->dev_fd,
+                this->hidden->scanout_buff_id, &clip, 1);
+    }
+
     SetRectEmpty (dirty_rc);
 ret:
     return retval;
