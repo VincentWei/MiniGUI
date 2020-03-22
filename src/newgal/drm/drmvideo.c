@@ -2337,6 +2337,11 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
                     name);
             return NULL;
         }
+        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 1)) {
+            _ERR_PRINTF ("NEWGAL>DRM: cannot map screen buffer: %m\n");
+            vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
+            return NULL;
+        }
         surface_buffer->dumb = 0;
     }
 
