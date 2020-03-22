@@ -127,6 +127,8 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message,
         DestroyMainWindow (hWnd);
 #ifdef _MGRM_THREADS
         PostQuitMessage (hWnd);
+#else
+        MainWindowCleanup (hWnd);
 #endif
         return 0;
     }
