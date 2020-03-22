@@ -578,15 +578,6 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         memcpy (oldkeystate, keystate, nr_keys);
 #endif
         memcpy (&old_lwe, lwe, sizeof (LWEVENT));
-        if (old_lwe.type == LWETYPE_MOUSE) {
-            _WRN_PRINTF ("old low level event type reset to mouse\n");
-        }
-        else if (old_lwe.type == LWETYPE_KEY) {
-            _WRN_PRINTF ("old low level event type reset to key\n");
-        }
-        else {
-            _WRN_PRINTF ("old low level event type reset to none\n");
-        }
         return 1;
     }
 
@@ -607,16 +598,6 @@ mouseret:
     SHAREDRES_SHIFTSTATUS = status;
 #endif
     memcpy (&old_lwe, lwe, sizeof (LWEVENT));
-
-    if (old_lwe.type == LWETYPE_MOUSE) {
-        _WRN_PRINTF ("old low level event type reset to mouse\n");
-    }
-    else if (old_lwe.type == LWETYPE_KEY) {
-        _WRN_PRINTF ("old low level event type reset to key\n");
-    }
-    else {
-        _WRN_PRINTF ("old low level event type reset to none\n");
-    }
     return 1;
 }
 
