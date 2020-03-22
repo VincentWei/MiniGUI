@@ -1570,6 +1570,8 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
         GAL_Surface* surf;
         if (cli == 0) {
             surf = GetSurfaceFromDC (((PTRACKMENUINFO)ptmi)->dc);
+            // prevent to free this surface when deleting memdc for znode.
+            surf->refcount++;
         }
         else if (fd >= 0) {
             surf = GAL_AttachSharedRGBSurface (fd, surf_size, surf_flags, TRUE);

@@ -815,6 +815,9 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     if (cli == 0) {
         PMAINWIN pwin = (PMAINWIN)hwnd;
         surf = pwin->surf;
+
+        // prevent to free this surface when deleting memdc for znode.
+        surf->refcount++;
     }
     else if (fd >= 0) {
         surf = GAL_AttachSharedRGBSurface (fd, surf_size, surf_flags, TRUE);
@@ -827,6 +830,7 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 
     if (surf) {
         memdc = CreateMemDCFromSurface (surf);
+        _WRN_PRINTF ("surface (%p) refcount: %d\n", surf, surf->refcount);
         if (memdc == HDC_INVALID) {
             if (cli > 0) {
                 GAL_FreeSurface (surf);
@@ -961,7 +965,7 @@ static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
         if (cli == 0) {
             PMAINWIN pwin = (PMAINWIN)hwnd;
             surf = pwin->surf;
-            // increase refcount for not freed by DeleteMemDC in dskMoveWindow.
+            // prevent to free this surface when deleting memdc for znode.
             surf->refcount++;
         }
         else {
