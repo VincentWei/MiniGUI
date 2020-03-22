@@ -1,5 +1,7 @@
 # Release Notes For MiniGUI Core 4.0.x
 
+- [Version 4.0.7](#version-407)
+   + [What's new in version 4.0.7](#whats-new-in-version-407)
 - [Version 4.0.6](#version-406)
    + [What's new in version 4.0.6](#whats-new-in-version-406)
 - [Version 4.0.5](#version-405)
@@ -22,6 +24,34 @@
    + [Backward compatibility issues](#backward-compatibility-issues)
    + [Deprecated features](#deprecated-features)
 
+
+## Version 4.0.7
+
+The MiniGUI development team announces the availability of MiniGUI 4.0.7.
+We strongly recommend that you use this version for any new MiniGUI
+apps, especially if the new features of MiniGUI 4.0.7 are must for your
+new apps.
+
+Please report any bugs and incompatibilities in
+
+<https://github.com/VincentWei/minigui/tree/rel-4-0>
+
+### What's new in version 4.0.7
+
+In this version, we mainly enhance DRM engine to support MiniGUI-Processes.
+
+* ENHANCEMENTS
+   - Enhance DRM engine to support MiniGUI-Processes.
+* COMPATIBILITIES:
+   - Functions `drmCreateDCFromName`, `drmCreateDCFromHandle`, and
+   `drmCreateDCFromPrimeFd` are extended to have the offset argument.
+   Please use the version having `Ex` postfix.
+   - The interface of the external driver for DRM engine changed.
+   The changes come from MiniGUI 5.0.0.
+
+For more information, please refer to the revised edition of the following document:
+
+<https://github.com/VincentWei/minigui-docs/blob/master/supplementary-docs/Writing-DRM-Engine-Driver-for-Your-GPU.md>
 
 ## Version 4.0.6
 
