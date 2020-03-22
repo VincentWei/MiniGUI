@@ -2203,14 +2203,15 @@ static int create_memdc_for_menu (TRACKMENUINFO* ptmi)
 static void delete_memdc_for_menu (TRACKMENUINFO* ptmi)
 {
     if (ptmi->dc != HDC_INVALID) {
-        GAL_Surface *surf = GetSurfaceFromDC (ptmi->dc);
 
-        DeleteMemDC (ptmi->dc);
-        ptmi->dc = HDC_INVALID;
-
+#if 0   /* deprecated code: we always do refcount++ for any memdc */
         /* we must free the surface here, or it can not be freed actually
            due to the referenced count. */
+        GAL_Surface *surf = GetSurfaceFromDC (ptmi->dc);
         GAL_FreeSurface (surf);
+#endif  /* deprecated code */
+        DeleteMemDC (ptmi->dc);
+        ptmi->dc = HDC_INVALID;
     }
 }
 
