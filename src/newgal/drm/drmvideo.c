@@ -2792,6 +2792,7 @@ static int DRM_MoveCursor_SW (_THIS, int x, int y)
         tmp = this->hidden->cursor;
         this->hidden->cursor = NULL;
         this->UpdateRects (this, 1, &rect);
+        this->SyncUpdate (this);
 
         /* update screen to show cursor */
         this->hidden->cursor = tmp;
