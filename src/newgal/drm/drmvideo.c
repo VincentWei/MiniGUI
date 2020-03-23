@@ -137,6 +137,13 @@ static int DRM_SetCursor_Plane(_THIS, GAL_Surface *surface, int hot_x, int hot_y
 static int DRM_MoveCursor_Plane(_THIS, int x, int y);
 static int DRM_SetCursor_SW(_THIS, GAL_Surface *surface, int hot_x, int hot_y);
 static int DRM_MoveCursor_SW(_THIS, int x, int y);
+
+#include <pthread.h>
+
+static void* task_do_update (void* data);
+static void DRM_UpdateRects_Async(_THIS, int numrects, GAL_Rect *rects);
+static BOOL DRM_SyncUpdate_Async(_THIS);
+    
 #endif  /* IS_COMPOSITING_SCHEMA */
 
 /* DRM driver bootstrap functions */
@@ -1245,11 +1252,25 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     /* override double buffering */
 #if IS_COMPOSITING_SCHEMA
     /* force to use double buffering to compositing schema */
-    if (mgIsServer)
+    if (mgIsServer) {
         device->hidden->dbl_buff = 1;
-    else
+        device->UpdateRects = DRM_UpdateRects_Async;
+        device->SyncUpdate = DRM_SyncUpdate_Async;
+        pthread_mutex_init (&device->hidden->update_lock, NULL);
+        sem_init (&device->hidden->sem_update, 0, 0);
+        pthread_create (&device->hidden->update_th, NULL,
+                        task_do_update, device);
+    }
+    else {
         device->hidden->dbl_buff = 0;
-#endif  /* IS_COMPOSITING_SCHEMA */
+        device->hidden->update_th = 0;
+    }
+#else   /* IS_COMPOSITING_SCHEMA */
+    if (device->hidden->dbl_buff) {
+        device->UpdateRects = DRM_UpdateRects;
+        device->SyncUpdate = DRM_SyncUpdate;
+    }
+#endif  /* not IS_COMPOSITING_SCHEMA */
 
     device->VideoInit = DRM_VideoInit;
     device->ListModes = DRM_ListModes;
@@ -1307,11 +1328,6 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 
     if (device->SetVideoMode == NULL)
         device->SetVideoMode = DRM_SetVideoMode;
-
-    if (device->hidden->dbl_buff) {
-        device->UpdateRects = DRM_UpdateRects;
-        device->SyncUpdate = DRM_SyncUpdate;
-    }
 
 #if IS_COMPOSITING_SCHEMA
     if (device->hidden->driver) {
@@ -1623,6 +1639,15 @@ static void DRM_VideoQuit(_THIS)
     if (this->screen->pixels != NULL) {
         this->screen->pixels = NULL;
     }
+
+#ifdef _MBSCHEMA_COMPOSITING
+    if (this->hidden->update_th) {
+        /* send cancel request */
+        pthread_cancel (this->hidden->update_th);
+        pthread_join (this->hidden->update_th, NULL);
+    }
+#endif  /* _MBSCHEMA_COMPOSITING */
+
 }
 
 static int DRM_Resume(_THIS)
@@ -3302,6 +3327,56 @@ static BOOL DRM_SyncUpdate (_THIS)
 ret:
     return retval;
 }
+
+#ifdef _MGSCHEMA_COMPOSITING
+static void* task_do_update (void* data)
+{
+    _THIS;
+    this = data;
+
+    if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
+        return NULL;
+
+    do {
+        sem_wait (&this->hidden->sem_update);
+
+        pthread_testcancel ();
+
+        pthread_mutex_lock (&this->hidden->update_lock);
+        DRM_SyncUpdate (this);
+        pthread_mutex_unlock (&this->hidden->update_lock);
+
+    } while (1);
+
+    return NULL;
+}
+
+static void DRM_UpdateRects_Async (_THIS, int numrects, GAL_Rect *rects)
+{
+    pthread_mutex_lock (&this->hidden->update_lock);
+
+    DRM_UpdateRects (this, numrects, rects);
+
+    pthread_mutex_unlock (&this->hidden->update_lock);
+    return;
+}
+
+static BOOL DRM_SyncUpdate_Async (_THIS)
+{
+    BOOL rc = FALSE;
+
+    pthread_mutex_lock (&this->hidden->update_lock);
+
+    if (!IsRectEmpty (&this->hidden->dirty_rc)) {
+        // signal the update thread to do update
+        sem_post (&this->hidden->sem_update);
+        rc = TRUE;
+    }
+
+    pthread_mutex_unlock (&this->hidden->update_lock);
+    return rc;
+}
+#endif  /* _MGSCHEMA_COMPOSITING */
 
 static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
 {
