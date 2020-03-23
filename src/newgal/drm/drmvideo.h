@@ -70,10 +70,12 @@ typedef struct GAL_PrivateVideoData {
     int csr_x, csr_y;
     int hot_x, hot_y;
 
+#if 0   /* test code */
     /* for asynchronous update */
     pthread_t update_th;
     pthread_mutex_t update_lock;
     sem_t sem_update;
+#endif  /* test code */
 #else   /* defined _MGSCHEMA_COMPOSITING */
     /* When double buffering supported, the real surface represents the ultimate
      * scan-out frame buffer, and the shadow screen represents the rendering

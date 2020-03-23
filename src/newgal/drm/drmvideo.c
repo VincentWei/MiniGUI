@@ -138,12 +138,15 @@ static int DRM_MoveCursor_Plane(_THIS, int x, int y);
 static int DRM_SetCursor_SW(_THIS, GAL_Surface *surface, int hot_x, int hot_y);
 static int DRM_MoveCursor_SW(_THIS, int x, int y);
 
+#if 0   /* test code */
+/* for asynchronous update */
 #include <pthread.h>
 
 static void* task_do_update (void* data);
 static void DRM_UpdateRects_Async(_THIS, int numrects, GAL_Rect *rects);
 static BOOL DRM_SyncUpdate_Async(_THIS);
-    
+#endif  /* test code */
+
 #endif  /* IS_COMPOSITING_SCHEMA */
 
 /* DRM driver bootstrap functions */
@@ -1254,23 +1257,27 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     /* force to use double buffering to compositing schema */
     if (mgIsServer) {
         device->hidden->dbl_buff = 1;
+#if 0   /* test code */
         device->UpdateRects = DRM_UpdateRects_Async;
         device->SyncUpdate = DRM_SyncUpdate_Async;
         pthread_mutex_init (&device->hidden->update_lock, NULL);
         sem_init (&device->hidden->sem_update, 0, 0);
         pthread_create (&device->hidden->update_th, NULL,
                         task_do_update, device);
+#endif   /* test code */
     }
     else {
         device->hidden->dbl_buff = 0;
+#if 0   /* test code */
         device->hidden->update_th = 0;
+#endif  /* test code */
     }
-#else   /* IS_COMPOSITING_SCHEMA */
+#endif  /* IS_COMPOSITING_SCHEMA */
+
     if (device->hidden->dbl_buff) {
         device->UpdateRects = DRM_UpdateRects;
         device->SyncUpdate = DRM_SyncUpdate;
     }
-#endif  /* not IS_COMPOSITING_SCHEMA */
 
     device->VideoInit = DRM_VideoInit;
     device->ListModes = DRM_ListModes;
@@ -1640,6 +1647,7 @@ static void DRM_VideoQuit(_THIS)
         this->screen->pixels = NULL;
     }
 
+#if 0   /* test code */
 #ifdef _MBSCHEMA_COMPOSITING
     if (this->hidden->update_th) {
         /* send cancel request */
@@ -1647,6 +1655,7 @@ static void DRM_VideoQuit(_THIS)
         pthread_join (this->hidden->update_th, NULL);
     }
 #endif  /* _MBSCHEMA_COMPOSITING */
+#endif  /* test code */
 
 }
 
@@ -3328,6 +3337,7 @@ ret:
     return retval;
 }
 
+#if 0   /* test code */
 #ifdef _MGSCHEMA_COMPOSITING
 static void* task_do_update (void* data)
 {
@@ -3377,6 +3387,7 @@ static BOOL DRM_SyncUpdate_Async (_THIS)
     return rc;
 }
 #endif  /* _MGSCHEMA_COMPOSITING */
+#endif  /* test code */
 
 static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
 {
