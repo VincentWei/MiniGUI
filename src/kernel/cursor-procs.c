@@ -80,7 +80,6 @@
 #include "drawsemop.h"
 #include "readbmp.h"
 
-static int oldx = -1, oldy;
 static RECT cliprc = {0, 0, 0, 0};
 
 #ifdef _MGHAVE_CURSOR
@@ -903,6 +902,7 @@ HCURSOR GUIAPI GetDefaultCursor (void)
 /* The return value indicates whether mouse has moved.  */
 /* TRUE for moved. */
 /* NOTE that only server can call this function. */
+/* Since 5.0.0, this function only changes the cursor position */
 BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 {
     int curx, cury;
@@ -912,51 +912,14 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
         return FALSE;
 
     IAL_GetMouseXY (x, y);
-    SHAREDRES_MOUSEX = curx = *x;
-    SHAREDRES_MOUSEY = cury = *y;
+    curx = *x;
+    cury = *y;
     if (button)
         SHAREDRES_BUTTON = *button = IAL_GetMouseButton ();
 
-    if (oldx != curx || oldy != cury) {
-
-#ifdef _MGHAVE_CURSOR
-#ifdef _MGSCHEMA_SHAREDFB
-        LOCK_CURSOR_SEM ();
-        CSR_CURSORX = curx;
-        CSR_CURSORY = cury;
-        if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
-            if (get_hidecursor_sem_val ()) {
-                reset_hidecursor_sem ();
-            }
-            else {
-                hidecursor ();
-            }
-
-            showcursor ();
-            GAL_SyncUpdate (__gal_screen);
-        }
-
-        // GAL_SyncUpdate (__gal_screen);
-        UNLOCK_CURSOR_SEM ();
-#else /* _MGSCHEMA_SHAREDFB */
-        CSR_CURSORX = curx;
-        CSR_CURSORY = cury;
-        if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
-            if (csr_bmp.bmBits) {
-                hidecursor ();
-                showcursor ();
-                GAL_SyncUpdate (__gal_screen);
-            }
-            else {
-                PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
-                GAL_MoveCursor (pcsr->surface, curx, cury);
-            }
-        }
-#endif /* _MGSCHEMA_COMPOSITING */
-#endif /* _MGHAVE_CURSOR */
-
-        oldx = curx;
-        oldy = cury;
+    if (SHAREDRES_MOUSEX != curx || SHAREDRES_MOUSEY != cury) {
+        SHAREDRES_MOUSEX = curx;
+        SHAREDRES_MOUSEY = cury;
         moved = TRUE;
     }
 
@@ -965,21 +928,49 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
 
 #ifdef _MGHAVE_CURSOR
 
-#ifdef _MGSCHEMA_SHAREDFB
-/* show cursor hidden by client GDI function */
+/* Change cursor position and show cursor hidden by client GDI function */
 void kernel_ReShowCursor (void)
 {
+#ifdef _MGSCHEMA_SHAREDFB
     LOCK_CURSOR_SEM ();
+
     if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT) {
         if (get_hidecursor_sem_val ()) {
             reset_hidecursor_sem ();
             showcursor ();
             GAL_SyncUpdate (__gal_screen);
         }
+        else if (CSR_CURSORX != SHAREDRES_MOUSEX ||
+                CSR_CURSORY != SHAREDRES_MOUSEY) {
+            CSR_CURSORX = SHAREDRES_MOUSEX;
+            CSR_CURSORY = SHAREDRES_MOUSEY;
+            hidecursor ();
+            showcursor ();
+            GAL_SyncUpdate (__gal_screen);
+        }
     }
+
     UNLOCK_CURSOR_SEM ();
+#else /* _MGSCHEMA_SHAREDFB */
+    if (CSR_SHOW_COUNT >= 0 && CSR_CURRENT &&
+            (CSR_CURSORX != SHAREDRES_MOUSEX ||
+                CSR_CURSORY != SHAREDRES_MOUSEY)) {
+
+        CSR_CURSORX = SHAREDRES_MOUSEX;
+        CSR_CURSORY = SHAREDRES_MOUSEY;
+        if (csr_bmp.bmBits) {
+            hidecursor ();
+            showcursor ();
+            GAL_SyncUpdate (__gal_screen);
+        }
+        else {
+            PCURSOR pcsr = (PCURSOR)CSR_CURRENT;
+            GAL_MoveCursor (pcsr->surface, CSR_CURSORX, CSR_CURSORY);
+        }
+
+    }
+#endif /* _MGSCHEMA_COMPOSITING */
 }
-#endif  /* defined _MGSCHEMA_SHAREDFB */
 
 /* Always call with "setdef = FALSE" for clients at server side. */
 HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
