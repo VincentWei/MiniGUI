@@ -152,9 +152,11 @@ static int FB_Available(void)
 
 static void FB_DeleteDevice(GAL_VideoDevice *device)
 {
+#ifdef _MGSCHEMA_COMPOSITING
     if (device->hidden->shadow_screen) {
         GAL_FreeSurface (device->hidden->real_screen);
     }
+#endif  /* _MGSCHEMA_COMPOSITING */
 
     free(device->hidden);
     free(device);
