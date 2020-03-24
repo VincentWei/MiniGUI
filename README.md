@@ -6,18 +6,22 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 ## TABLE OF CONTENTS
 
 - [INTRODUCTION](#introduction)
+   + [What's MiniGUI](#whats-minigui)
+   + [MiniGUI Components](#minigui-components)
+   + [Open Source Apps Based-on MiniGUI](#open-source-apps-based-on-minigui)
+   + [MiniGUI and HybridOS](#minigui-and-hybridos)
+   + [Source Code Repositories](#source-code-repositories)
 - [NEW FEATURES IN VERSION 5.0.x](#new-features-in-version-50x)
-   + [Compositing schema](#compositing-schema)
-   + [New main window types](#new-main-window-types)
-   + [Virtual window](#virtual-window)
-   + [Other enhancements](#other-enhancements)
+   + [Compositing Schema](#compositing-schema)
+   + [New Main Window Types](#new-main-window-types)
+   + [Virtual Window](#virtual-window)
+   + [Other Enhancements](#other-enhancements)
 - [NEW FEATURES IN VERSION 4.0.x](#new-features-in-version-40x)
 - [NEW FEATURES IN VERSION 3.2.x](#new-features-in-version-32x)
 - [THE RUNTIME MODES OF MINIGUI](#the-runtime-modes-of-minigui)
 - [A BRIEF BUILDING INSTRUCTION](#a-brief-building-instruction)
-   + [Prerequisites](#prerequisites)
+   + [Building Whole MiniGUI](#building-whole-minigui)
    + [Building MiniGUI Core](#building-minigui-core)
-   + [Building whole MiniGUI](#building-whole-minigui)
    + [Unit Tests](#unit-tests)
 - [HISTORY](#history)
 - [AUTHORS AND COPYING](#authors-and-copying)
@@ -27,6 +31,8 @@ A mature and proven cross-platform GUI system for embedded and smart IoT devices
 
 
 ## INTRODUCTION
+
+### What's MiniGUI
 
 MiniGUI is a mature cross-platform windowing system and a GUI (Graphics
 User Interface) support system for embedded systems and smart IoT devices.
@@ -43,6 +49,8 @@ Nucleus, pSOS, uC/OS-II, and OSE.
 
 This is the source tree of MiniGUI Core, which provides the windowing
 and graphics interfaces as well as a lot of standard controls (toolkit).
+
+### MiniGUI Components
 
 Besides MiniGUI Core, FMSoft also provides some components
 for the developers to develop app much easier:
@@ -82,22 +90,80 @@ from the download zone of the site:
 
 <http://www.minigui.com>
 
+### Open Source Apps Based-on MiniGUI
+
 FMSoft also releases some open source apps for MiniGUI on the site above,
 for examples:
 
-* mDolphin, licensed under Apache 2.0, is a full-featured
+* `mDolphin`, licensed under Apache 2.0, is a full-featured
   WEB/WAP browser, which is developed based on the open source browser
   core WebKit and uses MiniGUI as its underlying graphics support system.
-* mGallery, licensed under Apache 2.0, intends to
+* `mGallery`, licensed under Apache 2.0, intends to
   provide a total solution for PMP (Portable Multimedia Player),
   which uses MiniGUI as the graphics platform.
-* mSpider, licensed under GPL 3.0, intends to provide a
+* `mSpider`, licensed under GPL 3.0, intends to provide a
   light-weight MiniGUI-based web browser (HTML 3.2 and part JavaScript)
-* mEagle, licensed under GPL 3.0, is an embedded GIS development platform
+* `mEagle`, licensed under GPL 3.0, is an embedded GIS development platform
   which addresses the needs of map browse, query, analysis, etc
 
+### MiniGUI and HybridOS
+
+HybridOS is another large open source project initiated by FMSoft. It is
+a totally new open source operating system designed for smart IoT devices
+and cloud computing environment.
+
+In practice, MiniGUI and the software which are used to integrated with GPU
+constitute the graphics stack of HybridOS.
+
+HybridOS uses MiniGUI as the underlying windowing system, and the members of
+HybridOS project are now maintaining the whole graphics stack.
+The following chart shows the graphics stack of HybridOS:
+
+```
+  -----------------------------------------------
+ |           MiniGUI/HybridOS Apps               |
+ |-----------------------------------------------|
+ |           |         (Graphics Stack)          |
+ |           |              ---------------------|
+ |           |              | hiMesa             |
+ |           | hiCairo      |  ------------------|
+ |           | MiniGUI      |  | EGL for MiniGUI |
+ | C++ libs  | hiDRMDrivers |  | GL, GLES, VG    |
+ | C libs    | libDRM       |  | GPU drivers     |
+ |-----------------------------------------------|
+ |  Linux Kernel                                 |
+ |            -----------------------------------|
+ |           |        DRI and DRI Drivers        |
+  -----------------------------------------------
+```
+
+As shown in the chart above, the HybridOS graphics stack consists of
+the following software:
+
+- `libDRM` provides some user land APIs for Linux Direct Rendering Infrastructure.
+- `hiDRMDrivers` contains the drivers (user land drivers, not kernel drivers) for
+   MiniGUI DRM engine. The drivers implement the basic hardware accelerated
+   2D graphics operations of various GPUs for MiniGUI.
+- `hiMesa` is the Mesa derivative for HybridOS, while Mesa is the open source
+  implementation of OpenGL and other graphics APIs, including OpenGL ES
+  (versions 1, 2, 3), OpenCL, OpenMAX, and Vulkan. It contains the following
+  components:
+   + The implementation of OpenGL, OpenGL ES (v1, 2, 3), and other
+     graphics APIs.
+   + The EGL implementation for MiniGUI platform.
+   + The graphics drivers for various GPUs and a software driver called `swrast`.
+- `hiCairo` is the Cairo derivative for HybridOS. Cairo is a 2D vector graphics
+  library for Gtk. We provide support for MiniGUI backend in `hiCairo`.
+
+For more information about HybridOS, please refer to:
+
+<https://hybridos.fmsoft.cn/>
+
+### Source Code Repositories
+
 FMSoft had created the public repositories for MiniGUI Core, MiniGUI
-components, and other open source apps on GitHub. You can visit them on:
+components, HybridOS, and other open source apps on GitHub. You can visit
+them on:
 
 <https://github.com/VincentWei>
 
@@ -114,7 +180,7 @@ We now maintain all documents about MiniGUI on the following public repo:
 In version 5.0.0, we introduced some new and exciting features, and refactored
 a lot basic modules of MiniGUI Core.
 
-### Compositing schema
+### Compositing Schema
 
 In this version, we enhanced the MiniGUI-Processes runtime mode to support
 the compositing schema. Under compositing schema, regardless a main window
@@ -136,7 +202,7 @@ implementation for multi-process environment:
 - Better security. One client created by different user cannot
   read/write contents in/to another windows owned by other clients.
 
-### New main window types
+### New Main Window Types
 
 In this version, we also enhanced the window manager of MiniGUI Core
 to support some special main window types.
@@ -162,7 +228,7 @@ There are eight levels in MiniGUI from top to bottom:
 This enhancement allows us to create a special app which acts as
 screen lock, docker, or launcher.
 
-### Virtual window
+### Virtual Window
 
 You know that we can post or send a message to other windows which
 may run in another thread under MiniGUI-Threads. The MiniGUI
@@ -193,7 +259,7 @@ and the new thread.
 This enhancement provides a very useful facility to you in order to
 develop a well-designed multithreaded application.
 
-### Other enhancements
+### Other Enhancements
 
 We also tune or enhance the following modules of MiniGUI Core:
 
@@ -226,7 +292,7 @@ so that the old applications can smoothly migrate to the new
 version. However, there are still some slight changes you need to take care.
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://github.com/VincentWei/minigui/blob/master/RELEASE-NOTES.md>
+<https://github.com/VincentWei/minigui/blob/tree/rel-5-0/RELEASE-NOTES.md>
 
 ## NEW FEATURES IN VERSION 4.0.x
 
@@ -319,12 +385,30 @@ clients and the server.
 
 ## A BRIEF BUILDING INSTRUCTION
 
-This instruction assumes that you are using Ubuntu Linux.
+### Building Whole MiniGUI
 
-### Prerequisites
+If you are anxious to see the comprehensive demo of MiniGUI Core
+and MiniGUI components, please fetch one of the following repositories
+from GitHub and follow the instructions to build MiniGUI Core,
+MiniGUI components, the samples, and the demonstration programs:
 
-You should run `apt install <package_name>` to install the following packages
-on your Ubuntu Linux.
+<https://github.com/VincentWei/build-minigui-5.0>
+
+or
+
+<https://github.com/VincentWei/build-minigui-4.0>
+
+or
+
+<https://github.com/VincentWei/build-minigui-3.2>
+
+### Building MiniGUI Core
+
+We recommend that you use a latest Linux distribution with long term support,
+for example, Ubuntu Linux LTS 16.04 or 18.04.
+
+On Ubuntu Linux LTS 16.04 or 18.04, you should run `apt install <package_name>`
+to install the following packages:
 
  * Building tools:
     * autoconf
@@ -332,8 +416,6 @@ on your Ubuntu Linux.
     * libjpeg64-dev
     * libpng12-dev (use libpng-dev on Ubuntu Linux 18.04 LTS)
     * libfreetype6-dev
-
-### Building MiniGUI Core
 
 MiniGUI Core uses GNU autoconf/automake scripts to configure and build the project.
 
@@ -352,23 +434,6 @@ MiniGUI Core also provides some configuration options to customize the features.
 For more information, please run
 
     $ ./configure --help
-
-### Building whole MiniGUI
-
-If you are anxious to see the comprehensive demo of MiniGUI Core
-and MiniGUI components, please fetch one of the following repositories
-from GitHub and follow the instructions to build MiniGUI Core,
-MiniGUI components, the samples, and the demonstration programs:
-
-<https://github.com/VincentWei/build-minigui-5.0>
-
-or
-
-<https://github.com/VincentWei/build-minigui-4.0>
-
-or
-
-<https://github.com/VincentWei/build-minigui-3.2>
 
 ### Unit Tests
 
@@ -483,7 +548,7 @@ A brief history description of the development progress is listed as follow:
 1. Feb., 2018:     FMSoft released MiniGUI version 3.2.0.
 1. Apr., 2019:     FMSoft released MiniGUI version 3.2.2.
 1. Jul., 2019:     FMSoft released MiniGUI version 4.0.0.
-1. Apr., 2020:     FMSoft released MiniGUI version 5.0.0.
+1. Mar., 2020:     FMSoft released MiniGUI version 5.0.0.
 
 ## AUTHORS AND COPYING
 
