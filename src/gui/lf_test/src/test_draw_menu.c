@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -93,23 +93,23 @@ typedef struct _MII_CREATE
     int end;
 }MII_CREATE;
 
-static MII_CREATE tridbox_miic [] = 
+static MII_CREATE tridbox_miic [] =
 {
     {MFT_STRING, "3dbox", 0},
     {MFT_MARKCHECK, "thick frame", 0, LFRDR_3DBOX_THICKFRAME},
     {MFT_MARKCHECK, "fill", 0, LFRDR_3DBOX_FILLED},
 
-    {MFT_RADIOCHECK, "normal", MFS_CHECKED, LFRDR_BTN_STATUS_NORMAL, 
+    {MFT_RADIOCHECK, "normal", MFS_CHECKED, LFRDR_BTN_STATUS_NORMAL,
         LFRDR_BTN_STATUS_MASK, 2, 5},
-    {MFT_RADIOCHECK, "hilite", 0, LFRDR_BTN_STATUS_HILITE, 
+    {MFT_RADIOCHECK, "hilite", 0, LFRDR_BTN_STATUS_HILITE,
         LFRDR_BTN_STATUS_MASK,2, 5},
-    {MFT_RADIOCHECK, "pressed", 0, LFRDR_BTN_STATUS_PRESSED, 
+    {MFT_RADIOCHECK, "pressed", 0, LFRDR_BTN_STATUS_PRESSED,
         LFRDR_BTN_STATUS_MASK,2, 5},
-    {MFT_RADIOCHECK, "disable", 0, LFRDR_BTN_STATUS_DISABLED, 
+    {MFT_RADIOCHECK, "disable", 0, LFRDR_BTN_STATUS_DISABLED,
         LFRDR_BTN_STATUS_MASK,2, 5},
 };
 
-static MII_CREATE radio_miic [] = 
+static MII_CREATE radio_miic [] =
 {
     {MFT_STRING, "radio", 0},
     {MFT_MARKCHECK, "shell", MFS_CHECKED, LFRDR_MARK_HAVESHELL},
@@ -122,7 +122,7 @@ static MII_CREATE radio_miic [] =
 };
 
 
-static MII_CREATE checkbox_miic [] = 
+static MII_CREATE checkbox_miic [] =
 {
     {MFT_STRING, "checkbox", 0},
 
@@ -136,7 +136,7 @@ static MII_CREATE checkbox_miic [] =
             LFRDR_MARK_SELECTED_MASK, 1, 3},
 };
 
-static MII_CREATE checkmark_miic [] = 
+static MII_CREATE checkmark_miic [] =
 {
     {MFT_STRING, "checkmark", 0},
 
@@ -150,7 +150,7 @@ static MII_CREATE checkmark_miic [] =
             LFRDR_MARK_SELECTED_MASK, 1, 3},
 };
 
-static MII_CREATE arrow_miic [] = 
+static MII_CREATE arrow_miic [] =
 {
     {MFT_STRING, "arrow", 0},
     {MFT_MARKCHECK, "shell", 0, LFRDR_ARROW_HAVESHELL},
@@ -165,11 +165,11 @@ static MII_CREATE arrow_miic [] =
             LFRDR_ARROW_DIRECT_MASK, 2, 5},
 };
 
-static MII_CREATE pushbtn_miic [] = 
+static MII_CREATE pushbtn_miic [] =
 {
     {MFT_STRING, "pushbtn", 0},
 
-    {MFT_RADIOCHECK, "unchecked", MFS_CHECKED, BST_UNCHECKED, 
+    {MFT_RADIOCHECK, "unchecked", MFS_CHECKED, BST_UNCHECKED,
             BST_CHECK_MASK, 0, 2},
     {MFT_RADIOCHECK, "checked", 0, BST_CHECKED,
             BST_CHECK_MASK, 0, 2},
@@ -187,7 +187,7 @@ static MII_CREATE pushbtn_miic [] =
             BST_POSE_MASK, 3, 6},
 };
 
-static MII_CREATE fold_miic [] = 
+static MII_CREATE fold_miic [] =
 {
     {MFT_STRING, "fold", 0},
 
@@ -196,7 +196,7 @@ static MII_CREATE fold_miic [] =
     {MFT_MARKCHECK, "fold", 0, LFRDR_TREE_FOLD},
 };
 
-static MII_CREATE item_miic [] = 
+static MII_CREATE item_miic [] =
 {
     {MFT_STRING, "item", 0},
 
@@ -210,7 +210,7 @@ static MII_CREATE item_miic [] =
             BST_POSE_MASK, 0, 3},
 };
 
-static MII_CREATE  other_miic [] = 
+static MII_CREATE  other_miic [] =
 {
     {MFT_STRING, "other", 0},
 
@@ -322,7 +322,7 @@ static void change_mi_state (HMENU hmenu, int item_pos, int which)
     MENUITEMINFO mii;
     mii.mask = MIIM_STATE|MIIM_TYPE;
     MII_CREATE* miic = all_miic[which] + item_pos + 1;
-    
+
     TEST_VAL (which, %d);
     TEST_VAL (item_pos, %d);
     if (which == MPOS_OTHER)
@@ -383,7 +383,7 @@ typedef struct _DRAW_ARGS
 #define EVERY_COLOR(r, g, b) \
     for (r=0; r<=256; r+=51) \
     for (g=0; g<=256; g+=51) \
-    for (b=0; b<=256; b+=51) 
+    for (b=0; b<=256; b+=51)
 
 static int  change_rect (RECT* rc, int offx, int offy, int i, int win_h)
 {
@@ -472,19 +472,19 @@ static void draw_cr_button (HWND hWnd, HDC hdc, DRAW_FUN fun, int x, int y,
     DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_DISABLED, rc, -w*4, h);
 
     DRAW_INFO(hdc, "checked", rc, w, 0);
-    DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_SELECTED|LFRDR_BTN_STATUS_NORMAL, 
+    DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_SELECTED|LFRDR_BTN_STATUS_NORMAL,
             rc, w, 0);
-    DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_SELECTED|LFRDR_BTN_STATUS_HILITE, 
+    DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_SELECTED|LFRDR_BTN_STATUS_HILITE,
             rc, w, 0);
-    DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_SELECTED|LFRDR_BTN_STATUS_PRESSED, 
+    DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_SELECTED|LFRDR_BTN_STATUS_PRESSED,
             rc, w, 0);
-    DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_SELECTED|LFRDR_BTN_STATUS_DISABLED, 
+    DRAW_AREA (hWnd, hdc, fun, LFRDR_BTN_STATUS_SELECTED|LFRDR_BTN_STATUS_DISABLED,
             rc, -w*5, h);
 }
 
 static int draw_prompting (HDC hdc)
 {
-    
+
     RECT rc;
     int h;
     rc.left = INTERVAL;
@@ -496,14 +496,14 @@ static int draw_prompting (HDC hdc)
     h = DrawText(hdc, "please press keyboard:\n", -1, &rc, DT_LEFT);
 
     rc.top += h;
-    DrawText(hdc, 
+    DrawText(hdc,
             "LEFT - minish the width\n"
             "UP - minish the height\n"
             "DOWN - argument the height\n"
             "RIGHT - argument the width",
             -1, &rc, DT_LEFT|DT_CALCRECT);
 
-    h = DrawText(hdc, 
+    h = DrawText(hdc,
             "LEFT - minish the width\n"
             "UP - minish the height\n"
             "DOWN - argument the height\n"
@@ -512,7 +512,7 @@ static int draw_prompting (HDC hdc)
 
     rc.left = rc.right + 3*INTERVAL;
     rc.right = 500;
-    DrawText(hdc, 
+    DrawText(hdc,
             "\'+\' - argument the next of draw_fold\n"
             "\'-\' - minish the next of draw_fold\n"
             "ENTER - change the renderer",
@@ -528,7 +528,7 @@ static int draw (HWND hWnd)
     HDC hdc;
     HDC memdc;
     int r,g,b;
-    int win_w; 
+    int win_w;
     int win_h;
     int offx;
     int offy;
@@ -616,12 +616,12 @@ static int draw (HWND hWnd)
             TEST_VAL (draw_args->fold_next, %d);
             EVERY_COLOR(r, g, b)
             {
-                rdr->draw_fold (hWnd, memdc, &rc, MakeRGBA(r, g, b, 0xFF), 
+                rdr->draw_fold (hWnd, memdc, &rc, MakeRGBA(r, g, b, 0xFF),
                         status, draw_args->fold_next);
-                CHANGE_RECT(rc, 
-                        offx + (draw_args-> w), 
-                        offy + (draw_args->h * draw_args->fold_next + 
-                                (draw_args-> h >> 1)), 
+                CHANGE_RECT(rc,
+                        offx + (draw_args-> w),
+                        offy + (draw_args->h * draw_args->fold_next +
+                                (draw_args-> h >> 1)),
                         i, win_h, end);
             }
             break;
@@ -747,7 +747,7 @@ int test_draw_proc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
         case MSG_KEYDOWN:
             if (wParam == SCANCODE_ENTER)
             {
-                rdr_index = (rdr_index + ARRAY_LEN(rdr_names) + 1) % 
+                rdr_index = (rdr_index + ARRAY_LEN(rdr_names) + 1) %
                     ARRAY_LEN(rdr_names);
                 SetWindowElementRenderer (hWnd, rdr_names[rdr_index], NULL);
             }
@@ -829,9 +829,9 @@ int MiniGUIMain (int argc, const char* argv[])
     CreateInfo.iBkColor = COLOR_black;
     CreateInfo.dwAddData = (DWORD)&draw_args;
     CreateInfo.hHosting = (DWORD)HWND_DESKTOP;
-    
+
     hMainWnd = CreateMainWindowEx (&CreateInfo, "classic", NULL, NULL, NULL);
-    
+
     if (hMainWnd == HWND_INVALID)
         return -1;
 

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -85,7 +85,7 @@ void GUIAPI CircleArc (HDC hdc, int sx, int sy, int r, int ang1, int ang2)
     pdc->cur_ban = NULL;
 
     if (r < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 
@@ -119,7 +119,7 @@ void GUIAPI Ellipse (HDC hdc, int sx, int sy, int rx, int ry)
     pdc->cur_ban = NULL;
 
     if (rx < 1 || ry < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 
@@ -150,7 +150,7 @@ void GUIAPI FillEllipse (HDC hdc, int sx, int sy, int rx, int ry)
     pdc->cur_ban = NULL;
 
     if (rx < 1 || ry < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 
@@ -189,7 +189,7 @@ void GUIAPI Circle (HDC hdc, int sx, int sy, int r)
     pdc->cur_ban = NULL;
 
     if (r < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 
@@ -221,7 +221,7 @@ void GUIAPI FillCircle (HDC hdc, int sx, int sy, int r)
     pdc->cur_ban = NULL;
 
     if (r < 1) {
-        _set_pixel_helper (pdc, sx, sy);
+        _gdi_set_pixel_helper (pdc, sx, sy);
         goto ret;
     }
 

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -95,7 +95,7 @@
  *   For 32-bit targets, each pixel has the target RGB format but with
  *   the alpha value occupying the highest 8 bits. The <skip> and <run>
  *   counts are 16 bit.
- * 
+ *
  *   For 16-bit targets, each pixel has the target RGB format, but with
  *   the middle component (usually green) shifted 16 steps to the left,
  *   and the hole filled with the 5 most significant bits of the alpha value.
@@ -476,7 +476,7 @@ int GAL_RLEBlit(GAL_Surface *src, GAL_Rect *srcrect,
         /* Set up the source and destination pointers */
         x = dstrect->x;
         y = dstrect->y;
-        dstbuf = (Uint8 *)dst->pixels + dst->offset
+        dstbuf = (Uint8 *)dst->pixels
                  + y * dst->pitch + x * src->format->BytesPerPixel;
         srcbuf = (Uint8 *)src->map->sw_data->aux_data;
 
@@ -730,7 +730,7 @@ int GAL_RLEAlphaBlit(GAL_Surface *src, GAL_Rect *srcrect,
 
     x = dstrect->x;
     y = dstrect->y;
-    dstbuf = (Uint8 *)dst->pixels + dst->offset
+    dstbuf = (Uint8 *)dst->pixels
              + y * dst->pitch + x * df->BytesPerPixel;
     srcbuf = (Uint8 *)src->map->sw_data->aux_data + sizeof(RLEDestFormat);
 
@@ -1098,7 +1098,7 @@ static int RLEAlphaSurface(GAL_Surface *surface)
         int x, y;
         int h = surface->h, w = surface->w;
         GAL_PixelFormat *sf = surface->format;
-        Uint32 *src = (Uint32 *)((Uint8 *)surface->pixels + surface->offset);
+        Uint32 *src = (Uint32 *)((Uint8 *)surface->pixels);
         Uint8 *lastline = dst;        /* end of last non-blank line */
 
         /* opaque counts are 8 or 16 bits, depending on target depth */
@@ -1283,7 +1283,7 @@ static int RLEColorkeySurface(GAL_Surface *surface)
         }
 
         /* Set up the conversion */
-        srcbuf = (Uint8 *)surface->pixels+surface->offset;
+        srcbuf = (Uint8 *)surface->pixels;
         maxn = bpp == 4 ? 65535 : 255;
         dst = rlebuf;
         rgbmask = ~surface->format->Amask;
@@ -1462,7 +1462,7 @@ static void UnRLEAlpha(GAL_Surface *surface)
         /* skip padding if needed */
         if(bpp == 2)
             srcbuf += (unsigned long)srcbuf & 2;
-        
+
         /* copy translucent pixels */
         ofs = 0;
         do {

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -198,7 +198,7 @@ typedef struct _GridCellFormat
 typedef int (*gvGridCellCallback_init)(gvGridCellData* cell);
 typedef int (*gvGridCellCallback_merge)(gvGridCellData* cell, gvGridCellData* data);
 typedef int (*gvGridCellCallback_copy)(gvGridCellData* to, gvGridCellData* from);
-typedef void (*gvGridCellCallback_get_format)(gvGridCellData* cell, 
+typedef void (*gvGridCellCallback_get_format)(gvGridCellData* cell,
                                     HWND hWnd, HDC hdc, GridCellFormat* format);
 typedef int (*gvGridCellCallback_draw)(gvGridCellData* cell, gvGridViewData* view,
                                         HDC hdc, int row, int col, RECT* rect);
@@ -274,9 +274,6 @@ struct _gvGridDataModal
 };
 typedef struct _gvGridDataModal gvGridDataModal;
 
-gvGridDataModal* GridDataModalArray_new_modal(int row, int col);
-void GridDataModalArray_delete_modal(gvGridDataModal* modal);
-
 typedef struct _gvGridCellDepedence gvGridCellDepedence;
 struct _gvGridCellDepedence
 {
@@ -287,10 +284,6 @@ struct _gvGridCellDepedence
     DWORD dwAddData;
     gvGridCellDepedence* next;
 };
-
-int gvGridCellDep_add_dep(gvGridViewData* view, gvGridCellDepedence* dep);
-int gvGridCellDep_delete_dep(gvGridViewData* view, int id);
-int gvGridCellDep_update_dep(gvGridViewData* view, GRIDCELLS* cells);
 
 struct _gvGridViewData
 {
@@ -303,11 +296,11 @@ struct _gvGridViewData
 
     GRIDCELLS highlight_cells;
     //GRIDCELLS selected_cells;
-    
+
     int index_drag;
     int drag_x;
     int drag_y;
-    
+
     int ContX;
     int ContY;
 
@@ -319,8 +312,8 @@ struct _gvGridViewData
     gvGridCellDepedence* depend_list;
 
     // will delete, use selected_cells
-    int current_row; // base 1? 
-    int current_col; // base 1? 
+    int current_row; // base 1?
+    int current_col; // base 1?
 
     //will delete, use mouse_status
     //int is_mouse_down;
@@ -329,7 +322,7 @@ struct _gvGridViewData
     RECT cells_rect;
 };
 
-// mouse status mask 
+// mouse status mask
 enum
 {
     MOUSE_DEFAULT,

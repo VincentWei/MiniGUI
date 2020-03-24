@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** vr4181.c: Low Level Input Engine for NEC VR4181 debug board.
-** 
+**
 ** Author: Luo Gang (Red Flag Software).
 */
 
@@ -333,7 +333,7 @@ static int VrTpanelRead(int fd, int *px, int *py, int *pz, unsigned int *pb)
          * but it provides steadier pointer.
          *
          * If you adjust iir_shift_bits, you may also want to adjust the sample interval
-         * in VrTpanelInit. 
+         * in VrTpanelInit.
          *
          * The filter gain is fixed at 8 times the input (gives room for increased resolution
          * potentially added by the noise-dithering).
@@ -504,9 +504,9 @@ again:
                  */
 #ifdef REMOTE_TEST
                 XYPOINT transformed = {iir_out_x, iir_out_y};
-#else                
+#else
                 XYPOINT transformed = {iir_out_y, iir_out_x};
-#endif                
+#endif
                 transformed = DeviceToScreen(transformed);
 
                 /*
@@ -567,10 +567,10 @@ static int keyboard_update(void)
 //keycode = Key_Right
     break;
     case 0x8:
-//keycode = Key_Down    
+//keycode = Key_Down
     break;
     case 0xa:
-//keycode = Key_Left    
+//keycode = Key_Left
     break;
     case 0x3:
 //keycode = Key_Up
@@ -594,15 +594,15 @@ static int keyboard_update(void)
 //keycode = Key_AP1
     break;
     case 257:
-//keycode = Key_AP2  
+//keycode = Key_AP2
     break;
     case 258:
-//keycode = Key_AP3   
+//keycode = Key_AP3
     break;
     case 259:
-//keycode = Key_AP4    
+//keycode = Key_AP4
     break;
-    }            
+    }
 
     return 0;
 }
@@ -612,7 +612,6 @@ static const char* keyboard_getstate(void)
     return (char *)state;
 }
 
-#ifdef _LITE_VERSION 
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
 {
@@ -639,10 +638,10 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
             maxfd = btn_fd;
     }
 #endif
-        
+
     e = select (maxfd + 1, in, out, except, timeout) ;
 
-    if (e > 0) { 
+    if (e > 0) {
         if (ts >= 0 && FD_ISSET (ts, in)) {
             FD_CLR (ts, in);
 
@@ -653,15 +652,15 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
                 mousey = y;
                 mousez = b;
 
-#if REMOTE_TEST            
+#if REMOTE_TEST
                 fprintf(stderr,"result:\t\t%d\n",result);
                 fprintf(stderr,"mousex\tmousey\tmousez:\t%d\t%d\t%d\n",mousex,mousey,mousez);
-#endif        
+#endif
                 mousez = ( mousez > 0 ? IAL_MOUSE_LEFTBUTTON:0);
-                retvalue |=IAL_MOUSEEVENT; 
+                retvalue |=IAL_MOUSEEVENT;
             }
         }
-        
+
 #ifdef _VR_BUTTONS
         if (btn_fd >= 0 && FD_ISSET(btn_fd, in)) {
             unsigned short code;
@@ -670,15 +669,15 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
             btn_state = code;
             retvalue |= IAL_KEYEVENT;
         }
-#endif                           
+#endif
     } else if (e < 0) {
         return -1;
     }
 
     return retvalue;
 }
-#else
 
+#if 0
 static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
 {
@@ -686,7 +685,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
     struct pollfd ufd;
     if (which & IAL_MOUSEEVENT) {
         ufd.fd     = ts;
-        ufd.events = POLLIN; 
+        ufd.events = POLLIN;
         if (poll (&ufd, 1, timeout) > 0) {
             result = VrTpanelRead(ts, &x, &y, &z, &b);
             if (result == 2 || result == 3) {

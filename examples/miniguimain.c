@@ -1,6 +1,6 @@
 /*
  * This program parses the command line arguments.
- * If the user specified a layer name by using "-layer <layer_name", 
+ * If the user specified a layer name by using "-layer <layer_name",
  * the program will try to join the layer, otherwise create a new layer.
  */
 int MiniGUIMain (int args, const char* arg[])

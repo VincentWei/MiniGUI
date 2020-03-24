@@ -16,6 +16,6 @@ void DrawMyCircle (HDC hdc, int x, int y, int r, gal_pixel pixel)
     old_bursh = SetBrushColor (hdc, pixle);
 
     CircleGenerator ((void*)hdc, x, y, r, draw_circle_pixel);
-    
+
     SetBrushColor (hdc, old_brush);
 }

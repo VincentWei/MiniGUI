@@ -272,7 +272,7 @@ static BOOL line_iter_prev_cluster (EllipsizeState *state, LineIter *iter)
  *
  */
 
-/* Checks if there is a ellipsization boundary before
+/* Check if there is a ellipsization boundary before
  * the cluster @iter points to
  */
 static BOOL starts_at_ellipsization_boundary (EllipsizeState *state,
@@ -288,7 +288,7 @@ static BOOL starts_at_ellipsization_boundary (EllipsizeState *state,
     return state->layout->bos[index] & BOV_GB_CURSOR_POS;
 }
 
-/* Checks if there is a ellipsization boundary after the cluster @iter points to
+/* Check if there is a ellipsization boundary after the cluster @iter points to
  */
 static BOOL ends_at_ellipsization_boundary(EllipsizeState *state,
         LineIter *iter)

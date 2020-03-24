@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -114,7 +114,7 @@ static int mouse_buttons;
 static struct SimKeyData kbd_data = { 0 };
 static unsigned char kbd_state [MGUI_NR_KEYS + 1] = { 0 };
 
-/*custom keys difined below are used for STB, 
+/*custom keys difined below are used for STB,
 those macros will put in common.h*/
 /*power*/
 #define SCANCODE_V_POWER       (SCANCODE_USER)
@@ -245,9 +245,9 @@ those macros will put in common.h*/
 #define SCANCODE_V_INFO        (SCANCODE_USER + 27)
 
 /* key map table*/
-static MAPITEM gs_stKeyMapTable [] = 
-{    
-    {0x0001,     SCANCODE_SPACE                 , 0}, // Key_Space    
+static MAPITEM gs_stKeyMapTable [] =
+{
+    {0x0001,     SCANCODE_SPACE                 , 0}, // Key_Space
     {0x0002,     SCANCODE_APOSTROPHE            , 0}, // Key_Apostrophe
     {0x0003,     SCANCODE_COMMA                 , 0}, // Key_Comma
     {0x0005,     SCANCODE_MINUS                 , 0}, // Key_Minus
@@ -256,9 +256,9 @@ static MAPITEM gs_stKeyMapTable [] =
     {0x0008,     SCANCODE_SEMICOLON             , 0}, // Key_Semicolon
     {0x0009,     SCANCODE_EQUAL                 , 0}, // Key_Equal
     {0x000A,     SCANCODE_BACKSLASH             , 0}, // Key_BracketLeft
-    {0x000B,     SCANCODE_GRAVE                 , 0}, // Key_Backslash 
-    {0x000C,     SCANCODE_BRACKET_LEFT          , 0}, // Key_BracketRight 
-    {0x000D,     SCANCODE_BRACKET_RIGHT         , 0}, // Key_QuoteLeft = 0x60 
+    {0x000B,     SCANCODE_GRAVE                 , 0}, // Key_Backslash
+    {0x000C,     SCANCODE_BRACKET_LEFT          , 0}, // Key_BracketRight
+    {0x000D,     SCANCODE_BRACKET_RIGHT         , 0}, // Key_QuoteLeft = 0x60
     {0x000E,     SCANCODE_0                     , 0}, // Key_0
     {0x000F,     SCANCODE_1                     , 0}, // Key_1
     {0x0010,     SCANCODE_2                     , 0}, // Key_2
@@ -297,12 +297,12 @@ static MAPITEM gs_stKeyMapTable [] =
     {0x0031,     SCANCODE_Z                     , 0}, // Key_Z
     {0x1001,     SCANCODE_ESCAPE                , 0}, // Key_Escape
     {0x1002,     SCANCODE_TAB                   , 0}, // Key_Tab
-    {0x1003,     SCANCODE_BACKSPACE             , 0}, // Key_Backspace 
-    {0x1004,     SCANCODE_ENTER                 , 0}, // Key_Return  
+    {0x1003,     SCANCODE_BACKSPACE             , 0}, // Key_Backspace
+    {0x1004,     SCANCODE_ENTER                 , 0}, // Key_Return
     {0x1005,     SCANCODE_INSERT                , 0}, // Key_Insert
     {0x1006,     SCANCODE_REMOVE                , 0}, // Key_Delete
     {0x1007,     SCANCODE_PAUSE                 , 0}, // Key_Pause
-    {0x1008,     SCANCODE_PRINTSCREEN           , 0}, // Key_Print    
+    {0x1008,     SCANCODE_PRINTSCREEN           , 0}, // Key_Print
     {0x1009,     SCANCODE_HOME                  , 0}, // Key_Home
     {0x100A,     SCANCODE_END                   , 0}, // Key_End
     {0x100B,     SCANCODE_CURSORBLOCKLEFT       , 0}, // Key_Left
@@ -312,7 +312,7 @@ static MAPITEM gs_stKeyMapTable [] =
     {0x100F,     SCANCODE_PAGEUP                , 0},  // Key_PageUp
     {0x1010,     SCANCODE_PAGEDOWN              , 0},  // Key_PageDown
     {0x1011,     SCANCODE_LEFTSHIFT             , 0}, // Key_Shift
-    {0x1012,     SCANCODE_LEFTCONTROL           , 0},  // Key_Control 
+    {0x1012,     SCANCODE_LEFTCONTROL           , 0},  // Key_Control
     {0x1013,     SCANCODE_LEFTALT               , 0}, // Key_Alt
     {0x1014,     SCANCODE_CAPSLOCK              , 0}, // Key_CapsLock
     {0x1015,     SCANCODE_NUMLOCK               , 0},  // Key_NumLock
@@ -328,58 +328,58 @@ static MAPITEM gs_stKeyMapTable [] =
     {0x101F,     SCANCODE_F9                    , 0},  // Key_F9
     {0x1020,     SCANCODE_F10                   , 0},  // Key_F10
     {0x1021,     SCANCODE_F11                   , 0},  // Key_F11
-    {0x1022,     SCANCODE_F12                   , 0},  // Key_F12     
-    {0x1023,     SCANCODE_MENU                  , 0},  // Key_Menu    
-    {0x1101,     SCANCODE_V_POWER               , 0}, // 
-    {0x1102,     SCANCODE_V_MUTE                , 0}, // 
-    {0x1103,     SCANCODE_V_NUM_1               , 0}, // 
-    {0x1104,     SCANCODE_V_NUM_2               , 0}, // 
+    {0x1022,     SCANCODE_F12                   , 0},  // Key_F12
+    {0x1023,     SCANCODE_MENU                  , 0},  // Key_Menu
+    {0x1101,     SCANCODE_V_POWER               , 0}, //
+    {0x1102,     SCANCODE_V_MUTE                , 0}, //
+    {0x1103,     SCANCODE_V_NUM_1               , 0}, //
+    {0x1104,     SCANCODE_V_NUM_2               , 0}, //
     {0x1105,     SCANCODE_V_NUM_3               , 0}, //
-    {0x1106,     SCANCODE_V_NUM_4               , 0}, // 
-    {0x1107,     SCANCODE_V_NUM_5               , 0}, // 
-    {0x1108,     SCANCODE_V_NUM_6               , 0}, // 
-    {0x1109,     SCANCODE_V_NUM_7               , 0}, // 
-    {0x1110,     SCANCODE_V_NUM_8               , 0}, // 
+    {0x1106,     SCANCODE_V_NUM_4               , 0}, //
+    {0x1107,     SCANCODE_V_NUM_5               , 0}, //
+    {0x1108,     SCANCODE_V_NUM_6               , 0}, //
+    {0x1109,     SCANCODE_V_NUM_7               , 0}, //
+    {0x1110,     SCANCODE_V_NUM_8               , 0}, //
     {0x1111,     SCANCODE_V_NUM_9               , 0}, //
     {0x1112,     SCANCODE_V_NUM_0               , 0}, //
-    {0x1113,     SCANCODE_V_SWITCH              , 0}, // 
-    {0x1114,     SCANCODE_V_BACKSPACE           , 0}, // 
-    {0x1115,     SCANCODE_V_CHANNEL             , 0}, // 
-    {0x1116,     SCANCODE_V_MENU                , 0}, // 
+    {0x1113,     SCANCODE_V_SWITCH              , 0}, //
+    {0x1114,     SCANCODE_V_BACKSPACE           , 0}, //
+    {0x1115,     SCANCODE_V_CHANNEL             , 0}, //
+    {0x1116,     SCANCODE_V_MENU                , 0}, //
     {0x1117,     SCANCODE_V_LEFT                , 0}, //
     {0x1118,     SCANCODE_V_RIGHT               , 0}, //
-    {0x1119,     SCANCODE_V_UP                  , 0}, // 
-    {0x1120,     SCANCODE_V_DOWN                , 0}, // 
-    {0x1121,     SCANCODE_V_CONFIRM             , 0}, // 
-    {0x1122,     SCANCODE_V_F1                  , 0}, // 
+    {0x1119,     SCANCODE_V_UP                  , 0}, //
+    {0x1120,     SCANCODE_V_DOWN                , 0}, //
+    {0x1121,     SCANCODE_V_CONFIRM             , 0}, //
+    {0x1122,     SCANCODE_V_F1                  , 0}, //
     {0x1123,     SCANCODE_V_F2                  , 0}, //
     {0x1124,     SCANCODE_V_F3                  , 0}, //
-    {0x1125,     SCANCODE_V_F4                  , 0}, // 
-    {0x1126,     SCANCODE_V_GO_BACK             , 0}, // 
-    {0x1127,     SCANCODE_V_FAVORITE            , 0}, // 
-    {0x1128,     SCANCODE_V_IME                 , 0}, // 
+    {0x1125,     SCANCODE_V_F4                  , 0}, //
+    {0x1126,     SCANCODE_V_GO_BACK             , 0}, //
+    {0x1127,     SCANCODE_V_FAVORITE            , 0}, //
+    {0x1128,     SCANCODE_V_IME                 , 0}, //
     {0x1129,     SCANCODE_V_ESCAPE              , 0}, //
     {0x1130,     SCANCODE_V_PLAY                , 0}, //
-    {0x1131,     SCANCODE_V_PAUSE               , 0}, // 
-    {0x1132,     SCANCODE_V_STOP                , 0}, // 
-    {0x1133,     SCANCODE_V_BACKWARD            , 0}, // 
-    {0x1134,     SCANCODE_V_FORWARD             , 0}, // 
+    {0x1131,     SCANCODE_V_PAUSE               , 0}, //
+    {0x1132,     SCANCODE_V_STOP                , 0}, //
+    {0x1133,     SCANCODE_V_BACKWARD            , 0}, //
+    {0x1134,     SCANCODE_V_FORWARD             , 0}, //
     {0x1135,     SCANCODE_V_LOCATE              , 0}, //
     {0x1136,     SCANCODE_V_VOLUME_UP           , 0}, //
-    {0x1137,     SCANCODE_V_VOLUME_DOWN         , 0}, // 
-    {0x1138,     SCANCODE_V_SYSTEM              , 0}, // 
-    {0x1139,     SCANCODE_V_CONFIG              , 0}, // 
-    {0x1140,     SCANCODE_V_TRACK               , 0}, // 
-    {0x1141,     SCANCODE_V_INFO                , 0}  //    
+    {0x1137,     SCANCODE_V_VOLUME_DOWN         , 0}, //
+    {0x1138,     SCANCODE_V_SYSTEM              , 0}, //
+    {0x1139,     SCANCODE_V_CONFIG              , 0}, //
+    {0x1140,     SCANCODE_V_TRACK               , 0}, //
+    {0x1141,     SCANCODE_V_INFO                , 0}  //
 };
 
 static int gs_iCurPanelKeys = sizeof (gs_stKeyMapTable) / sizeof (MAPITEM);
 
 /*maxium scan code value of current mapping keys.*/
 static int gs_iMaxScanCode = 0;
- 
+
 /*number of mapping keys's events to be fetched by up UI.*/
-static int gs_iVKeysToBeHandled = 0; 
+static int gs_iVKeysToBeHandled = 0;
 
 /*store last key map item.*/
 static MAPITEM gs_stMapItem = {0xffff, 0, 0};
@@ -390,7 +390,7 @@ static LPMAPITEM GetMapItem (int wIndex)
     int hig = gs_iCurPanelKeys - 1;
     int mid;
 
-    /* half-way finding.*/ 
+    /* half-way finding.*/
     while (low <= hig)
     {
         mid = (low + hig) / 2;
@@ -412,10 +412,10 @@ static LPMAPITEM GetMapItem (int wIndex)
 }
 
 static void init_code_map (void)
-{ 
+{
     int i,j;
     MAPITEM stItem;
-    
+
     gs_iMaxScanCode = 0;
 
     for (i = 0; i < gs_iCurPanelKeys; ++i)
@@ -424,7 +424,7 @@ static void init_code_map (void)
         {
             gs_iMaxScanCode = gs_stKeyMapTable[i].btVirtualKey1;
         }
-        
+
         if (gs_iMaxScanCode < gs_stKeyMapTable[i].btVirtualKey2)
         {
             gs_iMaxScanCode = gs_stKeyMapTable[i].btVirtualKey2;
@@ -446,9 +446,9 @@ static void init_code_map (void)
             }
         }
     }
-    
+
     /*maxium of scan code must greater than all keys' scan code*/
-    gs_iMaxScanCode += 1; 
+    gs_iMaxScanCode += 1;
 }
 
 /************************  Low Level Input Operations **********************/
@@ -475,9 +475,9 @@ static int mouse_update (void)
     {
         if( SIM_INPUT_TYPE_MOUSE == struSimInputData.ulInputType )
         {
-            mouse_pt.x    = (struSimInputData.ucContent[0] << 8) 
+            mouse_pt.x    = (struSimInputData.ucContent[0] << 8)
                 | struSimInputData.ucContent[1];
-            mouse_pt.y    = (struSimInputData.ucContent[2] << 8) 
+            mouse_pt.y    = (struSimInputData.ucContent[2] << 8)
                 | struSimInputData.ucContent[3];
             mouse_buttons = struSimInputData.ucContent[4];
 #ifdef _DEBUG
@@ -531,7 +531,7 @@ static int keyboard_update (void)
     static BYTE s_btShiftState = 0; // up
     SIM_INPUT_MSG_S struSimInputData;
     int ret;
-    LPMAPITEM pItem;    
+    LPMAPITEM pItem;
     int wKeyCode;
     struct sockaddr_in from;
     socklen_t fromsize;
@@ -578,14 +578,14 @@ static int keyboard_update (void)
         }
 
         if (kbd_data.repeat)
-        {                      
+        {
             return 1;
         }
-        
+
 #ifdef _DEBUG
         vlog( "IAL::keyboard_update:receiv key code %x\n", kbd_data.keycode);
 #endif /* _DEBUG */
-        
+
         wKeyCode = kbd_data.keycode;
 
         if((pItem = GetMapItem(wKeyCode)) == NULL)
@@ -595,16 +595,16 @@ static int keyboard_update (void)
 #endif
             return 0;
         }
-        
+
         gs_stMapItem = *pItem;
 
         if (gs_stMapItem.btVirtualKey1)
-        {                
-            ++gs_iVKeysToBeHandled;                     
+        {
+            ++gs_iVKeysToBeHandled;
         }
         if (gs_stMapItem.btVirtualKey2)
-        {                
-            ++gs_iVKeysToBeHandled;                     
+        {
+            ++gs_iVKeysToBeHandled;
         }
     }
 
@@ -616,18 +616,18 @@ static int keyboard_update (void)
             {
 #ifdef _DEBUG
                 vlog("map virtual key(%u) down message.\n",gs_stMapItem.btVirtualKey2);
-#endif /* _DEBUG */  
+#endif /* _DEBUG */
                 if (gs_stMapItem.btVirtualKey2 == SCANCODE_LEFTSHIFT)
                 {
                     s_btShiftState = kbd_data.press;
                 }
                 kbd_state [gs_stMapItem.btVirtualKey2] = 1;
             }
-            else 
+            else
             {
 #ifdef _DEBUG
                 vlog("map virtual key(%u) down message.\n",gs_stMapItem.btVirtualKey1);
-#endif /* _DEBUG */    
+#endif /* _DEBUG */
                 if (gs_stMapItem.btVirtualKey1 == SCANCODE_LEFTSHIFT)
                 {
                     s_btShiftState = kbd_data.press;
@@ -639,7 +639,7 @@ static int keyboard_update (void)
         {
             if (gs_iVKeysToBeHandled == 2)
             {
-                if (gs_stMapItem.btVirtualKey2 == SCANCODE_LEFTSHIFT)                    
+                if (gs_stMapItem.btVirtualKey2 == SCANCODE_LEFTSHIFT)
                 {
                     if (s_btShiftState)
                     {
@@ -651,14 +651,14 @@ static int keyboard_update (void)
                         return 0;
                     }
                 }
-                
+
 #ifdef _DEBUG
                 vlog("map virtual key(%u) up message.\n",gs_stMapItem.btVirtualKey2);
-#endif /* _DEBUG */    
-                
+#endif /* _DEBUG */
+
                 kbd_state [gs_stMapItem.btVirtualKey2] = 0;
             }
-            else 
+            else
             {
                 if (gs_stMapItem.btVirtualKey1 == SCANCODE_LEFTSHIFT)
                 {
@@ -674,12 +674,12 @@ static int keyboard_update (void)
                 }
 #ifdef _DEBUG
                 vlog( "map virtual key(%u) up message.\n",gs_stMapItem.btVirtualKey1);
-#endif /* _DEBUG */  
-                
+#endif /* _DEBUG */
+
                 kbd_state [gs_stMapItem.btVirtualKey1] = 0;
             }
         }
-        
+
         --gs_iVKeysToBeHandled;
         return gs_iMaxScanCode;
     }
@@ -689,7 +689,7 @@ static int keyboard_update (void)
         vlog( "keyboard_update:no message to be update\n");
 #endif /* _DEBUG */
         return 0;
-    }    
+    }
 }
 
 static const char* keyboard_getstate (void)
@@ -701,13 +701,8 @@ static const char* keyboard_getstate (void)
 }
 
 /* NOTE by weiym: Do not ignore the fd_set in, out, and except */
-#ifdef _LITE_VERSION
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif /* _LITE_VERSION */ 
 {
     fd_set rfds;
     int    retvalue = 0;
@@ -721,22 +716,22 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
     if (which & IAL_KEYEVENT && (kbd_fd >= 0) )
     {
         if (gs_iVKeysToBeHandled > 0)
-        {        
+        {
 #ifdef _DEBUG
             vlog( "There are still some mapping virtual key "
                 "to be handled, return immediately\n");
-#endif /* _DEBUG */   
+#endif /* _DEBUG */
 
             if (in)
             {
                 FD_ZERO (in);
             }
-            
+
             if (out)
             {
                 FD_ZERO (out);
             }
-            
+
             retvalue |= IAL_KEYEVENT;
             return retvalue;
         }
@@ -745,27 +740,17 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
         {
             fd = kbd_fd;
             FD_SET (kbd_fd, in);
-#ifdef _LITE_VERSION
             if (fd > maxfd) maxfd = fd;
-#endif
-        }     
+        }
     }
-    
+
     if (which & IAL_MOUSEEVENT && mouse_fd >= 0) {
         fd = mouse_fd;
         FD_SET (fd, in);
-#ifdef _LITE_VERSION
         if (fd > maxfd) maxfd = fd;
-#endif
-    }    
+    }
 
-    /* FIXME: pass the real set size */
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, timeout) ;
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout) ;
-#endif
-
     if (e > 0) {
         fd = mouse_fd;
         /* If data is present on the mouse fd, service it: */
@@ -782,8 +767,8 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
             FD_CLR (fd, in);
             retvalue |= IAL_KEYEVENT;
             key_flag |= KEYBOARD_NETWORK;
-        }      
-    } else if (e < 0) {        
+        }
+    } else if (e < 0) {
         return -1;
     }
 
@@ -797,15 +782,15 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
 BOOL InitHI3510Input (INPUT* input, const char* mdev, const char* mtype)
 {
-    struct sockaddr_in addr;      
+    struct sockaddr_in addr;
     int iRes;
 
     kbd_fd = socket(PF_INET, SOCK_DGRAM, 0);
-    
+
     if (kbd_fd < 0)
     {
         return FALSE;
-    } 
+    }
 
     bzero(&addr, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -819,15 +804,15 @@ BOOL InitHI3510Input (INPUT* input, const char* mdev, const char* mtype)
         close(kbd_fd);
         fprintf (stderr, "Simulate Key Input Engine: Can not bind socket.\n");
         return FALSE;
-    }    
+    }
 
     mouse_fd = socket(PF_INET, SOCK_DGRAM, 0);
-    
+
     if (mouse_fd < 0)
     {
         close(kbd_fd);
         return FALSE;
-    } 
+    }
 
     bzero(&addr, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -842,7 +827,7 @@ BOOL InitHI3510Input (INPUT* input, const char* mdev, const char* mtype)
         close(mouse_fd);
         fprintf (stderr, "Simulate Key Input Engine: Can not bind socket.\n");
         return FALSE;
-    }    
+    }
 
 
     input->update_mouse = mouse_update;

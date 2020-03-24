@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** skyeye-ep7312.h: the head file of Low Level Input Engine for 
+** skyeye-ep7312.h: the head file of Low Level Input Engine for
 **              touch screen SkyEye EP7312 simulation
 **
 ** Created by Wei Yongming, 2005/03/10
@@ -91,11 +91,11 @@ struct ts_pen_info {
 /* Structure that define touch screen parameters */
 struct ts_drv_params {
   int version;     /* version number for check, returned by TS_PARAMS_GET
-		    */
+            */
   int version_req; /* version number for check, that MUST be set to
-		    * EP7312TS_VERSION prior to do TS_PARAMS_SET,
-		    * or to -1 to bypass checking (do not do this usually)
-		    */
+            * EP7312TS_VERSION prior to do TS_PARAMS_SET,
+            * or to -1 to bypass checking (do not do this usually)
+            */
   int x_ratio_num; /*                        */
   int x_ratio_den; /*                        */
   int y_ratio_num; /*                        */
@@ -110,7 +110,7 @@ struct ts_drv_params {
   int mv_thrs;     /* minimum delta move to considere the pen start to move */
   int follow_thrs; /* minimum delta move to follow the pen move when the pen
                     * is moving
-		    */
+            */
   int sample_ms;   /* time between sampling (ms) */
   int deglitch_on; /* whether to filter glitches at pen down */
   int event_queue_on; /* switch on and off the event queue */

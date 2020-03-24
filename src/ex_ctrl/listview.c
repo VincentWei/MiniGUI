@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -91,7 +91,7 @@ rect.right = p1->x + p1->width - 1;  \
 rect.top = LV_HDR_TOP;     \
 rect.bottom = plvdata->nHeadHeight;
 
-/* Gets the text rect of a subitem */
+/* Get the text rect of a subitem */
 #define LV_GET_SUBITEM_TEXTRECT(rect, textrect)  \
     textrect.left = rect.left + 2;     \
 textrect.top = rect.top + 2;       \
@@ -105,7 +105,7 @@ textrect.bottom = rect.bottom - 2;
 
 #define ISFOLD(pi)   (pi->dwFlags & LVIF_FOLD)
 /*
- * header operations 
+ * header operations
  */
 
 GET_ENTRY_BY_INDEX(lvGetHdrByCol, LSTHDR, list)
@@ -122,7 +122,7 @@ GET_ENTRY_BY_INDEX(lvGetHdrByCol, LSTHDR, list)
     /*
      * gets the previous nCols items width
      */
-    static int 
+    static int
 lvGetFrontSubItemsWidth (int nCols, PLVDATA plvdata)
 {
     PLSTHDR p1;
@@ -142,7 +142,7 @@ static PITEMDATA lvGetItemByRow (PLVDATA plvdata, int nRows)
 }
 
 /* creates a new header */
-    static PLSTHDR 
+    static PLSTHDR
 lvHdrNew (PLVCOLUMN pcol, PLVDATA plvdata, int *col)
 {
     PLSTHDR p1;
@@ -215,7 +215,7 @@ lvBeInHeadBorder (int mouseX, int mouseY, PLSTHDR p1, PLVDATA plvdata)
     return FALSE;
 }
 
-    static int 
+    static int
 lvInWhichHeadBorder (int mouseX, int mouseY, PLSTHDR *pRet, PLVDATA plvdata)
 {
     int nPos = 0;
@@ -241,7 +241,7 @@ lvInWhichHeadBorder (int mouseX, int mouseY, PLSTHDR *pRet, PLVDATA plvdata)
     return bGet ? nPos : -1;
 }
 
-    static int 
+    static int
 isInListViewHead (int mouseX, int mouseY, PLSTHDR * pRet, PLVDATA plvdata)
 {
     int nPosition = 0;
@@ -305,7 +305,7 @@ GET_ENTRY_BY_INDEX(lvGetSubItemByCol, SUBITEMDATA, list)
     /*
      * Drawing section of the listview control.
      */
-static void sDrawText (HDC hdc, int x, int y, int width, int height, 
+static void sDrawText (HDC hdc, int x, int y, int width, int height,
         const char *pszText, UINT format)
 {
     RECT rect;
@@ -324,7 +324,7 @@ static void lvDrawFold (HWND hWnd, HDC hdc, RECT *rc_text, PITEMDATA pItem)
     WINDOWINFO  *wnd_info;
     DWORD fg_color;
 
-    if (!scrollview_is_item_hilight(hWnd, (HSVITEM)pItem->addData)) 
+    if (!scrollview_is_item_hilight(hWnd, (HSVITEM)pItem->addData))
         fg_color = GetWindowElementAttr (hWnd, WE_FGC_MENU);
     else
         fg_color = GetWindowElementAttr (hWnd, WE_FGC_HIGHLIGHT_ITEM);
@@ -338,15 +338,15 @@ static void lvDrawFold (HWND hWnd, HDC hdc, RECT *rc_text, PITEMDATA pItem)
     rcFold.top      = rc_text->top  + 6;
     rcFold.bottom   = rcFold.top + 10;
 
-    if (ISFOLD(pItem)) 
-        wnd_info->we_rdr->draw_fold (hWnd, hdc, &rcFold, fg_color, 
+    if (ISFOLD(pItem))
+        wnd_info->we_rdr->draw_fold (hWnd, hdc, &rcFold, fg_color,
                 LFRDR_TREE_CHILD | LFRDR_TREE_FOLD, pItem->child_nr);
-    else 
-        wnd_info->we_rdr->draw_fold (hWnd, hdc, &rcFold, fg_color, 
+    else
+        wnd_info->we_rdr->draw_fold (hWnd, hdc, &rcFold, fg_color,
                 LFRDR_TREE_CHILD , pItem->child_nr);
 }
 
-static void alvDrawSubItem (HWND hWnd, PLVDATA plvdata, 
+static void alvDrawSubItem (HWND hWnd, PLVDATA plvdata,
         HDC hdc, PITEMDATA pItem, RECT *rcItem, int nCols)
 {
     RECT rect, rect_text;
@@ -376,7 +376,7 @@ static void alvDrawSubItem (HWND hWnd, PLVDATA plvdata,
 
         /* NUV
         fg_color = GetWindowElementAttr (hWnd, WE_FGC_WINDOW);
-        fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color), 
+        fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color),
                 GetBValue(fg_color), GetAValue(fg_color));
         */
         SetTextColor (hdc, psub->nTextColor);
@@ -392,11 +392,11 @@ static void alvDrawSubItem (HWND hWnd, PLVDATA plvdata,
     }
     else {
         bg_color = GetWindowElementAttr (hWnd, WE_BGC_HIGHLIGHT_ITEM);
-        bc = RGBA2Pixel (hdc, GetRValue(bg_color), GetGValue(bg_color), 
+        bc = RGBA2Pixel (hdc, GetRValue(bg_color), GetGValue(bg_color),
                 GetBValue(bg_color), GetAValue(bg_color));
 
         fg_color = GetWindowElementAttr (hWnd, WE_FGC_HIGHLIGHT_ITEM);
-        fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color), 
+        fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color),
                 GetBValue(fg_color), GetAValue(fg_color));
 
         SetBrushColor (hdc, bc);
@@ -536,7 +536,7 @@ static void lvDrawHeader (HWND hWnd, HDC hdc)
 
         rcButton.left   = p1->x;
         rcButton.top    = LV_HDR_TOP;
-        rcButton.right  = p1->x + p1->width; 
+        rcButton.right  = p1->x + p1->width;
         rcButton.bottom = LV_HDR_TOP + LV_HDR_HEIGHT;
 
         scrolled_content_to_window (&(plvdata->svdata.scrdata), &rcButton.left, NULL);
@@ -555,7 +555,7 @@ static void lvDrawHeader (HWND hWnd, HDC hdc)
             format = DT_SINGLELINE | DT_LEFT | DT_VCENTER;
 
         fg_color = GetWindowElementAttr (hWnd, WE_FGC_WINDOW);
-        fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color), 
+        fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color),
                 GetBValue(fg_color), GetAValue(fg_color));
         SetTextColor (hdc, fc);
 
@@ -755,7 +755,7 @@ static int lvSetContWidth (HWND hWnd, PLVDATA plvdata, int new_w)
     return width;
 }
 
-    static BOOL 
+    static BOOL
 lvAddColumnToList (HWND hWnd, PLVDATA plvdata, PLVCOLUMN pcol)
 {
     PLSTHDR p1 = NULL;
@@ -800,7 +800,7 @@ lvGetSubItemEx (PITEMDATA pitem, int nSubItem, PLVDATA plvdata)
 }
 
 /* Fills the content of a subitem */
-    static int 
+    static int
 lvFillSubItem (PITEMDATA pi, int subItem, const char *pszText, PLVDATA plvdata)
 {
     PSUBITEMDATA p1;
@@ -822,8 +822,8 @@ lvFillSubItem (PITEMDATA pi, int subItem, const char *pszText, PLVDATA plvdata)
     return 0;
 }
 
-/* Sets the text color of the subitem */
-    static int 
+/* Set the text color of the subitem */
+    static int
 lvSetSubItemTextColor (PITEMDATA pitem, int subItem, int color, PLVDATA plvdata)
 {
     PSUBITEMDATA p1;
@@ -839,7 +839,7 @@ lvSetSubItemTextColor (PITEMDATA pitem, int subItem, int color, PLVDATA plvdata)
     return 0;
 }
 
-    static int 
+    static int
 lvSetSubItem (PLVDATA plvdata, PITEMDATA pi, PLVSUBITEM pinfo)
 {
     PSUBITEMDATA p1;
@@ -878,7 +878,7 @@ lvSetSubItem (PLVDATA plvdata, PITEMDATA pi, PLVSUBITEM pinfo)
     return 0;
 }
 
-    static int 
+    static int
 lvRemoveColumn (HWND hWnd, PLVDATA plvdata, int nCols)
 {
     int offset;
@@ -983,7 +983,7 @@ static PITEMDATA lvGetLastChild (PLVDATA plvdata, PITEMDATA pitem)
     return lvGetLastChild (plvdata, pi);
 }
 
-static int lvGetSibItems (PLVDATA plvdata, PITEMDATA parent, int nItem, 
+static int lvGetSibItems (PLVDATA plvdata, PITEMDATA parent, int nItem,
         PITEMDATA *pprev, PITEMDATA *pnext)
 {
     PITEMDATA pi = NULL;
@@ -1081,7 +1081,7 @@ static int lvRemoveAllItem (HWND hWnd, PLVDATA plvdata)
     return 0;
 }
 
-void lvDelItem (HWND hWnd, HSVITEM hsvi)
+static void lvDelItem (HWND hWnd, HSVITEM hsvi)
 {
     PITEMDATA pi = LV_GET_ITEM(hsvi);
     PLVDATA plvdata = (PLVDATA)GetWindowAdditionalData2(hWnd);
@@ -1185,7 +1185,7 @@ static PITEMDATA lvFindItem (PLVDATA plvdata, PITEMDATA p1, PLVFINDINFO pFindInf
 
             list_for_each (me, &p1->subqueue) {
                 p2 = list_entry (me, SUBITEMDATA, list);
-                if (plvdata->str_cmp (p2->pszInfo, pFindInfo->pszInfo[i], 
+                if (plvdata->str_cmp (p2->pszInfo, pFindInfo->pszInfo[i],
                             (size_t)-1) != 0)
                     break;
                 if (i >= pFindInfo->nCols)
@@ -1204,7 +1204,7 @@ static PITEMDATA lvFindItem (PLVDATA plvdata, PITEMDATA p1, PLVFINDINFO pFindInf
 }
 
 /* The default comparision function for compare two items */
-    static int 
+    static int
 lvDefCompare (HSVITEM hsvi1, HSVITEM hsvi2, int ncol, PLVDATA plvdata)
 {
     PITEMDATA p1, p2;
@@ -1222,9 +1222,9 @@ lvDefCompare (HSVITEM hsvi1, HSVITEM hsvi2, int ncol, PLVDATA plvdata)
     {
         return (psub2->pszInfo != NULL)?-1:0;
     }
-	else if(psub2->pszInfo == NULL)
+    else if(psub2->pszInfo == NULL)
     {
-		return (psub1->pszInfo != NULL)?1:0;
+        return (psub1->pszInfo != NULL)?1:0;
     }
 
     if (plvdata->str_cmp)
@@ -1245,7 +1245,7 @@ static int lv_cmp_fn (MgList *mglst, HSVITEM hsvi1, HSVITEM hsvi2)
         sortdata.ncol = 0;
         sortdata.losorted = 0;
         sortdata.hLV = hWnd;
-        ret = plvdata->pfn_sort ( (HLVITEM)LV_GET_ITEM(hsvi1), 
+        ret = plvdata->pfn_sort ( (HLVITEM)LV_GET_ITEM(hsvi1),
                 (HLVITEM)LV_GET_ITEM(hsvi2), &sortdata );
         if (ret == 0)
             ret = lvDefCompare (hsvi1, hsvi2, 1, plvdata);
@@ -1254,22 +1254,22 @@ static int lv_cmp_fn (MgList *mglst, HSVITEM hsvi1, HSVITEM hsvi2)
         ret = lvDefCompare (hsvi1, hsvi2, plvdata->cur_col, plvdata);
     }
 
-    if ( (plvdata->col_sort == LOSORTED && ret < 0) || 
+    if ( (plvdata->col_sort == LOSORTED && ret < 0) ||
             (plvdata->col_sort == HISORTED && ret > 0) )
         return -1;
     return 1;
 }
 
 /* sorting items using a comparision function */
-    static int 
+    static int
 lvSortItem (PFNLVCOMPARE pfn_user, int nCols, SORTTYPE sort, PLVDATA plvdata)
 {
     PLSTHDR ph;
     PFNLVCOMPARE pcmp;
 
-    /* If pfn_user is not NULL, use it as comparision function; otherwise, 
+    /* If pfn_user is not NULL, use it as comparision function; otherwise,
      * use the one associated with nCols column.
-     */ 
+     */
     if (pfn_user)
         pcmp = pfn_user;
     else {
@@ -1290,15 +1290,15 @@ static void setup_color (HWND hWnd, PLVDATA plvdata)
 {
     int color;
 
-    color = (GetFocusChild(GetParent(hWnd)) == hWnd) ? 
-        WE_BGC_SELECTED_ITEM: WE_BGC_SELECTED_LOSTFOCUS;
-    plvdata->bkc_selected = GetWindowElementPixel (hWnd, color);
+    color = (GetFocusChild (GetParent(hWnd)) == hWnd) ?
+        WE_BGC_SELECTED_ITEM : WE_BGC_SELECTED_LOSTFOCUS;
+    plvdata->bkc_selected = GetWindowElementPixelEx (hWnd, HDC_INVALID, color);
 }
 
 static SVITEMOPS listview_iops =
 {
     NULL, lvDelItem, lvDrawItem
-};  
+};
 
 static int listview_init (HWND hWnd, PLVDATA plvdata)
 {
@@ -1365,7 +1365,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
     {
 
         case MSG_CREATE:
-            {  
+            {
                 if (!(plvdata = (PLVDATA) malloc (sizeof (LVDATA))))
                     return -1;
                 listview_init (hWnd, plvdata);
@@ -1384,7 +1384,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 int mouseX = LOSWORD (lParam);
                 int mouseY = HISWORD (lParam);
 
-                if ((LVSTATUS(hWnd) & LVST_BDDRAG) || 
+                if ((LVSTATUS(hWnd) & LVST_BDDRAG) ||
                         (lvInWhichHeadBorder (mouseX, mouseY, NULL, plvdata) >= 0)) {
                     SetCursor (GetSystemCursor (IDC_SPLIT_VERT));
                     return 0;
@@ -1440,7 +1440,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             {
                 int mouseX = LOSWORD (lParam);
                 int mouseY = HISWORD (lParam);
-                PITEMDATA pi;
+                PITEMDATA pi = NULL;
                 int nCols;
                 PLSTHDR p1;
 
@@ -1456,7 +1456,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                         BOOL bfold;
                         bfold = (ISFOLD(pi)) ? FALSE : TRUE;
                         lvFoldItem (hWnd, plvdata, pi, bfold);
-                        NotifyParentEx (hWnd, GetDlgCtrlID(hWnd), 
+                        NotifyParentEx (hWnd, GetDlgCtrlID(hWnd),
                                 bfold ? LVN_FOLDED : LVN_UNFOLDED, (DWORD)pi);
                     }
                 }
@@ -1511,7 +1511,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
                 RECT rect, rcClient;
                 PLSTHDR p1;
-                PITEMDATA pi;
+                PITEMDATA pi = NULL;
 
                 GetClientRect (hWnd, &rcClient);
 
@@ -1524,14 +1524,14 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 if (plvdata->nHeadHeight > 0)
                     nCols = isInListViewHead (mouseX, mouseY, &p1, plvdata);
 
-                if (nCols >= 0) {  
+                if (nCols >= 0) {
                     /* clicks on the header*/
                     LVSTATUS(hWnd) |= LVST_HEADCLICK;
                     LVSTATUS(hWnd) |= LVST_INHEAD;
                     plvdata->pHdrClicked = p1;
 
-                    SetRect (&rect, p1->x - plvscr->nContX, LV_HDR_TOP, 
-                            p1->x - plvscr->nContX+ p1->width, 
+                    SetRect (&rect, p1->x - plvscr->nContX, LV_HDR_TOP,
+                            p1->x - plvscr->nContX+ p1->width,
                             LV_HDR_TOP + LV_HDR_HEIGHT);
                     InvalidateRect (hWnd, &rect, TRUE);
                 }
@@ -1541,7 +1541,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                         LVSTATUS(hWnd) |= LVST_BDDRAG;
                         plvdata->nItemDraged = nCols;
                     }
-                    else if ((nRows = isInLVItem (mouseX, mouseY, &pi, plvdata, 
+                    else if ((nRows = isInLVItem (mouseX, mouseY, &pi, plvdata,
                                             &pt)) >= 0)
                     {
                         int indent;
@@ -1554,14 +1554,14 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                         }
                         indent = lvGetItemIndent (plvdata, pi);
                         if (pi->child && pt.x > indent && pt.x < indent + 9
-                                /*bmp_fold->bmWidth*/ + 4) 
+                                /*bmp_fold->bmWidth*/ + 4)
                         {
                             BOOL bfold;
                             bfold = (ISFOLD(pi)) ? FALSE : TRUE;
                             /* select highlight item first.*/
                             ScrollViewCtrlProc (hWnd, message, wParam, lParam);
                             lvFoldItem (hWnd, plvdata, pi, bfold);
-                            NotifyParentEx (hWnd, GetDlgCtrlID(hWnd), 
+                            NotifyParentEx (hWnd, GetDlgCtrlID(hWnd),
                                     bfold ? LVN_FOLDED : LVN_UNFOLDED, (DWORD)pi);
                             return 0;
                         }
@@ -1612,7 +1612,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                     LVSTATUS(hWnd) &= ~LVST_BDDRAG;
                     lvSetContWidth (hWnd, plvdata, plvdata->nHeadWidth);
                 }
-                else if (LVSTATUS(hWnd) & LVST_ITEMDRAG && GetWindowStyle(hWnd) 
+                else if (LVSTATUS(hWnd) & LVST_ITEMDRAG && GetWindowStyle(hWnd)
                         & LVS_UPNOTIFY) {
                     // NUV HSVITEM hsvi;
                     // NUV int idx;
@@ -1621,8 +1621,8 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                     // NUV hsvi = scrollview_get_item_by_index (&plvdata->svdata, idx);
                     NotifyParent (hWnd, GetDlgCtrlID(hWnd), LVN_CLICKED);
 
-                    /* LVS_UPNOTIFY only affects LVN_CLICKED 
-                    if (hsvi && hsvi != scrollview_get_hilighted_item 
+                    /* LVS_UPNOTIFY only affects LVN_CLICKED
+                    if (hsvi && hsvi != scrollview_get_hilighted_item
                                             (&plvdata->svdata)) {
                         if ( GetWindowStyle(hWnd) & LVS_UPNOTIFY ) {
                             NotifyParent (hWnd, GetDlgCtrlID(hWnd), LVN_SELCHANGE);
@@ -1653,14 +1653,14 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 if ((nCols = isInListViewHead (mouseX, mouseY, &p1, plvdata)) > 0)
                 {
                     if (message == MSG_RBUTTONDOWN)
-                        NotifyParentEx (hWnd, GetDlgCtrlID(hWnd), LVN_HEADRDOWN, 
+                        NotifyParentEx (hWnd, GetDlgCtrlID(hWnd), LVN_HEADRDOWN,
                                 (DWORD)&lvnm);
                     else
-                        NotifyParentEx (hWnd, GetDlgCtrlID(hWnd), LVN_HEADRUP, 
+                        NotifyParentEx (hWnd, GetDlgCtrlID(hWnd), LVN_HEADRUP,
                                 (DWORD)&lvnm);
                 }
                 /* clicks on an item*/
-                else if ((nRows = isInLVItem (mouseX, mouseY, NULL, plvdata, 
+                else if ((nRows = isInLVItem (mouseX, mouseY, NULL, plvdata,
                                         NULL)) >= 0)
                 {
                     if (message == MSG_RBUTTONDOWN)
@@ -1759,18 +1759,18 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
                 if (pnext) {
                     hsvi = (HSVITEM)pnext->addData;
-                    pnew->addData = (DWORD) scrollview_add_item_ex (hWnd, 
+                    pnew->addData = (DWORD) scrollview_add_item_ex (hWnd,
                             &plvdata->svdata, 0, hsvi, &svii, &nItem);
                 }
                 else if (pprev) {
                     ptmp = lvGetLastChild (plvdata, pprev);
                     hsvi = (HICON)ptmp->addData;
-                    pnew->addData = (DWORD) scrollview_add_item (hWnd, 
+                    pnew->addData = (DWORD) scrollview_add_item (hWnd,
                             &plvdata->svdata, hsvi, &svii, &nItem);
                 }
                 else {
                     hsvi = (HICON)parent->addData;
-                    pnew->addData = (DWORD) scrollview_add_item (hWnd, 
+                    pnew->addData = (DWORD) scrollview_add_item (hWnd,
                             &plvdata->svdata, hsvi, &svii, &nItem);
                 }
 
@@ -1965,13 +1965,13 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 PITEMDATA pitem = (PITEMDATA)lParam;
                 if (!pitem)
                     return LV_ERR;
-                if (sRemoveItemFromList (hWnd, plvdata, pitem)) 
+                if (sRemoveItemFromList (hWnd, plvdata, pitem))
                     return LV_ERR;
                 return LV_OKAY;
             }
         case LVM_DELALLITEM:
             {
-                lvRemoveAllItem (hWnd, plvdata); 
+                lvRemoveAllItem (hWnd, plvdata);
                 return LV_OKAY;
             }
 
@@ -2004,7 +2004,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                     pitem = lvGetItemByRow (plvdata, wParam);
                 if (!pitem)
                     return -1;
-                scrollview_make_item_visible (&plvdata->svdata, 
+                scrollview_make_item_visible (&plvdata->svdata,
                                 (HSVITEM)pitem->addData);
                 return 0;
             }
@@ -2016,7 +2016,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 if (!pitem)
                     return -1;
                 scrollview_hilight_item (&plvdata->svdata, (HSVITEM)pitem->addData);
-                scrollview_make_item_visible (&plvdata->svdata, 
+                scrollview_make_item_visible (&plvdata->svdata,
                                 (HSVITEM)pitem->addData);
                 return 0;
             }
@@ -2065,7 +2065,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 if (!pitem)
                     pitem = lvGetItemByRow(plvdata, p1->nItem);
 
-                lvSetSubItemTextColor(pitem, p1->subItem, p1->nTextColor, plvdata); 
+                lvSetSubItemTextColor(pitem, p1->subItem, p1->nTextColor, plvdata);
                 scrollview_refresh_item (&plvdata->svdata, (HSVITEM)pitem->addData);
                 return 0;
             }
@@ -2116,7 +2116,7 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
         case LVM_SETHEADHEIGHT:
             {
-                int height = (int)wParam; 
+                int height = (int)wParam;
                 RECT rc;
 
                 if (height < 0)
@@ -2167,23 +2167,23 @@ static LRESULT ListViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 }
                 return 0;
             }
-		case LVM_GETSELECTEDITEMRECT:
-			{
+        case LVM_GETSELECTEDITEMRECT:
+            {
                 HSVITEM hsvi;
-				RECT *prt = (RECT*) lParam;
-				if(prt == NULL)
-					return FALSE;
-				hsvi = scrollview_get_hilighted_item(&plvdata->svdata);
-				if (!hsvi)
-					return FALSE;
-				return scrollview_get_item_rect(hWnd, (HITEM)hsvi, prt, TRUE);
-				/*{
-					prt->top += plvdata->nHeadHeight;
-					prt->bottom += plvdata->nHeadHeight;
-					return TRUE;
-				}*/
-				return FALSE;
-			}
+                RECT *prt = (RECT*) lParam;
+                if(prt == NULL)
+                    return FALSE;
+                hsvi = scrollview_get_hilighted_item(&plvdata->svdata);
+                if (!hsvi)
+                    return FALSE;
+                return scrollview_get_item_rect(hWnd, (HITEM)hsvi, prt, TRUE);
+                /*{
+                    prt->top += plvdata->nHeadHeight;
+                    prt->bottom += plvdata->nHeadHeight;
+                    return TRUE;
+                }*/
+                return FALSE;
+            }
 
     } /* end switch */
 
@@ -2195,14 +2195,19 @@ BOOL RegisterListViewControl (void)
 {
     WNDCLASS WndClass;
 
-    WndClass.spClassName    = CTRL_LISTVIEW;
-    WndClass.dwStyle        = WS_NONE;
-    WndClass.dwExStyle      = WS_EX_NONE;
-    WndClass.hCursor        = GetSystemCursor (0);
-    WndClass.iBkColor       = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
-    WndClass.WinProc        = ListViewCtrlProc;
+    WndClass.spClassName = CTRL_LISTVIEW;
+    WndClass.dwStyle     = WS_NONE;
+    WndClass.dwExStyle   = WS_EX_NONE;
+    WndClass.hCursor     = GetSystemCursor (0);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
+    WndClass.WinProc     = ListViewCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #endif /* _MGCTRL_LISTVIEW */

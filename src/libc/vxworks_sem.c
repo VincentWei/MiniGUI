@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -94,7 +94,7 @@ _MACRO_END
 int sem_init (sem_t *sem, int pshared, unsigned int value)
 {
     SEMA_ENTRY ();
-    
+
     if (pshared) {
         fprintf (stderr, "pshared argument is not supported!");
         SEMA_RETURN (ENOSYS);
@@ -102,14 +102,14 @@ int sem_init (sem_t *sem, int pshared, unsigned int value)
 
     if (value > SEM_VALUE_MAX)
         SEMA_RETURN (EINVAL);
-    
+
     sem->semid = semCCreate (SEM_Q_FIFO, value);
 
     if (sem->semid) {
         sem->value = value;
         SEMA_RETURN (0);
     }
-        
+
     SEMA_RETURN (ENOMEM);
 }
 
@@ -123,10 +123,10 @@ int sem_destroy  (sem_t *sem)
     SEMA_ENTRY();
 
     status = semDelete (sem->semid);
-    
+
     if (status == OK)
         SEMA_RETURN (0);
-        
+
     SEMA_RETURN (EINVAL);
 }
 
@@ -142,7 +142,7 @@ int sem_wait  (sem_t *sem)
 
     // check for cancellation first.
     pthread_testcancel ();
-    
+
     status = semTake (sem->semid, WAIT_FOREVER);
 
     if (status != OK)
@@ -165,7 +165,7 @@ int sem_trywait  (sem_t *sem)
     STATUS status;
 
     SEMA_ENTRY ();
-    
+
     status = semTake (sem->semid, NO_WAIT);
     switch (status) {
     case OK:
@@ -195,7 +195,7 @@ int sem_post  (sem_t *sem)
     SEMA_ENTRY ();
 
     status = semGive (sem->semid);
-    
+
     if (status != OK)
         ret = EINVAL;
     else
@@ -203,7 +203,7 @@ int sem_post  (sem_t *sem)
 
     SEMA_RETURN (ret);
 }
-    
+
 
 // -------------------------------------------------------------------------
 // Get current value
@@ -213,7 +213,7 @@ int sem_getvalue  (sem_t *sem, int *sval)
     int ret = 0;
 
     SEMA_ENTRY ();
-    
+
     *sval = sem->value;
 
     SEMA_RETURN (ret);

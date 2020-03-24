@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id: stgfb_video.c 13621 2010-11-10 08:14:16Z humingming $
-**  
+**
 **  Copyright (C) 2003 ~ 2010 Feynman Software.
 **  Copyright (C) 2001 ~ 2002 Wei Yongming
 **
@@ -89,7 +89,7 @@
 #include "stgfb_video.h"
 
 
-//#define STGFB_DEBUG 
+//#define STGFB_DEBUG
 
 #define STGFBVID_DRIVER_NAME "stgfb"
 
@@ -128,16 +128,16 @@ static int STGFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 col
 /* STAPI functions */
 static int STAPI_Init (_THIS);
 static int STAPI_Term (_THIS);
-static int STAPI_Colorkey2ST (Uint32 colorkey, STGXOBJ_ColorType_t color_type, 
+static int STAPI_Colorkey2ST (Uint32 colorkey, STGXOBJ_ColorType_t color_type,
         STGXOBJ_ColorKeyType_t colorkey_type, BOOL bOut, STGXOBJ_ColorKey_t *st_colorkey);
-static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* rect, 
+static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* rect,
         GAL_Color* color, BOOL wait_sync);
-static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect, 
+static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
         GAL_Surface* dst, GAL_Rect* dstrect, BOOL wait_sync);
 #if 0
 static BOOL STAPI_DoesIntersect (const GAL_Rect* psrc1, const GAL_Rect* psrc2);
 static unsigned int STAPI_CalcPitch(int w, int bpp);
-static int STAPI_BlitWrapper (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect, 
+static int STAPI_BlitWrapper (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
         GAL_Surface* dst, GAL_Rect* dstrect, BOOL wait_sync);
 #endif
 
@@ -213,19 +213,19 @@ static int STAPI_Init (_THIS)
     /* check whether framebuffer is opened */
     if(console_fd < 0) {
         perror(strerror(errno));
-        fprintf(stderr, "STAPI_Init >> before call STAPI_Init must open stgfb device!\n"); 
+        fprintf(stderr, "STAPI_Init >> before call STAPI_Init must open stgfb device!\n");
         goto stapi_init_err;
     }
-    
+
     /* open stlayer device */
-    devpath = getenv("STLAYER_IOCTL_DEV_PATH");  
+    devpath = getenv("STLAYER_IOCTL_DEV_PATH");
     if (devpath == NULL )
         devpath = "/dev/stapi/stlayer_ioctl";
 
-    stlayer_fd = open(devpath, O_RDWR); 
+    stlayer_fd = open(devpath, O_RDWR);
     if(stlayer_fd < 0) {
         perror(strerror(errno));
-        fprintf(stderr, "STAPI_Init >> open layer device failed!\n"); 
+        fprintf(stderr, "STAPI_Init >> open layer device failed!\n");
         goto stapi_init_err;
     }
 
@@ -237,25 +237,25 @@ static int STAPI_Init (_THIS)
     }
 
     debug_print("STAPi_Init >> get layer handle ok =[%x]\n", viewport_handle);
-    
+
     /* enable primary layer */
     if (ioctl(console_fd, STGFB_IO_ENABLE_LAYER, &enable) != 0) {
         perror(strerror(errno));
         fprintf(stderr, "STPI_Init >> Unable to enable layer !\n");
         goto stapi_init_err;
     }
-   
-	/* get the layer informations */
+
+    /* get the layer informations */
     memset(&STLAYER_Ioctl_GetViewPortParams, 0, sizeof(STLAYER_Ioctl_GetViewPortParams_t));
-	STLAYER_Ioctl_GetViewPortParams.VPHandle = viewport_handle;
+    STLAYER_Ioctl_GetViewPortParams.VPHandle = viewport_handle;
 
-	if (ioctl(stlayer_fd, STLAYER_IOC_GETVIEWPORTPARAMS, &STLAYER_Ioctl_GetViewPortParams) != 0) {
+    if (ioctl(stlayer_fd, STLAYER_IOC_GETVIEWPORTPARAMS, &STLAYER_Ioctl_GetViewPortParams) != 0) {
         perror(strerror(errno));
-		fprintf(stderr, "STAPI_Init >> Unable to get the layer parameters!\n");
-		goto stapi_init_err;
-	}
+        fprintf(stderr, "STAPI_Init >> Unable to get the layer parameters!\n");
+        goto stapi_init_err;
+    }
 
-	/* get ViewPort params */
+    /* get ViewPort params */
     screen_bmp = STLAYER_Ioctl_GetViewPortParams.FlatParams.Source.Data.BitMap;
     screen_bmp.Height = vinfo.yres;
 
@@ -263,26 +263,26 @@ static int STAPI_Init (_THIS)
             bitmapType:%d\n\
             w:%d, h:%d, pitch:%d, offset:%d, size1:%d\n\
             data1_p:%p, data1_Cp:%p, data1_NCp:%p\n\
-            data2_p:%p, data2_Cp:%p, data2_NCp:%p\n\n", 
+            data2_p:%p, data2_Cp:%p, data2_NCp:%p\n\n",
             screen_bmp.ColorType,
             screen_bmp.BitmapType,
-            screen_bmp.Width, screen_bmp.Height, screen_bmp.Pitch, 
+            screen_bmp.Width, screen_bmp.Height, screen_bmp.Pitch,
             screen_bmp.Offset, screen_bmp.Size1,
             (char*)screen_bmp.Data1_p, (char*)screen_bmp.Data1_Cp, (char*)screen_bmp.Data1_NCp,
             (char*)screen_bmp.Data2_p, (char*)screen_bmp.Data2_Cp, (char*)screen_bmp.Data2_NCp);
 
     return 0;
-    
+
 stapi_init_err:
-    if (stlayer_fd > 0) 
+    if (stlayer_fd > 0)
         close(stlayer_fd);
     return -1;
 }
-    
+
 
 static int STAPI_Term (_THIS)
 {
-    if (stlayer_fd > 0) 
+    if (stlayer_fd > 0)
         close(stlayer_fd);
 
     stlayer_fd = -1;
@@ -295,12 +295,12 @@ static int STAPI_Term (_THIS)
 BOOL STAPI_DoesIntersect (const GAL_Rect* psrc1, const GAL_Rect* psrc2)
 {
     int left, top, right, bottom;
-    
+
     left = (psrc1->x > psrc2->x) ? psrc1->x : psrc2->x;
     top  = (psrc1->y > psrc2->y) ? psrc1->y : psrc2->y;
-    right = ((psrc1->x + psrc1->w) < (psrc2->x + psrc2->w)) 
+    right = ((psrc1->x + psrc1->w) < (psrc2->x + psrc2->w))
         ? (psrc1->x + psrc1->w) : (psrc2->x + psrc2->w);
-    bottom = ((psrc1->y + psrc1->h) < (psrc2->y + psrc2->h)) 
+    bottom = ((psrc1->y + psrc1->h) < (psrc2->y + psrc2->h))
         ? (psrc1->y + psrc1->h) : (psrc2->y + psrc2->h);
 
     if(left >= right || top >= bottom)
@@ -327,47 +327,47 @@ static unsigned int STAPI_CalcPitch (int w, int bbp)
     }
 
     /* 4-byte aligning */
-    pitch = (pitch + 3) & ~3;    
+    pitch = (pitch + 3) & ~3;
     return(pitch);
 }
 #endif
 
 
-static int STAPI_Colorkey2ST (Uint32 colorkey, STGXOBJ_ColorType_t color_type, 
+static int STAPI_Colorkey2ST (Uint32 colorkey, STGXOBJ_ColorType_t color_type,
         STGXOBJ_ColorKeyType_t colorkey_type, BOOL bOut, STGXOBJ_ColorKey_t *st_colorkey)
 {
-	Uint8 Rmin, Rmax, Gmin, Gmax, Bmin, Bmax;
+    Uint8 Rmin, Rmax, Gmin, Gmax, Bmin, Bmax;
 
-	switch (color_type)
-	{
-		/* NOTE: we're only concerned about getting the right value (pDev->colourKey)
-		       into the register, so unstuffing then restuffing the color components
-		       should always work with an RGB888 type. */
-  		case STGXOBJ_COLOR_TYPE_RGB888:
-		case STGXOBJ_COLOR_TYPE_ARGB8888:
-		case STGXOBJ_COLOR_TYPE_ARGB8888_255:
-			Rmin = Rmax = (colorkey >> 16) & 0xFF;
-			Gmin = Gmax = (colorkey >> 8) & 0xFF;
-			Bmin = Bmax = (colorkey >> 0) & 0xFF;
-			break;
+    switch (color_type)
+    {
+        /* NOTE: we're only concerned about getting the right value (pDev->colourKey)
+               into the register, so unstuffing then restuffing the color components
+               should always work with an RGB888 type. */
+          case STGXOBJ_COLOR_TYPE_RGB888:
+        case STGXOBJ_COLOR_TYPE_ARGB8888:
+        case STGXOBJ_COLOR_TYPE_ARGB8888_255:
+            Rmin = Rmax = (colorkey >> 16) & 0xFF;
+            Gmin = Gmax = (colorkey >> 8) & 0xFF;
+            Bmin = Bmax = (colorkey >> 0) & 0xFF;
+            break;
 
-		case STGXOBJ_COLOR_TYPE_ARGB1555:
-			Rmin = ((colorkey >> 10) & 0x1F) << 3;
-			Rmax = Rmin + 0x7;
-			Gmin = ((colorkey >> 5) & 0x1F) << 3;
-			Gmax = Gmin + 0x7;
-			Bmin = ((colorkey >> 0) & 0x1F) << 3;
-			Bmax = Bmin + 0x7;
-			break;
+        case STGXOBJ_COLOR_TYPE_ARGB1555:
+            Rmin = ((colorkey >> 10) & 0x1F) << 3;
+            Rmax = Rmin + 0x7;
+            Gmin = ((colorkey >> 5) & 0x1F) << 3;
+            Gmax = Gmin + 0x7;
+            Bmin = ((colorkey >> 0) & 0x1F) << 3;
+            Bmax = Bmin + 0x7;
+            break;
 
         case STGXOBJ_COLOR_TYPE_ARGB4444:
             Rmin = ((colorkey >> 8) & 0x1F) << 4;
-			Rmax = Rmin + 0x7;
+            Rmax = Rmin + 0x7;
             Gmin = ((colorkey >> 4) & 0x1F) << 4;
-			Gmax = Gmin + 0x7;
+            Gmax = Gmin + 0x7;
             Bmin = ((colorkey >> 0) & 0x1F) << 4;
-			Bmax = Bmin + 0x7;
-			break;
+            Bmax = Bmin + 0x7;
+            break;
 
         case STGXOBJ_COLOR_TYPE_RGB565:
             Rmin = ((colorkey >> 11) & 0x1F) << 3;
@@ -376,52 +376,52 @@ static int STAPI_Colorkey2ST (Uint32 colorkey, STGXOBJ_ColorType_t color_type,
             Gmax = Gmin + 0x3;
             Bmin = ((colorkey >> 0) & 0x1F) << 3;
             Bmax = Bmin + 0x7;
-			break;
+            break;
 
-  		default:
-  			fprintf(stderr, "Src ColorKey: colortype error -- source type is %d\n", color_type);
+          default:
+              fprintf(stderr, "Src ColorKey: colortype error -- source type is %d\n", color_type);
             return -1;
-	}
+    }
 
-	st_colorkey->Type = colorkey_type;
+    st_colorkey->Type = colorkey_type;
 
     switch (colorkey_type)
-	{
-		case STGXOBJ_COLOR_KEY_TYPE_RGB888:
-	        st_colorkey->Type = STGXOBJ_COLOR_KEY_TYPE_RGB888;
-	        st_colorkey->Value.RGB888.REnable = TRUE;
-	        st_colorkey->Value.RGB888.GEnable = TRUE;
-	        st_colorkey->Value.RGB888.BEnable = TRUE;
-	        st_colorkey->Value.RGB888.ROut = bOut;
-	        st_colorkey->Value.RGB888.GOut = bOut;
-	        st_colorkey->Value.RGB888.BOut = bOut;
-	        st_colorkey->Value.RGB888.RMin = Rmin;
-	        st_colorkey->Value.RGB888.RMax = Rmax;
-	        st_colorkey->Value.RGB888.GMin = Gmin;
-	        st_colorkey->Value.RGB888.GMax = Gmax;
-	        st_colorkey->Value.RGB888.BMin = Bmin;
-	        st_colorkey->Value.RGB888.BMax = Bmax;
-  			debug_print("Src ColorKey set to RGB888: colourKey=0x%x; Rmax=%d, Gmax=%d, Bmax=%d\n",
-  				   colorkey,
+    {
+        case STGXOBJ_COLOR_KEY_TYPE_RGB888:
+            st_colorkey->Type = STGXOBJ_COLOR_KEY_TYPE_RGB888;
+            st_colorkey->Value.RGB888.REnable = TRUE;
+            st_colorkey->Value.RGB888.GEnable = TRUE;
+            st_colorkey->Value.RGB888.BEnable = TRUE;
+            st_colorkey->Value.RGB888.ROut = bOut;
+            st_colorkey->Value.RGB888.GOut = bOut;
+            st_colorkey->Value.RGB888.BOut = bOut;
+            st_colorkey->Value.RGB888.RMin = Rmin;
+            st_colorkey->Value.RGB888.RMax = Rmax;
+            st_colorkey->Value.RGB888.GMin = Gmin;
+            st_colorkey->Value.RGB888.GMax = Gmax;
+            st_colorkey->Value.RGB888.BMin = Bmin;
+            st_colorkey->Value.RGB888.BMax = Bmax;
+              debug_print("Src ColorKey set to RGB888: colourKey=0x%x; Rmax=%d, Gmax=%d, Bmax=%d\n",
+                     colorkey,
                    st_colorkey->Value.RGB888.RMax,
                    st_colorkey->Value.RGB888.GMax,
                    st_colorkey->Value.RGB888.BMax );
-  			debug_print("                                            Rmin=%d, Gmin=%d, Bmin=%d\n",
-	                   st_colorkey->Value.RGB888.RMin,
-	                   st_colorkey->Value.RGB888.GMin,
-	                   st_colorkey->Value.RGB888.BMin );
-		    break;
+              debug_print("                                            Rmin=%d, Gmin=%d, Bmin=%d\n",
+                       st_colorkey->Value.RGB888.RMin,
+                       st_colorkey->Value.RGB888.GMin,
+                       st_colorkey->Value.RGB888.BMin );
+            break;
 
-		default:
-  			fprintf(stderr, "Src ColorKey: colorkey type error -- type is %d\n", colorkey_type);
-  			return -1;
-	}
+        default:
+              fprintf(stderr, "Src ColorKey: colorkey type error -- type is %d\n", colorkey_type);
+              return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 
-static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstrect, 
+static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstrect,
         GAL_Color* color, BOOL wait_sync)
 {
     if (color == NULL) {
@@ -431,27 +431,27 @@ static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstre
 
     STGXOBJ_Color_t         stgxobj_color;
     STGXOBJ_Bitmap_t*       st_bitmap = &dst->hwdata->st_bitmap;
-	STGFB_BLIT_Command_t    Command;
+    STGFB_BLIT_Command_t    Command;
 
-	memset(&Command, 0, sizeof(STGFB_BLIT_Command_t));
+    memset(&Command, 0, sizeof(STGFB_BLIT_Command_t));
     memset(&stgxobj_color, 0, sizeof(STGXOBJ_Color_t));
 
     /* set colorkey */
     if (dst->flags & GAL_SRCCOLORKEY) {
-        STAPI_Colorkey2ST(dst->format->colorkey, st_bitmap->ColorType, 
+        STAPI_Colorkey2ST(dst->format->colorkey, st_bitmap->ColorType,
                 STGXOBJ_COLOR_KEY_TYPE_RGB888, FALSE, &Command.Params.Blit.Context.ColorKey);
-	    Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_DST;
+        Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_DST;
     }
     else {
-	    Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_NONE;
+        Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_NONE;
     }
 
     /* note: the alpha range is [0, 128] */
     if (dst->flags & GAL_SRCALPHA) {
         Command.Params.Blit.Context.AluMode = STBLIT_ALU_ALPHA_BLEND;
-        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == st_bitmap->ColorType 
+        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == st_bitmap->ColorType
                 || STGXOBJ_COLOR_TYPE_ARGB8565_255 == st_bitmap->ColorType
-                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == st_bitmap->ColorType
                 || STGXOBJ_COLOR_TYPE_ALPHA8_255 == st_bitmap->ColorType
                 )
             Command.Params.Blit.Context.GlobalAlpha = dst->format->alpha;
@@ -460,9 +460,9 @@ static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstre
     }
     else {
         Command.Params.Blit.Context.AluMode = STBLIT_ALU_COPY;
-        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == st_bitmap->ColorType 
+        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == st_bitmap->ColorType
                 || STGXOBJ_COLOR_TYPE_ARGB8565_255 == st_bitmap->ColorType
-                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == st_bitmap->ColorType
                 || STGXOBJ_COLOR_TYPE_ALPHA8_255 == st_bitmap->ColorType
                 )
             Command.Params.Blit.Context.GlobalAlpha = 255;
@@ -496,22 +496,22 @@ static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstre
             break;
 
         default:
-		    fprintf(stderr, "STAPI_FillRect >>  color type: [%d] not supported !\n",
+            fprintf(stderr, "STAPI_FillRect >>  color type: [%d] not supported !\n",
                     stgxobj_color.Type);
             return -1;
     }
 
-    debug_print("STAPI_FillRect >>  type:%d, r:%d, g:%d, b:%d, a:%d, alu:%d, alpha:%d\n", 
-            stgxobj_color.Type, color->r, color->g, color->b, color->a, 
+    debug_print("STAPI_FillRect >>  type:%d, r:%d, g:%d, b:%d, a:%d, alu:%d, alpha:%d\n",
+            stgxobj_color.Type, color->r, color->g, color->b, color->a,
             Command.Params.Blit.Context.AluMode, Command.Params.Blit.Context.GlobalAlpha);
 
     /* set blit operation to blit */
-	Command.Operation = STGFB_BLIT_BLIT;
-	Command.Params.Blit.Handle = 0;
+    Command.Operation = STGFB_BLIT_BLIT;
+    Command.Params.Blit.Handle = 0;
 
     /* set blit src context */
     Command.Params.Blit.SrcType = STBLIT_SOURCE_TYPE_COLOR;
-    Command.Params.Blit.SrcData_p = &stgxobj_color; 
+    Command.Params.Blit.SrcData_p = &stgxobj_color;
 
     /* set blit dst context */
     memcpy(&Command.Params.Blit.DestBitmap, st_bitmap, sizeof(STGXOBJ_Bitmap_t));
@@ -529,20 +529,20 @@ static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstre
     Command.Params.Blit.Context.WriteInsideClipRectangle = FALSE;
     Command.Params.Blit.Context.EnableFlickerFilter = FALSE;
 #if defined(STBLIT_OBSOLETE_USE_RESIZE_IN_BLIT_CONTEXT)
-    Command.Params.Blit.Context.EnableResizeFilter	= FALSE;
+    Command.Params.Blit.Context.EnableResizeFilter    = FALSE;
 #endif
     Command.Params.Blit.Context.JobHandle = STBLIT_NO_JOB_HANDLE;
 
     /* set blit event */
     Command.Params.Blit.Context.UserTag_p = NULL;
-    Command.Params.Blit.Context.NotifyBlitCompletion = GLOBAL_NBC;  
+    Command.Params.Blit.Context.NotifyBlitCompletion = GLOBAL_NBC;
 
     /* blit io command */
- 	if (ioctl(fd, STGFB_IO_BLIT_COMMAND, &Command) != 0) {
+     if (ioctl(fd, STGFB_IO_BLIT_COMMAND, &Command) != 0) {
         perror(strerror(errno));
         fprintf(stderr, "STAPI_FillRect >> ioctl: STGFB_IO_BLIT_COMMAND error\n");
-		return -1;
-	}
+        return -1;
+    }
 
     /* sync the blitter, no need any params */
     if (wait_sync) {
@@ -552,20 +552,20 @@ static int STAPI_FillRectangle (_THIS, int fd, GAL_Surface* dst, GAL_Rect* dstre
         }
     }
 
-	return 0;
+    return 0;
 }
 
 
 #if 0
-static void STBlit_Callback (STEVT_CallReason_t Reason, const ST_DeviceName_t RegistrantName, 
+static void STBlit_Callback (STEVT_CallReason_t Reason, const ST_DeviceName_t RegistrantName,
         STEVT_EventConstant_t Event, const void *EventData, const void *SubscriberData_p)
 {
     debug_print("STBli_Callback >> call ... ...\n");
 
     /* ignore all blitter callback not for the rack */
-    if (SubscriberData_p != STBLIT_CALLBACK_MAGIC) 
+    if (SubscriberData_p != STBLIT_CALLBACK_MAGIC)
         return;
-    
+
     switch (Event) {
         case STBLIT_BLIT_COMPLETED_EVT:
             debug_print("STBli_Callback >> blit completed\n");
@@ -584,8 +584,8 @@ static void STBlit_Callback (STEVT_CallReason_t Reason, const ST_DeviceName_t Re
 }
 
 
-static int STAPI_SubscribeDeviceEvent (int fd, STEVT_Handle_t Handle, 
-        const ST_DeviceName_t RegistrantName, STEVT_EventConstant_t EventConst, 
+static int STAPI_SubscribeDeviceEvent (int fd, STEVT_Handle_t Handle,
+        const ST_DeviceName_t RegistrantName, STEVT_EventConstant_t EventConst,
         const STEVT_DeviceSubscribeParams_t* SubscribeParams, STEVT_SubscriberID_t* SubscriberID)
 {
     STEVT_Ioctl_GetSubscriberID_t       EVT_Ioctl_GetSubscribeIDParams;
@@ -595,9 +595,9 @@ static int STAPI_SubscribeDeviceEvent (int fd, STEVT_Handle_t Handle,
     EVT_Ioctl_SubscribeDeviceParams.EventConst = EventConst;
 
     if (RegistrantName)
-        strcpy(EVT_Ioctl_SubscribeDeviceParams.RegistrantName, RegistrantName); 
+        strcpy(EVT_Ioctl_SubscribeDeviceParams.RegistrantName, RegistrantName);
     else
-        EVT_Ioctl_SubscribeDeviceParams.RegistrantName[0] = '\0'; 
+        EVT_Ioctl_SubscribeDeviceParams.RegistrantName[0] = '\0';
 
     debug_print("STAPI_SubscribeDevieceEvent >> fd:%d, %s\n", fd,
             EVT_Ioctl_SubscribeDeviceParams.RegistrantName);
@@ -605,7 +605,7 @@ static int STAPI_SubscribeDeviceEvent (int fd, STEVT_Handle_t Handle,
     /* set subscribe device event */
     if (SubscribeParams != NULL ) {
         if (SubscribeParams->NotifyCallback) {
-            EVT_Ioctl_SubscribeDeviceParams.CBAck = CBAck; 
+            EVT_Ioctl_SubscribeDeviceParams.CBAck = CBAck;
             EVT_Ioctl_SubscribeDeviceParams.SubscribeParams = *SubscribeParams;
 
             if (ioctl(fd, STEVT_IOC_SUBSCRIBEDEVICEEVENT, &EVT_Ioctl_SubscribeDeviceParams) == -1) {
@@ -644,36 +644,36 @@ static int STAPI_SubscribeDeviceEvent (int fd, STEVT_Handle_t Handle,
 #endif
 
 
-static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect, 
+static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
         GAL_Surface* dst, GAL_Rect* dstrect, BOOL wait_sync)
 {
 
     STGXOBJ_Bitmap_t*               src_st_bitmap = &src->hwdata->st_bitmap;
     STGXOBJ_Bitmap_t*               dst_st_bitmap = &dst->hwdata->st_bitmap;
-	STGFB_BLIT_Command_t            Command;
+    STGFB_BLIT_Command_t            Command;
 
-	memset(&Command, 0, sizeof(STGFB_BLIT_Command_t));
+    memset(&Command, 0, sizeof(STGFB_BLIT_Command_t));
 
-    debug_print("STAPI_Blit >> src:(%d,%d,%d,%d), dst:(%d,%d,%d,%d)\n", 
+    debug_print("STAPI_Blit >> src:(%d,%d,%d,%d), dst:(%d,%d,%d,%d)\n",
             srcrect->x, srcrect->y, srcrect->w, srcrect->h,
             dstrect->x, dstrect->y, dstrect->w, dstrect->h);
 
     /* set the colorkey */
     if (src->flags & GAL_SRCCOLORKEY) {
-        STAPI_Colorkey2ST(src->format->colorkey, src_st_bitmap->ColorType, 
+        STAPI_Colorkey2ST(src->format->colorkey, src_st_bitmap->ColorType,
                 STGXOBJ_COLOR_KEY_TYPE_RGB888, FALSE, &Command.Params.Blit.Context.ColorKey);
-	    Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_SRC;
+        Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_SRC;
     }
     else {
-	    Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_NONE;
+        Command.Params.Blit.Context.ColorKeyCopyMode = STBLIT_COLOR_KEY_MODE_NONE;
     }
 
     /* note: the alpha range is [0, 128] */
     if (src->flags & GAL_SRCALPHA) {
         Command.Params.Blit.Context.AluMode = STBLIT_ALU_ALPHA_BLEND;
-        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == src_st_bitmap->ColorType 
+        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == src_st_bitmap->ColorType
                 || STGXOBJ_COLOR_TYPE_ARGB8565_255 == src_st_bitmap->ColorType
-                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == src_st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == src_st_bitmap->ColorType
                 || STGXOBJ_COLOR_TYPE_ALPHA8_255 == src_st_bitmap->ColorType
                 )
             Command.Params.Blit.Context.GlobalAlpha = src->format->alpha;
@@ -682,9 +682,9 @@ static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
     }
     else {
         Command.Params.Blit.Context.AluMode = STBLIT_ALU_COPY;
-        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == src_st_bitmap->ColorType 
+        if ( STGXOBJ_COLOR_TYPE_ARGB8888_255 == src_st_bitmap->ColorType
                 || STGXOBJ_COLOR_TYPE_ARGB8565_255 == src_st_bitmap->ColorType
-                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == src_st_bitmap->ColorType 
+                || STGXOBJ_COLOR_TYPE_ACLUT88_255 == src_st_bitmap->ColorType
                 || STGXOBJ_COLOR_TYPE_ALPHA8_255 == src_st_bitmap->ColorType
                 )
             Command.Params.Blit.Context.GlobalAlpha = 255;
@@ -693,12 +693,12 @@ static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
     }
 
     /* set blit operation to blit */
-	Command.Operation = STGFB_BLIT_BLIT;
-	Command.Params.Blit.Handle = 0;
+    Command.Operation = STGFB_BLIT_BLIT;
+    Command.Params.Blit.Handle = 0;
 
     /* set blit src context */
     Command.Params.Blit.SrcType = STBLIT_SOURCE_TYPE_BITMAP;
-    Command.Params.Blit.SrcData_p = src_st_bitmap; 
+    Command.Params.Blit.SrcData_p = src_st_bitmap;
     Command.Params.Blit.SrcRectangle.PositionX = srcrect->x;
     Command.Params.Blit.SrcRectangle.PositionY = srcrect->y;
     Command.Params.Blit.SrcRectangle.Width = srcrect->w;
@@ -720,20 +720,20 @@ static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
     Command.Params.Blit.Context.WriteInsideClipRectangle = FALSE;
     Command.Params.Blit.Context.EnableFlickerFilter = FALSE;
 #if defined(STBLIT_OBSOLETE_USE_RESIZE_IN_BLIT_CONTEXT)
-    Command.Params.Blit.Context.EnableResizeFilter	= FALSE;
+    Command.Params.Blit.Context.EnableResizeFilter    = FALSE;
 #endif
     Command.Params.Blit.Context.JobHandle = STBLIT_NO_JOB_HANDLE;
 
     /* set blit event */
     Command.Params.Blit.Context.UserTag_p = NULL;
-    Command.Params.Blit.Context.NotifyBlitCompletion = GLOBAL_NBC;  
+    Command.Params.Blit.Context.NotifyBlitCompletion = GLOBAL_NBC;
 
     /* blit io command */
- 	if (ioctl(fd, STGFB_IO_BLIT_COMMAND, &Command) != 0) {
+     if (ioctl(fd, STGFB_IO_BLIT_COMMAND, &Command) != 0) {
         perror(strerror(errno));
         fprintf(stderr, "STAPI_Blit >> ioctl: STGFB_IO_BLIT_COMMAND error\n");
-		return -1;
-	}
+        return -1;
+    }
 
     /* sync the blitter, no need any params */
     if (wait_sync) {
@@ -743,12 +743,12 @@ static int STAPI_Blit (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
         }
     }
 
-	return 0;
+    return 0;
 }
 
 
 #if 0
-static int STAPI_BlitWrapper (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect, 
+static int STAPI_BlitWrapper (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect,
         GAL_Surface* dst, GAL_Rect* dstrect, BOOL wait_sync)
 {
     /* the src is the same of the dst, and srcrect is overlap with dstrect.
@@ -758,7 +758,7 @@ static int STAPI_BlitWrapper (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect
 
         GAL_Rect tmp_rc;
         GAL_Surface tmp;
-        
+
         memcpy(&tmp, src, sizeof(GAL_Surface));
         tmp.w = srcrect->w;
         tmp.h = srcrect->h;
@@ -771,7 +771,7 @@ static int STAPI_BlitWrapper (_THIS, int fd, GAL_Surface* src, GAL_Rect* srcrect
 
         if (STGFB_AllocHWSurface(this, &tmp) < 0)
             goto blitwrapper_err;
-        
+
         tmp_rc.x = 0;
         tmp_rc.y = 0;
         tmp_rc.w = tmp.hwdata->st_bitmap.Width;
@@ -847,7 +847,7 @@ static GAL_VideoDevice *STGFB_CreateDevice (int devindex)
     this->SetColors = STGFB_SetColors;
     this->VideoQuit = STGFB_VideoQuit;
     this->UpdateRects = STGFB_UpdateRects;
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA_PROCS
     this->RequestHWSurface = STGFB_RequestHWSurface;
 #endif
     this->AllocHWSurface = STGFB_AllocHWSurface;
@@ -917,10 +917,10 @@ static int STGFB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     mapped_offset = (((long)finfo.smem_start) -
                     (((long)finfo.smem_start)&~(getpagesize () - 1)));
     mapped_memlen = finfo.smem_len + mapped_offset;
-    
+
     mapped_mem = mmap(NULL, mapped_memlen,
                             PROT_READ|PROT_WRITE, MAP_SHARED, console_fd, 0);
-    
+
     if (mapped_mem == (char *)-1) {
         GAL_SetError("NEWGAL>STGFB: Unable to memory map the video hardware\n");
         mapped_mem = NULL;
@@ -978,7 +978,7 @@ static GAL_Surface *STGFB_SetVideoMode (_THIS, GAL_Surface *current,
     Uint32 Rmask, Gmask, Bmask, Amask;
 
     switch (screen_bmp.ColorType) {
-  		case STGXOBJ_COLOR_TYPE_RGB888:
+          case STGXOBJ_COLOR_TYPE_RGB888:
             depth = 32;
             Amask = 0x00000000;
             Rmask = 0x00FF0000;
@@ -986,8 +986,8 @@ static GAL_Surface *STGFB_SetVideoMode (_THIS, GAL_Surface *current,
             Bmask = 0x000000FF;
             break;
 
-  		case STGXOBJ_COLOR_TYPE_ARGB8888:
-  		case STGXOBJ_COLOR_TYPE_ARGB8888_255:
+          case STGXOBJ_COLOR_TYPE_ARGB8888:
+          case STGXOBJ_COLOR_TYPE_ARGB8888_255:
             depth = 32;
             Amask = 0xFF000000;
             Rmask = 0x00FF0000;
@@ -995,7 +995,7 @@ static GAL_Surface *STGFB_SetVideoMode (_THIS, GAL_Surface *current,
             Bmask = 0x000000FF;
             break;
 
-		case STGXOBJ_COLOR_TYPE_RGB565:
+        case STGXOBJ_COLOR_TYPE_RGB565:
             depth = 16;
             Amask = 0x00000000;
             Rmask = 0x0000F800;
@@ -1003,7 +1003,7 @@ static GAL_Surface *STGFB_SetVideoMode (_THIS, GAL_Surface *current,
             Bmask = 0x0000001F;
             break;
 
-		case STGXOBJ_COLOR_TYPE_ARGB1555:
+        case STGXOBJ_COLOR_TYPE_ARGB1555:
             depth = 16;
             Amask = 0x00008000;
             Rmask = 0x00007C00;
@@ -1045,7 +1045,7 @@ static GAL_Surface *STGFB_SetVideoMode (_THIS, GAL_Surface *current,
         current->hwdata->user_addr = mapped_mem + mapped_offset;
         current->hwdata->block = NULL;
 
-	    memset(&current->hwdata->st_bitmap, 0, sizeof(STGXOBJ_Bitmap_t));
+        memset(&current->hwdata->st_bitmap, 0, sizeof(STGXOBJ_Bitmap_t));
         memcpy(&current->hwdata->st_bitmap, &screen_bmp, sizeof(STGXOBJ_Bitmap_t));
 
         current->pixels = (void*)(mapped_mem + mapped_offset);
@@ -1053,7 +1053,7 @@ static GAL_Surface *STGFB_SetVideoMode (_THIS, GAL_Surface *current,
         current->flags = GAL_FULLSCREEN | GAL_HWSURFACE;
     }
 
-    debug_print("STGFB_SetVideoMode >> screen:%p, screen_usradder:%p, pitch:%d\n", 
+    debug_print("STGFB_SetVideoMode >> screen:%p, screen_usradder:%p, pitch:%d\n",
             current, (char*)current->pixels, current->pitch);
 
     /* We're done */
@@ -1114,7 +1114,7 @@ static int STGFB_AllocHWSurface (_THIS, GAL_Surface *surface)
         surface->hwdata->block = block;
         surface->hwdata->offset = offset;
 
-	    memset(&surface->hwdata->st_bitmap, 0, sizeof(STGXOBJ_Bitmap_t));
+        memset(&surface->hwdata->st_bitmap, 0, sizeof(STGXOBJ_Bitmap_t));
         memcpy(&surface->hwdata->st_bitmap, &screen_bmp, sizeof(STGXOBJ_Bitmap_t));
 
         surface->hwdata->st_bitmap.Width = surface->w;
@@ -1122,10 +1122,10 @@ static int STGFB_AllocHWSurface (_THIS, GAL_Surface *surface)
         surface->hwdata->st_bitmap.Pitch = surface->pitch;
         surface->hwdata->st_bitmap.Size1 = surface->pitch * surface->h;
         surface->hwdata->st_bitmap.Data1_p = (void*)(finfo.smem_start + offset);
-        surface->hwdata->user_addr = mapped_mem + offset; 
+        surface->hwdata->user_addr = mapped_mem + offset;
 
         debug_print("addr:%p, user_addr;%p, size1:%d, pitch:%d, block:%p\n",
-                surface->hwdata->st_bitmap.Data1_p, surface->hwdata->user_addr, 
+                surface->hwdata->st_bitmap.Data1_p, surface->hwdata->user_addr,
                 surface->hwdata->st_bitmap.Size1, surface->hwdata->st_bitmap.Pitch,
                 surface->hwdata->block);
 
@@ -1133,7 +1133,7 @@ static int STGFB_AllocHWSurface (_THIS, GAL_Surface *surface)
         surface->pixels = surface->hwdata->user_addr;
         surface->pitch = surface->hwdata->st_bitmap.Pitch;
         return 0;
-    } 
+    }
     else {
         surface->flags &= ~GAL_HWSURFACE;
         return -1;
@@ -1186,21 +1186,21 @@ static void STGFB_FreeHWSurface (_THIS, GAL_Surface *surface)
 static void STGFB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
 {
     /* alloc hw surface */
-    if (request->bucket == NULL) {     
+    if (request->bucket == NULL) {
         gal_vmblock_t* block = gal_vmbucket_alloc(&vmem_bucket, request->pitch, request->h);
         if (block) {
             debug_print("STGFB_RequestHWSurface >> alloc an block:%p\n", block);
             reply->offset = block->offset;
             reply->pitch = block->pitch;
             reply->bucket = (void*)block;
-        } 
+        }
         else {
             reply->bucket = NULL;
         }
 
     }
     /* free hw surface */
-    else { 
+    else {
         gal_vmblock_t* block = (gal_vmblock_t*)request->bucket;
         debug_print("STGFB_RequestHWSurface >> free an block:%p\n", block);
         if (block != NULL) {
@@ -1221,7 +1221,7 @@ static int STGFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 col
     if (rect->w <= 0 || rect->h <= 0) {
         fprintf(stderr, "STGFB_FillHWRect >> dstrect invaildate\n");
         return -1;
-	}
+    }
 
     if (dst->hwdata == NULL) {
         fprintf(stderr, "STGFB_FillHWRect >> dst hwdata NULL\n");
@@ -1244,14 +1244,14 @@ static int STGFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 col
 
     if (rect->x + rect->w > dst->hwdata->st_bitmap.Width)
         rect->w = dst->hwdata->st_bitmap.Width - rect->x;
-    
+
     if (rect->y + rect->h > dst->hwdata->st_bitmap.Height)
         rect->h = dst->hwdata->st_bitmap.Height - rect->y;
 
     /* conver the pixel to RGB or RGBA */
     GAL_GetRGBA(color, dst->format, &gal_color.r, &gal_color.g, &gal_color.b, &gal_color.a);
     //gal_color.a = 255;
-    debug_print("color:%d, r:%d, g:%d, b:%d, a:%d\n", 
+    debug_print("color:%d, r:%d, g:%d, b:%d, a:%d\n",
             color, gal_color.r, gal_color.g, gal_color.b, gal_color.a);
 
     return STAPI_FillRectangle(this, console_fd, dst, rect, &gal_color, TRUE);
@@ -1265,7 +1265,7 @@ static int STGFB_CheckHWBlit (_THIS, GAL_Surface * src, GAL_Surface * dst)
 
     /* only supported the hw surface accelerated. */
     if (!(src->flags & GAL_HWSURFACE) || !(dst->flags & GAL_HWSURFACE)) {
-        fprintf(stderr, "src(%s) dst(%s)\n", 
+        fprintf(stderr, "src(%s) dst(%s)\n",
                 (src->flags & GAL_HWSURFACE) ? "HW" : "SW",
                 (dst->flags & GAL_HWSURFACE) ? "HW" : "SW");
         return -1;
@@ -1285,7 +1285,7 @@ static int STGFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *
     if (srcrect->w <= 0 || srcrect->h <= 0 || dstrect->w <= 0 || dstrect->h <= 0) {
         fprintf(stderr, "STGFB_HWBlit >> srcrect or dstrect invaildate\n");
         return -1;
-	}
+    }
 
     if (src->hwdata == NULL || dst->hwdata == NULL) {
         fprintf(stderr, "STGFB_HWBlit >> src or dst hwdata NULL\n");
@@ -1309,7 +1309,7 @@ static int STGFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *
 
     if (srcrect->x + srcrect->w > src_st_bitmap->Width)
         srcrect->w = src_st_bitmap->Width - srcrect->x;
-    
+
     if (srcrect->y + srcrect->h > src_st_bitmap->Height)
         srcrect->h = src_st_bitmap->Height - srcrect->y;
 
@@ -1321,7 +1321,7 @@ static int STGFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *
 
     if (dstrect->x + dstrect->w > dst_st_bitmap->Width)
         dstrect->w = dst_st_bitmap->Width - dstrect->x;
-    
+
     if (dstrect->y + dstrect->h > dst_st_bitmap->Height)
         dstrect->h = src_st_bitmap->Height - srcrect->y;
 

@@ -52,7 +52,6 @@
  */
 
 /* The GAL video driver */
-typedef struct GAL_VideoDevice GAL_VideoDevice;
 struct REQ_HWSURFACE;
 struct REP_HWSURFACE;
 
@@ -64,7 +63,7 @@ typedef struct _VIDEO_MEM_INFO
     int video_mem_len;
     int video_mem_offset;
     int video_pitch;
-}VIDEO_MEM_INFO;
+} VIDEO_MEM_INFO;
 
 
 /* Define the GAL video driver structure */
@@ -102,10 +101,10 @@ struct GAL_VideoDevice {
     GAL_Surface *(*SetVideoMode)(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags);
 
+#if 0
     /* Toggle the fullscreen mode */
     int (*ToggleFullScreen)(_THIS, int on);
 
-#if 0
     /* This is called after the video mode has been set, to get the
        initial mouse state.  It should queue events as necessary to
        properly represent the current mouse focus and position.
@@ -113,7 +112,7 @@ struct GAL_VideoDevice {
     void (*UpdateMouse)(_THIS);
 #endif
 
-    /* Sets the color entries { firstcolor .. (firstcolor+ncolors-1) }
+    /* Set the color entries { firstcolor .. (firstcolor+ncolors-1) }
        of the physical palette to those in 'colors'. If the device is
        using a software palette (GAL_HWPALETTE not set), then the
        changes are reflected in the logical palette of the screen
@@ -129,6 +128,9 @@ struct GAL_VideoDevice {
      */
     void (*UpdateRects)(_THIS, int numrects, GAL_Rect *rects);
 
+    /* Synchronize the dirty content */
+    BOOL (*SyncUpdate)(_THIS);
+
     /* Reverse the effects VideoInit() -- called if VideoInit() fails
        or if the application is shutting down the video subsystem.
     */
@@ -140,15 +142,60 @@ struct GAL_VideoDevice {
     /* Information about the video hardware */
     GAL_VideoInfo info;
 
-#ifndef _MGRM_THREADS
+#ifdef _MGRM_PROCESSES
+    /* Copy video information to shared resource segment */
+    void (*CopyVideoInfoToSharedRes)(_THIS);
     /* Request a surface in video memory */
-    void (*RequestHWSurface)(_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
+    void (*RequestHWSurface)(_THIS, const REQ_HWSURFACE* request,
+            REP_HWSURFACE* reply);
 #endif
 
     /* Allocates a surface in video memory */
     int (*AllocHWSurface)(_THIS, GAL_Surface *surface);
 
-    /* Sets the hardware accelerated blit function, if any, based
+#if IS_COMPOSITING_SCHEMA
+    /* Allocate a shared surface in hardware video memory.
+       Set to NULL if no hardware shared surface supported.
+       Return the PRIME file descriptor if success, otherwize -1. */
+    int (*AllocSharedHWSurface)(_THIS, GAL_Surface *surface,
+            size_t* map_size, off_t* pixels_off, Uint32 rw_modes);
+
+    /* Free a shared surface in hardware video memory.
+       Set to NULL if no hardware shared surface supported.
+       Return 0 if success, otherwize -1. */
+    int (*FreeSharedHWSurface)(_THIS, GAL_Surface *surface);
+
+    /* Attach to a shared surface in hardware video memory.
+       Set to NULL if no hardware shared surface supported.
+       Return 0 if success, otherwize -1. */
+    int (*AttachSharedHWSurface)(_THIS, GAL_Surface *surface,
+            int prime_fd, size_t mapsize, BOOL with_rw);
+
+    /* Dettach from a shared surface in hardware video memory.
+       Set to NULL if no hardware shared surface supported.
+       Return 0 if success, otherwise -1. */
+    int (*DettachSharedHWSurface)(_THIS, GAL_Surface *surface);
+
+    /* Allocate a dumb surface from hardware.
+       Set to NULL if dumb surface is not supported.
+       Return 0 if success, otherwise -1. */
+    int (*AllocDumbSurface)(_THIS, GAL_Surface *surface);
+
+    /* Free a dumb surface allocated from hardware.
+       Set to NULL if dumb surface is not supported.
+       Return 0 if success, otherwise -1. */
+    void (*FreeDumbSurface)(_THIS, GAL_Surface *surface);
+
+    /* Set hardware cursor.
+       Set to NULL or return -1 if no hardware cursor support. */
+    int (*SetCursor)(_THIS, GAL_Surface *surface, int hot_x, int hot_y);
+
+    /* Move hardware cursor to new position.
+       Set to NULL or return -1 if no hardware cursor support. */
+    int (*MoveCursor)(_THIS, int x, int y);
+#endif /* IS_COMPOSITING_SCHEMA */
+
+    /* Set the hardware accelerated blit function, if any, based
        on the current flags of the surface (colorkey, alpha, etc.)
      */
     int (*CheckHWBlit)(_THIS, GAL_Surface *src, GAL_Surface *dst);
@@ -156,10 +203,10 @@ struct GAL_VideoDevice {
     /* Fills a surface rectangle with the given color */
     int (*FillHWRect)(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);
 
-    /* Sets video mem colorkey and accelerated blit function */
+    /* Set video mem colorkey and accelerated blit function */
     int (*SetHWColorKey)(_THIS, GAL_Surface *surface, Uint32 key);
 
-    /* Sets per surface hardware alpha value */
+    /* Set per surface hardware alpha value */
     int (*SetHWAlpha)(_THIS, GAL_Surface *surface, Uint8 value);
 
 #if 0
@@ -179,8 +226,6 @@ struct GAL_VideoDevice {
     /* * * */
     /* Data common to all drivers */
     GAL_Surface *screen;
-//    GAL_Surface *shadow;
-//    GAL_Surface *visible;
     GAL_Palette *physpal;    /* physical palette, if != logical palette */
     char *wm_title;
     char *wm_icon;
@@ -335,10 +380,9 @@ extern VideoBootStrap DRM_bootstrap;
 /* This is the current video device */
 extern GAL_VideoDevice *__mg_current_video;
 
-#define GAL_VideoSurface    (__mg_current_video->screen)
-#define GAL_PublicSurface    (__mg_current_video->screen)
+#define GAL_VideoSurface        (__mg_current_video->screen)
+#define GAL_PublicSurface       (__mg_current_video->screen)
 
-GAL_VideoDevice *GAL_GetVideo(const char* driver_name);
 void Slave_FreeSurface (GAL_Surface *surface);
 
 #endif /* _GAL_sysvideo_h */

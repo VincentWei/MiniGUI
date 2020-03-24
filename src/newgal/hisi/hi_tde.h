@@ -11,42 +11,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** $Id: hi_tde.h 7268 2007-07-03 08:08:43Z xwyan $
 **
-** hi_tde.h: header file. 
+** hi_tde.h: header file.
 **
 ** Copyright (C) 2007 Feynman Software.
 **
@@ -56,12 +56,12 @@
 #ifndef __TDE_H__
 #define __TDE_H__
 
-#define U32 unsigned int 
+#define U32 unsigned int
 #define U8  unsigned char
 #define U16 unsigned short int
 
 #define HI_RET int
-#define IN 
+#define IN
 #define OUT
 #define IO
 #define HI_SUCCESS 0
@@ -76,13 +76,13 @@ typedef enum
     TDE_CMD_NOTHING = 0,
     TDE_CMD_MOVE_BLIT = 1,
     TDE_CMD_PATTERN_CLIP = 2,
-    TDE_CMD_SOLID_DRAW = 3    
+    TDE_CMD_SOLID_DRAW = 3
 }TDE_CMD;
 
 typedef enum
 {
     TDE_COLORSPACE_ENABLE = 1,
-    TDE_COLORSPACE_DISABLE = 0    
+    TDE_COLORSPACE_DISABLE = 0
 }TDE_COLORSPACE;
 
 typedef enum
@@ -96,7 +96,7 @@ typedef enum
 typedef enum
 {
     TDE_OUT_ALPHAFROM_SRC = 0,
-    TDE_OUT_ALPHAFROM_INTERNAL = 1    
+    TDE_OUT_ALPHAFROM_INTERNAL = 1
 }TDE_OUT_ALPHAFROM;
 
 typedef enum
@@ -115,7 +115,7 @@ typedef enum
 ** S:Source    P:Pattern    D:Destination
 ** in MoveBlit, PS-->S;
 ** in PatternFill, PS-->P
-** in Solid Draw, no source and pattern, PS-->filled_color 
+** in Solid Draw, no source and pattern, PS-->filled_color
 */
 typedef enum
 {
@@ -166,7 +166,7 @@ typedef struct tag_TDE_MoveBlitParam
 
     /* Operated Size = opt_width*opt_height */
     U16    opt_width;
-    U16 opt_height;    
+    U16 opt_height;
 
     /* src_surface */
     U8 *    src_pixels;
@@ -203,7 +203,7 @@ typedef struct tag_TDE_PatternFillParam
 
     /* Operated Size = opt_width*opt_height */
     U16 opt_width;
-    U16 opt_height;    
+    U16 opt_height;
 
     /* src_surface */
     U8 *    src_pixels;
@@ -266,7 +266,7 @@ extern void TDE_AntiFlicker(U32 src1_phy_addr,
                                U32 img_width,
                                U32 img_heigth,
                                U32 img_stride,
-                               U32 coff, 
+                               U32 coff,
                                U32 flag,
                                U32 offset);
 void MoveVOAddr(U32 Addr);
@@ -274,14 +274,14 @@ void TDE_WaitForDone(void);
 
 /* extend functions */
 HI_RET TDE_wmemcpy(
-    U32* dest, 
-    const U32* src, 
+    U32* dest,
+    const U32* src,
     size_t wcount);
 
 
-HI_RET TDE_wmemset( 
+HI_RET TDE_wmemset(
     U32* dest,
-    U32 w, 
+    U32 w,
     size_t wcount);
 
 

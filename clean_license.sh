@@ -1,15 +1,15 @@
 #! /bin/bash
 
 keyword_list="
-license_create
-license_destroy
-screensaver_create
-screensaver_destroy
-splash_draw_framework
-splash_progress
-splash_delay
-license_on_input
-license_on_timeout
+__mg_license_create
+__mg_license_destroy
+__mg_screensaver_create
+__mg_screensaver_destroy
+__mg_splash_draw_framework
+__mg_splash_progress
+__mg_splash_delay
+__mg_license_on_input
+__mg_license_on_timeout
 license_get_processor_id
 #\s*include.*license\/c_files.*
 #\s*include.*license\.h

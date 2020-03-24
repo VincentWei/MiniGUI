@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -82,7 +82,7 @@ typedef struct tagTTFGLYPHINFO {
 #ifdef _MGFONT_TTF_CACHE
 typedef unsigned long HCACHE;
 typedef int (* MakeHashKeyFunc)(unsigned short unicode);
-#endif 
+#endif
 
 
 typedef struct tagTTFINSTANCEINFO {
@@ -104,42 +104,42 @@ typedef struct tagTTFINSTANCEINFO {
 
 #ifdef _MGFONT_TTF_CACHE
     unsigned short       cur_unicode;
-#endif 
+#endif
     short       cur_glyph_code;
     TT_Pos      cur_xmin, cur_ymin;
     TT_F26Dot6  cur_width, cur_height;
     TT_Pos      cur_advance;
 
-#ifdef _MGFONT_TTF_CACHE    
+#ifdef _MGFONT_TTF_CACHE
     TT_BBox     cur_bbox;
     TT_Pos      cur_vec_x, cur_vec_y;
-#endif 
+#endif
 
     short       last_glyph_code;
     short       last_pen_pos;
-    
-#ifdef _MGFONT_TTF_CACHE    
+
+#ifdef _MGFONT_TTF_CACHE
     HCACHE      cache;
 #endif
 } TTFINSTANCEINFO, *PTTFINSTANCEINFO;
 
 
 #ifdef _MGFONT_TTF_CACHE
-    
+
     typedef struct tagTTFCACHEINFO {
         unsigned short unicode;
         short       glyph_code;
-        
+
         TT_Pos      cur_xmin, cur_ymin;
         TT_F26Dot6  width, height;
         TT_Pos      advance;
         TT_BBox     bbox;
-    
+
         TT_Pos      vec_x, vec_y;
         void        *bitmap;
     } TTFCACHEINFO, *PTTFCACHEINFO;
 
-#endif 
+#endif
 
 #define TTF_INST_INFO_P(devfont) ((TTFINSTANCEINFO*)(devfont->data))
 #define TTF_GLYPH_INFO_P(devfont) ((TTFGLYPHINFO*)(TTF_INST_INFO_P(devfont)->ttf_glyph_info))
@@ -148,24 +148,24 @@ typedef struct tagTTFINSTANCEINFO {
 
 #define _TTF_HASH_NDIR   37
 
-extern HCACHE __mg_ttc_create(char *family, char *charset, DWORD style, int size, 
+extern HCACHE __mg_ttc_create(char *family, char *charset, DWORD style, int size,
       int nblk, int blksize, int ndir, MakeHashKeyFunc makeHashKey);
 extern int __mg_ttc_write(HCACHE hCache, TTFCACHEINFO *data, int size);
 extern void __mg_ttc_release(HCACHE hCache);
 extern int __mg_ttc_sys_init(int maxCache, int cacheSize);
 extern void __mg_ttc_sys_deinit(void);
-extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache, 
+extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache,
                unsigned short unicode, int *size);
-extern HCACHE __mg_ttc_is_exist(char *family, char *charset, 
+extern HCACHE __mg_ttc_is_exist(char *family, char *charset,
                DWORD style, int size);
 extern void __mg_ttc_refer(HCACHE hCache);
 
-#endif 
+#endif
 
 //#define TTF_DBG 1
 #ifndef TTF_DBG
-#define DP(x) 
-#else 
+#define DP(x)
+#else
 #define DP(x) do { printf x; } while (0)
 #endif
 

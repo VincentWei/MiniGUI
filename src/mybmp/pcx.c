@@ -11,43 +11,43 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** pcx.c: Low-level PCX bitmap file read/save routines.
-** 
+**
 ** Some code comes from pcx.c of Allegro (a gift-ware) by Shawn Hargreaves.
-** 
+**
 ** Current maintainer:  Wei Yongming.
 */
 
@@ -66,7 +66,7 @@
  *  at least 256 RGB structures).
  */
 typedef struct {
-	int bytes_per_line;
+    int bytes_per_line;
 
 } init_info_t;
 
@@ -78,12 +78,12 @@ void * __mg_init_pcx (MG_RWops* f, MYBITMAP * bmp, RGB *pal)
     unsigned long size;
     unsigned char* bits;
     int pitch;
-	init_info_t * bmp_info = NULL;
+    init_info_t * bmp_info = NULL;
 
-	bmp_info=(init_info_t *)malloc(sizeof(init_info_t));
-	if (!bmp_info)
-		return NULL;
- 
+    bmp_info=(init_info_t *)malloc(sizeof(init_info_t));
+    if (!bmp_info)
+        return NULL;
+
     fp_getc(f);                    /* skip manufacturer ID */
     fp_getc(f);                    /* skip version flag */
     fp_getc(f);                    /* skip encoding flag */
@@ -120,37 +120,37 @@ void * __mg_init_pcx (MG_RWops* f, MYBITMAP * bmp, RGB *pal)
     pitch = bmp_info->bytes_per_line * bpp / 8;
     size = pitch * height;
     bmp->bits = bits;
-	bmp->depth = bpp;
+    bmp->depth = bpp;
     bmp->w     = width;
     bmp->h     = height;
     bmp->flags = MYBMP_FLOW_DOWN;
     bmp->pitch = pitch;
     bmp->frames = 1;
     bmp->size  = size;
-	
-//	bmp_info = & (bmp_info->bytes_per_line);
-	
-	return bmp_info;
+
+//    bmp_info = & (bmp_info->bytes_per_line);
+
+    return bmp_info;
 
 }
 
 void __mg_cleanup_pcx (void * init_info)
 {
-	if (init_info)
-		free(init_info);
-	init_info = NULL;
+    if (init_info)
+        free(init_info);
+    init_info = NULL;
 
 }
 int __mg_load_pcx (MG_RWops* f, void* init_info, MYBITMAP *bmp, CB_ONE_SCANLINE cb, void* context)
 {
-	init_info_t *info = (init_info_t *)init_info;
-	int c;
-	int xx, po;
+    init_info_t *info = (init_info_t *)init_info;
+    int c;
+    int xx, po;
     int x, y;
-	char ch;
-	BYTE * bits;
+    char ch;
+    BYTE * bits;
 
-	bits=bmp->bits;
+    bits=bmp->bits;
     for (y=0; y<bmp->h; y++, bits +=bmp->pitch) {       /* read RLE encoded PCX data */
         x = xx = 0;
         po = 0;
@@ -193,7 +193,7 @@ int __mg_load_pcx (MG_RWops* f, void* init_info, MYBITMAP *bmp, CB_ONE_SCANLINE 
     }
 #if 0
     if (bpp == 8) {                  /* look for a 256 color palette */
-        while (!MGUI_RWeof(f)) { 
+        while (!MGUI_RWeof(f)) {
             if (fp_getc(f)==12) {
                 for (c=0; c<256; c++) {
                     pal[c].r = fp_getc(f);
@@ -308,7 +308,7 @@ int save_pcx (FILE* f, MYBITMAP *bmp, RGB *pal)
    }
 
    if (depth == 8) {                      /* 256 color palette */
-      fp_putc(12, f); 
+      fp_putc(12, f);
 
       for (c=0; c<256; c++) {
      fp_putc(_rgb_scale_6[pal[c].r], f);

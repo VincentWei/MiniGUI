@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** evmv10e.c: Low Level Input Engine for DigiPro xScale EVMV 1.0.
-** 
+**
 ** Created by Yao Yunyuan, 2004/08/20
 */
 
@@ -68,7 +68,7 @@
 #include <termios.h>
 
 #include "ial.h"
-#include "evmv10.h" 
+#include "evmv10.h"
 
 #define _DEBUG_EVMV10    0
 
@@ -111,7 +111,7 @@ static void mouse_getxy(int *x, int* y)
 {
     *x = pos.x;
     *y = pos.y;
-    
+
 }
 
 static int mouse_getbutton(void)
@@ -148,13 +148,8 @@ static const char* keyboard_getstate(void)
     return (char *)state;
 }
 
-#ifdef _LITE_VERSION 
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     fd_set rfds;
     int    retvalue = 0;
@@ -166,26 +161,17 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
     if ((which & IAL_MOUSEEVENT) && ts >= 0) {
         FD_SET (ts, in);
-#ifdef _LITE_VERSION
         if (ts > maxfd) maxfd = ts;
-#endif
     }
     if ((which & IAL_KEYEVENT) && kb_fd >= 0){
         FD_SET (kb_fd, in);
-#ifdef _LITE_VERSION
         if(kb_fd > maxfd) maxfd = kb_fd;
-#endif
     }
 
-#ifdef _LITE_VERSION
     if ( select (maxfd + 1, in, out, except, timeout) < 0 )
-#else
-    if ( select (FD_SETSIZE, in, out, except, timeout) < 0 )
-#endif
-    return -1;
-   
-    if (ts >= 0 && FD_ISSET (ts, in))
-    {
+        return -1;
+
+    if (ts >= 0 && FD_ISSET (ts, in)) {
         FD_CLR (ts, in);
         if ( read (ts, &pos, sizeof (POS)) == sizeof(POS) ) {
             pos.header = ( pos.header > 0 ? IAL_MOUSE_LEFTBUTTON:0 );
@@ -196,7 +182,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
             return -1;
         }
     }
- 
+
 
     if (kb_fd >= 0 && FD_ISSET(kb_fd, in))
     {

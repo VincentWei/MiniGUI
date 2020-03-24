@@ -12,12 +12,12 @@
 //////////////////////////////////////////////////////////////////////////////
 /**
  * \file scrollbar.h
- * \author wangjian 
+ * \author wangjian
  * \date 2008/01/17
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: scrollbar.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_SCROLLBAR_H
 #define _MGUI_CTRL_SCROLLBAR_H
- 
+
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -105,7 +105,7 @@ extern "C" {
  * \def SBS_BOTTOMALIGN
  * \brief Create a horizontal scrollbar on the bottom of the rect.
  *
- * \note This style must be used together with SBS_HORZ, and the height of the 
+ * \note This style must be used together with SBS_HORZ, and the height of the
  * scrollbar will depend on the window elements or renderer.
  */
 #define SBS_BOTTOMALIGN 0x0001
@@ -114,7 +114,7 @@ extern "C" {
  * \def SBS_TOPALIGN
  * \brief Create a horizontal scrollbar on the top of the rect.
  *
- * \note This style must be used together with SBS_HORZ, and the height of the 
+ * \note This style must be used together with SBS_HORZ, and the height of the
  * scrollbar will depend on the window elements or renderer.
  */
 #define SBS_TOPALIGN  0x0002
@@ -123,7 +123,7 @@ extern "C" {
  * \def SBS_LEFTALIGN
  * \brief Create a vertical scrollbar on the left of the rect.
  *
- * \note This style must be used together with SBS_VERT, and the width of the 
+ * \note This style must be used together with SBS_VERT, and the width of the
  * scrollbar will depend on the window elements or renderer.
  */
 #define SBS_LEFTALIGN  0x0001
@@ -132,7 +132,7 @@ extern "C" {
  * \def SBS_RIGHTALIGN
  * \brief Create a vertical scrollbar on the right of the rect.
  *
- * \note This style must be used together with SBS_VERT, and the width of the 
+ * \note This style must be used together with SBS_VERT, and the width of the
  * scrollbar will depend on the window elements or renderer.
  */
 #define SBS_RIGHTALIGN  0x0002
@@ -191,15 +191,15 @@ extern "C" {
  * \def SBM_GETPOS
  * \brief Get the thumb pos of the scrollbar.
  *
- * An application sends a SBM_GETPOS message to get the start position 
- * of the scrollbar thumb. 
+ * An application sends a SBM_GETPOS message to get the start position
+ * of the scrollbar thumb.
  *
  * \code
  * SBM_GETPOS
  * int pos;
- * 
+ *
  * pos = SendMessage (hwnd_scrollbar, SBM_GETPOS, 0, 0);
- * \endcode 
+ * \endcode
  *
  * \return the postion of the thumb.
  */
@@ -209,20 +209,20 @@ extern "C" {
  * \def SBM_SETPOS
  * \brief Set the thumb pos of the scrollbar.
  *
- * An application sends a SBM_SETPOS message to set the start position 
- * of the scrollbar thumb. 
+ * An application sends a SBM_SETPOS message to set the start position
+ * of the scrollbar thumb.
  *
  * \code
  * SBM_SETPOS
  * int pos = 10;
  * BOOL redraw = TRUE;
- * 
+ *
  * wParam = (WPARAM)pos;
  * lParam = (LPARAM)redraw;
  * SendMessage (hwnd_scrollbar, SBM_SETPOS, wParam, lParam);
  * \endcode
  *
- * \param pos The new positon of the thumb to set. 
+ * \param pos The new positon of the thumb to set.
  * \param redraw Whether to repaint the control, TRUE for repaint, FALSE for not.
  *
  * \return the old postion of the thumb.
@@ -233,15 +233,15 @@ extern "C" {
  * \def SBM_GETRANGE
  * \brief Get the range of the scrollbar.
  *
- * An application sends a SBM_GETRANGE message to get the move 
- * range of the scrollbar. 
+ * An application sends a SBM_GETRANGE message to get the move
+ * range of the scrollbar.
  *
  * \code
  * SBM_GETRANGE
  * int range;
- * 
+ *
  * range = SendMessage (hwnd_scrollbar, SBM_GETRANGE, 0, 0);
- * \endcode 
+ * \endcode
  *
  * \return the range of the scrollbar.
  */
@@ -251,14 +251,14 @@ extern "C" {
  * \def SBM_SETRANGE
  * \brief Set the range of the scrollbar.
  *
- * An application sends a SBM_SETRANGE message to set the move 
- * range of the scrollbar. 
+ * An application sends a SBM_SETRANGE message to set the move
+ * range of the scrollbar.
  *
  * \code
  * SBM_SETRANGE
  * int min = 0;
  * int max = 100;
- * 
+ *
  * wParam = (WPARAM)min;
  * lParam = (LPARAM)max;
  * SendMessage (hwnd_scrollbar, SBM_SETRANGE, wParam, lParam);
@@ -275,14 +275,14 @@ extern "C" {
  * \def SBM_SETRANGEREDRAW
  * \brief Set the range of the scrollbar.
  *
- * An application sends a SBM_SETRANGEREDRAW message to set the move 
- * range of the scrollbar and redraw the control. 
+ * An application sends a SBM_SETRANGEREDRAW message to set the move
+ * range of the scrollbar and redraw the control.
  *
  * \code
  * SBM_SETRANGEREDRAW
  * int min = 0;
  * int max = 100;
- * 
+ *
  * wParam = (WPARAM)min;
  * lParam = (LPARAM)max;
  * SendMessage (hwnd_scrollbar, SBM_SETRANGEREDRAW, wParam, lParam);
@@ -300,13 +300,13 @@ extern "C" {
  * \brief Enable or disable the arrow of the scrollbar.
  *
  * An application sends a SBM_ENABLE_ARROW message to enable or disable
- * the arrow button of the scrollbar. 
+ * the arrow button of the scrollbar.
  *
  * \code
  * SBM_ENABLE_ARROW
  * int which = SB_ARROW_LTUP;
  * BOOL is_active;
- * 
+ *
  * wParam = (WPARAM)which;
  * lParam = (LPARAM)is_active;
  * SendMessage (hwnd_scrollbar, SBM_ENABLE_ARROW, wParam, lParam);

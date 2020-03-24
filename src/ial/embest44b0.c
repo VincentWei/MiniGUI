@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** hh44b0.c: Low Level Input Engine for Embest ARM44B0
-** 
+**
 ** Created by Zhang Xinhua, 2005/06/xx.
 */
 
@@ -68,8 +68,8 @@
 #include "ial.h"
 #include "hh44b0.h"
 
-#define I2C_SET_DATA_ADDR	0x0601
-#define I2C_SET_BUS_CLOCK	0x0602
+#define I2C_SET_DATA_ADDR    0x0601
+#define I2C_SET_BUS_CLOCK    0x0602
 
 /* for data reading from /dev/keyboard/0raw */
 static int btn_fd = -1;
@@ -143,13 +143,8 @@ static const char* keyboard_getstate(void)
     return (char *)state;
 }
 
-#ifdef _LITE_VERSION 
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     fd_set rfds;
     int    retvalue = 0;
@@ -164,16 +159,10 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
     if ((which & IAL_KEYEVENT) && btn_fd >= 0) {
         FD_SET (btn_fd, in);
-#ifdef _LITE_VERSION
         if(btn_fd > maxfd) maxfd = btn_fd;
-#endif
     }
-#ifdef _LITE_VERSION
-    e = select (maxfd + 1, in, out, except, timeout) ;
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout) ;
-#endif
 
+    e = select (maxfd + 1, in, out, except, timeout) ;
     if (e > 0) {
         if (btn_fd >= 0 && FD_ISSET(btn_fd, in)) {
             FD_CLR(btn_fd, in);

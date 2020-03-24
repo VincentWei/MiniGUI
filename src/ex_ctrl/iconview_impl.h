@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -131,21 +131,21 @@ typedef struct _IconviewData
 #define pivscr ((PSCRDATA)pivdata)
 #define hivwnd (pivscr->hSV)
 
-/* ------------------------- external api -------------------------- */
+/* ------------------------- internal funcs -------------------------- */
 
-int     iconview_init               (HWND hWnd, IconviewData* psv);
-void    iconview_destroy            (IconviewData* pivdata);
+static int  iconview_init (HWND hWnd, IconviewData* psv);
+static void iconview_destroy (IconviewData* pivdata);
 
-HITEM   iconview_add_item           (HWND hWnd, IconviewData* pivdata, HITEM hsvi, PIVITEMINFO pii, int *idx);
-HITEM   iconview_add_item_ex        (HWND hWnd, IconviewData* pivdata, HITEM hsvi, 
-                                       HITEM nexthsvi, PIVITEMINFO pii, int *idx);
-int     iconview_del_item           (HWND hWnd, IconviewData* pivdata, int nItem, HITEM hsvi);
+static HITEM iconview_add_item (HWND hWnd,
+        IconviewData* pivdata, HITEM hsvi, PIVITEMINFO pii, int *idx);
+static int  iconview_del_item (HWND hWnd,
+        IconviewData* pivdata, int nItem, HITEM hsvi);
 
-void    iconview_reset_content      (HWND hWnd, IconviewData* pivdata);
-int     iconview_is_in_item         (IconviewData* pivdata, int mousex, int mousey, HITEM *phsvi);
-void    iconview_set_ivlist         (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged);
+static void iconview_reset_content (HWND hWnd, IconviewData* pivdata);
+static void iconview_set_ivlist (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged);
 
-int iconview_get_item_pos (IconviewData* pivdata, HITEM hsvi, int *x, int *y);
+static int iconview_get_item_pos (IconviewData* pivdata,
+        HITEM hsvi, int *x, int *y);
 
 static inline void iconview_set_autosort (IconviewData* pivdata)
 {
@@ -207,6 +207,13 @@ static inline HITEM iconview_get_prev_item (IconviewData* pivdata, HITEM hivi)
     return (HITEM)mglist_get_prev_item((MgList *)&pivdata->ivlist, (MgItem *)hivi);
 }
 
+#if 0 /* VW: not used code */
+static HITEM iconview_add_item_ex (HWND hWnd,
+        IconviewData* pivdata, HITEM hsvi,
+        HITEM nexthsvi, PIVITEMINFO pii, int *idx);
+static int  iconview_is_in_item (IconviewData* pivdata,
+        int mousex, int mousey, HITEM *phsvi);
+#endif /* VW: not used code */
 
 #ifdef __cplusplus
 }

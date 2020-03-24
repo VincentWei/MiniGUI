@@ -16,13 +16,13 @@
   this code without permission or acknowledgement in any way you wish.
   Send questions, comments, complaints, performance data, etc to
   dl@cs.oswego.edu.
- 
+
   last update: Sun Feb 25 18:38:11 2001  Doug Lea  (dl at gee)
 
   This header is for ANSI C/C++ only.  You can set either of
   the following #defines before including:
 
-  * If USE_DL_PREFIX is defined, it is assumed that malloc.c 
+  * If USE_DL_PREFIX is defined, it is assumed that malloc.c
     was also compiled with this option, so all routines
     have names starting with "dl".
 
@@ -105,7 +105,7 @@ void*  dlcalloc(size_t, size_t);
   prefers extending p when possible, otherwise it employs the
   equivalent of a malloc-copy-free sequence.
 
-  If p is null, realloc is equivalent to malloc.  
+  If p is null, realloc is equivalent to malloc.
 
   If space is not available, realloc returns null, errno is set (if on
   ANSI) and p is NOT freed.
@@ -193,7 +193,7 @@ void*  dlvalloc(size_t);
   should instead use regular calloc and assign pointers into this
   space to represent elements.  (In this case though, you cannot
   independently free elements.)
-  
+
   independent_calloc simplifies and speeds up implementations of many
   kinds of pools.  It may also be useful when constructing large data
   structures that initially have a fixed number of fixed-sized nodes,
@@ -201,16 +201,16 @@ void*  dlvalloc(size_t);
   may later need to be freed. For example:
 
   struct Node { int item; struct Node* next; };
-  
+
   struct Node* build_list() {
     struct Node** pool;
     int n = read_number_of_nodes_needed();
     if (n <= 0) return 0;
     pool = (struct Node**)(independent_calloc(n, sizeof(struct Node), 0);
     if (pool == 0) return 0; // failure
-    // organize into a linked list... 
+    // organize into a linked list...
     struct Node* first = pool[0];
-    for (i = 0; i < n-1; ++i) 
+    for (i = 0; i < n-1; ++i)
       pool[i]->next = pool[i+1];
     free(pool);     // Can now free the array (or not, if it is needed later)
     return first;
@@ -244,11 +244,11 @@ void** dlindependent_calloc(size_t, size_t, void**);
   null if the allocation failed.  If n_elements is zero and chunks is
   null, it returns a chunk representing an array with zero elements
   (which should be freed if not wanted).
-  
+
   Each element must be individually freed when it is no longer
   needed. If you'd like to instead be able to free all at once, you
   should instead use a single regular malloc, and assign pointers at
-  particular offsets in the aggregate space. (In this case though, you 
+  particular offsets in the aggregate space. (In this case though, you
   cannot independently free elements.)
 
   independent_comallac differs from independent_calloc in that each
@@ -307,7 +307,7 @@ void*  dlpvalloc(size_t);
   Equivalent to free(p).
 
   cfree is needed/defined on some systems that pair it with calloc,
-  for odd historical reasons (such as: cfree is used in example 
+  for odd historical reasons (such as: cfree is used in example
   code in the first edition of K&R).
 */
 
@@ -329,7 +329,7 @@ void     dlcfree(void*);
   some allocation patterns, some large free blocks of memory will be
   locked between two used chunks, so they cannot be given back to
   the system.
-  
+
   The `pad' argument to malloc_trim represents the amount of free
   trailing space to leave untrimmed. If this argument is zero,
   only the minimum amount of memory to maintain internal data
@@ -337,7 +337,7 @@ void     dlcfree(void*);
   can be supplied to maintain enough trailing space to service
   future expected allocations without having to re-obtain memory
   from the system.
-  
+
   Malloc_trim returns 1 if it actually released any memory, else 0.
   On systems that do not support "negative sbrks", it will always
   return 0.
@@ -402,17 +402,17 @@ void     dlmalloc_stats();
   mallinfo()
   Returns (by copy) a struct containing various summary statistics:
 
-  arena:     current total non-mmapped bytes allocated from system 
-  ordblks:   the number of free chunks 
+  arena:     current total non-mmapped bytes allocated from system
+  ordblks:   the number of free chunks
   smblks:    the number of fastbin blocks (i.e., small chunks that
                have been freed but not use resused or consolidated)
-  hblks:     current number of mmapped regions 
-  hblkhd:    total bytes held in mmapped regions 
+  hblks:     current number of mmapped regions
+  hblkhd:    total bytes held in mmapped regions
   usmblks:   the maximum total allocated space. This will be greater
                 than current total if trimming has occurred.
-  fsmblks:   total bytes held in fastbin blocks 
+  fsmblks:   total bytes held in fastbin blocks
   uordblks:  current total allocated space (normal or mmapped)
-  fordblks:  total free space 
+  fordblks:  total free space
   keepcost:  the maximum number of bytes that could ideally be released
                back to system via malloc_trim. ("ideally" means that
                it ignores page restrictions etc.)
@@ -420,7 +420,7 @@ void     dlmalloc_stats();
   The names of some of these fields don't bear much relation with
   their contents because this struct was defined as standard in
   SVID/XPG so reflects the malloc implementation that was then used
-  in SystemV Unix.  
+  in SystemV Unix.
 
   The original SVID version of this struct, defined on most systems
   with mallinfo, declares all fields as ints. But some others define
@@ -439,16 +439,16 @@ void     dlmalloc_stats();
 #ifndef HAVE_USR_INCLUDE_MALLOC_H
 #ifndef _MALLOC_H
 struct mallinfo {
-  int arena;    
-  int ordblks;  
-  int smblks;   
-  int hblks;    
-  int hblkhd;   
-  int usmblks;  
-  int fsmblks;  
-  int uordblks; 
-  int fordblks; 
-  int keepcost; 
+  int arena;
+  int ordblks;
+  int smblks;
+  int hblks;
+  int hblkhd;
+  int usmblks;
+  int fsmblks;
+  int uordblks;
+  int fordblks;
+  int keepcost;
 };
 #endif
 #endif
@@ -461,7 +461,7 @@ struct mallinfo mallinfo(void);
 
 /*
   mallopt(int parameter_number, int parameter_value)
-  Sets tunable parameters The format is to provide a
+  Set tunable parameters The format is to provide a
   (parameter-number, parameter-value) pair.  mallopt then sets the
   corresponding parameter to the argument value if it can (i.e., so
   long as the value is meaningful), and returns 1 if successful else
@@ -476,7 +476,7 @@ struct mallinfo mallinfo(void);
   Symbol            param #   default    allowed param values
   M_MXFAST          1         64         0-80  (0 disables fastbins)
   M_TRIM_THRESHOLD -1         128*1024   any   (-1U disables trimming)
-  M_TOP_PAD        -2         0          any  
+  M_TOP_PAD        -2         0          any
   M_MMAP_THRESHOLD -3         128*1024   any   (or 0 if no MMAP support)
   M_MMAP_MAX       -4         65536      any   (0 disables use of mmap)
 */
@@ -560,7 +560,7 @@ int  dlmallopt(int, int);
   safeguards.
 
   The trim value It must be greater than page size to have any useful
-  effect.  To disable trimming completely, you can set to 
+  effect.  To disable trimming completely, you can set to
   (unsigned long)(-1)
 
   Trim settings interact with fastbin (MXFAST) settings: Unless
@@ -625,9 +625,9 @@ int  dlmallopt(int, int);
 
   Segregating space in this way has the benefits that:
 
-   1. Mmapped space can ALWAYS be individually released back 
-      to the system, which helps keep the system level memory 
-      demands of a long-lived program low. 
+   1. Mmapped space can ALWAYS be individually released back
+      to the system, which helps keep the system level memory
+      demands of a long-lived program low.
    2. Mapped memory can never become `locked' between
       other chunks, as can happen with normally allocated chunks, which
       means that even trimming via malloc_trim would not release them.
@@ -679,7 +679,7 @@ int  dlmallopt(int, int);
 #define M_KEEP    4    /* UNUSED in this malloc */
 #endif
 
-/* 
+/*
   Some malloc.h's declare alloca, even though it is not part of malloc.
 */
 

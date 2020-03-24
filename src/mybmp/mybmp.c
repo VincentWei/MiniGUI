@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -66,7 +66,7 @@
 #include "dc.h"
 #include "readbmp.h"
 #include "bitmap.h"
-
+#include "misc.h"
 
 #define MAX_BITMAP_TYPES   9
 
@@ -135,14 +135,14 @@ BOOL GUIAPI RegisterBitmapFileType (const char *ext,
 
     for (i = 0; i < MAX_BITMAP_TYPES; i++) {
         if ((!bitmap_types[i].ext [0]) || (strcasecmp (bitmap_types[i].ext, ext) == 0)) {
-	        strncpy (bitmap_types[i].ext, ext, sizeof (bitmap_types[i].ext) - 1);
-	        bitmap_types[i].ext [sizeof (bitmap_types[i].ext) - 1] = 0;
-	        bitmap_types[i].init = init;
-	        bitmap_types[i].load = load;
-	        bitmap_types[i].cleanup = cleanup;
-	        bitmap_types[i].save = save;
-	        bitmap_types[i].check = check;
-	        return TRUE;
+            strncpy (bitmap_types[i].ext, ext, sizeof (bitmap_types[i].ext) - 1);
+            bitmap_types[i].ext [sizeof (bitmap_types[i].ext) - 1] = 0;
+            bitmap_types[i].init = init;
+            bitmap_types[i].load = load;
+            bitmap_types[i].cleanup = cleanup;
+            bitmap_types[i].save = save;
+            bitmap_types[i].check = check;
+            return TRUE;
       }
    }
 
@@ -154,7 +154,7 @@ BOOL GUIAPI RegisterBitmapFileType (const char *ext,
  * compute image line size and bytes per pixel
  * from bits per pixel and width
  */
-int bmp_ComputePitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round)
+int __mg_bmp_compute_pitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round)
 {
     int linesize;
     int bytespp = 1;
@@ -209,9 +209,9 @@ void* GUIAPI InitMyBitmapSL (MG_RWops* area, const char* ext, MYBITMAP* my_bmp, 
     if (my_bmp->depth <= 8)
         GetPalette (HDC_SCREEN, 0, 256, (GAL_Color*)pal);
 
-    /* This is just for gray screen. If your screen is gray, 
+    /* This is just for gray screen. If your screen is gray,
      * please define this macro _GRAY_SCREEN.
-     */ 
+     */
 #ifdef _GRAY_SCREEN
     my_bmp->flags |= MYBMP_LOAD_GRAYSCALE;
 #endif
@@ -233,7 +233,7 @@ fail:
     return NULL;
 }
 
-int GUIAPI LoadMyBitmapSL (MG_RWops* area, void* load_info, MYBITMAP* my_bmp, 
+int GUIAPI LoadMyBitmapSL (MG_RWops* area, void* load_info, MYBITMAP* my_bmp,
                 CB_ONE_SCANLINE cb, void* context)
 {
     LOAD_MYBITMAP_INFO* info = (LOAD_MYBITMAP_INFO*) load_info;
@@ -301,7 +301,7 @@ int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal, const char* file_na
     const char* ext;
     int ret_val;
 
-    if ((ext = get_extension (file_name)) == NULL)
+    if ((ext = __mg_get_extension (file_name)) == NULL)
         return ERR_BMP_UNKNOWN_TYPE;
 
     if (!(area = MGUI_RWFromFile (file_name, "rb"))) {
@@ -315,8 +315,8 @@ int GUIAPI LoadMyBitmapFromFile (PMYBITMAP my_bmp, RGB* pal, const char* file_na
     return ret_val;
 }
 
-int GUIAPI LoadMyBitmapFromMem (PMYBITMAP my_bmp, RGB* pal, const void* mem, 
-                                int size, const char* ext)
+int GUIAPI LoadMyBitmapFromMem (PMYBITMAP my_bmp, RGB* pal, const void* mem,
+                                size_t size, const char* ext)
 {
     MG_RWops* area;
     int ret_val;
@@ -365,7 +365,7 @@ int GUIAPI SaveMyBitmapToFile (PMYBITMAP my_bmp, RGB* pal, const char* spFileNam
     int type;
     int save_ret;
 
-    if ((ext = get_extension (spFileName)) == NULL)
+    if ((ext = __mg_get_extension (spFileName)) == NULL)
         return ERR_BMP_UNKNOWN_TYPE;
 
     if ( (type = get_image_type(ext)) < 0 )

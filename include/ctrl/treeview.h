@@ -14,10 +14,10 @@
  * \file treeview.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: treeview.h 13674 2010-12-06 06:45:01Z wanzheng $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -76,7 +76,7 @@ extern "C" {
      * \defgroup mgext_ctrl_treeview TreeView control
      *
      * \note You can pass the root item information through \a dwAddData
-     * argument of CreateWindowEx function. 
+     * argument of CreateWindowEx function.
      *
      * \code
      * HICON folded, unfolded;
@@ -84,7 +84,7 @@ extern "C" {
      *
      * CreateWindowEx (CTRL_TREEVIEW, ..., (DWORD)&tvii);
      * \endcode
-     * 
+     *
      * @{
      */
 
@@ -141,7 +141,7 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVS_NOTIFY
- * \brief Sends the parent window notification messages when the user 
+ * \brief Sends the parent window notification messages when the user
  *        clicks or double-clicks the control.
  */
 #define TVS_NOTIFY              0x0001L
@@ -194,7 +194,7 @@ typedef TVITEMINFO *PTVITEMINFO;
  * \endcode
  *
  * \param parent Handle to the item who is the parent of the new item.
- * \param newIteminfo Pointer to the item info structure of the new item 
+ * \param newIteminfo Pointer to the item info structure of the new item
  *        to be added.
  *
  * \return The handle to the new item on success, otherwise return 0.
@@ -209,7 +209,7 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVM_GETROOT
- * \brief Gets the root item of a treeview control.
+ * \brief Get the root item of a treeview control.
  *
  * \code
  * TVM_GETROOT
@@ -285,7 +285,7 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVM_GETSELITEM
- * \brief Gets the selected item.
+ * \brief Get the selected item.
  *
  * \code
  * TVM_GETSELITEM
@@ -300,7 +300,7 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVM_SETSELITEM
- * \brief Sets the selected item.
+ * \brief Set the selected item.
  *
  * \code
  * TVM_SETSELITEM
@@ -372,7 +372,7 @@ typedef TVITEMINFO *PTVITEMINFO;
  *
  * \param item The handle to the item which we want to retrive.
  * \param tvii A pointer to a TVITEMINFO structure to receive the item information.
- *        Note that the \a text field of this structure should be large enough to 
+ *        Note that the \a text field of this structure should be large enough to
  *        get the item text.
  *
  * \return Zero on success, otherwise -1.
@@ -420,7 +420,7 @@ typedef TVITEMINFO *PTVITEMINFO;
  * lParam = (LPARAM)item;
  * \endcode
  *
- * \param related A integer which indicates the relationship between 
+ * \param related A integer which indicates the relationship between
  *        the item to retrive and the specified item, can be one of the following values:
  *          - TVIR_PARENT\n
  *              To retrive the parent item of the specified item.
@@ -439,12 +439,12 @@ typedef TVITEMINFO *PTVITEMINFO;
 
 /**
  * \def TVM_SETSTRCMPFUNC
- * \brief Sets the STRCMP function used to sort items.
+ * \brief Set the STRCMP function used to sort items.
  *
- * An application sends a TVM_SETSTRCMPFUNC message to set a 
+ * An application sends a TVM_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items in the TreeView control.
  *
- * Note that you should send this message before adding 
+ * Note that you should send this message before adding
  * any item to the TreeView control.
  *
  * \code
@@ -480,8 +480,8 @@ typedef TVITEMINFO *PTVITEMINFO;
 /**
  * \def TVN_ERRSPACE
  * \brief Indicates that memory is not enough.
- * 
- * A list box sends an TVN_ERRSPACE notification message to its parent window 
+ *
+ * A list box sends an TVN_ERRSPACE notification message to its parent window
  * when it cannot allocate enough memory to complete the current operation.
  */
 #define TVN_ERRSPACE            255
@@ -501,8 +501,8 @@ typedef TVITEMINFO *PTVITEMINFO;
 /**
  * \def TVN_SETFOCUS
  * \brief Indicates gain of input focus.
- * 
- * A TreeView control sends an TVN_SETFOCUS notification message to its parent window 
+ *
+ * A TreeView control sends an TVN_SETFOCUS notification message to its parent window
  * when the list box gains the input focus.
  */
 #define TVN_SETFOCUS            4
@@ -510,8 +510,8 @@ typedef TVITEMINFO *PTVITEMINFO;
 /**
  * \def TVN_KILLFOCUS
  * \brief Indicates loss of input focus.
- * 
- * A TreeView control sends an TVN_KILLFOCUS notification message to its parent window 
+ *
+ * A TreeView control sends an TVN_KILLFOCUS notification message to its parent window
  * when the list box loses the input focus.
  */
 #define TVN_KILLFOCUS           5
@@ -551,7 +551,7 @@ typedef TVITEMINFO *PTVITEMINFO;
  *       \a add_data argument of \a NotifyParentEx function. You should define and
  *       set Notificaton Callback Procedure for the control in order to
  *       get the handle to the unfolded item.
- * 
+ *
  * \sa SetNotificationCallback, NotifyParentEx
  */
 #define TVN_UNFOLDED              10

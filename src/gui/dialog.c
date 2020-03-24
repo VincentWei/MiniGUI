@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -110,13 +110,13 @@ HWND GUIAPI CreateMainWindowIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     CreateInfo.ty             = pDlgTemplate->y;
     CreateInfo.rx             = pDlgTemplate->x + pDlgTemplate->w;
     CreateInfo.by             = pDlgTemplate->y + pDlgTemplate->h;
-    CreateInfo.iBkColor       = 
-                    GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY);
+    CreateInfo.iBkColor       =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
     CreateInfo.dwAddData      = pDlgTemplate->dwAddData;
     CreateInfo.hHosting       = hOwner;
-    
-        
-    hMainWin = CreateMainWindowEx (&CreateInfo, 
+
+
+    hMainWin = CreateMainWindowEx (&CreateInfo,
             werdr_name, we_attrs, window_name, layer_name);
 
     if (hMainWin == HWND_INVALID)
@@ -137,7 +137,7 @@ HWND GUIAPI CreateMainWindowIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
                               pCtrlData->werdr_name,
                               pCtrlData->we_attrs,
                               pCtrlData->dwAddData);
-                              
+
         if (hCtrl == HWND_INVALID) {
             DestroyMainWindow (hMainWin);
             MainWindowThreadCleanup (hMainWin);
@@ -151,7 +151,7 @@ HWND GUIAPI CreateMainWindowIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     /* houhh 20100706, set the forefront control as focus. */
     {
         PCONTROL pCtrl;
-        for (pCtrl = (PCONTROL)(((PMAINWIN)hMainWin)->hFirstChild); 
+        for (pCtrl = (PCONTROL)(((PMAINWIN)hMainWin)->hFirstChild);
                 pCtrl && pCtrl->next; pCtrl = pCtrl->next);
         hFocus = (HWND)pCtrl;
     }
@@ -162,7 +162,7 @@ HWND GUIAPI CreateMainWindowIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     }
     if (!(pDlgTemplate->dwExStyle & WS_EX_DLGHIDE))
         ShowWindow (hMainWin, SW_SHOWNORMAL);
-    
+
     return hMainWin;
 }
 
@@ -183,18 +183,21 @@ int GUIAPI DialogBoxIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
     int  retCode = IDCANCEL;
     MSG Msg;
 
-	if(hOwner && hOwner != HWND_INVALID && hOwner != HWND_DESKTOP)
-		hOwner = GetMainWindowHandle(hOwner);
+    if (hOwner && hOwner != HWND_INVALID && hOwner != HWND_DESKTOP)
+        hOwner = GetMainWindowHandle(hOwner);
 
-	hDlg = CreateMainWindowIndirectParamEx(pDlgTemplate,
-		hOwner, DlgProc, lParam, 
-		werdr_name, we_attrs,
-		window_name, layer_name);
+    /* Since 5.0.0: use internal extended style for dialgbox */
+    pDlgTemplate->dwExStyle |= WS_EX_DIALOGBOX;
+
+    hDlg = CreateMainWindowIndirectParamEx(pDlgTemplate,
+        hOwner, DlgProc, lParam,
+        werdr_name, we_attrs,
+        window_name, layer_name);
 
     if (hDlg == HWND_INVALID)
         return -1;
 
-    //MiniGUI maybe change dialog owner in CreateMainWindow, so we 
+    //MiniGUI maybe change dialog owner in CreateMainWindow, so we
     //should update its owner by GetHosting.
     hOwner = GetHosting (hDlg);
     SetWindowAdditionalData2 (hDlg, (DWORD)(&retCode));
@@ -205,10 +208,10 @@ int GUIAPI DialogBoxIndirectParamEx (PDLGTEMPLATE pDlgTemplate,
             IncludeWindowExStyle (hOwner, WS_EX_MODALDISABLED);
         }
         /* Throw away MSG_KEYDOWN, MSG_CHAR and MSG_KEYUP to hOwner */
-        while (PeekPostMessage (&Msg, hOwner, 
+        while (PeekPostMessage (&Msg, hOwner,
                                 MSG_KEYDOWN, MSG_KEYUP, PM_REMOVE));
     }
-       
+
     while (GetMessage (&Msg, hDlg)) {
         TranslateMessage (&Msg);
         DispatchMessage (&Msg);
@@ -251,7 +254,7 @@ BOOL GUIAPI EndDialog (HWND hDlg, int endCode)
     return TRUE;
 }
 
-LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message, 
+LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
                 WPARAM wParam, LPARAM lParam)
 {
     HWND hCurFocus;
@@ -263,10 +266,10 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
         int i;
         PCTRLDATA pCtrlData;
         HWND hCtrl;
-            
-        PDLGTEMPLATE pDlgTmpl 
+
+        PDLGTEMPLATE pDlgTmpl
                     = (PDLGTEMPLATE)(((PMAINWINCREATE)lParam)->dwReserved);
-            
+
         for (i = 0; i < pDlgTmpl->controlnr; i++) {
             pCtrlData = pDlgTmpl->controls + i;
             if (pCtrlData->class_name) {
@@ -286,7 +289,7 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
             }
             else
                 break;
-                              
+
             if (hCtrl == HWND_INVALID) {
                 dlgDestroyAllControls (hWnd);
                 return -1;
@@ -305,7 +308,7 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
             return GetDlgCtrlID (hDef);
         return 0;
     }
-    
+
     case MSG_DLG_SETDEFID:
     {
         HWND hOldDef;
@@ -325,13 +328,13 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
         }
         break;
     }
-        
+
     case MSG_COMMAND:
         if (wParam == IDCANCEL) {
             HWND hCancel;
-            
+
             hCancel = GetDlgItem (hWnd, IDCANCEL);
-            if (hCancel && IsWindowEnabled (hCancel) 
+            if (hCancel && IsWindowEnabled (hCancel)
                     && IsWindowVisible (hCancel))
                 EndDialog (hWnd, IDCANCEL);
         }
@@ -342,7 +345,7 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
         HWND hCancel;
 
         hCancel = GetDlgItem (hWnd, IDCANCEL);
-        if (hCancel && IsWindowEnabled (hCancel) 
+        if (hCancel && IsWindowEnabled (hCancel)
                     && IsWindowVisible (hCancel))
             EndDialog (hWnd, IDCANCEL);
 
@@ -353,8 +356,8 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
         return 1;
 
     case MSG_KEYDOWN:
-        if ((hCurFocus = GetFocusChild (hWnd)) 
-                && SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) & 
+        if ((hCurFocus = GetFocusChild (hWnd))
+                && SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) &
                 DLGC_WANTALLKEYS)
             break;
 
@@ -366,8 +369,8 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
         case SCANCODE_TAB:
         {
             HWND hNewFocus;
-                
-            if (hCurFocus && SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) & 
+
+            if (hCurFocus && SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) &
                             DLGC_WANTTAB)
                 break;
 
@@ -380,7 +383,7 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
                 SetNullFocus (hCurFocus);
                 SetFocus (hNewFocus);
 #if 0
-                SendMessage (hWnd, MSG_DLG_SETDEFID, 
+                SendMessage (hWnd, MSG_DLG_SETDEFID,
                                 GetDlgCtrlID (hNewFocus), 0L);
 #endif
             }
@@ -393,11 +396,11 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
         {
             HWND hDef;
 
-            if (hCurFocus && SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) & 
+            if (hCurFocus && SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) &
                             DLGC_WANTENTER)
                 break;
 
-            if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) & 
+            if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) &
                             DLGC_PUSHBUTTON)
                 break;
 
@@ -415,8 +418,8 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
         case SCANCODE_CURSORBLOCKLEFT:
         {
             HWND hNewFocus;
-                
-            if (hCurFocus && SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) & 
+
+            if (hCurFocus && SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) &
                             DLGC_WANTARROWS)
                 break;
 
@@ -425,16 +428,16 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
                 hNewFocus = GetNextDlgGroupItem (hWnd, hCurFocus, FALSE);
             else
                 hNewFocus = GetNextDlgGroupItem (hWnd, hCurFocus, TRUE);
-            
+
             if (hNewFocus != hCurFocus) {
 
-                if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) & 
+                if (SendMessage (hCurFocus, MSG_GETDLGCODE, 0, 0L) &
                                 DLGC_STATIC)
                     return 0;
 
                 SetFocus (hNewFocus);
 #if 0
-                SendMessage (hWnd, MSG_DLG_SETDEFID, 
+                SendMessage (hWnd, MSG_DLG_SETDEFID,
                                 GetDlgCtrlID (hNewFocus), 0L);
 #endif
 
@@ -454,7 +457,7 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd, UINT message,
     default:
         break;
     }
-    
+
     return DefaultMainWinProc (hWnd, message, wParam, lParam);
 }
 
@@ -482,7 +485,7 @@ HWND GUIAPI GetDlgItem (HWND hDlg, LINT nIDDlgItem)
 
         pCtrl = pCtrl->next;
     }
-   
+
     return 0;
 }
 
@@ -494,13 +497,13 @@ HWND GUIAPI GetDlgDefPushButton (HWND hWnd)
     pCtrl = (PCONTROL)(pMainWin->hFirstChild);
 
     while (pCtrl) {
-        if (SendMessage ((HWND)pCtrl, 
+        if (SendMessage ((HWND)pCtrl,
                 MSG_GETDLGCODE, 0, 0L) & DLGC_DEFPUSHBUTTON)
             return (HWND)pCtrl;
 
         pCtrl = pCtrl->next;
     }
-   
+
     return 0;
 }
 
@@ -537,9 +540,9 @@ HWND GetNextDlgGroupItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
         }
         else
             pCtrl = pStartCtrl;
-        
+
         if (pCtrl->dwStyle & WS_GROUP || pCtrl == pStartCtrl)
-            pCtrl = pCtrl->prev; 
+            pCtrl = pCtrl->prev;
 
         while (pCtrl) {
             if (pCtrl->dwStyle & WS_VISIBLE
@@ -562,7 +565,7 @@ HWND GetNextDlgGroupItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
 
             pCtrl = pCtrl->next;
         }
-        
+
         pCtrl = pStartCtrl->prev;
         while (pCtrl) {
             if (pCtrl->dwStyle & WS_GROUP) {
@@ -575,7 +578,7 @@ HWND GetNextDlgGroupItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
 
             pCtrl = pCtrl->prev;
         }
-        
+
         if (pCtrl) {        // pCtrl is the first control in group.
             pCtrl = pCtrl->next;
             while (pCtrl) {
@@ -607,7 +610,7 @@ HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
         pCtrl = pCtrl->next;
     }
     pLastCtrl = pCtrl;
-    
+
     if (hCtl) {
         pCtrl = (PCONTROL)hCtl;
         if (bPrevious)
@@ -622,17 +625,17 @@ HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
 
     if (bPrevious) {
         while (pCtrl) {
-            if (pCtrl->dwStyle & WS_TABSTOP 
+            if (pCtrl->dwStyle & WS_TABSTOP
                     && pCtrl->dwStyle & WS_VISIBLE
                     && !(pCtrl->dwStyle & WS_DISABLED) )
                 return (HWND)pCtrl;
 
             pCtrl = pCtrl->prev;
         }
-        
+
         pCtrl = pLastCtrl;
         while (pCtrl) {
-            if (pCtrl->dwStyle & WS_TABSTOP 
+            if (pCtrl->dwStyle & WS_TABSTOP
                     && pCtrl->dwStyle & WS_VISIBLE
                     && !(pCtrl->dwStyle & WS_DISABLED) )
                 return (HWND)pCtrl;
@@ -642,7 +645,7 @@ HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
     }
     else {
         while (pCtrl) {
-            if (pCtrl->dwStyle & WS_TABSTOP 
+            if (pCtrl->dwStyle & WS_TABSTOP
                     && pCtrl->dwStyle & WS_VISIBLE
                     && !(pCtrl->dwStyle & WS_DISABLED) )
                 return (HWND)pCtrl;
@@ -652,7 +655,7 @@ HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
 
         pCtrl = pFirstCtrl;
         while (pCtrl) {
-            if (pCtrl->dwStyle & WS_TABSTOP 
+            if (pCtrl->dwStyle & WS_TABSTOP
                     && pCtrl->dwStyle & WS_VISIBLE
                     && !(pCtrl->dwStyle & WS_DISABLED) )
                 return (HWND)pCtrl;
@@ -664,7 +667,7 @@ HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
     return hCtl;
 }
 
-LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem, 
+LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem,
             UINT message, WPARAM wParam, LPARAM lParam)
 {
     HWND hCtrl;
@@ -694,19 +697,19 @@ UINT GUIAPI GetDlgItemInt (HWND hDlg, LINT nIDDlgItem, BOOL *lpTranslated,
         result = strtoul (buffer, NULL, 0);
     else
         result = (unsigned long int)strtol (buffer, NULL, 0);
-        
+
     if (lpTranslated)
         *lpTranslated = TRUE;
 
     return (UINT)result;
-    
+
 error:
     if (lpTranslated)
         *lpTranslated = FALSE;
     return 0;
 }
 
-BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem, UINT uValue, 
+BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem, UINT uValue,
                     BOOL bSigned)
 {
     HWND hCtrl;
@@ -724,7 +727,7 @@ BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem, UINT uValue,
     return SendMessage (hCtrl, MSG_SETTEXT, 0, (LPARAM)buffer) == 0;
 }
 
-int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem, char* lpString, 
+int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem, char* lpString,
                     int nMaxCount)
 {
     HWND hCtrl;
@@ -732,7 +735,7 @@ int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem, char* lpString,
     if ( !(hCtrl = GetDlgItem (hDlg, nIDDlgItem)))
         return 0;
 
-    return SendMessage (hCtrl, 
+    return SendMessage (hCtrl,
             MSG_GETTEXT, (WPARAM)nMaxCount, (LPARAM)lpString);
 }
 
@@ -764,7 +767,7 @@ BOOL GUIAPI SetDlgItemText (HWND hDlg, LINT nIDDlgItem, const char* lpString)
     if ( !(hCtrl = GetDlgItem (hDlg, nIDDlgItem)))
         return FALSE;
 
-    return SendMessage (hCtrl, 
+    return SendMessage (hCtrl,
             MSG_SETTEXT, 0, (LPARAM)lpString) == 0;
 }
 
@@ -776,7 +779,7 @@ void GUIAPI CheckDlgButton (HWND hDlg, LINT nIDDlgItem, int nCheck)
 
     if ( !(hCtrl = GetDlgItem (hDlg, nIDDlgItem)))
         return;
-    
+
     DlgCode = SendMessage (hCtrl, MSG_GETDLGCODE, 0, 0L);
 
     if (DlgCode & DLGC_BUTTON)
@@ -786,14 +789,14 @@ void GUIAPI CheckDlgButton (HWND hDlg, LINT nIDDlgItem, int nCheck)
     }
 }
 
-void GUIAPI CheckRadioButton (HWND hDlg, 
+void GUIAPI CheckRadioButton (HWND hDlg,
                 LINT idFirstButton, LINT idLastButton, LINT idCheckButton)
 {
     HWND hCtrl;
 
     if ( !(hCtrl = GetDlgItem (hDlg, idCheckButton)))
         return;
-        
+
     SendMessage (hCtrl, BM_SETCHECK, BST_CHECKED, 0L);
 }
 
@@ -803,7 +806,7 @@ int GUIAPI IsDlgButtonChecked (HWND hDlg, LINT idButton)
 
     if ( !(hCtrl = GetDlgItem (hDlg, idButton)))
         return -1;
-    
+
     return SendMessage (hCtrl, BM_GETCHECK, 0, 0L);
 }
 
@@ -818,15 +821,15 @@ static LRESULT MsgBoxProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
              SetFocus (hFocus);
 
         SetWindowAdditionalData (hWnd, (DWORD)lParam);
-        SetWindowFont (hWnd, 
+        SetWindowFont (hWnd,
             (PLOGFONT)GetWindowElementAttr (hWnd, WE_FONT_MESSAGEBOX));
 
         /* set the messagebox's body text font and color.*/
         hFocus = GetDlgItem(hWnd, IDC_STATIC+100);
-        SetWindowFont (hFocus, 
+        SetWindowFont (hFocus,
             (PLOGFONT)GetWindowElementAttr (hFocus, WE_FONT_MESSAGEBOX));
 
-        SetWindowElementAttr (hFocus,WE_FGC_WINDOW, 
+        SetWindowElementAttr (hFocus,WE_FGC_WINDOW,
             GetWindowElementAttr (hFocus, WE_FGC_MESSAGEBOX));
         return 0;
     }
@@ -851,7 +854,7 @@ static LRESULT MsgBoxProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
     case MSG_CHAR:
     {
         int id = 0;
-        
+
         if (HIBYTE (wParam))
             break;
         switch (LOBYTE (wParam)) {
@@ -876,7 +879,7 @@ static LRESULT MsgBoxProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
             id = IDIGNORE;
             break;
         }
-        
+
         if (id != 0 && GetDlgItem (hWnd, id))
             EndDialog (hWnd, id);
         break;
@@ -912,7 +915,7 @@ static void get_box_xy (HWND hParentWnd, DWORD dwStyle, DLGTEMPLATE* MsgBoxData)
         GetWindowRect (hParentWnd, &rcTemp);
     }
     else {
-        rcTemp = g_rcDesktop;
+        rcTemp = g_rcScr;
     }
 
     switch (dwStyle & MB_ALIGNMASK) {
@@ -942,34 +945,34 @@ static void get_box_xy (HWND hParentWnd, DWORD dwStyle, DLGTEMPLATE* MsgBoxData)
             break;
     }
 
-    if ((MsgBoxData->x + MsgBoxData->w) > g_rcDesktop.right) {
-        MsgBoxData->x = g_rcDesktop.right - MsgBoxData->w;
+    if ((MsgBoxData->x + MsgBoxData->w) > g_rcScr.right) {
+        MsgBoxData->x = g_rcScr.right - MsgBoxData->w;
     }
 
-    if ((MsgBoxData->y + MsgBoxData->h) > g_rcDesktop.bottom) {
-        MsgBoxData->y = g_rcDesktop.bottom - MsgBoxData->h;
+    if ((MsgBoxData->y + MsgBoxData->h) > g_rcScr.bottom) {
+        MsgBoxData->y = g_rcScr.bottom - MsgBoxData->h;
     }
 }
 
-int GUIAPI MessageBox (HWND hParentWnd, const char* pszText, 
+int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
                       const char* pszCaption, DWORD dwStyle)
 {
     BOOL IsTiny;
-    DLGTEMPLATE MsgBoxData = 
+    DLGTEMPLATE MsgBoxData =
     {
-        WS_CAPTION | WS_BORDER, 
+        WS_CAPTION | WS_BORDER,
         WS_EX_NONE, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0L
     };
-    CTRLDATA     CtrlData [5] = 
+    CTRLDATA     CtrlData [5] =
     {
-        {"button", 
-            BS_PUSHBUTTON | WS_TABSTOP | WS_VISIBLE | WS_GROUP, 
-            0, 0, 0, 0, 0, NULL, 0L},
-        {"button", 
-            BS_PUSHBUTTON | WS_TABSTOP | WS_VISIBLE, 
+        {"button",
+            BS_PUSHBUTTON | WS_TABSTOP | WS_VISIBLE | WS_GROUP,
             0, 0, 0, 0, 0, NULL, 0L},
         {"button",
-            BS_PUSHBUTTON | WS_TABSTOP | WS_VISIBLE, 
+            BS_PUSHBUTTON | WS_TABSTOP | WS_VISIBLE,
+            0, 0, 0, 0, 0, NULL, 0L},
+        {"button",
+            BS_PUSHBUTTON | WS_TABSTOP | WS_VISIBLE,
             0, 0, 0, 0, 0, NULL, 0L}
     };
 
@@ -1011,7 +1014,7 @@ int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
             MsgBoxData.controlnr = 2;
             CtrlData [0].caption = GetSysText (IDS_MGST_OK);
             CtrlData [0].id      = IDOK;
-            CtrlData [1].caption = (dwStyle & MB_CANCELASBACK) ? 
+            CtrlData [1].caption = (dwStyle & MB_CANCELASBACK) ?
                 GetSysText (IDS_MGST_PREV) : GetSysText (IDS_MGST_CANCEL);
             CtrlData [1].id      = IDCANCEL;
             break;
@@ -1026,7 +1029,7 @@ int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
             MsgBoxData.controlnr = 2;
             CtrlData [0].caption = GetSysText (IDS_MGST_RETRY);
             CtrlData [0].id      = IDRETRY;
-            CtrlData [1].caption = (dwStyle & MB_CANCELASBACK) ? 
+            CtrlData [1].caption = (dwStyle & MB_CANCELASBACK) ?
                 GetSysText (IDS_MGST_PREV) : GetSysText (IDS_MGST_CANCEL);
             CtrlData [1].id      = IDCANCEL;
             break;
@@ -1069,7 +1072,7 @@ int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
     rcButtons.left   = 0;
     rcButtons.top    = 0;
     rcButtons.bottom = mb_buttonh;
-    rcButtons.right  = MsgBoxData.controlnr * mb_buttonw + 
+    rcButtons.right  = MsgBoxData.controlnr * mb_buttonw +
         (MsgBoxData.controlnr - 1) * (mb_margin << 1);
 
     rcIcon.left   = 0;
@@ -1137,7 +1140,7 @@ int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
     rcText.bottom = GetSysCharHeight ();
 
     SelectFont (HDC_SCREEN, __mg_def_renderer->we_fonts[WE_MESSAGEBOX]);
-    DrawText (HDC_SCREEN, pszText, -1, &rcText, 
+    DrawText (HDC_SCREEN, pszText, -1, &rcText,
             DT_LEFT | DT_TOP | DT_WORDBREAK | DT_EXPANDTABS | DT_CALCRECT);
 
     if (IsTiny)
@@ -1162,8 +1165,8 @@ int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
         + (mb_margin << 2)
         + (iBorder << 1);
     height = MAX (RECTH (rcText), RECTH (rcIcon)) + RECTH (rcButtons)
-        + mb_margin + (mb_margin << 1) 
-        + (iBorder << 1) 
+        + mb_margin + (mb_margin << 1)
+        + (iBorder << 1)
         + GetWindowElementAttr (hParentWnd, WE_METRICS_CAPTION);
 
     buttonx = (width - RECTW (rcButtons)) >> 1;
@@ -1180,7 +1183,7 @@ int GUIAPI MessageBox (HWND hParentWnd, const char* pszText,
 
     MsgBoxData.controls = CtrlData;
 
-    return DialogBoxIndirectParam (&MsgBoxData, hParentWnd, MsgBoxProc, 
+    return DialogBoxIndirectParam (&MsgBoxData, hParentWnd, MsgBoxProc,
             (LPARAM)dwStyle);
 }
 

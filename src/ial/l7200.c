@@ -11,42 +11,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** l7200.c: Low Level Input Engine for LinkUp System L7200 SDB
 **         This driver can run on Linux.
-** 
+**
 ** Created by Yao Yunyuan, 2004/06/20
 */
 
@@ -149,13 +149,8 @@ static int mouse_getbutton(void)
     return stylus ? IAL_MOUSE_LEFTBUTTON : 0;
 }
 
-#ifdef _LITE_VERSION
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     int retvalue = 0;
     int e;
@@ -164,12 +159,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
     stimeout.tv_usec = 10;
     stimeout.tv_sec = 0;
 
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, &stimeout);
-#else
-    e = select (FD_SETSIZE, in, out, except, &stimeout);
-#endif
-
     if (e < 0) {
         return -1;
     }

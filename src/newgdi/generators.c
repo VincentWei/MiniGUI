@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -72,13 +72,13 @@
 
 /* Outcodes:
 +-> x
-|         |        | 
+|         |        |
 V  0101 | 0100 | 0110
 y ---------------------
     0001 | 0000 | 0010
   ---------------------
     1001 | 1000 | 1010
-          |        | 
+          |        |
  */
 #define outcode(code, xx, yy) \
 {\
@@ -138,7 +138,7 @@ BOOL GUIAPI LineClipper (const RECT* cliprc, int *_x0, int *_y0, int *_x1, int *
      int dx, dy;
      int xmajor;
      int slope;
-     
+
      if (*_x0 == *_x1 && *_y0 == *_y1) { /* a pixel*/
           return PtInRect (cliprc, *_x0, *_y0);
      }
@@ -154,14 +154,14 @@ BOOL GUIAPI LineClipper (const RECT* cliprc, int *_x0, int *_y0, int *_x1, int *
                 ey = *_y0;
           }
 
-          if ( (*_x0 >= cliprc->right) || (sy >= cliprc->bottom) || 
+          if ( (*_x0 >= cliprc->right) || (sy >= cliprc->bottom) ||
                           (*_x0 < cliprc->left) || (ey < cliprc->top) )
                 return FALSE;
 
-          if ( (*_x0 >= cliprc->left) && (sy >= cliprc->top) && 
+          if ( (*_x0 >= cliprc->left) && (sy >= cliprc->top) &&
                           (*_x0 < cliprc->right) && (ey < cliprc->bottom) )
                 return TRUE;
-                          
+
           if (sy < cliprc->top)
                 sy = cliprc->top;
           if (ey >= cliprc->bottom)
@@ -186,14 +186,14 @@ BOOL GUIAPI LineClipper (const RECT* cliprc, int *_x0, int *_y0, int *_x1, int *
                 ex = *_x0;
           }
 
-          if ( (sx >= cliprc->right) || (*_y0 >= cliprc->bottom) || 
+          if ( (sx >= cliprc->right) || (*_y0 >= cliprc->bottom) ||
                           (ex < cliprc->left) || (*_y0 < cliprc->top) )
                 return FALSE;
 
-          if ( (sx >= cliprc->left) && (*_y0 >= cliprc->top) && 
+          if ( (sx >= cliprc->left) && (*_y0 >= cliprc->top) &&
                           (ex < cliprc->right) && (*_y0 < cliprc->bottom) )
                 return TRUE;
-                          
+
           if (sx < cliprc->left)
                 sx = cliprc->left;
           if (ex >= cliprc->right)
@@ -225,10 +225,10 @@ BOOL GUIAPI LineClipper (const RECT* cliprc, int *_x0, int *_y0, int *_x1, int *
 
      dx = x1 - x0;
      dy = y1 - y0;
-  
+
      xmajor = (ABS (dx) > ABS (dy));
      slope = ((dx>=0) && (dy>=0)) || ((dx<0) && (dy<0));
-  
+
      while (TRUE) {
           code = first;
           if (first == 0)
@@ -290,7 +290,7 @@ BOOL GUIAPI LineClipper (const RECT* cliprc, int *_x0, int *_y0, int *_x1, int *
                 last = code;
                 outcode (last, x1, y1);
           }
-     
+
           if ((first & last) != 0) {
                 return FALSE; /* Trivially rejected! */
           }
@@ -311,7 +311,7 @@ void GUIAPI LineGenerator (void* context, int x1, int y1, int x2, int y2, CB_LIN
      int xinc;         /* increment for moving x coordinate */
      int yinc;         /* increment for moving y coordinate */
      int rem;          /* current remainder */
-     
+
      cb (context, 0, 0);
 
      if (x1 == x2 && y1 == y2) { /* a pixel */
@@ -378,19 +378,19 @@ void GUIAPI CircleGenerator (void* context, int x, int y, int r, CB_CIRCLE cb)
 {
     int cx = 0;
     int cy = r;
-    int df = 1 - r; 
+    int df = 1 - r;
     int d_e = 3;
     int d_se = -2 * r + 5;
 
     do {
-        cb (context, x-cx, x+cx, y+cy); 
-        if (cy) 
-            cb (context, x-cx, x+cx, y-cy); 
+        cb (context, x-cx, x+cx, y+cy);
+        if (cy)
+            cb (context, x-cx, x+cx, y-cy);
 
         if (cx != cy) {
             cb (context, x-cy, x+cy, y+cx);
             if (cx)
-                cb (context, x-cy, x+cy, y-cx); 
+                cb (context, x-cy, x+cy, y-cx);
         }
 
         if (df < 0)  {
@@ -398,14 +398,14 @@ void GUIAPI CircleGenerator (void* context, int x, int y, int r, CB_CIRCLE cb)
             d_e += 2;
             d_se += 2;
         }
-        else { 
+        else {
             df += d_se;
             d_e += 2;
             d_se += 4;
             cy--;
-        } 
+        }
 
-        cx++; 
+        cx++;
 
     } while (cx <= cy);
 }
@@ -417,16 +417,16 @@ void GUIAPI EllipseGenerator (void* context, int x, int y, int rx, int ry, CB_EL
     int h, i, j, k;
     int oh, oi, oj, ok;
 
-    if (rx < 1) 
-        rx = 1; 
+    if (rx < 1)
+        rx = 1;
 
-    if (ry < 1) 
+    if (ry < 1)
         ry = 1;
 
     h = i = j = k = 0xFFFF;
 
     if (rx > ry) {
-        ix = 0; 
+        ix = 0;
         iy = rx * 64;
 
         do {
@@ -435,32 +435,32 @@ void GUIAPI EllipseGenerator (void* context, int x, int y, int rx, int ry, CB_EL
             oj = j;
             ok = k;
 
-            h = (ix + 32) >> 6; 
+            h = (ix + 32) >> 6;
             i = (iy + 32) >> 6;
-            j = (h * ry) / rx; 
+            j = (h * ry) / rx;
             k = (i * ry) / rx;
 
             if (((h != oh) || (k != ok)) && (h < oi)) {
                 cb (context, x-h, x+h, y+k);
                 if (k) {
-                    cb (context, x-h, x+h, y-k); 
+                    cb (context, x-h, x+h, y-k);
                 }
             }
 
             if (((i != oi) || (j != oj)) && (h < i)) {
-                cb (context, x-i, x+i, y+j); 
+                cb (context, x-i, x+i, y+j);
                 if (j) {
-                    cb (context, x-i, x+i, y-j); 
+                    cb (context, x-i, x+i, y-j);
                 }
             }
 
-            ix = ix + iy / rx; 
+            ix = ix + iy / rx;
             iy = iy - ix / rx;
 
         } while (i > h);
-    } 
+    }
     else {
-        ix = 0; 
+        ix = 0;
         iy = ry * 64;
 
         do {
@@ -469,15 +469,15 @@ void GUIAPI EllipseGenerator (void* context, int x, int y, int rx, int ry, CB_EL
             oj = j;
             ok = k;
 
-            h = (ix + 32) >> 6; 
+            h = (ix + 32) >> 6;
             i = (iy + 32) >> 6;
-            j = (h * rx) / ry; 
+            j = (h * rx) / ry;
             k = (i * rx) / ry;
 
             if (((j != oj) || (i != oi)) && (h < i)) {
                 cb (context, x-j, x+j, y+i);
                 if (i) {
-                    cb (context, x-j, x+j, y-i); 
+                    cb (context, x-j, x+j, y-i);
                 }
             }
 
@@ -488,7 +488,7 @@ void GUIAPI EllipseGenerator (void* context, int x, int y, int rx, int ry, CB_EL
                 }
             }
 
-            ix = ix + iy / ry; 
+            ix = ix + iy / ry;
             iy = iy - ix / ry;
 
         } while(i > h);
@@ -547,7 +547,7 @@ void GUIAPI CircleArcGenerator (void* context, int x, int y, int r, int ang1, in
     }
     else
         ang2 += ang1;
-    
+
     /* Calculate the start point and the end point. */
     /* We have to flip y because bitmaps count y coordinates downwards. */
     get_point_on_arc (r, ang1, &sx, &sy);
@@ -658,7 +658,7 @@ void GUIAPI CircleArcGenerator (void* context, int x, int y, int r, int ang1, in
              if (px <= ex)
                  det++;
          }
-         
+
          if (det == 2)
              break;
         }

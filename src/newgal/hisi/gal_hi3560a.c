@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -47,7 +47,7 @@
 
 /*
 **  $Id: gal_hi3560a.c 12768 2010-04-22 05:28:30Z dongkai $
-**  
+**
 **  Copyright (C) 2003 ~ 2007 Feynman Software.
 **  Copyright (C) 2001 ~ 2002 Wei Yongming.
 */
@@ -236,7 +236,7 @@ static GAL_VideoDevice *HI3560A_CreateDevice(int devindex)
     device->SetVideoMode = HI3560A_SetVideoMode;
     device->SetColors = HI3560A_SetColors;
     device->VideoQuit = HI3560A_VideoQuit;
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA_PROCS
     device->RequestHWSurface = HI3560A_RequestHWSurface;
 #endif
     device->AllocHWSurface = HI3560A_AllocHWSurface;
@@ -306,7 +306,7 @@ static int HI3560A_VideoInit(_THIS, GAL_PixelFormat *vformat)
             PROT_READ|PROT_WRITE, MAP_SHARED, fd_fb, 0);
 #else
     puts("use malloc replace mmap.");
-    pixels = (unsigned char *)malloc(720*576*2); 
+    pixels = (unsigned char *)malloc(720*576*2);
 #endif
     if (pixels == MAP_FAILED) {
         perror("mmap()");
@@ -573,7 +573,7 @@ static GAL_Surface *HI3560A_SetVideoMode(_THIS, GAL_Surface *current,
         vinfo.xres = width;
         vinfo.yres = height;
     }
-    if ( mgIsServer && 
+    if ( mgIsServer &&
          ((vinfo.xres != width) || (vinfo.yres != height) ||
          (vinfo.bits_per_pixel != bpp) /* || (flags & GAL_DOUBLEBUF) */) ) {
 #else
@@ -731,7 +731,7 @@ HI3560A_CheckHWBlit(_THIS, GAL_Surface * src, GAL_Surface * dst)
     // only supported the hw surface accelerated.
     if (!(src->flags & GAL_HWSURFACE) || !(dst->flags & GAL_HWSURFACE))
     {
-        printf("src(%s) dst(%s)\n", 
+        printf("src(%s) dst(%s)\n",
                 (src->flags & GAL_HWSURFACE) ? "HW" : "SW",
                 (dst->flags & GAL_HWSURFACE) ? "HW" : "SW");
         return -1;
@@ -751,15 +751,15 @@ tde_bitblit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dst
     TDE2_OPT_S opt = {0};
     TDE2_SURFACE_S tde_src;
     TDE2_SURFACE_S tde_dst;
-    if (NULL != src && NULL != srcrect && 
+    if (NULL != src && NULL != srcrect &&
             NULL != dst && NULL != dstrect) {
         if (0 == surface2tde(src, &tde_src) &&
                 0 == surface2tde(dst, &tde_dst)) {
             memset(&opt, 0, sizeof(opt));
             if (0 == flags) {
                 tdeHandle = HI_TDE2_BeginJob();
-                s32Ret = HI_TDE2_QuickCopy(tdeHandle, 
-                        &tde_src, (TDE2_RECT_S*)srcrect, 
+                s32Ret = HI_TDE2_QuickCopy(tdeHandle,
+                        &tde_src, (TDE2_RECT_S*)srcrect,
                         &tde_dst, (TDE2_RECT_S*)dstrect);
                 if(0 != s32Ret) {
                     printf ("Line:%d,HI_TDE2_QuickCopy failed,ret = %x!\n", __LINE__, s32Ret);
@@ -786,10 +786,10 @@ tde_bitblit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dst
             memset (&stOpt, 0, sizeof(stOpt));
 #if 1
             //point Alpha form foregound or backgound
-            stOpt.enOutAlphaFrom = TDE2_OUTALPHA_FROM_FOREGROUND;    
+            stOpt.enOutAlphaFrom = TDE2_OUTALPHA_FROM_FOREGROUND;
 #else
             //layer Alpha
-            stOpt.enOutAlphaFrom = TDE2_OUTALPHA_FROM_GLOBALALPHA;    
+            stOpt.enOutAlphaFrom = TDE2_OUTALPHA_FROM_GLOBALALPHA;
             stOpt.u8GlobalAlpha = 90;
 #endif
             stOpt.enColorKeyMode = TDE2_COLORKEY_MODE_FOREGROUND;   //对前景色做colorkey操作
@@ -803,10 +803,10 @@ tde_bitblit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dst
 
             tdeHandle = HI_TDE2_BeginJob();
 
-            s32Ret = HI_TDE2_Bitblit(tdeHandle, 
-                    &stScreen, &stDstRect, 
-                    &stScreen, &stSrcRect, 
-                    &stScreen, &stSrcRect, 
+            s32Ret = HI_TDE2_Bitblit(tdeHandle,
+                    &stScreen, &stDstRect,
+                    &stScreen, &stSrcRect,
+                    &stScreen, &stSrcRect,
                     &stOpt);
             if(s32Ret != 0)
             {
@@ -867,10 +867,10 @@ tde_bitblit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dst
                     tde_src.u32PhyAddr, srcrect->x,srcrect->y, srcrect->w, srcrect->h,
                     tde_dst.u32PhyAddr, dstrect->x,dstrect->y, srcrect->w, srcrect->h);
             tdeHandle = HI_TDE2_BeginJob();
-            s32Ret = HI_TDE2_Bitblit(tdeHandle, 
-                    &tde_dst, (TDE2_RECT_S*)dstrect, 
+            s32Ret = HI_TDE2_Bitblit(tdeHandle,
+                    &tde_dst, (TDE2_RECT_S*)dstrect,
                     &tde_src, (TDE2_RECT_S*)srcrect,
-                    &tde_dst, (TDE2_RECT_S*)dstrect, 
+                    &tde_dst, (TDE2_RECT_S*)dstrect,
                     &opt);
             if(0 != s32Ret) {
                 printf ("Line:%d,HI_TDE2_Bitblit failed,ret = %x.\n", __LINE__, s32Ret);
@@ -1010,7 +1010,7 @@ static int HI3560A_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 co
                 HI_TDE2_CancelJob(tdeHandle);
                 return -1;
             }
-            HI_TDE2_EndJob(tdeHandle, HI_FALSE, HI_TRUE, 20); 
+            HI_TDE2_EndJob(tdeHandle, HI_FALSE, HI_TRUE, 20);
             return 0;
         }
     }

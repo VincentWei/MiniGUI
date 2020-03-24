@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -80,7 +80,7 @@
 
 
 #if !defined(ST_OS21) && !defined(ST_OSWINCE)
-	#include "stlite.h"
+    #include "stlite.h"
 #endif
 #include "stevt.h"
 #include "stavmem.h"
@@ -116,7 +116,7 @@ enum
     STBLIT_ERROR_MAX_JOB_BLIT,
     STBLIT_ERROR_WORK_BUFFER_SIZE,
 #ifdef ST_OSWINCE
-	STBLIT_ERROR_JOB_BLIT_DETACHED,
+    STBLIT_ERROR_JOB_BLIT_DETACHED,
 #endif
 #ifdef ST_OSLINUX
     STBLIT_ERROR_NESTED_LOCK,
@@ -182,7 +182,7 @@ typedef enum  STBLIT_DeviceType_e
     STBLIT_DEVICE_TYPE_BDISP_7111,
     STBLIT_DEVICE_TYPE_BDISP_7105,
     STBLIT_DEVICE_TYPE_BDISP_7141,
-	STBLIT_DEVICE_TYPE_BDISP_5197,
+    STBLIT_DEVICE_TYPE_BDISP_5197,
     STBLIT_DEVICE_TYPE_BDISP_7106,
     STBLIT_DEVICE_TYPE_BDISP_5206,
     STBLIT_DEVICE_TYPE_BDISP_7108
@@ -203,11 +203,11 @@ typedef enum STBLIT_SourceType_e
 
 typedef enum STBLIT_TriggerType_e
 {
-	STBLIT_TRIGGER_TYPE_TOP_LINE,
-	STBLIT_TRIGGER_TYPE_BOTTOM_LINE,
-	STBLIT_TRIGGER_TYPE_PROGRESSIVE_LINE,
-	STBLIT_TRIGGER_TYPE_TOP_VSYNC,
-	STBLIT_TRIGGER_TYPE_BOTTOM_VSYNC,
+    STBLIT_TRIGGER_TYPE_TOP_LINE,
+    STBLIT_TRIGGER_TYPE_BOTTOM_LINE,
+    STBLIT_TRIGGER_TYPE_PROGRESSIVE_LINE,
+    STBLIT_TRIGGER_TYPE_TOP_VSYNC,
+    STBLIT_TRIGGER_TYPE_BOTTOM_VSYNC,
     STBLIT_TRIGGER_TYPE_PROGRESSIVE_VSYNC,
     STBLIT_TRIGGER_TYPE_TOP_CAPTURE,
     STBLIT_TRIGGER_TYPE_BOTTOM_CAPTURE,
@@ -262,7 +262,7 @@ typedef struct STBLIT_ColorEffectUserDefined_s
 
 typedef struct STBLIT_ColorEffectNone_s
 {
-	U32  Dummy;
+    U32  Dummy;
 } STBLIT_ColorEffectNone_t;
 
 typedef union STBLIT_ColorEffectData_u
@@ -646,44 +646,44 @@ ST_ErrorCode_t STBLIT_GetJobBlitHandle(
 
 #ifdef ST_OSWINCE
 ST_ErrorCode_t STBLIT_RemoveJobBlit(
-	STBLIT_Handle_t Handle,
+    STBLIT_Handle_t Handle,
     STBLIT_JobBlitHandle_t JobBlitHandle
 );
 
 ST_ErrorCode_t STBLIT_RemoveAllJobBlits(
-	STBLIT_Handle_t Handle,
+    STBLIT_Handle_t Handle,
     STBLIT_JobHandle_t JobHandle
 );
 
 ST_ErrorCode_t STBLIT_InsertJobBlitBefore(
-	STBLIT_Handle_t Handle,
-	STBLIT_JobHandle_t JobHandle,
+    STBLIT_Handle_t Handle,
+    STBLIT_JobHandle_t JobHandle,
     STBLIT_JobBlitHandle_t insertBeforeThisJobBlit,
     STBLIT_JobBlitHandle_t insertThisJobBlit
 );
 
 ST_ErrorCode_t STBLIT_InsertJobBlitAfter(
-	STBLIT_Handle_t Handle,
-	STBLIT_JobHandle_t JobHandle,
+    STBLIT_Handle_t Handle,
+    STBLIT_JobHandle_t JobHandle,
     STBLIT_JobBlitHandle_t insertAfterThisJobBlit,
     STBLIT_JobBlitHandle_t insertThisJobBlit
 );
 
 ST_ErrorCode_t STBLIT_InsertJobBlitAtEnd(
-	STBLIT_Handle_t Handle,
-	STBLIT_JobHandle_t JobHandle,
+    STBLIT_Handle_t Handle,
+    STBLIT_JobHandle_t JobHandle,
     STBLIT_JobBlitHandle_t insertThisJobBlit
 );
 
 ST_ErrorCode_t STBLIT_InsertJobBlitCopy(
-	STBLIT_Handle_t Handle,
-	STBLIT_JobHandle_t JobHandle,
+    STBLIT_Handle_t Handle,
+    STBLIT_JobHandle_t JobHandle,
     STBLIT_JobBlitHandle_t sourceJobBlit
 );
 
 
 ST_ErrorCode_t STBLIT_DeleteJobBlit(
-	STBLIT_Handle_t Handle,
+    STBLIT_Handle_t Handle,
     STBLIT_JobBlitHandle_t JobBlitHandle
 );
 #endif
@@ -731,7 +731,7 @@ ST_ErrorCode_t STBLIT_SetJobBlitColorKey(STBLIT_Handle_t          Handle,
 #ifdef ST_OSWINCE
 ST_ErrorCode_t STBLIT_SetJobBlitGlobalAlpha(STBLIT_Handle_t          Handle,
                                             STBLIT_JobBlitHandle_t   JobBlitHandle,
-											U8                       GlobalAlpha);
+                                            U8                       GlobalAlpha);
 #endif
 
 ST_ErrorCode_t STBLIT_GetFlickerFilterMode(STBLIT_Handle_t                  Handle,
@@ -788,7 +788,7 @@ them at their own risks and not for production. There will be no support.
 #ifdef STBLIT_DEBUG_GET_STATISTICS
 typedef struct STBLIT_Statistics_s
 {
-	/* General information */
+    /* General information */
     U32 Submissions;                           /* Number of STBLIT APIs calls */
     U32 SubmissionsAtTheFront;                 /* Number of submissions at the front */
     U32 SubmissionsAtTheEnd;                   /* Number of submissions at the end */
@@ -805,13 +805,13 @@ typedef struct STBLIT_Statistics_s
     U32 MaxJobBlitNode;                        /* Max job Blit Nodes number */
     U32 LatestJobBlitNode;                     /* Latest STBLIT call job Blit Nodes number */
 
-	/* Generation time information (Milli seconds) */
+    /* Generation time information (Milli seconds) */
     U32 MinGenerationTime;                     /* Min node generation time */
     U32 AverageGenerationTime;                 /* Average node generation time */
     U32 MaxGenerationTime;                     /* Max node generation time */
     U32 LatestBlitGenerationTime;              /* Latest STBLIT call node generation time */
 
-	/* Execution time information (Milli seconds) */
+    /* Execution time information (Milli seconds) */
     U32 MinExecutionTime;                      /* Min blitter execution time */
     U32 AverageExecutionTime;                  /* Average blitter execution time */
     U32 MaxExecutionTime;                      /* Max blitter execution time */
@@ -823,7 +823,7 @@ typedef struct STBLIT_Statistics_s
     U32 MaxProcessingTime;                      /* Max blitter execution time */
     U32 LatestBlitProcessingTime;               /* Latest STBLIT call blitter execution time */
 
-	/* Execution rate information (MegaPixels/Second) */
+    /* Execution rate information (MegaPixels/Second) */
     U32 MinExecutionRate;                      /* Min execution rate time */
     U32 AverageExecutionRate;                  /* Average execution rate time */
     U32 MaxExecutionRate;                      /* Max execution rate time */

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -83,7 +83,7 @@ static int bms_mids [] =
     WE_METRICS_SCROLLBAR,
 };
 
-static char* bms_strs [] = 
+static char* bms_strs [] =
 {
     "metris of border",
     "fgc of active window border",
@@ -125,7 +125,7 @@ static char* cap_strs [] =
     "bgcb of inactive caption",
 };
 
-static int threed_item_mids [] = 
+static int threed_item_mids [] =
 {
     WE_FGC_THREED_BODY,
     WE_MAINC_THREED_BODY,
@@ -144,7 +144,7 @@ static int threed_item_mids [] =
     WE_BGC_SIGNIFICANT_ITEM,
 };
 
-static char* threed_item_strs [] = 
+static char* threed_item_strs [] =
 {
     "fgc of 3dbox",
     "main color of 3dbox main",
@@ -163,7 +163,7 @@ static char* threed_item_strs [] =
     "bgc of significant item",
 };
 
-static int other_mids [] = 
+static int other_mids [] =
 {
     WE_FGC_WINDOW,
     WE_BGC_WINDOW,
@@ -178,7 +178,7 @@ static int other_mids [] =
     WE_BGC_TOOLTIP
 };
 
-static char* other_strs [] = 
+static char* other_strs [] =
 {
     "fgc of window",
     "bgc of window",
@@ -232,7 +232,7 @@ static HMENU create_menu (void)
     MENUITEMINFO mii;
     hmenu = CreateMenu ();
     memset (&mii, 0, sizeof(MENUITEMINFO));
-    
+
     /*insert to position every time, insert from last to first */
     mii.type = MFT_STRING;
     mii.typedata = (DWORD)"others";
@@ -241,7 +241,7 @@ static HMENU create_menu (void)
     InsertMenuItem(hmenu, 0, MF_BYPOSITION, &mii);
 
     INSERT_SEPARATOR (hmenu, 0, mii);
-   
+
     mii.type = MFT_STRING;
     mii.typedata = (DWORD)"3dbox and items";
     mii.hsubmenu = create_sub_menu("3dbox and items",
@@ -340,16 +340,16 @@ static void change_wnd_attr (HWND hWnd, int attr_id)
                 {
                     WINDOW_ELEMENT_RENDERER* def_rdr;
                     def_rdr = (WINDOW_ELEMENT_RENDERER*)GetDefaultWindowElementRenderer();
-                    def_rdr->we_colors [attr_id & WE_ATTR_INDEX_MASK] 
+                    def_rdr->we_colors [attr_id & WE_ATTR_INDEX_MASK]
                             [(attr_id & WE_ATTR_TYPE_COLOR_MASK) >> 8] =
-                            (DWORD)MakeRGBA(color_data.r, color_data.g, 
+                            (DWORD)MakeRGBA(color_data.r, color_data.g,
                                             color_data.b, 0xff);
                     return;
                 }
                 else
                 {
-                    SetWindowElementAttr(hWnd, attr_id, 
-                            (DWORD)MakeRGBA(color_data.r, color_data.g, 
+                    SetWindowElementAttr(hWnd, attr_id,
+                            (DWORD)MakeRGBA(color_data.r, color_data.g,
                                 color_data.b, 0xff));
 
                     printf("set bgc of desktop\n");
@@ -373,7 +373,7 @@ static void change_wnd_attr (HWND hWnd, int attr_id)
                     return;
                 }
                 else
-                    old_font = (LOGFONT*)SetWindowElementAttr (hWnd, attr_id, 
+                    old_font = (LOGFONT*)SetWindowElementAttr (hWnd, attr_id,
                             (DWORD)font);
 
                 if (attr_id == WE_FONT_MESSAGEBOX)
@@ -444,7 +444,7 @@ static void change_metrics(HWND hWnd, int key_code)
                 style &= ~WS_THICKFRAME;
                 printf("no border window\n");
             }
-            else 
+            else
             {
                 IncludeWindowStyle (hWnd, WS_THINFRAME);
                 style |= WS_THINFRAME;
@@ -504,7 +504,7 @@ static int test_window_proc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
             hdc = BeginPaint(hWnd);
 
             TabbedTextOut(hdc, 20, 20,
-                    "please select menu.\n" 
+                    "please select menu.\n"
                     "If you select a metrics,\n"
                     "press \'+ -\' to argument or minish it.\n\n"
                     "Press \'ENTER\' to change the window renderer.\n"
@@ -516,7 +516,7 @@ static int test_window_proc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
             if (wParam == SCANCODE_ENTER)
             {
                 WND_DATA* data = (WND_DATA*)GetWindowAdditionalData (hWnd);
-                rdr_index = (rdr_index + ARRAY_LEN(rdr_names) + 1) % 
+                rdr_index = (rdr_index + ARRAY_LEN(rdr_names) + 1) %
                         ARRAY_LEN(rdr_names);
                 SetWindowElementRenderer (hWnd, rdr_names[rdr_index], NULL);
                 data->calc_we_area = GetWindowInfo(hWnd)->we_rdr->calc_we_area;
@@ -588,13 +588,13 @@ int MiniGUIMain (int argc, const char* argv[])
     CreateInfo.iBkColor = COLOR_lightwhite;
     CreateInfo.dwAddData = 0;
     CreateInfo.hHosting = HWND_DESKTOP;
-    
+
     hwnd_clas = CreateMainWindowEx (&CreateInfo, "classic", NULL, NULL, NULL);
     CreateInfo.spCaption ="Fashion window";
     hwnd_fshn = CreateMainWindowEx (&CreateInfo, "fashion", NULL, NULL, NULL);
     ShowWindow(hwnd_clas, SW_SHOWNORMAL);
     ShowWindow(hwnd_fshn, SW_SHOWNORMAL);
-    
+
     if (hwnd_clas == HWND_INVALID)
         return -1;
 

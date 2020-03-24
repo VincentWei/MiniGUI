@@ -287,7 +287,7 @@ static int get_mouse_pos(HWND hwnd, PSCROLLBARDATA data, int x, int y)
     return mouse_pos;
 }
 
-int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
+static int track_thumb (HWND hwnd, PSCROLLBARDATA data, int x, int y)
 {
     int barStart, curPos;
     int thumb_move_range;
@@ -1257,11 +1257,15 @@ BOOL RegisterScrollBarControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (0);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
     WndClass.iBkColor    =
-        GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = ScrollBarCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #endif/* _MGCTRL_SCROLLBAR */

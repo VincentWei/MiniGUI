@@ -62,10 +62,6 @@
 #include <unistd.h>
 #endif
 
-#ifdef _MGRM_THREADS
-#include <pthread.h>
-#endif
-
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -75,6 +71,7 @@
 #include "sysres.h"
 #include "misc.h"
 #include "list.h"
+#include "map.h"
 
 #include "resmgr.h"
 
@@ -89,70 +86,83 @@ static int user_type_count = 0;
 
 static HASH_TABLE hash_table;
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 static pthread_mutex_t lock;
 #define INIT_LOCKER() pthread_mutex_init(&lock, NULL)
 #define UNINIT_LOCKER() pthread_mutex_destroy(&lock)
 #define RES_LOCK() pthread_mutex_lock(&lock)
 #define RES_UNLOCK() pthread_mutex_unlock(&lock)
-#else
+#else   /* defined _MGHAVE_VIRTUAL_WINDOW */
 #define INIT_LOCKER()
 #define UNINIT_LOCKER()
 #define UNINT_LOCKER()
 #define RES_LOCK()
 #define RES_UNLOCK()
-#endif
+#endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifdef _DEBUG
-static void res_error(int type, const char* funcname, const char* strinfo, ... );
+static void res_error(int type, const char* funcname,
+        const char* strinfo, ... );
 #else
-static inline void res_error(int type, const char* funcname, const char* strinfo, ... )
+static inline void res_error(int type, const char* funcname,
+        const char* strinfo, ... )
 {
     /* do nothing */
 }
 #endif
 
-#ifdef WIN32
+#ifndef WIN32
 
-#else
+#define ERR_RETV(ret, type, ...)                            \
+    do {                                                    \
+        res_error((int)type, __FUNCTION__, __VA_ARGS__);    \
+        return (ret);                                       \
+    } while(0)
 
-#define ERR_RETV(ret, type, ...)  do{ res_error((int)type, __FUNCTION__, __VA_ARGS__); return (ret); } while(0)
+#define ERR_RET(type, ...)                                  \
+    do {                                                    \
+        res_error((int)type, __FUNCTION__, __VA_ARGS__);    \
+        return;                                             \
+    } while(0)
 
-#define ERR_RET(type, ...)  do{ res_error((int)type, __FUNCTION__, __VA_ARGS__); return ; } while(0)
-
-#endif
+#endif  /* not define WIN32 */
 
 //type ops
-static void* img_get_res_data(RESOURCE* res, int src_type, DWORD usr_param);
-static void img_unload(RESOURCE* res, int src_type);
-static RES_TYPE_OPS img_ops={
+static void* img_get_res_data (RESOURCE* res, int src_type, DWORD usr_param);
+static void img_unload (RESOURCE* res, int src_type);
+static RES_TYPE_OPS img_ops = {
     img_get_res_data,
     img_unload
 };
 
 static RES_TYPE_OPS nothing_ops = { NULL, NULL };
 
-#define mybmp_ops nothing_ops
+static void* mybmp_get_res_data (RESOURCE* res, int src_type, DWORD usr_param);
+static void mybmp_unload (RESOURCE* res, int src_type);
+static RES_TYPE_OPS mybmp_ops = {
+    mybmp_get_res_data,
+    mybmp_unload
+};
 
-static void* icon_get_res_data(RESOURCE* res, int src_type, DWORD usr_param);
-static void icon_unload(RESOURCE* res, int src_type);
-static RES_TYPE_OPS icon_ops={
+static void* icon_get_res_data (RESOURCE* res, int src_type, DWORD usr_param);
+static void icon_unload (RESOURCE* res, int src_type);
+static RES_TYPE_OPS icon_ops = {
     icon_get_res_data,
     icon_unload
 };
 
 #ifdef _MGHAVE_CURSOR
-static void* cursor_get_res_data(RESOURCE* res,int src_type, DWORD usr_param);
-static void cursor_unload(RESOURCE* res, int src_type);
-static RES_TYPE_OPS cursor_ops={
+static void* cursor_get_res_data (RESOURCE* res,int src_type, DWORD usr_param);
+static void cursor_unload (RESOURCE* res, int src_type);
+static RES_TYPE_OPS cursor_ops = {
     cursor_get_res_data,
     cursor_unload
 };
 #endif
 
-static void* etc_get_res_data(RESOURCE* res, int src_type, DWORD usr_param);
-static void etc_unload(RESOURCE* res, int src_type);
-static RES_TYPE_OPS etc_ops={
+static void* etc_get_res_data (RESOURCE* res, int src_type, DWORD usr_param);
+static void etc_unload (RESOURCE* res, int src_type);
+static RES_TYPE_OPS etc_ops = {
     etc_get_res_data,
     etc_unload
 };
@@ -194,12 +204,13 @@ static RES_TYPE_INFO pre_def_types[RES_TYPE_USER] = {
 // the hash table operations
 //
 #define Key2Idx(t,key)   ((key)%((t)->size))
-static void init_hash_table(HASH_TABLE* table, int size)
+static void init_hash_table (HASH_TABLE* table, int size)
 {
-    if(table == NULL)
+    if (table == NULL)
         return;
-    if(size <= 0)
+    if (size <= 0)
         size = DEF_HASH_SIZE;
+
     table->size = size;
     table->count = 0;
     table->entries = NEWEX(RES_ENTRY*, size);
@@ -375,7 +386,16 @@ static void delete_entry_data(RES_ENTRY* entry)
  727 733 739 743 751 757 761 769 773 787 797 809 811 821 823 827 829 839 853 857
  859 863 877 881 883 887 907 911 919 929 937 941 947 953 967 971 977 983 991 997
 */
-BOOL InitializeResManager(int hash_table_size)
+
+/* Since 5.0.0: functions for system bitmap map */
+static void free_val_bitmap (void *val)
+{
+    UnloadBitmap (val);
+    free (val);
+}
+
+map_t* __mg_sys_bmp_map;
+BOOL mg_InitResManager(int hash_table_size)
 {
     char szpath[MAX_PATH+1];
     char* p = NULL;
@@ -395,17 +415,24 @@ BOOL InitializeResManager(int hash_table_size)
 #endif
     {
         //step 2: get from MiniGUI.cfg
-        if(GetMgEtcValue("resinfo", "respath", szpath, sizeof(szpath)-1) == ETC_OK) {
+        if (GetMgEtcValue("resinfo", "respath",
+                    szpath, sizeof(szpath)-1) == ETC_OK) {
             cfg_res_path = strdup(szpath);
         }
     }
 
     //initialize hash table
-    init_hash_table(&hash_table, hash_table_size);
+    init_hash_table (&hash_table, hash_table_size);
 
     //initialize predefined type
     //
     INIT_LOCKER();
+
+    /* Since 5.0.0, initialize the map for system bitmaps */
+    if ((__mg_sys_bmp_map = __mg_map_create (copy_key_string, free_key_string,
+            NULL, free_val_bitmap, comp_key_string)) == NULL)
+        return FALSE;
+
     return TRUE;
 }
 
@@ -415,36 +442,38 @@ void TerminateResManager()
 
     //delete all entries
     RES_LOCK();
-    for(i=0; i<hash_table.size; i++){
+    for(i = 0; i < hash_table.size; i++){
         RES_ENTRY * entry = hash_table.entries[i];
-        while(entry)
-        {
+        while (entry) {
             RES_ENTRY* etmp = entry;
             entry = entry->next;
-            if(etmp->data)
-                delete_entry_data(etmp);
-            DELETE(etmp);
+            if (etmp->data)
+                delete_entry_data (etmp);
+            DELETE (etmp);
         }
         hash_table.entries[i] = NULL;
     }
 
     //delete entrys
-    release_hash_table(&hash_table);
+    release_hash_table (&hash_table);
 
-    RES_UNLOCK();
+    RES_UNLOCK ();
     //delete the respaths
-    for(i=0; res_paths[i]; i++){
-        DELETE(res_paths[i]);
+    for (i = 0; res_paths[i]; i++){
+        DELETE (res_paths[i]);
         res_paths[i] = NULL;
     }
     //delete types
-    DELETE(user_types);
+    DELETE (user_types);
     user_types = NULL;
     user_type_count = 0;
-    UNINIT_LOCKER();
+    UNINIT_LOCKER ();
+
+    /* Since 5.0.0, destroy the map for system bitmaps */
+    __mg_map_destroy (__mg_sys_bmp_map);
 }
 
-const char* sysres_get_system_res_path()
+const char* __sysres_get_system_res_path()
 {
     return cfg_res_path;
 }
@@ -624,21 +653,20 @@ static char* get_res_file(const char* res_name, char* filename)
     return NULL;
 }
 
-static void* get_res_data(RES_ENTRY *entry, RES_TYPE_OPS *ops, DWORD usr_param)
+static void* get_res_data (RES_ENTRY *entry, RES_TYPE_OPS *ops, DWORD usr_param)
 {
-    if(entry == NULL && ops == NULL)
+    if (entry == NULL && ops == NULL)
         return NULL;
 
-    if(entry->data == NULL){
-        if( ( ops == NULL || ops->get_res_data == NULL)){
+    if (entry->data == NULL) {
+        if ((ops == NULL || ops->get_res_data == NULL)) {
             entry->data = entry->source;
             return entry->data;
         }
-        if(ops && ops->get_res_data)
-        {
+
+        if (ops && ops->get_res_data) {
             entry->data = (*ops->get_res_data)((RESOURCE*)entry,
-                GetSourceType(entry),
-                usr_param);
+                GetSourceType(entry), usr_param);
         }
     }
 
@@ -722,8 +750,8 @@ void* LoadResource(const char* res_name, int type, DWORD usr_param)
     _DBG_PRINTF("%s: reference count for %p: %d\n",
         __FUNCTION__, entry, entry->refcnt);
 
-    data = get_res_data(entry, ti->ops, usr_param);
-    if(GetSourceType(entry) == REF_SRC_FILE)
+    data = get_res_data (entry, ti->ops, usr_param);
+    if (GetSourceType (entry) == REF_SRC_FILE)
         entry->source = NULL;
     RES_UNLOCK();
     return data;
@@ -809,26 +837,6 @@ int ReleaseRes(RES_KEY key)
     return ref;
 }
 
-#if 0
-RES_KEY Str2Key (const char* str)
-{
-    int i,l;
-    RES_KEY ret = 0;
-
-    if (str == NULL)
-        return RES_KEY_INVALID;
-
-    l = (strlen(str)+1) / 2;
-
-    for (i=0; i<l; i++) {
-        Uint16 w = MAKEWORD(str[i<<1], str[(i<<1)+1]);
-        ret ^= (w<<(i&0x0f));
-    }
-
-    return ret;
-}
-#endif
-
 // We use FNV-1a algrithm for Str2Key:
 // http://isthe.com/chongo/tech/comp/fnv/
 
@@ -842,7 +850,7 @@ RES_KEY Str2Key (const char* str)
 #   define FNV_INIT         ((RES_KEY)0x811c9dc5)
 #endif
 
-RES_KEY Str2Key(const char* str)
+RES_KEY Str2Key (const char* str)
 {
     const unsigned char* s = (const unsigned char*)str;
     RES_KEY hval = FNV_INIT;
@@ -876,7 +884,7 @@ RES_KEY Str2Key(const char* str)
 }
 
 #ifdef _DEBUG
-static void res_error(int type, const char* funcname, const char* strinfo, ... )
+static void res_error (int type, const char* funcname, const char* strinfo, ... )
 {
     char strbuff [256];
     static const char* errinfo[]={
@@ -899,7 +907,7 @@ static void res_error(int type, const char* funcname, const char* strinfo, ... )
             type,
             strbuff);
 }
-#endif
+#endif  /* defined _DEBUG */
 
 /////////////////////////////////////////////////
 //ops
@@ -968,12 +976,126 @@ static void img_unload (RESOURCE* res, int src_type)
     }
 }
 
-static void* icon_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
+typedef struct _MYBMP_WITH_PAL {
+    MYBITMAP mybmp;
+    RGB* pal;
+} MYBMP_WITH_PAL;
+
+static inline MYBMP_WITH_PAL* new_mybmp_with_pal (void)
+{
+    MYBMP_WITH_PAL* mybmp_pal;
+
+    mybmp_pal = NEW(MYBMP_WITH_PAL);
+    mybmp_pal->pal = malloc (sizeof (RGB) * 256);
+    return mybmp_pal;
+}
+
+static inline void delete_pal_in_mybmp_with_pal (MYBMP_WITH_PAL* mybmp_pal)
+{
+    DWORD type = mybmp_pal->mybmp.flags & MYBMP_TYPE_MASK;
+
+    if (type == MYBMP_TYPE_RGB || type == MYBMP_TYPE_BGR ||
+            type == MYBMP_TYPE_RGBA) {
+        if (mybmp_pal->pal) {
+            free (mybmp_pal->pal);
+            mybmp_pal->pal = NULL;
+        }
+    }
+}
+
+static inline void delete_mybmp_with_pal (MYBMP_WITH_PAL* mybmp_pal)
+{
+    if (mybmp_pal->pal)
+        free (mybmp_pal->pal);
+    free (mybmp_pal);
+}
+
+static void* mybmp_get_res_data (RESOURCE* res, int src_type, DWORD usr_param)
 {
     if (res == NULL)
         return NULL;
 
-    if (res->data==NULL) {
+    if (res->data == NULL) {
+        //source is null
+        if (res->source.src == NULL)
+            return NULL;
+
+        switch (src_type) {
+        case REF_SRC_FILE: {
+            MYBMP_WITH_PAL *mybmp_pal;
+            mybmp_pal = new_mybmp_with_pal ();
+            if (LoadMyBitmapFromFile (&mybmp_pal->mybmp, mybmp_pal->pal,
+                    res->source.file) != 0) {
+                delete_mybmp_with_pal (mybmp_pal);
+                return NULL;
+            }
+            delete_pal_in_mybmp_with_pal (mybmp_pal);
+            res->data = mybmp_pal;
+            if (usr_param) {
+                *(RGB**)usr_param = mybmp_pal->pal;
+            }
+            break;
+        }
+
+        case REF_SRC_INNER: {
+            INNER_RES* inner = res->source.inner;
+            if(inner->additional == NULL) {
+                // XXX: raw mybitmap?
+                res->data = (void*)inner->data;
+            }
+            else {
+                MYBMP_WITH_PAL *mybmp_pal;
+                mybmp_pal = new_mybmp_with_pal ();
+                if (LoadMyBitmapFromMem(&mybmp_pal->mybmp, mybmp_pal->pal,
+                            inner->data, inner->data_len,
+                            (const char*)inner->additional) != 0) {
+                    delete_mybmp_with_pal (mybmp_pal);
+                    return NULL;
+                }
+                delete_pal_in_mybmp_with_pal (mybmp_pal);
+                res->data = mybmp_pal;
+                if (usr_param) {
+                    *(RGB**)usr_param = mybmp_pal->pal;
+                }
+            }
+            break;
+        }
+
+        default:
+            return NULL;
+        }
+    }
+    else {
+        MYBMP_WITH_PAL *mybmp_pal = res->data;
+        if (usr_param) {
+            *(RGB**)usr_param = mybmp_pal->pal;
+        }
+    }
+
+    return res->data;
+}
+
+static void mybmp_unload (RESOURCE* res, int src_type)
+{
+    if (res && res->data) {
+        if ((src_type == REF_SRC_FILE) ||
+                (src_type == REF_SRC_INNER && (res->source.inner &&
+                        res->source.inner->additional != NULL))) {
+            MYBMP_WITH_PAL* mybmp_pal = res->data;
+            UnloadMyBitmap (&mybmp_pal->mybmp);
+            delete_mybmp_with_pal (mybmp_pal);
+        }
+
+        res->data = NULL;
+    }
+}
+
+static void* icon_get_res_data (RESOURCE* res, int src_type, DWORD usr_param)
+{
+    if (res == NULL)
+        return NULL;
+
+    if (res->data == NULL) {
         HICON hIcon = 0;
         if (res->source.src == NULL)
             return NULL;
@@ -1085,10 +1207,21 @@ static void* mem_get_res_data(RESOURCE* res, int src_type, DWORD usr_param)
         switch (src_type) {
         case REF_SRC_INNER: {
             res->data = (MEM_RES*)&(res->source.inner->data);
+            /* Since 5.0.0, return data size if user_param is not null */
+            if (usr_param) {
+                *(size_t*)usr_param =
+                    ((MEM_RES*)&(res->source.inner->data))->data_len;
+            }
             break;
         }
         default:
             return NULL;
+        }
+    }
+    else {
+        if (usr_param) {
+            *(size_t*)usr_param =
+                ((MEM_RES*)&(res->source.inner->data))->data_len;
         }
     }
 
@@ -1137,4 +1270,24 @@ static void font_unload(RESOURCE* res, int src_type)
         res->data = NULL;
     }
 }
+
+#if 0   /* deprecated code */
+RES_KEY Str2Key (const char* str)
+{
+    int i,l;
+    RES_KEY ret = 0;
+
+    if (str == NULL)
+        return RES_KEY_INVALID;
+
+    l = (strlen(str)+1) / 2;
+
+    for (i=0; i<l; i++) {
+        Uint16 w = MAKEWORD(str[i<<1], str[(i<<1)+1]);
+        ret ^= (w<<(i&0x0f));
+    }
+
+    return ret;
+}
+#endif  /* deprecated code */
 

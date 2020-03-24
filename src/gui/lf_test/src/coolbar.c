@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -137,7 +137,7 @@ static int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPa
                               0, 0,
                               52 * (NM_BARPIC + 1), 0,
                               hWnd, MAKELONG (48, 48));
-           
+
         coolbar2 = CreateWindow (CTRL_COOLBAR,
                               "",
                               WS_CHILD | WS_VISIBLE | CBS_BMP_32X32,
@@ -151,14 +151,14 @@ static int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPa
                               IDC_COOLBAR3,
                               0, 230,
                               20 * (NM_BARPIC + 1), 0, hWnd, 0);
-           
+
         coolbar4 = CreateWindow (CTRL_COOLBAR,
                               "res/bkgnd.gif",
                               WS_CHILD | WS_VISIBLE | CBS_USEBKBMP | CBS_BMP_CUSTOM,
                               IDC_COOLBAR4,
                               0, 170,
                               240, 0, hWnd, MAKELONG (20, 20));
-           
+
         for (i = 0; i < NM_BARPIC; i++) {
             LoadBitmapFromFile (HDC_SCREEN, bmps+i, barpic[i]);
             cbii.id = IDC_BAR + i + 1;
@@ -188,7 +188,7 @@ static int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPa
         }
         break;
     }
-       	
+
     case MSG_COMMAND:
     {
 #if 0
@@ -225,34 +225,35 @@ static int ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lPa
 
 static void InitCreateInfo(PMAINWINCREATE pCreateInfo)
 {
-    pCreateInfo->dwStyle = WS_CAPTION | WS_BORDER|WS_VISIBLE;  
+    pCreateInfo->dwStyle = WS_CAPTION | WS_BORDER|WS_VISIBLE;
     pCreateInfo->dwExStyle = WS_EX_IMECOMPOSE;
     pCreateInfo->spCaption = "CoolBar controls";
     pCreateInfo->hMenu = 0;
     pCreateInfo->hCursor = GetSystemCursor(0);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = ControlTestWinProc;
-    pCreateInfo->lx = 0; 
+    pCreateInfo->lx = 0;
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 400;
     pCreateInfo->by = 300;
-    pCreateInfo->iBkColor = GetWindowElementColor (WE_MAINC_THREED_BODY);
+    pCreateInfo->iBkColor =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }
 
 void coolbar_demo (HWND hwnd)
 {
-	MAINWINCREATE CreateInfo;
+    MAINWINCREATE CreateInfo;
 
     if (hMainWnd != HWND_INVALID) {
         ShowWindow (hMainWnd, SW_SHOWNORMAL);
         return;
     }
 
-	InitCreateInfo(&CreateInfo);
+    InitCreateInfo(&CreateInfo);
     CreateInfo.hHosting = hwnd;
 
-	hMainWnd = CreateMainWindow(&CreateInfo);
+    hMainWnd = CreateMainWindow(&CreateInfo);
 }
 

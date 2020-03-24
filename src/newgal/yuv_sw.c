@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -50,17 +50,17 @@
  *
  * Copyright (c) 1995 The Regents of the University of California.
  * All rights reserved.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice and the following
  * two paragraphs appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -69,17 +69,17 @@
 
  * Copyright (c) 1995 Erik Corry
  * All rights reserved.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice and the following
  * two paragraphs appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL ERIK CORRY BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
  * SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF
  * THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF ERIK CORRY HAS BEEN ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * ERIK CORRY SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS"
@@ -88,17 +88,17 @@
 
  * Portions of this software Copyright (c) 1995 Brown University.
  * All rights reserved.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice and the
  * following two paragraphs appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF BROWN
  * UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * BROWN UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS"
@@ -1052,11 +1052,11 @@ GAL_Overlay *GAL_CreateYUV_SW(_THIS, int width, int height, Uint32 format, GAL_S
         CB = CR = (i-128);
         Cr_r_tab[i] = (int) ( (0.419/0.299) * CR);
         Cr_g_tab[i] = (int) (-(0.299/0.419) * CR);
-        Cb_g_tab[i] = (int) (-(0.114/0.331) * CB); 
+        Cb_g_tab[i] = (int) (-(0.114/0.331) * CB);
         Cb_b_tab[i] = (int) ( (0.587/0.331) * CB);
     }
 
-    /* 
+    /*
      * Set up entries 0-255 in rgb-to-pixel value tables.
      */
     Rmask = display->format->Rmask;
@@ -1074,7 +1074,7 @@ GAL_Overlay *GAL_CreateYUV_SW(_THIS, int width, int height, Uint32 format, GAL_S
     /*
      * If we have 16-bit output depth, then we double the value
      * in the top word. This means that we can write out both
-     * pixels in the pixel doubling mode with one op. It is 
+     * pixels in the pixel doubling mode with one op. It is
      * harmless in the normal case as storing a 32-bit value
      * through a short pointer will lose the top bits anyway.
      */
@@ -1131,7 +1131,7 @@ GAL_Overlay *GAL_CreateYUV_SW(_THIS, int width, int height, Uint32 format, GAL_S
             /* inline assembly functions */
             if ( cpu_mmx && (Rmask == 0x00FF0000) &&
                             (Gmask == 0x0000FF00) &&
-                        (Bmask == 0x000000FF) && 
+                        (Bmask == 0x000000FF) &&
                             (width & 15) == 0) {
 /*printf("Using MMX 32-bit dither\n");*/
                 swdata->Display1X = ColorRGBDitherYV12MMX1X;

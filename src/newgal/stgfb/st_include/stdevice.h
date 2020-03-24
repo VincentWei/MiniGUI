@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -58,12 +58,12 @@
 /*        EXCLUDED TO THE FULLEST EXTENT PERMITTED BY LAW                    */
 /*                                                                           */
 /*****************************************************************************/
-/**                                                                            
- @File   stdevice.h                                                            
- @brief  System-wide devices header file. This file defines the complete system 
-         hardware & software configuration. It does this by including a 
-         board-specific configuration file and a software specific configuration 
-         file.                                                     
+/**
+ @File   stdevice.h
+ @brief  System-wide devices header file. This file defines the complete system
+         hardware & software configuration. It does this by including a
+         board-specific configuration file and a software specific configuration
+         file.
 */
 #ifndef __STDEVICE_H
 #define __STDEVICE_H
@@ -208,13 +208,13 @@
 #endif
 #if defined(custom001029)&&defined(ST_7109)        /* Custom001029 Platform for STx7109         */
 #include "custom001029_7109.h"
-#endif 
+#endif
 #if defined(custom001030)&&defined(ST_7111)        /* Custom001030 Platform for STx7111         */
 #include "custom001030_7111.h"
 #endif
 #if defined(custom001031)&&defined(ST_7109)        /* Custom001031 Platform for STx7109         */
 #include "custom001031_7109.h"
-#endif 
+#endif
 #if defined(custom001033)&&defined(ST_7109)        /* Custom001033 Platform for STx7109         */
 #include "custom001033_7109.h"
 #endif
@@ -223,13 +223,13 @@
 #endif
 #if defined(custom001035)&&defined(ST_7141)        /* Custom001035 Platform for STx7141         */
 #include "custom001035_7141.h"
-#endif 
+#endif
 #if defined(custom001036)&&defined(ST_7105)        /* Custom001036 Platform for STx7105         */
 #include "custom001036_7105.h"
 #endif
 #if defined(custom001037)&&defined(ST_7109)        /* Custom001037 Platform for STx7109         */
 #include "custom001037_7109.h"
-#endif 
+#endif
 #if defined(custom002002)&&defined(ST_7109)        /* Custom002002 Platform for STx7109         */
 #include "custom002002_7109.h"
 #endif
@@ -290,7 +290,7 @@
 
 /* Same board, different memory configuration */
 #if defined(mb5518um)
-	#define mb5518
+    #define mb5518
 #endif
 
 /* Same board, different chip cuts and memory configuration */

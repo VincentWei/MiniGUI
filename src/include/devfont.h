@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -51,6 +51,9 @@
 
 #ifndef GUI_DEVFONT_H
     #define GUI_DEVFONT_H
+
+/* define _DEBUG_DEVFONF to dump the devfonts */
+/* #undef _DEBUG_DEVFONT */
 
 #define ACHAR_MBC_FLAG          0x80000000
 
@@ -113,8 +116,8 @@ void font_TermFreetypeLibrary (void);
 #endif
 
 #ifdef _MGFONT_SEF
-BOOL initialize_scripteasy(void);
-void uninitialize_scripteasy(void);
+BOOL font_InitializeScripteasy(void);
+void font_UninitializeScripteasy(void);
 #endif
 
 BOOL font_InitSpecificalFonts (char* etc_section);
@@ -153,7 +156,7 @@ unsigned short font_GetBestScaleFactor (int height, int expect);
 void font_DelSBDevFont (DEVFONT* dev_font);
 void font_DelMBDevFont (DEVFONT* dev_font);
 
-#ifdef _DEBUG
+#ifdef _DEBUG_DEVFONT
 void dbg_dumpDevFonts (void);
 #endif
 
@@ -308,7 +311,7 @@ struct _FONTOPS
     int (*get_glyph_prbitmap) (LOGFONT* logfont, DEVFONT* devfont,
             Glyph32 glyph_value, BITMAP *bmp);
 
-    /* The method to preproccess start string output fuction, call this 
+    /* The method to preproccess start string output fuction, call this
      * function before output a string, can be NULL.
      */
     void (*start_str_output) (LOGFONT* logfont, DEVFONT* devfont);
@@ -347,7 +350,8 @@ struct _FONTOPS
         Glyph32 prev, Glyph32 curr, int* delta_x, int* delta_y);
 
     /**
-     * The method to get the FreeType2 FT_Face objece; only valid for FreeType2 font engine
+     * The method to get the FreeType2 FT_Face objece; only valid for FreeType2
+     * font engine
      *
      * Since 4.0.0.
      */

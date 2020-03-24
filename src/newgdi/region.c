@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** region.c: Device-independent multi-rectangle clipping routines.
-** 
+**
 ** GDI region objects. Shamelessly ripped out from the X11 distribution
 ** Thanks for the nice licence.
 **
@@ -89,13 +89,13 @@ Copyright 1987, 1988 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -182,7 +182,7 @@ typedef void (*voidProcp2)(CLIPRGN *region, const CLIPRECT *r, const CLIPRECT *r
 extern BLOCKHEAP __mg_FreeClipRectList;
 
 /* return TRUE if point is in region */
-BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y)
+BOOL GUIAPI PtInRegion (const PCLIPRGN region, int x, int y)
 {
     int top;
     PCLIPRECT cliprect = region->head;
@@ -216,7 +216,7 @@ BOOL GUIAPI PtInRegion (PCLIPRGN region, int x, int y)
 }
 
 /* Returns TRUE if rect is at least partly inside region */
-BOOL GUIAPI RectInRegion (PCLIPRGN region, const RECT* rect)
+BOOL GUIAPI RectInRegion (const PCLIPRGN region, const RECT* rect)
 {
     PCLIPRECT cliprect = region->head;
     BOOL ret = FALSE;
@@ -334,7 +334,7 @@ BOOL GUIAPI SetClipRgn (PCLIPRGN pRgn, const RECT* pRect)
     pRgn->rcBound = *pRect;
 
     return TRUE;
-} 
+}
 
 BOOL GUIAPI ClipRgnCopy (PCLIPRGN pDstRgn, const CLIPRGN* pSrcRgn)
 {
@@ -372,7 +372,7 @@ BOOL GUIAPI ClipRgnCopy (PCLIPRGN pDstRgn, const CLIPRGN* pSrcRgn)
     pDstRgn->tail = pnewcr;
 
     pDstRgn->type = pSrcRgn->type;
-    pDstRgn->rcBound = pSrcRgn->rcBound; 
+    pDstRgn->rcBound = pSrcRgn->rcBound;
 
     return TRUE;
 }
@@ -414,7 +414,7 @@ static void REGION_SetExtents (CLIPRGN *region)
     }
 }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
 void dbg_dumpRegion (CLIPRGN* region)
 {
     CLIPRECT *cliprect;
@@ -426,13 +426,13 @@ void dbg_dumpRegion (CLIPRGN* region)
         fprintf (stderr, "start of region: %p.\n", region);
         fprintf (stderr, "head of region: %p.\n", region->head);
         fprintf (stderr, "tail of region: %p.\n", region->tail);
-        fprintf (stderr, "Bound of region: (%d, %d, %d, %d)\n", 
+        fprintf (stderr, "Bound of region: (%d, %d, %d, %d)\n",
                         region->rcBound.left,
                         region->rcBound.top,
                         region->rcBound.right,
                         region->rcBound.bottom);
         while (cliprect) {
-            fprintf (stderr, "cliprect %p: (%d, %d, %d, %d)\n", cliprect, 
+            fprintf (stderr, "cliprect %p: (%d, %d, %d, %d)\n", cliprect,
                             cliprect->rc.left, cliprect->rc.top,
                             cliprect->rc.right,
                             cliprect->rc.bottom);
@@ -502,7 +502,7 @@ static CLIPRECT* REGION_Coalesce (
         curNumRects ++;
         pCurRect = pCurRect->next;
     }
-    
+
     if (pCurRect) {
         /*
          * If more than one band was added, we have to find the start
@@ -557,7 +557,7 @@ static CLIPRECT* REGION_Coalesce (
              * the current band.
              */
             /*
-             * for implementation of MiniGUI, we should free 
+             * for implementation of MiniGUI, we should free
              * the clipping rects merged.
              */
             pCurRect = curStart;
@@ -599,7 +599,7 @@ static CLIPRECT* REGION_Coalesce (
                 } while (pCurRect != regionEnd);
             }
             */
-            
+
         }
     }
     return (newStart);
@@ -651,7 +651,7 @@ REGION_RegionOp(
     CLIPRECT* curBand;                  /* start of current band in newReg */
     int top;                            /* Top of non-overlapping band */
     int bot;                            /* Bottom of non-overlapping band */
-    
+
     /*
      * Initialization:
      *  set r1, r2, r1End and r2End appropriately, preserve the important
@@ -663,16 +663,16 @@ REGION_RegionOp(
     r2 = reg2->head;
 
     /*
-     * newReg may be one of the src regions so we can't empty it. We keep a 
+     * newReg may be one of the src regions so we can't empty it. We keep a
      * note of its rects pointer (so that we can free them later), preserve its
-     * rcBound and simply set numRects to zero. 
+     * rcBound and simply set numRects to zero.
      */
     /*
     oldRects = newReg->rects;
     newReg->numRects = 0;
      */
 
-    /* 
+    /*
      * for implementation of MiniGUI, we create an empty region.
      */
     if (newReg == reg1 || newReg == reg2) {
@@ -702,7 +702,7 @@ REGION_RegionOp(
     }
      */
 
-    
+
     /*
      * Initialize ybot and ytop.
      * In the upcoming loop, ybot and ytop serve different functions depending
@@ -720,7 +720,7 @@ REGION_RegionOp(
         ybot = reg1->rcBound.top;
     else
         ybot = reg2->rcBound.top;
-    
+
     /*
      * prevBand serves to mark the start of the previous band so rectangles
      * can be coalesced into larger rectangles. qv. miCoalesce, above.
@@ -731,7 +731,7 @@ REGION_RegionOp(
      * array of rectangles.
      */
     prevBand = pdst->head;
-    
+
     do {
         curBand = pdst->tail;
 
@@ -745,11 +745,11 @@ REGION_RegionOp(
         r1BandEnd = r1;
         while (r1BandEnd && (r1BandEnd->rc.top == r1->rc.top))
             r1BandEnd = r1BandEnd->next;
-        
+
         r2BandEnd = r2;
         while (r2BandEnd && (r2BandEnd->rc.top == r2->rc.top))
             r2BandEnd = r2BandEnd->next;
-        
+
         /*
          * First handle the band that doesn't intersect, if any.
          *
@@ -798,7 +798,7 @@ REGION_RegionOp(
         curBand = pdst->tail;
         if (ybot > ytop)
             (* overlapFunc) (pdst, r1, r1BandEnd, r2, r2BandEnd, ytop, ybot);
-        
+
         if (pdst->tail != curBand)
             prevBand = REGION_Coalesce (pdst, prevBand, curBand);
 
@@ -1024,7 +1024,7 @@ REGION_UnionO(CLIPRGN *region, const CLIPRECT *r1, const CLIPRECT *r1End,
         newcliprect->rc.right = r->rc.right;  \
     }  \
     r = r->next;
-    
+
     while (r1 && r2 && (r1 != r1End) && (r2 != r2End))
     {
         if (r1->rc.left < r2->rc.left)
@@ -1036,7 +1036,7 @@ REGION_UnionO(CLIPRGN *region, const CLIPRECT *r1, const CLIPRECT *r1End,
             MERGERECT(r2);
         }
     }
-    
+
     if (r1 && r1 != r1End)
     {
         do {
@@ -1071,7 +1071,7 @@ REGION_SubtractNonO1 (CLIPRGN *region, const CLIPRECT *r, const CLIPRECT *rEnd,
                         int top, int bottom)
 {
     CLIPRECT *newcliprect;
-        
+
     while (r && r != rEnd) {
         NEWCLIPRECT(region, newcliprect);
         newcliprect->rc.left = r->rc.left;
@@ -1102,7 +1102,7 @@ REGION_SubtractO (CLIPRGN *region, const CLIPRECT *r1, const CLIPRECT *r1End,
 {
     CLIPRECT *newcliprect;
     int left;
-    
+
     left = r1->rc.left;
     while (r1 && r2 && (r1 != r1End) && (r2 != r2End)) {
         if (r2->rc.right <= left) {
@@ -1213,9 +1213,9 @@ BOOL GUIAPI ClipRgnIntersect (CLIPRGN *dst, const CLIPRGN *src1, const CLIPRGN *
         return FALSE;
     }
     else
-        REGION_RegionOp (dst, src1, src2, 
+        REGION_RegionOp (dst, src1, src2,
             REGION_IntersectO, NULL, NULL);
-    
+
     /*
      * Can't alter dst's rcBound before we call miRegionOp because
      * it might be one of the source regions and miRegionOp depends
@@ -1250,8 +1250,8 @@ BOOL GUIAPI SubtractRegion (CLIPRGN *rgnD, const CLIPRGN *rgnM, const CLIPRGN *r
         CopyRegion (rgnD, rgnM);
         return TRUE;
     }
- 
-    REGION_RegionOp (rgnD, rgnM, rgnS, REGION_SubtractO, 
+
+    REGION_RegionOp (rgnD, rgnM, rgnS, REGION_SubtractO,
                 REGION_SubtractNonO1, NULL);
 
     /*
@@ -1295,7 +1295,7 @@ BOOL GUIAPI UnionRegion (CLIPRGN *dst, const CLIPRGN *src1, const CLIPRGN *src2)
     /*
      * Region 1 completely subsumes region 2
      */
-    if ((src1->head == src1->tail) && 
+    if ((src1->head == src1->tail) &&
         (src1->rcBound.left <= src2->rcBound.left) &&
         (src1->rcBound.top <= src2->rcBound.top) &&
         (src1->rcBound.right >= src2->rcBound.right) &&
@@ -1309,7 +1309,7 @@ BOOL GUIAPI UnionRegion (CLIPRGN *dst, const CLIPRGN *src1, const CLIPRGN *src2)
     /*
      * Region 2 completely subsumes region 1
      */
-    if ((src2->head == src2->tail) && 
+    if ((src2->head == src2->tail) &&
         (src2->rcBound.left <= src1->rcBound.left) &&
         (src2->rcBound.top <= src1->rcBound.top) &&
         (src2->rcBound.right >= src1->rcBound.right) &&
@@ -1320,7 +1320,7 @@ BOOL GUIAPI UnionRegion (CLIPRGN *dst, const CLIPRGN *src1, const CLIPRGN *src2)
         return TRUE;
     }
 
-    REGION_RegionOp (dst, src1, src2, REGION_UnionO, 
+    REGION_RegionOp (dst, src1, src2, REGION_UnionO,
                 REGION_UnionNonO, REGION_UnionNonO);
 
     REGION_SetExtents (dst);
@@ -1363,7 +1363,7 @@ BOOL GUIAPI AddClipRect (PCLIPRGN region, const RECT *rect)
     if (IsRectEmpty (rect))
         return FALSE;
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "\n***************Before Union by rect (%d, %d, %d, %d):\n",
                     rect->left, rect->top, rect->right, rect->bottom);
     dbg_dumpRegion (region);
@@ -1381,7 +1381,7 @@ BOOL GUIAPI AddClipRect (PCLIPRGN region, const RECT *rect)
 
     UnionRegion (region, region, &my_region);
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************After Union\n");
 #endif
@@ -1400,7 +1400,7 @@ BOOL GUIAPI IntersectClipRect (PCLIPRGN region, const RECT* rect)
         return TRUE;
     }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "\n***************before intersect by rect (%d, %d, %d, %d):\n",
                     rect->left, rect->top, rect->right, rect->bottom);
     dbg_dumpRegion (region);
@@ -1418,7 +1418,7 @@ BOOL GUIAPI IntersectClipRect (PCLIPRGN region, const RECT* rect)
 
     ClipRgnIntersect (region, region, &my_region);
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************After intersect\n");
 #endif
@@ -1434,7 +1434,7 @@ BOOL GUIAPI SubtractClipRect (PCLIPRGN region, const RECT* rect)
     if (IsRectEmpty (rect) || !DoesIntersect (&region->rcBound, rect))
         return FALSE;
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "\n***************Before subtract by rect (%d, %d, %d, %d):\n",
                     rect->left, rect->top, rect->right, rect->bottom);
     dbg_dumpRegion (region);
@@ -1452,7 +1452,7 @@ BOOL GUIAPI SubtractClipRect (PCLIPRGN region, const RECT* rect)
 
     SubtractRegion (region, region, &my_region);
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************After subtraction\n");
 #endif
@@ -1461,7 +1461,7 @@ BOOL GUIAPI SubtractClipRect (PCLIPRGN region, const RECT* rect)
 }
 
 #if 1
-void GUIAPI OffsetRegionEx (PCLIPRGN region, 
+void GUIAPI OffsetRegionEx (PCLIPRGN region,
         const RECT *rcClient, const RECT *rcScroll, int x, int y)
 {
     CLIPRECT* cliprect = region->head;
@@ -1476,7 +1476,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
     if (!IntersectRect (&rc, rcClient, rcScroll))
         return;
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "***************enter OffsetRegionEx\n");
     dbg_dumpRegion (region);
 #endif
@@ -1484,7 +1484,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         /*not in scroll window region, return*/
         if (!DoesIntersect (&cliprect->rc, &rc)) {
             cliprect = cliprect->next;
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "needn't scroll this cliprect.\n");
 #endif
             continue;
@@ -1497,7 +1497,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
 #if 0
             //nCount = SubtractRect (rc_array, &rc, &old_cliprc);
             nCount = SubtractRect (rc_array, &old_cliprc, &rc);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "add new %d cliprect to region.\n", nCount);
 #endif
             for (i = 0; i < nCount; i++) {
@@ -1507,7 +1507,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         }
 
         OffsetRect (&cliprect->rc, x, y);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
         fprintf (stderr, "offset current cliprect. \n");
 #endif
 
@@ -1526,7 +1526,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
 
             FreeClipRect (region->heap, cliprect);
             cliprect = pTemp;
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "remove current cliprect. \n");
 #endif
             continue;
@@ -1536,7 +1536,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         if (!IsCovered (&cliprect->rc, &rc)) {
             CopyRect (&old_cliprc, &cliprect->rc);
             IntersectRect (&cliprect->rc, &old_cliprc, &rc);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "tune current cliprect. \n");
 #endif
         }
@@ -1547,13 +1547,13 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         cliprect = cliprect->next;
     }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************after OffsetRegionEx\n");
 #endif
 }
 #else
-void GUIAPI OffsetRegionEx (PCLIPRGN region, 
+void GUIAPI OffsetRegionEx (PCLIPRGN region,
         const RECT *rcClient, const RECT *rcScroll, int x, int y)
 {
     CLIPRECT* cliprect = region->head;
@@ -1566,13 +1566,13 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
     if (!IntersectRect (&rc, rcClient, rcScroll))
         return;
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     fprintf (stderr, "***************enter OffsetRegionEx\n");
     dbg_dumpRegion (region);
 #endif
     while (cliprect) {
         OffsetRect (&cliprect->rc, x, y);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
         fprintf (stderr, "offset current cliprect. \n");
 #endif
         /*if not intersect, remove current cliprect from list*/
@@ -1590,7 +1590,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
 
             FreeClipRect (region->heap, cliprect);
             cliprect = pTemp;
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "remove current cliprect. \n");
 #endif
             continue;
@@ -1600,7 +1600,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         if (!IsCovered (&cliprect->rc, &rc)) {
             CopyRect (&old_cliprc, &cliprect->rc);
             IntersectRect (&cliprect->rc, &old_cliprc, &rc);
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
             fprintf (stderr, "tune current cliprect. \n");
 #endif
         }
@@ -1612,7 +1612,7 @@ void GUIAPI OffsetRegionEx (PCLIPRGN region,
         REGION_SetExtents(region);
     }
 
-#ifdef _REGION_DEBUG
+#ifdef _DEBUG_REGION
     dbg_dumpRegion (region);
     fprintf (stderr, "***************after OffsetRegionEx\n");
 #endif
@@ -1652,14 +1652,14 @@ static void cb_region (void* context, int x1, int x2, int y)
     newcliprect->rc.top = y;
     newcliprect->rc.bottom = y + 1;
 
-    if (region->head == NULL 
-            || (newcliprect->rc.top >= region->tail->rc.bottom 
+    if (region->head == NULL
+            || (newcliprect->rc.top >= region->tail->rc.bottom
                 && (newcliprect->rc.left != region->tail->rc.left
                     || newcliprect->rc.right != region->tail->rc.right))) {
         /* simply append to tail */
         goto append;
     }
-    else if (newcliprect->rc.top == region->tail->rc.bottom 
+    else if (newcliprect->rc.top == region->tail->rc.bottom
                 && newcliprect->rc.left == region->tail->rc.left
                 && newcliprect->rc.right == region->tail->rc.right) {
         /* merge with the tail */
@@ -1690,13 +1690,13 @@ static void cb_region (void* context, int x1, int x2, int y)
         CLIPRECT* prev;
 
         printf ("get here.\n");
-        printf ("new cliprc: (%d, %d, %d, %d)\n", 
+        printf ("new cliprc: (%d, %d, %d, %d)\n",
                         newcliprect->rc.left, newcliprect->rc.top,
                         newcliprect->rc.right, newcliprect->rc.bottom);
-        printf ("head cliprc: (%d, %d, %d, %d)\n", 
+        printf ("head cliprc: (%d, %d, %d, %d)\n",
                         region->head->rc.left, region->head->rc.top,
                         region->head->rc.right, region->head->rc.bottom);
-        printf ("tail cliprc: (%d, %d, %d, %d)\n", 
+        printf ("tail cliprc: (%d, %d, %d, %d)\n",
                         region->tail->rc.left, region->tail->rc.top,
                         region->tail->rc.right, region->tail->rc.bottom);
 
@@ -1707,12 +1707,12 @@ static void cb_region (void* context, int x1, int x2, int y)
         if (cliprect == NULL) /* simply append to the tail */
             goto append;
 
-        printf ("current cliprc: (%d, %d, %d, %d)\n", 
+        printf ("current cliprc: (%d, %d, %d, %d)\n",
                         cliprect->rc.left, cliprect->rc.top,
                         cliprect->rc.right, cliprect->rc.bottom);
 
         /* merge with prev or next? */
-        if ((prev = cliprect->prev) 
+        if ((prev = cliprect->prev)
                 && prev->rc.bottom == newcliprect->rc.top
                 && prev->rc.left == newcliprect->rc.left
                 && prev->rc.right == newcliprect->rc.right) {

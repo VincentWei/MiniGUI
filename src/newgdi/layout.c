@@ -911,7 +911,7 @@ static inline BOOL can_break_in (LAYOUT *layout,
  * or %BREAK_NONE_FIT returned. This is used when the end of the
  * run is not a break position.
  */
-BreakResult process_layout_run(LAYOUT *layout,
+static BreakResult process_layout_run(LAYOUT *layout,
         LAYOUTLINE *line, LayoutState *state,
         BOOL force_fit, BOOL no_break_at_end)
 {

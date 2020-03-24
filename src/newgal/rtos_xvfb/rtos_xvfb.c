@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -49,7 +49,7 @@
 
 #include "common.h"
 
-#ifdef _MGGAL_RTOSXVFB 
+#ifdef _MGGAL_RTOSXVFB
 
 #include <string.h>
 #include <stdio.h>
@@ -82,13 +82,13 @@ XVFBHeader* xVFBAllocVirtualFrameBuffer (int width, int height, int depth,
     int nr_entries = 0;
     int data_size;
     XVFBHeader* rtos_xvfb_buf;
-    
+
 
     if (depth <= 8)
-        nr_entries = 1 << depth;    
+        nr_entries = 1 << depth;
 
     data_size = (width*depth+31)/32*4*height + sizeof(XVFBHeader) + nr_entries * sizeof(XVFBPalEntry);
-    rtos_xvfb_buf = (XVFBHeader *)malloc (data_size);  
+    rtos_xvfb_buf = (XVFBHeader *)malloc (data_size);
 
 
     bzero(rtos_xvfb_buf, sizeof(*rtos_xvfb_buf));
@@ -120,7 +120,7 @@ XVFBHeader* xVFBAllocVirtualFrameBuffer (int width, int height, int depth,
 /* Allocate Virtual Frame Buffer.
 * Return value: NULL on error, else the pointer to a XVFBHeader struct.
 */
-void xVFBFreeVirtualFrameBuffer (XVFBHeader *fb) 
+void xVFBFreeVirtualFrameBuffer (XVFBHeader *fb)
 {
     free (fb);
 }
@@ -142,7 +142,7 @@ static void RTOS_XVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
     int i;
     RECT bound;
-    XVFBHeader* hdr = this->hidden->hdr;    
+    XVFBHeader* hdr = this->hidden->hdr;
 
     SetRect (&bound,
              hdr->dirty_rc_l, hdr->dirty_rc_t,
@@ -154,7 +154,7 @@ static void RTOS_XVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     for (i = 0; i < numrects; i++) {
         RECT rc;
 
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                         rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -169,7 +169,7 @@ static void RTOS_XVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     hdr->dirty_rc_t = bound.top;
     hdr->dirty_rc_r = bound.right;
     hdr->dirty_rc_b = bound.bottom;
-    
+
     hdr->dirty = TRUE;
 }
 
@@ -186,7 +186,7 @@ static GAL_VideoDevice *RTOS_XVFB_CreateDevice (int devindex)
 
     if ((this == NULL) || (this->hidden == NULL)) {
         GAL_OutOfMemory ();
-        if (this) 
+        if (this)
         {
             free (this);
         }
@@ -231,7 +231,7 @@ static int RTOS_XVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     struct GAL_PrivateVideoData* data = this->hidden;
 
     data->hdr = __mg_rtos_xvfb_header;
-    data->shmrgn = __mg_rtos_xvfb_header;    
+    data->shmrgn = __mg_rtos_xvfb_header;
 
     buf_rc.left = 0;
     buf_rc.top = 0;
@@ -255,7 +255,7 @@ static int RTOS_XVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             vformat->MSBLeft = __mg_rtos_xvfb_header->MSBLeft;
             fprintf(stderr, "vformat->MSBLeft= %d\n", vformat->MSBLeft);
             break;
-#endif        
+#endif
         case 8:
         case 16:
         case 24:
@@ -304,14 +304,14 @@ RTOS_XVFB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
     int depth = this->hidden->hdr->depth;
     int sect_len = (256-1) / ((1<<depth)-1);
 
-    int set_num = ((1<<depth)-firstcolor)<ncolors ? 
+    int set_num = ((1<<depth)-firstcolor)<ncolors ?
                         ((1<<depth)-firstcolor):ncolors;
     int seted_num = 0;;
 
     XVFBPalEntry tmp;
 
     XVFBPalEntry *palette;
-    palette = (XVFBPalEntry *)((BYTE *)this->hidden->hdr 
+    palette = (XVFBPalEntry *)((BYTE *)this->hidden->hdr
                                + this->hidden->hdr->palette_offset) + firstcolor;
 
     for (i=0; i<ncolors; i+=sect_len)
@@ -336,7 +336,7 @@ RTOS_XVFB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
     }
 
     this->hidden->hdr->palette_changed = 1;
-    
+
     return 1;
 }
 

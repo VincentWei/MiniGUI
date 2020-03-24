@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -226,8 +226,8 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     if (glyph_value >= RBFONT_INFO_P (devfont)->nr_glyphs)
         glyph_value = devfont->charset_ops->def_char_value;
 
-    bitmap_size = ((RBFONT_INFO_P (devfont)->width + 7) >> 3) 
-                * RBFONT_INFO_P (devfont)->height; 
+    bitmap_size = ((RBFONT_INFO_P (devfont)->width + 7) >> 3)
+                * RBFONT_INFO_P (devfont)->height;
     if(pitch)
         *pitch = (RBFONT_INFO_P (devfont)->width + 7) >> 3;
 
@@ -237,7 +237,7 @@ static const void* get_glyph_monobitmap (LOGFONT* logfont, DEVFONT* devfont,
     return RBFONT_INFO_P (devfont)->data + bitmap_size * glyph_value;
 }
 
-static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont, 
+static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont,
         Glyph32 glyph_value)
 {
     glyph_value = REAL_GLYPH(glyph_value);
@@ -247,10 +247,10 @@ static BOOL is_glyph_existed (LOGFONT* logfont, DEVFONT* devfont,
         return TRUE;
 }
 
-static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont, 
+static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
                 Glyph32 glyph_value, int* px, int* py)
 {
-    int advance = RBFONT_INFO_P (devfont)->width * 
+    int advance = RBFONT_INFO_P (devfont)->width *
                     GET_DEVFONT_SCALE (logfont, devfont);
     if (px)
         *px += advance;

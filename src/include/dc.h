@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -49,12 +49,16 @@
 ** Create Date: 1999/xx/xx
 */
 
-#ifndef _DC_H
-    #define _DC_H
+#ifndef GUI_DC_H
+    #define GUI_DC_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
+
+#include "gal.h"
+#include "internals.h"
+#include "ctrlclass.h"
 
 #if defined (__NOUNIX__) || defined (__uClinux__)
     #define DCSLOTNUMBER        8
@@ -81,25 +85,31 @@ typedef struct tagDC* PDC;
 #define DESTROY_LOCK(lock)      pthread_mutex_destroy(lock)
 #endif
 
-/* for support mGEff mini MiniGUI by humingming 2010.7.8 */
 #ifndef _MG_MINIMALGDI
+
+# ifdef _MGSCHEMA_COMPOSITING
+#   define LOCK_GCRINFO(pdc)
+#   define UNLOCK_GCRINFO(pdc)
+# else /* not defined _MGSCHEMA_COMPOSITING */
 void __mg_lock_recalc_gcrinfo (PDC pdc);
 void __mg_unlock_gcrinfo (PDC pdc);
 #define LOCK_GCRINFO(pdc)       __mg_lock_recalc_gcrinfo (pdc)
 #define UNLOCK_GCRINFO(pdc)     if (dc_IsGeneralDC(pdc)) __mg_unlock_gcrinfo (pdc)
-#else
-RECT g_rcScr;
-PLOGFONT g_SysLogFont[1];
+# endif /* not defined _MGSCHEMA_COMPOSITING */
+
+#else /* _MG_MINIMALGDI */
+
+/* for support mGEff mini MiniGUI by humingming 2010.7.8 */
+RECT g_rcScr;               // TODO: bad coding
+PLOGFONT g_SysLogFont[1];   // TODO: bad coding
 #define LOCK_GCRINFO(pdc)
 #define UNLOCK_GCRINFO(pdc)
 #define __mg_hwnd_desktop                     0xFFFFFFFD
 #define __mg_dsk_win                          1
 #define gui_Control(hwnd)                     NULL
-#define DestroyDskMsgQueue()
 #define salone_StandAloneStartup()            TRUE
 #define salone_StandAloneCleanup()
 #define salone_IdleHandler4StandAlone(qmsg)   NULL
-#define kernel_GetGCRgnInfo(hwnd)             NULL
 #define GetWindowFont(hwnd)                   NULL
 #define mg_InitControlClass()                 TRUE
 #define mg_InitAccel()                        TRUE
@@ -146,10 +156,12 @@ typedef BOOL (* CB_BITMAP_SCALER_FUNC )(
 /* Device Context */
 struct tagDC
 {
-    short DataType;  /* the data type, always be TYPE_HDC */
-    short DCType;    /* the dc type */
+    unsigned char DataType;  /* the data type, always be TYPE_HDC */
+    unsigned char DCType;    /* the dc type */
 
-    BOOL inuse;
+    unsigned char bInUse;
+    unsigned char bIsClient;
+
     HWND hwnd;
 
     /* surface of this DC */
@@ -228,8 +240,8 @@ struct tagDC
     DC_STEP_X  step_x;
 
     /* === context information. ============================================= */
-    /* DK[01/22/10]:This segment is binary compatible with _COMP_CTXT struct */
-    /* VW[01/18/18]:Adjust the fields sequence for 64-bit to ensure 8-byte alignment */
+    // DK[01/22/10]:This segment is binary compatible with _COMP_CTXT struct
+    // VW[01/18/18]:Adjust the fields order for 64bit to ensure 8-byte alignment
     gal_uint8*  cur_dst;
     void*       user_comp_ctxt;
     gal_pixel   skip_pixel;
@@ -247,11 +259,12 @@ struct tagDC
     CLIPRGN  ecrgn;
 
     /* device rect */
-    BOOL bIsClient;
     RECT DevRC;
 
+#ifndef _MGSCHEMA_COMPOSITING
     PGCRINFO pGCRInfo;
     unsigned int oldage;
+#endif
 
     CB_BITMAP_SCALER_FUNC bitmap_scaler;
 };
@@ -265,9 +278,11 @@ extern DC __mg_screen_sys_dc;
 static inline PDC dc_HDC2PDC (HDC hdc)
 {
     if (hdc == HDC_SCREEN_SYS)
-      	return &__mg_screen_sys_dc;
+        return &__mg_screen_sys_dc;
     else if (hdc == HDC_SCREEN)
-      	return &__mg_screen_dc;
+        return &__mg_screen_dc;
+    else if (hdc == HDC_INVALID)
+        return NULL;
     return (PDC) hdc;
 }
 
@@ -290,29 +305,24 @@ static inline BOOL dc_IsVisible (PDC pdc)
 {
     PCONTROL pCtrl;
 
-#if 0
-    if (pdc->DCType != TYPE_GENDC)
-        return TRUE;
-#else
     if (pdc->DCType != TYPE_GENDC) {
         if (dc_IsMemDC(pdc)){
-            if (!pdc->hwnd) return TRUE;
+            if (!pdc->hwnd)
+                return TRUE;
         }
         else
             return TRUE;
     }
-#endif
 
     if (pdc->hwnd == HWND_DESKTOP)
         return TRUE;
-
-    MG_CHECK_RET (MG_IS_WINDOW(pdc->hwnd), FALSE);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(pdc->hwnd), FALSE);
 
     pCtrl = (PCONTROL)(pdc->hwnd);
-
     do {
-        if (!(pCtrl->dwStyle & WS_VISIBLE))
+        if (!(pCtrl->dwStyle & WS_VISIBLE)) {
             return FALSE;
+        }
 
         pCtrl = pCtrl->pParent;
     } while (pCtrl);
@@ -488,43 +498,77 @@ static inline void _dc_step_y (PDC pdc, int step)
 }
 
 #ifndef _MGRM_THREADS
-
-#ifdef _MGRM_STANDALONE
-
-#define BLOCK_DRAW_SEM(pdc)
-#define UNBLOCK_DRAW_SEM(pdc)
-
-#ifndef _MG_MINIMALGDI
-#define CHECK_DRAWING(pdc)      \
+#  ifdef _MGRM_STANDALONE
+#   define BLOCK_DRAW_SEM(pdc)
+#   define UNBLOCK_DRAW_SEM(pdc)
+#   ifndef _MG_MINIMALGDI
+#     define IS_SCREEN_SURFACE(pdc)      \
+        (pdc->surface == __gal_screen)
+#     define WITHOUT_DRAWING(pdc)      \
         (__mg_switch_away && pdc->surface == __gal_screen)
-#else
-#define CHECK_DRAWING(pdc)      \
-        (FALSE)
-#endif
+#   else    /* defined _MG_MINIMALGDI */
+#     define IS_SCREEN_SURFACE(pdc)     (TRUE)
+#     define WITHOUT_DRAWING(pdc)       (FALSE)
+#   endif   /* defined _MG_MINIMALGDI */
+#  else     /* defined _MGRM_PROCESSES */
 
-#define CHECK_CLI_SCREEN(pdc, rcOutput) FALSE
+#    ifdef _MGSCHEMA_COMPOSITING
 
-#else
+#       define BLOCK_DRAW_SEM(pdc)                                  \
+do {                                                                \
+    if (pdc->surface->shared_header)                                \
+        LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);    \
+} while (0)
 
-#define BLOCK_DRAW_SEM(pdc)     \
-        if (!mgIsServer && pdc->surface == __gal_screen) lock_draw_sem ()
-#define UNBLOCK_DRAW_SEM(pdc)   \
-        if (!mgIsServer && pdc->surface == __gal_screen) unlock_draw_sem ()
+#       define UNBLOCK_DRAW_SEM(pdc)                                \
+do {                                                                \
+    if (pdc->surface->shared_header)                                \
+        UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);  \
+} while (0)
 
-#define CHECK_DRAWING(pdc)      \
-        (((!mgIsServer && (SHAREDRES_TOPMOST_LAYER != __mg_layer)) \
-            || __mg_switch_away) && pdc->surface == __gal_screen)
+#       define IS_SCREEN_SURFACE(pdc)                       \
+            (mgIsServer && pdc->surface == __gal_screen)
 
-#define CHECK_CLI_SCREEN(pdc, rcOutput)  FALSE
+#       define WITHOUT_DRAWING(pdc)                         \
+            (mgIsServer && __mg_switch_away &&              \
+                pdc->surface == __gal_screen)
 
-#endif
+#    else /* not defined _MGSCHEMA_COMPOSITING */
 
-#else
+#       define BLOCK_DRAW_SEM(pdc)                      \
+do {                                                    \
+    if (!mgIsServer && pdc->surface == __gal_screen)    \
+        LOCK_DRAW_SEM ();                               \
+} while (0)
 
-#define BLOCK_DRAW_SEM(pdc)
-#define UNBLOCK_DRAW_SEM(pdc)
+#       define UNBLOCK_DRAW_SEM(pdc)                    \
+do {                                                    \
+    if (!mgIsServer && pdc->surface == __gal_screen)    \
+        UNLOCK_DRAW_SEM ();                             \
+} while (0)
 
-#endif
+#       define IS_SCREEN_SURFACE(pdc)                   \
+            (pdc->surface == __gal_screen)
+
+#       define WITHOUT_DRAWING(pdc)                     \
+    (((!mgIsServer &&                                   \
+        (SHAREDRES_TOPMOST_LAYER != __mg_layer)) ||     \
+        __mg_switch_away) &&                            \
+        pdc->surface == __gal_screen)
+
+#     endif /* not defined _MGSCHEMA_COMPOSITING */
+
+#  endif    /* defined _MGRM_PROCESSES */
+
+#else   /* defined _MGRM_THREADS */
+
+#  define BLOCK_DRAW_SEM(pdc)
+#  define UNBLOCK_DRAW_SEM(pdc)
+#  define IS_SCREEN_SURFACE(pdc)                        \
+    (pdc->surface == __gal_screen)
+#  define WITHOUT_DRAWING(pdc)                          \
+    (__mg_switch_away && pdc->surface == __gal_screen)
+#endif /* defined _MGRM_THREADS */
 
 int __mg_enter_drawing (PDC pdc);
 void __mg_enter_drawing_nocheck (PDC pdc);
@@ -559,25 +603,25 @@ leave_drawing:
             *(BYTE*)(ptr)     = (BYTE)(val); \
             *((BYTE*)(ptr)+1) = (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) = (BYTE)((val)>>16); \
-        }while(0)
+        } while(0)
 
     #define ORVAL_24BIT(ptr, val)  do { \
             *(BYTE*)(ptr)     |= (BYTE)(val); \
             *((BYTE*)(ptr)+1) |= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) |= (BYTE)((val)>>16);  \
-        }while(0)
+        } while(0)
 
     #define ANDVAL_24BIT(ptr, val) do { \
             *(BYTE*)(ptr)     &= (BYTE)(val); \
             *((BYTE*)(ptr)+1) &= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) &= (BYTE)((val)>>16);  \
-        }while(0)
+        } while(0)
 
     #define XORVAL_24BIT(ptr, val) do { \
             *(BYTE*)(ptr)     ^= (BYTE)(val); \
             *((BYTE*)(ptr)+1) ^= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) ^= (BYTE)((val)>>16); \
-        }while(0)
+        } while(0)
 
     #define READPTR_24BIT(val, ptr) ((val) = (*(BYTE*)ptr) \
                 + ((*((BYTE*)(ptr)+1))<<8) + ((*((BYTE*)(ptr)+2))<<16))
@@ -592,80 +636,93 @@ leave_drawing:
             *(BYTE*)(ptr)     = (BYTE)((val)>>16); \
             *((BYTE*)(ptr)+1) = (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) = (BYTE)((val));  \
-        }while(0)
+        } while(0)
 
     #define ORVAL_24BIT(ptr, val)  do { \
             *(BYTE*)(ptr)     |= (BYTE)((val)>>16); \
             *((BYTE*)(ptr)+1) |= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) |= (BYTE)((val));  \
-        }while(0)
+        } while(0)
 
     #define ANDVAL_24BIT(ptr, val)do { \
             *(BYTE*)(ptr)     &= (BYTE)((val)>>16); \
             *((BYTE*)(ptr)+1) &= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) &= (BYTE)((val));  \
-        }while(0)
+        } while(0)
 
     #define XORVAL_24BIT(ptr, val) do { \
             *(BYTE*)(ptr)     ^= (BYTE)((val)>>16); \
             *((BYTE*)(ptr)+1) ^= (BYTE)((val)>>8); \
             *((BYTE*)(ptr)+2) ^= (BYTE)((val)); \
-        }while(0)
+        } while(0)
 
     #define READPTR_24BIT(val, ptr) ((val) = (((*(BYTE*)ptr)<<16) \
             + ((*((BYTE*)(ptr)+1))<<8) + (*((BYTE*)(ptr)+2))))
 
 #endif // #if MGUI_BYTEORDER == MGUI_LIL_ENDIAN
 
-MG_EXPORT HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client);
-MG_EXPORT void ReleaseSecondarySubDC (HDC secondary_subdc);
-
-static inline HDC get_valid_dc (PMAINWIN pWin, BOOL client)
+static inline HDC get_effective_dc (PMAINWIN pWin, BOOL client)
 {
-#if 1
+#if 0   /* deprecated code */
     if (!(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
             && (pWin->pMainWin->secondaryDC)) {
-#else
-    if (pWin->pMainWin->secondaryDC) {
-#endif
-        if (client && (pWin->dwExStyle & WS_EX_USEPRIVATECDC)) {
+        if (client && pWin->privCDC) {
             return pWin->privCDC;
         }
         else
-            return GetSecondarySubDC (pWin->pMainWin->secondaryDC,
-                    (HWND)pWin, client);
+            return GetDCInSecondarySurface ((HWND)pWin, client);
     }
     else {
-        if (client && (pWin->dwExStyle & WS_EX_USEPRIVATECDC)) {
+        if (client && pWin->privCDC) {
             return pWin->privCDC;
         }
-        if (client) {
-            return GetClientDC ((HWND)pWin);
-        }
         else {
-            return GetDC ((HWND)pWin);
+            return GetDCEx ((HWND)pWin, client);
         }
     }
+#else   /* deprecated code */
+    if (client && pWin->privCDC)
+        return pWin->privCDC;
+    else
+        return GetDCInSecondarySurface ((HWND)pWin, client);
+#endif
 }
 
-static inline void release_valid_dc (PMAINWIN pWin, HDC hdc)
+static inline void release_effective_dc (PMAINWIN pWin, HDC hdc)
 {
+#if 0   /* deprecated code */
     if (pWin->pMainWin->secondaryDC) {
         if (pWin->privCDC != hdc)
-            ReleaseSecondarySubDC (hdc);
+            ReleaseDC (hdc);
     }
     else {
-        if (pWin->privCDC != hdc) {
+        if (pWin->privCDC != hdc)
             ReleaseDC (hdc);
-        }
     }
+#else   /* deprecated code */
+    // Since 5.0.0, we always call ReleaseDC even if it is private CDC.
+    ReleaseDC (hdc);
+#endif
 }
 
-void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
+void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         HDC real_dc, const RECT* rc, DWORD flags);
+
+/* Since 5.0.0.
+   helpers for getting and reseting common RGBA8888 DC for internal use. */
+HDC __mg_get_common_rgba8888_dc (void);
+BOOL __mg_reset_common_rgba8888_dc (int width, int height, int pitch,
+        void* pixels);
+
+/* Since 5.0.0.
+   helpers to update the private client DC of window and it's descendants */
+void __mg_update_dc_on_surface_changed (PMAINWIN pWin, GAL_Surface* surf);
+void __mg_update_dc_on_secondary_dc_changed (PMAINWIN pMainWin);
+void __mg_delete_secondary_dc (PMAINWIN pMainWin);
 
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
-#endif // _DC_H
+#endif // GUI_DC_H
+

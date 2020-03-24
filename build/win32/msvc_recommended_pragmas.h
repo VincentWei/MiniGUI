@@ -24,5 +24,5 @@
 #pragma warning(disable:4101) /* unreferenced local variable */
 #pragma warning(error:4150)
 
-#pragma warning(disable:4244)	/* No possible loss of data warnings */
+#pragma warning(disable:4244)    /* No possible loss of data warnings */
 #pragma warning(disable:4305)   /* No truncation from int to char warnings */

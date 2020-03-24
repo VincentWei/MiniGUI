@@ -94,21 +94,21 @@ int se_minigui_get_font_descent (SeLogFont *logfont);
 
 const void *se_minigui_get_char_pixmap(
     const SeLogFont         *logfont,
-    const seunichar16       wc, 
+    const seunichar16       wc,
     int                     *pitch);
 
 int se_minigui_get_char_bbox(
-    SeLogFont       *logfont, 
+    SeLogFont       *logfont,
     seunichar16     wc,
-    int             *px, 
-    int             *py, 
+    int             *px,
+    int             *py,
     int             *pwidth,
     int             *pheight);
 
 void se_minigui_get_char_advance(
     SeLogFont   *logfont,
     seunichar16 wc,
-    int         *px, 
+    int         *px,
     int         *py);
 
 /*{{ language_code_constants {{*/

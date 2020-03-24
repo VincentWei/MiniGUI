@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -111,7 +111,7 @@ BOOL GUIAPI IntersectRect(RECT* pdrc, const RECT* psrc1, const RECT* psrc2)
     pdrc->left = (psrc1->left > psrc2->left) ? psrc1->left : psrc2->left;
     pdrc->top  = (psrc1->top > psrc2->top) ? psrc1->top : psrc2->top;
     pdrc->right = (psrc1->right < psrc2->right) ? psrc1->right : psrc2->right;
-    pdrc->bottom = (psrc1->bottom < psrc2->bottom) 
+    pdrc->bottom = (psrc1->bottom < psrc2->bottom)
                    ? psrc1->bottom : psrc2->bottom;
 
     if(pdrc->left >= pdrc->right || pdrc->top >= pdrc->bottom)
@@ -123,11 +123,11 @@ BOOL GUIAPI IntersectRect(RECT* pdrc, const RECT* psrc1, const RECT* psrc2)
 BOOL GUIAPI DoesIntersect (const RECT* psrc1, const RECT* psrc2)
 {
     int left, top, right, bottom;
-    
+
     left = (psrc1->left > psrc2->left) ? psrc1->left : psrc2->left;
     top  = (psrc1->top > psrc2->top) ? psrc1->top : psrc2->top;
     right = (psrc1->right < psrc2->right) ? psrc1->right : psrc2->right;
-    bottom = (psrc1->bottom < psrc2->bottom) 
+    bottom = (psrc1->bottom < psrc2->bottom)
                    ? psrc1->bottom : psrc2->bottom;
 
     if(left >= right || top >= bottom)
@@ -145,7 +145,7 @@ BOOL GUIAPI UnionRect(RECT* pdrc, const RECT* psrc1, const RECT* psrc2)
     NormalizeRect(&src1);
     NormalizeRect(&src2);
 
-    if (src1.left == src2.left 
+    if (src1.left == src2.left
         && src1.right == src2.right) {
         if (src1.top <= src2.top && src2.top <= src1.bottom) {
             pdrc->left = src1.left;
@@ -167,7 +167,7 @@ BOOL GUIAPI UnionRect(RECT* pdrc, const RECT* psrc1, const RECT* psrc2)
        return FALSE;
     }
 
-    if (src1.top == src2.top 
+    if (src1.top == src2.top
         && src1.bottom == src2.bottom) {
         if (src1.left <= src2.left && src2.left <= src1.right) {
             pdrc->top = src1.top;
@@ -209,7 +209,7 @@ void GUIAPI GetBoundRect (PRECT pdrc,  const RECT* psrc1, const RECT* psrc2)
         pdrc->left = (src1.left < src2.left) ? src1.left : src2.left;
         pdrc->top  = (src1.top < src2.top) ? src1.top : src2.top;
         pdrc->right = (src1.right > src2.right) ? src1.right : src2.right;
-        pdrc->bottom = (src1.bottom > src2.bottom) 
+        pdrc->bottom = (src1.bottom > src2.bottom)
             ? src1.bottom : src2.bottom;
     }
 }
@@ -218,7 +218,7 @@ int GUIAPI SubtractRect(RECT* rc, const RECT* psrc1, const RECT* psrc2)
 {
     RECT src, rcExpect, *prcExpect;
     int nCount = 0;
-    
+
     src = *psrc1;
     rcExpect = *psrc2;
     prcExpect = &rcExpect;

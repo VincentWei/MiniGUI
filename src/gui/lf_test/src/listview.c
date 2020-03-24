@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -216,7 +216,7 @@ static HMENU create_rightbutton_menu (void)
         mii.type = MFT_STRING;
         mii.id = IDM_FILE+ i;
         mii.state = 0;
-        mii.typedata= (DWORD) msg[i]; 
+        mii.typedata= (DWORD) msg[i];
         InsertMenuItem ( hMenu, i, TRUE, &mii );
     }
 
@@ -230,7 +230,7 @@ lv_notify_process (HWND hwnd, int id, int code, DWORD addData)
     if (code == LVN_KEYDOWN) {
         PLVNM_KEYDOWN down;
         int key;
-        
+
         down = (PLVNM_KEYDOWN)addData;
         key = LOWORD(down->wParam);
 
@@ -238,7 +238,7 @@ lv_notify_process (HWND hwnd, int id, int code, DWORD addData)
             HLVITEM hlvi;
             hlvi = SendMessage (hwnd, LVM_GETSELECTEDITEM, 0, 0);
             if (hlvi) {
-                if( MessageBox (hMainWnd, "are you really want to delete this file?", 
+                if( MessageBox (hMainWnd, "are you really want to delete this file?",
                             "warning", MB_YESNO) == IDYES) {
                     // not really delete yet.
                     SendMessage (hwnd, LVM_DELITEM, 0, hlvi);
@@ -251,20 +251,20 @@ lv_notify_process (HWND hwnd, int id, int code, DWORD addData)
     if (code == LVN_ITEMRUP) {
         PLVNM_ITEMRUP up;
         int x, y;
-        
+
         up = (PLVNM_ITEMRUP)addData;
         x = LOSWORD(up->lParam);
         y = HISWORD(up->lParam);
 
         ClientToScreen (hChildWnd1, &x, &y);
 
-        TrackPopupMenu (GetPopupSubMenu (hRightMenu), TPM_LEFTALIGN | TPM_LEFTBUTTON , 
+        TrackPopupMenu (GetPopupSubMenu (hRightMenu), TPM_LEFTALIGN | TPM_LEFTBUTTON ,
             x, y, hMainWnd);
     }
     if (code == LVN_ITEMDBCLK) {
         HLVITEM hlvi = SendMessage (hwnd, LVM_GETSELECTEDITEM, 0, 0);
         if (hlvi > 0) {
-                if( MessageBox (hMainWnd, "Are you really want to open this file?", 
+                if( MessageBox (hMainWnd, "Are you really want to open this file?",
                             "Question", MB_YESNO) == IDYES) {
                     MessageBox (hMainWnd, "Me too.", "Sorry", MB_OK);
                 }
@@ -342,7 +342,7 @@ ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                 continue;
             }
 
-            if ( !( S_ISDIR(my_stat.st_mode) || S_ISREG(my_stat.st_mode) ) ) 
+            if ( !( S_ISDIR(my_stat.st_mode) || S_ISREG(my_stat.st_mode) ) )
                 continue;
 
             item.itemData = (DWORD) strdup(dir_ent->d_name);
@@ -469,9 +469,9 @@ ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             break;
         }
         case IDM_FILE:
-		case IDM_FILE+1:
-		case IDM_FILE+2:
-		case IDM_FILE+3:
+        case IDM_FILE+1:
+        case IDM_FILE+2:
+        case IDM_FILE+3:
         case IDM_FILE+4:
             MessageBox (hMainWnd, "In Construction ...", "Sorry", MB_OK);
             break;
@@ -480,19 +480,19 @@ ControlTestWinProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
         break;
     }
 
-    
+
     case MSG_ERASEBKGND:
     {
         HDC hdc = (HDC)wParam;
         const RECT* clip = (const RECT*) lParam;
         BOOL fGetDC = FALSE;
         RECT rcTemp;
-                
+
         if (hdc == 0) {
             hdc = GetClientDC (hWnd);
             fGetDC = TRUE;
-        }       
-                
+        }
+
         if (clip) {
             rcTemp = *clip;
             ScreenToClient (hWnd, &rcTemp.left, &rcTemp.top);
@@ -539,7 +539,8 @@ InitCreateInfo (PMAINWINCREATE pCreateInfo)
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 500;
     pCreateInfo->by = 350;
-    pCreateInfo->iBkColor = GetWindowElementColor (WE_MAINC_THREED_BODY);
+    pCreateInfo->iBkColor =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }

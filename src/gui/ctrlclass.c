@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -145,10 +145,13 @@ extern BOOL RegisterAnimationControl (void);
 extern BOOL RegisterScrollBarControl (void);
 #endif
 
-#define LEN_CCITABLE    26
+#define LEN_CCITABLE    32
+#define HASH_KEY(name)  (int)(Str2Key ((name)) % LEN_CCITABLE)
 
 static PCTRLCLASSINFO ccitable[LEN_CCITABLE];
 
+#if 0   /* depcreated code */
+/* since 5.0.0, moved to ctrlclass.h as inline */
 PCONTROL gui_Control (HWND hWnd)
 {
     PCONTROL pCtrl;
@@ -160,11 +163,12 @@ PCONTROL gui_Control (HWND hWnd)
 
     return NULL;
 }
+#endif  /* deprecated code */
 
 BOOL mg_InitControlClass ()
 {
     int i;
-    
+
     for (i=0; i<LEN_CCITABLE; i++)
         ccitable[i] = NULL;
 
@@ -307,32 +311,42 @@ void mg_TerminateControlClass ()
 PCTRLCLASSINFO gui_GetControlClassInfo (const char* szClassName)
 {
     PCTRLCLASSINFO cci;
-    int i=0;
+    int i = 0;
     char szName [MAXLEN_CLASSNAME + 1];
 
     if (szClassName == NULL) return NULL;
 
     strncpy (szName, szClassName, MAXLEN_CLASSNAME);
-    szName[MAXLEN_CLASSNAME] = '\0';
+    szName [MAXLEN_CLASSNAME] = '\0';
 
+#if 0  /* deprecated code */
     if (!isalpha ((int)szName[0])) return NULL;
-    
+
     while (szName[i]) {
         szName[i] = toupper(szName[i]);
 
         i++;
     }
-    
-    cci = ccitable [szName[0] - 'A'];
 
+    cci = ccitable [szName[0] - 'A'];
+#endif  /* deprecated code */
+
+    /* Since 5.0.0, we use Str2Key as the hash function */
+    while (szName[i]) {
+        szName[i] = toupper (szName[i]);
+        i++;
+    }
+    i = HASH_KEY (szName);
+
+    cci = ccitable [i];
     while (cci) {
-    
+
         if (strcmp (cci->name, szName) == 0)
             break;
 
         cci = cci->next;
     }
-    
+
     return cci;
 }
 
@@ -353,7 +367,11 @@ int gui_ControlClassDataOp (int Operation, PWNDCLASS pWndClass)
         if (pWndClass->opMask & COP_HCURSOR)
             pWndClass->hCursor      = cci->hCursor;
         if (pWndClass->opMask & COP_BKCOLOR)
+#ifdef _MGSCHEMA_COMPOSITING
+            pWndClass->dwBkColor    = cci->dwBkColor;
+#else
             pWndClass->iBkColor     = cci->iBkColor;
+#endif
         if (pWndClass->opMask & COP_WINPROC)
             pWndClass->WinProc      = cci->ControlProc;
         if (pWndClass->opMask & COP_ADDDATA)
@@ -367,7 +385,11 @@ int gui_ControlClassDataOp (int Operation, PWNDCLASS pWndClass)
         if (pWndClass->opMask & COP_HCURSOR)
             cci->hCursor            = pWndClass->hCursor;
         if (pWndClass->opMask & COP_BKCOLOR)
+#ifdef _MGSCHEMA_COMPOSITING
+            cci->dwBkColor          = pWndClass->dwBkColor;
+#else
             cci->iBkColor           = pWndClass->iBkColor;
+#endif
         if (pWndClass->opMask & COP_WINPROC)
             cci->ControlProc        = pWndClass->WinProc;
         if (pWndClass->opMask & COP_ADDDATA)
@@ -377,7 +399,7 @@ int gui_ControlClassDataOp (int Operation, PWNDCLASS pWndClass)
     return ERR_OK;
 }
 
-int GetCtrlClassAddData (const char* szClassName, DWORD* pAddData)
+int gui_GetCtrlClassAddData (const char* szClassName, DWORD* pAddData)
 {
     PCTRLCLASSINFO cci;
 
@@ -387,11 +409,11 @@ int GetCtrlClassAddData (const char* szClassName, DWORD* pAddData)
         *pAddData = cci->dwAddData;
         return ERR_OK;
     }
-    
+
     return ERR_CTRLCLASS_INVNAME;
 }
 
-int SetCtrlClassAddData (const char* szClassName, DWORD dwAddData)
+int gui_SetCtrlClassAddData (const char* szClassName, DWORD dwAddData)
 {
     PCTRLCLASSINFO cci;
 
@@ -401,20 +423,23 @@ int SetCtrlClassAddData (const char* szClassName, DWORD dwAddData)
         cci->dwAddData = dwAddData;
         return ERR_OK;
     }
-    
+
     return ERR_CTRLCLASS_INVNAME;
 }
 
-int AddNewControlClass (PWNDCLASS pWndClass)
+int gui_AddNewControlClass (PWNDCLASS pWndClass)
 {
     PCTRLCLASSINFO cci, newcci;
-    char szClassName [MAXLEN_CLASSNAME + 2];
-    int i=0;
+    char szClassName [MAXLEN_CLASSNAME + 1];
+    int i = 0;
 
+#if 0   /* deprecated code */
+    char szClassName [MAXLEN_CLASSNAME + 2];
     strncpy (szClassName, pWndClass->spClassName, MAXLEN_CLASSNAME);
 
-    if (!isalpha ((int)szClassName[0])) return ERR_CTRLCLASS_INVNAME;
-    
+    if (!isalpha ((int)szClassName[0]))
+        return ERR_CTRLCLASS_INVNAME;
+
     while (szClassName[i]) {
         szClassName[i] = toupper(szClassName[i]);
 
@@ -422,8 +447,29 @@ int AddNewControlClass (PWNDCLASS pWndClass)
         if (i > MAXLEN_CLASSNAME)
             return ERR_CTRLCLASS_INVLEN;
     }
-    
+
     i = szClassName[0] - 'A';
+#endif  /* deprecated code */
+
+    /* since 5.0.0, check reserved class names */
+    while (pWndClass->spClassName[i]) {
+        szClassName[i] = toupper (pWndClass->spClassName[i]);
+        i++;
+
+        if (i > MAXLEN_CLASSNAME)
+            return ERR_CTRLCLASS_INVLEN;
+    }
+    szClassName [i] = 0;
+
+    if (MG_UNLIKELY (strcmp (szClassName, MAINWINCLASSNAME) == 0 ||
+                strcmp (szClassName, VIRTWINCLASSNAME) == 0 ||
+                strcmp (szClassName, ROOTWINCLASSNAME) == 0)) {
+        return ERR_CTRLCLASS_INVNAME;
+    }
+
+    /* since 5.0.0, we use Str2Key as the hash function */
+    i = HASH_KEY (szClassName);
+
     cci = ccitable [i];
     if (cci) {
 
@@ -434,10 +480,9 @@ int AddNewControlClass (PWNDCLASS pWndClass)
             cci = cci->next;
         }
     }
-    cci = ccitable[i];
 
     newcci = malloc (sizeof (CTRLCLASSINFO));
-    
+
     if (newcci == NULL) return ERR_CTRLCLASS_MEM;
 
     newcci->next = NULL;
@@ -445,11 +490,16 @@ int AddNewControlClass (PWNDCLASS pWndClass)
     newcci->dwStyle     = pWndClass->dwStyle;
     newcci->dwExStyle   = pWndClass->dwExStyle;
     newcci->hCursor     = pWndClass->hCursor;
+#ifdef _MGSCHEMA_COMPOSITING
+    newcci->dwBkColor   = pWndClass->dwBkColor;
+#else
     newcci->iBkColor    = pWndClass->iBkColor;
+#endif
     newcci->ControlProc = pWndClass->WinProc;
     newcci->dwAddData   = pWndClass->dwAddData;
     newcci->nUseCount   = 0;
 
+    cci = ccitable [i];
     if (cci) {
         while (cci->next)
             cci = cci->next;
@@ -458,7 +508,7 @@ int AddNewControlClass (PWNDCLASS pWndClass)
     }
     else
         ccitable [i] = newcci;
-    
+
     return ERR_OK;
 }
 
@@ -469,24 +519,34 @@ int gui_DeleteControlClass (const char* szClassName)
     char szName [MAXLEN_CLASSNAME + 1];
 
     if (szClassName == NULL) return ERR_CTRLCLASS_INVNAME;
-    
-    strncpy (szName, szClassName, MAXLEN_CLASSNAME);
 
+    strncpy (szName, szClassName, MAXLEN_CLASSNAME);
+    szName [MAXLEN_CLASSNAME] = 0;
+
+#if 0   /* deprecated code */
     if (!isalpha ((int)szName[0])) return ERR_CTRLCLASS_INVNAME;
-    
+
     while (szName[i]) {
         szName[i] = toupper(szName[i]);
 
         i++;
     }
-    
+
     i = szName[0] - 'A';
+#endif  /* deprecated code */
+
+    /* Since 5.0.0, we use Str2Key as the hash function */
+    while (szName[i]) {
+        szName[i] = toupper (szName[i]);
+        i++;
+    }
+    i = HASH_KEY (szName);
+
     head = ccitable [i];
-    
     cci = head;
     prev = head;
     while (cci) {
-    
+
         if (strcmp (cci->name, szName) == 0)
             break;
 
@@ -529,7 +589,7 @@ void gui_EmptyControlClassInfoTable ()
     }
 }
 
-BOOL SetWindowExStyle (HWND hWnd, DWORD dwExStyle)
+BOOL gui_SetWindowExStyle (HWND hWnd, DWORD dwExStyle)
 {
     PMAINWIN pWin;
     PCONTROL pCtrl;
@@ -548,18 +608,22 @@ BOOL SetWindowExStyle (HWND hWnd, DWORD dwExStyle)
     return TRUE;
 }
 
-#ifdef _DEBUG
+#ifdef _DEBUG_CTRL
 
-void mnuDumpCtrlClassInfo (PCTRLCLASSINFO cci)
+static void DumpCtrlClassInfo (PCTRLCLASSINFO cci)
 {
     printf ("\tClass Name:             %s\n", cci->name);
     printf ("\tClass Cursor:           %p\n", cci->hCursor);
+#ifdef _MGSCHEMA_COMPOSITING
+    printf ("\tClass Background color: 0x%08X\n", (int)cci->dwBkColor);
+#else
     printf ("\tClass Background color: %d\n", cci->iBkColor);
+#endif
     printf ("\tClass Control Proc:     %p\n", cci->ControlProc);
     printf ("\tClass Use Count:        %d\n", cci->nUseCount);
 }
 
-void DumpCtrlClassInfoTable()
+void dbg_DumpCtrlClassInfoTable (void)
 {
     PCTRLCLASSINFO cci;
     int i;
@@ -569,13 +633,13 @@ void DumpCtrlClassInfoTable()
 
         printf ("CCI Table Element: %d\n", i);
         while (cci) {
-       
-            mnuDumpCtrlClassInfo (cci);
+
+            DumpCtrlClassInfo (cci);
 
             cci = cci->next;
         }
     }
 }
 
-#endif
+#endif /* _DEBUG_CTRL */
 

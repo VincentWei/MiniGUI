@@ -95,22 +95,22 @@
 #define ARROW_BORDER     10
 
 // color info
-#define MCCLR_DF_TITLEBK        GetWindowElementPixel(hWnd, WE_MAINC_THREED_BODY)
-#define MCCLR_DF_TITLETEXT      GetWindowElementPixel(hWnd, WE_FGC_THREED_BODY)
+#define MCCLR_DF_TITLEBK        GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_MAINC_THREED_BODY)
+#define MCCLR_DF_TITLETEXT      GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_FGC_THREED_BODY)
 
-#define MCCLR_DF_ARROW          GetWindowElementPixel(hWnd, WE_FGC_WINDOW)
-#define MCCLR_DF_ARROWHIBK      GetWindowElementPixel(hWnd, WE_BGC_WINDOW)
+#define MCCLR_DF_ARROW          GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_FGC_WINDOW)
+#define MCCLR_DF_ARROWHIBK      GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_BGC_WINDOW)
 
-#define MCCLR_DF_DAYBK          GetWindowElementPixel(hWnd, WE_BGC_WINDOW)
-#define MCCLR_DF_DAYTEXT        GetWindowElementPixel(hWnd, WE_FGC_WINDOW)
+#define MCCLR_DF_DAYBK          GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_BGC_WINDOW)
+#define MCCLR_DF_DAYTEXT        GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_FGC_WINDOW)
 
-#define MCCLR_DF_DAYHIBK        GetWindowElementPixel(hWnd, WE_BGC_HIGHLIGHT_ITEM)
-#define MCCLR_DF_DAYHITEXT      GetWindowElementPixel(hWnd, WE_FGC_HIGHLIGHT_ITEM)
+#define MCCLR_DF_DAYHIBK        GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_BGC_HIGHLIGHT_ITEM)
+#define MCCLR_DF_DAYHITEXT      GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_FGC_HIGHLIGHT_ITEM)
 
-#define MCCLR_DF_TRAILINGTEXT   GetWindowElementPixel(hWnd, WE_FGC_DISABLED_ITEM)
+#define MCCLR_DF_TRAILINGTEXT   GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_FGC_DISABLED_ITEM)
 
-#define MCCLR_DF_WEEKCAPTBK     GetWindowElementPixel(hWnd, WE_BGC_HIGHLIGHT_ITEM)
-#define MCCLR_DF_WEEKCAPTTEXT   GetWindowElementPixel(hWnd, WE_FGC_HIGHLIGHT_ITEM)
+#define MCCLR_DF_WEEKCAPTBK     GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_BGC_HIGHLIGHT_ITEM)
+#define MCCLR_DF_WEEKCAPTTEXT   GetWindowElementPixelEx(hWnd, HDC_INVALID, WE_FGC_HIGHLIGHT_ITEM)
 
 static LRESULT MonthCalendarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -118,15 +118,19 @@ BOOL RegisterMonthCalendarControl (void)
 {
     WNDCLASS WndClass;
 
-    WndClass.spClassName    = "monthcalendar";
-    WndClass.dwStyle        = WS_NONE;
-    WndClass.dwExStyle      = WS_EX_NONE;
-    WndClass.hCursor        = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor       =
-        GetWindowElementPixel (HWND_DESKTOP, WE_BGC_WINDOW);
-    WndClass.WinProc        = MonthCalendarCtrlProc;
+    WndClass.spClassName = "monthcalendar";
+    WndClass.dwStyle     = WS_NONE;
+    WndClass.dwExStyle   = WS_EX_NONE;
+    WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_DESKTOP, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
+    WndClass.WinProc     = MonthCalendarCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 // draw page arrow
@@ -436,7 +440,7 @@ static void mcHilightRect (HWND hWnd, PMONCALDDATA mc_data, HDC hdc, RECT* prcIt
     item_w = prcItem->right - prcItem->left;
     item_h = prcItem->bottom - prcItem->top;
     FillBox (hdc, prcItem->left, prcItem->top, item_w, item_h);
-    SetPenColor(hdc, GetWindowElementPixel (hWnd, WE_MAINC_THREED_BODY));
+    SetPenColor(hdc, GetWindowElementPixelEx (hWnd, hdc, WE_MAINC_THREED_BODY));
     Rectangle (hdc, prcItem->left, prcItem->top, prcItem->left+item_w-1, prcItem->top+item_h-1);
     if (day < 10)
         sprintf (daytext, " %d", day);
@@ -512,7 +516,8 @@ static void mcDrawMonthDay (HWND hWnd, HDC hdc, RECT* prcMDay, PMONCALDDATA mc_d
             FillBox (hdc, rcMonthDay.left, rcMonthDay.top,
                     mc_data->item_w, mc_data->item_h);
 
-            SetPenColor(hdc, GetWindowElementPixel (hWnd, WE_MAINC_THREED_BODY));
+            SetPenColor(hdc,
+                    GetWindowElementPixelEx (hWnd, hdc, WE_MAINC_THREED_BODY));
             Rectangle (hdc, rcMonthDay.left, rcMonthDay.top,
                     rcMonthDay.left+mc_data->item_w-1 ,
                     rcMonthDay.top+mc_data->item_h-1);
@@ -777,16 +782,16 @@ static BOOL mcInitMonthCalendarData (HWND hWnd, MONCALDDATA* mc_data)
 
     // color info
     pmcci = (PMCCOLORINFO) mc_data->dwClrData;
-    pmcci->clr_titlebk         = MCCLR_DF_TITLEBK;
-    pmcci->clr_titletext     = MCCLR_DF_TITLETEXT;
-    pmcci->clr_arrow         = MCCLR_DF_ARROW;
-    pmcci->clr_arrowHibk     = MCCLR_DF_ARROWHIBK;
+    pmcci->clr_titlebk      = MCCLR_DF_TITLEBK;
+    pmcci->clr_titletext    = MCCLR_DF_TITLETEXT;
+    pmcci->clr_arrow        = MCCLR_DF_ARROW;
+    pmcci->clr_arrowHibk    = MCCLR_DF_ARROWHIBK;
     pmcci->clr_daybk        = MCCLR_DF_DAYBK;
-    pmcci->clr_dayHibk        = MCCLR_DF_DAYHIBK;
-    pmcci->clr_daytext        = MCCLR_DF_DAYTEXT;
-    pmcci->clr_trailingtext    = MCCLR_DF_TRAILINGTEXT;
+    pmcci->clr_dayHibk      = MCCLR_DF_DAYHIBK;
+    pmcci->clr_daytext      = MCCLR_DF_DAYTEXT;
+    pmcci->clr_trailingtext = MCCLR_DF_TRAILINGTEXT;
     pmcci->clr_dayHitext    = MCCLR_DF_DAYHITEXT;
-    pmcci->clr_weekcaptbk    = MCCLR_DF_WEEKCAPTBK;
+    pmcci->clr_weekcaptbk   = MCCLR_DF_WEEKCAPTBK;
     pmcci->clr_weekcapttext = MCCLR_DF_WEEKCAPTTEXT;
 
     mc_data->customed_day = 0;

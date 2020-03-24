@@ -90,9 +90,14 @@ BOOL RegisterListboxControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (0);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = ListboxCtrlProc;
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 /*

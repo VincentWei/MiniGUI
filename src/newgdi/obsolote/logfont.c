@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -49,7 +49,7 @@
 ** logfont.c: Log fonts management.
 **
 ** Current maintainer: Wei Yongming.
-** 
+**
 ** Created by Wei Yongming
 **
 ** Create date: 2000/07/07
@@ -76,7 +76,7 @@
 CHARSETOPS* GetCharsetOps (const char* charset_name);
 
 /************************** Exported functions ******************************/
-static PLOGFONT gdiCreateLogFont ( const char* type, const char* family, 
+static PLOGFONT gdiCreateLogFont ( const char* type, const char* family,
     const char* charset, DWORD style, int size, int rotation)
 {
     PLOGFONT log_font;
@@ -95,7 +95,7 @@ static PLOGFONT gdiCreateLogFont ( const char* type, const char* family,
 
     if ((log_font = malloc (sizeof (LOGFONT))) == NULL)
         return INV_LOGFONT;
-    
+
     log_font->style = style;
 
 #if 0
@@ -145,7 +145,7 @@ static PLOGFONT gdiCreateLogFont ( const char* type, const char* family,
     log_font->sbc_devfont = sbc_devfont;
     log_font->mbc_devfont = mbc_devfont;
 
-    /* 
+    /*
      * Adjust the logical font information
      */
 
@@ -163,12 +163,12 @@ static PLOGFONT gdiCreateLogFont ( const char* type, const char* family,
 
     // charset name
     if (log_font->mbc_devfont) {
-        strncpy (log_font->charset, 
+        strncpy (log_font->charset,
             log_font->mbc_devfont->charset_ops->name, LEN_LOGFONT_NAME_FIELD);
         log_font->charset [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
     else {
-        strncpy (log_font->charset, 
+        strncpy (log_font->charset,
             log_font->sbc_devfont->charset_ops->name, LEN_LOGFONT_NAME_FIELD);
         log_font->charset [LEN_LOGFONT_NAME_FIELD] = '\0';
     }
@@ -202,12 +202,12 @@ static PLOGFONT gdiCreateLogFont ( const char* type, const char* family,
 
 PLOGFONT GUIAPI CreateLogFontIndirect (LOGFONT *logfont)
 {
-    return gdiCreateLogFont (logfont->type, logfont->family, 
+    return gdiCreateLogFont (logfont->type, logfont->family,
         logfont->charset, logfont->style, logfont->size, logfont->rotation);
 }
 
-PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family, 
-    const char* charset, char weight, char slant, char set_width, 
+PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
+    const char* charset, char weight, char slant, char set_width,
     char spacing, char underline, char struckout, int size, int rotation)
 {
     DWORD style;
@@ -219,7 +219,7 @@ PLOGFONT GUIAPI CreateLogFont (const char* type, const char* family,
     style_name[4] = underline;
     style_name[5] = struckout;
     style_name[6] = 0;
-    
+
     if ((style = fontConvertStyle (style_name)) == 0xFFFFFFFF) {
         return INV_LOGFONT;
     }
@@ -268,7 +268,7 @@ void GUIAPI GetLogFontInfo (HDC hdc, LOGFONT* log_font)
 void GUIAPI GetFontMetrics (LOGFONT* log_font, FONTMETRICS* font_metrics)
 {
     int sbc_value, mbc_value;
-    
+
     sbc_value = log_font->sbc_devfont->font_ops->get_font_height (log_font, log_font->sbc_devfont);
     if (log_font->mbc_devfont) {
         mbc_value = log_font->mbc_devfont->font_ops->get_font_height (log_font, log_font->mbc_devfont);
@@ -315,7 +315,7 @@ void GUIAPI GetFontMetrics (LOGFONT* log_font, FONTMETRICS* font_metrics)
     }
 }
 
-void GUIAPI GetGlyphBitmap (LOGFONT* log_font, const unsigned char* mchar, int mchar_len, 
+void GUIAPI GetGlyphBitmap (LOGFONT* log_font, const unsigned char* mchar, int mchar_len,
                 GLYPHBITMAP* glyph_bitmap)
 {
     DEVFONT* sbc_devfont = log_font->sbc_devfont;

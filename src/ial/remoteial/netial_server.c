@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -152,7 +152,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     int e,n;
     int ret = 0;
 
-    if (!in) 
+    if (!in)
     {
         in = &rfds;
         FD_ZERO (in);
@@ -170,15 +170,15 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     e = select (FD_SETSIZE, in, out, except, timeout) ;
 #endif
 
-    if (e > 0) 
-	{ 
-		if (sock >= 0 && FD_ISSET (sock, in)) 
-		{
+    if (e > 0)
+    {
+        if (sock >= 0 && FD_ISSET (sock, in))
+        {
             FD_CLR (sock, in);
             memset(&InputInfo, 0, sizeof(INPUTINFO));
             n = recvfrom(sock, &InputInfo, sizeof(INPUTINFO), 0,
                     (struct sockaddr *) &source_addr, &addr_len);
-        
+
             /*
             printf("server:flag:%d mx:%d my:%d MouseKey:%d KeyInfo:%d \n",
                     InputInfo.flag, InputInfo.mx, InputInfo.my, InputInfo.MouseKey, InputInfo.KeyInfo);
@@ -199,14 +199,14 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
                 ReplayClientResolution();
                 ret =0 ;
             }
-		} 
-	}
-	else if (e < 0) 
-	{
-		return -1;
-	}
+        }
+    }
+    else if (e < 0)
+    {
+        return -1;
+    }
 
-	return ret;
+    return ret;
 }
 
 #if USEDLCUSTOM
@@ -223,11 +223,11 @@ BOOL InitCustomInput(INPUT* input, const char* mdev, const char* mtype)
         nPort = atoi(env);
     }
 
-    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1) 
+    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
     {
         perror("socket");
         exit(errno);
-    } 
+    }
     else
     {
         printf("create socket.\n");
@@ -239,11 +239,11 @@ BOOL InitCustomInput(INPUT* input, const char* mdev, const char* mtype)
     s_addr.sin_port = htons(nPort);
     s_addr.sin_addr.s_addr = INADDR_ANY;
 
-    if ((bind(sock, (struct sockaddr *) &s_addr, sizeof(s_addr))) == -1) 
+    if ((bind(sock, (struct sockaddr *) &s_addr, sizeof(s_addr))) == -1)
     {
         perror("bind");
         exit(errno);
-    } 
+    }
     else
     {
         printf("bind address to socket.\n");
@@ -254,13 +254,13 @@ BOOL InitCustomInput(INPUT* input, const char* mdev, const char* mtype)
     input->set_mouse_xy = NULL;
     input->get_mouse_button = mouse_getbutton;
     input->set_mouse_range = NULL;
-    
-	input->update_keyboard = keyboard_update;
+
+    input->update_keyboard = keyboard_update;
     input->get_keyboard_state = keyboard_getstate;
 
     input->wait_event = wait_event;
     printf("hello, this is netial \n");
-    
+
     return TRUE;
 }
 
@@ -271,7 +271,7 @@ void TermCustomInput(void)
 #endif
 {
     if (sock>= 0)
-        close(sock);    
+        close(sock);
 }
 
 

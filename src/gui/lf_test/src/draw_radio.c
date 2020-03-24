@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -71,8 +71,8 @@
 #define TO_DARKEST_COLOR    (-2)
 #define FULL_V    (itofix(1))
 
-static void 
-increase_vh(fixed src_v, fixed src_h, fixed* dest_v, fixed* dest_h, 
+static void
+increase_vh(fixed src_v, fixed src_h, fixed* dest_v, fixed* dest_h,
             BOOL is_half)
 {
     int h;
@@ -108,8 +108,8 @@ increase_vh(fixed src_v, fixed src_h, fixed* dest_v, fixed* dest_h,
 
 static void RGB2HSV(fixed r, fixed g, fixed b, fixed* h, fixed* s, fixed* v)
 {
-    fixed min; 
-    fixed max; 
+    fixed min;
+    fixed max;
     fixed delta;
     fixed tmp;
 
@@ -148,12 +148,12 @@ static void RGB2HSV(fixed r, fixed g, fixed b, fixed* h, fixed* s, fixed* v)
     else if( g == max )
         /*between cyan & yellow*/
         *h = fixadd(itofix(2), fixdiv(fixsub(b, r), delta));
-    else 
+    else
         /*magenta & cyan*/
         *h = fixadd(itofix(4), fixdiv(fixsub(r, g), delta));
 
     /*degrees*/
-    *h = fixmul(*h, itofix(60)); 
+    *h = fixmul(*h, itofix(60));
     if (*h < itofix(0))
         *h = fixadd(*h, itofix(360));
 
@@ -179,14 +179,14 @@ static void HSV2RGB(fixed h, fixed s, fixed v, fixed* r, fixed* g, fixed* b)
     p = fixmul(v, fixsub(itofix(1), s));
     /*q = v * (1 - s*f)*/
     q = fixmul (v, fixsub (itofix(1), fixmul(s, f)));
-   
+
     /*t = v * (1 - s*(1-f))*/
     t = fixmul (v, fixsub (itofix(1), fixmul(s, fixsub( itofix(1), f))));
-    
+
     switch (i) {
-        case 0: 
-            *r = fixmul (v, itofix(255)); 
-            *g = fixmul (t, itofix(255)); 
+        case 0:
+            *r = fixmul (v, itofix(255));
+            *g = fixmul (t, itofix(255));
             *b = fixmul (p, itofix(255));
             break;
         case 1:
@@ -220,7 +220,7 @@ static void HSV2RGB(fixed h, fixed s, fixed v, fixed* r, fixed* g, fixed* b)
 
 static void calc_color(DWORD src_color, int flag, DWORD* dest_color)
 {
-    
+
     fixed h;
     fixed s;
     fixed v;
@@ -288,12 +288,12 @@ static int draw_radio (HDC hdc, const RECT* pRect, DWORD color, int status)
     if (pRect == NULL || hdc == HDC_INVALID)
         return -1;
 
-    color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color), 
+    color_pixel = RGBA2Pixel (hdc, GetRValue(color), GetGValue(color),
                         GetBValue(color), GetAValue(color));
     calc_color (color, TO_LIGHTEST_COLOR, &new_c);
     calc_color (new_c, TO_LIGHTEST_COLOR, &new_c);
     //calc_color (new_c, TO_LIGHTEST_COLOR, &new_c);
-    color_lighter = RGBA2Pixel (hdc, GetRValue(new_c), GetGValue(new_c), 
+    color_lighter = RGBA2Pixel (hdc, GetRValue(new_c), GetGValue(new_c),
             GetBValue(new_c), GetAValue(new_c));
     printf("src_c:%x, dst_c:%x.\n", color, new_c);
 
@@ -313,7 +313,7 @@ static int draw_radio (HDC hdc, const RECT* pRect, DWORD color, int status)
     {
         printf("have shell.\n");
         FillCircle (hdc, center_x, center_y, radius);
-         /* TODO:Instead of PIXEL_lightgray by new color through a call color 
+         /* TODO:Instead of PIXEL_lightgray by new color through a call color
          * convert function .
          * */
         SetBrushColor (hdc, color_lighter);
@@ -328,7 +328,7 @@ static int draw_radio (HDC hdc, const RECT* pRect, DWORD color, int status)
     if (status & LFRDR_MARK_SELECTED)
     {
         FillCircle (hdc, center_x, center_y, radius>>1);
-        /* TODO:Instead of PIXEL_lightgray by new color through a call color 
+        /* TODO:Instead of PIXEL_lightgray by new color through a call color
          * convert function .
          * */
 
@@ -346,21 +346,21 @@ static int PainterWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
     HWND hwnd_button_zoomout, hwnd_button_zoomin;
-    
+
     switch (message) {
         case MSG_CREATE:
             rc.left = 100; rc.top =100; rc.right = 108; rc.bottom = 108;
             color = 0x000F0F0F;
             status = LFRDR_MARK_HAVESHELL | LFRDR_MARK_SELECTED;
-            hwnd_button_zoomout = CreateWindowEx(CTRL_BUTTON, "zoom out", 
-	                		WS_CHILD | WS_VISIBLE | BS_NOBORDER ,
-			                0, 1000, 0, 0, 100, 20, hWnd, 0);
-            
-            hwnd_button_zoomin = CreateWindowEx(CTRL_BUTTON, "zoom in", 
-	                		WS_CHILD | WS_VISIBLE | BS_NOBORDER ,
-			                0, 1001, 110, 0, 100, 20, hWnd, 0);
+            hwnd_button_zoomout = CreateWindowEx(CTRL_BUTTON, "zoom out",
+                            WS_CHILD | WS_VISIBLE | BS_NOBORDER ,
+                            0, 1000, 0, 0, 100, 20, hWnd, 0);
+
+            hwnd_button_zoomin = CreateWindowEx(CTRL_BUTTON, "zoom in",
+                            WS_CHILD | WS_VISIBLE | BS_NOBORDER ,
+                            0, 1001, 110, 0, 100, 20, hWnd, 0);
             return 0;
-        
+
         case MSG_COMMAND:
             switch (wParam){
                 case 1000:
@@ -384,14 +384,14 @@ static int PainterWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 
             UpdateWindow (hWnd, TRUE);
             return 0;
-        
+
         case MSG_PAINT:
 
             hdc = BeginPaint(hWnd);
             draw_radio (hdc, &rc, color, status);
             EndPaint(hWnd, hdc);
             break;
-        
+
         case MSG_CLOSE:
             DestroyAllControls (hWnd);
             DestroyMainWindow (hWnd);

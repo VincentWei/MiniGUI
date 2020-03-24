@@ -15,7 +15,7 @@
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2005/01/11
  *
- * \brief This is the POSIX PThreads implementation in order to run 
+ * \brief This is the POSIX PThreads implementation in order to run
  *        MiniGUI on Nucleus.
  *
  \verbatim
@@ -25,11 +25,11 @@
     standard or equivalent documentation for details of the
     functionality contained herein.
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2005~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2005~2020, Beijing FMSoft Technologies Co., Ltd.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@
 /*
  * $Id: nucleus_pthread.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -123,8 +123,8 @@ typedef struct pthread_attr_t
 } pthread_attr_t;
 
 /* Values for detachstate */
-#define PTHREAD_CREATE_JOINABLE	        1
-#define PTHREAD_CREATE_DETACHED	        2
+#define PTHREAD_CREATE_JOINABLE            1
+#define PTHREAD_CREATE_DETACHED            2
 
 /* Values for scope */
 #define PTHREAD_SCOPE_SYSTEM            1
@@ -196,7 +196,7 @@ int pthread_detach (pthread_t thread);
 ** schedparam           == unset
 ** stackaddr            == unset
 ** stacksize            == 0
-*/ 
+*/
 int pthread_attr_init (pthread_attr_t *attr);
 
 /* Destroy thread attributes object */
@@ -234,7 +234,7 @@ int pthread_attr_getschedpolicy (const pthread_attr_t *attr,
 
 /* Set scheduling parameters */
 int pthread_attr_setschedparam (pthread_attr_t *attr,
-				        const struct sched_param *param);
+                        const struct sched_param *param);
 
 /* Get scheduling parameters */
 int pthread_attr_getschedparam (const pthread_attr_t *attr,
@@ -319,8 +319,8 @@ void *pthread_getspecific (pthread_key_t key);
 struct pthread_cleanup_buffer
 {
     struct pthread_cleanup_buffer *prev;    /* Chain cleanup buffers */
-    void (*routine) (void *);     	        /* Function to call */
-    void *arg;				                /* Arg to pass */
+    void (*routine) (void *);                 /* Function to call */
+    void *arg;                                /* Arg to pass */
 };
 
 /*-----------------------------------------------------------------------------
@@ -396,16 +396,16 @@ void pthread_cleanup_pop_inner (struct pthread_cleanup_buffer *buffer,
 **pthread_mutex_t
 */
 
-typedef struct  _pthread_mutex_t 
+typedef struct  _pthread_mutex_t
 {
-	NU_SEMAPHORE nu_mutex;
-	char     name [NUPTH_LEN_NAME];
+    NU_SEMAPHORE nu_mutex;
+    char     name [NUPTH_LEN_NAME];
 } pthread_mutex_t;
 
 /*define pthread_mutexattr_t */
-typedef struct _pthread_mutexattr_t 
+typedef struct _pthread_mutexattr_t
 {
-	unsigned int protocol;
+    unsigned int protocol;
 } pthread_mutexattr_t;
 
 /*-----------------------------------------------------------------------------

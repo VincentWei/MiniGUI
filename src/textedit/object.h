@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -51,10 +51,6 @@
 
 #ifndef _MGUI_NCSCTRL_OBJECT_H
 #define _MGUI_NCSCTRL_OBJECT_H
-
-#ifdef __cplusplus
-extern "C"{
-#endif
 
 #ifdef __MINIGUI_LIB__
 #   define ncsInstanceOf _minigui_ncsInstanceOf
@@ -75,7 +71,7 @@ extern "C"{
  */
 
 #define MGNCS_INIT_CLASS(clss) \
-	Class(clss).classConstructor((mObjectClass*)(void*)(&(Class(clss))))
+    Class(clss).classConstructor((mObjectClass*)(void*)(&(Class(clss))))
 /**
  * \def _c
  * \brief the marco get the class of a object
@@ -88,7 +84,7 @@ extern "C"{
 
 #ifdef  WIN32
 #define _TYPEOF(x)  void* //__typeof(x)
-#else 
+#else
 #define _TYPEOF(x)  typeof(x)
 #endif
 
@@ -97,13 +93,13 @@ static ClassType(clss) * clss##ClassConstructor(ClassType(clss)* _class); \
 ClassType(clss) Class(clss) = { (PClassConstructor)clss##ClassConstructor }; \
 static const char* clss##_type_name = #clss; \
 static ClassType(clss) * clss##ClassConstructor(ClassType(clss)* _class) { \
-	unsigned short * _pintfOffset = NULL; \
-	_pintfOffset = (PVOID)((UINT_PTR)_pintfOffset ^ 0); /* VW: prevent unused-but-set-variable warning */ \
-	_class = (ClassType(clss)*)((PClassConstructor)(Class(superCls).classConstructor))((mObjectClass*)_class); \
-	_pintfOffset = &_class->intfOffset; \
-	_class->super = &Class(superCls); \
-	_class->typeName = clss##_type_name; \
-	_class->objSize = sizeof(clss);
+    unsigned short * _pintfOffset = NULL; \
+    _pintfOffset = (PVOID)((UINT_PTR)_pintfOffset ^ 0); /* VW: prevent unused-but-set-variable warning */ \
+    _class = (ClassType(clss)*)((PClassConstructor)(Class(superCls).classConstructor))((mObjectClass*)_class); \
+    _pintfOffset = &_class->intfOffset; \
+    _class->super = &Class(superCls); \
+    _class->typeName = clss##_type_name; \
+    _class->objSize = sizeof(clss);
 
 #define END_MINI_CLASS return _class; }
 
@@ -132,84 +128,85 @@ static ClassType(clss) * clss##ClassConstructor(ClassType(clss)* _class) { \
 #define _M(pobj, method, ...)  _c(pobj)->method((pobj), ##__VA_ARGS__)
 
 #define DECLARE_CLASS(clss, clssSuper) \
-	typedef struct _##clss##Class clss##Class; \
-	typedef struct _##clss clss; \
-	struct _##clss##Class{ \
-		clss##ClassHeader(clss, clssSuper) \
-	}; \
-	struct _##clss { \
-		clss##Header(clss) \
-	}; \
-	MGNCS_EXPORT extern clss##Class CLASS(clss);
+    typedef struct _##clss##Class clss##Class; \
+    typedef struct _##clss clss; \
+    struct _##clss##Class{ \
+        clss##ClassHeader(clss, clssSuper) \
+    }; \
+    struct _##clss { \
+        clss##Header(clss) \
+    }; \
+    MGNCS_EXPORT extern clss##Class CLASS(clss);
 
 #define _SUPER(super,self,method, ...)  Class(super).method((super*)(self), ##__VA_ARGS__)
 
 #define DECLARE_OBJECT(Clss)  \
-	typedef struct _##Clss##Class Clss##Class;  \
-	typedef struct _##Clss Clss;  \
-	MGNCS_EXPORT extern Clss##Class CLASS(Clss);
+    typedef struct _##Clss##Class Clss##Class;  \
+    typedef struct _##Clss Clss;  \
+    MGNCS_EXPORT extern Clss##Class CLASS(Clss);
 
 #define DEFINE_OBJECT(Clss, ClssSuper)  \
-	struct _##Clss##Class { Clss##ClassHeader(Clss, ClssSuper) }; \
-	struct _##Clss { Clss##Header(Clss) };
+    struct _##Clss##Class { Clss##ClassHeader(Clss, ClssSuper) }; \
+    struct _##Clss { Clss##Header(Clss) };
 
 ////////////////////// interface support
 #define INTERFACE(Interface)  \
-	Interface##VTable * Interface##_; /*Interface vtable*/
+    Interface##VTable * Interface##_; /*Interface vtable*/
 
 #define DECLARE_INTERFACE(Interface)  \
-	typedef struct _##Interface##VTable Interface##VTable; \
-	typedef struct _##Interface Interface;
+    typedef struct _##Interface##VTable Interface##VTable; \
+    typedef struct _##Interface Interface;
 
 #define DEFINE_INTERFACE(Interface)          \
-	struct _##Interface##VTable {                             \
-		Interface##Header(Interface, Interface)         \
-	};                                                        \
-	struct _##Interface { Interface##VTable *_vtable; };
+    struct _##Interface##VTable {                             \
+        Interface##Header(Interface, Interface)         \
+    };                                                        \
+    struct _##Interface { Interface##VTable *_vtable; };
 
 #define IMPLEMENT(Clss,Interface) \
-	_class->_##Interface##_obj_offset = (UINT_PTR)(void*)&(((Clss*)0)->Interface##_); \
-	_class->_##Interface##_next_offset = 0;                                                \
-	*_pintfOffset =  (unsigned short)(UINT_PTR)(void*)&(((ClassType(Clss)*)0)->_##Interface##_obj_offset); \
-	_pintfOffset = &_class->_##Interface##_next_offset;
+    _class->_##Interface##_obj_offset = (UINT_PTR)(void*)&(((Clss*)0)->Interface##_); \
+    _class->_##Interface##_next_offset = 0;                                                \
+    *_pintfOffset =  (unsigned short)(UINT_PTR)(void*)&(((ClassType(Clss)*)0)->_##Interface##_obj_offset); \
+    _pintfOffset = &_class->_##Interface##_next_offset;
 
 #define INTERFACE_CAST(Interface, pobj)  \
-	((Interface*)((unsigned char*)(pobj) + (_c(pobj)->_##Interface##_obj_offset)))
+    ((Interface*)((unsigned char*)(pobj) + (_c(pobj)->_##Interface##_obj_offset)))
 
 //the basic interface
 DECLARE_INTERFACE(IInterface)
 struct _IInterfaceVTable{
-	unsigned short _obj_offset;
-	unsigned short _next_offset;
+    unsigned short _obj_offset;
+    unsigned short _next_offset;
 };
 
 struct _IInterface {
-	IInterfaceVTable * _vtable;
+    IInterfaceVTable * _vtable;
 };
 
 #define IInterfaceHeader(Interface, ClssImpl)  \
-	unsigned short _##Interface##_obj_offset; \
-	unsigned short _##Interface##_next_offset; \
+    unsigned short _##Interface##_obj_offset; \
+    unsigned short _##Interface##_next_offset; \
 
 /**
  * \define INTERFACE_ADJUST
  * \breif adjust the pointer as the real pointer
  */
 #define INTEFACE_ADJUST(piobj)  (_TYPEOF(piobj))((unsigned char*)(piobj) -  \
-		((IInterfaceVTable*)((piobj))->_vtable)->_obj_offset)
+        ((IInterfaceVTable*)((piobj))->_vtable)->_obj_offset)
 
 #define INTERFACE2OBJECT(type, piobj)  (type*)((unsigned char*)(piobj) - ((IInterfaceVTable*)((piobj))->_vtable)->_obj_offset)
 
 /**
- * \def _IM 
+ * \def _IM
  * \brief call the interface object
  */
 #define _IM(piobj, method, ...) \
-	(piobj)->_vtable->method(INTEFACE_ADJUST(piobj), ##__VA_ARGS__)
+    (piobj)->_vtable->method(INTEFACE_ADJUST(piobj), ##__VA_ARGS__)
 #define _I(piobj)  (piobj)->_vtable
 
-
-
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 typedef struct _mObjectClass mObjectClass;
 typedef struct _mObject mObject;
@@ -226,15 +223,15 @@ typedef mObjectClass* (*PClassConstructor)(mObjectClass *);
 typedef void (*PCONSTRUCT_VALIST)(mObject* self, va_list va);
 
 #define mObjectClassHeader(clss, superCls) \
-	PClassConstructor classConstructor; \
-	ClassType(superCls) * super; \
-	const char* typeName; \
-	unsigned short objSize; \
-	unsigned short intfOffset; /** define the interface offset*/ \
-	void (*construct)(clss *self, DWORD addData); \
-	void (*destroy)(clss *self); \
-	DWORD (*hash)(clss *self); \
-	const char* (*toString)(clss *self, char* str, int max);  \
+    PClassConstructor classConstructor; \
+    ClassType(superCls) * super; \
+    const char* typeName; \
+    unsigned short objSize; \
+    unsigned short intfOffset; /** define the interface offset*/ \
+    void (*construct)(clss *self, DWORD addData); \
+    void (*destroy)(clss *self); \
+    DWORD (*hash)(clss *self); \
+    const char* (*toString)(clss *self, char* str, int max);  \
 
 /**
  * \struct mObjectClass
@@ -266,7 +263,7 @@ typedef void (*PCONSTRUCT_VALIST)(mObject* self, va_list va);
  */
 
 struct _mObjectClass {
-	mObjectClassHeader(mObject, mObject)
+    mObjectClassHeader(mObject, mObject)
 };
 
 /**
@@ -276,7 +273,7 @@ struct _mObjectClass {
 MGNCS_EXPORT extern mObjectClass Class(mObject);
 
 #define mObjectHeader(clss) \
-	ClassType(clss) * _class; 
+    ClassType(clss) * _class;
 
 /**
  * \struct mObject
@@ -289,7 +286,7 @@ MGNCS_EXPORT extern mObjectClass Class(mObject);
  */
 
 struct _mObject {
-	mObjectHeader(mObject)
+    mObjectHeader(mObject)
 };
 
 MGNCS_EXPORT mObject* mgInitObject(mObject* pobj, mObjectClass* _class);
@@ -311,19 +308,19 @@ MGNCS_EXPORT mObject* mgInitObjectArgs(mObject* pobj, mObjectClass* _class, ...)
 
 /*
 ** the implementation of GET_ARG_COUNT is bad, because some systems
-** define va_list as a pointer, and others define it as an array of 
+** define va_list as a pointer, and others define it as an array of
 ** pointers (of length 1).
 static inline int MGGET_ARG_COUNT(va_list va)
 {
-	union {
-		va_list va;
-		DWORD   dva;
-	} _va;
+    union {
+        va_list va;
+        DWORD   dva;
+    } _va;
 
-	_va.va = va;
-	if(_va.dva == 0)
-		return 0;
-	//return va_arg(va, int); 
+    _va.va = va;
+    if(_va.dva == 0)
+        return 0;
+    //return va_arg(va, int);
     //DON'T call va_arg, because, va_arg can change va's value
     //this is a inline function, in some compiler, the change would
     //be pass to its caller
@@ -356,10 +353,10 @@ static inline int MGGET_ARG_COUNT(va_list va)
 * \return the new pointer of object
 *
 */
-MGNCS_EXPORT mObject * mg_newObject(mObjectClass *_class);
-#define newObject mg_newObject
-MGNCS_EXPORT mObject * mgNewObject(mObjectClass *_class,DWORD addData);
-#define ncsNewObject mgNewObject
+MGNCS_EXPORT mObject * mgNewObject(mObjectClass *_class);
+#define newObject mgNewObject
+MGNCS_EXPORT mObject * mgNewObjectEx(mObjectClass *_class, DWORD addData);
+#define ncsNewObject mgNewObjectEx
 
 
 #define NEWEX(classType, addData)  (classType*)ncsNewObject((mObjectClass*)(void *)(&Class(classType)), addData)
@@ -406,8 +403,8 @@ MGNCS_EXPORT BOOL ncsInstanceOf(mObject* object, mObjectClass* clss);
  * \brief A wrapper of \ref ncsInstanceOf, just like java's instanceof
  *
  * Example:
- * 	Test a object is mComponentClass:
- * 	INSTANCEOF(obj, mComponent)
+ *     Test a object is mComponentClass:
+ *     INSTANCEOF(obj, mComponent)
  */
 #define INSTANCEOF(obj, clss)  ncsInstanceOf((mObject*)(obj), (mObjectClass*)(void*)(&Class(clss)))
 
@@ -420,7 +417,7 @@ MGNCS_EXPORT BOOL ncsInstanceOf(mObject* object, mObjectClass* clss);
  * \return mObject * the pointer of obj or other NULL if obj is an invalid mObject pointer
  */
 static inline mObject*  ncsIsValidObj(mObject* obj){
-	return (INSTANCEOF(obj, mObject)?(obj):NULL);
+    return (INSTANCEOF(obj, mObject)?(obj):NULL);
 }
 
 /**
@@ -487,7 +484,6 @@ int ncsParseConstructParams(va_list args, const char* signature, ...);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif
 

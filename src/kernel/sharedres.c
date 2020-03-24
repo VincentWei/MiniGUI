@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -92,6 +92,68 @@
 
 #define CURSORSECTION   "cursorinfo"
 
+#ifdef _MGSCHEMA_COMPOSITING
+
+static BOOL LoadCursorRes (void)
+{
+    int number;
+    int i;
+    char szValue [12];
+
+    if (GetMgEtcValue (CURSORSECTION, "cursornumber", szValue, 10) < 0) {
+        _ERR_PRINTF ("Failed to get number of system cursors\n");
+        return FALSE;
+    }
+
+    number = atoi (szValue);
+    if (number < 0) {
+        _ERR_PRINTF ("Bad number of system cursor: %d\n", number);
+        return FALSE;
+    }
+
+    number = number < (MAX_SYSCURSORINDEX + 1) ? number : (MAX_SYSCURSORINDEX + 1);
+    // realloc for shared resource
+    mgSharedRes = realloc (mgSharedRes, mgSizeRes + number * (sizeof (HCURSOR)));
+    if (mgSharedRes == NULL) {
+        _ERR_PRINTF ("Failed to realloc shared memory for system cursor.\n");
+        return FALSE;
+    }
+
+    // set cursor number
+    ((PG_RES)mgSharedRes)->csrnum = number;
+    mgSizeRes += number * (sizeof (HCURSOR));
+
+    for (i = 0; i < number; i++) {
+        ((PG_RES)mgSharedRes)->sys_cursors[i] = NULL;
+    }
+
+    for (i = 0; i < number; i++) {
+        PCURSOR tempcsr;
+
+        if (!(tempcsr = sysres_load_system_cursor (i)))
+            goto error;
+
+        ((PG_RES)mgSharedRes)->sys_cursors[i] = tempcsr;
+    }
+
+    return TRUE;
+
+error:
+    for (i = 0; i < number; i++) {
+        PCURSOR tempcsr;
+        tempcsr = ((PG_RES)mgSharedRes)->sys_cursors[i];
+        if (tempcsr) {
+            GAL_FreeCursorSurface (tempcsr->surface);
+            mg_slice_delete (CURSOR, tempcsr);
+            ((PG_RES)mgSharedRes)->sys_cursors[i] = NULL;
+        }
+    }
+
+    return FALSE;
+}
+
+#else /* _MGSCHEMA_COMPOSITING */
+
 extern unsigned int __mg_csrimgpitch;
 static BOOL LoadCursorRes (void)
 {
@@ -141,7 +203,7 @@ static BOOL LoadCursorRes (void)
         temp += __mg_csrimgsize;
         free (tempcsr->AndBits);
         free (tempcsr->XorBits);
-        free (tempcsr);
+        mg_slice_delete (CURSOR, tempcsr);
     }
 
     mgSizeRes += (sizeof (HCURSOR) + sizeof(CURSOR) + 2 * __mg_csrimgsize) * number;
@@ -150,6 +212,8 @@ static BOOL LoadCursorRes (void)
 error:
     return FALSE;
 }
+
+#endif /* _MGSCHEMA_COMPOSITING */
 
 #endif /* _MGHAVE_CURSOR */
 
@@ -165,18 +229,18 @@ BOOL kernel_IsOnlyMe (void)
         // It is time to remove the old SysV IPC objects.
         key_t sem_key = get_sem_key_for_system ();
 
-        // remove system semaphore set.
+        // remove semaphore set for system.
         int semid = semget (sem_key, 0, SEM_PARAM);
         if (semid >= 0) {
             union semun ignored;
             if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
                 goto failed;
             }
-            _WRN_PRINTF("The old semaphore set for system (0x%06x) dicarded\n",
+            _WRN_PRINTF("The old semaphore set for system (0x%06x) discarded\n",
                     semid);
         }
 
-        // remove system semaphore set.
+        // remove semaphore set for layers.
         sem_key = get_sem_key_for_layers ();
         semid = semget (sem_key, 0, SEM_PARAM);
         if (semid >= 0) {
@@ -184,7 +248,19 @@ BOOL kernel_IsOnlyMe (void)
             if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
                 goto failed;
             }
-            _WRN_PRINTF("The old semaphore set for layers (0x%06x) dicarded\n",
+            _WRN_PRINTF("The old semaphore set for layers (0x%06x) discarded\n",
+                    semid);
+        }
+
+        // remove semaphore set for shared surfaces.
+        sem_key = get_sem_key_for_shared_surf ();
+        semid = semget (sem_key, 0, SEM_PARAM);
+        if (semid >= 0) {
+            union semun ignored;
+            if (semctl (semid, 0, IPC_RMID, ignored) < 0) {
+                goto failed;
+            }
+            _WRN_PRINTF("The old semaphore set for shared surfaces (0x%06x) discarded\n",
                     semid);
         }
 
@@ -230,7 +306,7 @@ void *kernel_LoadSharedResource (void)
 
 #ifdef _MGHAVE_CURSOR
     if (!LoadCursorRes()) {
-        perror ("InitCursor");
+        _ERR_PRINTF ("KERNEL>LoadSharedResource: %m\n");
         return NULL;
     }
 #endif
@@ -288,7 +364,7 @@ void *kernel_LoadSharedResource (void)
     if ((sem_key = get_sem_key_for_system ()) == -1) {
         goto error;
     }
-    semid = semget (sem_key, _NR_SEM, SEM_PARAM | IPC_CREAT | IPC_EXCL);
+    semid = semget (sem_key, _NR_SYS_SEM, SEM_PARAM | IPC_CREAT | IPC_EXCL);
     if (semid == -1) {
         goto error;
     }
@@ -319,7 +395,7 @@ void *kernel_LoadSharedResource (void)
     return mgSharedRes;
 
 error:
-    perror ("KERNEL>LoadSharedResource");
+    _ERR_PRINTF ("KERNEL>LoadSharedResource: %m\n");
     return NULL;
 }
 

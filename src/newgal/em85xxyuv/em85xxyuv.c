@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -47,7 +47,7 @@
 **  $Id: em85xxyuv.c 8944 2007-12-29 08:29:16Z xwyan $
 **
 **  em85xxyuv.c: NEWGAL driver for EM85xx YUV.
-**  
+**
 **  Copyright (C) 2007 Feynman Software.
 */
 
@@ -90,18 +90,18 @@
 
  /* according to X/OPEN we have to define it ourselves */
 union semun {
-	int val;                  /* value for SETVAL */
-	struct semid_ds *buf;     /* buffer for IPC_STAT, IPC_SET */
-	unsigned short *array;    /* array for GETALL, SETALL */
-	/* Linux specific part: */
-	struct seminfo *__buf;    /* buffer for IPC_INFO */
+    int val;                  /* value for SETVAL */
+    struct semid_ds *buf;     /* buffer for IPC_STAT, IPC_SET */
+    unsigned short *array;    /* array for GETALL, SETALL */
+    /* Linux specific part: */
+    struct seminfo *__buf;    /* buffer for IPC_INFO */
 };
 #endif
 /* Initialization/Query functions */
 static int EM85XXYUV_VideoInit(_THIS, GAL_PixelFormat *vformat);
-static GAL_Rect **EM85XXYUV_ListModes(_THIS, GAL_PixelFormat *format, 
+static GAL_Rect **EM85XXYUV_ListModes(_THIS, GAL_PixelFormat *format,
                 Uint32 flags);
-static GAL_Surface *EM85XXYUV_SetVideoMode(_THIS, GAL_Surface *current, 
+static GAL_Surface *EM85XXYUV_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags);
 static int EM85XXYUV_SetColors(_THIS, int first, int count, GAL_Color *palette);
 static void EM85XXYUV_VideoQuit(_THIS);
@@ -164,7 +164,7 @@ static __inline BYTE rgb2y (BYTE r, BYTE g, BYTE b)
 {
     DWORD y = 257*(DWORD)r + 504*(DWORD)g + 98*(DWORD)b + 16000;
     if (y > 255000)
-        y = 255000;    
+        y = 255000;
     y >>= 10;
     return (BYTE)y;
 }
@@ -173,7 +173,7 @@ static __inline BYTE rgb2u (BYTE r, BYTE g, BYTE b)
 {
     DWORD u = -148*(DWORD)r - 291*(DWORD)g + 449*(DWORD)b + 128000;
     if (u > 255000)
-        u = 255000;    
+        u = 255000;
     u >>= 10;
     return (BYTE)u;
 }
@@ -182,7 +182,7 @@ static __inline BYTE rgb2v (BYTE r, BYTE g, BYTE b)
 {
     DWORD v = 439*(DWORD)r - 368*(DWORD)g - 71*(DWORD)b + 128000;
     if (v > 255000)
-        v = 255000;    
+        v = 255000;
     v >>= 10;
     return (BYTE)v;
 }
@@ -206,7 +206,7 @@ static YUV* init_rgb2yuv_map_16bit (void)
 
     tmp = map;
     for (i = 0; i < 65536; i++) {
-        RGB2YUV (((i & 0xF800) >> 8), ((i & 0x07E0) >> 3), ((i & 0x001F) << 3), 
+        RGB2YUV (((i & 0xF800) >> 8), ((i & 0x07E0) >> 3), ((i & 0x001F) << 3),
                 &tmp->y, &tmp->u, &tmp->v);
         tmp++;
     }
@@ -303,7 +303,7 @@ static void transfer_yuv_frame (_THIS, int x, int y, int width, int height)
     int y_offset, uv_offset, y_xferlen, uv_xferlen, y_left, uv_left;
     BYTE* Y = plane_Y;
     BYTE* UV = plane_UV;
-    
+
 #if 0
     Wnd_type Wnd;
     evYUVWriteParams_type yuv_param;
@@ -316,7 +316,7 @@ static void transfer_yuv_frame (_THIS, int x, int y, int width, int height)
     yuv_param.wWidth = FRAME_WIDTH;
     yuv_param.wHeight = FRAME_HEIGHT;
     yuv_param.YUVFormat = YUV_420_UNPACKED;
-    RUA_DECODER_SET_PROPERTY(h, VIDEO_SET, evYUVWriteParams, 
+    RUA_DECODER_SET_PROPERTY(h, VIDEO_SET, evYUVWriteParams,
                     sizeof(yuv_param), &yuv_param);
     RUA_DECODER_SET_PROPERTY (h, VIDEO_SET, evSourceWindow, sizeof(Wnd), &Wnd);
     RUA_DECODER_CLEAR_SCREEN(h);
@@ -330,7 +330,7 @@ static void transfer_yuv_frame (_THIS, int x, int y, int width, int height)
      * so we do a loop for the complete transfer
      */
 
-    y_offset = 0; 
+    y_offset = 0;
     uv_offset = 0;
     y_left = FRAME_WIDTH * FRAME_HEIGHT;
     uv_left = FRAME_WIDTH * FRAME_HEIGHT / 2;
@@ -347,16 +347,16 @@ static void transfer_yuv_frame (_THIS, int x, int y, int width, int height)
         /* do the transfer */
         f.Yaddr = y_offset;
 
-        /* 
-         * don't worry about the warning from the compiler here 
+        /*
+         * don't worry about the warning from the compiler here
          * we know that this cast is safe
          */
         f.pY = (DWORD *)Y;
         f.nYbytes = y_xferlen;
         f.UVaddr = uv_offset;
 
-        /* 
-         * don't worry about the warning from the compiler here 
+        /*
+         * don't worry about the warning from the compiler here
          * we know that this cast is safe
          */
         f.pUV = (DWORD *)UV;
@@ -396,14 +396,14 @@ static int task_do_update (void* data)
             bound = this->hidden->update;
             round_rect_to_even (&bound);
 
-            convert2yuv (this, bound.left, bound.top, 
+            convert2yuv (this, bound.left, bound.top,
                             RECTW (bound), RECTH (bound));
             this->hidden->dirty = FALSE;
             SetRect (&this->hidden->update, 0, 0, 0, 0);
 
             update_unlock (this->hidden->lock);
 
-            transfer_yuv_frame (this, bound.left, bound.top, 
+            transfer_yuv_frame (this, bound.left, bound.top,
                             RECTW (bound), RECTH (bound));
         }
     }
@@ -451,9 +451,6 @@ static GAL_VideoDevice *EM85XXYUV_CreateDevice(int devindex)
     device->SetVideoMode = EM85XXYUV_SetVideoMode;
     device->SetColors = EM85XXYUV_SetColors;
     device->VideoQuit = EM85XXYUV_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = EM85XXYUV_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
@@ -518,7 +515,7 @@ static int EM85XXYUV_VideoInit(_THIS, GAL_PixelFormat *vformat)
     if (RUA_OSDFB_REFRESH (this->hidden->handle, &osdbuffer) != 0) {
         fprintf (stderr, "NEWGAL>EM85xxYUV: Error getting the OSD buffer.\n");
         goto fail;
-    } 
+    }
     else {
         this->hidden->osd_buffer = osdbuffer.framebuffer;
         this->hidden->w = osdbuffer.width;
@@ -527,7 +524,7 @@ static int EM85XXYUV_VideoInit(_THIS, GAL_PixelFormat *vformat)
         this->hidden->fb = osdbuffer.framebuffer + 8 + 1024;
     }
 #endif
- 
+
     /* set the tv output to be ntsc */
     Wnd.x = 0;
     Wnd.y = 0;
@@ -536,36 +533,36 @@ static int EM85XXYUV_VideoInit(_THIS, GAL_PixelFormat *vformat)
     TvStandard = evTvStandard_NTSC;
     TvOutputFormat = evTvOutputFormat_COMPOSITE;
     OutputDevice = evOutputDevice_TV;
-    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET, 
+    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET,
                     evTvOutputFormat, sizeof(TvOutputFormat), &TvOutputFormat);
-    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET, 
+    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET,
                     evTvStandard, sizeof(TvStandard), &TvStandard);
-    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET, 
+    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET,
                     evOutputDevice, sizeof(OutputDevice), &OutputDevice);
-    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET, 
+    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET,
                     evDestinationWindow, sizeof(Wnd), &Wnd);
 
     yuv_param.wWidth = FRAME_WIDTH;
     yuv_param.wHeight = FRAME_HEIGHT;
     yuv_param.YUVFormat = YUV_420_UNPACKED;
-    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET, 
+    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET,
                     evYUVWriteParams, sizeof(yuv_param), &yuv_param);
-    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET, 
+    RUA_DECODER_SET_PROPERTY (h, VIDEO_SET,
                     evSourceWindow, sizeof(Wnd), &Wnd);
     RUA_DECODER_CLEAR_SCREEN (h);
 
 #if 0
     /* Setup the flicker filter
-     * XXX - its also set in the kernel module, but it seems not to work 
-     * very well. 
-     * We reset it here, so that the microcode as already seen an osd frame.    
+     * XXX - its also set in the kernel module, but it seems not to work
+     * very well.
+     * We reset it here, so that the microcode as already seen an osd frame.
      * 0 <= flicker <= 15
      */
     flicker = 15;
-    RUA_DECODER_SET_PROPERTY (this->hidden->handle, 
+    RUA_DECODER_SET_PROPERTY (this->hidden->handle,
                     DECODER_SET, edecOsdFlicker, sizeof(flicker), &flicker);
 
-    /* 
+    /*
      * set the osd window destination
      * do not scale - just center the image
      */
@@ -573,7 +570,7 @@ static int EM85XXYUV_VideoInit(_THIS, GAL_PixelFormat *vformat)
     Wnd.y = (480 - osdbuffer.height) / 2;
     Wnd.w = osdbuffer.width;
     Wnd.h = osdbuffer.height;
-    RUA_DECODER_SET_PROPERTY (h, OSD_SET, 
+    RUA_DECODER_SET_PROPERTY (h, OSD_SET,
                     eOsdDestinationWindow, sizeof(Wnd), &Wnd);
 #endif
 
@@ -606,7 +603,7 @@ static GAL_Rect* modes []  = {
     NULL
 };
 
-static GAL_Rect **EM85XXYUV_ListModes(_THIS, GAL_PixelFormat *format, 
+static GAL_Rect **EM85XXYUV_ListModes(_THIS, GAL_PixelFormat *format,
                 Uint32 flags)
 {
     if (format->BitsPerPixel == 16) {
@@ -630,7 +627,7 @@ static GAL_Surface *EM85XXYUV_SetVideoMode(_THIS, GAL_Surface *current,
         return (NULL);
     }
 
-    clone (task_do_update, stack_updater + 512, 
+    clone (task_do_update, stack_updater + 512,
                     CLONE_VM | CLONE_FS | CLONE_FILES, this);
 
     /* We're done */
@@ -665,7 +662,7 @@ static void EM85XXYUV_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     for (i = 0; i < numrects; i++) {
         RECT rc;
 
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                         rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -674,7 +671,8 @@ static void EM85XXYUV_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+        RECT rcScr = GetScreenRect();
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             this->hidden->update = bound;
             this->hidden->dirty = TRUE;
         }

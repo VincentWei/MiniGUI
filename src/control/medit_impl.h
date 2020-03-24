@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -77,13 +77,13 @@ extern  "C" {
 #define MEDIT_OP_REPLACE 0x03
 
 #define MAX_WRAP_NUM    100
-        
+
 typedef struct tagLINEDATA
 {
     int     lineNO;                       // 行号
-    int     dataEnd; 
+    int     dataEnd;
     struct  tagLINEDATA *previous;        // 前一行
-    struct  tagLINEDATA *next;            // 后一行 
+    struct  tagLINEDATA *next;            // 后一行
     char    buffer[LEN_MLEDIT_BUFFER+1];
     int     nwrapline;                    // wrap line support, wrap line number in current line
     int     wrapStartPos[MAX_WRAP_NUM];   // starting address of each wrap line in current line
@@ -101,23 +101,23 @@ typedef struct tagMLEDITDATA
     int     linesDisp;      // 需要显示的行数
     int     lines;          // 总的行数`
     int     MaxlinesDisp;   // 最大显示的行数.
-                            
+
 #if 0
     int     selStartPos;    // selection start position
     int     selStartLine;   // selection start line
     int     selEndPos;      // selection end position
     int     selEndLine;     // selection end line
 #endif
-    
+
     int     passwdChar;     // password character
-    
+
     int     leftMargin;     // left margin
     int     topMargin;      // top margin
     int     rightMargin;    // right margin
     int     bottomMargin;   // bottom margin
-    
+
     int     lineHeight;     // height of line.
-    
+
     int     totalLimit;     // total text Len hard limit
     int     curtotalLen;    // current total text len
     int     lineLimit;      // len limit per line
@@ -137,9 +137,9 @@ typedef struct tagMLEDITDATA
     int     realEndLine;    // the 'real' valid end line number
     int     diff;           // 0: no difference; 1: difference
     int     bSCROLL;        // 0: not scroll; 1: scroll
-                            // add end 
+                            // add end
     int     wraplines;      // total wrapline number
-    
+
 #if 0
     int     lastOp;         // last operation
     int     lastPos;        // last operation position

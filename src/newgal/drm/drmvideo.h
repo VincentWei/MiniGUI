@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2019, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2019 ~ 2020, Beijing FMSoft Technologies Co., Ltd.
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -55,13 +55,51 @@
 
 /* Private display data */
 
-#define LEN_DEVICE_NAME     31
-
 typedef struct drm_mode_info DrmModeInfo;
 
 typedef struct GAL_PrivateVideoData {
-    char            dev_name[LEN_DEVICE_NAME + 1];
+    /* For compositing schema, we force to use double buffering */
+#ifdef _MGSCHEMA_COMPOSITING
+    GAL_Surface *real_screen, *shadow_screen;
+
+    DrmSurfaceBuffer *cursor_buff;
+    uint32_t cursor_plane_id;
+
+    /* Used to simulate the hardware cursor when hardware cursor not available. */
+    GAL_Surface *cursor;
+    int csr_x, csr_y;
+    int hot_x, hot_y;
+
+#if 0   /* test code */
+    /* for asynchronous update */
+    pthread_t update_th;
+    pthread_mutex_t update_lock;
+    sem_t sem_update;
+#endif  /* test code */
+#else   /* defined _MGSCHEMA_COMPOSITING */
+    /* When double buffering supported, the real surface represents the ultimate
+     * scan-out frame buffer, and the shadow screen represents the rendering
+     * surface. When double buffering disabled, shadow_screen is NULL. */
+    GAL_Surface *real_screen, *shadow_screen;
+
+    /* the global names of real screen and shadow screen */
+    uint32_t        real_name, shadow_name;
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
+
+#if !IS_SHAREDFB_SCHEMA_PROCS
+    RECT dirty_rc;
+#endif
+
+    char*           dev_name;
+    char*           ex_driver;
     int             dev_fd;
+
+    /* capabilities */
+    uint32_t        cap_cursor_width;
+    uint32_t        cap_cursor_height;
+    uint32_t        cap_dumb:1;
+    uint32_t        dbl_buff:1;
+    uint32_t        scanout_buff_id;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;
@@ -70,23 +108,13 @@ typedef struct GAL_PrivateVideoData {
     DrmModeInfo*    mode_list;
     GAL_Rect**      modes;
 
-    int             bpp;
-    uint32_t        width;
-    uint32_t        height;
-    uint32_t        pitch;
-    uint32_t        size;
-
-    uint32_t        scanout_buff_id;
-    uint8_t*        scanout_fb;
-
     DrmModeInfo*    saved_info;
     drmModeCrtc*    saved_crtc;
 
-    /* only valid when using DUMB frame buffer */
-    uint32_t        handle;
-
-    /* only valid when using DRM driver */
+#if 0   /* deprecated code */
     uint32_t        console_buff_id;
+    uint8_t*        scanout_fb;
+#endif  /* deprecated code */
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */

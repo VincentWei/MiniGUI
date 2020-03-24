@@ -14,17 +14,17 @@
  * \file ucos2_semaphore.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2004/02/03
- * 
- * \brief This header contains the POSIX semaphore definitions 
- *          needed to support MiniGUI under uC/OS-II. 
+ *
+ * \brief This header contains the POSIX semaphore definitions
+ *          needed to support MiniGUI under uC/OS-II.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
@@ -58,7 +58,7 @@
 /*
  * $Id: ucos2_semaphore.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *          MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *          MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *          pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -69,7 +69,7 @@
 
 #define sem_t ucos2_sem_t
 
-#define SEM_VALUE_MAX	USHRT_MAX
+#define SEM_VALUE_MAX    USHRT_MAX
 
 /*-----------------------------------------------------------------------------
 ** Semaphore object definition

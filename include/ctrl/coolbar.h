@@ -14,10 +14,10 @@
  * \file coolbar.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: coolbar.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -158,7 +158,7 @@ typedef COOLBARITEMINFO *PCOOLBARITEMINFO;
  * \brief The item bitmap has customized size.
  *
  * \note For the control with this style, you should pass
- *       the width and the height of the item bitmap by 
+ *       the width and the height of the item bitmap by
  *       the argument \a dwAddData of \a CreateWindowEx function.
  *
  * \code
@@ -204,7 +204,7 @@ typedef COOLBARITEMINFO *PCOOLBARITEMINFO;
  * lParam = (LPARAM)newIteminfo;
  * \endcode
  *
- * \param newIteminfo Pointer to the item info structure of the new item 
+ * \param newIteminfo Pointer to the item info structure of the new item
  *             to be added.
  *
  * \return Zero when success, otherwise less than 0;
@@ -213,7 +213,7 @@ typedef COOLBARITEMINFO *PCOOLBARITEMINFO;
 
 /**
  * \def CBM_ENABLE
- * \brief Sets an item to be enabled or disabled.
+ * \brief Set an item to be enabled or disabled.
  *
  * \code
  * CBM_ENABLE

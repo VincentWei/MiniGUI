@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -68,7 +68,7 @@
 #include "common.h"
 #include "own_stdio.h"
 
-//#define USE_UCOS2_MUTEX	1
+//#define USE_UCOS2_MUTEX    1
 #undef USE_UCOS2_MUTEX
 
 // -------------------------------------------------------------------------
@@ -111,12 +111,12 @@ _MACRO_END
 int pthread_mutexattr_init ( pthread_mutexattr_t *attr)
 {
     PTHREAD_ENTRY();
-    
+
     PTHREAD_CHECK(attr);
 
     attr->prio = OS_LOWEST_PRIO;
     //attr->prio = MINIGUI_HIGHEST_MUTEXT_PRIO;
-    
+
     PTHREAD_RETURN(0);
 }
 
@@ -126,11 +126,11 @@ int pthread_mutexattr_init ( pthread_mutexattr_t *attr)
 int pthread_mutexattr_destroy ( pthread_mutexattr_t *attr)
 {
     PTHREAD_ENTRY();
-    
+
     PTHREAD_CHECK(attr);
 
     // Nothing to do here...
-    
+
     PTHREAD_RETURN(0);
 }
 
@@ -140,7 +140,7 @@ int pthread_mutexattr_destroy ( pthread_mutexattr_t *attr)
 int pthread_mutexattr_setpriority ( pthread_mutexattr_t *attr, int priority)
 {
     PTHREAD_ENTRY();
-    
+
     PTHREAD_CHECK(attr);
 
     if (priority < 0 || priority >= OS_LOWEST_PRIO) {
@@ -148,7 +148,7 @@ int pthread_mutexattr_setpriority ( pthread_mutexattr_t *attr, int priority)
     }
 
     attr->prio = (INT8U) priority;
-    
+
     PTHREAD_RETURN(0);
 }
 
@@ -156,11 +156,11 @@ int pthread_mutexattr_setpriority ( pthread_mutexattr_t *attr, int priority)
 int pthread_mutexattr_getpriority ( pthread_mutexattr_t *attr, int* priority)
 {
     PTHREAD_ENTRY();
-    
+
     PTHREAD_CHECK(attr);
 
     *priority = attr->prio;
-    
+
     PTHREAD_RETURN(0);
 }
 
@@ -174,7 +174,7 @@ int pthread_mutex_init (pthread_mutex_t *mutex,
                                 const pthread_mutexattr_t *mutex_attr)
 {
     pthread_mutexattr_t use_attr;
-    
+
 #if 0
     PTHREAD_ENTRY();
 
@@ -185,7 +185,7 @@ int pthread_mutex_init (pthread_mutex_t *mutex,
     if( mutex_attr == NULL )
         pthread_mutexattr_init( &use_attr );
     else use_attr = *mutex_attr;
-    
+
 #if USE_UCOS2_MUTEX
     {
         INT8U err;
@@ -223,10 +223,10 @@ int pthread_mutex_destroy (pthread_mutex_t *mutex)
     switch (err) {
     case OS_ERR_TASK_WAITING:
         errval = EBUSY;
-	break;
+    break;
     case OS_NO_ERR:
         errval = 0;
-	break;
+    break;
     }
 
     PTHREAD_RETURN(errval);
@@ -261,11 +261,11 @@ int pthread_mutex_lock (pthread_mutex_t *mutex)
 int pthread_mutex_trylock (pthread_mutex_t *mutex)
 {
     INT16U ret;
-    
+
     PTHREAD_ENTRY();
 
     PTHREAD_CHECK( mutex );
-    
+
 #if USE_UCOS2_MUTEX
     {
         INT8U err;
@@ -276,7 +276,7 @@ int pthread_mutex_trylock (pthread_mutex_t *mutex)
 #endif
     if (ret == 0)
         PTHREAD_RETURN(EBUSY);
-    
+
     PTHREAD_RETURN(0);
 }
 
@@ -291,7 +291,7 @@ int pthread_mutex_unlock (pthread_mutex_t *mutex)
     PTHREAD_ENTRY();
 
     PTHREAD_CHECK( mutex );
-    
+
 #if USE_UCOS2_MUTEX
     err = OSMutexPost (mutex->os_mutex);
 #else
@@ -319,11 +319,11 @@ int pthread_mutex_unlock (pthread_mutex_t *mutex)
 int pthread_condattr_init (pthread_condattr_t *attr)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     // There are no condition variable attributes at present
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -333,11 +333,11 @@ int pthread_condattr_init (pthread_condattr_t *attr)
 int pthread_condattr_destroy (pthread_condattr_t *attr)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     // nothing to do here...
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -413,7 +413,7 @@ int pthread_cond_wait (pthread_cond_t *cond,
     PTHREAD_TESTCANCEL ();
 
     PTHREAD_CHECK (cond);
-    PTHREAD_CHECK (mutex);    
+    PTHREAD_CHECK (mutex);
 
     // check if we were woken because we were being cancelled
     PTHREAD_TESTCANCEL ();
@@ -434,8 +434,8 @@ int pthread_cond_timedwait (pthread_cond_t *cond,
     PTHREAD_TESTCANCEL ();
 
     PTHREAD_CHECK (cond);
-    PTHREAD_CHECK (mutex);    
-    PTHREAD_CHECK (abstime);    
+    PTHREAD_CHECK (mutex);
+    PTHREAD_CHECK (abstime);
 
     // check if we were woken because we were being cancelled
     PTHREAD_TESTCANCEL ();

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -58,12 +58,12 @@
 /*        EXCLUDED TO THE FULLEST EXTENT PERMITTED BY LAW                    */
 /*                                                                           */
 /*****************************************************************************/
-/**                                                                            
- @File   stos.h                                                                
- @brief                                                                         
-                                                                               
-                                                                               
-                                                                               
+/**
+ @File   stos.h
+ @brief
+
+
+
 */
 #if !defined __STOS_H
 #define __STOS_H
@@ -106,9 +106,9 @@
     #include <task.h>
     #include <ostime.h>
     #include <cache.h>
-    
+
     #include "string.h"
-    
+
     #include "stcommon.h"
 #endif
 
@@ -126,9 +126,9 @@
         #include <os21/st40.h>
         #include <os21/st40/cache.h>
     #endif /*#if defined ARCHITECTURE_ST40*/
-    
+
     #include "string.h"
-    
+
     #include "stcommon.h"
 #endif
 
@@ -208,9 +208,9 @@
 \*****************************************************************************/
 #if defined(ST_OSLINUX) && !defined(MODULE)
 /* We want to use the GNU extension to POSIX.
-   There is no GPL contamination : Posix lib is LGPL and not modified 
+   There is no GPL contamination : Posix lib is LGPL and not modified
 */
-#define _GNU_SOURCE 1 
+#define _GNU_SOURCE 1
 #include <linux/version.h>
 
 
@@ -376,7 +376,7 @@ typedef message_queue_t             STOS_MessageQueue_t    ;
    This did not work the way people were using it: the same directory got created multiple times,
    which does not work right. We can use one subdirectory, but it must be created once.
  */
-#define STAPI_STAT_DIRECTORY                (module_name(THIS_MODULE))	/* Module name */
+#define STAPI_STAT_DIRECTORY                (module_name(THIS_MODULE))    /* Module name */
 
 /* Setting Linux paging values*/
 #define LINUX_PAGE_SIZE         PAGE_SIZE
@@ -434,9 +434,9 @@ typedef struct STOS_Semaphore_s
 typedef struct semaphore STOS_Mutex_t;
 #else   /* DO_NOT_SUPPORT_RECURSIVE_MUTEX */
 typedef struct {
-	STOS_Task_t *owner;
-	unsigned int count;
-	wait_queue_head_t wait;
+    STOS_Task_t *owner;
+    unsigned int count;
+    wait_queue_head_t wait;
 } STOS_Mutex_t;
 #endif   /* DO_NOT_SUPPORT_RECURSIVE_MUTEX */
 
@@ -820,7 +820,7 @@ void STOS_InterruptUnlock(void);
 #define STOS_INTERRUPT_EXIT(ret)                return (ret == STOS_SUCCESS ? IRQ_HANDLED : IRQ_NONE)
 #endif
 
-STOS_Error_t STOS_InterruptEnable(unsigned int Number,unsigned int Level); 
+STOS_Error_t STOS_InterruptEnable(unsigned int Number,unsigned int Level);
 STOS_Error_t STOS_InterruptDisable(unsigned int Number,unsigned int Level);
 
 /* No need on linux kernel: all interrupt are cleared inside the kernel IT controler */
@@ -995,7 +995,7 @@ struct timeval  STOS_Clockt2Timeval(STOS_Clock_t clock) ;
 #elif defined (ST_OS20)
     /* from STCOMMON, we keep stcomm dependancie only fom ST20...
        Maybe we could recode the ST_GetClocksPerSecond function in STOS... */
-    #define STOS_GetClocksPerSecond()     ST_GetClocksPerSecond() 
+    #define STOS_GetClocksPerSecond()     ST_GetClocksPerSecond()
 #endif
 
 
@@ -1003,7 +1003,7 @@ struct timeval  STOS_Clockt2Timeval(STOS_Clock_t clock) ;
 inline void STOS_TaskDelayUs(int microsec)   { STOS_TaskDelay(((unsigned __int64)(microsec)*ST_GetClocksPerSecond())/1000000); }
 #endif
 
-#if defined (ST_OS21) 
+#if defined (ST_OS21)
 #define STOS_TaskDelay(ticks)          task_delay(ticks)
 #define STOS_TaskDelayUntil(timeout)  task_delay_until(timeout)
 #define STOS_TaskDelayUs(microsec)    do{                                      \
@@ -1057,7 +1057,7 @@ void STOS_TaskYield();
 
 #elif defined (ST_OS21)
 __inline void STOS_TaskSchedule(void)             { task_reschedule(); }
-__inline void STOS_TaskYield(void)                { task_yield(); } 
+__inline void STOS_TaskYield(void)                { task_yield(); }
 
 #elif defined (ST_OS20)
 #define STOS_TaskSchedule()             do { task_reschedule(); } while(0)
@@ -1156,7 +1156,7 @@ typedef STOS_Clock_t           osclock_t       STOS_DEPRECATED;
 #undef task_flags_no_min_stack_size
 #endif
 enum {
-    task_flags_no_min_stack_size = 0    
+    task_flags_no_min_stack_size = 0
     /* always set in OS21 task creation */
 } STOS_DEPRECATED;
 
@@ -1174,9 +1174,9 @@ typedef STOS_TaskDesc_t      tdesc_t       STOS_DEPRECATED;
 #undef task_flags_high_priority_process
 #endif
 
-enum 
+enum
 {
-    task_flags_high_priority_process = 0 
+    task_flags_high_priority_process = 0
     /* not use inside STOS even for OS20 */
 } STOS_DEPRECATED;
 
@@ -1187,7 +1187,7 @@ enum
 
 enum {
      OS21_SUCCESS = 0                 ,
-     OS21_FAILURE = -1                
+     OS21_FAILURE = -1
 } STOS_DEPRECATED;
 
 typedef STOS_Clock_t           osclock_t       STOS_DEPRECATED;
@@ -1198,22 +1198,22 @@ typedef STOS_Mutex_t           mutex_t         STOS_DEPRECATED;
 #endif
 #ifdef task_flags_suspended
 #undef task_flags_suspended
-#endif 
+#endif
 #ifdef task_flags_high_priority_process
 #undef task_flags_high_priority_process
-#endif 
+#endif
 enum {
     task_flags_no_min_stack_size = 0  ,
     /* always set in OS21 task creation */
     task_flags_suspended =1 ,
     /* not use inside STOS even for OS20 nor OS21 */
-    task_flags_high_priority_process = 2 
+    task_flags_high_priority_process = 2
     /* not use inside STOS even for OS20 */
 } STOS_DEPRECATED ;
 enum
 {
     task_context_task      = STOS_TaskContext_Task      ,
-    task_context_interrupt = STOS_TaskContext_Interrupt 
+    task_context_interrupt = STOS_TaskContext_Interrupt
 } STOS_DEPRECATED ;
 typedef STOS_TaskContext_t     task_context_t  STOS_DEPRECATED;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,23)
@@ -1235,7 +1235,7 @@ typedef STOS_MessageQueue_t    message_queue_t STOS_DEPRECATED;
 
 enum {
      OS21_SUCCESS = 0                 ,
-     OS21_FAILURE = -1                
+     OS21_FAILURE = -1
 } STOS_DEPRECATED;
 
 typedef STOS_Clock_t           osclock_t       STOS_DEPRECATED;
@@ -1246,16 +1246,16 @@ typedef STOS_Mutex_t           mutex_t         STOS_DEPRECATED;
 #endif
 #ifdef task_flags_suspended
 #undef task_flags_suspended
-#endif 
+#endif
 #ifdef task_flags_high_priority_process
 #undef task_flags_high_priority_process
-#endif 
+#endif
 enum {
     task_flags_no_min_stack_size = 0  ,
     /* always set in OS21 task creation */
     task_flags_suspended =1 ,
     /* not use inside STOS even for OS20 nor OS21 */
-    task_flags_high_priority_process = 2   
+    task_flags_high_priority_process = 2
     /* not use inside STOS even for OS20 */
 } STOS_DEPRECATED;
 enum
@@ -1290,7 +1290,7 @@ typedef STOS_MessageQueue_t    message_queue_t STOS_DEPRECATED;
 
 
 
-#ifdef  ST_OSLINUX 
+#ifdef  ST_OSLINUX
 /* now deprecated. */
 /* Memory Management */
 void*   memory_allocate(STOS_Partition_t *part, size_t size) STOS_DEPRECATED;
@@ -1369,21 +1369,21 @@ task_context_t task_context(STOS_Task_t **task, int* level) STOS_DEPRECATED;
 #ifdef MODULE
 void interrupt_lock(void) STOS_DEPRECATED;
 void interrupt_unlock(void) STOS_DEPRECATED;
-#endif 
+#endif
 
 #ifndef MODULE
 void task_lock(void) STOS_DEPRECATED;
 void task_unlock(void) STOS_DEPRECATED;
-struct timeval  Clockt2Timeval(STOS_Clock_t clock) ; 
-STOS_Clock_t         get_time_convert(struct timeval *tv) STOS_DEPRECATED; 
-STOS_Clock_t		 get_time_now (void) STOS_DEPRECATED;
+struct timeval  Clockt2Timeval(STOS_Clock_t clock) ;
+STOS_Clock_t         get_time_convert(struct timeval *tv) STOS_DEPRECATED;
+STOS_Clock_t         get_time_now (void) STOS_DEPRECATED;
 #endif  /* !MODULE */
 
 
 /* STSDK - FAE/STAPIREF_COMPAT - START - To get event time in kernel */
 #ifdef MODULE
 #ifdef HND_SDK_MIGRATION
-U32		       get_time (void);   /* Please use STLINUX_TimeNowUser() */
+U32               get_time (void);   /* Please use STLINUX_TimeNowUser() */
 #endif
 #endif
 /* STSDK - FAE/STAPIREF_COMPAT - STOP  - To get event time in kernel */

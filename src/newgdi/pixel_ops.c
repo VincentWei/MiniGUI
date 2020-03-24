@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -66,14 +66,14 @@
 
 BOOL _dc_cliphline (const RECT* cliprc, int* px, int* py, int* pw)
 {
-    if ( (*px >= cliprc->right) || (*py >= cliprc->bottom) || 
+    if ( (*px >= cliprc->right) || (*py >= cliprc->bottom) ||
             (*px + *pw < cliprc->left) || (*py < cliprc->top) )
         return FALSE;
 
-    if ( (*px >= cliprc->left) && (*py >= cliprc->top) && 
+    if ( (*px >= cliprc->left) && (*py >= cliprc->top) &&
             (*px + *pw < cliprc->right) && (*py < cliprc->bottom) )
         return TRUE;
-            
+
     if (*px < cliprc->left) {
         *pw -= cliprc->left - *px;
         *px = cliprc->left;
@@ -84,30 +84,30 @@ BOOL _dc_cliphline (const RECT* cliprc, int* px, int* py, int* pw)
     if (*pw <= 0)
         return FALSE;
 
-    return TRUE;        
+    return TRUE;
 }
 
 BOOL _dc_clipvline (const RECT* cliprc, int* px, int* py, int* ph)
 {
-    if ( (*px >= cliprc->right) || (*py >= cliprc->bottom) || 
+    if ( (*px >= cliprc->right) || (*py >= cliprc->bottom) ||
             (*px < cliprc->left) || (*py + *ph < cliprc->top) )
         return FALSE;
 
-    if ( (*px >= cliprc->left) && (*py >= cliprc->top) && 
+    if ( (*px >= cliprc->left) && (*py >= cliprc->top) &&
             (*px < cliprc->right) && (*py + *ph < cliprc->bottom) )
         return TRUE;
-            
+
     if (*py < cliprc->top) {
         *ph -= cliprc->top - *py;
         *py = cliprc->top;
     }
-    if (*py + *ph >= cliprc->bottom)    
+    if (*py + *ph >= cliprc->bottom)
         *ph = cliprc->bottom - *py;
 
     if (*ph <= 0)
         return FALSE;
 
-    return TRUE;        
+    return TRUE;
 }
 
 void _dc_drawvline (PDC pdc, int h)
@@ -351,7 +351,7 @@ void _dc_draw_vline_clip (void* context, int y1, int y2, int x)
                     pdc->move_to (pdc, x, _y);
                     _dc_drawvline (pdc, _h);
                 }
-                
+
                 if (h > 0)
                     y1 += h;
             }
@@ -415,7 +415,7 @@ void _dc_fill_spans (PDC pdc, Span* spans, int nspans, BOOL sorted)
                         pdc->draw_pixel_span (PDC_TO_COMP_CTXT(pdc), _w);
                     }
                 }
-    
+
                 cliprect = cliprect->next;
             }
         }
@@ -445,11 +445,11 @@ void _dc_fill_span_brush_helper (PDC pdc, int x, int y, int w)
 
             for (curx = left; curx < right; curx += xstep, w -= xstep) {
                 BYTE* row;
-      
+
                 draww = (curx - ts_orig_x) % tiled->bmWidth;
                 if (draww < 0)
                     draww += tiled->bmWidth;
-      
+
                 xstep = MIN (tiled->bmWidth - draww, w);
 
                 row = tiled->bmBits + tiled->bmPitch * drawh + tiled->bmBytesPerPixel * draww;
@@ -457,7 +457,7 @@ void _dc_fill_span_brush_helper (PDC pdc, int x, int y, int w)
                 if (pdc->rop == ROP_SET) {
                     BITMAP bmp = *tiled;
                     GAL_Rect rect;
-                    
+
                     rect.x = curx;
                     rect.y = y;
                     rect.w = xstep;
@@ -585,7 +585,7 @@ void _dc_fill_spans_brush (PDC pdc, Span* spans, int nspans, BOOL sorted)
             if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)
                     && _dc_cliphline (&eff_rc, &_x, &_y, &_w) && _w > 0)
                 _dc_fill_span_brush_helper (pdc, _x, _y, _w);
-    
+
             cliprect = cliprect->next;
         }
     }

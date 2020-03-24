@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -66,27 +66,28 @@
 #include "memops.h"
 #include "dc.h"
 #include "icon.h"
-#include "cursor.h"
 #include "readbmp.h"
+#include "misc.h"
 
 #define align_32_bits(b) (((b) + 3) & -4)
 
-/*-------------------------*/
-#if ((defined(__THREADX__) && defined(__TARGET_VFANVIL__)) || (defined(__NUCLEUS__) && defined(__TARGET_MONACO__)))
-#define fgetc my_fgetc
-int my_fgetc(FILE *stream)
+#if ((defined(__THREADX__) && defined(__TARGET_VFANVIL__)) || \
+        (defined(__NUCLEUS__) && defined(__TARGET_MONACO__)))
+static int my_fgetc (FILE *stream)
 {
-	int c;
-	while (!feof (stream)) {
-		if (fread (&c, 1, 1, stream) == 1) 
-			return c;
-		else 
-			break;
-	}
-	return EOF;
+    int c;
+    while (!feof (stream)) {
+        if (fread (&c, 1, 1, stream) == 1)
+            return c;
+        else
+            break;
+    }
+    return EOF;
 }
-#endif
-/*-------------------------*/
+
+#define fgetc my_fgetc
+
+#endif /* (__THREADX__ && __TARGET_VFANVIL__)... */
 
 void _dc_restore_alpha_in_bitmap (const GAL_PixelFormat* format,
                 void* dst_bits, unsigned int nr_bytes)
@@ -129,7 +130,7 @@ static void read_bmicolors_f (int ncols, RGB *pal, FILE* f)
       pal[i].b = fgetc (f);
       pal[i].g = fgetc (f);
       pal[i].r = fgetc (f);
-	  fgetc (f);
+      fgetc (f);
    }
 }
 
@@ -157,7 +158,7 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
     BYTE* image;
     HICON icon = 0;
     RGB pal[256];
-    
+
     if (!(fp = fopen (filename, "rb"))) return 0;
 
     fseek (fp, sizeof (WORD16), SEEK_SET);
@@ -235,7 +236,7 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
     /* skip the rest members and the color table.*/
     fseek(fp, sizeof(DWORD32)*4, SEEK_CUR);
     read_bmicolors_f (1 << colornum, pal, fp);
-    
+
     /* allocate memory for image.*/
 #ifdef HAVE_ALLOCA
     /* Use alloca, the stack may be enough for the image.*/
@@ -250,8 +251,8 @@ HICON GUIAPI LoadIconFromFile (HDC hdc, const char* filename, int which)
         goto error_free;
     }
 
-    icon = CreateIconEx (hdc, w, h, 
-                   image + (imagesize - (align_32_bits(w>>3) * h)), image, 
+    icon = CreateIconEx (hdc, w, h,
+                   image + (imagesize - (align_32_bits(w>>3) * h)), image,
                    colornum, pal);
 
 error_free:
@@ -274,7 +275,7 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     DWORD32 offset;
     DWORD32 imagesize;
     RGB pal[256];
-    
+
     p += sizeof (WORD16);
 
     /* the cbType of struct ICONDIR.*/
@@ -310,14 +311,14 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     DWORD32 size;
     size = MGUI_ReadLE32Mem (&p);
 #else
-    p += sizeof(DWORD32); 
+    p += sizeof(DWORD32);
 #endif
     offset = MGUI_ReadLE32Mem (&p);
 
     /* read the cursor image info. */
     p = (Uint8*)area + offset;
     /* skip the biSize member. */
-    p += sizeof(DWORD32); 
+    p += sizeof(DWORD32);
 #if 0
     DWORD32 imagew, imageh;
     imagew = MGUI_ReadLE32Mem (&p);
@@ -340,7 +341,7 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
         imagesize = align_32_bits(w>>3) * h;
     else if (colornum == 4)
         imagesize = align_32_bits(w>>1) * h;
-    else 
+    else
         imagesize = align_32_bits(w) * h;
 
     imagesize += align_32_bits(w>>3) * h;
@@ -350,67 +351,249 @@ HICON GUIAPI LoadIconFromMem (HDC hdc, const void* area, int which)
     p += sizeof(DWORD32)*4;
     read_bmicolors_m (1 << colornum, pal, p);
     p += sizeof(BYTE)*(4<<colornum);
-    
-    return CreateIconEx (hdc, w, h, 
-                    p + (imagesize - (align_32_bits(w>>3) * h)), p, 
+
+    return CreateIconEx (hdc, w, h,
+                    p + (imagesize - (align_32_bits(w>>3) * h)), p,
                     colornum, pal);
 
 error:
     return 0;
 }
 
-HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pAndBits, 
-                        const BYTE* pXorBits, int colornum, const RGB *pal)
+HICON GUIAPI CreateIconEx (HDC hdc, int w, int h, const BYTE* pANDBits,
+                        const BYTE* pXORBits, int colornum, const RGB *pal)
 {
     PDC pdc;
     PICON picon;
     Uint32 image_size;
+    gal_pixel trans_pixel;
 
-    pdc = dc_HDC2PDC (hdc);
-    
-    if( (w%16) != 0 || (h%16) != 0 ) return 0;
+    /* Since 5.0.0, we always decode an icon into RGBA8888 compliant pixels */
+    hdc = __mg_get_common_rgba8888_dc ();
+    if (!(pdc = dc_HDC2PDC (hdc)))
+        return 0;
+
+    if ((w % 16) != 0 || (h % 16) != 0 || w <= 0 || h <= 0)
+        return 0;
 
     /* allocate memory. */
-    if (!(picon = (PICON)malloc (sizeof(ICON))))
+    if (!(picon = mg_slice_new (ICON)))
         return 0;
 
     image_size = GAL_GetBoxSize (pdc->surface, w, h, &picon->pitch);
-
-    if (!(picon->AndBits = malloc (image_size)))
-        goto error1;
-    if (!(picon->XorBits = malloc (image_size)))
-        goto error2;
+    if (!(picon->pixels = malloc (image_size)))
+        goto error;
 
     picon->width = w;
     picon->height = h;
 
+    trans_pixel = GAL_MapRGBA (pdc->surface->format, 0x00, 0x00, 0x00, 0x00);
     if (colornum == 1) {
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits, 
-                align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        ExpandMonoBitmap (hdc, picon->XorBits, picon->pitch, pXorBits, 
-                align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
+        int x, y;
+        int mono_pitch = align_32_bits (w >> 3);
+        BYTE and_byte = 0;
+        BYTE xor_byte = 0;
+        gal_pixel white_pixel = GAL_MapRGBA (pdc->surface->format,
+                0xFF, 0xFF, 0xFF, 0xFF);
+        gal_pixel black_pixel = GAL_MapRGBA (pdc->surface->format,
+                0x00, 0x00, 0x00, 0xFF);
+
+        pANDBits += mono_pitch * (h - 1);
+        pXORBits += mono_pitch * (h - 1);
+        Uint32* pixels = (Uint32*)picon->pixels;
+
+        for (y = 0; y < h; y++) {
+            const BYTE* and_bytes = pANDBits;
+            const BYTE* xor_bytes = pXORBits;
+
+            for (x = 0; x < w; x++) {
+                if (x % 8 == 0) {
+                    and_byte = *and_bytes++;
+                    xor_byte = *xor_bytes++;
+                }
+
+                if (and_byte & (0x80 >> (x % 8))) {
+                    pixels [x] = trans_pixel;
+                }
+                else {
+                    if (xor_byte & (0x80 >> (x % 8))) {
+                        pixels [x] = white_pixel;
+                    }
+                    else {
+                        pixels [x] = black_pixel;
+                    }
+                }
+            }
+
+            pANDBits -= mono_pitch;
+            pXORBits -= mono_pitch;
+            pixels += (picon->pitch >> 2);
+        }
     }
     else if (colornum == 4) {
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits, 
-                align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        Expand16CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits, 
-                align_32_bits (w >> 1), w, h, MYBMP_FLOW_UP, pal);
+        int x, y;
+        int pitch_mono = align_32_bits (w >> 3);
+        int pitch_16c = align_32_bits (w >> 1);
+        BYTE and_byte = 0;
+        BYTE xor_byte = 0;
+        int idx_16c = 0;
+        const RGB* std16c_rgb = __mg_bmp_get_std_16c ();
+
+        pANDBits += pitch_mono * (h - 1);
+        pXORBits += pitch_16c * (h - 1);
+        Uint32* pixels = (Uint32*)picon->pixels;
+
+        for (y = 0; y < h; y++) {
+            const BYTE* and_bytes = pANDBits;
+            const BYTE* xor_bytes = pXORBits;
+
+            for (x = 0; x < w; x++) {
+                if (x % 8 == 0) {
+                    and_byte = *and_bytes++;
+                }
+                if (x % 2 == 0) {
+                    xor_byte = *xor_bytes++;
+                    idx_16c = (xor_byte >> 4) & 0x0F;
+                }
+                else {
+                    idx_16c = xor_byte & 0x0F;
+                }
+
+                if (and_byte & (0x80 >> (x % 8))) {
+                    pixels [x] = trans_pixel;
+                }
+                else if (pal) {
+                    pixels [x] = GAL_MapRGBA (pdc->surface->format,
+                            pal[idx_16c].r, pal[idx_16c].g,
+                            pal[idx_16c].b, 0xFF);
+                }
+                else {
+                    pixels [x] = GAL_MapRGBA (pdc->surface->format,
+                            std16c_rgb[idx_16c].r, std16c_rgb[idx_16c].g,
+                            std16c_rgb[idx_16c].b, 0xFF);
+                }
+            }
+
+            pANDBits -= pitch_mono;
+            pXORBits -= pitch_16c;
+            pixels += (picon->pitch >> 2);
+        }
     }
-    else if (colornum == 8){
-        ExpandMonoBitmap (hdc, picon->AndBits, picon->pitch, pAndBits, 
-                align_32_bits (w >> 3), w, h, MYBMP_FLOW_UP, 0, 0xFFFFFFFF);
-        Expand256CBitmap (hdc, picon->XorBits, picon->pitch, pXorBits, 
-                align_32_bits (w), w, h, MYBMP_FLOW_UP, pal, NULL, NULL);
+    else if (colornum == 8) {
+        int x, y;
+        int pitch_mono = align_32_bits (w >> 3);
+        int pitch_256c = align_32_bits (w);
+        BYTE and_byte = 0;
+        BYTE xor_byte = 0;
+
+        pANDBits += pitch_mono * (h - 1);
+        pXORBits += pitch_256c * (h - 1);
+        Uint32* pixels = (Uint32*)picon->pixels;
+
+        for (y = 0; y < h; y++) {
+            const BYTE* and_bytes = pANDBits;
+            const BYTE* xor_bytes = pXORBits;
+
+            for (x = 0; x < w; x++) {
+                if (x % 8 == 0) {
+                    and_byte = *and_bytes++;
+                }
+
+                xor_byte = *xor_bytes++;
+
+                if (and_byte & (0x80 >> (x % 8))) {
+                    pixels [x] = trans_pixel;
+                }
+                else if (pal) {
+                    pixels [x] = GAL_MapRGBA (pdc->surface->format,
+                            pal[xor_byte].r, pal[xor_byte].g,
+                            pal[xor_byte].b, 0xFF);
+                }
+                else {
+                    /* Treat the bitmap uses the dithered colorful palette. */
+                    pixels [x] = GAL_MapRGBA (pdc->surface->format,
+                            (xor_byte >> 5) & 0x07, (xor_byte >> 2) & 0x07,
+                            xor_byte & 0x03, 0xFF);
+                }
+            }
+
+            pANDBits -= pitch_mono;
+            pXORBits -= pitch_256c;
+            pixels += (picon->pitch >> 2);
+        }
     }
 
     return (HICON)picon;
 
-error2:
-    free(picon->AndBits);
-error1:
+error:
     free (picon);
-
     return 0;
+}
+
+HICON GUIAPI LoadBitmapIconEx (HDC hdc, MG_RWops* area, const char* ext)
+{
+    BITMAP bmp;
+    PICON ico;
+    int ret;
+
+    if ((hdc = __mg_get_common_rgba8888_dc()) == HDC_INVALID)
+        return 0;
+
+    if (!(ico = mg_slice_new (ICON)))
+        return 0;
+
+    ret = LoadBitmapEx (hdc, &bmp, area, ext);
+    if (ret) {
+        goto error;
+    }
+
+    ico->width = bmp.bmWidth;
+    ico->height = bmp.bmHeight;
+    ico->pitch = bmp.bmPitch;
+    ico->pixels = bmp.bmBits;
+    return (HICON)ico;
+
+error:
+    mg_slice_delete (ICON, ico);
+    return 0;
+}
+
+HICON GUIAPI LoadBitmapIconFromFile (HDC hdc, const char* file_name)
+{
+    PICON ico;
+    MG_RWops* area;
+    const char* ext;
+
+    /* format, png, jpg etc. */
+    if ((ext = __mg_get_extension (file_name)) == NULL) {
+        return 0;
+    }
+
+    if (!(area = MGUI_RWFromFile (file_name, "rb"))) {
+        _WRN_PRINTF ("Failed to make RWOps\n");
+        return 0;
+    }
+
+    ico = LoadBitmapIconEx (hdc, area, ext);
+    MGUI_RWclose (area);
+    return ico;
+}
+
+HICON GUIAPI LoadBitmapIconFromMem (HDC hdc, const void* mem, size_t size,
+        const char* ext)
+{
+    PICON ico;
+    MG_RWops* area;
+
+    if (!(area = MGUI_RWFromMem ((void*)mem, size))) {
+        _WRN_PRINTF ("Failed to make RWOps\n");
+        return NULL;
+    }
+
+    ico = LoadBitmapIconEx (hdc, area, ext);
+
+    MGUI_RWclose (area);
+    return ico;
 }
 
 BOOL GUIAPI DestroyIcon (HICON hicon)
@@ -420,9 +603,8 @@ BOOL GUIAPI DestroyIcon (HICON hicon)
     if (!picon)
         return FALSE;
 
-    free(picon->AndBits);
-    free(picon->XorBits);
-    free(picon);
+    free (picon->pixels);
+    mg_slice_delete (ICON, picon);
     return TRUE;
 }
 
@@ -440,117 +622,28 @@ BOOL GUIAPI GetIconSize (HICON hicon, int* w, int* h)
 
 void GUIAPI DrawIcon (HDC hdc, int x, int y, int w, int h, HICON hicon)
 {
-    PDC pdc;
-    PCLIPRECT cliprect;
+    HDC icon_dc;
     PICON picon = (PICON)hicon;
-    Uint32 imagesize, pitch;
-    BYTE* iconimage;
-    BITMAP bitmap;
-    BYTE* andbits = NULL;
-    BYTE* xorbits = NULL;
-    RECT eff_rc;
-    GAL_Rect rect;
 
-    if (!(pdc = __mg_check_ecrgn (hdc)))
+    icon_dc = __mg_get_common_rgba8888_dc();
+    if (icon_dc == HDC_INVALID)
+        return;
+
+    if (!__mg_reset_common_rgba8888_dc (picon->width, picon->height,
+                picon->pitch, picon->pixels))
         return;
 
     if (w <= 0) w = picon->width;
     if (h <= 0) h = picon->height;
 
-    /* Transfer logical to device to screen here. */
-    w += x; h += y;
-    coor_LP2SP (pdc, &x, &y);
-    coor_LP2SP (pdc, &w, &h);
-    SetRect (&pdc->rc_output, x, y, w, h);
-    NormalizeRect (&pdc->rc_output);
-    w = RECTW (pdc->rc_output); h = RECTH (pdc->rc_output);
-
-    imagesize = GAL_GetBoxSize (pdc->surface, w, h, &pitch);
-
-    if ((iconimage = malloc (imagesize)) == NULL)
-        goto free_ret;
-
+    SetMemDCAlpha (icon_dc, MEMDC_FLAG_SRCPIXELALPHA, 0);
     if (w != picon->width || h != picon->height) {
-        BITMAP unscaled, scaled;
-
-        andbits = malloc (imagesize);
-        xorbits = malloc (imagesize);
-        if (andbits == NULL || xorbits == NULL)
-            goto free_ret;
-
-        unscaled.bmType = BMP_TYPE_NORMAL;
-        unscaled.bmBytesPerPixel = GAL_BytesPerPixel (pdc->surface);
-        unscaled.bmWidth = picon->width;
-        unscaled.bmHeight = picon->height;
-        unscaled.bmPitch = picon->pitch;
-        unscaled.bmBits = picon->AndBits;
-
-        unscaled.bmType = BMP_TYPE_NORMAL;
-        scaled.bmBytesPerPixel = unscaled.bmBytesPerPixel;
-        scaled.bmWidth = w;
-        scaled.bmHeight = h;
-        scaled.bmPitch = pitch;
-        scaled.bmBits = andbits;
-
-        ScaleBitmap (&scaled, &unscaled);
-
-        unscaled.bmBits = picon->XorBits;
-        scaled.bmBits = xorbits;
-        ScaleBitmap (&scaled, &unscaled);
+        StretchBlt (icon_dc, 0, 0, picon->width, picon->height,
+                hdc, x, y, w, h, 0);
     }
     else {
-        andbits = picon->AndBits;
-        xorbits = picon->XorBits;
-        pitch = picon->pitch;
-    }
-
-    ENTER_DRAWING (pdc);
-
-    rect.x = x; rect.y = y; rect.w = w; rect.h = h;
-    bitmap.bmPitch = pitch;
-    bitmap.bmBits = iconimage;
-    GAL_GetBox (pdc->surface, &rect, &bitmap);
-
-#ifdef ASM_memandcpy4
-    ASM_memandcpy4 (iconimage, andbits, imagesize >> 2);
-    ASM_memxorcpy4 (iconimage, xorbits, imagesize >> 2);
-#else
-    {
-        int i;
-        Uint32* dst = (Uint32*)iconimage;
-        Uint32* src1 = (Uint32*)andbits;
-        Uint32* src2 = (Uint32*)xorbits;
-        for (i = 0; i < imagesize>>2; i++) {
-            dst [i] &= src1 [i];
-            dst [i] ^= src2 [i];
-        }
-    }
-#endif
-
-    if (pdc->surface->format->Amask) {
-        _dc_restore_alpha_in_bitmap (pdc->surface->format,
-                iconimage, imagesize);
-    }
-
-    cliprect = pdc->ecrgn.head;
-    while (cliprect) {
-        if (IntersectRect (&eff_rc, &pdc->rc_output, &cliprect->rc)) {
-            SET_GAL_CLIPRECT(pdc, eff_rc);
-
-            GAL_PutBox (pdc->surface, &rect, &bitmap);
-        }
-
-        cliprect = cliprect->next;
-    }
-
-    LEAVE_DRAWING (pdc);
-
-free_ret:
-    UNLOCK_GCRINFO (pdc);
-    free (iconimage);
-    if (w != picon->width || h != picon->height) {
-        free (andbits);
-        free (xorbits);
+        BitBlt (icon_dc, 0, 0, picon->width, picon->height,
+                hdc, x, y, 0);
     }
 }
 

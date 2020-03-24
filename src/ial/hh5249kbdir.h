@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -77,39 +77,39 @@
 #define IRKEY_LH_INC    0x31c0  // 亮度/色度增加
 #define IRKEY_LH_DEC    0x21d0  // 亮度/色度减少
 #else
-#define	IRKEY_1		0xa257
-#define	IRKEY_2		0xc037
-#define	IRKEY_3		0xa057
-#define	IRKEY_4		0x8077
-#define	IRKEY_5		0x6097
-#define	IRKEY_6		0x40b7
-#define	IRKEY_7		0x20d7
-#define	IRKEY_8		0xf7
-#define	IRKEY_9		0xe117
-#define	IRKEY_10	0xc137
-#define	IRKEY_11	0xe017
-#define	IRKEY_12	0x8177
-#define	IRKEY_13	0xab57
-#define	IRKEY_14	0xc237
-#define	IRKEY_15	0xc837
-#define	IRKEY_16	0x6397
-#define	IRKEY_17	0x22d7
-#define	IRKEY_18	0xe217
-#define	IRKEY_19	0x6297
-#define	IRKEY_20	0x8377
-#define	IRKEY_21	0xe817
-#define	IRKEY_22	0x23d7
-#define	IRKEY_23	0x8b77
-#define	IRKEY_24	0xa357
-#define	IRKEY_25	0x3f7
-#define	IRKEY_26	0x48b7
-#define	IRKEY_27	0x42b7
-#define	IRKEY_28	0x6997
-#define	IRKEY_29	0x1f7
-#define	IRKEY_30	0x4ab7
-#define	IRKEY_31	0xaf7
-#define	IRKEY_32	0x41b7
-#define	IRKEY_33	0xaa57
+#define    IRKEY_1        0xa257
+#define    IRKEY_2        0xc037
+#define    IRKEY_3        0xa057
+#define    IRKEY_4        0x8077
+#define    IRKEY_5        0x6097
+#define    IRKEY_6        0x40b7
+#define    IRKEY_7        0x20d7
+#define    IRKEY_8        0xf7
+#define    IRKEY_9        0xe117
+#define    IRKEY_10    0xc137
+#define    IRKEY_11    0xe017
+#define    IRKEY_12    0x8177
+#define    IRKEY_13    0xab57
+#define    IRKEY_14    0xc237
+#define    IRKEY_15    0xc837
+#define    IRKEY_16    0x6397
+#define    IRKEY_17    0x22d7
+#define    IRKEY_18    0xe217
+#define    IRKEY_19    0x6297
+#define    IRKEY_20    0x8377
+#define    IRKEY_21    0xe817
+#define    IRKEY_22    0x23d7
+#define    IRKEY_23    0x8b77
+#define    IRKEY_24    0xa357
+#define    IRKEY_25    0x3f7
+#define    IRKEY_26    0x48b7
+#define    IRKEY_27    0x42b7
+#define    IRKEY_28    0x6997
+#define    IRKEY_29    0x1f7
+#define    IRKEY_30    0x4ab7
+#define    IRKEY_31    0xaf7
+#define    IRKEY_32    0x41b7
+#define    IRKEY_33    0xaa57
 #endif
 
 #ifdef __cplusplus

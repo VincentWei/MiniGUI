@@ -7,7 +7,7 @@ static LRESULT StepControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 {
     HDC hdc;
     HELPWININFO* info;
-    
+
     switch (message) {
     case MSG_PAINT:
         hdc = BeginPaint (hwnd);
@@ -17,7 +17,7 @@ static LRESULT StepControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
         info = (HELPWININFO*)GetWindowAdditionalData (hwnd);
 
         /* Draw the step information. */
-        ......
+        ...
 
         EndPaint (hwnd, hdc);
         break;
@@ -43,8 +43,7 @@ static LRESULT StepControlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
     return DefaultControlProc (hwnd, message, wParam, lParam);
 }
 
-
-static BOOL RegisterStepControl ()
+static BOOL RegisterStepControl (void)
 {
     int result;
     WNDCLASS StepClass;
@@ -52,13 +51,17 @@ static BOOL RegisterStepControl ()
     StepClass.spClassName = STEP_CTRL_NAME;
     StepClass.dwStyle     = 0;
     StepClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    StepClass.iBkColor    = COLOR_lightwhite;
+#ifdef _MGSCHEMA_COMPOSITING
+    StepClass.dwBkRGBA    = COLOR_lightwhite;
+#else
+    StepClass.iBkColor    = PIXEL_lightwhite;
+#endif
     StepClass.WinProc     = StepControlProc;
 
     return RegisterWindowClass (&StepClass);
 }
 
-static void UnregisterStepControl ()
+static void UnregisterStepControl (void)
 {
     UnregisterWindowClass (STEP_CTRL_NAME);
 }

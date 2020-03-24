@@ -11,42 +11,42 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** $Id: tde_reg.h 7268 2007-07-03 08:08:43Z xwyan $
 **
-** tde_reg.h: header file. 
+** tde_reg.h: header file.
 **
 ** Copyright (C) 2007 Feynman Software.
 **
@@ -66,7 +66,7 @@ extern U32 TDE_REG_BASE;
 //#define TDE_REG_TDE_CTRL            (TDE_REG_BASE + 0x00)
 typedef union
 {
-    struct 
+    struct
     {
         U32 tde_start             :1;
         U32                       :1;
@@ -91,7 +91,7 @@ typedef union
 //#define TDE_REG_SIZE            (TDE_REG_BASE + 0x04)
 typedef union
 {
-    struct 
+    struct
     {
         U32 Blt_Width        :12;
         U32 Blt_Height       :12;
@@ -107,7 +107,7 @@ typedef union
 //#define TDE_REG_SRC_DST_STRIDE    (TDE_REG_BASE + 0x14)
 typedef union
 {
-    struct 
+    struct
     {
         U32 Dst_Stride        :16;
         U32 Src_Stride        :16;
@@ -119,7 +119,7 @@ typedef union
 //#define TDE_REG_MISC    (TDE_REG_BASE + 0x18)
 typedef union
 {
-    struct 
+    struct
     {
         U32 Gout_Stride      :16;
         U32 Pattern_height   :5;
@@ -135,7 +135,7 @@ typedef union
 //#define TDE_REG_COLOR_FILLED        (TDE_REG_BASE + 0x1C)
 typedef union
 {
-    struct 
+    struct
     {
         U32 Color_filled_B    :8;
         U32 Color_filled_G    :8;
@@ -149,7 +149,7 @@ typedef union
 //#define TDE_REG_COLOR_SPACE_MAX    (TDE_REG_BASE + 0x20)
 typedef union
 {
-    struct 
+    struct
     {
         U32 Color_filled_B    :8;
         U32 Color_filled_G    :8;
@@ -163,7 +163,7 @@ typedef union
 //#define TDE_REG_COLOR_SPACE_MIN    (TDE_REG_BASE + 0x24)
 typedef union
 {
-    struct 
+    struct
     {
         U32 Color_filled_B    :8;
         U32 Color_filled_G    :8;
@@ -177,7 +177,7 @@ typedef union
 //#define TDE_REG_TDE_STATUS        (TDE_REG_BASE + 0x80)
 typedef union
 {
-    struct 
+    struct
     {
         U32 Fifo_depth            :5;
         U32                       :2;

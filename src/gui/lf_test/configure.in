@@ -9,22 +9,22 @@ AC_CONFIG_SRCDIR([src/test_window.c])
 dnl AC_CONFIG_HEADERS([config.h])
 
 dnl ========================================================================
-dnl Checks for programs.
+dnl Check for programs.
 AC_PROG_MAKE_SET
 AC_PROG_CC
 
-# Checks for library functions.
+# Check for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([strcspn strspn])
 
 
 dnl ========================================================================
-dnl Checks for typedefs, structures, and compiler characteristics.
+dnl Check for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
 
 dnl ========================================================================
-dnl Checks for header files.
+dnl Check for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_TIME

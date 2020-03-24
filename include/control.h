@@ -23,7 +23,7 @@
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
@@ -64,10 +64,6 @@
 
 #ifndef _MGUI_CONTROL_H
 #define _MGUI_CONTROL_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
 
 #include "ctrl/ctrlhelper.h"
 
@@ -165,6 +161,10 @@ extern "C" {
 #ifdef _MGCTRL_ANIMATION
 #include "ctrl/animation.h"
 #endif  /* _MGCTRL_ANIMATION */
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 #ifdef __cplusplus
 }

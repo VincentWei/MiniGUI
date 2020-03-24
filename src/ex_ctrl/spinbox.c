@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -74,32 +74,32 @@ typedef struct SpinData {
 } SPINDATA;
 typedef SPINDATA* PSPINDATA;
 
-static void 
-DrawSpinBoxVert (HWND hwnd, HDC hdc, 
+static void
+DrawSpinBoxVert (HWND hwnd, HDC hdc,
         SPININFO* spinfo , SPINDATA* psd, DWORD dwStyle)
 {
     BOOL        flag = !(dwStyle & SPS_AUTOSCROLL);
     RECT        rect;
-    DWORD       color; 
+    DWORD       color;
     WINDOWINFO  *info;
- 
+
     info = (WINDOWINFO*)GetWindowInfo (hwnd);
-    color = GetWindowElementAttr (hwnd, WE_FGC_WINDOW);  
+    color = GetWindowElementAttr (hwnd, WE_FGC_WINDOW);
 
     if ((dwStyle & SPS_TYPE_MASK) == SPS_TYPE_NORMAL
             || (dwStyle & SPS_TYPE_MASK) == SPS_TYPE_UPARROW) {
 
-        GetClientRect (hwnd, &rect); 
+        GetClientRect (hwnd, &rect);
         rect.bottom = rect.bottom >> 1;
 
-        if (spinfo->cur > spinfo->min || (flag && psd->canup)) { 
-            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color, 
+        if (spinfo->cur > spinfo->min || (flag && psd->canup)) {
+            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color,
                     LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_UP);
         }
-        else { 
+        else {
             /* Draw disabled vert up arrow button */
-            info->we_rdr->draw_arrow (hwnd, hdc, 
-                &rect, color, 
+            info->we_rdr->draw_arrow (hwnd, hdc,
+                &rect, color,
                 LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_UP | LFRDR_ARROW_NOFILL);
         }
     }
@@ -110,30 +110,30 @@ DrawSpinBoxVert (HWND hwnd, HDC hdc,
         GetClientRect (hwnd, &rect);
         rect.top = rect.bottom >> 1;
 
-        if (spinfo->cur < spinfo->max || (flag && psd->candown)) { 
+        if (spinfo->cur < spinfo->max || (flag && psd->candown)) {
             //Draw enabled vert down arrow button
-            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color, 
+            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color,
                     LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_DOWN);
         }
-        else { 
+        else {
             /* Draw disabled vert down arrow button */
-            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color, 
+            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color,
                 LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_DOWN | LFRDR_ARROW_NOFILL);
         }
     }
 }
 
-static void 
-DrawSpinBoxHorz (HWND hwnd, HDC hdc, 
+static void
+DrawSpinBoxHorz (HWND hwnd, HDC hdc,
         SPININFO* spinfo, SPINDATA* psd, DWORD dwStyle)
 {
     BOOL flag = !(dwStyle & SPS_AUTOSCROLL);
     RECT rect;
     WINDOWINFO  *info;
-    DWORD color; 
- 
+    DWORD color;
+
     info = (WINDOWINFO*)GetWindowInfo (hwnd);
-    color = GetWindowElementAttr (hwnd, WE_FGC_WINDOW);  
+    color = GetWindowElementAttr (hwnd, WE_FGC_WINDOW);
 
     if ((dwStyle & SPS_TYPE_MASK) == SPS_TYPE_NORMAL
             || (dwStyle & SPS_TYPE_MASK) == SPS_TYPE_UPARROW) {
@@ -142,11 +142,11 @@ DrawSpinBoxHorz (HWND hwnd, HDC hdc,
         rect.right = rect.right >> 1;
 
         if (spinfo->cur > spinfo->min || (flag && psd->canup)) {
-            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color, 
+            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color,
                     LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_LEFT);
         }
         else {
-            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color, 
+            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color,
                 LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_LEFT | LFRDR_ARROW_NOFILL);
         }
     }
@@ -158,26 +158,26 @@ DrawSpinBoxHorz (HWND hwnd, HDC hdc,
         rect.left = rect.right >> 1;
 
         if (spinfo->cur < spinfo->max || (flag && psd->candown)) {
-            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color, 
+            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color,
                     LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_RIGHT);
         }
         else {
-            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color , 
+            info->we_rdr->draw_arrow (hwnd, hdc, &rect, color ,
                LFRDR_ARROW_HAVESHELL | LFRDR_ARROW_RIGHT | LFRDR_ARROW_NOFILL);
         }
     }
 }
 
-static void 
-OnUpArrow (HWND hWnd, PSPINDATA pData, 
+static void
+OnUpArrow (HWND hWnd, PSPINDATA pData,
         int id, DWORD dwStyle, DWORD wParam)
 {
     if ((dwStyle & SPS_AUTOSCROLL)) {
         if (pData->spinfo.cur > pData->spinfo.min ) {
             pData->spinfo.cur --;
-            PostMessage (pData->hTarget, MSG_KEYDOWN, 
+            PostMessage (pData->hTarget, MSG_KEYDOWN,
                     SCANCODE_CURSORBLOCKUP, (wParam|KS_SPINPOST));
-            PostMessage (pData->hTarget, MSG_KEYUP, 
+            PostMessage (pData->hTarget, MSG_KEYUP,
                     SCANCODE_CURSORBLOCKUP, (wParam|KS_SPINPOST));
             if ( pData->spinfo.cur <= pData->spinfo.min ) {
                 NotifyParent ( hWnd, id, SPN_REACHMIN);
@@ -186,9 +186,9 @@ OnUpArrow (HWND hWnd, PSPINDATA pData,
     } else {
         if (pData->canup) {
             pData->spinfo.cur --;
-            PostMessage (pData->hTarget, MSG_KEYDOWN, 
+            PostMessage (pData->hTarget, MSG_KEYDOWN,
                     SCANCODE_CURSORBLOCKUP, wParam|KS_SPINPOST);
-            PostMessage (pData->hTarget, MSG_KEYUP, 
+            PostMessage (pData->hTarget, MSG_KEYUP,
                     SCANCODE_CURSORBLOCKUP, wParam|KS_SPINPOST);
             if ( pData->spinfo.cur <= pData->spinfo.min ) {
                 NotifyParent ( hWnd, id, SPN_REACHMIN);
@@ -197,15 +197,15 @@ OnUpArrow (HWND hWnd, PSPINDATA pData,
     }
 }
 
-static void 
+static void
 OnDownArrow (HWND hWnd, PSPINDATA pData, int id, DWORD dwStyle, DWORD wParam)
 {
     if ((dwStyle & SPS_AUTOSCROLL)) {
         if (pData->spinfo.cur < pData->spinfo.max) {
             pData->spinfo.cur ++;
-            PostMessage (pData->hTarget, MSG_KEYDOWN, 
+            PostMessage (pData->hTarget, MSG_KEYDOWN,
                     SCANCODE_CURSORBLOCKDOWN, wParam|KS_SPINPOST);
-            PostMessage (pData->hTarget, MSG_KEYUP, 
+            PostMessage (pData->hTarget, MSG_KEYUP,
                     SCANCODE_CURSORBLOCKDOWN, wParam|KS_SPINPOST);
             if ( pData->spinfo.cur >= pData->spinfo.max) {
                 NotifyParent ( hWnd, id, SPN_REACHMAX);
@@ -214,9 +214,9 @@ OnDownArrow (HWND hWnd, PSPINDATA pData, int id, DWORD dwStyle, DWORD wParam)
     } else {
         if (pData->candown) {
             pData->spinfo.cur ++;
-            PostMessage (pData->hTarget, MSG_KEYDOWN, 
+            PostMessage (pData->hTarget, MSG_KEYDOWN,
                     SCANCODE_CURSORBLOCKDOWN, wParam|KS_SPINPOST);
-            PostMessage (pData->hTarget, MSG_KEYUP, 
+            PostMessage (pData->hTarget, MSG_KEYUP,
                     SCANCODE_CURSORBLOCKDOWN, wParam|KS_SPINPOST);
             if ( pData->spinfo.cur >= pData->spinfo.max) {
                 NotifyParent ( hWnd, id, SPN_REACHMAX);
@@ -230,7 +230,7 @@ SpinCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PSPINDATA pData = (PSPINDATA) GetWindowAdditionalData2 (hWnd);
 
-    switch (message) {   
+    switch (message) {
         case MSG_CREATE:
             pData = (PSPINDATA) calloc (1, sizeof (SPINDATA));
             if (!pData) {
@@ -263,7 +263,7 @@ SpinCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 1;
         }
 
-        case SPM_SETINFO: 
+        case SPM_SETINFO:
         {
             PSPININFO spinfo = (PSPININFO) lParam;
             if ( !spinfo )
@@ -364,7 +364,7 @@ SpinCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             RECT    rect;
             DWORD   dwStyle = GetWindowStyle (hWnd);
 
-            GetClientRect (hWnd, &rect); 
+            GetClientRect (hWnd, &rect);
 
             if ((dwStyle & SPS_TYPE_MASK) == SPS_TYPE_UPARROW) {
                 OnUpArrow (hWnd, pData, id, dwStyle, wParam);
@@ -390,7 +390,7 @@ SpinCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetAutoRepeatMessage (hWnd, message, wParam, lParam);
             break;
         }
-            
+
         case MSG_LBUTTONUP:
             SetAutoRepeatMessage (0, 0, 0, 0);
             ReleaseCapture ();
@@ -411,10 +411,15 @@ BOOL RegisterSpinControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = SpinCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #endif /* _MGCTRL_SPINBOX */

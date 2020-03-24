@@ -53,129 +53,129 @@ static char *configs[] __initdata =
 #include <string.h>
 #include <errno.h>
 
-#define VERSION		"0.2"
-#define LINE_SIZE	1000
+#define VERSION        "0.2"
+#define LINE_SIZE    1000
 
-int include_all_lines = 1;	// whether to include "=n" lines in the output
+int include_all_lines = 1;    // whether to include "=n" lines in the output
 
 void usage (const char *progname)
 {
-	fprintf (stderr, "%s ver. %s\n", progname, VERSION);
-	fprintf (stderr, "usage:  %s input.config.name path/configs.c\n",
-			progname);
-	exit (1);
+    fprintf (stderr, "%s ver. %s\n", progname, VERSION);
+    fprintf (stderr, "usage:  %s input.config.name path/configs.c\n",
+            progname);
+    exit (1);
 }
 
 void make_intro (FILE *sourcefile)
 {
-	fprintf (sourcefile, "#include <linux/init.h>\n");
-/////	fprintf (sourcefile, "#include <linux/module.h>\n");
-	fprintf (sourcefile, "\n");
-/////	fprintf (sourcefile, "char *configs[] __initdata = {\n");
-	fprintf (sourcefile, "static char __attribute__ ((unused)) *configs[] __initdata = {\n");
-	fprintf (sourcefile, "  \"CONFIG_BEGIN=n\\n\" ,\n");
+    fprintf (sourcefile, "#include <linux/init.h>\n");
+/////    fprintf (sourcefile, "#include <linux/module.h>\n");
+    fprintf (sourcefile, "\n");
+/////    fprintf (sourcefile, "char *configs[] __initdata = {\n");
+    fprintf (sourcefile, "static char __attribute__ ((unused)) *configs[] __initdata = {\n");
+    fprintf (sourcefile, "  \"CONFIG_BEGIN=n\\n\" ,\n");
 }
 
 void make_ending (FILE *sourcefile)
 {
-	fprintf (sourcefile, "  \"CONFIG_END=n\\n\"\n");
-	fprintf (sourcefile, "};\n");
-/////	fprintf (sourcefile, "EXPORT_SYMBOL (configs);\n");
+    fprintf (sourcefile, "  \"CONFIG_END=n\\n\"\n");
+    fprintf (sourcefile, "};\n");
+/////    fprintf (sourcefile, "EXPORT_SYMBOL (configs);\n");
 }
 
 void make_lines (FILE *configfile, FILE *sourcefile)
 {
-	char cfgline[LINE_SIZE];
-	char *ch;
+    char cfgline[LINE_SIZE];
+    char *ch;
 
-	while (fgets (cfgline, LINE_SIZE, configfile)) {
-		/* kill the trailing newline in cfgline */
-		cfgline[strlen (cfgline) - 1] = '\0';
+    while (fgets (cfgline, LINE_SIZE, configfile)) {
+        /* kill the trailing newline in cfgline */
+        cfgline[strlen (cfgline) - 1] = '\0';
 
-		/* don't keep #-only line or an empty/blank line */
-		if ((cfgline[0] == '#' && cfgline[1] == '\0') ||
-		    cfgline[0] == '\0')
-			continue;
+        /* don't keep #-only line or an empty/blank line */
+        if ((cfgline[0] == '#' && cfgline[1] == '\0') ||
+            cfgline[0] == '\0')
+            continue;
 
-		if (!include_all_lines &&
-		    cfgline[0] == '#') // strip out all comment lines
-			continue;
+        if (!include_all_lines &&
+            cfgline[0] == '#') // strip out all comment lines
+            continue;
 
-		/* really only want to keep lines that begin with
-		 * "CONFIG_" or "# CONFIG_" */
-		if (strncmp (cfgline, "CONFIG_", 7) &&
-		    strncmp (cfgline, "# CONFIG_", 9))
-		    	continue;
+        /* really only want to keep lines that begin with
+         * "CONFIG_" or "# CONFIG_" */
+        if (strncmp (cfgline, "CONFIG_", 7) &&
+            strncmp (cfgline, "# CONFIG_", 9))
+                continue;
 
-		/*
-		 * use strchr() to check for "-quote in cfgline;
-		 * if not found, output the line, quoted;
-		 * if found, output a char at a time, with \\-quote
-		 * preceding double-quote chars
-		 */
-		if (!strchr (cfgline, '"')) {
-			fprintf (sourcefile, "  \"%s\\n\" ,\n", cfgline);
-			continue;
-		}
+        /*
+         * use strchr() to check for "-quote in cfgline;
+         * if not found, output the line, quoted;
+         * if found, output a char at a time, with \\-quote
+         * preceding double-quote chars
+         */
+        if (!strchr (cfgline, '"')) {
+            fprintf (sourcefile, "  \"%s\\n\" ,\n", cfgline);
+            continue;
+        }
 
-		/* go to char-at-a-time mode for this config and
-		 * precede any double-quote with a backslash */
-		fprintf (sourcefile, "  \"");	/* lead-in */
-		for (ch = cfgline; *ch; ch++) {
-			if (*ch == '"')
-				fputc ('\\', sourcefile);
-			fputc (*ch, sourcefile);
-		}
-		fprintf (sourcefile, "\\n\" ,\n");
-	}
+        /* go to char-at-a-time mode for this config and
+         * precede any double-quote with a backslash */
+        fprintf (sourcefile, "  \"");    /* lead-in */
+        for (ch = cfgline; *ch; ch++) {
+            if (*ch == '"')
+                fputc ('\\', sourcefile);
+            fputc (*ch, sourcefile);
+        }
+        fprintf (sourcefile, "\\n\" ,\n");
+    }
 }
 
 int make_configs (FILE *configfile, FILE *sourcefile)
 {
-	make_intro (sourcefile);
-	make_lines (configfile, sourcefile);
-	make_ending (sourcefile);
+    make_intro (sourcefile);
+    make_lines (configfile, sourcefile);
+    make_ending (sourcefile);
 }
 
 int main (int argc, char *argv[])
 {
-	char *progname = argv[0];
-	char *configname, *sourcename;
-	FILE *configfile, *sourcefile;
+    char *progname = argv[0];
+    char *configname, *sourcename;
+    FILE *configfile, *sourcefile;
 
-	if (argc != 3)
-		usage (progname);
+    if (argc != 3)
+        usage (progname);
 
-	configname = argv[1];
-	sourcename = argv[2];
+    configname = argv[1];
+    sourcename = argv[2];
 
-	configfile = fopen (configname, "r");
-	if (!configfile) {
-		fprintf (stderr, "%s: cannot open '%s'\n",
-				progname, configname);
-		exit (2);
-	}
-	sourcefile = fopen (sourcename, "w");
-	if (!sourcefile) {
-		fprintf (stderr, "%s: cannot open '%s'\n",
-				progname, sourcename);
-		exit (2);
-	}
+    configfile = fopen (configname, "r");
+    if (!configfile) {
+        fprintf (stderr, "%s: cannot open '%s'\n",
+                progname, configname);
+        exit (2);
+    }
+    sourcefile = fopen (sourcename, "w");
+    if (!sourcefile) {
+        fprintf (stderr, "%s: cannot open '%s'\n",
+                progname, sourcename);
+        exit (2);
+    }
 
-	make_configs (configfile, sourcefile);
+    make_configs (configfile, sourcefile);
 
-	if (fclose (sourcefile)) {
-		fprintf (stderr, "%s: error %d closing '%s'\n",
-				progname, errno, sourcename);
-		exit (3);
-	}
-	if (fclose (configfile)) {
-		fprintf (stderr, "%s: error %d closing '%s'\n",
-				progname, errno, configname);
-		exit (3);
-	}
+    if (fclose (sourcefile)) {
+        fprintf (stderr, "%s: error %d closing '%s'\n",
+                progname, errno, sourcename);
+        exit (3);
+    }
+    if (fclose (configfile)) {
+        fprintf (stderr, "%s: error %d closing '%s'\n",
+                progname, errno, configname);
+        exit (3);
+    }
 
-	exit (0);
+    exit (0);
 }
 
 /* end mkconfigs.c */

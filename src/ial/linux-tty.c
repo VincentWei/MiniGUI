@@ -104,7 +104,7 @@ static void vt_switch_requested(int signo)
         return;
     }
 
-    /* Checks whether a switch is needed and not blocked */
+    /* Check whether a switch is needed and not blocked */
     if (console_active == console_should_be_active)
         return;
 
@@ -134,7 +134,7 @@ static void vt_switch_requested(int signo)
 }
 
 /* Init linux tty module, and returns the tty fd */
-int mg_linux_tty_init(BOOL graf_mode)
+int __mg_linux_tty_init(BOOL graf_mode)
 {
     const char* tty_dev;
     if (geteuid() == 0)
@@ -173,14 +173,14 @@ fail:
     return -1;
 }
 
-int mg_linux_tty_enable_vt_switch(void)
+int __mg_linux_tty_enable_vt_switch(void)
 {
     struct sigaction sa;
     struct vt_mode vtm;
     struct vt_stat stat;
 
     if (ttyfd < 0) {
-        if (mg_linux_tty_init(FALSE) < 0)
+        if (__mg_linux_tty_init(FALSE) < 0)
             goto fail;
     }
 
@@ -227,7 +227,7 @@ fail:
     return -1;
 }
 
-int mg_linux_tty_disable_vt_switch(void)
+int __mg_linux_tty_disable_vt_switch(void)
 {
     struct sigaction sa;
 
@@ -247,13 +247,13 @@ int mg_linux_tty_disable_vt_switch(void)
     return 0;
 }
 
-int mg_linux_tty_fini(void)
+int __mg_linux_tty_fini(void)
 {
     if (ttyfd < 0)
         return -1;
 
     if (vtswitch_initialized) {
-        mg_linux_tty_disable_vt_switch();
+        __mg_linux_tty_disable_vt_switch();
     }
 
     if (old_kd_mode >= 0) {
@@ -265,7 +265,7 @@ int mg_linux_tty_fini(void)
     return 0;
 }
 
-int mg_linux_tty_switch_vt(int vt)
+int __mg_linux_tty_switch_vt(int vt)
 {
     if (ttyfd < 0 || !vtswitch_initialized || vt == current_vt)
         return -1;

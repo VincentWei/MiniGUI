@@ -14,10 +14,10 @@
  * \file propsheet.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: propsheet.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -108,7 +108,7 @@ extern "C" {
 
 /**
  * \def PSS_BOTTOM
- * \brief Bottom tab style. Tabs will be located at the bottom of 
+ * \brief Bottom tab style. Tabs will be located at the bottom of
  * the property sheet.
  */
 #define PSS_BOTTOM                0x0010L
@@ -126,7 +126,7 @@ extern "C" {
 
 /**
  * \def PSM_GETACTIVEPAGE
- * \brief Gets the handle of current active page.
+ * \brief Get the handle of current active page.
  *
  * Sends this message to retreive the propsheet window's active page.
  *
@@ -163,7 +163,7 @@ extern "C" {
 
 /**
  * \def PSM_GETPAGE
- * \brief Gets the handle of a page by index.
+ * \brief Get the handle of a page by index.
  *
  * Sends this message to retreive the handle to a page by index.
  *
@@ -183,7 +183,7 @@ extern "C" {
 
 /**
  * \def PSM_GETACTIVEINDEX
- * \brief Gets the index of the current active page.
+ * \brief Get the index of the current active page.
  *
  * Sends this message to retreive the index of the propsheet window's active page.
  *
@@ -200,7 +200,7 @@ extern "C" {
 
 /**
  * \def PSM_GETPAGEINDEX
- * \brief Gets the index of a page by handle.
+ * \brief Get the index of a page by handle.
  *
  * Sends this message to retreive the index to a page by handle.
  *
@@ -220,7 +220,7 @@ extern "C" {
 
 /**
  * \def PSM_GETPAGECOUNT
- * \brief Gets the number of pages of the propsheet.
+ * \brief Get the number of pages of the propsheet.
  *
  * Sends this message to retreive the number of pages currently in the propsheet.
  *
@@ -237,7 +237,7 @@ extern "C" {
 
 /**
  * \def PSM_GETTITLELENGTH
- * \brief Gets the length of a page title.
+ * \brief Get the length of a page title.
  *
  * Sends this message to retreive the title length of a page.
  *
@@ -257,7 +257,7 @@ extern "C" {
 
 /**
  * \def PSM_GETTITLE
- * \brief Gets a page title.
+ * \brief Get a page title.
  *
  * Sends this message to retreive the title of a page.
  *
@@ -279,7 +279,7 @@ extern "C" {
 
 /**
  * \def PSM_SETTITLE
- * \brief Sets a page title.
+ * \brief Set a page title.
  *
  * Sends this message to specify the title of a page.
  *
@@ -327,7 +327,7 @@ extern "C" {
  * \def PSM_REMOVEPAGE
  * \brief Removes a page from the propsheet.
  *
- * Sends this message to remove a page from the propsheet and destroys the 
+ * Sends this message to remove a page from the propsheet and destroys the
  * associated controls.
  *
  * \code
@@ -349,10 +349,10 @@ extern "C" {
  * \brief Sends a MSG_SHEETCMD message to all pages in the propsheet.
  *
  * If you send MSG_SHEETCMD message to the propsheet control, the control
- * will broadcast the message to all pages it contains. The page callback 
+ * will broadcast the message to all pages it contains. The page callback
  * procedure will receive the message and handle it. If one page return non-zero
- * value, the broadcast will be broken and the message will return a value 
- * indicating which page returned error. The value will be equal to the page index 
+ * value, the broadcast will be broken and the message will return a value
+ * indicating which page returned error. The value will be equal to the page index
  * plus one.
  *
  * The PSM_SHEETCMD can be used by property sheet window, i.e., the container
@@ -360,11 +360,11 @@ extern "C" {
  * "Ok", "Cancel", and "Apply". When the user clicked the "Apply" or "Ok"
  * button, it can send a PSM_SHEETCMD message to the propsheet control, the
  * control will then send the message to all pages to notify pages to apply
- * the changes made by the user. If there are some errors, the page can return 
+ * the changes made by the user. If there are some errors, the page can return
  * a non-zero value to indicate an invalid chage so that the sheet can stop
  * to close the sheet window. You can tell the pages which action should
  * be taken by passing a value through the WPARAM parameter of the message.
- * 
+ *
  * \code
  * PSM_SHEETCMD
  * WPARAM wParam;
@@ -393,7 +393,7 @@ extern "C" {
 
 /**
  * \def PSN_ACTIVE_CHANGED
- * \brief Notifies the parent window that the active page of 
+ * \brief Notifies the parent window that the active page of
  *        the propsheet has been changed.
  */
 #define PSN_ACTIVE_CHANGED        0x01

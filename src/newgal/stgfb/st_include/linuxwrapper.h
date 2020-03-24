@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -58,12 +58,12 @@
 /*        EXCLUDED TO THE FULLEST EXTENT PERMITTED BY LAW                    */
 /*                                                                           */
 /*****************************************************************************/
-/**                                                                            
- @File   linuxwrapper.h                                                        
- @brief                                                                         
-                                                                               
-                                                                               
-                                                                               
+/**
+ @File   linuxwrapper.h
+ @brief
+
+
+
 */
 #ifndef __H_LINUXWRAPPER
 #define __H_LINUXWRAPPER
@@ -140,16 +140,16 @@ extern ST_ErrorCode_t TRACE_Report(U32 ReportLevel,const char *format,...);
 #define STTBX_Report(x)     STTBX_Report_arg x
 
 #ifdef MODULE
-#define STTBX_REPORT_NL		printk("\n");
+#define STTBX_REPORT_NL        printk("\n");
 #else
 #if defined(STAPIREF_COMPAT)
-#define STTBX_REPORT_NL		printf("\n");
+#define STTBX_REPORT_NL        printf("\n");
 #else
 /* STSDK - FAE/STAPIREF_COMPAT - START - Reroute traces to FAE trace module */
 #if defined(STSDK)
-#define STTBX_REPORT_NL		TRACE_Print("\n");
+#define STTBX_REPORT_NL        TRACE_Print("\n");
 #else
-#define STTBX_REPORT_NL		printf("\n");
+#define STTBX_REPORT_NL        printf("\n");
 #endif
 /* STSDK - FAE/STAPIREF_COMPAT - STOP  - Reroute traces to FAE trace module */
 #endif /* STAPIREF_COMPAT */
@@ -162,16 +162,16 @@ extern ST_ErrorCode_t TRACE_Report(U32 ReportLevel,const char *format,...);
 
 #ifdef STTBX_PRINT
 #ifdef MODULE
-#define STTBX_Print(x)		printk x
+#define STTBX_Print(x)        printk x
 #else
 #if defined(STAPIREF_COMPAT)
-#define STTBX_Print(x)		printf x
+#define STTBX_Print(x)        printf x
 #else
 /* STSDK - FAE/STAPIREF_COMPAT - START - Reroute traces to FAE trace module */
 #if defined(STSDK)
-#define STTBX_Print(x)		TRACE_Print x
+#define STTBX_Print(x)        TRACE_Print x
 #else
-#define STTBX_Print(x)		printf x
+#define STTBX_Print(x)        printf x
 #endif
 /* STSDK - FAE/STAPIREF_COMPAT - STOP  - Reroute traces to FAE trace module */
 #endif /* STAPIREF_COMPAT */
@@ -242,10 +242,10 @@ typedef int ST_Partition_t;
 
 typedef BOOL boolean;
 #if !defined false
-#define false	FALSE
+#define false    FALSE
 #endif
 #if !defined true
-#define true	TRUE
+#define true    TRUE
 #endif
 
 #define MILLISECOND_TO_TICKS(v)          (((unsigned int) STLINUX_GetClocksPerSecond()*((unsigned int)(v)))/1000)

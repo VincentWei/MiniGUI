@@ -14,10 +14,10 @@
  * \file textedit.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: textedit.h 12871 2010-05-07 06:13:42Z wanzheng $
  *
- *          MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *          MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *          pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_TEXTEDIT_H
 #define _MGUI_CTRL_TEXTEDIT_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,7 +84,7 @@ extern "C" {
 #define CTRL_TEXTEDIT           ("textedit")
 
 
-/** 
+/**
  * \var typedef GHANDLE HTEXTDOC
  * \brief Text document/buffer object
  */

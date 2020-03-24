@@ -14,8 +14,8 @@
  * \file threadx_semaphore.h
  * \author Yan Xiaowei <xwyan@minigui.org>
  * \date 2005/01/11
- * 
- * \brief This is the POSIX semaphore implementation in order to 
+ *
+ * \brief This is the POSIX semaphore implementation in order to
  *        run MiniGUI on ThreadX.
  *
  \verbatim
@@ -24,14 +24,14 @@
     POSIX semaphore under ThreadX. The reader is referred to the POSIX
     standard or equivalent documentation for details of the
     functionality contained herein.
- 
+
     We do this work in order to run MiniGUI on ThreadX.
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2005~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2005~2020, Beijing FMSoft Technologies Co., Ltd.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@
 /*
  * $Id: threadx_semaphore.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -90,11 +90,11 @@ typedef struct TXPTH_SEMAPHORE_STRUCT
 
 typedef struct _sem_t
 {
-	TXPTH_SEMAPHORE  tx_sem;
-	char		  name [TXPTH_LEN_NAME];
+    TXPTH_SEMAPHORE  tx_sem;
+    char          name [TXPTH_LEN_NAME];
 } sem_t;
 
-#define SEM_VALUE_MAX	UINT_MAX
+#define SEM_VALUE_MAX    UINT_MAX
 
 /*-----------------------------------------------------------------------------
 ** Semaphore functions

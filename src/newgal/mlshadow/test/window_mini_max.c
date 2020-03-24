@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -67,24 +67,24 @@ static void* do_update (void* data)
     int i = 0;
     int timer = 0;
     int screen_w, screen_h;
-    
-    screen_w =g_rcDesktop.right - g_rcDesktop.left;
-    screen_h =g_rcDesktop.bottom - g_rcDesktop.top;
-    
+
+    screen_w =g_rcScr.right - g_rcScr.left;
+    screen_h =g_rcScr.bottom - g_rcScr.top;
+
     while (1) {
         usleep (10000);
         if (timer == 20)
             break;
         timer++;
         if (*((int*)data) == 1){
-            mlsSetSlaveScreenInfo(slave_hdc, MLS_INFOMASK_BLEND, 0, 0, 
-                    MLS_BLENDMODE_ALPHA, 0xff, 256/20*timer, 0);						
-            mlsSetSlaveScreenInfo(slave_hdc, MLS_INFOMASK_OFFSET, screen_w/20*timer, screen_h/20*timer, 
+            mlsSetSlaveScreenInfo(slave_hdc, MLS_INFOMASK_BLEND, 0, 0,
+                    MLS_BLENDMODE_ALPHA, 0xff, 256/20*timer, 0);
+            mlsSetSlaveScreenInfo(slave_hdc, MLS_INFOMASK_OFFSET, screen_w/20*timer, screen_h/20*timer,
                     0, 0, 0, 0);
         }else if (*((int*)data) == 0){
-            mlsSetSlaveScreenInfo(slave_hdc, MLS_INFOMASK_BLEND, 0, 0, 
-                    MLS_BLENDMODE_ALPHA, 0xff, 256 - 256/20*timer, 0);						
-            mlsSetSlaveScreenInfo(slave_hdc, MLS_INFOMASK_OFFSET, screen_w-screen_w/20*timer, 
+            mlsSetSlaveScreenInfo(slave_hdc, MLS_INFOMASK_BLEND, 0, 0,
+                    MLS_BLENDMODE_ALPHA, 0xff, 256 - 256/20*timer, 0);
+            mlsSetSlaveScreenInfo(slave_hdc, MLS_INFOMASK_OFFSET, screen_w-screen_w/20*timer,
                             screen_h-screen_h/20*timer, 0, 0, 0, 0);
         }
     }
@@ -93,7 +93,7 @@ static void* do_update (void* data)
         MoveWindow(_g_hWnd, screen_w-60, screen_h-20, 60, 20, FALSE);
     else if (*((int*)data) == 0)
         MoveWindow(_g_hWnd, 0, 0, screen_w, screen_h, FALSE);
-    
+
     return NULL;
 }
 
@@ -115,7 +115,7 @@ static int LoadBmpWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             GetWindowRect (hWnd, &rect);
             w = rect.right - rect.left;
             h = rect.bottom - rect.top;
-            
+
             mini_flags = -1;
 
             sprintf(&mode_string, "%dx%d-%dbpp", w, h, 16);
@@ -135,11 +135,11 @@ static int LoadBmpWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             return 0;
 
         case MSG_PAINT:
-			hdc = BeginPaint (hWnd);
+            hdc = BeginPaint (hWnd);
             if (LoadBitmapFromFile (hdc, &bmp1, "mlshadow_test.jpg"))
-				return -1;
+                return -1;
             FillBoxWithBitmap(hdc, 0, 0, 480, 457, &bmp1);
-            
+
             //BitBlt(hdc, 0, 0, w, h, slave_hdc, 0, 0, 0);
 
             EndPaint (hWnd, hdc);
@@ -166,17 +166,17 @@ static pthread_mutex_t mutex;
 
 static int __mg_lock_cli_req(void)
 {
-	return pthread_mutex_lock (&mutex); 
+    return pthread_mutex_lock (&mutex);
 }
 
 static int __mg_trylock_cli_req(void)
 {
-	return pthread_mutex_trylock (&mutex); 
+    return pthread_mutex_trylock (&mutex);
 }
 
 static void __mg_unlock_cli_req(void)
 {
-	pthread_mutex_unlock (&mutex);
+    pthread_mutex_unlock (&mutex);
 }
 #endif
 #endif
@@ -186,16 +186,16 @@ int MiniGUIMain (int argc, const char* argv[])
     HWND hMainWnd;
     MAINWINCREATE CreateInfo;
 #ifdef _MGRM_PROCESSES
-#if 0   
-	pthread_mutex_init (&mutex, NULL);
+#if 0
+    pthread_mutex_init (&mutex, NULL);
 
-	OnLockClientReq = __mg_lock_cli_req;
-	OnTrylockClientReq = __mg_trylock_cli_req;
-	OnUnlockClientReq = __mg_unlock_cli_req;
+    OnLockClientReq = __mg_lock_cli_req;
+    OnTrylockClientReq = __mg_trylock_cli_req;
+    OnUnlockClientReq = __mg_unlock_cli_req;
 #endif
-	JoinLayer(NAME_DEF_LAYER , "loadbmp" , 0 , 0);
+    JoinLayer(NAME_DEF_LAYER , "loadbmp" , 0 , 0);
 #endif
-    
+
     CreateInfo.dwStyle = WS_VISIBLE | WS_BORDER | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
     CreateInfo.dwExStyle = WS_EX_NONE;
     CreateInfo.spCaption = "Load and display a bitmap";
@@ -210,9 +210,9 @@ int MiniGUIMain (int argc, const char* argv[])
     CreateInfo.iBkColor = PIXEL_lightwhite;
     CreateInfo.dwAddData = 0;
     CreateInfo.hHosting = HWND_DESKTOP;
-    
+
     hMainWnd = CreateMainWindow (&CreateInfo);
-    
+
     if (hMainWnd == HWND_INVALID)
         return -1;
 

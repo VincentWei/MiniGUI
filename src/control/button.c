@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -70,8 +70,8 @@
 #include "button_impl.h"
 #include "ctrlmisc.h"
 
-#   define BTN_WIDTH_BMP       20 
-#   define BTN_HEIGHT_BMP      20 
+#   define BTN_WIDTH_BMP       20
+#   define BTN_HEIGHT_BMP      20
 #   define BTN_INTER_BMPTEXT   2
 
 #define BUTTON_STATUS(pctrl)   (((PBUTTONDATA)((pctrl)->dwAddData2))->status)
@@ -120,8 +120,8 @@
 #define BUTTON_OFFSET  1
 
 static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-static void btnGetRects (PCONTROL pctrl, RECT* prcClient, 
-                                    RECT* prcContent, 
+static void btnGetRects (PCONTROL pctrl, RECT* prcClient,
+                                    RECT* prcContent,
                                     RECT* prcBitmap);
 
 /*when check a radio button, uncheck others in the same group*/
@@ -138,16 +138,16 @@ static void btnUncheckOthers (PCONTROL pctrl)
         pGroupLeader = pGroupLeader->prev;
     }
 
-	if(!pGroupLeader)
-		return ;
+    if(!pGroupLeader)
+        return ;
 
     pOthers = pGroupLeader;
-        
+
     do{
         if (BUTTON_TYPE(pOthers)!= type)
             break;
-        
-        if ((pOthers != pctrl) && 
+
+        if ((pOthers != pctrl) &&
                 (BUTTON_GET_CHECK(pOthers)!= BST_UNCHECKED)) {
             BUTTON_SET_CHECK(pOthers, BST_UNCHECKED);
             InvalidateRect ((HWND)pOthers, NULL, TRUE);
@@ -207,7 +207,7 @@ static int change_checked (PCONTROL pctrl, int check_status)
  * Date: 2007-12-7
  */
 static int switch_check (PCONTROL pctrl)
-{ 
+{
     int old_check = BUTTON_GET_CHECK(pctrl);
     /*calc new ckeck status*/
     switch (BUTTON_TYPE(pctrl))
@@ -223,7 +223,7 @@ static int switch_check (PCONTROL pctrl)
         case BS_3STATE:
         case BS_AUTO3STATE:
             return old_check==BST_UNCHECKED ? BST_CHECKED : (
-                    BUTTON_GET_CHECK(pctrl) == BST_CHECKED ?      
+                    BUTTON_GET_CHECK(pctrl) == BST_CHECKED ?
                     BST_INDETERMINATE : BST_UNCHECKED
                     );
         default:
@@ -236,7 +236,7 @@ static int switch_check (PCONTROL pctrl)
  *      pose status -- normal, hilite, pressed(pushed), disable.
  *      check status -- unchecked, checked, indeterminate.
  *
- * param noti_pose_changing: indicating if the status changing is from key or 
+ * param noti_pose_changing: indicating if the status changing is from key or
  *           mouse lbutton up and down.
  *           TRUE -- the button(if it is auto) should notify parent
  *           FALSE -- the pose changing is from mouse moving, so button need
@@ -248,7 +248,7 @@ static int switch_check (PCONTROL pctrl)
  *                    click
  * */
 
-static void change_status_from_pose (PCONTROL pctrl, int new_pose, 
+static void change_status_from_pose (PCONTROL pctrl, int new_pose,
              BOOL noti_pose_changing, BOOL change_valid)
 {
     static int nt_code[3][3] = {
@@ -277,7 +277,7 @@ static void change_status_from_pose (PCONTROL pctrl, int new_pose,
     if ((dwStyle & BS_NOTIFY) && noti_pose_changing)
     {
         if (new_pose != BST_DISABLE)
-            NotifyParent ((HWND)pctrl, pctrl->id, 
+            NotifyParent ((HWND)pctrl, pctrl->id,
                     nt_code[old_pose][new_pose]);
         /*disable the button*/
         else
@@ -313,12 +313,12 @@ static void change_status_from_pose (PCONTROL pctrl, int new_pose,
         NotifyParent ((HWND)pctrl, pctrl->id, BN_CLICKED);
     }
 
-    /* DK: When the radio or check button state changes do not erase the background, 
+    /* DK: When the radio or check button state changes do not erase the background,
      * and the prospects for direct rendering */
     btnGetRects (pctrl, &rcClient, &rcContent, &rcBitmap);
-    if (BUTTON_IS_PUSHBTN(pctrl) || (pctrl->dwStyle & BS_PUSHLIKE)) 
+    if (BUTTON_IS_PUSHBTN(pctrl) || (pctrl->dwStyle & BS_PUSHLIKE))
         InvalidateRect((HWND)pctrl, NULL, TRUE);
-    else 
+    else
         InvalidateRect((HWND)pctrl, &rcBitmap, FALSE);
 }
 
@@ -326,12 +326,12 @@ static void change_status_from_pose (PCONTROL pctrl, int new_pose,
  *      get the client rect(draw body of button), the content rect
  *      (draw contern), and bitmap rect(draw a little icon)
  */
-static void btnGetRects (PCONTROL pctrl, RECT* prcClient, 
-                                    RECT* prcContent, 
+static void btnGetRects (PCONTROL pctrl, RECT* prcClient,
+                                    RECT* prcContent,
                                     RECT* prcBitmap)
 {
     GetClientRect ((HWND)pctrl, prcClient);
-    
+
     if (BUTTON_IS_PUSHBTN(pctrl) || (pctrl->dwStyle & BS_PUSHLIKE))
     {
         SetRect (prcContent, (prcClient->left   + BTN_WIDTH_BORDER),
@@ -396,7 +396,7 @@ static int btnGetTextFmt (int dwStyle)
         else if ((dwStyle & BS_ALIGNMASK) == BS_CENTER)
             dt_fmt = DT_WORDBREAK | DT_CENTER;
         else dt_fmt = DT_WORDBREAK | DT_LEFT;
-            
+
         if ((dwStyle & BS_ALIGNMASK) == BS_TOP)
             dt_fmt |= DT_SINGLELINE | DT_TOP;
         else if ((dwStyle & BS_ALIGNMASK) == BS_BOTTOM)
@@ -410,7 +410,7 @@ static int btnGetTextFmt (int dwStyle)
 /**
  * draw bitmap content in button with BS_BITMAP style
  */
-static void draw_bitmap_button (PCONTROL pctrl, HDC hdc, DWORD dwStyle, 
+static void draw_bitmap_button (PCONTROL pctrl, HDC hdc, DWORD dwStyle,
                           RECT *prcText)
 {
     if (BUTTON_DATA(pctrl)) {
@@ -485,8 +485,8 @@ static void draw_icon_button(PCONTROL pctrl, HDC hdc, DWORD dwStyle, RECT *prcTe
 
 /**
  * paint_content_focus:
- *      draw content in button and focusRect (if it have focus) 
- * Author: XuguangWang     
+ *      draw content in button and focusRect (if it have focus)
+ * Author: XuguangWang
  * Date: 2007-12-7
  */
 static void paint_content_focus(HDC hdc, PCONTROL pctrl, RECT* prc_cont)
@@ -506,7 +506,7 @@ static void paint_content_focus(HDC hdc, PCONTROL pctrl, RECT* prc_cont)
     type = BUTTON_TYPE (pctrl);
     */
     win_rdr = GetWindowInfo((HWND)pctrl)->we_rdr;
-    
+
     /*draw button content*/
     switch (pctrl->dwStyle & BS_CONTENTMASK)
     {
@@ -521,7 +521,7 @@ static void paint_content_focus(HDC hdc, PCONTROL pctrl, RECT* prc_cont)
 
             is_get_fg = TRUE;
             text_pixel = RGBA2Pixel(hdc, GetRValue(fg_color),
-                    GetGValue(fg_color), GetBValue(fg_color), 
+                    GetGValue(fg_color), GetBValue(fg_color),
                     GetAValue(fg_color));
 
             old_pixel = SetTextColor(hdc, text_pixel);
@@ -532,9 +532,9 @@ static void paint_content_focus(HDC hdc, PCONTROL pctrl, RECT* prc_cont)
             SetTextColor(hdc, old_pixel);
 
             /*disable draw text*/
-            if ((BUTTON_GET_POSE(pctrl) == BST_DISABLE) 
+            if ((BUTTON_GET_POSE(pctrl) == BST_DISABLE)
                     | (pctrl->dwStyle & WS_DISABLED))
-                win_rdr->disabled_text_out ((HWND)pctrl, hdc, pctrl->spCaption, 
+                win_rdr->disabled_text_out ((HWND)pctrl, hdc, pctrl->spCaption,
                                 prc_cont, dt_fmt);
     }
 
@@ -543,8 +543,8 @@ static void paint_content_focus(HDC hdc, PCONTROL pctrl, RECT* prc_cont)
     {
         focus_rc = *prc_cont;
 
-        if (!BUTTON_IS_PUSHBTN(pctrl) && 
-            !(pctrl->dwStyle & BS_PUSHLIKE) && 
+        if (!BUTTON_IS_PUSHBTN(pctrl) &&
+            !(pctrl->dwStyle & BS_PUSHLIKE) &&
             is_get_fmt)
         {
             dt_fmt |= DT_CALCRECT;
@@ -560,7 +560,7 @@ static void paint_content_focus(HDC hdc, PCONTROL pctrl, RECT* prc_cont)
 /**
  * paint_push_btn:
  *      draw push or pushlike button
- * Author: XuguangWang     
+ * Author: XuguangWang
  * Date: 2007-12-7
  */
 static void paint_push_btn (HDC hdc, PCONTROL pctrl)
@@ -575,7 +575,7 @@ static void paint_push_btn (HDC hdc, PCONTROL pctrl)
     main_color = GetWindowElementAttr((HWND)pctrl, WE_MAINC_THREED_BODY);
 
     btnGetRects (pctrl, &rcClient, &rcContent, &rcBitmap);
-    win_rdr->draw_push_button((HWND)pctrl, hdc, &rcClient, main_color, 
+    win_rdr->draw_push_button((HWND)pctrl, hdc, &rcClient, main_color,
             0xFFFFFFFF, BUTTON_STATUS(pctrl));
 
     paint_content_focus(hdc, pctrl, &rcContent);
@@ -586,45 +586,45 @@ static void paint_push_btn (HDC hdc, PCONTROL pctrl)
 /*a matrix from button control status to renderer status*/
 static int ctrlst_rdrst[12] = {
     /*unckecked*/
-    LFRDR_BTN_STATUS_NORMAL, 
-    LFRDR_BTN_STATUS_HILITE, 
-    LFRDR_BTN_STATUS_PRESSED, 
+    LFRDR_BTN_STATUS_NORMAL,
+    LFRDR_BTN_STATUS_HILITE,
+    LFRDR_BTN_STATUS_PRESSED,
     LFRDR_BTN_STATUS_DISABLED,
     /*checked*/
-    LFRDR_BTN_STATUS_NORMAL|LFRDR_BTN_STATUS_SELECTED,    
-    LFRDR_BTN_STATUS_HILITE|LFRDR_BTN_STATUS_SELECTED,    
-    LFRDR_BTN_STATUS_PRESSED|LFRDR_BTN_STATUS_SELECTED,    
-    LFRDR_BTN_STATUS_DISABLED|LFRDR_BTN_STATUS_SELECTED,    
+    LFRDR_BTN_STATUS_NORMAL|LFRDR_BTN_STATUS_SELECTED,
+    LFRDR_BTN_STATUS_HILITE|LFRDR_BTN_STATUS_SELECTED,
+    LFRDR_BTN_STATUS_PRESSED|LFRDR_BTN_STATUS_SELECTED,
+    LFRDR_BTN_STATUS_DISABLED|LFRDR_BTN_STATUS_SELECTED,
     /*indeterminate*/
-    LFRDR_BTN_STATUS_DISABLED,    
-    LFRDR_BTN_STATUS_DISABLED,    
-    LFRDR_BTN_STATUS_DISABLED,    
-    LFRDR_BTN_STATUS_DISABLED,    
+    LFRDR_BTN_STATUS_DISABLED,
+    LFRDR_BTN_STATUS_DISABLED,
+    LFRDR_BTN_STATUS_DISABLED,
+    LFRDR_BTN_STATUS_DISABLED,
 };
 
 #else
 static int ctrlst_rdrst[12] = {
     /*unckecked*/
-    BST_NORMAL, 
-    BST_HILITE, 
-    BST_PUSHED, 
+    BST_NORMAL,
+    BST_HILITE,
+    BST_PUSHED,
     BST_DISABLE,
     /*checked*/
-    BST_NORMAL  | BST_CHECKED,    
-    BST_HILITE  | BST_CHECKED,    
-    BST_PUSHED  | BST_CHECKED,    
-    BST_DISABLE | BST_CHECKED,    
+    BST_NORMAL  | BST_CHECKED,
+    BST_HILITE  | BST_CHECKED,
+    BST_PUSHED  | BST_CHECKED,
+    BST_DISABLE | BST_CHECKED,
     /*indeterminate*/
-    BST_DISABLE,    
-    BST_DISABLE,    
-    BST_DISABLE,    
-    BST_DISABLE,    
+    BST_DISABLE,
+    BST_DISABLE,
+    BST_DISABLE,
+    BST_DISABLE,
 };
 #endif
 /**
  * paint_check_radio_btn:
  *      draw check button, radio button and 3state button
- * Author: XuguangWang     
+ * Author: XuguangWang
  * Date: 2007-12-7
  */
 static void paint_check_radio_btn (HDC hdc, PCONTROL pctrl)
@@ -666,17 +666,22 @@ BOOL RegisterButtonControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor    = 
-        GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   =
+        GetWindowElementAttr (HWND_NULL, WE_MAINC_THREED_BODY);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
+#endif
     WndClass.WinProc     = ButtonCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 /**
  * mouse_in_client:
  *      calc if mouse is in client
- * Author: XuguangWang     
+ * Author: XuguangWang
  * Date: 2007-12-7
  */
 static inline BOOL mouse_in_client(LPARAM lParam, PCONTROL pctrl)
@@ -702,9 +707,9 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
         case MSG_CREATE:
             pData = (BUTTONDATA*) calloc (1, sizeof(BUTTONDATA));
-            SetWindowBkColor (hWnd, GetWindowElementPixel (hWnd, 
-                        WE_MAINC_THREED_BODY));
-            if (pData == NULL) 
+            SetWindowBkColor (hWnd, GetWindowElementPixelEx (hWnd,
+                        HDC_INVALID, WE_MAINC_THREED_BODY));
+            if (pData == NULL)
                 return -1;
 
             pData->status = 0;
@@ -715,11 +720,11 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
                 BUTTON_SET_CHECK(pctrl, BST_CHECKED);
 
         break;
-       
+
         case MSG_DESTROY:
             free ((void*) pctrl->dwAddData2);
         break;
-        
+
         case BM_GETCHECK:
             if (!BUTTON_IS_PUSHBTN(pctrl))
                 return BUTTON_GET_CHECK(pctrl);
@@ -738,19 +743,19 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
             return old_check;
         }
-        
+
         case BM_GETSTATE:
             return (int)(BUTTON_GET_POSE(pctrl));
 
         case BM_SETSTATE:
         {
             DWORD old_pose = BUTTON_GET_POSE(pctrl);
-            
+
             if (wParam)
                 BUTTON_SET_POSE(pctrl, BST_PUSHED);
             else
                 BUTTON_SET_POSE(pctrl, BST_NORMAL);
-            
+
             if (old_pose != BUTTON_GET_POSE(pctrl))
                 InvalidateRect (hWnd, NULL, TRUE);
 
@@ -794,7 +799,7 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             }
         }
         return 0;
-        
+
         case BM_SETIMAGE:
         {
             int oldImage = (int)BUTTON_DATA (pctrl);
@@ -830,7 +835,7 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             NotifyParent (hWnd, pctrl->id, BN_CLICKED);
         }
         break;
-        
+
         case MSG_SETTEXT:
         {
             int len = strlen((char*)lParam);
@@ -842,29 +847,29 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             break;
         }
 
-        
-                
+
+
         case BM_SETSTYLE:
             pctrl->dwStyle &= 0xFFFF0000;
             pctrl->dwStyle |= (DWORD)(wParam & 0x0000FFFF);
             if (LOWORD (lParam))
                 InvalidateRect (hWnd, NULL, TRUE);
         break;
-        
+
         case MSG_CHAR:
             if (HIBYTE (wParam)==0 && BUTTON_IS_CHECKBTN (pctrl)) {
                 int old_check = BUTTON_GET_CHECK(pctrl);
-                
+
                 if (LOBYTE(wParam) == '+' || LOBYTE(wParam) == '=')
                     BUTTON_SET_CHECK(pctrl, BST_CHECKED);
                 else if (LOBYTE(wParam) == '-')
                     BUTTON_SET_CHECK(pctrl, BST_UNCHECKED);
-                    
+
                 if (old_check != BUTTON_GET_CHECK(pctrl))
                     InvalidateRect (hWnd, NULL, TRUE);
             }
         break;
-        
+
         case MSG_ENABLE:
             if (wParam && (dwStyle & WS_DISABLED))
                 pctrl->dwStyle &= ~WS_DISABLED;
@@ -880,17 +885,17 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
                 case BS_CHECKBOX:
                 case BS_AUTOCHECKBOX:
                 return DLGC_WANTCHARS | DLGC_BUTTON;
-                
+
                 case BS_RADIOBUTTON:
                 case BS_AUTORADIOBUTTON:
                 return DLGC_RADIOBUTTON | DLGC_BUTTON;
-                
+
                 case BS_DEFPUSHBUTTON:
                 return DLGC_DEFPUSHBUTTON;
-                
+
                 case BS_PUSHBUTTON:
                 return DLGC_PUSHBUTTON;
-                
+
                 case BS_3STATE:
                 case BS_AUTO3STATE:
                 return DLGC_3STATE;
@@ -903,17 +908,17 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         case MSG_NCHITTEST:
         {
             int x, y;
-            
+
             x = (int)wParam;
             y = (int)lParam;
-        
+
             if (PtInRect ((PRECT) &(pctrl->cl), x, y))
                 return HT_CLIENT;
-            else  
+            else
                 return HT_OUT;
         }
         break;
-    
+
         case MSG_KILLFOCUS:
             BUTTON_STATUS(pctrl) &= (~BST_FOCUS);
             if (GetCapture() == hWnd) {
@@ -936,30 +941,30 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
             InvalidateRect (hWnd, NULL, TRUE);
         break;
-        
+
         case MSG_KEYDOWN:
-            if (wParam != SCANCODE_SPACE 
+            if (wParam != SCANCODE_SPACE
                     && wParam != SCANCODE_ENTER
                     && wParam != SCANCODE_KEYPADENTER)
                 break;
 
             if (GetCapture () == hWnd)
                 break;
-            
+
             SetCapture (hWnd);
-            //FIXME not needed 
+            //FIXME not needed
             //BUTTON_STATUS(pctrl) |= BST_FOCUS;
             change_status_from_pose(pctrl, BST_PUSHED, TRUE, TRUE);
 
         break;
-        
+
         case MSG_KEYUP:
         {
-            if (wParam != SCANCODE_SPACE 
+            if (wParam != SCANCODE_SPACE
                     && wParam != SCANCODE_ENTER
                     && wParam != SCANCODE_KEYPADENTER)
                 break;
-                
+
             if (GetCapture () == hWnd)
             {
                 ReleaseCapture ();
@@ -967,13 +972,13 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             }
         }
         break;
-      
+
         case MSG_LBUTTONDBLCLK:
-            if (dwStyle & BS_NOTIFY && 
+            if (dwStyle & BS_NOTIFY &&
                 BUTTON_GET_POSE(pctrl) != BST_DISABLE)
                 NotifyParent (hWnd, pctrl->id, BN_DBLCLK);
         break;
-        
+
         case MSG_LBUTTONDOWN:
             if (GetCapture () == hWnd)
                 break;
@@ -983,7 +988,7 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             BUTTON_STATUS(pctrl) |= BST_FOCUS;
             change_status_from_pose(pctrl, BST_PUSHED, TRUE, TRUE);
         break;
-    
+
         case MSG_LBUTTONUP:
         {
             if (GetCapture() == hWnd)
@@ -1003,14 +1008,14 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             /*leave a button, nomralize it*/
             if (!wParam)
                 change_status_from_pose(pctrl, BST_NORMAL, TRUE, FALSE);
-            
-            /*because if lbutton downed on space out of the button, 
-             * and then  move to it, it will receive MSG_MOUSEMOVEIN, 
+
+            /*because if lbutton downed on space out of the button,
+             * and then  move to it, it will receive MSG_MOUSEMOVEIN,
              * but it should not be hilited by MSG_MOUSEMOVEIN(wParam == TRUE)
              * */
             break;
         }
-                
+
         case MSG_MOUSEMOVE:
         {
             /*left button is not downed*/
@@ -1051,7 +1056,7 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         default:
         break;
     }
-    
+
     return DefaultControlProc (hWnd, uMsg, wParam, lParam);
 }
 

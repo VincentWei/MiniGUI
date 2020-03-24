@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** keyboard.c: scancode to keycode, the new TranslateMessage implementation.
-** 
+**
 ** Some code from Linux Kernel.
 */
 
@@ -83,7 +83,7 @@ static k_handfn
 static k_hand key_handler[16] = {
     do_self, do_fn, do_spec, do_pad, do_dead, NULL, do_cur, NULL,
     do_meta, do_ascii, NULL, NULL, NULL, do_dead2,
-    NULL, NULL 
+    NULL, NULL
 };
 
 typedef void (*void_fnp) (key_info* kinfo);
@@ -142,7 +142,7 @@ static void to_utf8 (ushort c, key_info* kinfo)
         put_queue(0x80 | ((c >> 6) & 0x3f), kinfo);
         put_queue(0x80 | (c & 0x3f), kinfo);
     }
-    
+
     /* UTF-8 is defined for words of up to 31 bits,
        but we need only 16 bits here */
 }
@@ -346,7 +346,7 @@ static void enter (key_info* kinfo)
         kinfo->diacr = 0;
     }
     put_queue (13, kinfo);
-    
+
     if (kinfo->kbd_mode & VC_CRLF)
         put_queue (10, kinfo);
 }
@@ -395,10 +395,10 @@ static int compute_shiftstate (DWORD shiftstate)
 }
 
 
-/* Get the compose character of a arabic symbol 
- * int shift_final : the state of the shift key. 0 key up   1 key down 
- * int scancode : the scan code of the key pressed down 
- * ushort * key_map : keyboard value table in which a keyboard value can be found acoording to 
+/* Get the compose character of a arabic symbol
+ * int shift_final : the state of the shift key. 0 key up   1 key down
+ * int scancode : the scan code of the key pressed down
+ * ushort * key_map : keyboard value table in which a keyboard value can be found acoording to
  *                    the scancode*/
 static inline void get_arabic_compose_character(int shift_final, int scancode, ushort *key_map)
 {
@@ -426,7 +426,7 @@ static void handle_scancode_on_keydown (int scancode, key_info* kinfo)
     u_short keysym;
     int shift_final;
     ushort *key_map;
-    
+
     shift_final = compute_shiftstate (kinfo->shiftstate);
 
     key_map = __mg_key_maps [shift_final];
@@ -487,7 +487,7 @@ static void handle_scancode_on_keyup (int scancode, key_info* kinfo)
     u_short keysym;
     int shift_final;
     ushort *key_map;
-    
+
     shift_final = compute_shiftstate (kinfo->shiftstate);
 
     key_map = __mg_key_maps [shift_final];
@@ -505,33 +505,33 @@ static void handle_scancode_on_keyup (int scancode, key_info* kinfo)
 
 kbd_layout_info __mg_layouts [] =
 {
-    {KBD_LAYOUT_DEFAULT, init_default_kbd_layout},
+    {KBD_LAYOUT_DEFAULT, __mg_init_default_kbd_layout},
 #ifdef _MGKBDLAYOUT_HEBREWPC
-    {KBD_LAYOUT_HEBREW, init_hebrew_kbd_layout},
+    {KBD_LAYOUT_HEBREW, __mg_init_hebrew_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_ARABICPC
-    {KBD_LAYOUT_ARABIC, init_arabic_kbd_layout},
+    {KBD_LAYOUT_ARABIC, __mg_init_arabic_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_FRPC
-    {KBD_LAYOUT_FRPC, init_frpc_kbd_layout},
+    {KBD_LAYOUT_FRPC, __mg_init_frpc_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_FR
-    {KBD_LAYOUT_FR, init_fr_kbd_layout},
+    {KBD_LAYOUT_FR, __mg_init_fr_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_DE
-    {KBD_LAYOUT_DE, init_de_kbd_layout},
+    {KBD_LAYOUT_DE, __mg_init_de_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_DELATIN1
-    {KBD_LAYOUT_DELATIN1, init_delatin1_kbd_layout},
+    {KBD_LAYOUT_DELATIN1, __mg_init_delatin1_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_IT
-    {KBD_LAYOUT_IT, init_it_kbd_layout},
+    {KBD_LAYOUT_IT, __mg_init_it_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_ES
-    {KBD_LAYOUT_ES, init_es_kbd_layout},
+    {KBD_LAYOUT_ES, __mg_init_es_kbd_layout},
 #endif
 #ifdef _MGKBDLAYOUT_ESCP850
-    {KBD_LAYOUT_ESCP850, init_escp850_kbd_layout}
+    {KBD_LAYOUT_ESCP850, __mg_init_escp850_kbd_layout}
 #endif
 
 };
@@ -548,7 +548,7 @@ BOOL GUIAPI SetKeyboardLayout (const char* kbd_layout)
 
     if (!kbd_layout)
         return FALSE;
-    
+
     for (i = 0; i < TABLESIZE(__mg_layouts); i++) {
         if (strcmp (__mg_layouts[i].name, kbd_layout) == 0) {
             __mg_layouts [i].init (&__mg_key_maps, &__mg_accent_table, &__mg_accent_table_size, &__mg_func_table);
@@ -580,10 +580,10 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
             handle_scancode_on_keydown (pMsg->wParam, &__mg_kinfo);
             __mg_kinfo.oldstate = pMsg->lParam;
         }
-        else if ((pMsg->message == MSG_KEYLONGPRESS 
-                                || pMsg->message == MSG_KEYALWAYSPRESS 
-                                || pMsg->message == MSG_KEYUP 
-                                || pMsg->message == MSG_SYSKEYUP) 
+        else if ((pMsg->message == MSG_KEYLONGPRESS
+                                || pMsg->message == MSG_KEYALWAYSPRESS
+                                || pMsg->message == MSG_KEYUP
+                                || pMsg->message == MSG_SYSKEYUP)
                         && pMsg->wParam < SCANCODE_USER) {
             __mg_kinfo.shiftstate = pMsg->lParam;
             handle_scancode_on_keyup (pMsg->wParam, &__mg_kinfo);
@@ -596,7 +596,7 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
     }
     else if (__mg_kinfo.pos == 2 && arabic_compose_flag) {
 #if 0
-        SendNotifyMessage (pMsg->hwnd, MSG_CHAR, 
+        SendNotifyMessage (pMsg->hwnd, MSG_CHAR,
                 MAKEWPARAM (__mg_kinfo.buff[0], __mg_kinfo.buff[1], 0, 0), pMsg->lParam);
 #else
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, __mg_kinfo.buff[0], pMsg->lParam);
@@ -606,11 +606,11 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
     }
     else {
         for (i = 0; i < __mg_kinfo.pos; i++)
-            SendNotifyMessage (pMsg->hwnd, MSG_KEYSYM, 
+            SendNotifyMessage (pMsg->hwnd, MSG_KEYSYM,
                         MAKEWORD (__mg_kinfo.buff[i], i), pMsg->lParam);
     }
 
-    return FALSE; 
+    return FALSE;
 }
 #endif
 
@@ -631,10 +631,10 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
             handle_scancode_on_keydown (pMsg->wParam, &kinfo);
             kinfo.oldstate = pMsg->lParam;
         }
-        else if ((pMsg->message == MSG_KEYLONGPRESS 
-                                || pMsg->message == MSG_KEYALWAYSPRESS 
-                                || pMsg->message == MSG_KEYUP 
-                                || pMsg->message == MSG_SYSKEYUP) 
+        else if ((pMsg->message == MSG_KEYLONGPRESS
+                                || pMsg->message == MSG_KEYALWAYSPRESS
+                                || pMsg->message == MSG_KEYUP
+                                || pMsg->message == MSG_SYSKEYUP)
                         && pMsg->wParam < SCANCODE_USER) {
             kinfo.shiftstate = pMsg->lParam;
             handle_scancode_on_keyup (pMsg->wParam, &kinfo);
@@ -647,7 +647,7 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
     }
     else if (kinfo.pos == 2 && arabic_compose_flag) {
 #if 0
-        SendNotifyMessage (pMsg->hwnd, MSG_CHAR, 
+        SendNotifyMessage (pMsg->hwnd, MSG_CHAR,
                 MAKEWPARAM (__mg_kinfo.buff[0], __mg_kinfo.buff[1], 0, 0), pMsg->lParam);
 #else
         SendNotifyMessage (pMsg->hwnd, MSG_CHAR, kinfo.buff[0], pMsg->lParam);
@@ -657,11 +657,11 @@ BOOL GUIAPI TranslateMessage (PMSG pMsg)
     }
     else {
         for (i = 0; i < kinfo.pos; i++)
-            SendNotifyMessage (pMsg->hwnd, MSG_KEYSYM, 
+            SendNotifyMessage (pMsg->hwnd, MSG_KEYSYM,
                         MAKEWORD (kinfo.buff[i], i), pMsg->lParam);
     }
 
-    return FALSE; 
+    return FALSE;
 }
 
 BOOL GUIAPI TranslateKeyMsgToChar (int message, WPARAM wParam, LPARAM lParam, WORD *ch)
@@ -688,7 +688,7 @@ BOOL GUIAPI TranslateKeyMsgToChar (int message, WPARAM wParam, LPARAM lParam, WO
         return TRUE;
     }
 
-    return FALSE; 
+    return FALSE;
 }
 
 #ifdef _MGCHARSET_UNICODE
@@ -716,7 +716,7 @@ static Uchar32 utf8_to_wc (const unsigned char* mstr, int* utf8_len)
     return wc;
 }
 
-int GUIAPI ToUnicode (UINT keycode, const BYTE* kbd_state, 
+int GUIAPI ToUnicode (UINT keycode, const BYTE* kbd_state,
         wchar_t* wcs, int wcs_len, const char* kbd_layout)
 {
     DWORD shiftstate = 0;
@@ -755,14 +755,14 @@ int GUIAPI ToUnicode (UINT keycode, const BYTE* kbd_state,
         wcs [nr_wcs] = utf8_to_wc (utf8_str, &utf8_char_len);
 
         utf8_str += utf8_char_len;
-        utf8_str_len -= utf8_char_len; 
+        utf8_str_len -= utf8_char_len;
         nr_wcs ++;
     }
-    
+
     return nr_wcs;
 }
 
-int GUIAPI ToAscii (UINT keycode, const BYTE* kbd_state, 
+int GUIAPI ToAscii (UINT keycode, const BYTE* kbd_state,
         WORD* ch, const char* kbd_layout)
 {
     DWORD shiftstate = 0;

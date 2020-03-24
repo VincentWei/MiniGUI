@@ -23,7 +23,7 @@
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
@@ -63,6 +63,20 @@
 
 #ifndef _MGUI_WINDOW_H
 #define _MGUI_WINDOW_H
+
+#include "common.h"
+
+#include <stddef.h>
+#include <stdlib.h>
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+#include <pthread.h>
+#include <semaphore.h>
+#endif
+
+#ifdef HAVE_POLL
+#include <poll.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -813,7 +827,7 @@ extern DWORD __mg_interval_time;
 
 /**
  * \def MSG_SETCURSOR
- * \brief Sets cursor shape in the client area.
+ * \brief Set cursor shape in the client area.
  *
  * This message is posted to the window under the cursor when the user moves
  * the mouse in order to give the chance to change the cursor shape.
@@ -1252,7 +1266,7 @@ extern DWORD __mg_interval_time;
 
 /**
  * \def MSG_NCSETCURSOR
- * \brief Sets cursor shape in the non-client area.
+ * \brief Set cursor shape in the non-client area.
  *
  * This message is posted to the window under the cursor when the user moves
  * the mouse in order to give the chance to change the cursor shape.
@@ -1313,7 +1327,12 @@ extern DWORD __mg_interval_time;
  *
  * \code
  * MSG_CREATE for main windows:
+ * HWND hosting = (HWND)wParam;
  * PMAINWINCREATE create_info = (PMAINWINCREATE)lParam;
+ *
+ * MSG_CREATE for virtual windows:
+ * HWND hosting = (HWND)wParam;
+ * DWORD add_data = (DWORD)lParam;
  *
  * MSG_CREATE for controls:
  * HWND parent = (HWND)wParam;
@@ -1321,11 +1340,14 @@ extern DWORD __mg_interval_time;
  * \endcode
  *
  * \param create_info The pointer to the MAINWINCREATE structure which is
- *        passed to CreateMainWindow function.
- * \param parent The handle to the parent window of the control.
- * \param add_data The first additional data passed to CreateWindowEx function.
+ *      passed to CreateMainWindow function.
+ * \param hosting The handle to the hosting window of the new main/virtual
+ *      window.
+ * \param parent The handle to the parent window of the new control.
+ * \param add_data The first additional data passed to CreateVirtualWindow or
+ *      CreateWindowEx function.
  *
- * \sa CreateMainWindow, CreateWindowEx, MAINWINCREATE
+ * \sa CreateMainWindow, CreateVirtualWindow, CreateWindowEx, MAINWINCREATE
  */
 #define MSG_CREATE          0x0060
 
@@ -1997,7 +2019,7 @@ extern DWORD __mg_interval_time;
  */
 #define MSG_EXIN_USER_END               0x009C
 
-#define MSG_LASTEXTRAINPUTMSG   0x009F
+#define MSG_LASTEXTRAINPUTMSG           0x009F
 
     /** @} end of extra_input_msgs */
 
@@ -2013,8 +2035,8 @@ extern DWORD __mg_interval_time;
  * \def MSG_SHOWWINDOW
  * \brief Indicates that the window has been shown or hidden.
  *
- * This message is sent to the window when the window has been shown
- * or hidden (due to the calling of the function ShowWindow).
+ * This message is sent to the window as a notification after the window
+ * has been shown or hidden (due to the calling of the function ShowWindow).
  *
  * \code
  * MSG_SHOWWINDOW
@@ -2029,11 +2051,34 @@ extern DWORD __mg_interval_time;
  *        Hides the window.
  *      - SW_SHOWNORMAL\n
  *        Shows the window, and if the window is a main window
- *        sets it to be the topmost main window.
+ *        sets it to be the topmost main window in its z-node level.
  *
  * \sa ShowWindow
  */
 #define MSG_SHOWWINDOW      0x00A0
+
+/**
+ * \def MSG_MOVEWINDOW
+ * \brief Indicates that the window has been moved.
+ *
+ * This message is sent to the window as a notification after the window
+ * has been moved (due to the calling of the function MoveWindow).
+ *
+ * \code
+ * MSG_MOVEWINDOW
+ * int lx = LOSWORD(wParam);
+ * int ty = HISWORD(wParam);
+ * int rx = LOSWORD(lParam);
+ * int by = HISWORD(lParam);
+ * \endcode
+ *
+ * \param lx, ty, rx, by The new rectangle coordinates of the window.
+ *
+ * \sa MoveWindow
+ *
+ * Since 5.0.0
+ */
+#define MSG_MOVEWINDOW      0x00A1
 
 /**
  * \def MSG_ERASEBKGND
@@ -2115,6 +2160,9 @@ extern DWORD __mg_interval_time;
 #define MSG_QUERYENDSESSION 0x00C1
 #define MSG_ENDSESSION      0x00C2
 #define MSG_REINITSESSION   0x00C3
+
+/* Since 5.0.0 */
+#define MSG_REINITDESKOPS   0x00C4
 
 #define MSG_ERASEDESKTOP    0x00CE
 #define MSG_PAINTDESKTOP    0x00CF
@@ -2398,6 +2446,23 @@ extern DWORD __mg_interval_time;
 
 #define MSG_GETNEXTMAINWIN  0x0103
 
+/* Since 5.0.0 */
+#define MSG_SETALWAYSTOP    0x0104
+
+typedef struct _COMPOSITINGINFO {
+    int     type;
+    DWORD   arg;
+} COMPOSITINGINFO;
+
+/* Since 5.0.0 */
+#define MSG_SETCOMPOSITING  0x0105
+
+/* Since 5.0.0 */
+#define MSG_DUMPZORDER      0x0106
+
+/* Since 5.0.0 */
+#define MSG_SETAUTOREPEAT   0x0107
+
 #define MSG_SHOWGLOBALCTRL  0x010A
 #define MSG_HIDEGLOBALCTRL  0x010B
 
@@ -2412,6 +2477,15 @@ typedef struct _DRAGINFO {
 #define MSG_CANCELDRAGWIN   0x010D
 
 #define MSG_CHANGECAPTION   0x010E
+
+struct _RECT4MASK;
+typedef struct _WINMASKINFO {
+    int                 nr_rcs;
+    struct _RECT4MASK*  rcs;
+} WINMASKINFO;
+
+/* Since 5.0.0 */
+#define MSG_SETWINDOWMASK   0x010F
 
 #define MSG_LASTWINDOWMSG   0x010F
 
@@ -2445,14 +2519,16 @@ typedef struct _DRAGINFO {
  * \param hwnd The handle to the control.
  *
  * \note If you use `MSG_COMMAND` message to handle the notification
- *       sent from children controls, you should make sure the identifier
- *       value is small enough on 64-bit platform. If you use a pointer
- *       as the the identifier of a control, the code above will not work.
+ * sent from other windows, you should make sure the identifier
+ * value and the notification code do not exceed half of the maximal
+ * value of a DWORD (32-bit on 64-bit platform, and 16-bit on 32-bit
+ * platform). If you use a pointer as the identifier,
+ * the code above will not work.
  *
- *       Instead, we recommend strongly that you use a NOTIFYPOROC
- *       callback to handle the notification generated by controls.
+ * Instead, we recommend strongly that you use a NOTIFYPOROC
+ * callback to handle the notification generated by a window.
  *
- * \sa NotifyParentEx
+ * \sa NotifyWindow, NotifyParentEx, SetNotificationCallback 
  */
 #define MSG_COMMAND         0x0120
 
@@ -2516,7 +2592,7 @@ typedef struct _DRAGINFO {
 
 /**
  * \def MSG_ISDIALOG
- * \brief Sends to a window to query whether the window is a dialog window.
+ * \brief Send to a window to query whether the window is a dialog window.
  *
  * \note This is a asynchronical message.
  */
@@ -2637,8 +2713,8 @@ typedef struct _DRAGINFO {
 
 /**
  * \def MSG_FREEZECTRL
- * \brief You can send this message to freeze or thaw the paint action of
- * the control.
+ * \brief Send this message to freeze or thaw the paint action of
+ *      the control.
  *
  * \code
  * MSG_FREEZECTRL
@@ -2687,10 +2763,12 @@ typedef struct _DRAGINFO {
 
 /**
  * \def MSG_GETTEXTLENGTH
- * \brief Sent to the control to get the length of the text.
+ * \brief Send to the control or the main/virtual window to get the length
+ *      of the text or caption.
  *
- * This message is sent to the control when you calling \a GetWindowTextLength
- * function to get the lenght of the text.
+ * This message is sent to the control or the main/virtual window when you
+ * call \a GetWindowTextLength function to get the lenght of the text or
+ * the caption.
  *
  * \code
  * MSG_GETTEXTLENGTH
@@ -2706,10 +2784,11 @@ typedef struct _DRAGINFO {
 
 /**
  * \def MSG_GETTEXT
- * \brief Sent to the control to get the text.
+ * \brief Send to the control to get the text, or send to the main/virtual
+ *      window to get the caption.
  *
- * This message is sent to the control when you calling \a GetWindowText
- * function to get the text.
+ * This message is sent to the control or the main/virtual window when you
+ * call \a GetWindowText function to get the text or the caption.
  *
  * \code
  * MSG_GETTEXT
@@ -2730,13 +2809,14 @@ typedef struct _DRAGINFO {
 
 /**
  * \def MSG_SETTEXT
- * \brief Sent to the control to set the text.
+ * \brief Send to the control to set the text, or send to the main/virtual
+ *      window to set the caption.
  *
- * This message is sent to the control when you calling \a SetWindowText
- * function to set the text.
+ * This message is sent to the control or the main/virtual window when you
+ * call \a SetWindowText function to set the text or the caption.
  *
  * \code
- * MSG_GETTEXT
+ * MSG_SETTEXT
  * char* text_buf;
  *
  * wParam = 0;
@@ -2744,6 +2824,7 @@ typedef struct _DRAGINFO {
  * \endcode
  *
  * \param text_buf The pointer to a buffer contains the text.
+ *
  * \return The return value is equal to zero if the text is set.
  *
  * \sa SetWindowText
@@ -2764,6 +2845,31 @@ typedef struct _DRAGINFO {
  * \param enabled Indicates whether the window was disabled or enabled.
  */
 #define MSG_ENABLE          0x0135
+
+/**
+ * \def MSG_NOTIFICATION
+ * \brief Indicate a notification message.
+ *
+ * This message is an internal message which indicates the message is a
+ * notification sent by calling \a NotifyWindow or \a NotifyParentEx functions.
+ *
+ * For this message, \a DispatchMessage function will call the notification
+ * callback procedure if the target window has been set the notification
+ * callback procedure, or convert the message to a MSG_COMMAND message and
+ * pass it to the window procedure.
+ *
+ * \code
+ * MSG_NOTIFICATION
+ * LINT id = (LINT)wParam;
+ * int  nc = (int)lParam;
+ * DWORD adData = msg->time;
+ * \endcode
+ *
+ * Since 5.0.0.
+ *
+ * \sa MSG_COMMAND, SetNotificationCallback, NotifyWindow, NotifyParentEx
+ */
+#define MSG_NOTIFICATION    0x0136
 
 #define MSG_LASTCONTROLMSG  0x013F
 
@@ -2809,14 +2915,14 @@ typedef struct _DRAGINFO {
 
 #define MSG_CARETBLINK      0x0145
 
-#ifndef _MGRM_THREADS
+#ifdef HAVE_SELECT
 
 /**
  * \def MSG_FDEVENT
  * \brief Indicates an event of registered file descriptor occurred.
  *
  * You can use \a RegisterListenFD to register a file desciptor to
- * MiniGUI-Processes for listening.
+ * MiniGUI for listening.
  *
  * When there is a read/write/except event on the fd, MiniGUI
  * will post a MSG_FDEVENT message with \a wParam being equal to
@@ -2831,14 +2937,20 @@ typedef struct _DRAGINFO {
  * \endcode
  *
  * \param fd The listened file descriptor.
- * \param type The event type.
+ * \param type The event type, can be Or'd with one or more of
+ *      POLLIN, POLLOUT, and POLLERR.
  * \param context A context value.
  *
- * \note Only available on MiniGUI-Processes.
+ * \note The file descriptor here was assumed as a unsigned short integer
+ *      on a 32-bit platform.
  *
  * \sa RegisterListenFD
  */
 #define MSG_FDEVENT         0x0146
+
+#endif /* defined HAVE_SELECT */
+
+#ifdef _MGRM_PROCESSES
 
 /**
  * \def MSG_SRVNOTIFY
@@ -2855,15 +2967,25 @@ typedef struct _DRAGINFO {
  */
 #define MSG_SRVNOTIFY       0x0147
 
-#ifdef _MGRM_PROCESSES
-    #define MSG_UPDATECLIWIN    0x0148
-#endif
+#define MSG_UPDATECLIWIN    0x0148
 
-#endif /* !_MGRM_THREADS */
+/* Since 5.0.0; the server send this message to the client
+   if the client moved to a new layer */
+#define MSG_LAYERCHANGED    0x0149
+
+#endif /* defined _MGRM_PROCESSES */
+
+/* Since 5.0.0: for managing message thread */
+#define MSG_MANAGE_MSGTHREAD    0x014A
+    #define MSGTHREAD_SIGNIN        0x00
+    #define MSGTHREAD_SIGNOUT       0x01
+
+/* Since 5.0.0: for calculating the default position */
+#define MSG_CALC_POSITION       0x014B
 
 /**
  * \def MSG_DOESNEEDIME
- * \brief Sends to a window to query whether the window needs to open
+ * \brief Send to a window to query whether the window needs to open
  *        IME window.
  *
  * The system will send this message when the window gain the input focus
@@ -2872,7 +2994,7 @@ typedef struct _DRAGINFO {
  * The application should handle this message and return TRUE when
  * the window need IME window.  Default window procedure returns FALSE.
  *
- * \note This is an asynchronical message.
+ * \note This is an asynchronous message.
  */
 #define MSG_DOESNEEDIME     0x0150
 
@@ -2934,8 +3056,9 @@ typedef struct _DRAGINFO {
     #define CCDOP_GETCCI        0x01
     #define CCDOP_SETCCI        0x02
 
-#define MSG_REGISTERKEYHOOK     0x016D
-#define MSG_REGISTERMOUSEHOOK   0x016E
+#define MSG_REGISTERHOOKFUNC    0x016D
+#define MSG_REGISTERHOOKWIN     0x016E
+#define MSG_UNREGISTERHOOKWIN   0x016F
 
 #define MSG_LASTSYSTEMMSG   0x016F
 
@@ -3011,31 +3134,21 @@ typedef struct _MSG
     HWND            hwnd;
     /** The message identifier. */
     UINT            message;
-    /** The first parameter of the message (a unsigned integer with pointer precision). */
+    /** The first parameter of the message
+      (a unsigned integer with pointer precision). */
     WPARAM          wParam;
-    /** The second parameter of the message (a unsigned integer with pointer precision). */
+    /** The second parameter of the message
+      (a unsigned integer with pointer precision). */
     LPARAM          lParam;
-    /** Time */
+    /** Time (ticks when the message generated);
+      reuse for the additional data of a notification. */
     DWORD           time;
-#ifdef _MGRM_THREADS
-    /** Addtional data*/
-    void*            pAdd;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    /* pointer to the sync MSG (internal use) */
+    void*           pSyncMsg;
 #endif
 } MSG;
 typedef MSG* PMSG;
-
-#define QS_NOTIFYMSG        0x10000000
-#ifdef _MGRM_THREADS
-  #define QS_SYNCMSG        0x20000000
-#else
-  #define QS_DESKTIMER      0x20000000
-#endif
-#define QS_POSTMSG          0x40000000
-#define QS_QUIT             0x80000000
-#define QS_INPUT            0x01000000
-#define QS_PAINT            0x02000000
-#define QS_TIMER            0x0000FFFF
-#define QS_EMPTY            0x00000000
 
 /**
  * \def PM_NOREMOVE
@@ -3062,9 +3175,9 @@ typedef MSG* PMSG;
  * \fn BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, \
  *               UINT nMsgFilterMin, UINT nMsgFilterMax, \
  *               BOOL bWait, UINT uRemoveMsg)
- * \brief Peeks a message from the message queue of a main window.
+ * \brief Peek a message from the message queue of a main window.
  *
- * This functions peek a message from the message queue of the window \a hWnd;
+ * This function peeks a message from the message queue of the window \a hWnd;
  * if \a bWait is TRUE, it will wait for the message, else return immediatly.
  *
  * \param pMsg Pointer to the result message.
@@ -3091,7 +3204,7 @@ MG_EXPORT BOOL GUIAPI PeekMessageEx (PMSG pMsg, HWND hWnd,
 
 /**
  * \fn BOOL GetMessage (PMSG pMsg, HWND hMainWnd)
- * \brief Gets a message from the message queue of a main window.
+ * \brief Get a message from the message queue of a main window.
  *
  * This function gets a message from the message queue of the main window
  * \a hMainWnd, and returns until there is a message in the message queue.
@@ -3114,7 +3227,7 @@ static inline BOOL GUIAPI GetMessage (PMSG pMsg, HWND hWnd)
 
 /**
  * \fn BOOL WaitMessage (PMSG pMsg, HWND hMainWnd)
- * \brief Waits for a message from the message queue of a main window.
+ * \brief Wait for a message from the message queue of a main window.
  *
  * This function waits for a message from the message queue of the main
  * window \a hMainWnd, and returns until there is a message in the message
@@ -3132,7 +3245,7 @@ MG_EXPORT BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hMainWnd);
 
 /**
  * \fn BOOL HavePendingMessage (HWND hMainWnd)
- * \brief Checks if there is any pending message in the message queue of
+ * \brief Check if there is any pending message in the message queue of
  * a main window.
  *
  * This function checks whether there is any pending message in the
@@ -3149,9 +3262,9 @@ MG_EXPORT BOOL GUIAPI HavePendingMessage (HWND hMainWnd);
 /**
  * \fn BOOL PeekMessage (PMSG pMsg, HWND hWnd, \
  *               UINT nMsgFilterMin, UINT nMsgFilterMax, UINT uRemoveMsg)
- * \brief Peeks a message from the message queue of a main window
+ * \brief Peek a message from the message queue of a main window
  *
- * This functions peek a message from the message queue of the window \a hWnd
+ * This function peeks a message from the message queue of the window \a hWnd
  * and returns immediatly. Unlike \a GetMessage, this function does not wait
  * for a message.
  *
@@ -3180,11 +3293,11 @@ static inline BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
 }
 
 /**
- * \fn BOOL PeekPostMessage (PMSG pMsg, HWND hWnd, \
+ * \fn BOOL PeekPostMessage (PMSG pMsg, HWND hWnd,
                 UINT nMsgFilterMin, UINT nMsgFilterMax, UINT uRemoveMsg)
- * \brief Peeks a post message from the message queue of a main window
+ * \brief Peek a post message from the message queue of a main window
  *
- * This functions peek a message from the message queue of the window \a hWnd
+ * This function peeks a message from the message queue of the window \a hWnd
  * and returns immediatly. Unlike \a PeekMessage, this function only peek a
  * post message.
  *
@@ -3213,7 +3326,7 @@ MG_EXPORT BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
  * \brief Posts a message into the message queue of a window and returns
  * immediatly.
  *
- * This functions posts a message into the message queue of the window \a hWnd
+ * This function posts a message into the message queue of the window \a hWnd
  * and returns immediately.
  *
  * \param hWnd The handle to the window.
@@ -3234,7 +3347,7 @@ MG_EXPORT int GUIAPI PostMessage (HWND hWnd, UINT nMsg,
 
 /**
  * \fn LRESULT SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
- * \brief Sends a message to a window.
+ * \brief Send a message to a window and wait for the handling result.
  *
  * This function sends a message to the window \a hWnd, and will return
  * until the message-handling process returns.
@@ -3243,7 +3356,20 @@ MG_EXPORT int GUIAPI PostMessage (HWND hWnd, UINT nMsg,
  * \param nMsg The identifier of the message.
  * \param wParam The first parameter of the message.
  * \param lParam The second parameter of the message.
- * \return The return value of the message handler.
+ *
+ * \return The return value of the message handler. Two special return values
+ *  are reserved for the errors:
+ *
+ * \retval ERR_INV_HWND Invalid window handle.
+ * \retval ERR_MSG_CANCELED The message handling was canceled by
+ *  the target window. This may occur when the target window which
+ *  is running in another thread is destroyed.
+ *
+ * \note The special return values are negative prime numbers
+ *  (-2 and -3). Therefore, it is safe if you return a valid 4- or 8-byte
+ *  aligned pointer value for the successful result. If you use a negative
+ *  numbers to indicate the error status of your message handler, please
+ *  choose a different value other than -2 or -3.
  *
  * \sa PostMessage
  */
@@ -3251,9 +3377,9 @@ MG_EXPORT LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg,
                 WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg, \
+ * \fn void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
             WPARAM wParam, LPARAM lParam)
- * \brief Sets the auto-repeat message.
+ * \brief Set the auto-repeat message.
  *
  * This function sets the auto-repeat message. When the default message
  * procedure receives an MSG_IDLE message, the default handler will send
@@ -3268,16 +3394,6 @@ MG_EXPORT LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg,
 MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
                 WPARAM wParam, LPARAM lParam);
 
-#ifndef _MGRM_THREADS
-
-/**
- * \def SendAsyncMessage
- * \brief Is an alias of \a SendMessage for MiniGUI-Processes
- *        and MiniGUI-Standalone.
- * \sa SendMessage
- */
-#define SendAsyncMessage SendMessage
-
 #ifdef _MGRM_PROCESSES
 
 #define CLIENTS_TOPMOST          -1
@@ -3287,7 +3403,7 @@ MG_EXPORT void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
 
 /**
  * \fn int Send2Client (const MSG* msg, int cli)
- * \brief Sends a message to a client.
+ * \brief Send a message to a client.
  *
  * This function sends a message to the specified client \a cli.
  *
@@ -3319,7 +3435,7 @@ int GUIAPI Send2Client (const MSG* msg, int cli);
 
 /**
  * \fn BOOL Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam)
- * \brief Sends a message to all clients in the topmost layer.
+ * \brief Send a message to all clients in the topmost layer.
  *
  * This function sends the message specified by (\a nMsg, \a wParam, \a lParam)
  * to all clients in the topmost layer.
@@ -3339,9 +3455,9 @@ int GUIAPI Send2Client (const MSG* msg, int cli);
 BOOL GUIAPI Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn BOOL Send2ActiveWindow (const MG_Layer* layer, \
-                 UINT nMsg, WPARAM wParam, LPARAM lParam);
- * \brief Sends a message to the active window in layer.
+ * \fn BOOL Send2ActiveWindow (const MG_Layer* layer,
+ *      UINT nMsg, WPARAM wParam, LPARAM lParam);
+ * \brief Send a message to the active window in a layer.
  *
  * This function sends the message specified by (\a nMsg, \a wParam, \a lParam)
  * to the current active window in the specific layer (\a layer).
@@ -3363,16 +3479,17 @@ BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer,
 
 #endif /* _MGRM_PROCESSES */
 
-#else /* !_MGRM_THREADS */
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 
 /**
- * \fn LRESULT PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
- * \brief Posts a synchronical message to a window which is in different thread.
+ * \fn LRESULT PostSyncMessage (HWND hWnd, UINT nMsg,
+ *      WPARAM wParam, LPARAM lParam)
+ * \brief Post a synchronical message to a window which is in different thread.
  *
  * This function posts the synchronical message specified by
  * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd which
- * is in different thread. This function will return until
- * the message is handled by the window procedure.
+ * is in a different thread. This function will return until
+ * the message is handled by the window procedure of that window.
  *
  * \note The destination window must belong to other thread.
  *
@@ -3385,16 +3502,19 @@ BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer,
  *
  * \sa SendMessage
  */
-MG_EXPORT LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
+MG_EXPORT LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam);
 
 /**
- * \fn LRESULT SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
- * \brief Sends an asynchronical message to a window.
+ * \fn LRESULT SendAsyncMessage (HWND hWnd, UINT nMsg,
+ *      WPARAM wParam, LPARAM lParam)
+ * \brief Send an asynchronical message to a window.
  *
  * This function sends the asynchronical message specified by
  * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd
- * which is in different thread. This function calls
+ * which might be in a different thread. This function calls
  * the window procedure immediately, so it is very dangerous.
+ * You should make sure that the message handler is thread safe.
  *
  * \param hWnd The handle to the window.
  * \param nMsg The message identifier.
@@ -3407,17 +3527,31 @@ MG_EXPORT LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, L
  *
  * \sa PostSyncMessage
  */
-MG_EXPORT LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
-#endif
+MG_EXPORT LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam);
+
+#else /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 /**
- * \fn int SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
- * \brief Sends a notification message to a window.
+ * \def SendAsyncMessage
+ * \brief An alias of \a SendMessage if _MGHAVE_VIRTUAL_WINDOW
+ *        is not enabled.
+ *
+ * \sa SendMessage
+ */
+#define SendAsyncMessage SendMessage
+
+#endif /* not defined _MGHAVE_VIRTUAL_WINDOW */
+
+/**
+ * \fn int SendNotifyMessage (HWND hWnd, UINT nMsg,
+ *      WPARAM wParam, LPARAM lParam)
+ * \brief Send a notification message to a window.
  *
  * This function sends the notification message specified by
  * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd. This function
- * puts the notication message in the message queue and then returns
- * immediately.
+ * puts the notification message at the tail of the message queue and
+ * returns immediately.
  *
  * \param hWnd The handle to the window.
  * \param nMsg The message identifier.
@@ -3428,11 +3562,63 @@ MG_EXPORT LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, 
  *
  * \sa SendMessage, PostMessage
  */
-MG_EXPORT int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
+MG_EXPORT int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam);
+
+/**
+ * \fn int SendPriorNotifyMessage (HWND hWnd, UINT nMsg,
+ *      WPARAM wParam, LPARAM lParam)
+ * \brief Send a prior notification message to a window.
+ *
+ * This function sends the notification message specified by
+ * (\a nMsg, \a wParam, \a lParam) to the window \a hWnd. This function
+ * puts the notification message at the head of the message queue and
+ * returns immediately.
+ *
+ * \param hWnd The handle to the window.
+ * \param nMsg The message identifier.
+ * \param wParam The first parameter of the message.
+ * \param lParam The second parameter of the message.
+ *
+ * \return 0 if all OK, < 0 on error.
+ *
+ * \sa SendMessage, PostMessage
+ */
+MG_EXPORT int GUIAPI SendPriorNotifyMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam);
+
+/**
+ * \fn int GUIAPI NotifyWindow (HWND hWnd, LINT id, int code, DWORD dwAddData)
+ * \brief Send a notification message to a window.
+ *
+ * This function sends a notification message to the target window \a hWnd.
+ * By default, the notification will be packed as a MSG_NOTIFICATION message
+ * and be sent to the target window. This function will return immediately
+ * after putting the message to the message queue of the target window.
+ *
+ * If you have set the notification callback procedure for the target window,
+ * DispatchMessage will call the procedure in the context of the thread of
+ * that window, otherwise, the function will convert this message to a
+ * MSG_COMMAND message and dispatch the MSG_COMMAND message to the
+ * window procedure.
+ *
+ * \param hWnd The handle to target window.
+ * \param id The identifier of the source.
+ * \param code The notification code.
+ * \param dwAddData The additional data of the notification.
+ *
+ * \return 0 if all OK, < 0 on error.
+ *
+ * \sa MSG_COMMAND, MSG_NOTIFICATION, SetNotificationCallback
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT int GUIAPI NotifyWindow (HWND hWnd, LINT id, int code,
+        DWORD dwAddData);
 
 /**
  * \fn int BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
- * \brief Broadcasts a message to all main window on the desktop.
+ * \brief Broadcast a message to all main windows on the desktop.
  *
  * This function posts the message specified by (\a nMsg, \a wParam, \a lParam)
  * to all the main windows on the desktop.
@@ -3445,6 +3631,37 @@ MG_EXPORT int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPA
  * \sa PostMessage
  */
 MG_EXPORT int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam);
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+
+/**
+ * \fn int BroadcastMessageInThisThread (UINT nMsg,
+ *      WPARAM wParam, LPARAM lParam)
+ * \brief Broadcast a message to all main/virtual windows in the current thread.
+ *
+ * This function posts the message specified by (\a nMsg, \a wParam, \a lParam)
+ * to all the main/virtual windows in the current thread.
+ *
+ * \param nMsg The message identifier.
+ * \param wParam The first parameter of the message.
+ * \param lParam The second parameter of the message.
+ *
+ * \return The number of windows posted the message; < 0 on error.
+ *
+ * \note This function only available when the support for virtual window
+ *      is enabled. If the support for virtual window is not enabled,
+ *      this function is defined as an alias of \a BroadcastMessage.
+ *
+ * \sa BroadcastMessage, PostMessage
+ */
+MG_EXPORT int GUIAPI BroadcastMessageInThisThread (UINT nMsg,
+        WPARAM wParam, LPARAM lParam);
+
+#else   /* defined _MGHAVE_VIRTUAL_WINDOW */
+
+#define BroadcastMessageInThisThread BroadcastMessage
+
+#endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
 /**
  * \fn int PostQuitMessage (HWND hWnd)
@@ -3473,7 +3690,7 @@ MG_EXPORT int GUIAPI PostQuitMessage (HWND hWnd);
 
 /**
  * \fn BOOL SetKeyboardLayout (const char* kbd_layout)
- * \brief Sets a new keyboard layout.
+ * \brief Set a new keyboard layout.
  *
  * This function sets the keymaps to translate key scancodes to MSG_CHAR
  * or MSG_KEYSYM messages. The default keymaps is for US PC keyboard
@@ -3511,9 +3728,6 @@ MG_EXPORT int GUIAPI PostQuitMessage (HWND hWnd);
 MG_EXPORT BOOL GUIAPI SetKeyboardLayout (const char* kbd_layout);
 
 #ifdef _MGCHARSET_UNICODE
-
-#include <stddef.h>
-#include <stdlib.h>
 
 MG_EXPORT int GUIAPI ToUnicode (UINT keycode, const BYTE* kbd_state,
         wchar_t* wcs, int wcs_len, const char* kbd_layout);
@@ -3602,25 +3816,20 @@ MG_EXPORT LRESULT GUIAPI DispatchMessage (PMSG pMsg);
  */
 MG_EXPORT int GUIAPI ThrowAwayMessages (HWND pMainWnd);
 
-#ifndef _MGRM_THREADS
-
 /**
  * \fn BOOL EmptyMessageQueue (HWND hWnd)
- * \brief Empties a message queue.
+ * \brief Empty a message queue.
  *
- * This function empties the message queue of the main window \a hWnd.
+ * This function empties the message queue which is used by the window specified
+ * by \a hWnd.
  *
  * \param hWnd The handle to the main window.
  *
  * \return TRUE on all success, FALSE on error.
  *
- * \note Only defined for MiniGUI-Processes.
- *
  * \sa ThrowAwayMessages
  */
 MG_EXPORT BOOL GUIAPI EmptyMessageQueue (HWND hWnd);
-
-#endif
 
 #ifdef _MGHAVE_MSG_STRING
 
@@ -3659,86 +3868,312 @@ MG_EXPORT const char* GUIAPI Message2Str (UINT message);
 MG_EXPORT void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
                 UINT nMsg, WPARAM wParam, LPARAM lParam);
 
-#endif
+#endif /* defined _MGHAVE_MSG_STRING */
 
     /** @} end of msg_pass_fns */
+
+#ifdef HAVE_SELECT
+    /**
+     * \defgroup listenfd_fns Listening a file descriptor
+     *
+     * Register/Unregister a listening file descriptor to the message queue
+     * of the current thread.
+     *
+     * When you need to listen to a file descriptor, you can use \a select(2)
+     * system call. In MiniGUI, you can also register it to MiniGUI to
+     * be a listened fd, and when there is a read/write/except event on
+     * the registered fd, MiniGUI will sent a notification message to
+     * the registered window.
+     *
+     * The functions in this group are only available to MiniGUI-Processes
+     * and MiniGUI-Standalone before 5.0.0. Since 5.0.0, you can register a
+     * file descriptor to be listened for all runtime modes as long as the
+     * underlying system supports select().
+     *
+     * Example:
+     *
+     * \include listenfd.c
+     *
+     * @{
+     */
+
+/**
+ * \def MAX_NR_LISTEN_FD
+ * \brief The max number of listen fd which user can use.
+ *
+ * \note Deprecated since 5.0.0. MiniGUI will try to allocate enough space to
+ *      manage all listening file descriptors.
+ */
+#define MAX_NR_LISTEN_FD   4
+
+#ifdef WIN32
+#ifndef POLLIN
+#define POLLIN  0x001
+#endif
+
+#ifndef POLLOUT
+#define POLLOUT 0x004
+#endif
+
+#ifndef POLLERR
+#define POLLERR 0x008
+#endif
+
+#endif /* WIN32 */
+
+/**
+ * \fn BOOL GUIAPI RegisterListenFD (int fd, int type,
+                HWND hwnd, void* context)
+ * \brief Register a file descriptor to be listened in the message loop.
+ *
+ * This function registers the file desciptor \a fd to be listened in the
+ * message loop of the current message thread.
+ *
+ * When there is a read/write/except event on this \a fd, MiniGUI
+ * will post a MSG_FDEVENT message with wParam being equal to
+ * MAKELONG (fd, type), and the lParam being set to \a context
+ * to the target window \a hwnd.
+ *
+ * \param fd The file descriptor to be listened.
+ * \param type The type of the event to be listened, can be Or'd with
+ *      one or more of POLLIN, POLLOUT, and POLLERR.
+ * \param hwnd The handle to the window will receive MSG_FDEVENT message.
+ * \param context The value will be passed to the window as lParam of
+ *        MSG_FDEVENT message.
+ *
+ * \return TRUE if all OK, and FALSE on error.
+ *
+ * \note Only available when the underlying system has select().
+ *
+ * \sa UnregisterListenFD, system_msgs
+ */
+MG_EXPORT BOOL GUIAPI RegisterListenFD (int fd, int type,
+                HWND hwnd, void* context);
+
+/**
+ * \fn BOOL GUIAPI UnregisterListenFD (int fd)
+ * \brief Unregister a being listened file descriptor.
+ *
+ * This function unregisters the being listened file descriptor \a fd.
+ *
+ * \param fd The file descriptor to be unregistered, should be a being
+ *        listened file descriptor.
+ * \return TRUE if all OK, and FALSE on error.
+ *
+ * \note Only available when the underlying system has select().
+ *
+ * \sa RegisterListenFD
+ */
+MG_EXPORT BOOL GUIAPI UnregisterListenFD (int fd);
+
+    /** @} end of listenfd_fns */
+
+#endif /* defined HAVE_SELECT */
 
     /**
      * \defgroup msg_hook_fns Message or event hook functions
      * @{
      */
 
-/**
- * \def HOOK_GOON
- * \sa SRVEVTHOOK  RegisterKeyHookWindow RegisterMouseHookWindow
- */
-#define HOOK_GOON       0
+#define HOOK_OP_MASK        0x00FF
+#define HOOK_GOON           0x0000
+#define HOOK_STOP           0x0001
+
+#define HOOK_EVENT_MASK     0xFF00
+#define HOOK_EVENT_KEY      0x0100
+#define HOOK_EVENT_MOUSE    0x0200
+#define HOOK_EVENT_EXTRA    0x0400
+
 
 /**
- * \def HOOK_STOP
- * \sa SRVEVTHOOK  RegisterKeyHookWindow RegisterMouseHookWindow
- */
-#define HOOK_STOP       1
-
-#ifndef _MGRM_PROCESSES
-
-/**
- * \var typedef int (* MSGHOOK)(void* context, HWND dst_wnd, \
- *                UINT msg, WPARAM wparam, LPARAM lparam)
- *
+ * \var typedef int (* MSGHOOK) (void* context, HWND dst_wnd,
+ *      UINT msg, WPARAM wparam, LPARAM lparam)
  * \brief Type of message hook function.
+ *
+ * This is the type of a message hook function.
+ *
+ * \param context The context which was set when you registered
+ *      the hook function.
+ * \param dst_wnd The handle of the original destination window of the message.
+ * \param msg The message identifier.
+ * \param wparam The first parameter of the message.
+ * \param lparam The second paramter of the message.
+ *
+ * \return A value indicating stopping or continuing the subsequent handling
+ *      of the message, can be one of the following values:
+ *      - HOOK_GOON\n
+ *        Indicate continuing to handle the message.
+ *      - HOOK_STOP\n
+ *        Indicate stopping to handle the message.
  */
-typedef int (* MSGHOOK)(void* context, HWND dst_wnd,
-                UINT msg, WPARAM wparam, LPARAM lparam);
+typedef int (* MSGHOOK) (void* context, HWND dst_wnd,
+        UINT msg, WPARAM wparam, LPARAM lparam);
 
 /**
- * Structure defines a message hook.
+ * \fn MSGHOOK GUIAPI RegisterEventHookFunc (int event_type,
+ *      MSGHOOK hook, void* context)
+ * \brief Registers an input event message hook function.
+ *
+ * This function registers an input event message hook function pointed
+ * to by \a hook. When the desktop receives an input event message with
+ * the specified event type \a event_type, it will call the hook function
+ * first, and passes the \a context value to the hook as the first argument.
+ *
+ * \param event_type Which type of event to be hooked. The value of
+ *      this argument should be a one of the following values:
+ *      - HOOK_EVENT_KEY\n
+ *        To hook all key events.
+ *      - HOOK_EVENT_MOUSE\n
+ *        To hook all mouse events.
+ *      - HOOK_EVENT_EXTRA\n
+ *        To hook all extra input events.
+ * \param hook The pointer to the hook function. This function will unregister
+ *      the old hook for the specified event type if \a hook is NULL.
+ * \param context The context value will be passed to the hook function.
+ *
+ * \return The pointer to the old hook function for the specified event type.
+ *
+ * \note The hook function will be called in the context of
+ *      desktop or event thread. you should note the thread safety when
+ *      implementing the hook function.
+ *
+ * \sa RegisterEventHookWindow, MSGHOOK
+ *
+ * Since 5.0.0
  */
-typedef struct _HOOKINFO
-{
-    /** the context which will be passed to the hook function. */
-    void* context;
-    /** the pointer to the hook function. */
-    MSGHOOK hook;
-} HOOKINFO;
+MG_EXPORT MSGHOOK GUIAPI RegisterEventHookFunc (int event_type,
+        MSGHOOK hook, void* context);
 
 /**
  * \fn MSGHOOK GUIAPI RegisterKeyMsgHook (void* context, MSGHOOK hook)
- * \brief Registers a key message hook.
+ * \brief Register a key message hook function.
  *
  * This function registers a key message hook pointed to by \a hook.
- *
- * When the desktop receives a key message, it will send it to the hook first,
- * and passes the \a context value to the hook as the first argument.
- *
- * \param context The context value will be passed to the hook.
- * \param hook The hook. This function will unregister the old hook if
- *        \a hook is NULL.
- * \return The old hook.
- *
- * \sa UnregisterHook, KEYMSGHOOK
- */
-MG_EXPORT MSGHOOK GUIAPI RegisterKeyMsgHook (void* context, MSGHOOK hook);
-
-/**
- * \fn MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook)
- * \brief Registers a mouse message hook.
- *
- * This function registers a mouse message hook pointed to by \a hook.
- *
- * When the desktop receives a mouse message, it will send it to the hook
+ * When the desktop receives a key message, it will call the hook function
  * first, and passes the \a context value to the hook as the first argument.
  *
  * \param context The context value will be passed to the hook.
- * \param hook The hook. This function will unregister the old hook if
- *        \a hook is NULL.
- * \return The old hook.
+ * \param hook The pointer to the hook function. This function will
+ *      unregister the old hook if \a hook is NULL.
  *
- * \sa UnregisterHook, KEYMSGHOOK
+ * \return The pointer to the old hook function.
+ *
+ * \sa RegisterEventHookFunc, MSGHOOK
  */
-MG_EXPORT MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook);
+static inline MSGHOOK GUIAPI RegisterKeyMsgHook (void* context, MSGHOOK hook)
+{
+    return RegisterEventHookFunc (HOOK_EVENT_KEY, hook, context);
+}
 
-#endif /* !_MGRM_PROCESSES */
+/**
+ * \fn MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook)
+ * \brief Register a mouse message hook function.
+ *
+ * This function registers a mouse message hook pointed to by \a hook.
+ * When the desktop receives a mouse message, it will call the  hook function
+ * first, and passes the \a context value to the hook as the first argument.
+ *
+ * \param context The context value will be passed to the hook function.
+ * \param hook The pointer to the hook function. This function will
+ *      unregister the old hook if \a hook is NULL.
+ *
+ * \return The pointer to the old hook function.
+ *
+ * \sa RegisterEventHookFunc, MSGHOOK
+ */
+static inline MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook)
+{
+    return RegisterEventHookFunc (HOOK_EVENT_MOUSE, hook, context);
+}
+
+/**
+ * \fn BOOL GUIAPI RegisterEventHookWindow (HWND hwnd, DWORD flags)
+ * \brief Register an input event message hook window.
+ *
+ * This function registers the specified window \a hwnd as an input
+ * event message hook window. When MiniGUI receives an input event
+ * message, it will post it to the hook window first.
+ *
+ * \param hwnd The hook hwnd.
+ * \param flags The flags indicating the event types hooked event and whether stop
+ *      or continue handling the hooked events. The value of this argument should
+ *      be OR'd with one or more event types and HOOK_GOON or HOOK_STOP:
+ *      - HOOK_EVENT_KEY\n
+ *        To hook all key events.
+ *      - HOOK_EVENT_MOUSE\n
+ *        To hook all mouse events.
+ *      - HOOK_EVENT_EXTRA\n
+ *        To hook all extra input events.
+ *      - HOOK_GOON\n
+ *        Indicate continuing to handle the message.
+ *      - HOOK_STOP\n
+ *        Indicate stopping to handle the message.
+ *
+ * \return The handle of old hook window.
+ *
+ * \note This function be be called by a client of MiniGUI-Processes.
+ *       For the server, you can use SetServerEventHook.
+ *
+ * \sa UnregisterEventHookWindow
+ *
+ * Since 5.0.0.
+ */
+MG_EXPORT BOOL GUIAPI RegisterEventHookWindow (HWND hwnd, DWORD flags);
+
+/**
+ * \fn BOOL GUIAPI UnregisterEventHookWindow (HWND hwnd)
+ * \brief Unregister an input event message hook window.
+ *
+ * This function unregisters the specified window \a hwnd from
+ * the hook list.
+ *
+ * \param hwnd The hook hwnd.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \sa RegisterEventHookWindow
+ *
+ * Since 5.0.0.
+ */
+MG_EXPORT BOOL GUIAPI UnregisterEventHookWindow (HWND hwnd);
+
+/**
+ * \fn HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag)
+ * \brief Register a key message hook window.
+ *
+ * This function registers a window specified by \a hwnd as the key message
+ * hook window. When MiniGUI receives a key message, it will post it to the
+ * hooked window first.
+ *
+ * \param hwnd The handle of the hook window. This function will unregister
+ *      the old hook if \a hwnd is HWND_NULL.
+ * \param flag Indicating whether stop or continue handling the hooked messages;
+ *      HOOK_GOON to continue, HOOK_STOP to stop.
+ *
+ * \return The handle of old hook window.
+ *
+ * \sa UnregisterEventHookWindow, RegisterMouseHookWindow
+ */
+MG_EXPORT HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag);
+
+/**
+ * \fn HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag)
+ * \brief Registers a mouse message hook window.
+ *
+ * This function registers a window specified by \a hwnd as the mouse message
+ * hook window. When MiniGUI receives a mouse message, it will post it to the
+ * hooked window first.
+ *
+ * \param hwnd The handle of the hook window. This function will unregister
+ *      the old hook if \a hwnd is HWND_NULL.
+ * \param flag Indicating whether stop or continue handling the hooked messages;
+ *      HOOK_GOON to continue, HOOK_STOP to stop.
+ *
+ * \return The handle of old hook window.
+ *
+ * \sa UnregisterEventHookWindow, RegisterMouseHookWindow
+ */
+MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 #ifndef _MGRM_THREADS
 
@@ -3747,82 +4182,40 @@ MG_EXPORT MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook);
  * \brief The type of the event hook.
  *
  * You can call \a SetServerEventHook to set an event hook
- * in the server of the MiniGUI-Processes.
+ * in the server of the MiniGUI-Processes or under MiniGUI-Standalone
+ * runtime mode.
  *
- * If the event hook returns HOOK_GOON, \a mginit will continue to
- * handle the event, and send it to the active client.
- * If the hook returns HOOK_STOP, \a mginit will cancel normal handling.
+ * If the event hook returns HOOK_GOON, MiniGUI will continue to
+ * handle the event, and post it to the active client.
+ * If the hook returns HOOK_STOP, MiniGUI will cancel subsequent handling.
  *
- * \sa SetServerEventHook
+ * \note Deprecated since 5.0.0; Use \a RegisterEventHookFunc() instead.
+ *
+ * \sa SetServerEventHook, RegisterEventHookFunc
  */
 typedef int (* SRVEVTHOOK) (PMSG pMsg);
 
 /**
- * \fn void GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
- * \brief Sets an event hook in the server of MiniGUI-Processes.
+ * \fn SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
+ * \brief Set an event hook in the server of MiniGUI-Processes.
  *
- * This function sets the event hook as \a SrvEvtHook in the server,
- * i.e. mginit, of MiniGUI-Processes.
+ * This function sets the event hook as \a SrvEvtHook for the server
+ * of MiniGUI-Processes or MiniGUI-Standalone.
  *
  * \param SrvEvtHook The pointer to the hook, NULL to cancel the hook.
  *
- * \note Only defined for MiniGUI-Processes, and only can be used by the server.
+ * \return The old hook function.
  *
- * \sa SRVEVTHOOK
+ * \note Only available for MiniGUI-Processes and MiniGUI-Standalone runtime
+ *      modes. Under MiniGUI-Processes, only the server can call this function.
+ *
+ * \note Deprecated since 5.0.0; Use \a RegisterEventHookFunc() instead.
+ *
+ * \sa SRVEVTHOOK, RegisterEventHookFunc
  */
 MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
 
-#ifdef _MGRM_PROCESSES
-
-/**
- * \fn HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag)
- * \brief Registers a key message hook window.
- *
- * This function registers a key message hook pointed to by \a hook.
- *
- * When the desktop receives a key message, it will send it to the hook first,
- * and passes the \a context value to the hook as the first argument.
- *
- * \param hwnd The hook hwnd. This function will unregister the old hook if
- *        \a hwnd is HWND_NULL.
- * \param flag Indicates whether stop or continue handling the hooked messages.
- *        HOOK_GOON to continue, HOOK_STOP to stop.
- *
- * \return The handle of old hook window.
- *
- * \note This function be be called by a client of MiniGUI-Processes.
- *       For the server, you can use SetServerEventHook.
- *
- * \sa RegisterMouseHookWindow, SetServerEventHook
- */
-MG_EXPORT HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag);
-
-/**
- * \fn HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag)
- * \brief Registers a mouse message hook window.
- *
- * This function registers a mouse message hook pointed to by \a hook.
- *
- * When the desktop receives a mouse message, it will send it to the hook
- * first, and passes the \a context value to the hook as the first argument.
- *
- * \param hwnd The hook hwnd. This function will unregister the old hook if
- *        \a hook is HWND_NULL.
- * \param flag Indicates whether stop or continue handling the hooked messages.
- *        HOOK_GOON to continue, HOOK_STOP to stop.
- *
- * \return The handle of old hook window.
- *
- * \note This function be be called by a client of MiniGUI-Processes.
- *       For the server, you can use SetServerEventHook.
- *
- * \sa RegisterKeyHookWindow, SetServerEventHook
- */
-MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
-
-#endif /* _MGRM_PROCESSES */
-#endif /* !_MGRM_THREADS */
-
+#endif /* not defined _MGRM_THREADS */
 
     /** @} end of msg_hook_fns */
 
@@ -3843,11 +4236,22 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  */
 #define WS_NONE             0x00000000L
 
+/* bits in this mask are only for main windows */
+#define WS_CAPTIONBAR_MASK  0xF0000000L
+
 /**
- * \def WS_CHILD
- * \brief Indicates the window is a child.
+ * \def WS_MINIMIZEBOX
+ * \brief Creates a window with minimizing box on caption.
+ * \note This style is valid only for main window.
  */
-#define WS_CHILD            0x40000000L
+#define WS_MINIMIZEBOX      0x80000000L
+
+/**
+ * \def WS_MAXIMIZEBOX
+ * \brief Creates a window with maximizing box on caption.
+ * \note This style is valid only for main window.
+ */
+#define WS_MAXIMIZEBOX      0x40000000L
 
 /**
  * \def WS_CAPTION
@@ -3860,6 +4264,9 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  * \brief Creates a main window with system menu.
  */
 #define WS_SYSMENU          0x10000000L
+
+/* bits in this mask are both for main windows and controls */
+#define WS_STATUS_MASK      0x0F000000L
 
 /**
  * \def WS_VISIBLE
@@ -3877,49 +4284,35 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 #define WS_MINIMIZE         0x02000000L
 #define WS_MAXIMIZE         0x01000000L
 
-/**
- * \def WS_DLGFRAME
- * \brief The window has a fixed frame, i.e. user can not
- *        drag the border of the window.
- */
-#define WS_DLGFRAME         0x00800000L
+/* bits in this mask are reuse for main windows and controls;
+   bits have different meanings for main windows and controls.*/
+#define WS_REUSE_MASK           0x00E00000L
 
 /**
- * \def WS_BORDER
- * \brief Creates a window with border.
+ * \def WS_DLGFRAME
+ * \brief The main window has a fixed frame, i.e. user can not
+ *        drag the border of the window.
  */
-#define WS_BORDER           0x00400000L
+#define WS_DLGFRAME             0x00800000L
 
 /**
  * \def WS_THICKFRAME
- * \brief Creates a window with thick frame.
+ * \brief Creates a main window with thick frame.
  */
-#define WS_THICKFRAME       0x00200000L
+#define WS_THICKFRAME           0x00400000L
 
 /**
  * \def WS_THINFRAME
- * \brief Creates a window with thin frame.
+ * \brief Creates a main window with thin frame.
  */
-#define WS_THINFRAME        0x00100000L
-
-/**
- * \def WS_VSCROLL
- * \brief Creates a window with vertical scroll bar.
- */
-#define WS_VSCROLL          0x00080000L
-
-/**
- * \def WS_HSCROLL
- * \brief Creates a window with horizontal scroll bar.
- */
-#define WS_HSCROLL          0x00040000L
+#define WS_THINFRAME            0x00200000L
 
 /**
  * \def WS_GROUP
  * \brief Indicates the control is the leader of a group.
  * \note This style is valid only for controls.
  */
-#define WS_GROUP            0x00020000L
+#define WS_GROUP                0x00800000L
 
 /**
  * \def WS_TABSTOP
@@ -3927,57 +4320,258 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  *        using Tab key.
  * \note This style is valid only for controls.
  */
-#define WS_TABSTOP          0x00010000L
+#define WS_TABSTOP              0x00400000L
 
-/*
- * Not implemented, reserved for future use.
+/**
+ * \def WS_ALWAYSTOP
+ * \brief Indicates the main window is always on top of others.
  *
- * \def WS_MINIMIZEBOX
- * \brief Creates a window with minimizing box on caption.
- * \note This style is valid only for main window.
+ * Since 5.0.0.
  */
-#define WS_MINIMIZEBOX      0x00020000L
+#define WS_ALWAYSTOP            0x00100000L
 
-/*
- * Not implemented, reserved for future use.
- *
- * \def WS_MAXIMIZEBOX
- * \brief Creates a window with maximizing box on caption.
- * \note This style is valid only for main window.
+/* bits in this mask are both for main windows and controls */
+#define WS_MISC_MASK            0x000F0000L
+
+/**
+ * \def WS_CHILD
+ * \brief Indicates the window is a child.
  */
-#define WS_MAXIMIZEBOX      0x00010000L
+#define WS_CHILD                0x00080000L
+
+/**
+ * \def WS_VSCROLL
+ * \brief Creates a window with vertical scroll bar.
+ */
+#define WS_VSCROLL              0x00040000L
+
+/**
+ * \def WS_HSCROLL
+ * \brief Creates a window with horizontal scroll bar.
+ */
+#define WS_HSCROLL              0x00020000L
+
+/**
+ * \def WS_BORDER
+ * \brief Creates a window with border.
+ */
+#define WS_BORDER               0x00010000L
 
 /* Obsolete styles, back-compatibility definitions. */
-#define WS_OVERLAPPED       0x00000000L
-#define WS_ABSSCRPOS        0x00000000L
+#define WS_OVERLAPPED           0x00000000L
+#define WS_ABSSCRPOS            0x00000000L
 
-/**
- * \def WS_EX_CONTROL_MASK
- * \brief The extended style mask for control usage.
- */
-#define WS_EX_CONTROL_MASK      0x0000000FL
-
-/**
- * \def WS_EX_INTERNAL_MASK
- * \brief The extended style mask for internal usage.
- */
-#define WS_EX_INTERNAL_MASK     0xF0000000L
+#define WS_MAINWIN_ONLY_MASK    (WS_CAPTIONBAR_MASK | WS_ALWAYSTOP)
+#define WS_CONTROL_ONLY_MASK    (WS_CTRLMASK)
 
 /**
  * \def WS_EX_NONE
  * \brief No any extended window style.
  */
-#define WS_EX_NONE              0x00000000L
+#define WS_EX_NONE                  0x00000000L
+
+/**
+ * \def WS_EX_CONTROL_MASK
+ * \brief The extended style mask for control use.
+ */
+#define WS_EX_CONTROL_MASK          0x0000000FL
+
+    /**
+     * \defgroup main_window_type_styles Styles for main window types/levels
+     *
+     * Before 5.0.0, you can create a topmost main window with the style
+     * \a WS_EX_TOPMOST in order to show the main window
+     * above all normal windows, and if you use MiniGUI-Processes runtime mode,
+     * the server (`mginit`) will always create global main windows.
+     *
+     * Since 5.0.0, we introduce a concept of zorder levels for main windows.
+     * There are eight levels in MiniGUI from top to bottom:
+     *
+     *  - The tooltip level. 
+     *  - The system/global level.
+     *  - The screen lock level.
+     *  - The docker level.
+     *  - The higher level.
+     *  - The normal level.
+     *  - The launcher level.
+     *  - The desktop or wallpaper.
+     *
+     * We use new styles like \a WS_EX_WINTYPE_GLOBAL to create main windows in
+     * different levels. For historical reasons, you can still use the style
+     * \a WS_EX_TOPMOST, but MiniGUI will create a main window in the higher
+     * level for this style.
+     *
+     * By default, without the style \a WS_EX_TOPMOST or a style like
+     * \a WS_EX_WINTYPE_GLOBAL, MiniGUI will create a main window in
+     * the normal level.
+     *
+     * The desktop is the only main window in the desktop level. Any MiniGUI
+     * process instance has a virtual desktop window. The desktop window is
+     * an internal window object, so no API is provided for app to create or
+     * manage it.
+     *
+     * Note that, under MiniGUI-Processes runtime mode, only the first client
+     * creates the first main window in a z-order level other than higher and
+     * normal levels can create another main window in the same z-order level.
+     * And only the server can create a main window in the global z-order level.
+     *
+     * This is a security design for the multi-process runtime environment.
+     *
+     * @{
+     */
+
+/**
+ * \def WS_EX_WINTYPE_MASK
+ * \brief The style mask for main window type.
+ *
+ * \note This mask value is equal to the style mask \a WS_EX_CONTROL_MASK;
+ *      The former is for main window, and the later for control.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_MASK          0x0000000FL
+
+/**
+ * \def WS_EX_WINTYPE_TOOLTIP
+ * \brief The type for a system/global main window.
+ *
+ * Use this style when you want to create a tooltip main window.
+ * A tooltip main window will be shown above other types of main windows.
+ *
+ * \note Under MiniGUI-Processes runtime mode, only the client which creates
+ *      the first main window in the tooltip level can create other main
+ *      windows in this level. For other clients, a main window in the higher
+ *      level will be created.
+ * \note The maximal number of all main windows in the tooltip level is 8.
+ *      MiniGUI will create a main windows in higher level if there is no room
+ *      in the tooltip level.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_TOOLTIP       0x00000001L
+
+/**
+ * \def WS_EX_WINTYPE_GLOBAL
+ * \brief The type for a system/global main window.
+ *
+ * Use this style when you want to create a system/global main window.
+ * A system/global main window will be shown above other types of main windows.
+ *
+ * \note Under MiniGUI-Processes runtime mode, only the server (`mginit`) can
+ *      create main windows in the system level, and any main windows created
+ *      by the server is a system main window.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_GLOBAL        0x00000002L
+
+/**
+ * \def WS_EX_WINTYPE_SCREENLOCK
+ * \brief The type for a main window in the screen lock level.
+ *
+ * Use this style when you want to create a main window in the
+ * screen lock level. A main window in the screen lock level will
+ * be shown below the system main windows and above the other main windows.
+ *
+ * \note Under MiniGUI-Processes runtime mode, only the client which creates
+ *      the first main window in the screen lock level can create other
+ *      main windows in the this level. For other clients, a main window in
+ *      the higher level will be created.
+ * \note The maximal number of all main windows in the screen lock level is 8.
+ *      MiniGUI will create a main windows in higher level if there is no room
+ *      in the screen lock level.
+ * 
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_SCREENLOCK    0x00000003L
+
+/**
+ * \def WS_EX_WINTYPE_DOCKER
+ * \brief The type for a main window in the docker level.
+ *
+ * Use this style when you want to create a main window in the
+ * docker level. A main window in the docker level will
+ * be shown below the main windows in the screen lock level and
+ * above the main windows in the higher level.
+ *
+ * \note Under MiniGUI-Processes runtime mode, only the client which creates
+ *      the first main window in the docker level can create other main windows
+ *      in the docker level. For other clients, a main window in the higher
+ *      level will be created.
+ * \note The maximal number of all main windows in the docker level is 8.
+ *      MiniGUI will create a main windows in higher level if there is no room
+ *      in the docker level.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_DOCKER        0x00000004L
+
+/**
+ * \def WS_EX_WINTYPE_HIGHER
+ * \brief The type for a main window in the higher level.
+ *
+ * Use this style when you want to create a main window in the
+ * higher level. A main window in the higher level will
+ * be shown below the main windows in the docker level and
+ * above the main windows in the normal level.
+ *
+ * \note The maximal number of all main windows in the higher level is 16
+ *      by default. An attempt to create a main window in higher level
+ *      will fail if there is no room in the higher level.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_HIGHER        0x00000005L
+
+/**
+ * \def WS_EX_WINTYPE_NORMAL
+ * \brief The type for a main window in the normal level.
+ *
+ * Use this style when you want to create a main window in the
+ * normal level (default). A main window in the normal level will
+ * be shown below the main windows in the higher level and
+ * above the main windows in the launcher level.
+ *
+ * \note The maximal number of all main windows in the normal level is 128
+ *      by default. An attempt to create a main window in normal level
+ *      will fail if there is no room in the normal level.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_NORMAL        0x00000006L
+
+/**
+ * \def WS_EX_WINTYPE_LAUNCHER
+ * \brief The type for a main window in the launcher level.
+ *
+ * Use this style when you want to create a main window in the
+ * launcher level. A main window in the launcher level will
+ * be shown below the main windows in the normal level and
+ * above the wallpaper.
+ *
+ * \note Under MiniGUI-Processes runtime mode, only the client which creates
+ *      the first main window in the launcher level can create other
+ *      main windows in the launcher level. For other clients, a main window
+ *      in the normal level will be created.
+ * \note The maximal number of all main windows in the launcher level is 8.
+ *      MiniGUI will create a main windows in normal level if there is no room
+ *      in the launcher level.
+ *
+ * Since 5.0.0.
+ */
+#define WS_EX_WINTYPE_LAUNCHER      0x00000007L
+
+    /** @} end of main_window_type_styles */
 
 /**
  * \def WS_EX_TROUNDCNS
- * \brief The window have round corners in top.
+ * \brief The window have round corners at top edge.
  */
 #define WS_EX_TROUNDCNS         0x00000010L
 
 /**
  * \def WS_EX_BROUNDCNS
- * \brief The window have round corners at bottom.
+ * \brief The window have round corners at bottom edge.
  */
 #define WS_EX_BROUNDCNS         0x00000020L
 
@@ -4039,7 +4633,19 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 /**
  * \def WS_EX_TOPMOST
- * \brief The main window is a topmost (always on top) window.
+ * \brief The main window is in the higher level.
+ *
+ * Before 5.0.0,
+ * you can create a main window with this style in order to show the main window
+ * above all normal windows, and if you use MiniGUI-Processes runtime mode,
+ * the server (`mginit`) will always create global main windows.
+ *
+ * Since 5.0.0, we introduce a concept of levels for main windows. We can
+ * use new styles like \a WS_EX_WINTYPE_GLOBAL to create main windows in
+ * different levels. For historical reasons, you can still use this style,
+ * but MiniGUI will create a main window in the higher level for this styele.
+ *
+ * \sa main_window_type_styles
  */
 #define WS_EX_TOPMOST           0x00004000L
 
@@ -4072,6 +4678,22 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
  * \brief The dialog won't show immediately after it is created.
  */
 #define WS_EX_DLGHIDE           0x00100000L
+
+/**
+ * \def WS_EX_AUTOPOSITION
+ * \brief The position of the main window will be determined by system.
+ *
+ * If a main window has this extend style when creating it, MiniGUI will
+ * determine the position in the screen for the main window. If the width
+ * or the height of the window specified in MAINWINCREATE structure is zero,
+ * MiniGUI will also determine a default size for the main window.
+ *
+ * Under the compositing schema, the compositor is responsible to calculate
+ * the position and the size for a main window.
+ *
+ * Since 5.0.0
+ */
+#define WS_EX_AUTOPOSITION      0x00200000L
 
 /**
  * \def WS_EX_NOCLOSEBOX
@@ -4124,6 +4746,14 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 
 /* Obsolete style, back-compatibility definitions. */
 #define WS_EX_IMECOMPOSE        0x00000000L
+
+/**
+ * \def WS_EX_INTERNAL_MASK
+ * \brief The style mask for internal use.
+ *
+ * Do not use the bits in this mask for applications.
+ */
+#define WS_EX_INTERNAL_MASK     0xF0000000L
 
     /** @} end of styles */
 
@@ -4322,6 +4952,34 @@ MG_EXPORT HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag);
 #define WE_LFSKIN_TRACKBAR_HORZ         (WE_ATTR_TYPE_RDR | 26)
 #define WE_LFSKIN_TBSLIDER_V            (WE_ATTR_TYPE_RDR | 27)
 #endif
+
+/**
+ * \var typedef LRESULT (* WNDPROC)(HWND, int, WPARAM, LPARAM)
+ * \brief Type of the window callback procedure.
+ */
+typedef LRESULT (* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+
+/**
+ * \var typedef void (* NOTIFPROC)(HWND hwnd, LINT id, int nc, DWORD add_data)
+ * \brief Type of the notification callback procedure.
+ *
+ * This is the function type of notification callback procedure.
+ * If you set the notification callback procedure for a window.
+ * When MiniGUI got a notification message, MiniGUI will call this
+ * callback procedure in the context of the target window thread.
+ *
+ * If you have not set the notification callback procedure of the target
+ * window, MiniGUI will send a MSG_COMMAND message to the window procedure.
+ *
+ * Since 5.0.0, you can also set the notification callback procedure for
+ * a main window or a virtual window. You can call \a NotifyWindow function
+ * to send a notify message to the traget window.
+ *
+ * \note The type of \a id changed from int to LINT since v3.2.
+ *
+ * \sa SetNotificationCallback, NotifyWindow, NotifyParentEx
+ */
+typedef void (* NOTIFPROC) (HWND hwnd, LINT id, int nc, DWORD add_data);
 
 /** The window element attributes structure. */
 typedef struct _WINDOW_ELEMENT_ATTR {
@@ -4903,52 +5561,82 @@ typedef struct _WINDOW_ELEMENT_RENDERER {
 
 /**
  * The window information structure.
+ *
+ * \note The layout of this structure changed since 5.0.0 to
+ *      support virtual window.
  */
 typedef struct _WINDOWINFO
 {
-    /** The position and size of window.*/
+    unsigned char   _padding1;
+    unsigned char   _padding2;
+    unsigned short  _padding3;
+    void*           _padding4;
+
+    /** The caption of window.*/
+    const char*     spCaption;
+
+    /** The identifier of window.
+      * \note The type changed from int to LINT since 3.2.
+      */
+    LINT            id;
+
+    /** The window procedure */
+    WNDPROC         WinProc;
+
+    /** The notification callback procedure. */
+    NOTIFPROC       NotifProc;
+
+    /** The first additional data of this window */
+    DWORD           dwAddData;
+    /** The second additional data of this window */
+    DWORD           dwAddData2;
+
+    void*           _padding5;
+    void*           _padding6;
+    void*           _padding7;
+    void*           _padding8;
+    void*           _padding9;
+
+    /** The position and size of the window. N/A for virtual window. */
     int left, top;
     int right, bottom;
 
-    /** The position and size of client area.*/
+    /** The position and size of client area. N/A for virtual window. */
     int cl, ct;
     int cr, cb;
 
-    /** The styles of window.*/
+    /** The styles of window. N/A for virtual window. */
     DWORD dwStyle;
-    /** The extended styles of window.*/
+    /** The extended styles of window. N/A for virtual window. */
     DWORD dwExStyle;
 
-    /** The foreground color (not used).*/
-    gal_pixel iFgColor;
-    /** The background color.*/
+    /** The index of z-node for this window
+      * (only for a main window and a control as main window. 
+      * N/A for virtual window. */
+    int idx_znode;
+
+    /** The background pixel value of this window. N/A for virtual window. */
     gal_pixel iBkColor;
-    /** The handle of menu.*/
+
+    /** The handle of menu. N/A for virtual window. */
     HMENU hMenu;
-    /** The handle of accelerator table.*/
+    /** The handle of accelerator table. N/A for virtual window. */
     HACCEL hAccel;
-    /** The handle of cursor.*/
+    /** The handle of cursor. N/A for virtual window. */
     HCURSOR hCursor;
-    /** The handle of icon.*/
+    /** The handle of icon. N/A for virtual window. */
     HICON hIcon;
-    /** The handle of system menu.*/
+    /** The handle of system menu. N/A for virtual window. */
     HMENU hSysMenu;
-    /** The pointer to logical font.*/
+    /** The pointer to logical font. N/A for virtual window. */
     PLOGFONT pLogFont;
 
-    /** The caption of window.*/
-    char* spCaption;
-    /** The identifier of window.
-      * \note The type changed from int to LINT since v3.2.
-      */
-    LINT   id;
-
-    /** The vertical scrollbar information.*/
+    /** The vertical scrollbar information. N/A for virtual window. */
     LFSCROLLBARINFO vscroll;
-    /** The horizital scrollbar information.*/
+    /** The horizontal scrollbar information. N/A for virtual window. */
     LFSCROLLBARINFO hscroll;
 
-    /** The window renderer. */
+    /** The window renderer. N/A for virtual window. */
     WINDOW_ELEMENT_RENDERER* we_rdr;
 } WINDOWINFO;
 
@@ -5096,10 +5784,10 @@ MG_EXPORT DWORD GUIAPI SetWindowElementAttr (HWND hwnd, int we_attr_id,
 
 /**
  * \fn gal_pixel GUIAPI GetWindowElementPixelEx (HWND hwnd, \
-                                        HDC hdc, int we_attr_id)
- * \brief Get a window element gal_pixel color.
+                HDC hdc, int we_attr_id)
+ * \brief Get the pixel value of a window element.
  *
- * This function gets a window element gal_pixel color which is identified
+ * This function gets the pixel value of a window element which is identified
  * by \a we_attr_id and \a hdc.
  *
  * \param hwnd The handle to the window.
@@ -5296,7 +5984,7 @@ MG_EXPORT BOOL GUIAPI RegisterResFromMem (HDC hdc, const char* file,
 MG_EXPORT BOOL GUIAPI RegisterResFromBitmap (const char* file, const BITMAP* bmp);
 
 /**
- * \fn MG_EXPORT const BITMAP* RetrieveRes (const char *file)
+ * \fn const BITMAP* RetrieveRes (const char *file)
  * \brief Get a BITMAP object from cache according to the specified resource
  * file name.
  *
@@ -5325,37 +6013,40 @@ MG_EXPORT const BITMAP* GUIAPI RetrieveRes (const char *file);
 MG_EXPORT void GUIAPI UnregisterRes (const char *file);
 
 /**
- * \fn BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name, \
- *                const char* id);
+ * \fn BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name,
+ *      const char* id);
  * \brief Register a device-dependent bitmap from id to BITMAP cache.
  *
- * This function load a device-dependent bitmap from id and register it to
- * BITMAP cache.
+ * This function loads a device-dependent bitmap for the specified window
+ * elemeent renderer named \a rdr_name and the identifier \a id, and registers
+ * it to the system BITMAP cache.
  *
  * \param hdc The device context.
  * \param rdr_name The name of window element renderer. NULL for default
  *        renderer.
- * \param id The id of system image.
+ * \param id The identifier of the system bitmap.
  *
  * \return TRUE on success, FALSE on error.
  *
+ * \sa UnregisterSystemBitmap
  */
 MG_EXPORT BOOL GUIAPI RegisterSystemBitmap (HDC hdc, const char* rdr_name,
         const char* id);
 
 /**
- * \fn void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name, \
- *                const char* id);
- * \brief Unregister a BITMAP object from BITMAP cache.
+ * \fn void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name,
+ *      const char* id);
+ * \brief Unregister a BITMAP object from the system BITMAP cache.
  *
- * This function unregister a BITMAP object from BITMAP cache.
+ * This function unregisters the BITMAP object identified by \a id for the
+ * window element renderer named by \a rdr_name.
  *
  * \param hdc The device context.
  * \param rdr_name The name of window element renderer. NULL for default
  *        renderer.
  * \param id The id of system image.
  *
- *
+ * \sa RegisterSystemBitmap
  */
 MG_EXPORT void GUIAPI UnregisterSystemBitmap (HDC hdc, const char* rdr_name,
         const char* id);
@@ -5368,7 +6059,7 @@ typedef DWORD RES_KEY;
 typedef struct _INNER_RES {
     RES_KEY key;
     const Uint8* data;
-    int data_len;
+    size_t data_len;
 
     /* A special param recognized by the TYPE_OPS; normally is NULL.
      * If the data is a raw png, jpeg, bmp file content,
@@ -5451,7 +6142,7 @@ enum emResType {
 /* the return value of LoadResource with type RES_TYPE_MEM_RES */
 typedef struct _MEM_RES {
     Uint8 *data;
-    int data_len;
+    size_t data_len;
 } MEM_RES;
 
 typedef struct _FONT_RES {
@@ -5548,7 +6239,7 @@ MG_EXPORT const char* GetResPath (void);
 MG_EXPORT int SetResPath (const char* path);
 
 /**
- * \fn int AddInnerRes (INNER_RES* inner_res, int count, BOOL copy)
+ * \fn int AddInnerRes (const INNER_RES* inner_res, int count, BOOL copy)
  * \brief Add some incore resource into the resource manager in order to
  * call LoadResource to get those resource.
  *
@@ -5634,7 +6325,7 @@ MG_EXPORT void* LoadResource (const char* res_name, int type, DWORD usr_param);
 
 /**
  * \fn void* GetResource (RES_KEY key);
- * \brief Retrive and return a buffered resource by the key.
+ * \brief Retrieve and return a buffered resource by the key.
  *
  * You should call LoadResource firstly, and then call GetResource when you need it.
  * Note that GetResource will not increase the reference count automatically.
@@ -5677,23 +6368,41 @@ MG_EXPORT int AddResRef (RES_KEY key);
  */
 MG_EXPORT int ReleaseRes (RES_KEY key);
 
-#define LoadBitmapFromRes(hdc, res_name) \
-    (PBITMAP)LoadResource(res_name, RES_TYPE_IMAGE, (DWORD)hdc)
+#define LoadMyBitmapFromRes(res_name, pal)                      \
+    (MYBITMAP*)LoadResource(res_name,                           \
+            RES_TYPE_MYBITMAP, (DWORD)(pal))
 
-#define GetBitmapFromRes(key) (BITMAP*)GetResource(key)
+#define GetMyBitmapFromRes(key)                                 \
+    (MYBITMAP*)GetResource(key)
 
-#define GetIconFromRes(key) (HICON)GetResource(key)
+#define LoadBitmapFromRes(hdc, res_name)                        \
+    (BITMAP*)LoadResource(res_name, RES_TYPE_IMAGE, (DWORD)hdc)
+
+#define GetBitmapFromRes(key)                                   \
+    (BITMAP*)GetResource(key)
+
+#define GetIconFromRes(key)                                     \
+    (HICON)GetResource(key)
 
 #ifndef _MGHAVE_CURSOR
-#define GetCursorFromRes(key) (HCURSOR)GetResource(key)
+#define GetCursorFromRes(key)                                   \
+    (HCURSOR)GetResource(key)
 #endif
 
-#define GetEtcFromRes(key) (GHANDLE)GetResource(key)
+#define GetEtcFromRes(key)                                      \
+    (GHANDLE)GetResource(key)
 
-#define LoadLogicFontFromRes(font_name)  (PLOGFONT)LoadResource(font_name, RES_TYPE_FONT, 0)
-#define GetLogicFontFromRes(font_name)   (PLOGFONT)GetResource(Str2Key(font_name))
-#define ReleaseLogicFont(font)  ReleaseRes(((FONT_RES*)(font))->key)
-#define ReleaseLogicFontByName(font_name)  ReleaseRes(Str2Key(font_name))
+#define LoadLogicFontFromRes(font_name)                         \
+    (PLOGFONT)LoadResource(font_name, RES_TYPE_FONT, 0)
+
+#define GetLogicFontFromRes(font_name)                          \
+    (PLOGFONT)GetResource(Str2Key(font_name))
+
+#define ReleaseLogicFont(font)                                  \
+    ReleaseRes(((FONT_RES*)(font))->key)
+
+#define ReleaseLogicFontByName(font_name)                       \
+    ReleaseRes(Str2Key(font_name))
 
 /**
  * \fn RES_KEY Str2Key (const char* str);
@@ -5731,8 +6440,7 @@ MG_EXPORT int GUIAPI GetWindowZOrder(HWND hWnd);
  * \return return the new index of ZOrder or 0 if hWnd is a MainWindow
  */
 MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
-
-#endif
+#endif /* defined __TARGET_MSTUDIO__ */
 
     /** @} end of res_manage */
 
@@ -5741,16 +6449,257 @@ MG_EXPORT int GUIAPI SetWindowZOrder(HWND hWnd, int zorder);
      * @{
      */
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     /**
-     * \defgroup window_create_fns Window creating/destroying
+     * \defgroup virtual_window_fns Virtual Window
+     *
+     * You know that we can post or send a message to other windows which
+     * may run in another thread under MiniGUI-Threads. The MiniGUI
+     * messaging functions such as \a PostMessage(), \a SendMessage(),
+     * \a SendNotifyMessage(), and the window callback procedure
+     * provide a flexible, efficient, safe, and easy-to-use data transfer
+     * and synchronization mechanism for your multithreaded applications.
+     *
+     * For example, you can send or post a message to a window from a
+     * general purpose thread which may download a file from the remote
+     * server under MiniGUI-Threads.
+     *
+     * But can we use the MiniGUI messaging mechanism under
+     * MiniGUI-Processes and MiniGUI-Standalone runtime modes for
+     * multithreading purpose? For example, we may download a file in a
+     * general thread and inform a window when the file is ready.
+     *
+     * Furthermore, if we want to use the MiniGUI messaging mechanism in
+     * a general thread to handle messages from other threads, how to do this?
+     *
+     * The virtual window provides a solution for the requirements above.
+     * A virtual window is a special window object which does not have
+     * a visible window area. But after you create a virtual window in
+     * a different thread, you can use the MiniGUI messaging mechanism
+     * to post or send messages between the current main window thread
+     * and the new thread.
+     *
+     * In MiniGUI, we call a thread creating a main window as a GUI thread,
+     * and a thread creating a virtual window as a message thread.
+     *
+     * It is important to know the following key points about virtual
+     * window:
+     *
+     *  - It is enabled automatically under MiniGUI-Threads runtime mode.
+     *  - It can be enabled by using the compile-time configuration option
+     *    `--enable-virtualwindow`, or define `_MGHAVE_VIRTUAL_WINDOW` macro
+     *    under MiniGUI-Processes and MiniGUI-Standalone runtime modes.
+     *  - You can create multiple GUI threads under MiniGUI-Threads, but you
+     *    cannot create multiple GUI threads under MiniGUI-Processes and
+     *    MiniGUI-Standalone runtime modes.
+     *  - Regardless of the runtime mode, you can create multiple message
+     *    threads, and you can also create multiple virtual windows in
+     *    one message thread.
+     *  - It is possible to create a virtual window in a GUI thread, although
+     *    we do not encourage to do this. In other words, a GUI
+     *    thread is also a message thread. On the other hand, you cannot
+     *    create a main window in a message thread.
+     *  - Essentially, a virtual window is a simplified main window.
+     *    It consumes very little memory space, but provides a complete
+     *    MiniGUI messaging mechanism for a general multithreaded app.
+     *  - When virtual window is enabled (or under MiniGUI-Threads runtime mode),
+     *    you can use the MiniGUI messaging facilities to post or send messages
+     *    to a window, or notify a window from a general thread.
+     *
+     * A virtual window will get the following system messages in its life
+     * life-cycle:
+     *
+     *  - MSG_CREATE: this message will be sent to the virtual window when
+     *    you call \a CreateVirtualWindow function.
+     *  - MSG_CLOSE: this message will be sent to the virtual window when
+     *    the system asks to close the virtual window.
+     *  - MSG_DESTROY: this message will be sent to the virtual window when
+     *    the system tries to destroy the virtual window, or after you
+     *    called \a DestroyVirtualWindow function.
+     *  - MSG_IDLE: When there is no any message in the message queue, all
+     *    virtual windows living in the message thread will get this idle
+     *    message.
+     *  - MSG_TIMER: When a timer expired after you call \a SetTimer to
+     *    set up a timer for a virtual window.
+     *  - MSG_QUIT: quit the message loop.
+     *  - MSG_GETTEXT: Send to window procedure to get the caption.
+     *  - MSG_SETTEXT: Send to window procedure to set the caption.
+     *  - MSG_GETTEXTLENGTH: Send to window procedure to get the length of caption.
+     *  - MSG_FDEVENT: Send to window procedure when there is a read/write/except
+     *    event on a listened file descriptor.
+     *
+     * The following functions work for a virtual window:
+     *
+     *  - DefaultWindowProc
+     *  - GetWindowId
+     *  - SetWindowId
+     *  - GetThreadByWindow
+     *  - GetWindowAdditionalData
+     *  - SetWindowAdditionalData
+     *  - GetWindowAdditionalData2
+     *  - SetWindowAdditionalData2
+     *  - GetClassName: always returns 'VIRTWINDOW' for a virtual window.
+     *  - GetWindowCallbackProc
+     *  - SetWindowCallbackProc
+     *  - GetWindowCaption
+     *  - SetWindowCaption
+     *  - GetWindowTextLength
+     *  - GetWindowText
+     *  - SetWindowText
+     *  - GetNotificationCallback
+     *  - SetNotificationCallback
+     *  - SetWindowLocalData
+     *  - GetWindowLocalData
+     *  - RemoveWindowLocalData
+     *  - RegisterEventHookWindow
+     *  - UnregisterEventHookWindow
+     *  - RegisterKeyHookWindow
+     *  - RegisterMouseHookWindow
+     *  - RegisterListenFD
+     *  - UnregisterListenFD
+     *
+     * Since 5.0.0.
+     *
      * @{
      */
 
 /**
- * \var typedef int (* WNDPROC)(HWND, int, WPARAM, LPARAM)
- * \brief Type of the window callback procedure.
+ * \fn int GUIAPI CreateThreadForMessaging (pthread_t* thread,
+ *      pthread_attr_t* attr, void * (*start_routine)(void *), void* arg,
+ *      BOOL joinable, size_t stack_size)
+ * \brief Create a message thread for main windows or virtual windows.
+ *
+ * The function creates a message thread for main windows or virtual windows
+ * by calling the POSIX thread function \a pthread_create(), and setting up
+ * the message queue for the thread.
+ *
+ * \param thread The buffer to return the thread identifier if
+ *      the thread was successfully created.
+ * \param attr The pointer to the thread attribute.
+ * \param start_routine The entry function of the thread.
+ * \param arg The argument will be passed to \a start_routine.
+ * \param joinable Whether to create a joinable thread.
+ * \param stack_size The stack size in kilobytes, zero for default (4KiB).
+ *
+ * \return On success, it returns 0; on error, an error number returned.
+ *      Exception the error numbers defined by pthread_create(), this
+ *      function may return ENOMEM when failed to allocate memory for
+ *      message queue.
+ *
+ * \note The last two arguments work only when \a attr is NULL.
+ *
+ * \sa pthread_create
+ *
+ * Since 5.0.0
  */
-typedef LRESULT (* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
+        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg,
+        BOOL joinable, size_t stack_size);
+
+/**
+ * \fn BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread)
+ * \brief Get the thread identifier which a window belongs to.
+ *
+ * \param hWnd The handle to a window, which may be a main window,
+ *      virtual window, or a control.
+ * \param thread The buffer to store the thread identifier.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread);
+
+/**
+ * \fn BOOL GUIAPI IsWindowInThisThread (HWND hWnd)
+ * \brief Determine whether a window was created in this thread.
+ *
+ * \param hWnd The handle to a window, which may be a main window,
+ *      virtual window, or a control.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI IsWindowInThisThread (HWND hWnd);
+
+/**
+ * \fn BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
+ * \brief Cleanup the system resource associated with a virtual window.
+ *
+ * This function cleans up the system resource such as the message queue
+ * associated with the virual window \a hVirtWnd. \a DestroyVirtualWindow
+ * does not destroy all resource used by the virtual window, therefore,
+ * you should call this function after calling \a DestroyVirtualWindow and
+ * skipping out from the message loop. After calling this function, the
+ * virtual window object will be destroyed actually.
+ *
+ * \param hVirtWnd The handle to the virtual window.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \sa DestroyVirtualWindow
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd);
+
+/**
+ * \fn HWND GUIAPI CreateVirtualWindow (HWND hHosting, WNDPROC WndProc,
+ *      const char* spCaption, LINT id, DWORD dwAddData)
+ * \brief Create a virtual window.
+ *
+ * This function creates a virtual window for the purpose of
+ * multi-thread messaging.
+ *
+ * \param hHosting The hosting virutal window.
+ * \param WndProc The window callback procedure.
+ * \param spCaption The caption of the virtual window.
+ * \param id The long integer (pointer size) identifier of the virtual window.
+ * \param dwAddData The additional data for the window.
+ *
+ * \return The handle to the new virtual window;
+ *      HWND_INVALID indicates an error.
+ *
+ * \sa VirtualWindowCleanup
+ *
+ * Example:
+ *
+ * \include createvirtualwindow.c
+ *
+ * Since 5.0.0.
+ */
+MG_EXPORT HWND GUIAPI CreateVirtualWindow (HWND hHosting, WNDPROC WndProc,
+        const char* spCaption, LINT id, DWORD dwAddData);
+
+/**
+ * \fn BOOL GUIAPI DestroyVirtualWindow (HWND hWnd)
+ * \brief Destroy a virtual window.
+ *
+ * This function destroys a virtual window.
+ *
+ * \param hWnd The handle to the virtual window.
+ *
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa VirtualWindowCleanup
+ *
+ * Example:
+ *
+ * \include createvirtualwindow.c
+ *
+ * Since 5.0.0.
+ */
+MG_EXPORT BOOL GUIAPI DestroyVirtualWindow (HWND hWnd);
+
+    /** @} end of virtual_window_fns */
+
+#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
+
+    /**
+     * \defgroup window_create_fns Window creating/destroying
+     * @{
+     */
 
 extern MG_EXPORT HWND __mg_hwnd_desktop;
 
@@ -5777,8 +6726,7 @@ extern MG_EXPORT HWND __mg_hwnd_desktop;
 /**
  * Structure defines a main window.
  */
-typedef struct _MAINWINCREATE
-{
+typedef struct _MAINWINCREATE {
     /** The style of the main window */
     DWORD dwStyle;
 
@@ -5806,7 +6754,9 @@ typedef struct _MAINWINCREATE
     /** The position of the main window in the screen coordinates */
     int lx, ty, rx, by;
 
-    /** The pixel value of background color of the main window */
+    /**
+     * The background pixel value of the main window.
+     */
     gal_pixel iBkColor;
 
     /** The first private data associated with the main window */
@@ -5814,70 +6764,201 @@ typedef struct _MAINWINCREATE
 
     /** Reserved, do not use */
     DWORD dwReserved;
-}MAINWINCREATE;
+} MAINWINCREATE;
 typedef MAINWINCREATE* PMAINWINCREATE;
 
 #ifdef _MGRM_THREADS
-
 /**
- * \fn int GUIAPI CreateThreadForMainWindow(pthread_t* thread, \
- *                                    pthread_attr_t* attr, \
- *                                    void * (*start_routine)(void *), \
- *                                    void * arg);
- *
+ * \fn int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
+ *      pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
  * \brief Create a thread for main window.
  *
- * \sa pthread_create
+ * The function creates a thread for main window by calling the POSIX
+ * thread function pthread_create().
+ *
+ * \param thread The buffer to return the thread identifier if
+ *      successfully created.
+ * \param attr  The pointer to the thread attribute.
+ * \param start_routine The function which is the entry of the thread.
+ * \param arg   The argument will be passed to \a start_routine.
+ *
+ * \return The return value of pthread_create (0 on success).
+ *
+ * \sa CreateThreadForMessaging, pthread_create
  */
-MG_EXPORT int GUIAPI CreateThreadForMainWindow(pthread_t* thread,
-                                     pthread_attr_t* attr,
-                                     void * (*start_routine)(void *),
-                                     void * arg);
+static inline int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
+        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
+{
+    return CreateThreadForMessaging (thread, attr, start_routine, arg,
+            TRUE, 16);
+}
 
 /**
- * \fn pthread_t GUIAPI GetMainWinThread(HWND hMainWnd)
- * \brief Get the thread id which main window belongs to.
- *
- * \return Thread id.
- */
-MG_EXPORT pthread_t GUIAPI GetMainWinThread(HWND hMainWnd);
-
-/**
- * \fn int GUIAPI WaitMainWindowClose(HWND hWnd, void** returnval)
- * \brief Suspends execution of the calling thread which main window belongs
- * to until the target thread terminates, unless the target thread has already
- * terminated.
- *
- * \return non-NULL value on success.
- */
-
-MG_EXPORT int GUIAPI WaitMainWindowClose(HWND hWnd, void** returnval);
-#endif
-
-/**
- * \fn void GUIAPI MainWindowThreadCleanup(HWND hMainWnd)
- * \brief Cleans up system resource associated with a main window.
- *
- * This function cleans up the system resource such as message queue associated
- * with the main window \a hMainWnd. \a DestroyMainWindow does not
- * destroy all resource used by a main window, therefore, you should call
- * this function after calling \a DestroyMainWindow and skipping out from
- * the message loop. After calling this function, the main window object
- * will destroyed actually.
+ * \fn pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
+ * \brief Get the thread identifier which main window belongs to.
  *
  * \param hMainWnd The handle to the main window.
  *
- * \sa DestroyMainWindow
+ * \return The thread identifier.
+ *
+ * \note Deprecated; use \a GetThreadByWindow() instead.
  */
-MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
+static inline pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
+{
+#ifdef WIN32
+    pthread_t ret;
+    memset (&ret, 0, sizeof (pthread_t));
+#else
+    pthread_t ret = 0;
+#endif
+
+    GetThreadByWindow (hMainWnd, &ret);
+    return ret;
+}
 
 /**
- * \def MainWindowCleanup(hwnd)
- * \brief Is an alias of \a MainWindowThreadCleanup
+ * \fn int GUIAPI WaitMainWindowClose (HWND hWnd, void** retval)
+ * \brief Suspend execution of the calling thread which main window belongs
+ * to until the target thread terminates, unless the target thread has already
+ * terminated.
  *
- * \sa MainWindowThreadCleanup
+ * This function waits for the terminate of the thread which the main window
+ * \a hWnd belongs to by calling the system POSIX thread function
+ * \a pthread_join().
+ *
+ * \param hWnd The handle to the main window.
+ * \param retval The buffer used to return the exit code of the target thread.
+ *
+ * \return The return value of pthread_join (0 on success).
+ *
+ * \note Deprecated; use GetThreadByWindow() and pthread_join() instead.
+ *
+ * \sa GetThreadByWindow
  */
-#define MainWindowCleanup(hwnd)      MainWindowThreadCleanup(hwnd)
+MG_EXPORT int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval);
+#endif /* defined _MGRM_THREADS */
+
+/**
+ * \fn BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
+ * \brief Cleans up system resource associated with a main window.
+ *
+ * This function cleans up the system resource such as the message queue
+ * associated with the main window \a hMainWnd. \a DestroyMainWindow does not
+ * destroy all resource used by a main window, therefore, you should call
+ * this function after calling \a DestroyMainWindow and skipping out from
+ * the message loop. After calling this function, the main window object
+ * will be destroyed actually.
+ *
+ * \param hMainWnd The handle to the main window.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \sa DestroyMainWindow
+ *
+ * \note Since 5.0.0, this function returns a BOOL value. If you try
+ *      to clean up a main window in a thread other than it belongs to,
+ *      the function will fail.
+ */
+MG_EXPORT BOOL GUIAPI MainWindowCleanup (HWND hMainWnd);
+
+/**
+ * \fn BOOL MainWindowThreadCleanup (HWND hMainWnd)
+ * \brief Cleanup the main window.
+ *
+ * \param hMainWnd The handle to the main window.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \note Deprecated; please use \a MainWindowCleanup() instead.
+ *
+ * \sa MainWindowCleanup
+ */
+static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
+{
+    return MainWindowCleanup (hMainWnd);
+}
+
+/* The flags for the surface pixel format */
+#define ST_PIXEL_MASK           0x00FF
+#define ST_PIXEL_DEFAULT        0x0000
+#define ST_PIXEL_ARGB4444       0x0001
+#define ST_PIXEL_ARGB1555       0x0002
+#define ST_PIXEL_ARGB8888       0x0003
+
+/* other flags for future use */
+
+/* for default surface flags */
+#define ST_DEFAULT              (ST_PIXEL_DEFAULT)
+
+#define CT_SYSTEM_MASK          0X0000FF
+#define CT_OPAQUE               0x000000
+#define CT_COLORKEY             0x000001
+#define CT_ALPHACHANNEL         0x000002
+#define CT_LOGICALPIXEL         0x000003
+#define CT_ALPHAPIXEL           0x000004
+#define CT_BLURRED              0x000005
+#define CT_MAX_VALUE            0xFFFFFF
+
+/**
+ * \fn HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE create_info, LINT id,
+ *      const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+ *      unsigned int surf_flag, DWORD bkgnd_color,
+ *      int compos_type, DWORD ct_arg)
+ * \brief Creates a main window with specified compositing type and identifier.
+ *
+ * This function creates a main window by using information and the specified
+ * compositing type and identifier, then returns the handle to the main window.
+ *
+ * \param create_info The pointer to a MAINWINCREATE structure.
+ * \param werdr_name The name of window element renderer. NULL for default
+ *      renderer.
+ * \param we_attrs The pointer to window element attribute table. NULL for
+ *      default window attribute table.
+ * \param id The window identifier.
+ * \param surf_flag The flag for the surface of the main window
+ *      under compositing schema. The value of this argument can be one
+ *      of the following values:
+ *          - ST_PIXEL_DEFAULT\n
+ *            Creating a surface which compliant to HDC_SCREEN.
+ *          - ST_PIXEL_ARGB4444\n
+ *            Creating a surface for this main window with
+ *            the pixel format ARGB4444.
+ *          - ST_PIXEL_ARGB1555\n
+ *            Creating a surface for this main window with
+ *            the pixel format ARGB1555.
+ *          - ST_PIXEL_ARGB8888\n
+ *            Creating a surface for this main window with
+ *            the pixel format ARGB8888.
+ * \param bkgnd_color The background color of the main window if you specify
+ *  the main window's surface type other than the default. In this case,
+ *  you must use this argument to specify the background color of the main
+ *  window instead of the pixel value of the field (\a iBkColor) in
+ *  \a MAINWINCREATE structure.
+ *  The value of this field is a 32-bit RGBA quadruple essentially.
+ *  You can use a value returned by \a MakeRGBA macro for this argument.
+ *  Note that if you use the surface type \a ST_PIXEL_DEFAULT when creating
+ *  the main window, you can still use the pixel values specified in
+ *  \a MAINWINCREATE structure which is compliant to \a HDC_SCREEN, e.g.,
+ *  a value in \a SysPixelIndex array.
+ * \param compos_type The compositing type of the main window.
+ * \param ct_arg The compositing argument of the main window.
+ *
+ * \return The handle to the new main window; HWND_INVALID indicates an error.
+ *
+ * \note Note When you specify a surface type other than ST_PIXEL_DEFAULT, you
+ *  must use \a bkgnd_color to specify the background color of
+ *  the main window.
+ *
+ * \sa CreateMainWindowEx, CreateMainWindow, MAINWINCREATE, styles
+ *
+ * Example:
+ *
+ * \include createmainwindow.c
+ */
+MG_EXPORT HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE create_info, LINT id,
+        const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+        unsigned int surf_flag, DWORD bkgnd_color,
+        int compos_type, DWORD ct_arg);
 
 /**
  * \fn HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo, \
@@ -5890,23 +6971,35 @@ MG_EXPORT void GUIAPI MainWindowThreadCleanup(HWND hMainWnd);
  *
  * \param pCreateInfo The pointer to a MAINWINCREATE structure.
  * \param werdr_name The name of window element renderer. NULL for default
- *                   renderer.
+ *      renderer.
  * \param we_attrs The pointer to window element attribute table. NULL for
- *                   default window attribute table.
- * \param window_name The window name; reserved for future use.
- * \param layer_name The layer name; reserved for future use.
+ *      default window attribute table.
+ * \param window_name The window name, ignored currently.
+ * \param layer_name The layer name, ignored currently.
  *
  * \return The handle to the new main window; HWND_INVALID indicates an error.
  *
  * \sa CreateMainWindow, MAINWINCREATE, styles
  *
+ * \note Since 5.0.0, this function is implemented as an inline function calling
+ *  \a CreateMainWindowEx2. When calling CreateMainWindowEx2:
+ *      - We pass 0 for the identifier.
+ *      - We pass 0xFFFFFFFFUL for the background color.
+ *      - We discard the values passed to window_name and layer_name.
+ *
  * Example:
  *
  * \include createmainwindow.c
+ *
+ * \sa CreateMainWindowEx2
  */
-MG_EXPORT HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
-                        const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-                        const char* window_name, const char* layer_name);
+static inline HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
+                const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
+                const char* window_name, const char* layer_name)
+{
+    return CreateMainWindowEx2 (pCreateInfo, 0L, werdr_name, we_attrs,
+            ST_DEFAULT, 0xFFFFFFFFUL, CT_OPAQUE, 0);
+}
 
 /**
  * \fn HWND GUIAPI CreateMainWindow (PMAINWINCREATE pCreateInfo)
@@ -5943,9 +7036,87 @@ static inline HWND GUIAPI CreateMainWindow (PMAINWINCREATE pCreateInfo)
  */
 MG_EXPORT BOOL GUIAPI DestroyMainWindow (HWND hWnd);
 
+typedef void (*CB_FREE_LOCAL_DATA) (DWORD local_data);
+
 /**
- * \fn BOOL GUIAPI SetWindowMask (HWND hWnd,  \
- *          const MYBITMAP* mask)
+ * \fn BOOL GUIAPI SetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD local_data, CB_FREE_LOCAL_DATA cb_free)
+ * \brief Set the local data bound with a name for a window.
+ *
+ * This function sets the local data as \a local_data which is bound with the
+ * name \a data_name for the specified window \a hwnd. If you passed a non-NULL
+ * function pointer for \a cb_free, the system will call this function to free
+ * the local data when you destroy the window, remove the local data, or when
+ * you call this function to overwrite the old local data for the name.
+ *
+ * \param hwnd The handle to the window, which can be a main window, a virtual
+ *  window or a control.
+ * \param data_name The name of the local data.
+ * \param local_data The value of the local data.
+ * \param cb_free A callback function which will be called automatically by the
+ *  system to free the local data when the window is being destroyed or the local
+ *  data is being removed or overwritten. If it is NULL, the system does nothing
+ *  to the local data.
+ *
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa GetWindowLocalData, RemoveWindowLocalData 
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI SetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD local_data, CB_FREE_LOCAL_DATA cb_free);
+
+/**
+ * \fn BOOL GUIAPI RemoveWindowLocalData (HWND hwnd, const char* data_name)
+ * \brief Remove the local data bound with a name for a window.
+ *
+ * This function removes the local data which is bound with the
+ * name \a data_name for the specified window \a hwnd. When you pass NULL
+ * for \a data_name, this function will remove all local data of the window.
+ * Note that this function will call the callback procedure for releasing
+ * the local data, if you had set it, when removing the local data.
+ *
+ * \param hwnd The handle to the window, which can be a main window, a virtual
+ *  window or a control.
+ * \param data_name The name for the local data.
+ *
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa SetWindowLocalData, GetWindowLocalData 
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI RemoveWindowLocalData (HWND hwnd, const char* data_name);
+
+/**
+ * \fn BOOL GUIAPI GetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD *local_data, CB_FREE_LOCAL_DATA* cb_free)
+ * \brief Retrieve the local data bound with a name for a window.
+ *
+ * This function retrieves the local data which is bound with the
+ * name \a data_name for the specified window \a hwnd. 
+ *
+ * \param hwnd The handle to the window, which can be a main window, a virtual
+ *  window or a control.
+ * \param data_name The name for the local data.
+ * \param local_data The pointer to a DWORD variable to return the local data
+ *  if it is not NULL.
+ * \param cb_free The pointer to a CB_FREE_LOCAL_DATA variable to return
+ *  the pointer to the callback function which is used to free the local data
+ *  if it is not NULL.
+ *
+ * \return TRUE on success, FALSE on error.
+ *
+ * \sa SetWindowLocalData, RemoveWindowLocalData 
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI GetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD *local_data, CB_FREE_LOCAL_DATA* cb_free);
+
+/**
+ * \fn BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask)
  *
  * \brief Set window (a main window, or a child window which is
  * also known as "control")'s Mask Rect with MYBITMAP data.
@@ -5961,8 +7132,7 @@ MG_EXPORT BOOL GUIAPI DestroyMainWindow (HWND hWnd);
 MG_EXPORT BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask);
 
 /**
- * \fn BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc,  \
- *          const BITMAP* mask)
+ * \fn BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask)
  *
  * \brief Set window (a main window, or a child window which is
  * also known as "control")'s Mask Rect with BITMAP data,
@@ -5977,6 +7147,82 @@ MG_EXPORT BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask);
  * \sa SetWindowRegion
  */
 MG_EXPORT BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask);
+
+/**
+ * \fn BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet)
+ * \brief Set or cancel a main window being always top.
+ *
+ * This function set or cancel a main window being always top on others.
+ * If it succeed, the main window will have the style \a WS_ALWAYSTOP.
+ *
+ * \param hWnd The handle to the window.
+ * \param fSet Set or cancel the always top style; TRUE to set, FALSE to cancel.
+ *
+ * \return return TRUE on success, otherwise FALSE.
+ *
+ * \sa GetWindowStyle, WS_ALWAYSTOP
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
+
+#ifdef _MGSCHEMA_COMPOSITING
+
+/**
+ * \fn BOOL GUIAPI SetMainWindowCompositing (HWND hWnd,
+        int type, DWORD arg)
+ * \brief Set the compositing type of a main window.
+ *
+ * This function set the compositing type of a main window.
+ *
+ * \param hWnd The handle to the window.
+ * \param type The compositing type, can be one of the following values:
+ *  - CT_OPAQUE\n
+ *      The main window is opaque. This is the default compositing type of
+ *      a main window. The control as main window always use this
+ *      compositing type.
+ *  - CT_COLORKEY\n
+ *      Use the specified color as the transparency key. You should also specify
+ *      the color along with the parameter \a arg in a RGBA quadruple value.
+ *  - CT_ALPHACHANNEL\n
+ *      Use the specified alpha channel value. You should also specify
+ *      the alpha channel value (0~255) along with the parameter \a arg.
+ *  - CT_LOGICALPIXEL\n
+ *      Do the given color logical operation. You should specify the color
+ *      logical raster operation along with the pararmeter \a arg. See \a BitBlt.
+ *  - CT_ALPHAPIXEL\n
+ *      The alpha component value of the source and/or the destination pixel go
+ *      into effect. You can specify the color blend method along
+ *      with the pararmeter \a arg. See \a ColorBlendMethod. Note that a specific
+ *      compositor may not support this compositing type. The built-in `fallback`
+ *      compositor ignores the blend mode argument and only always uses the
+ *      Porter Duff blend mode: source over destination (COLOR_BLEND_PD_SRC_OVER).
+ *  - CT_BLURRED\n
+ *      Apply a Gaussian blur to the background of the main window. You should
+ *      also specify the radius of the blur (0 ~ 255) in pixles along with the
+ *      paramter \a arg. It defines the value of the standard deviation to the
+ *      Gaussian function, i.e., how many pixels on the screen blend into each
+ *      other; thus, a larger value will create more blur. A value of 0 leaves
+ *      the input unchanged. Note that the built-in `fallback` compositor
+ *      does not support this compositing type.
+ * \param arg The compositing argument.
+ *
+ * \return return TRUE on success, otherwise FALSE.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \note A customized compositor can also define other compositing type.
+ *      Please make sure that the customized compositing type should be
+ *      less than \a CT_MAX_VALUE.
+ *
+ * \sa CreateMainWindowEx
+ *
+ * Since 5.0.0
+ */
+MG_EXPORT BOOL GUIAPI SetMainWindowCompositing (HWND hWnd,
+        int type, DWORD arg);
+
+#endif /* defined _MGSCHEMA_COMPOSITING */
 
 /**
  * \fn BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN* region)
@@ -6019,6 +7265,11 @@ LRESULT GUIAPI PreDefDialogProc (HWND hWnd,
 LRESULT GUIAPI PreDefControlProc (HWND hWnd, UINT message,
                 WPARAM wParam, LPARAM lParam);
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+LRESULT GUIAPI PreDefVirtualWinProc (HWND hWnd, UINT message,
+                WPARAM wParam, LPARAM lParam);
+#endif
+
 /**
  * \fn LRESULT DefaultWindowProc (HWND hWnd, UINT message, \
                 WPARAM wParam, LPARAM lParam)
@@ -6040,11 +7291,15 @@ MG_EXPORT LRESULT GUIAPI DefaultWindowProc (HWND hWnd, UINT message,
                 WPARAM wParam, LPARAM lParam);
 
 /**
- * \var WNDPROC __mg_def_proc[3]
- * \brief The default window callback procedure array
+ * \var WNDPROC __mg_def_proc[]
+ * \brief The default window callback procedure array.
  *
 */
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+extern MG_EXPORT WNDPROC __mg_def_proc[4];
+#else
 extern MG_EXPORT WNDPROC __mg_def_proc[3];
+#endif
 
 /**
  * \def DefaultMainWinProc
@@ -6094,6 +7349,23 @@ extern MG_EXPORT WNDPROC __mg_def_proc[3];
  * \param lParam The second parameter of the message.
  */
 #define DefaultControlProc (__mg_def_proc[2])
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+/**
+ * \def DefaultVirtualWinProc
+ * \brief The default window callback procedure for virtual windows.
+ *
+ * This function is the default window callback procedure for virtual windows.
+ * You should call this function for any message which you do not want to handle
+ * in your own callback procedure.
+ *
+ * \param hWnd The handle to the window.
+ * \param message The message identifier.
+ * \param wParam The first parameter of the message.
+ * \param lParam The second parameter of the message.
+ */
+#define DefaultVirtualWinProc (__mg_def_proc[3])
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifdef _DEBUG
 MG_EXPORT void GUIAPI DumpWindow (FILE* fp, HWND hWnd);
@@ -6183,7 +7455,7 @@ MG_EXPORT BOOL GUIAPI EnableWindow (HWND hWnd, BOOL fEnable);
 
 /**
  * \fn BOOL GUIAPI IsWindowEnabled (HWND hWnd)
- * \brief Determines whether the specified window is enabled for mouse
+ * \brief Determine whether the specified window is enabled for mouse
  *        and keyboard input.
  *
  * This function returns the enable/disable state of the window specified by
@@ -6199,9 +7471,9 @@ MG_EXPORT BOOL GUIAPI IsWindowEnabled (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI GetClientRect(HWND hWnd, PRECT prc)
- * \brief Retrives the client rectangle of a window.
+ * \brief Retrieve the client rectangle of a window.
  *
- * This function retrives the coordinates of the client area of
+ * This function retrieves the coordinates of the client area of
  * the window specified by \a hWnd. The client coordinates specify
  * the upper-left and lower-right corners of the client area.
  * Because client coordinates are relative to the upper-left corner of
@@ -6218,6 +7490,20 @@ MG_EXPORT BOOL GUIAPI IsWindowEnabled (HWND hWnd);
  * \sa MoveWindow
  */
 MG_EXPORT BOOL GUIAPI GetClientRect(HWND hWnd, PRECT prc);
+
+/**
+ * \fn gal_pixel GUIAPI DWORD2PixelByWindow (HWND hWnd, DWORD dwColor)
+ * \brief Convert a DWORD color to gal_pixel for a window.
+ *
+ * This function converts a color in DWORD to the pixel value according to
+ * the surface of the main window.
+ *
+ * \param hWnd The handle to the window.
+ * \param dwColor The color value in DWORD.
+ *
+ * \return The converted pixel value.
+ */
+MG_EXPORT gal_pixel GUIAPI DWORD2PixelByWindow (HWND hWnd, DWORD dwColor);
 
 /**
  * \fn gal_pixel GUIAPI GetWindowBkColor (HWND hWnd)
@@ -6238,7 +7524,7 @@ MG_EXPORT gal_pixel GUIAPI GetWindowBkColor (HWND hWnd);
 
 /**
  * \fn gal_pixel GUIAPI SetWindowBkColor (HWND hWnd, gal_pixel new_bkcolor)
- * \brief Sets the background color of a window.
+ * \brief Set the background color of a window.
  *
  * This function sets the background color of the specified window \a hWnd
  * to be new pixel value \a new_backcolor. You should call \a UpdateWindow
@@ -6258,9 +7544,9 @@ MG_EXPORT gal_pixel GUIAPI SetWindowBkColor (HWND hWnd, gal_pixel new_bkcolor);
 
 /**
  * \fn PLOGFONT GUIAPI GetWindowFont (HWND hWnd)
- * \brief Retrives the default font of a window.
+ * \brief Retrieve the default font of a window.
  *
- * This function retrives the default font of the specified
+ * This function retrieves the default font of the specified
  * window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -6272,7 +7558,7 @@ MG_EXPORT PLOGFONT GUIAPI GetWindowFont (HWND hWnd);
 
 /**
  * \fn PLOGFONT GUIAPI SetWindowFont (HWND hWnd, PLOGFONT pLogFont)
- * \brief Sets the default font of a window.
+ * \brief Set the default font of a window.
  *
  * This function sets the default font of the specified window \a hWnd
  * to be the logical font \a pLogFont. This function will send an
@@ -6293,9 +7579,9 @@ MG_EXPORT PLOGFONT GUIAPI SetWindowFont (HWND hWnd, PLOGFONT pLogFont);
 
 /**
  * \fn HCURSOR GUIAPI GetWindowCursor (HWND hWnd)
- * \brief Retrives the current cursor of a window.
+ * \brief Retrieve the current cursor of a window.
  *
- * This function retrives the current cursor of the specified
+ * This function retrieves the current cursor of the specified
  * window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -6307,7 +7593,7 @@ MG_EXPORT HCURSOR GUIAPI GetWindowCursor (HWND hWnd);
 
 /**
  * \fn HCURSOR GUIAPI SetWindowCursor (HWND hWnd, HCURSOR hNewCursor)
- * \brief Sets the current cursor of a window.
+ * \brief Set the current cursor of a window.
  *
  * This function sets the current cursor of the specified window \a hWnd with
  * argument \a hNewCursor.
@@ -6322,9 +7608,9 @@ MG_EXPORT HCURSOR GUIAPI SetWindowCursor (HWND hWnd, HCURSOR hNewCursor);
 
 /**
  * \fn HICON GUIAPI GetWindowIcon (HWND hWnd)
- * \brief Retrives the current icon of a window.
+ * \brief Retrieve the current icon of a window.
  *
- * This function retrives the current icon of the specified
+ * This function retrieves the current icon of the specified
  * window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -6336,7 +7622,7 @@ MG_EXPORT HICON GUIAPI GetWindowIcon (HWND hWnd);
 
 /**
  * \fn HICON GUIAPI SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
- * \brief Sets the current icon of a window.
+ * \brief Set the current icon of a window.
  *
  * This function sets the current icon of the specified window \a hWnd with
  * argument \a hIcon.
@@ -6355,9 +7641,9 @@ MG_EXPORT HICON GUIAPI SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw);
 
 /**
  * \fn DWORD GUIAPI GetWindowStyle (HWND hWnd)
- * \brief Retrives the style of a window.
+ * \brief Retrieve the style of a window.
  *
- * This function retrives the style of the window specified by \a hWnd.
+ * This function retrieves the style of the window specified by \a hWnd.
  *
  * \param hWnd The handle to the window.
  * \return The style of the window.
@@ -6368,9 +7654,9 @@ MG_EXPORT DWORD GUIAPI GetWindowStyle (HWND hWnd);
 
 /**
  * \fn DWORD GUIAPI GetWindowExStyle (HWND hWnd)
- * \brief Retrives the extended style of a window.
+ * \brief Retrieve the extended style of a window.
  *
- * This function retrives the extended style of the window specified by \a hWnd.
+ * This function retrieves the extended style of the window specified by \a hWnd.
  *
  * \param hWnd The handle to the window.
  * \return The extended style of the window.
@@ -6386,8 +7672,14 @@ MG_EXPORT DWORD GUIAPI GetWindowExStyle (HWND hWnd);
  * This function removes the specific style of the window
  * specified by \a hWnd.
  *
+ * Note that you should be very careful with changing the styles of a window
+ * on the fly by calling this function. You are strongly recommended to only
+ * change the customizable window styles (bits in WS_CTRLMASK) by calling
+ * this function.
+ *
  * \param hWnd The handle to the window.
  * \param dwStyle The specific style which will be removed.
+ *
  * \return TRUE on success, otherwise FALSE.
  *
  * \sa ExcludeWindowStyle
@@ -6400,6 +7692,11 @@ MG_EXPORT BOOL GUIAPI ExcludeWindowStyle (HWND hWnd, DWORD dwStyle);
  *
  * This function includes the specific style of the window
  * specified by \a hWnd.
+ *
+ * Note that you should be very careful with changing the styles of a window
+ * on the fly by calling this function. You are strongly recommended to only
+ * change the customizable window styles (bits in WS_CTRLMASK) by calling
+ * this function.
  *
  * \param hWnd The handle to the window.
  * \param dwStyle The specific style which will be included.
@@ -6416,6 +7713,11 @@ MG_EXPORT BOOL GUIAPI IncludeWindowStyle (HWND hWnd, DWORD dwStyle);
  * This function removes the specific extended style of the window
  * specified by \a hWnd.
  *
+ * Note that you should be very careful with changing the extended styles of
+ * a window on the fly by calling this function. You are strongly recommended
+ * to only change the customizable window styles (bits in
+ * WS_EX_CONTROL_MASK | WS_EX_CONTROL_MASK) by calling this function.
+ *
  * \param hWnd The handle to the window.
  * \param dwStyle The specific extended style which will be removed.
  * \return TRUE on success, otherwise FALSE.
@@ -6431,8 +7733,14 @@ MG_EXPORT BOOL GUIAPI ExcludeWindowExStyle (HWND hWnd, DWORD dwStyle);
  * This function includes the specific extended style of the window
  * specified by \a hWnd.
  *
+ * Note that you should be very careful with changing the extended styles of
+ * a window on the fly by calling this function. You are strongly recommended
+ * to only change the customizable window styles (bits in
+ * WS_EX_CONTROL_MASK | WS_EX_CONTROL_MASK) by calling this function.
+ *
  * \param hWnd The handle to the window.
  * \param dwStyle The specific extended style which will be included.
+ *
  * \return TRUE on success, otherwise FALSE.
  *
  * \sa IncludeWindowStyle
@@ -6441,9 +7749,9 @@ MG_EXPORT BOOL GUIAPI IncludeWindowExStyle (HWND hWnd, DWORD dwStyle);
 
 /**
  * \fn WNDPROC GUIAPI GetWindowCallbackProc (HWND hWnd)
- * \brief Retrives the callback procedure of a window.
+ * \brief Retrieve the callback procedure of a window.
  *
- * This function retrives the window callback procedure of the specified window
+ * This function retrieves the window callback procedure of the specified window
  * \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -6455,7 +7763,7 @@ MG_EXPORT WNDPROC GUIAPI GetWindowCallbackProc (HWND hWnd);
 
 /**
  * \fn WNDPROC GUIAPI SetWindowCallbackProc (HWND hWnd, WNDPROC newProc)
- * \brief Sets the callback procedure of a window.
+ * \brief Set the callback procedure of a window.
  *
  * This function sets the window callback procedure of the specified window
  * \a hWnd to be the procedure \a newProc.
@@ -6474,9 +7782,9 @@ MG_EXPORT WNDPROC GUIAPI SetWindowCallbackProc (HWND hWnd, WNDPROC newProc);
 
 /**
  * \fn DWORD GUIAPI GetWindowAdditionalData (HWND hWnd)
- * \brief Retrives the first additional data of a window.
+ * \brief Retrieve the first additional data of a window.
  *
- * This function retrives the first additional data of the specified window
+ * This function retrieves the first additional data of the specified window
  * \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -6488,7 +7796,7 @@ MG_EXPORT DWORD GUIAPI GetWindowAdditionalData (HWND hWnd);
 
 /**
  * \fn DWORD GUIAPI SetWindowAdditionalData (HWND hWnd, DWORD newData)
- * \brief Sets the first additional data of a window.
+ * \brief Set the first additional data of a window.
  *
  * This function sets the first additional data of the specified window
  * \a hWnd.
@@ -6508,9 +7816,9 @@ MG_EXPORT DWORD GUIAPI SetWindowAdditionalData (HWND hWnd, DWORD newData);
 
 /**
  * \fn DWORD GUIAPI GetWindowAdditionalData2 (HWND hWnd)
- * \brief Retrives the second additional data of a window.
+ * \brief Retrieve the second additional data of a window.
  *
- * This function retrives the second additional data of the specified window
+ * This function retrieves the second additional data of the specified window
  * \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -6522,7 +7830,7 @@ MG_EXPORT DWORD GUIAPI GetWindowAdditionalData2 (HWND hWnd);
 
 /**
  * \fn DWORD GUIAPI SetWindowAdditionalData2 (HWND hWnd, DWORD newData)
- * \brief Sets the second additional data of a window.
+ * \brief Set the second additional data of a window.
  *
  * This function sets the second additional data of the specified window
  * \a hWnd.
@@ -6541,9 +7849,9 @@ MG_EXPORT DWORD GUIAPI SetWindowAdditionalData2 (HWND hWnd, DWORD newData);
 
 /**
  * \fn DWORD GUIAPI GetWindowClassAdditionalData (HWND hWnd)
- * \brief Retrives the additional data of a control class.
+ * \brief Retrieve the additional data of a control class.
  *
- * This function retrives the additional data of the control class to which
+ * This function retrieves the additional data of the control class to which
  * the specified control \a hWnd belongs.
  *
  * \param hWnd The handle to the control.
@@ -6559,7 +7867,7 @@ MG_EXPORT DWORD GUIAPI GetWindowClassAdditionalData (HWND hWnd);
 
 /**
  * \fn DWORD GUIAPI SetWindowClassAdditionalData (HWND hWnd, DWORD newData)
- * \brief Sets the additional data of a control class.
+ * \brief Set the additional data of a control class.
  *
  * This function sets the additional data of the control class to which
  * the specified control \a hWnd belongs.
@@ -6576,9 +7884,9 @@ MG_EXPORT DWORD GUIAPI SetWindowClassAdditionalData (HWND hWnd, DWORD newData);
 
 /**
  * \fn const char* GUIAPI GetWindowCaption (HWND hWnd)
- * \brief Retrives the caption of a window.
+ * \brief Retrieve the caption of a window.
  *
- * This function retrives the caption of the specified window \a hWnd.
+ * This function retrieves the caption of the specified window \a hWnd.
  *
  * \param hWnd The handle to the window.
  *
@@ -6590,7 +7898,7 @@ MG_EXPORT const char* GUIAPI GetWindowCaption (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI SetWindowCaption (HWND hWnd, const char* spCaption)
- * \brief Sets the caption of a window.
+ * \brief Set the caption of a window.
  *
  * This function sets the caption of the specified window \a hWnd.
  *
@@ -6751,9 +8059,9 @@ MG_EXPORT void GUIAPI EndPaint(HWND hWnd, HDC hdc);
 
 /**
  * \fn BOOL GUIAPI GetUpdateRect (HWND hWnd, RECT* update_rect)
- * \brief Retrives the bounding box of the update region of a window.
+ * \brief Retrieve the bounding box of the update region of a window.
  *
- * This function retrives the bounding box of the update region of
+ * This function retrieves the bounding box of the update region of
  * the specified window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -6965,7 +8273,7 @@ MG_EXPORT void GUIAPI ScreenToWindow (HWND hWnd, int* x, int* y);
 
 /**
  * \fn BOOL GUIAPI IsMainWindow (HWND hWnd)
- * \brief Determines whether a window is a main window.
+ * \brief Determine whether a window is a main window.
  *
  * This function determines whether the specified window \a hWnd is
  * a main window or not.
@@ -6978,9 +8286,26 @@ MG_EXPORT void GUIAPI ScreenToWindow (HWND hWnd, int* x, int* y);
  */
 MG_EXPORT BOOL GUIAPI IsMainWindow (HWND hWnd);
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+/**
+ * \fn BOOL GUIAPI IsVirtualWindow (HWND hWnd)
+ * \brief Determine whether a window is a virtual window.
+ *
+ * This function determines whether the specified window \a hWnd is
+ * a virtual window or not.
+ *
+ * \param hWnd The handle to the window.
+ *
+ * \return TRUE for a virtual window, otherwise FALSE.
+ *
+ * \sa IsMainWindow, IsWindow, IsControl
+ */
+MG_EXPORT BOOL GUIAPI IsVirtualWindow (HWND hWnd);
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+
 /**
  * \fn BOOL GUIAPI IsControl (HWND hWnd)
- * \brief Determines whether a window is a control.
+ * \brief Determine whether a window is a control.
  *
  * This function determines whether the specified window \a hWnd is a control.
  *
@@ -6994,7 +8319,7 @@ MG_EXPORT BOOL GUIAPI IsControl (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI IsWindow (HWND hWnd)
- * \brief Determines whether a window handle identifies an existing window.
+ * \brief Determine whether a window handle identifies an existing window.
  *
  * This function determines whether the specified window handle \a hWnd
  * identifies an existing window.
@@ -7009,7 +8334,7 @@ MG_EXPORT BOOL GUIAPI IsWindow (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI IsDialog (HWND hWnd)
- * \brief Determines whether a window handle identifies a dialog window.
+ * \brief Determine whether a window handle identifies a dialog window.
  *
  * This function determines whether the specified window handle \a hWnd
  * identifies a dialog window.
@@ -7024,7 +8349,7 @@ MG_EXPORT BOOL GUIAPI IsDialog (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetParent (HWND hWnd)
- * \brief Retrieves the handle to a child window's parent window.
+ * \brief Retrieve the handle to a child window's parent window.
  *
  * This function retrieves the handle to the specified child window's
  * parent window.
@@ -7033,7 +8358,7 @@ MG_EXPORT BOOL GUIAPI IsDialog (HWND hWnd);
  *
  * \return The handle to the parent, HWND_INVALID indicates an error.
  *
- * \note For a main window, this function always returns 0.
+ * \note For a main window, this function always returns HWNL_NULL.
  *       For HWND_DESKTOP or an invalid window handle,
  *       HWND_INVALID will be returned.
  *
@@ -7043,9 +8368,9 @@ MG_EXPORT HWND GUIAPI GetParent (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetMainWindowHandle (HWND hWnd)
- * \brief Retrives the handle to the main window contains a window.
+ * \brief Retrieve the handle to the main window contains a window.
  *
- * This function retrives the handle to the main window which contains the
+ * This function retrieves the handle to the main window which contains the
  * specified window \a hWnd.
  *
  * \param hWnd The handle to the window.
@@ -7060,9 +8385,9 @@ MG_EXPORT HWND GUIAPI GetMainWindowHandle (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI IsWindowVisible (HWND hWnd)
- * \brief Retrieves the visibility state of the specified window.
+ * \brief Retrieve the visibility state of the specified window.
  *
- * This function retrives the visibility state of the specified window \a hWnd.
+ * This function retrieves the visibility state of the specified window \a hWnd.
  *
  * \param hWnd Handle to the window to test.
  *
@@ -7076,9 +8401,9 @@ MG_EXPORT BOOL GUIAPI IsWindowVisible (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI GetWindowRect (HWND hWnd, PRECT prc)
- * \brief Retrives the dimensions of the bounding rectangle of a window.
+ * \brief Retrieve the dimensions of the bounding rectangle of a window.
  *
- * This function retrives the dimension of the bounding rectangle of
+ * This function retrieves the dimension of the bounding rectangle of
  * the specified window \a hWnd. The dimensions are given in parent's
  * client coordinates (screen coordinates for main window) that are
  * relative to the upper-left corner of the parent's client area (screen).
@@ -7095,9 +8420,9 @@ MG_EXPORT BOOL GUIAPI GetWindowRect (HWND hWnd, PRECT prc);
 
 /**
  * \fn HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
- * \brief Retrives the next control in a window.
+ * \brief Retrieve the next control in a window.
  *
- * This function retrives the next child of the specified
+ * This function retrieves the next child of the specified
  * window \a hWnd. If you pass HWND_NULL for the argument
  * of \a hChild, the function will return the first child of the window.
  *
@@ -7121,9 +8446,9 @@ MG_EXPORT HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild);
 
 /**
  * \fn HWND GUIAPI GetNextMainWindow (HWND hMainWnd)
- * \brief Retrives the next main window in the system according to the zorder.
+ * \brief Retrieve the next main window in the system according to the zorder.
  *
- * This function retrives the next main window of the specified
+ * This function retrieves the next main window of the specified
  * main window \a hMainWnd.
  *
  * \param hMainWnd The handle to the main window.
@@ -7138,43 +8463,144 @@ MG_EXPORT HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild);
  */
 MG_EXPORT HWND GUIAPI GetNextMainWindow (HWND hMainWnd);
 
+#define WIN_SEARCH_METHOD_MASK  0xFF00
+#define WIN_SEARCH_METHOD_BFS   0x0000
+#define WIN_SEARCH_METHOD_DFS   0x0100
+
+#define WIN_SEARCH_FILTER_MASK  0x00FF
+#define WIN_SEARCH_FILTER_MAIN  0x0001
+#define WIN_SEARCH_FILTER_VIRT  0x0002
+
 /**
- * \fn HWND GUIAPI GetHosting (HWND hMainWnd)
- * \brief Retrives the hosting main window of a main window.
+ * \fn HWND GUIAPI GetHostedById (HWND hHosting,
+ *      LINT lId, DWORD dwSearchFflags)
+ * \brief Retrieve a hosted main window or virtual window by identifier.
  *
- * This function retrives the hosting main window of the specified
- * main window \a hWnd. The hosting main window creates the message queue,
- * which shared with all hosted main window of it.
- * The hosting window of a top-level main window is HWND_DESKTOP.
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
  *
- * HWND_DESKTOP has no hosting window, do not use this function for it.
+ * This function retrieves the first window which has the specified identifier
+ * \a id in the window tree of the current thread.
  *
- * \param hMainWnd The handle to the main window.
+ * \param hHosting The handle to a main or virtual window in the thread,
+ *  which will be the root of the sub window tree to search. If it is
+ *  HWND_NULL, this function will use the root window of the current thread.
+ * \param lId The identifier.
+ * \param dwSearchFflags The search flags, should be OR'd with a search method
+ *  value and one or two search filter values:
+ *      - WIN_SEARCH_METHOD_BFS\n
+ *        use BFS (breadth-first search).
+ *      - WIN_SEARCH_METHOD_DFS\n
+ *        use DFS (depth-first search).
+ *      - WIN_SEARCH_FILTER_MAIN\n
+ *        search main windows.
+ *      - WIN_SEARCH_FILTER_VIRT\n
+ *        search virtual windows.
  *
- * \return The handle to the hosting main window. A valid window must have a
- *         hosting window.  If error occurs, such as a invalid handle or
- *         HWND_DESKTOP is passed as \a hMainWnd, HWND_INVALID is returned.
+ * \return The handle to the first main window or virtual window which has the
+ *  specified identifier in the searching sub window tree.
+ *  If the current thread is not a message thread, it returns HWND_INVALID.
+ *  If there is no window matches the identifier and the search flags,
+ *  it returns HWND_NULL.
  *
- * \sa GetFirstHosted, GetNextHosted
+ * \sa GetRootWindow, GetHosting, GetFirstHosted, GetNextHosted
  */
-MG_EXPORT HWND GUIAPI GetHosting (HWND hMainWnd);
+MG_EXPORT HWND GUIAPI GetHostedById (HWND hHosting,
+        LINT lId, DWORD dwSearchFlags);
+
+/**
+ * \fn LINT GUIAPI GetWindowId (HWND hWnd)
+ * \brief Get the identifier of a window.
+ *
+ * This function returns the identifier of the specified window \a hWnd.
+ *
+ * \return The identifier of the window. This function returns -1 for
+ *  an invalid window handle. Therefore, you should avoid to use -1 as
+ *  a valid identifier of a window.
+ *
+ * \sa SetWindowId
+ */
+MG_EXPORT LINT GUIAPI GetWindowId (HWND hWnd);
+
+/**
+ * \fn LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId)
+ * \brief Set the identifier of a window.
+ *
+ * This function sets the identifier of the specified window \a hWnd to
+ * \a lNewId and returns the old identifier.
+ *
+ * \return The old identifier of the window. This function returns -1 for
+ *  an invalid window handle. Therefore, you should avoid to use -1 as
+ *  a valid identifier of a window.
+ *
+ * \sa GetWindowId
+ */
+MG_EXPORT LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId);
+
+/**
+ * \fn HWND GUIAPI GetRootWindow (int* nrWins)
+ * \brief Retrieve the root window of the current thread.
+ *
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
+ *
+ * This function retrieves and returns the root window in the current thread.
+ *
+ * \param nrWins A pointer to an integer used to return the number of total
+ *  windows in the current thread. It can be NULL.
+ *
+ * \return The handle to the root window. If the current thread is not
+ *  a message thread, it returns HWND_INVALID. If there is no
+ *  any window created in the current thread, it returns HWND_NULL.
+ *
+ * \sa GetHosting, GetFirstHosted, GetNextHosted, GetMainWindowById
+ */
+MG_EXPORT HWND GUIAPI GetRootWindow (int* nrWins);
+
+/**
+ * \fn HWND GUIAPI GetHosting (HWND hWnd)
+ * \brief Retrieve the hosting window of a main window or a virtual window.
+ *
+ * All main windows and/or virtual windows created by a thread form a
+ * window hosting tree. The root window of the tree may be HWND_DESKTOP
+ * or the first main/virtual window created by the thread.
+ *
+ * This function retrieves the hosting window of the specified main window
+ * or virtual window \a hWnd.
+ *
+ * For a root window in the current thread, this function returns HWND_NULL.
+ *
+ * \param hWnd The handle to the main window.
+ *
+ * \return The handle to the hosting window. If error occurs, for example,
+ *  an invalid handle, the specified window is not in the current thread,
+ *  or the current thread is not a message thread, this function returns
+ *  HWND_INVALID. For a root window in the current thread, this function
+ *  returns HWND_NULL.
+ *
+ * \sa GetRootWindow, GetFirstHosted, GetNextHosted
+ */
+MG_EXPORT HWND GUIAPI GetHosting (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetFirstHosted (HWND hHosting)
- * \brief Retrives the first hosted main window of a main window.
+ * \brief Retrieve the first hosted window of a main window or a virtual window.
  *
- * This function retrives the first hosted main window of
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
+ *
+ * This function retrieves the first hosted main/virtual window of
  * the specified main window \a hMainWnd.
  *
- * For MiniGUI-Threads, HWND_DESKTOP has no any "hosted" window,
- * so do not use this function for it.
+ * \param hHosting The handle to a main window or a virtual window.
  *
- * \param hHosting The handle to the hosting main window.
- *
- * \return The handle to the first hosted main window. If an invalid window
- *         handle is passed for \a hHosting, HWND_INVALID will be returned.
- *         If tihs main window do not have a hosted window, HWND_NULL
- *         will be returned.
+ * \return The handle to the first hosted window. If an invalid window
+ *  handle is passed for \a hHosting, HWND_INVALID will be returned.
+ *  If the specified window do not have a hosted window, this function
+ *  returns HWND_NULL.
  *
  * \sa GetHosting, GetNextHosted
  */
@@ -7182,33 +8608,32 @@ MG_EXPORT HWND GUIAPI GetFirstHosted (HWND hHosting);
 
 /**
  * \fn HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted)
- * \brief Retrives the next hosted main window of a main window.
+ * \brief Retrieve the next hosted window of a main window or a virtual window.
  *
- * This function retrives the next hosted main window of the specified
- * main window \a hHosting.
+ * All main windows and/or virtual windows in a thread form a window tree.
+ * The root window of the tree may be HWND_DESKTOP or the first main/virtual
+ * window created in the thread.
  *
- * For MiniGUI-Threads, HWND_DESKTOP has no any "hosted" window,
- * so do not use this function for it.
+ * This function retrieves the next hosted main/virtual window of the specified
+ * main/virtual window \a hHosting. If \a hHosted is HWND_NULL, it is
+ * equivalent to call GetFirstHosted(hHosting).
+
+ * \param hHosting The handle to the hosting window.
+ * \param hHosted The handle to a known hosted window. This function
+ *        will return the next hosted window.
  *
- * \param hHosting The handle to the hosting main window.
- * \param hHosted The handle to a known hosted main window. This function
- *        will return the next hosted main window.
+ * \return The handle to the next hosted main or virtual window.
+ *  It returns HWND_NULL when \a hHosted is the last hosted window.
+ *  If invalid window handles are passed, or if \a hHosted is not a hosted
+ *  window of \a hHosting, this function returns HWND_INVALID.
  *
- * \return Handle to the next hosted main window.
- *         Returns 0 when \a hHosted is the last hosted main window;
- *         HWND_INVALID when error occurs. If \a hHosted is 0, this call
- *         equals GetFirstHosted(hHosting).
- *         If an invalid window handle is passed as \a hHosting
- *         or \a hHosted, HWND_INVALID will be returned; If \a hHosted is
- *         not the hosted window of \a hHosting, HWND_INVALID will be returned.
- *
- * \sa GetFirstHosted
+ * \sa GetHosting, GetFirstHosted
  */
 MG_EXPORT HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted);
 
 /**
  * \fn int GUIAPI GetWindowTextLength (HWND hWnd)
- * \brief Retrieves the length of a window's text.
+ * \brief Retrieve the length of a window's text.
  *
  * This function retrieves the length, in characters, of the specified
  * window's text. The function retrieves the length of the text by sending
@@ -7242,7 +8667,7 @@ MG_EXPORT int GUIAPI GetWindowText (HWND hWnd, char* spString, int nMaxLen);
 
 /**
  * \fn BOOL GUIAPI SetWindowText (HWND hWnd, const char* spString)
- * \brief Sets the text of a window.
+ * \brief Set the text of a window.
  *
  * This function copies the string in the buffer pointed to by \a spString
  * to be the text of the specified window \a hWnd. The function sets
@@ -7259,10 +8684,10 @@ MG_EXPORT BOOL GUIAPI SetWindowText (HWND hWnd, const char* spString);
 
 /**
  * \fn HWND GUIAPI GetFocusChild (HWND hParent)
- * \brief Retrieves the handle to the window's active child that has
+ * \brief Retrieve the handle to the window's active child that has
  *        the keyboard focus.
  *
- * This function retrives the handle to the window's active child that has
+ * This function retrieves the handle to the window's active child that has
  * the keyboard focus.
  *
  * \param hParent The handle to the parent window.
@@ -7290,7 +8715,7 @@ MG_EXPORT HWND GUIAPI SetNullFocus (HWND hParent);
 
 /**
  * \fn HWND GUIAPI SetFocusChild (HWND hWnd)
- * \brief Sets the active child of a window.
+ * \brief Set the active child of a window.
  *
  * This function sets the specified window \a hWnd as the active child of
  * its parent.
@@ -7317,9 +8742,9 @@ MG_EXPORT HWND GUIAPI SetFocusChild (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetActiveWindow (void)
- * \brief Retrieves the main window handle to the active main window.
+ * \brief Retrieve the main window handle of the active main window.
  *
- * This function retrives the main window handle to the active main window
+ * This function retrieves the main window handle of the active main window
  * which receives the input.
  *
  * \return The handle to the active main window.
@@ -7330,7 +8755,7 @@ MG_EXPORT HWND GUIAPI GetActiveWindow (void);
 
 /**
  * \fn HWND GUIAPI SetActiveWindow (HWND hMainWnd)
- * \brief Sets a main window to be the active main window.
+ * \brief Set a main window to be the active main window.
  *
  * This function sets the specified main window \a hMainWnd to be the
  * active main window which receives the input.
@@ -7357,7 +8782,7 @@ MG_EXPORT HWND GUIAPI SetActiveWindow (HWND hMainWnd);
 
 /**
  * \fn HWND GUIAPI GetCapture(void)
- * \brief Retrives the handle to the window (if any) that has captured
+ * \brief Retrieve the handle to the window (if any) that has captured
  * the mouse.
  *
  * This function retrieves the handle to the window (if any) that has captured
@@ -7373,7 +8798,7 @@ MG_EXPORT HWND GUIAPI GetCapture(void);
 
 /**
  * \fn HWND GUIAPI SetCapture(HWND hWnd)
- * \brief Sets the mouse capture to the specified window.
+ * \brief Set the mouse capture to the specified window.
  *
  * This function sets the mouse capture to the specified window \a hWnd.
  * Once a window has captured the mouse, all mouse input is directed to
@@ -7403,7 +8828,7 @@ MG_EXPORT void GUIAPI ReleaseCapture(void);
 
 /**
  * \fn HWND GUIAPI GetWindowUnderCursor(void)
- * \brief Retrives the handle to the window (if any) which is just
+ * \brief Retrieve the handle to the window (if any) which is just
  *        beneath the mouse cursor.
  *
  * This function retrieves the handle to the window (if any) that is under
@@ -7417,7 +8842,7 @@ MG_EXPORT HWND GUIAPI GetWindowUnderCursor (void);
 
 /**
  * \fn HWND GUIAPI WindowFromPointEx (POINT pt, BOOL bRecursion)
- * \brief Retrieves a handle to the window that contains the specified point.
+ * \brief Retrieve a handle to the window that contains the specified point.
  *
  * This function retrieves a handle to the main window that contains the
  * specified point \a pt.
@@ -7441,7 +8866,7 @@ MG_EXPORT HWND GUIAPI WindowFromPointEx (POINT pt, BOOL bRecursion);
 /**
  * \fn HWND GUIAPI ChildWindowFromPointEx (HWND hParent, POINT pt,
                     UINT uFlags)
- * \brief Retrives a handle to the child window that contains the
+ * \brief Retrieve a handle to the child window that contains the
  *        speicified point and meets the certain criteria.
  *
  * This function determines which, if any, of the child windows
@@ -7479,7 +8904,7 @@ MG_EXPORT HWND GUIAPI ChildWindowFromPointEx (HWND hParent, POINT pt,
 
 /**
  * \fn HWND GUIAPI ChildWindowFromPoint (HWND hParent, POINT pt)
- * \brief Retrives a handle to the child window that contains the
+ * \brief Retrieve a handle to the child window that contains the
  *        speicified point.
  *
  * This function determines which, if any, of the child windows
@@ -7623,18 +9048,23 @@ static inline void GUIAPI ScrollWindow (HWND hWnd, int dx, int dy,
                 NULL, NULL, SW_ERASE | SW_INVALIDATE | SW_SCROLLCHILDREN);
 }
 
-/**
- * \def GetWindowElementColor
- * \brief Get window element color.
- */
+#if 0
+/* deprecated. */
 #define GetWindowElementColor(iItem)   \
         GetWindowElementPixelEx(HWND_NULL, (HDC)-1, iItem)
 
+/* deprecated. */
 #define GetWindowElementColorEx(hWnd, iItem)   \
         GetWindowElementPixelEx(hWnd, (HDC)-1, iItem)
+#endif
 
-#define GetWindowElementPixel(hWnd, iItem)   \
-        GetWindowElementPixelEx(hWnd, (HDC)-1, iItem)
+/**
+ * \def GetWindowElementPixel
+ * \brief Get window element pixel value.
+ * \sa GetWindowElementPixelEx
+ */
+#define GetWindowElementPixel(hWnd, iItem)          \
+        GetWindowElementPixelEx(hWnd, HDC_INVALID, iItem)
 
     /** @} end of window_general_fns */
 
@@ -7652,10 +9082,46 @@ static inline void GUIAPI ScrollWindow (HWND hWnd, int dx, int dy,
 #define SYSBMP_LOGO                "logo"
 
 /**
- * \fn MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name, const char* id)
- * \brief Retrives the system bitmap object by identifier.
+ * \fn const BITMAP* GUIAPI GetSystemBitmapEx2 (HDC hdc,
+ *      const char* rdr_name, const char* id)
+ * \brief Retrieve the system bitmap object by identifier.
  *
- * This function returns the system bitmap object by its identifier.
+ * This function retrieves and returns the system bitmap object specified by
+ * the renderer name \a rdr_name and the identifier \a id. This function
+ * returns the BITMAP object which is compliant to the specified device context
+ * \a hdc.
+ *
+ * \param hdc The handle to the device context.
+ * \param rdr_name The renderer name.
+ * \param id The identifier of the system bitmap object, can be
+ *           one of the following values:
+ *
+ *      - SYSBMP_RADIOBUTTON\n
+ *      - SYSBMP_CHECKBUTTON\n
+ *      - SYSBMP_BGPICTURE\n
+ *
+ * \return The pointer to the system bitmap object.
+ *
+ * \note Since 5.0.0, if you use the compositing schema, a main window may
+ *  use a private surface which is not compliant to the screen surface. Under
+ *  this situation, you should use this function to load the system bitmap
+ *  object instead of using \a GetSystemBitmapEx.
+ *
+ * \sa GetSystemBitmapEx
+ *
+ * Since 5.0.0.
+ */
+MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapEx2 (HDC hdc,
+        const char* rdr_name, const char* id);
+
+/**
+ * \fn const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name,
+ *      const char* id)
+ * \brief Retrieve the system bitmap object by identifier.
+ *
+ * This function retrieves and returns the system bitmap object by the renderer
+ * name \a rdr_name and the identifier \a id. This function returns a BITMAP
+ * object which complies which is compliant to HDC_SCREEN.
  *
  * \param rdr_name The renderer name.
  * \param id The identifier of the system bitmap object, can be
@@ -7669,38 +9135,22 @@ static inline void GUIAPI ScrollWindow (HWND hWnd, int dx, int dy,
  *
  * \sa GetLargeSystemIcon, GetSmallSystemIcon
  */
-MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name,
-        const char* id);
-
-/**
- * \fn PBITMAP GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
- * \brief Retrives the system bitmap object by identifier.
- *
- * This function returns the system bitmap object by its identifier.
- *
- * \param hWnd The handle to the window.
- * \param id The identifier of the system bitmap object, can be
- * one of the following values:
- *
- *      - SYSBMP_RADIOBUTTON\n
- *      - SYSBMP_CHECKBUTTON\n
- *      - SYSBMP_BGPICTURE\n
- *
- * \return The pointer to the system bitmap object.
- *
- * \sa GetLargeSystemIcon, GetSmallSystemIcon
- */
-MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id);
+static inline const BITMAP* GUIAPI GetSystemBitmapEx (const char* rdr_name,
+        const char* id)
+{
+    return GetSystemBitmapEx2 (HDC_SCREEN, rdr_name, id);
+}
 
 /**
  * \fn PBITMAP GUIAPI GetSystemBitmap (HWND hWnd, const char* id)
- * \brief Retrives the system bitmap object by identifier.
+ * \brief Retrieve the system bitmap object by identifier.
  *
- * This function returns the system bitmap object by its identifier.
+ * This function retrieves and returns the system bitmap object by
+ * its identifier \a id for the specified window \a hWnd.
  *
  * \param hWnd The handle to the window.
  * \param id The identifier of the system bitmap object, can be
- * one of the following values:
+ *  one of the following values:
  *
  *      - SYSBMP_RADIOBUTTON\n
  *      - SYSBMP_CHECKBUTTON\n
@@ -7708,9 +9158,17 @@ MG_EXPORT const BITMAP* GUIAPI GetSystemBitmapByHwnd (HWND hWnd, const char* id)
  *
  * \return The pointer to the system bitmap object.
  *
- * \sa GetLargeSystemIcon, GetSmallSystemIcon
+ * \sa GetSystemBitmapEx2
  */
 MG_EXPORT const BITMAP* GUIAPI GetSystemBitmap (HWND hWnd, const char* id);
+
+/**
+ * \def GetSystemBitmapByHwnd(hWnd, id)
+ * \brief An alias of GetSystemBitmap.
+ *
+ * \sa GetSystemBitmap
+ */
+#define GetSystemBitmapByHwnd(hWnd, id) GetSystemBitmap ((hWnd), (id))
 
 /**
  * \fn void GUIAPI TermSystemBitmapEx (const char* id, \
@@ -7784,7 +9242,7 @@ MG_EXPORT void GUIAPI TermSystemBitmap (HWND hWnd, const char* id, PBITMAP bmp);
  *
  * \return The handle to the loaded icon.
  *
- * \sa LoadSystemBitmap, LoadIconFromFile, DestroyIcon
+ * \sa LoadIconFromFile, DestroyIcon
  */
 MG_EXPORT HICON GUIAPI LoadSystemIconEx (HDC hdc,
         const char* rdr_name, const char* szItemName, int which);
@@ -7801,15 +9259,15 @@ MG_EXPORT HICON GUIAPI LoadSystemIconEx (HDC hdc,
  *
  * \return The handle to the loaded icon.
  *
- * \sa LoadSystemBitmap, LoadIconFromFile, DestroyIcon
+ * \sa LoadIconFromFile, DestroyIcon
  */
 MG_EXPORT HICON GUIAPI LoadSystemIcon (const char* szItemName, int which);
 
 /**
  * \fn HICON GUIAPI GetLargeSystemIconEx (HWND hWnd, int iItem)
- * \brief Retrives a large system icon by its identifier in default renderer.
+ * \brief Retrieve a large system icon by its identifier in default renderer.
  *
- * This function retrives the handle to a large (32x32) system icon
+ * This function retrieves the handle to a large (32x32) system icon
  * by its identifier \a id.
  *
  * \param hWnd The handle to the window.
@@ -7829,9 +9287,9 @@ MG_EXPORT HICON GUIAPI GetLargeSystemIconEx (HWND hWnd, int iItem);
 
 /**
  * \fn HICON GUIAPI GetSmallSystemIconEx (HWND hWnd, int iItem)
- * \brief Retrives a small system icon by its identifier.
+ * \brief Retrieve a small system icon by its identifier.
  *
- * This function retrives the handle to a small (16x16) system icon by
+ * This function retrieves the handle to a small (16x16) system icon by
  * its identifier \a id.
  *
  * \param hWnd The handle to the window.
@@ -7851,7 +9309,7 @@ MG_EXPORT HICON GUIAPI GetSmallSystemIconEx (HWND hWnd, int iItem);
 
 /**
  * \def GetLargeSystemIcon
- * \brief Retrives a large (32x32) system icon by its identifier
+ * \brief Retrieve a large (32x32) system icon by its identifier
  *        in default renderer.
  * \sa GetSmallSystemIconEx
  */
@@ -7859,7 +9317,7 @@ MG_EXPORT HICON GUIAPI GetSmallSystemIconEx (HWND hWnd, int iItem);
 
 /**
  * \def GetSmallSystemIcon
- * \brief Retrives a small (16x16) system icon by its identifier
+ * \brief Retrieve a small (16x16) system icon by its identifier
  *        in default renderer.
  * \sa GetSmallSystemIconEx
  */
@@ -7897,7 +9355,7 @@ MG_EXPORT BOOL GUIAPI EnableScrollBar (HWND hWnd, int iSBar, BOOL bEnable);
 
 /**
  * \fn BOOL GUIAPI GetScrollPos (HWND hWnd, int iSBar, int* pPos)
- * \brief Retrieves the current position of the scroll box (thumb) in the
+ * \brief Retrieve the current position of the scroll box (thumb) in the
  *        specified scroll bar.
  *
  * This function retrieves the current position of the scroll box (thumb) in
@@ -7920,10 +9378,10 @@ MG_EXPORT BOOL GUIAPI GetScrollPos (HWND hWnd, int iSBar, int* pPos);
 
 /**
  * \fn BOOL GUIAPI GetScrollRange (HWND hWnd, int iSBar, int* pMinPos, int* pMaxPos)
- * \brief Retrives the minimum and maximum position values for the specified
+ * \brief Retrieve the minimum and maximum position values for the specified
  * scroll bar.
  *
- * This function retrives the minimum and maximum position values for
+ * This function retrieves the minimum and maximum position values for
  * the specified scroll bar.
  *
  * \param hWnd The handle to the window.
@@ -7947,7 +9405,7 @@ MG_EXPORT BOOL GUIAPI GetScrollRange (HWND hWnd, int iSBar,
 
 /**
  * \fn BOOL GUIAPI SetScrollPos (HWND hWnd, int iSBar, int iNewPos)
- * \brief Sets the position of the scroll box (thumb) of the specified
+ * \brief Set the position of the scroll box (thumb) of the specified
  * scroll bar.
  *
  * This function sets the position of the scroll box (thumb) of the specified
@@ -7972,7 +9430,7 @@ MG_EXPORT BOOL GUIAPI SetScrollPos (HWND hWnd, int iSBar, int iNewPos);
 /**
  * \fn BOOL GUIAPI SetScrollRange (HWND hWnd, int iSBar, \
  *               int iMinPos, int iMaxPos)
- * \brief Sets the minimum and maximum position values for the specified
+ * \brief Set the minimum and maximum position values for the specified
  * scroll bar.
  *
  * This function sets the minimum and maximum position values for the
@@ -8044,11 +9502,11 @@ typedef struct _SCROLLINFO
      * A flag indicates which fields contain valid values,
      * can be OR'ed value of the following values:
      *      - SIF_RANGE\n
-     *        Retrives or sets the range of the scroll bar.
+     *        Retrieve or sets the range of the scroll bar.
      *      - SIF_PAGE\n
-     *        Retrives or sets the page size of the scroll bar.
+     *        Retrieve or sets the page size of the scroll bar.
      *      - SIF_POS\n
-     *        Retrives or sets the position of the scroll bar.
+     *        Retrieve or sets the position of the scroll bar.
      *      - SIF_DISABLENOSCROLL\n
      *        Hides the scroll when disabled, not implemented so far.
      */
@@ -8069,7 +9527,7 @@ typedef struct _SCROLLINFO
 /**
  * \fn BOOL GUIAPI SetScrollInfo (HWND hWnd, int iSBar, \
  *                const SCROLLINFO* lpsi, BOOL fRedraw)
- * \brief Sets the parameters of a scroll bar.
+ * \brief Set the parameters of a scroll bar.
  *
  * This function sets the parameters of a scroll bar, including the
  * minimum and maximum scrolling positions, the page size, and the position
@@ -8094,7 +9552,7 @@ MG_EXPORT BOOL GUIAPI SetScrollInfo (HWND hWnd, int iSBar,
 
 /**
  * \fn BOOL GUIAPI GetScrollInfo (HWND hWnd, int iSBar, PSCROLLINFO lpsi)
- * \brief Retrieves the parameters of a scroll bar.
+ * \brief Retrieve the parameters of a scroll bar.
  *
  * This function retrieves the parameters of a scroll bar, including the
  * minimum and maximum scrolling positions, the page size, and the position
@@ -8151,22 +9609,21 @@ MG_EXPORT BOOL GUIAPI GetScrollInfo (HWND hWnd, int iSBar, PSCROLLINFO lpsi);
 /**
  * Structure defines a window class
  */
-typedef struct _WNDCLASS
-{
+typedef struct _WNDCLASS {
     /** The class name */
     const char* spClassName;
 
     /** The mask of class information, can be OR'd with the following values:
       * - COP_STYLE\n
-      *   Retrive the style of the window class.
+      *   Retrieve the style of the window class.
       * - COP_HCURSOR\n
-      *   Retrive the cursor of the window class.
+      *   Retrieve the cursor of the window class.
       * - COP_BKCOLOR\n
-      *   Retrive the background pixel value of the window class.
+      *   Retrieve the background pixel value of the window class.
       * - COP_WINPROC
-      *   Retrive the window procedure of the window class.
+      *   Retrieve the window procedure of the window class.
       * - COP_ADDDATA\n
-      *   Retrive the additional data of the window class.
+      *   Retrieve the additional data of the window class.
       */
     DWORD   opMask;
 
@@ -8179,8 +9636,38 @@ typedef struct _WNDCLASS
     /** Cursor handle to all instances of this window class */
     HCURSOR hCursor;
 
-    /** Background color pixel value of all instances of this window class */
+#ifndef _MGSCHEMA_COMPOSITING
+    /**
+     * The background pixel value for all instances of this window class.
+     *
+     * Note that this field only available for shared frame buffer schema.
+     * Under compositing schema, you must use \a dwBkColor field to
+     * specify the background color for a control.
+     * This introduces a source code incompatibility, you should change
+     * you code with a conditional compilation statement block:
+     *
+     * \code
+     * #ifdef _MGSCHEMA_COMPOSITING
+     *      MyClass.dwBkColor   = RGBA_lightwhite;
+     * #else
+     *      MyClass.iBkColor    = PIXEL_lightwhite;
+     * #endif
+     * \endcode
+     */
     gal_pixel iBkColor;
+#else   /* not defined _MGSCHEMA_COMPOSITING */
+    /**
+     * The background color for all instances of this window class.
+     *
+     * Note that under compositing schema, you must use this field
+     * to specify the background color of a control class instead of
+     * the pixel value (\a iBkColor).
+     *
+     * The value of this field is a 32-bit RGBA quadruple essentially.
+     * You should use a value returned by \a MakeRGBA macro for this field.
+     */
+    DWORD dwBkColor;
+#endif  /* defined _MGSCHEMA_COMPOSITING */
 
     /** Window callback procedure of all instances of this window class */
     LRESULT (*WinProc) (HWND, UINT, WPARAM, LPARAM);
@@ -8191,6 +9678,7 @@ typedef struct _WNDCLASS
 typedef WNDCLASS* PWNDCLASS;
 
 #define MAINWINCLASSNAME    ("MAINWINDOW")
+#define VIRTWINCLASSNAME    ("VIRTWINDOW")
 #define ROOTWINCLASSNAME    ("ROOTWINDOW")
 
 /**
@@ -8230,7 +9718,7 @@ MG_EXPORT BOOL GUIAPI UnregisterWindowClass (const char* szClassName);
 
 /**
  * \fn const char* GUIAPI GetClassName (HWND hWnd)
- * \brief Retrieves the name of the class to which the specified window belongs.
+ * \brief Retrieve the name of the class to which the specified window belongs.
  *
  * This function retrieves the name of the class to which
  * the specified window \a hWnd belongs.
@@ -8245,9 +9733,9 @@ MG_EXPORT const char* GUIAPI GetClassName (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI GetWindowClassInfo (PWNDCLASS pWndClass)
- * \brief Retrieves the information of the specified window class.
+ * \brief Retrieve the information of the specified window class.
  *
- * This function retrives the information of a window class.
+ * This function retrieves the information of a window class.
  * The window class to be retrived is specified by \a pWndClass->spClassName.
  *
  * \param pWndClass The pointer to a WNDCLASS structure, which specifies the
@@ -8262,7 +9750,7 @@ MG_EXPORT BOOL GUIAPI GetWindowClassInfo (PWNDCLASS pWndClass);
 
 /**
  * \fn BOOL GUIAPI SetWindowClassInfo (const WNDCLASS* pWndClass)
- * \brief Sets the information of the specified window class.
+ * \brief Set the information of the specified window class.
  *
  * This function sets the information of a window class.
  * The window class to be operated is specified by \a pWndClass->spClassName.
@@ -8362,52 +9850,46 @@ static inline HWND GUIAPI CreateWindowEx (const char* spClassName,
 MG_EXPORT BOOL GUIAPI DestroyWindow (HWND hWnd);
 
 /**
- * \var typedef void (* NOTIFPROC)(HWND hwnd, LINT id, int nc, DWORD add_data)
- * \brief Type of the notification callback procedure.
- *
- * This is the function type of Notification Callback Procedure.
- * If you set the Notification Callback Procedure for a control,
- * when a notification occurred the control will call this callback
- * procedure.
- *
- * \note The type of \a id changed from int to LINT since v3.2.
- *
- * \sa SetNotificationCallback
- */
-typedef void (* NOTIFPROC) (HWND hwnd, LINT id, int nc, DWORD add_data);
-
-/**
- * \fn NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd, \
- *                NOTIFPROC notif_proc)
- * \brief Sets a new notification callback procedure for a control.
+ * \fn NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd,
+ *          NOTIFPROC notif_proc)
+ * \brief Set a new notification callback procedure for a window.
  *
  * This function sets the new notification callback procedure (\a notif_proc)
- * for the control of \a hwnd.
+ * for the specified window \a hwnd.
  *
- * By default, the notification from a control will be sent to its parent
- * window within a MSG_COMMAND messsage.
+ * In the early versions, the notification message will be sent to
+ * the target window as a MSG_COMMAND message.
  *
  * Since version 1.2.6, MiniGUI defines the Notification Callback Procedure
- * for control. You can specify a callback function for a control by calling
+ * for a window. You can specify a callback function for a window by calling
  * \a SetNotificationCallback to receive and handle the notifications from
- * the control.
+ * its children in the procedure.
  *
- * If you did not set the notification callback function for a control,
- * the notification will be sent to its parent as same as the earlier
- * version of MiniGUI.
+ * Since version 5.0.0, the notification callback procedure also works for
+ * a main window or a virtual window.
  *
- * \param hwnd The handle to the control.
+ * If you did not set the notification callback function of the target window,
+ * you must handle MSG_COMMAND message in the window procedure of the
+ * target window. However, due to historical reasons, MSG_COMMAND has
+ * the following restrictions:
+ *  - The additional data you specified when calling \a NotifyWindow or
+ *    \a NotifyParentEx will be lost.
+ *  - The value of the identifier and the notification code cannot exceed
+ *    a WORD.
+ *
+ * \param hwnd The handle to the window.
  * \param notif_proc The new notification callback procedure, can be NULL.
+ *
  * \return The old notification callback procedure.
  *
- * \sa NOTIFPROC, GetNotificationCallback
+ * \sa NOTIFPROC, GetNotificationCallback, NotifyWindow, NotifyParentEx
  */
 MG_EXPORT NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd,
                 NOTIFPROC notif_proc);
 
 /**
  * \fn NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd)
- * \brief Gets the notification callback procedure of a control.
+ * \brief Get the notification callback procedure of a control.
  *
  * This function gets the new notification callback procedure of
  * the control of \a hwnd.
@@ -8421,15 +9903,20 @@ MG_EXPORT NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd,
 MG_EXPORT NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd);
 
 /**
- * \def CreateWindow(class_name, caption, style, id, x, y, w, h, parent, add_data)
+ * \def CreateWindow(class_name, caption, style, id, x, y, w, h, parent,
+ *      add_data)
  * \brief A simplified version of \a CreateWindowEx.
  *
  * \sa CreateWindowEx
  */
-#define CreateWindow(class_name, caption, style,        \
-                id, x, y, w, h, parent, add_data)       \
-        CreateWindowEx(class_name, caption, style, 0,   \
-                        id, x, y, w, h, parent, add_data)
+static inline HWND GUIAPI CreateWindow (const char* spClassName,
+                const char* spCaption, DWORD dwStyle,
+                LINT id, int x, int y, int w, int h, HWND hParentWnd,
+                DWORD dwAddData)
+{
+    return CreateWindowEx2 (spClassName, spCaption, dwStyle, WS_EX_NONE,
+                id, x, y, w, h, hParentWnd, NULL, NULL, dwAddData);
+}
 
     /** @} end of control_fns */
 
@@ -8443,7 +9930,8 @@ MG_EXPORT NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd);
  * \var typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD)
  * \brief Type of the timer callback procedure.
  *
- * This is the prototype of the callback procedure of a timer created by SetTimerEx.
+ * This is the prototype of the callback procedure of a timer created by
+ * \a SetTimerEx.
  * MiniGUI will call the timer procedure instead of sending MSG_TIMER message.
  *
  * If the return value of a timer procedure is FALSE, the timer will be killed
@@ -8452,6 +9940,7 @@ MG_EXPORT NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd);
  * \sa SetTimerEx
  *
  * \note The prototype had changed since MiniGUI v3.2; the old one:
+ *
  *      BOOL (* TIMERPROC)(HWND, int, unsigned int)
  */
 typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD);
@@ -8462,11 +9951,14 @@ typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD);
  * \brief Creates a timer with the specified timeout value.
  *
  * This function creates a timer with the specified timeout value \a speed.
- * Note that the timeout value is in unit of 10 ms.
+ * Note that the timeout value is in the unit of 10 ms.
  * When the timer expires, an MSG_TIMER message will be send to the
  * window \a hWnd if \a timer_proc is NULL, otherwise MiniGUI will call
  * \a timer_proc by passing \a hWnd, \a id, and the tick count when this
  * timer had expired to this callback procedure.
+ *
+ * Since 5.0.0, if the specified timer already exists when you call
+ * this function, MiniGUI will reset the timer by using the new parameters.
  *
  * \param hWnd The window receives the MSG_TIMER message. If \a timer_proc
  *        is not NULL, MiniGUI will call \a timer_proc instead sending
@@ -8482,11 +9974,13 @@ typedef BOOL (* TIMERPROC)(HWND, LINT, DWORD);
  *
  * \sa SetTimer, ResetTimerEx, KillTimer, MSG_TIMER
  *
- * \note You should set, reset, and kill a timer in the same thread if your
- *       MiniGUI is configured as MiniGUI-Threads.
+ * \note You should set, reset, and kill a timer in the same message thread
+ *      if your enabled support for the virtual window.
  *
  * \note The prototype had changed since MiniGUI v3.2; the old one:
- *      BOOL GUIAPI SetTimerEx (HWND hWnd, int id, unsigned int speed, TIMERPROC timer_proc);
+ *
+ *      BOOL SetTimerEx (HWND hWnd, int id, unsigned int speed, \
+ *              TIMERPROC timer_proc);
  *
  * Example:
  *
@@ -8511,8 +10005,8 @@ MG_EXPORT BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
  * This function destroys the specified timer \a id.
  *
  * \param hWnd The window owns the timer.
- * \param id The identifier of the timer. If \a id equals 0,
- *        this function will kill all timers in the system.
+ * \param id The identifier of the timer. If \a id is 0, this function will
+ *      kill all timers of created by the window.
  *
  * \return The number of actually killed timer.
  *
@@ -8559,10 +10053,10 @@ MG_EXPORT BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
 
 /**
  * \fn BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
- * \brief Determines whether a timer is installed.
+ * \brief Determine whether a timer is installed.
  *
- * This function determines whether a timer with identifier \a id of
- * a window \a hwnd has been installed.
+ * This function determines whether a timer with identifier \a id for
+ * a window \a hwnd has been installed in the current thread.
  *
  * \param hWnd The window owns the timer.
  * \param id The identifier of the timer.
@@ -8578,10 +10072,11 @@ MG_EXPORT BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id);
 
 /**
  * \fn BOOL GUIAPI HaveFreeTimer (void)
- * \brief Determines whether there is any free timer slot in the system.
+ * \brief Determine whether there is any free timer slot in the current
+ *      thread.
  *
  * This function determines whether there is any free timer slot in the
- * system.
+ * current thread.
  *
  * \return TRUE for yes, otherwise FALSE.
  *
@@ -8659,9 +10154,9 @@ MG_EXPORT int GUIAPI UnregisterIMEWindow (HWND hWnd);
 
 /**
  * \fn int GUIAPI GetIMEStatus (int StatusCode)
- * \brief Retrives status of the current IME window.
+ * \brief Retrieve status of the current IME window.
  *
- * This function retrives status of the current IME window.
+ * This function retrieves status of the current IME window.
  *
  * \param StatusCode The item to be retrived, can be one of the following
  * values:
@@ -8704,7 +10199,7 @@ MG_EXPORT int GUIAPI GetIMEStatus (int StatusCode);
 
 /**
  * \fn int GUIAPI SetIMEStatus (int StatusCode, int Value)
- * \brief Sets the status of the current IME window.
+ * \brief Set the status of the current IME window.
  *
  * This function sets the status of the current IME window.
  *
@@ -8721,9 +10216,9 @@ MG_EXPORT int GUIAPI SetIMEStatus (int StatusCode, int Value);
 
 /**
  * \fn int GUIAPI GetIMETargetInfo (IME_TARGET_INFO* info)
- * \brief Retrives the target info of the current IME window.
+ * \brief Retrieve the target info of the current IME window.
  *
- * This function retrives the target info of the current IME window.
+ * This function retrieves the target info of the current IME window.
  *
  * \param info The item to be retrived. The target info is
  *        return by the current IME Window.
@@ -8736,7 +10231,7 @@ MG_EXPORT int GUIAPI GetIMETargetInfo (IME_TARGET_INFO *info);
 
 /**
  * \fn int GUIAPI SetIMETargetInfo (const IME_TARGET_INFO *info)
- * \brief Sets the target info of the current IME window.
+ * \brief Set the target info of the current IME window.
  *
  * This function sets the target info of the current IME window.
  *
@@ -8753,11 +10248,11 @@ MG_EXPORT int GUIAPI SetIMETargetInfo (const IME_TARGET_INFO *info);
 
 /**
  * \fn int GUIAPI GetIMEPos (POINT* pt)
- * \brief Retrives the position of the current IME window.
+ * \brief Retrieve the position of the current IME window.
  *
  * NOTE that this function is deprecated.
  *
- * This function retrives the position of the current IME window.
+ * This function retrieves the position of the current IME window.
  *
  * \param pt The item to be retrived. The positon is
  *        return by the current IME Window.
@@ -8771,7 +10266,7 @@ MG_EXPORT int GUIAPI GetIMEPos (POINT* pt);
 
 /**
  * \fn int GUIAPI SetIMEPos (POINT* pt)
- * \brief Sets the position of the current IME window.
+ * \brief Set the position of the current IME window.
  *
  * NOTE that this function is deprecated.
  *
@@ -8978,7 +10473,7 @@ MG_EXPORT UINT GUIAPI GetCaretBlinkTime (HWND hWnd);
 
 /**
  * \fn BOOL GUIAPI SetCaretBlinkTime (HWND hWnd, UINT uTime)
- * \brief Sets the caret blink time to the specified number of milliseconds.
+ * \brief Set the caret blink time to the specified number of milliseconds.
  *
  * This function sets the caret blink time to the specified number of
  * milliseconds. The blink time is the elapsed time, in milliseconds,
@@ -9104,7 +10599,7 @@ MG_EXPORT BOOL GUIAPI SetCaretPos (HWND hWnd, int x, int y);
 
 /**
  * \fn BOOL GUIAPI GetCaretPos (HWND hWnd, PPOINT pPt)
- * \brief Gets the caret position.
+ * \brief Get the caret position.
  *
  * This function copies the caret's position, in client coordinates,
  * to the specified POINT structure \a pPt.
@@ -9491,7 +10986,7 @@ MG_EXPORT int GUIAPI DestroyMenu (HMENU hmnu);
 
 /**
  * \fn int GUIAPI IsMenu (HMENU hmnu)
- * \brief Determines whether a handle is a menu handle.
+ * \brief Determine whether a handle is a menu handle.
  *
  * This function determines whether the handle specified by \a hmnu is a
  * menu handle.
@@ -9523,9 +11018,9 @@ MG_EXPORT HMENU GUIAPI SetMenu (HWND hwnd, HMENU hmnu);
 
 /**
  * \fn HMENU GUIAPI GetMenu (HWND hwnd)
- * \brief Retrieves the handle to the menu assigned to the given main window.
+ * \brief Retrieve the handle to the menu assigned to the given main window.
  *
- * This function retrives the handle to the menu assigned to
+ * This function retrieves the handle to the menu assigned to
  * the given main window \a hwnd.
  *
  * \param hwnd The handle to the main window.
@@ -9591,7 +11086,7 @@ MG_EXPORT int GUIAPI TrackMenuBar (HWND hwnd, int pos);
  *      - TPM_DESTROY\n
  *        Destroys the popup menu after finishing tracking.
  *      - TPM_SYSCMD\n
- *        Sends an MSG_SYSCOMMAND message to the window when the use select a
+ *        Send an MSG_SYSCOMMAND message to the window when the use select a
  *        menu item.
  * \param x The x coordinate of the position of the popup menu.
  * \param y The y coordinate of the position of the popup menu.
@@ -9607,7 +11102,7 @@ MG_EXPORT int GUIAPI TrackPopupMenu (HMENU hmnu, UINT uFlags,
 
 /**
  * \fn HMENU GUIAPI GetMenuBarItemRect (HWND hwnd, int pos, RECT* prc)
- * \brief Retrieves the rect of a menu bar item.
+ * \brief Retrieve the rect of a menu bar item.
  *
  * This function retrieves the rect of the menu bar item specified
  * by the parameter \a pos.
@@ -9653,7 +11148,7 @@ MG_EXPORT BOOL GUIAPI HiliteMenuBarItem (HWND hwnd, int pos, UINT flag);
 
 /**
  * \fn int GUIAPI GetMenuItemCount (HMENU hmnu)
- * \brief Determines the number of items in a menu.
+ * \brief Determine the number of items in a menu.
  *
  * This function determines the number of items in the specified menu \a hmnu.
  *
@@ -9667,7 +11162,7 @@ MG_EXPORT int GUIAPI GetMenuItemCount (HMENU hmnu);
 
 /**
  * \fn LINT GUIAPI GetMenuItemID (HMENU hmnu, int pos)
- * \brief Retrieves the menu item identifier of a menu item at specified
+ * \brief Retrieve the menu item identifier of a menu item at specified
  *        position in a menu.
  *
  * This function retrieves the menu item identifier of a menu item at
@@ -9687,7 +11182,7 @@ MG_EXPORT LINT GUIAPI GetMenuItemID (HMENU hmnu, int pos);
 /**
  * \fn int GUIAPI GetMenuItemInfo (HMENU hmnu, LINT item, \
  *               UINT flag, PMENUITEMINFO pmii)
- * \brief Retrieves information about a menu item.
+ * \brief Retrieve information about a menu item.
  *
  * This function retrieves information about a menu item, and returns the
  * information via \a pmii.
@@ -9718,7 +11213,7 @@ int GUIAPI GetMenuItemRect (HWND hwnd, HMENU hmnu,
 
 /**
  * \fn HMENU GUIAPI GetPopupSubMenu (HMENU hpppmnu)
- * \brief Retrieves the submenu of the specified popup menu.
+ * \brief Retrieve the submenu of the specified popup menu.
  *
  * This function retrieves the submenu of the specified popup menu.
  *
@@ -9746,7 +11241,7 @@ MG_EXPORT HMENU GUIAPI StripPopupHead (HMENU hpppmnu);
 
 /**
  * \fn HMENU GUIAPI GetSubMenu (HMENU hmnu, int pos)
- * \brief Retrieves the handle to the submenu activated by the specified menu
+ * \brief Retrieve the handle to the submenu activated by the specified menu
  *        item.
  *
  * This function retrieves the handle to the drop-down menu or submenu
@@ -9808,7 +11303,7 @@ MG_EXPORT UINT GUIAPI EnableMenuItem (HMENU hmnu, LINT item, UINT flag);
 /**
  * \fn LINT GUIAPI CheckMenuRadioItem (HMENU hmnu, LINT first, LINT last, \
  *               LINT checkitem, UINT flag)
- * \brief Checks a specified menu item and makes it a radio item.
+ * \brief Check a specified menu item and makes it a radio item.
  *
  * This function checks a specified menu item and makes it a radio item.
  * At the same time, the function unchecks all other menu items in the
@@ -10194,7 +11689,7 @@ MG_EXPORT void GUIAPI DestroyAllControls (HWND hWnd);
 
 /**
  * \fn HWND GUIAPI GetDlgDefPushButton (HWND hWnd)
- * \brief Gets the default push button control in a window.
+ * \brief Get the default push button control in a window.
  *
  * This function gets the handle to the default push button
  * (with BS_DEFPUSHBUTTON style) in the specified window \a hWnd.
@@ -10207,7 +11702,7 @@ MG_EXPORT HWND GUIAPI GetDlgDefPushButton (HWND hWnd);
 
 /**
  * \fn LINT GUIAPI GetDlgCtrlID (HWND hwndCtl)
- * \brief Gets the integer identifier of a control.
+ * \brief Get the integer identifier of a control.
  *
  * This function gets the integer identifier of the control \a hwndCtl.
  *
@@ -10223,9 +11718,9 @@ MG_EXPORT LINT GUIAPI GetDlgCtrlID (HWND hwndCtl);
 
 /**
  * \fn HWND GUIAPI GetDlgItem (HWND hDlg, LINT nIDDlgItem)
- * \brief Retrives the handle to a control in a dialog box.
+ * \brief Retrieve the handle to a control in a dialog box.
  *
- * This function retrives the handle to a control, whose identifier is
+ * This function retrieves the handle to a control, whose identifier is
  * \a nIDDlgItem, in the specified dialog box \a hDlg.
  *
  * \param hDlg The handle to the dialog box.
@@ -10275,9 +11770,9 @@ MG_EXPORT UINT GUIAPI GetDlgItemInt (HWND hDlg, LINT nIDDlgItem,
 /**
  * \fn int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem, \
  *               char* lpString, int nMaxCount)
- * \brief Retrieves the title or text associated with a control in a dialog box.
+ * \brief Retrieve the title or text associated with a control in a dialog box.
  *
- * This function retrives the title or text associated with a control, whose
+ * This function retrieves the title or text associated with a control, whose
  * identifier is \a nIDDlgItem in the dialog box \a hDlg.
  *
  * \param hDlg The handle to the dialog box.
@@ -10299,7 +11794,7 @@ MG_EXPORT int GUIAPI GetDlgItemText (HWND hDlg, LINT nIDDlgItem,
 
 /**
  * \fn char* GUIAPI GetDlgItemText2 (HWND hDlg, LINT id, int* lenPtr)
- * \brief Retrieves the title or text associated with a control in a dialog box.
+ * \brief Retrieve the title or text associated with a control in a dialog box.
  *
  * This function is similiar as \a GetDlgItemText function,
  * but it allocates memory for the text and returns the pointer
@@ -10322,7 +11817,7 @@ MG_EXPORT char* GUIAPI GetDlgItemText2 (HWND hDlg, LINT id, int* lenPtr);
 /**
  * \fn HWND GUIAPI GetNextDlgGroupItem (HWND hDlg, \
  *               HWND hCtl, BOOL bPrevious)
- * \brief Retrieves the handle to the first control in a group of controls
+ * \brief Retrieve the handle to the first control in a group of controls
  *        that precedes (or follows) the specified control in a dialog box.
  *
  * This function retrieves the handle to the first control in a group of
@@ -10343,7 +11838,7 @@ MG_EXPORT HWND GUIAPI GetNextDlgGroupItem (HWND hDlg,
 
 /**
  * \fn HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious)
- * \brief Retrieves the handle to the first control that has the WS_TABSTOP
+ * \brief Retrieve the handle to the first control that has the WS_TABSTOP
  *        style that precedes (or follows) the specified control.
  *
  * This function retrieves the handle to the first control that has the
@@ -10364,7 +11859,7 @@ MG_EXPORT HWND GUIAPI GetNextDlgTabItem (HWND hDlg, HWND hCtl, BOOL bPrevious);
 /**
  * \fn LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem, \
  *               UINT message, WPARAM wParam, LPARAM lParam)
- * \brief Sends a message to the specified control in a dialog box.
+ * \brief Send a message to the specified control in a dialog box.
  *
  * This function sends a message specified by (\a message, \a wParam, \a lParam)
  * to the specified control whose identifier is \a nIDDlgItem in the dialog
@@ -10388,7 +11883,7 @@ MG_EXPORT LRESULT GUIAPI SendDlgItemMessage (HWND hDlg, LINT nIDDlgItem,
 /**
  * \fn BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem, \
  *               UINT uValue, BOOL bSigned)
- * \brief Sets the text of a control in a dialog box to the string
+ * \brief Set the text of a control in a dialog box to the string
  *        representation of a specified integer value.
  *
  * This function sets the text of the control whose identifier is \a nIDDlgItem
@@ -10413,7 +11908,7 @@ MG_EXPORT BOOL GUIAPI SetDlgItemInt (HWND hDlg, LINT nIDDlgItem,
 /**
  * \fn BOOL GUIAPI SetDlgItemText (HWND hDlg, int nIDDlgItem, \
  *               const char* lpString)
- * \brief Sets the title or text of a control in a dialog box.
+ * \brief Set the title or text of a control in a dialog box.
  *
  * This function sets the title or text of the control whose identifier
  * is \a nIDDlgItem in the dialog box \a hDlg to the string pointed to
@@ -10486,7 +11981,7 @@ MG_EXPORT void GUIAPI CheckRadioButton (HWND hDlg,
 
 /**
  * \fn int GUIAPI IsDlgButtonChecked (HWND hDlg, LINT idButton)
- * \brief Determines whether a button control has a check mark next to it or
+ * \brief Determine whether a button control has a check mark next to it or
  *        whether a three-state button control is grayed, checked, or neither.
  *
  * This function determines whether the button control whose identifier is

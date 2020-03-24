@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -72,7 +72,7 @@
 
 /* ------------------------------------ svlist --------------------------- */
 
-static PSVITEMDATA svlistItemAdd (PSVLIST psvlist, PSVITEMDATA preitem, 
+static PSVITEMDATA svlistItemAdd (PSVLIST psvlist, PSVITEMDATA preitem,
                 PSVITEMDATA nextitem, PSVITEMINFO pii, int *idx)
 {
     PSVITEMDATA ci;
@@ -83,7 +83,7 @@ static PSVITEMDATA svlistItemAdd (PSVLIST psvlist, PSVITEMDATA preitem,
         return NULL;
 
     if (pii) {
-        if (pii->nItemHeight <= 0) 
+        if (pii->nItemHeight <= 0)
             ci->nItemHeight = psvlist->nDefItemHeight;
         else
             ci->nItemHeight = pii->nItemHeight;
@@ -95,7 +95,7 @@ static PSVITEMDATA svlistItemAdd (PSVLIST psvlist, PSVITEMDATA preitem,
         ((MgItem *)ci)->addData = 0;
     }
 
-    ret = mglist_add_item ( (MgList *)psvlist, (MgItem *)ci, (MgItem *)preitem, 
+    ret = mglist_add_item ( (MgList *)psvlist, (MgItem *)ci, (MgItem *)preitem,
                       (MgItem *)nextitem, pii->nItem, idx );
     if (ret < 0) {
         free (ci);
@@ -124,7 +124,7 @@ static void svlist_reset_content (HWND hWnd, PSVLIST psvlist)
 }
 
 //FIXME, to be moved to listmodel.c
-static int isInItem (MgList *mglst, int mouseX, int mouseY, 
+static int isInItem (MgList *mglst, int mouseX, int mouseY,
                      MgItem **pRet, int *item_y)
 {
     //PSVLIST psvlist = (PSVLIST)mglst;
@@ -176,14 +176,14 @@ HSVITEM scrollview_add_item (HWND hWnd, PSVDATA psvdata, HSVITEM prehsvi, PSVITE
 }
 
 //FIXME
-HSVITEM scrollview_add_item_ex (HWND hWnd, PSVDATA psvdata, HSVITEM prehsvi, 
+HSVITEM scrollview_add_item_ex (HWND hWnd, PSVDATA psvdata, HSVITEM prehsvi,
                 HSVITEM nexthsvi, PSVITEMINFO pii, int *idx)
 {
     PSVLIST psvlist = &psvdata->svlist;
     PSVITEMDATA pci;
     int index;
 
-    if ( (pci =svlistItemAdd (psvlist, (PSVITEMDATA)prehsvi, 
+    if ( (pci =svlistItemAdd (psvlist, (PSVITEMDATA)prehsvi,
                       (PSVITEMDATA)nexthsvi, pii, &index)) ) {
         mglist_adjust_items_height (hWnd, (MgList *)psvlist, psvscr, pci->nItemHeight);
     }
@@ -231,7 +231,7 @@ int scrollview_del_item (HWND hWnd, PSVDATA psvdata, int nItem, HSVITEM hsvi)
 DWORD scrollview_get_item_adddata (HSVITEM hsvi)
 {
     return mglist_get_item_adddata (hsvi);
-}   
+}
 
 int scrollview_get_item_index (HWND hWnd, HSVITEM hsvi)
 {
@@ -421,21 +421,21 @@ static int svInitData (HWND hWnd, PSVDATA psvdata)
     RECT rcWnd;
 
     GetClientRect (hWnd, &rcWnd);
-    scrolled_init (hWnd, psvscr, 
+    scrolled_init (hWnd, psvscr,
                     RECTW(rcWnd) - SV_LEFTMARGIN - SV_RIGHTMARGIN,
                     RECTH(rcWnd) - SV_TOPMARGIN - SV_BOTTOMMARGIN);
-    scrolled_init_margins (psvscr, SV_LEFTMARGIN, SV_TOPMARGIN, 
+    scrolled_init_margins (psvscr, SV_LEFTMARGIN, SV_TOPMARGIN,
                            SV_RIGHTMARGIN, SV_BOTTOMMARGIN);
 
     svlist_init (hWnd, &psvdata->svlist);
 
-    psvscr->move_content = scrollview_set_svlist; 
+    psvscr->move_content = scrollview_set_svlist;
     //psvdata->flags = 0;
 
     return 0;
 }
 
-/* 
+/*
  * shoulded be called before scrollview is used
  * hWnd: the scrolled window
  */
@@ -497,7 +497,7 @@ LRESULT ScrollViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         scrollview_destroy (psvdata);
         free (psvdata);
         break;
-    
+
     case MSG_GETDLGCODE:
         return DLGC_WANTARROWS;
 
@@ -528,7 +528,7 @@ LRESULT ScrollViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
         /* skip the invisible items */
         while ( hsvi && ((PSVITEMDATA)hsvi)->nItemHeight <= 0 ) {
-            hsvi = (wParam == SCANCODE_CURSORBLOCKDOWN || wParam == SCANCODE_HOME) ? 
+            hsvi = (wParam == SCANCODE_CURSORBLOCKDOWN || wParam == SCANCODE_HOME) ?
                    scrollview_get_next_item(psvdata, hsvi) : scrollview_get_prev_item(psvdata, hsvi);
         }
 
@@ -585,7 +585,7 @@ LRESULT ScrollViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     }/* end switch */
 
     //return DefaultScrolledProc (hWnd, message, wParam, lParam);
-    return DefaultItemViewProc (hWnd, message, wParam, lParam, 
+    return DefaultItemViewProc (hWnd, message, wParam, lParam,
                                 psvscr, (MgList *)&psvdata->svlist);
 }
 
@@ -597,10 +597,15 @@ BOOL RegisterScrollViewControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = ScrollViewCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #endif /* _MGCTRL_SCROLLVIEW */

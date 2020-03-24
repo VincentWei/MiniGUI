@@ -105,7 +105,8 @@ static void TrackBarOnDraw (HWND hwnd, HDC hdc, TRACKBARDATA* pData, DWORD dwSty
 
         SetBkMode (hdc, BM_TRANSPARENT);
         SetBkColor (hdc, GetWindowBkColor (hwnd));
-        SetTextColor (hdc, GetWindowElementPixel (hwnd, WE_FGC_THREED_BODY));
+        SetTextColor (hdc,
+                GetWindowElementPixelEx (hwnd, hdc, WE_FGC_THREED_BODY));
 
         TextOut (hdc, x + 1, y + (h>>1) - (sliderh>>1) - GAP_TIP_SLIDER,
                             pData->sStartTip);
@@ -542,9 +543,15 @@ BOOL RegisterTrackBarControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (0);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_DESKTOP, WE_MAINC_THREED_BODY);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL,
+            WE_MAINC_THREED_BODY);
+#else
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_NULL,
+            HDC_SCREEN, WE_MAINC_THREED_BODY);
+#endif
     WndClass.WinProc     = TrackBarCtrlProc;
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 #endif /* _MGCTRL_TRACKBAR */
 

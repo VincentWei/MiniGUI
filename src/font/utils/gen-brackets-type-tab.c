@@ -37,7 +37,7 @@
  * along with this library, in a file named COPYING; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301, USA
- * 
+ *
  * For licensing issues, contact <fribidi.license@gmail.com>.
  */
 

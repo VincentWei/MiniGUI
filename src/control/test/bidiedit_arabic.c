@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -56,9 +56,9 @@
 
 static DLGTEMPLATE DlgBoxInputChar =
 {
-    WS_BORDER | WS_CAPTION, 
+    WS_BORDER | WS_CAPTION,
     WS_EX_NONE,
-    0, 0, 400+400, 230, 
+    0, 0, 400+400, 230,
     "bidiedit input (press F1 to change keyboard layout!)",
     0, 0,
     6, NULL,
@@ -73,12 +73,12 @@ static DLGTEMPLATE DlgBoxInputChar =
 #define IDC_BIDICHAR_R  150
 
 static CTRLDATA CtrlInputChar [] =
-{ 
+{
     {
         CTRL_STATIC,
         WS_VISIBLE,
-        10, 10, 380, 18, 
-        IDC_STATIC, 
+        10, 10, 380, 18,
+        IDC_STATIC,
         "bidiedit input ",
         0
     },
@@ -102,8 +102,8 @@ static CTRLDATA CtrlInputChar [] =
     {
         CTRL_STATIC,
         WS_VISIBLE,
-        10, 40+60, 380, 18, 
-        IDC_STATIC2, 
+        10, 40+60, 380, 18,
+        IDC_STATIC2,
         "normal sledit input:",
         0
     },
@@ -117,21 +117,21 @@ static CTRLDATA CtrlInputChar [] =
     },
     {
         CTRL_BUTTON,
-        WS_TABSTOP | WS_VISIBLE | BS_DEFPUSHBUTTON, 
+        WS_TABSTOP | WS_VISIBLE | BS_DEFPUSHBUTTON,
         170-80, 160, 60+100, 25,
-        IDOK, 
+        IDOK,
         "Exit",
         0
     }
 #if 0
     {
         CTRL_MLEDIT,
-        WS_VISIBLE | WS_BORDER | WS_VSCROLL 
+        WS_VISIBLE | WS_BORDER | WS_VSCROLL
             | ES_BASELINE | ES_AUTOWRAP | ES_NOHIDESEL | ES_NOHIDESEL,//| WS_DISABLED,
-        10, 80, 380, 70, 
-        IDC_CHARS, 
+        10, 80, 380, 70,
+        IDC_CHARS,
         NULL,
-        0 
+        0
     },
 #endif
 };
@@ -150,7 +150,7 @@ static void my_notif_proc (HWND hwnd, int id, int nc, DWORD add_data)
         GetWindowText (hwnd, buff, 255);
     }
 */
-}       
+}
 
 #define BUF_LEN    20
 //static char buf[BUF_LEN] = {0xD0, 0xD1, 0xD2, 0xD3};
@@ -226,23 +226,23 @@ static void set_edit_font(HWND hDlg)
     hwnd_edit = GetDlgItem (hDlg, IDC_BIDICHAR);
 
 #if 1
-    	arabicfont = CreateLogFont("vbf", "naskhi", "ISO8859-6", FONT_WEIGHT_REGULAR,
-			FONT_SLANT_ROMAN, FONT_SETWIDTH_NORMAL,
-			FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE,
-			FONT_STRUCKOUT_NONE, 30, 0);
+        arabicfont = CreateLogFont("vbf", "naskhi", "ISO8859-6", FONT_WEIGHT_REGULAR,
+            FONT_SLANT_ROMAN, FONT_SETWIDTH_NORMAL,
+            FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE,
+            FONT_STRUCKOUT_NONE, 30, 0);
 #else
-    	arabicfont = CreateLogFont ("ttf", "DejaVuSans", "ISO8859-6", 
-        		FONT_WEIGHT_REGULAR, FONT_SLANT_ROMAN, 
-            		FONT_SETWIDTH_NORMAL, FONT_SPACING_CHARCELL, 
-            		FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE, 
-            		18, 0);
+        arabicfont = CreateLogFont ("ttf", "DejaVuSans", "ISO8859-6",
+                FONT_WEIGHT_REGULAR, FONT_SLANT_ROMAN,
+                    FONT_SETWIDTH_NORMAL, FONT_SPACING_CHARCELL,
+                    FONT_UNDERLINE_NONE, FONT_STRUCKOUT_NONE,
+                    18, 0);
 #endif
 
     if(arabicfont ==INV_LOGFONT)
         printf("arabicfont create error!\n");
     else
-	printf("the font used %s\n", arabicfont->mbc_devfont->name);
-    
+    printf("the font used %s\n", arabicfont->mbc_devfont->name);
+
     reset_fp_pos();
     pline = read_one_line(&read_over);
     SetWindowFont(hwnd_edit, arabicfont);
@@ -317,7 +317,7 @@ static void set_keyboard_layout(HWND hDlg)
 static int InputCharDialogBoxProc (HWND hDlg, int message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
-        case MSG_INITDIALOG: 
+        case MSG_INITDIALOG:
             set_keyboard_layout(hDlg);
             set_edit_font(hDlg);
             break;

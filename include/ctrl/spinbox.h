@@ -14,10 +14,10 @@
  * \file spinbox.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: spinbox.h 10690 2008-08-18 09:32:47Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -100,9 +100,9 @@ typedef SPININFO *PSPININFO;
 
 /**
  * \fn void GetSpinBoxSize (DWORD dwStyle, int* w, int* h)
- * \brief Gets size of a vertical spin box control.
+ * \brief Get size of a vertical spin box control.
  *
- * The spin box control in MiniGUI has fixed size. 
+ * The spin box control in MiniGUI has fixed size.
  * This function gets the size of a spin box control.
  *
  * \param dwStyle The style of the spin box.
@@ -118,7 +118,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPS_AUTOSCROLL
- * \brief The spinbox control can automatically scroll, 
+ * \brief The spinbox control can automatically scroll,
  *        and disable itself when reach maximal or minimal value.
  */
 #define SPS_AUTOSCROLL          0x00000001L
@@ -131,26 +131,26 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPS_TYPE_NORMAL
- * \brief The spinbox control contains the up and left arrows. 
+ * \brief The spinbox control contains the up and left arrows.
  */
 #define SPS_TYPE_NORMAL         0x00000000L
 
 /**
  * \def SPS_TYPE_UPARROW
- * \brief The spinbox control contains only the up/left arrow. 
+ * \brief The spinbox control contains only the up/left arrow.
  */
 #define SPS_TYPE_UPARROW        0x00000100L
 
 /**
  * \def SPS_TYPE_DOWNARROW
- * \brief The spinbox control contains only the down/right arrow. 
+ * \brief The spinbox control contains only the down/right arrow.
  */
 #define SPS_TYPE_DOWNARROW      0x00000200L
 
 /**
  * \def SPS_TYPE_MASK
  * \brief The mask code of spinbox control.
- */ 
+ */
 #define SPS_TYPE_MASK           0x00000F00L
 
     /** @} end of mgext_ctrl_spinbox_styles */
@@ -167,7 +167,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_SETTARGET
- * \brief Sets the target window of the spinbox.
+ * \brief Set the target window of the spinbox.
  *
  * When the user click the up/left or down/right arrow of the spin box, it will
  * emulate the down and up of the key SCANCODE_CURSORBLOCKUP or
@@ -190,7 +190,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_GETTARGET
- * \brief Gets the target window of the spinbox.
+ * \brief Get the target window of the spinbox.
  *
  * \code
  * SPM_GETTARGET
@@ -205,7 +205,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_SETINFO
- * \brief Sets the parameter information of the spinbox.
+ * \brief Set the parameter information of the spinbox.
  *
  * \code
  * SPM_SETINFO
@@ -225,7 +225,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_GETINFO
- * \brief Gets the parameter infos of the spinbox.
+ * \brief Get the parameter infos of the spinbox.
  *
  * \code
  * SPM_GETINFO
@@ -305,7 +305,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_SETCUR
- * \brief Sets the current position in the range of the spinbox.
+ * \brief Set the current position in the range of the spinbox.
  *
  * \code
  * SPM_SETCUR
@@ -323,7 +323,7 @@ void GetSpinBoxSize (DWORD dwStyle, int* w, int* h);
 
 /**
  * \def SPM_GETCUR
- * \brief Gets the current position in the range of the spinbox.
+ * \brief Get the current position in the range of the spinbox.
  *
  * \code
  * SPM_GETCUR

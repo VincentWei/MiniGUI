@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -68,7 +68,7 @@
 #include "newgal.h"
 #include "pixels_c.h"
 #include "hi3510_fb.h"
-#include "hi3510_fbvideo.h" 
+#include "hi3510_fbvideo.h"
 
 
 #ifndef _MGRM_THREADS
@@ -76,10 +76,10 @@
 #endif
 
 //#define FBCON_DEBUG 1
-//#define _PC_DEBUG 1  
+//#define _PC_DEBUG 1
 
 #ifdef _USE_2D_ACCEL
-#include "hi_tde.h" 
+#include "hi_tde.h"
 #endif
 
 #ifdef _PC_DEBUG
@@ -87,8 +87,8 @@
 typedef struct tagfb_colorkey
 {
     unsigned long key;
-    unsigned char key_enable;	
-    unsigned char mask_enable;	
+    unsigned char key_enable;
+    unsigned char mask_enable;
     unsigned char rmask;
     unsigned char gmask;
     unsigned char bmask;
@@ -109,7 +109,7 @@ extern BOOL mgIsServer;
 #ifndef _MGRM_THREADS
 struct private_hwdata
 {
-	const vidmem_bucket* pBucket;
+    const vidmem_bucket* pBucket;
     GAL_VideoDevice* pDevice; /*该变量用于区分哪个图层，在硬件加速blit中用到*/
 };
 
@@ -150,7 +150,7 @@ static int HI3510_Available(void)
         //close(hi3510_console);
     }
     else {
-    	fprintf(stderr, "failed to open file :%s!\n", GAL_fbdev);
+        fprintf(stderr, "failed to open file :%s!\n", GAL_fbdev);
         return 0;
     }
 
@@ -175,89 +175,89 @@ GAL_Surface logosurface;
 #ifdef _USE_2D_ACCEL
 #ifdef _USE_DBUF
 #if (defined(_TAP_ALL) || defined(_TAP3_VERT_HORI) || defined(_TAP2_VERT) \
-	|| defined(_TAP2_VERT_HORI) || defined(_TAP3_VERT))
-    
-static int HI3510_AntiFlicker(_THIS, GAL_Surface *src, 
-	                                GAL_Rect *srcrect, GAL_Surface *dst, 
-	                                GAL_Rect *dstrect, Uint32 *puiOffsetX, 
-	                                Uint32 *puiOffsetY);
+    || defined(_TAP2_VERT_HORI) || defined(_TAP3_VERT))
 
-static int HI3510_SetOffset(int fd, 
-                                  Uint32 uiOffsetX, 
+static int HI3510_AntiFlicker(_THIS, GAL_Surface *src,
+                                    GAL_Rect *srcrect, GAL_Surface *dst,
+                                    GAL_Rect *dstrect, Uint32 *puiOffsetX,
+                                    Uint32 *puiOffsetY);
+
+static int HI3510_SetOffset(int fd,
+                                  Uint32 uiOffsetX,
                                   Uint32 uiOffsetY);
 
 #endif
 #define HI3510_ALIGN_4(x) (((x)+3)&~3)
 static  int HI3510_GetColorFmt(const GAL_PixelFormat* pixel_fmt, TDE_COLOR_FORMAT* fmt)
 {
-	int ret = -1;
+    int ret = -1;
     Uint32 Rmask, Gmask, Bmask, Amask;
 
     Rmask = pixel_fmt->Rmask;
     Gmask = pixel_fmt->Gmask;
     Bmask = pixel_fmt->Bmask;
     Amask = pixel_fmt->Amask;
-    
+
     switch (pixel_fmt->BitsPerPixel)
     {
        case 12 : //RGB,4:4:4
            if (Rmask==0x0f00 && (Gmask == 0x00f0) && Bmask == 0x000f)
            {
-           	   *fmt = TDE_COLOR_FORMAT_RGB444;
-           	   ret = 0;
+                  *fmt = TDE_COLOR_FORMAT_RGB444;
+                  ret = 0;
            }
            break;
-           
+
        case 16 :
            if (Rmask == 0x0f00 && (Gmask == 0x00f0) && Bmask == 0x000f && Amask == 0xf000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffff);
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffff);
                *fmt = TDE_COLOR_FORMAT_RGB4444;
                ret = 0;
            }
-           else if (Rmask == 0x7c00 && (Gmask == 0x03e0) && Bmask == 0x001f && Amask == 0x0000)	
+           else if (Rmask == 0x7c00 && (Gmask == 0x03e0) && Bmask == 0x001f && Amask == 0x0000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffff);
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffff);
                *fmt = TDE_COLOR_FORMAT_RGB555;
                ret = 0;
            }
-           else if (Rmask == 0x7c00 && (Gmask == 0x03e0) && Bmask == 0x001f && Amask == 0x8000)	
+           else if (Rmask == 0x7c00 && (Gmask == 0x03e0) && Bmask == 0x001f && Amask == 0x8000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffff);           	
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffff);
                *fmt = TDE_COLOR_FORMAT_RGB1555;
                ret = 0;
            }
-           else if (Rmask == 0xf800 && (Gmask == 0x07e0) && Bmask == 0x001f && Amask == 0x0000)	
+           else if (Rmask == 0xf800 && (Gmask == 0x07e0) && Bmask == 0x001f && Amask == 0x0000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffff);           	
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffff);
                *fmt = TDE_COLOR_FORMAT_RGB565;
                ret = 0;
            }
            break;
        case 24 :
-           if (Rmask == 0xff0000 && (Gmask == 0x00ff0) && Bmask == 0x0000ff && Amask == 0x000000)	
+           if (Rmask == 0xff0000 && (Gmask == 0x00ff0) && Bmask == 0x0000ff && Amask == 0x000000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffffff);           	
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffffff);
                *fmt = TDE_COLOR_FORMAT_RGB888;
                ret = 0;
            }
            break;
        case 32 :
-           if (Rmask == 0xff0000 && (Gmask == 0x00ff00) && Bmask == 0x0000ff && Amask == 0xff000000)	
+           if (Rmask == 0xff0000 && (Gmask == 0x00ff00) && Bmask == 0x0000ff && Amask == 0xff000000)
            {
-           	   assert(Rmask+Amask+Gmask+Bmask == 0xffffffff);           	
+                  assert(Rmask+Amask+Gmask+Bmask == 0xffffffff);
                *fmt = TDE_COLOR_FORMAT_RGB8888;
                ret = 0;
            }
            break;
-           
+
        default:
            ret = -1;
     }
 
-	return ret;
+    return ret;
 }
-	
+
 #define HI3510_GET_PHY(virtual_addr) ((U8*)(virtual_addr-mapped_mem + saved_finfo.smem_start))
 #define HI3510_CHECK_VIRTUAL_ADDR(virtual_addr)  assert(virtual_addr-mapped_mem < saved_finfo.smem_len)
 
@@ -302,7 +302,7 @@ static int ShowLogo (_THIS, Uint32* dst)
 
     pvirtual_addr = (Uint8*)logosurface.pixels;
 
-    HI3510_CHECK_VIRTUAL_ADDR(pvirtual_addr);    
+    HI3510_CHECK_VIRTUAL_ADDR(pvirtual_addr);
     param.src_pixels = HI3510_GET_PHY(pvirtual_addr);
     param.src_stride = HI3510_ALIGN_4(logosurface.pitch);
     printMBParam(&param);
@@ -315,10 +315,10 @@ static int ShowLogo (_THIS, Uint32* dst)
       pdst = (Uint8*)dst + OutRect.x * 2+ OutRect.y*__gal_screen->pitch;
 
       printf ("pitch = %d\n", HI3510_ALIGN_4(param.out_stride));
-     
+
       for (i = 0; i < OutRect.h; i++)
       {
-          memcpy(pdst, psrc, HI3510_ALIGN_4(param.out_stride));          
+          memcpy(pdst, psrc, HI3510_ALIGN_4(param.out_stride));
           psrc += HI3510_ALIGN_4(logosurface.pitch);
           pdst += HI3510_ALIGN_4(param.out_stride);
 
@@ -334,32 +334,32 @@ static int ShowLogo (_THIS, Uint32* dst)
     }
 #endif
 
-    return 0;            
+    return 0;
 }
 #endif
 
 static int HI3510_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
                        GAL_Surface *dst, GAL_Rect *dstrect)
 {
-	TDE_MoveBlitParam param;
-	Uint8 r,g,b;
-	Uint8* pvirtual_addr;
+    TDE_MoveBlitParam param;
+    Uint8 r,g,b;
+    Uint8* pvirtual_addr;
     TDE_COLOR_FORMAT color_fmt;
 #if (defined(_TAP_ALL) || defined(_TAP3_VERT_HORI) || defined(_TAP2_VERT) \
      || defined(_TAP2_VERT_HORI)|| defined(_TAP3_VERT)) \
-     && defined(_USE_2D_ACCEL) && defined(_USE_DBUF)     
+     && defined(_USE_2D_ACCEL) && defined(_USE_DBUF)
     Uint32 uiOffsetX = 0;
     Uint32 uiOffsetY = 0;
 #endif
-    
+
 #ifndef _MGRM_THREADS
     GAL_VideoDevice* this;
     this = ((struct private_hwdata*)src->hwdata)->pDevice;
-    #ifdef FBCON_DEBUG    
+    #ifdef FBCON_DEBUG
     if (this == NULL || this != ((struct private_hwdata*)dst->hwdata)->pDevice)
-    	fprintf(stderr, "the video device is error! src->pdevice:%p, dst->pdevice:%p",
-    	        this, ((struct private_hwdata*)dst->hwdata)->pDevice);
-     #endif    	
+        fprintf(stderr, "the video device is error! src->pdevice:%p, dst->pdevice:%p",
+                this, ((struct private_hwdata*)dst->hwdata)->pDevice);
+     #endif
 #endif
 
 #if (defined(_TAP_ALL) || defined(_TAP3_VERT_HORI) || defined(_TAP2_VERT) \
@@ -367,27 +367,27 @@ static int HI3510_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
      && defined(_USE_2D_ACCEL) && defined(_USE_DBUF)
     /*if dst is current video surface, should do antiflicker*/
 #ifdef _MGRM_THREADS
-    if ((src == __gal_screen) && (src->flags & GAL_HWSURFACE) 	
-    	&& (dst == __mg_current_video->screen))
+    if ((src == __gal_screen) && (src->flags & GAL_HWSURFACE)
+        && (dst == __mg_current_video->screen))
 #else
-    if (mgIsServer && (src->flags & GAL_DOUBLEBUF) 
-    	&& (src->flags & GAL_HWSURFACE)	&& (dst == this->screen))
+    if (mgIsServer && (src->flags & GAL_DOUBLEBUF)
+        && (src->flags & GAL_HWSURFACE)    && (dst == this->screen))
 #endif
     {
        if ((TAP_MIN_VALUE <= tap_level) && (TAP_MAX_VALUE >= tap_level))
        {
 #ifdef _MGRM_THREADS
-	       if (0 == HI3510_AntiFlicker(__mg_current_video, src, srcrect, dst, 
-	       	                           dstrect, &uiOffsetX, &uiOffsetY))
+           if (0 == HI3510_AntiFlicker(__mg_current_video, src, srcrect, dst,
+                                          dstrect, &uiOffsetX, &uiOffsetY))
 #else
            if (0 == HI3510_AntiFlicker(this, src, srcrect, dst, dstrect,
-           	                           &uiOffsetX, &uiOffsetY))
+                                          &uiOffsetX, &uiOffsetY))
 #endif
-	       {
-	           HI3510_SetOffset(console_fd, uiOffsetX, uiOffsetY); 
-	           return 0;
-	       }
-	   }
+           {
+               HI3510_SetOffset(console_fd, uiOffsetX, uiOffsetY);
+               return 0;
+           }
+       }
 
       }
 #endif
@@ -396,9 +396,9 @@ static int HI3510_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
     if (HI3510_GetColorFmt(src->format, &color_fmt) < 0)
     {
         fprintf(stderr,"error: file:%s, line:%d\n", __FILE__, __LINE__);
-    	return -1;
+        return -1;
     }
-    
+
     if (src->flags & GAL_SRCCOLORKEY)
     {
         param.ColorSpaceOpt = TDE_COLORSPACE_ENABLE;
@@ -410,27 +410,27 @@ static int HI3510_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
 
     if (src->flags & GAL_SRCALPHA)
     {
-    	if (0)//(src->format->Amask != 0)
-    	{
-    	    param.DataOpt = TDE_DATA_OPT_ALPHA_SRC;    		
-    	}
-    	else
-    	{
-    	    param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
-    	    param.InternalAlpha = src->format->alpha;
-    	}
+        if (0)//(src->format->Amask != 0)
+        {
+            param.DataOpt = TDE_DATA_OPT_ALPHA_SRC;
+        }
+        else
+        {
+            param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
+            param.InternalAlpha = src->format->alpha;
+        }
     }
 
 #if 0
     if ((src->flags & GAL_ROP) && src->format->rop != ROP_SET)
     {
-    	if (src->format->rop == ROP_AND)
-    	    param.RopCode = TDE_ROP_PSDa;
-    	else if (src->format->rop == ROP_OR)
-    		param.RopCode = TDE_ROP_PSDo;
-    	else if (src->format->rop == ROP_XOR)
-    		param.RopCode = TDE_ROP_PSDx;
-        else 
+        if (src->format->rop == ROP_AND)
+            param.RopCode = TDE_ROP_PSDa;
+        else if (src->format->rop == ROP_OR)
+            param.RopCode = TDE_ROP_PSDo;
+        else if (src->format->rop == ROP_XOR)
+            param.RopCode = TDE_ROP_PSDx;
+        else
            printf("the rop is invalid, file:%s, line:%d!\n", __FILE__,__LINE__);
         param.DataOpt = TDE_DATA_OPT_ROP;
     }
@@ -459,7 +459,7 @@ static int HI3510_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
         fprintf(stderr,"error: file:%s, line:%d\n", __FILE__, __LINE__);
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -473,20 +473,20 @@ static int HI3510_CheckHWBlit(_THIS, GAL_Surface *src, GAL_Surface *dst)
     //only supported the hw surface accelerated.
     if (!(src->flags & GAL_HWSURFACE) || !(dst->flags & GAL_HWSURFACE))
     {
-    	return -1;
+        return -1;
     }
 
 #if 0
     if ((src->flags&GAL_DESTCOLORKEY))
     {
-    	fprintf(stderr, "src->flags:%x,unsupported GAL_DESTCOLORKEY\n", src->flags);
+        fprintf(stderr, "src->flags:%x,unsupported GAL_DESTCOLORKEY\n", src->flags);
         return -1;
     }
 
     if ((src->flags&GAL_SRCALPHA) && (src->flags&GAL_ROP) && (src->format->rop != ROP_SET))
     {
-    	fprintf(stderr, "unsupported GAL_SRCALPHA|GAL_ROP\n");
-        return -1;	
+        fprintf(stderr, "unsupported GAL_SRCALPHA|GAL_ROP\n");
+        return -1;
     }
 #endif
 
@@ -503,15 +503,15 @@ static int HI3510_CheckHWBlit(_THIS, GAL_Surface *src, GAL_Surface *dst)
  /* Fills a surface rectangle with the given color */
 static int HI3510_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
 {
-	Uint8 r,g,b;
-	Uint8* pvirtual_addr;
-	TDE_SolidDrawParam param;
+    Uint8 r,g,b;
+    Uint8* pvirtual_addr;
+    TDE_SolidDrawParam param;
     TDE_COLOR_FORMAT color_fmt;
-    	
-	if (!(dst->flags & GAL_HWSURFACE))
-	{
-		return -1;
-	}
+
+    if (!(dst->flags & GAL_HWSURFACE))
+    {
+        return -1;
+    }
 
     memset(&param, 0x00, sizeof(param));
 
@@ -522,8 +522,8 @@ static int HI3510_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 col
 
     if (dst->format->Amask == 0xff000000)
     {
- 	    param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
-    	    param.InternalAlpha = 0xff;
+         param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
+            param.InternalAlpha = 0xff;
             param.OutAlphaFrom = TDE_OUT_ALPHAFROM_INTERNAL;
     }
     else
@@ -535,9 +535,9 @@ static int HI3510_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 col
     if (HI3510_GetColorFmt(dst->format, &color_fmt) < 0)
     {
         fprintf(stderr, "error: file:%s, line:%d\n", __FILE__, __LINE__);
-    	return -1;
+        return -1;
     }
-    
+
     param.InColorFormat = color_fmt;
     param.OutColorFormat = color_fmt;
 
@@ -554,24 +554,24 @@ static int HI3510_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 col
         return -1;
     }
 
-    	
+
     printSDParam(&param);
-	return 0;
+    return 0;
 }
 
 /* Fills a surface rectangle with the given bitmap */
-int HI3510_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMAP pattern)
+int HI3510_FillHWRectWithPattern(_THIS, GAL_Surface    *dst, GAL_Rect *rect, PBITMAP pattern)
 {
-	Uint8* pvirtual_addr;
-	TDE_PatternFillParam param;
+    Uint8* pvirtual_addr;
+    TDE_PatternFillParam param;
     TDE_COLOR_FORMAT color_fmt;
-    
-	if (!(dst->flags & GAL_HWSURFACE))
-	{
+
+    if (!(dst->flags & GAL_HWSURFACE))
+    {
         fprintf(stderr,"error: file:%s, line:%d\n", __FILE__, __LINE__);
-		return -1;
-	}
-  
+        return -1;
+    }
+
     if (pattern->bmPitch > 64)
     {
         return -1;
@@ -587,13 +587,13 @@ int HI3510_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMA
     if (HI3510_GetColorFmt(dst->format, &color_fmt) < 0)
     {
         fprintf(stderr, "error,file:%s, line:%d\n", __FILE__, __LINE__);
-    	return -1;
+        return -1;
     }
 
     if (rect == NULL)
     {
         fprintf(stderr, "error,file:%s, line:%d\n", __FILE__, __LINE__);
-    	return -1;
+        return -1;
     }
 
     if (pattern->bmType & BMP_TYPE_COLORKEY)
@@ -605,8 +605,8 @@ int HI3510_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMA
 
     if (pattern->bmType & BMP_TYPE_ALPHACHANNEL)
     {
-    	param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
-    	param.InternalAlpha = pattern->bmAlpha;
+        param.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
+        param.InternalAlpha = pattern->bmAlpha;
     }
 
     param.opt_width = (U16)(rect->w);
@@ -618,7 +618,7 @@ int HI3510_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMA
     param.InColorFormat = param.OutColorFormat = color_fmt;
     param.pattern_width= pattern->bmWidth;
     param.pattern_height = pattern->bmHeight;
-    
+
     //memmove(pattern_addr, pattern->bmBits, pattern_size);
     param.src_pixels = HI3510_GET_PHY(pattern->bmBits);
     param.src_stride = HI3510_ALIGN_4(pattern->bmPitch);
@@ -628,34 +628,34 @@ int HI3510_FillHWRectWithPattern(_THIS, GAL_Surface	*dst, GAL_Rect *rect, PBITMA
         return -1;
     }
     printPFParam(&param);
-	return 0;
+    return 0;
 }
 
 #if (defined(_TAP_ALL) || defined(_TAP3_VERT_HORI) || defined(_TAP2_VERT) \
      || defined(_TAP2_VERT_HORI)|| defined(_TAP3_VERT)) \
-     && defined(_USE_2D_ACCEL) && defined(_USE_DBUF)  
-    
+     && defined(_USE_2D_ACCEL) && defined(_USE_DBUF)
+
 /*obligate middle video memory for antiflicker*/
-static int HI3510_GetAllAFVMem(_THIS, 
-                                  Uint32 iPitch, 
+static int HI3510_GetAllAFVMem(_THIS,
+                                  Uint32 iPitch,
                                   Uint32 iHeight,
                                   Uint32 *puiVirtualYRes)
-{    
+{
     struct fb_fix_screeninfo finfo;
     Uint32 iSize = iPitch * iHeight;
-    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0 ) 
+    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0 )
     {
-	    fprintf (stderr, "Couldn't get console hardware info");	    
-	    return -1;
+        fprintf (stderr, "Couldn't get console hardware info");
+        return -1;
     }
 #if defined(_TAP_ALL) || defined(_TAP3_VERT_HORI)
     if (mapped_memlen >= iSize*5)
     {
         middle_buf1 = (Uint32)finfo.smem_start + mapped_offset;
         middle_buf2 = middle_buf1 + iSize;
-        middle_buf3 = middle_buf2 + iSize;  
+        middle_buf3 = middle_buf2 + iSize;
         current_buf = middle_buf3 + iSize;
-        tap_level = TAP_2_VERT;//TAP_3_VERT_HORI;   
+        tap_level = TAP_2_VERT;//TAP_3_VERT_HORI;
         *puiVirtualYRes = iHeight << 2;
         return iSize*3;
     }
@@ -666,7 +666,7 @@ static int HI3510_GetAllAFVMem(_THIS,
 #elif defined(_TAP2_VERT)
     if (mapped_memlen >= iSize*3)
     {
-        middle_buf1 = (Uint32)finfo.smem_start + mapped_offset;  
+        middle_buf1 = (Uint32)finfo.smem_start + mapped_offset;
         current_buf = middle_buf1 + iSize;
         tap_level = TAP_2_VERT;
         *puiVirtualYRes = iHeight << 1;
@@ -680,7 +680,7 @@ static int HI3510_GetAllAFVMem(_THIS,
     if (mapped_memlen >= (iSize<<2))
     {
         middle_buf1 = (Uint32)finfo.smem_start + mapped_offset;
-        middle_buf2 = middle_buf1 + iSize; 
+        middle_buf2 = middle_buf1 + iSize;
         current_buf = middle_buf2 + iSize;
         tap_level = TAP_2_VERT_HORI;
         *puiVirtualYRes = 3 * iHeight;
@@ -694,7 +694,7 @@ static int HI3510_GetAllAFVMem(_THIS,
     if (mapped_memlen >= iSize<<2)
     {
         middle_buf1 = (Uint32)finfo.smem_start + mapped_offset;
-        middle_buf2 = middle_buf1 + iSize;  
+        middle_buf2 = middle_buf1 + iSize;
         current_buf = middle_buf2 + iSize;
         tap_level = TAP_3_VERT;
         *puiVirtualYRes = 3 * iHeight;
@@ -707,8 +707,8 @@ static int HI3510_GetAllAFVMem(_THIS,
 #endif
 }
 
-static int HI3510_SetOffset(int fd, 
-                                  Uint32 uiOffsetX, 
+static int HI3510_SetOffset(int fd,
+                                  Uint32 uiOffsetX,
                                   Uint32 uiOffsetY)
 {
     struct fb_var_screeninfo vinfo;
@@ -726,43 +726,43 @@ static int HI3510_SetOffset(int fd,
         fprintf(stderr, "Serious error, offset framebuffer failed.\n");
         return -1;
     }
-    return 0;    
+    return 0;
 }
 
 #ifdef _TAP_ALL
 
 /*set antiflicker level*/
 static int SetTapLevel(int iLayerIndex, int iLevel)
-{ 
+{
 
 #ifndef _MGRM_THREADS
     if ((0 > iLayerIndex) || (1 < iLayerIndex)
-    	|| (0 > iLevel) || (TAP_MAX_VALUE < iLevel)
-    	|| (0 == g_stHidden_3510[iLayerIndex].uiMiddleBuf1))
+        || (0 > iLevel) || (TAP_MAX_VALUE < iLevel)
+        || (0 == g_stHidden_3510[iLayerIndex].uiMiddleBuf1))
     {
         return -1;
     }
     TDE_WaitForDone();
-    g_stHidden_3510[iLayerIndex].uiTapLevel = (Uint32)iLevel;   
-   
+    g_stHidden_3510[iLayerIndex].uiTapLevel = (Uint32)iLevel;
+
     if (0 == iLevel)
-    {                
+    {
         HI3510_SetOffset(g_stHidden_3510[iLayerIndex].console_fd1,
-                         0, 
+                         0,
                         (g_stHidden_3510[iLayerIndex].uiCurrentBuf
                         - g_stHidden_3510[iLayerIndex].uiMiddleBuf1)/
                         g_stHidden_3510[iLayerIndex].finfo.line_length);
-                   
+
     }
 #endif
     return 0;
 }
 #endif
 struct timeval tv1, tv2;
-static int HI3510_AntiFlicker(_THIS, GAL_Surface *src, 
-	                                GAL_Rect *srcrect, GAL_Surface *dst, 
-	                                GAL_Rect *dstrect, Uint32 *puiOffsetX, 
-	                                Uint32 *puiOffsetY)
+static int HI3510_AntiFlicker(_THIS, GAL_Surface *src,
+                                    GAL_Rect *srcrect, GAL_Surface *dst,
+                                    GAL_Rect *dstrect, Uint32 *puiOffsetX,
+                                    Uint32 *puiOffsetY)
 {
     static Uint32 uiDisplay = 0;
     static Uint32 uiOffset = 0;
@@ -771,34 +771,34 @@ static int HI3510_AntiFlicker(_THIS, GAL_Surface *src,
     {
         shadow_buf = current_buf
                      + (src->pixels - dst->pixels);
-        uiOffset = this->offset_y * this->screen->pitch 
-        	       + this->offset_x * this->screen->format->BytesPerPixel;
+        uiOffset = this->offset_y * this->screen->pitch
+                   + this->offset_x * this->screen->format->BytesPerPixel;
     }
     switch (tap_level)
     {
         case 1:
-        {        
-        	if (uiDisplay == current_buf)
-        	{
-        	    uiDisplay = middle_buf1;
-        	}
-        	else
-        	{
-        	    uiDisplay = current_buf;
-        	}
+        {
+            if (uiDisplay == current_buf)
+            {
+                uiDisplay = middle_buf1;
+            }
+            else
+            {
+                uiDisplay = current_buf;
+            }
             pBuf = (Uint8 *)(mapped_mem + (uiDisplay - middle_buf1));
-            memset(pBuf, 
-            	   0, 
-            	   this->screen->pitch * this->screen->h);
-            TDE_AntiFlicker(shadow_buf, 
-	                    shadow_buf + this->screen->pitch, 
-	                    uiDisplay, 
-	                    this->screen->w - this->offset_x, 
-	                    this->screen->h - 1 - this->offset_y,
-	                    this->screen->pitch, 50, 1, uiOffset);
-            
-    	    
-        	break;
+            memset(pBuf,
+                   0,
+                   this->screen->pitch * this->screen->h);
+            TDE_AntiFlicker(shadow_buf,
+                        shadow_buf + this->screen->pitch,
+                        uiDisplay,
+                        this->screen->w - this->offset_x,
+                        this->screen->h - 1 - this->offset_y,
+                        this->screen->pitch, 50, 1, uiOffset);
+
+
+            break;
         }
         case 2:
         {
@@ -812,22 +812,22 @@ static int HI3510_AntiFlicker(_THIS, GAL_Surface *src,
             }
 #if 1
             pBuf = (Uint8 *)(mapped_mem + (uiDisplay - middle_buf1));
-            memset(pBuf, 
-            	   0, 
-            	   this->screen->pitch * this->screen->h);
-#endif     
-   	TDE_AntiFlicker(shadow_buf, 
-                    shadow_buf + this->screen->pitch, 
-                    middle_buf1, this->screen->w, 
+            memset(pBuf,
+                   0,
+                   this->screen->pitch * this->screen->h);
+#endif
+       TDE_AntiFlicker(shadow_buf,
+                    shadow_buf + this->screen->pitch,
+                    middle_buf1, this->screen->w,
                     this->screen->h - 1,
                     this->screen->pitch, 50, 0, 0);
-            TDE_AntiFlicker(middle_buf1, 
-            	middle_buf1 + this->screen->format->BytesPerPixel, 
-            	uiDisplay, 
-	            this->screen->w - 1 - - this->offset_x, 
-	            this->screen->h - 2 - - this->offset_y, 
-	            this->screen->pitch, 50, 1, uiOffset); 
-        	break;
+            TDE_AntiFlicker(middle_buf1,
+                middle_buf1 + this->screen->format->BytesPerPixel,
+                uiDisplay,
+                this->screen->w - 1 - - this->offset_x,
+                this->screen->h - 2 - - this->offset_y,
+                this->screen->pitch, 50, 1, uiOffset);
+            break;
         }
         case 3:
         {
@@ -840,22 +840,22 @@ static int HI3510_AntiFlicker(_THIS, GAL_Surface *src,
                 uiDisplay = current_buf;
             }
             pBuf = (Uint8 *)(mapped_mem + (uiDisplay - middle_buf1));
-            memset(pBuf, 
-            	   0, 
-            	   this->screen->pitch * this->screen->h);
+            memset(pBuf,
+                   0,
+                   this->screen->pitch * this->screen->h);
             TDE_AntiFlicker(shadow_buf,
                 shadow_buf + this->screen->pitch,
                 middle_buf1, this->screen->w,
                 this->screen->h - 1,
                 this->screen->pitch, 33, 0, 0);
-            TDE_AntiFlicker(middle_buf1, 
-            	shadow_buf + (this->screen->pitch<<1), 
-           	    uiDisplay,
+            TDE_AntiFlicker(middle_buf1,
+                shadow_buf + (this->screen->pitch<<1),
+                   uiDisplay,
                 this->screen->w  - this->offset_x,
                 this->screen->h  - this->offset_y,
                 this->screen->pitch, 75, 1, uiOffset);
 
-        	break;
+            break;
         }
         case 4:
         {
@@ -870,18 +870,18 @@ static int HI3510_AntiFlicker(_THIS, GAL_Surface *src,
             }
 #if 1
             pBuf = (Uint8 *)(mapped_mem + (uiDisplay - middle_buf1));
-            memset(pBuf, 
-            	   0, 
-            	   this->screen->pitch * this->screen->h);
-#endif     
+            memset(pBuf,
+                   0,
+                   this->screen->pitch * this->screen->h);
+#endif
        TDE_AntiFlicker(shadow_buf,
                 shadow_buf + this->screen->pitch,
                 middle_buf1, this->screen->w,
                 this->screen->h - 1,
                 this->screen->pitch, 33, 0, 0);
-            TDE_AntiFlicker(middle_buf1, 
-            	shadow_buf + (this->screen->pitch<<1) , 
-            	middle_buf1,
+            TDE_AntiFlicker(middle_buf1,
+                shadow_buf + (this->screen->pitch<<1) ,
+                middle_buf1,
                 this->screen->w,
                 this->screen->h - 2,
                 this->screen->pitch, 75, 0, 0);
@@ -896,19 +896,19 @@ static int HI3510_AntiFlicker(_THIS, GAL_Surface *src,
            // gettimeofday(&tv2, NULL);
            // printf("anti, use time:%d\n",
              //   (tv2.tv_sec - tv1.tv_sec)*1000000 + tv2.tv_usec - tv1.tv_usec);
-        	break;
+            break;
         }
         default:
-        	return -1;
+            return -1;
     }
     *puiOffsetX = 0;
     *puiOffsetY = (uiDisplay - middle_buf1)/this->screen->pitch;
     //printf("zzzzzzzzzzzzzzzzzzzzzzz\n");
     //ShowLogo (this, uiDisplay);
-    
+
     return 0;
 }
- 
+
 //
 #endif
 #endif
@@ -933,14 +933,14 @@ BOOL FB_CreateDevice(GAL_VideoDevice *device)
 
     GAL_fbdev = "/dev/fb/0";
     console_fd = open(GAL_fbdev, O_RDWR, 0);
-    if ( console_fd < 0 ) 
+    if ( console_fd < 0 )
     {
         return FALSE;
     }
-    
-    
+
+
     memset(this, 0, (sizeof *this));
- 
+
     wait_vbl = HI3510_WaitVBL;
     wait_idle = HI3510_WaitIdle;
 
@@ -978,7 +978,7 @@ static int HI3510_VideoInit(_THIS, GAL_PixelFormat *vformat)
 
     console_fd = hi3510_console;
     /* Get the type of video hardware */
-    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0 ) 
+    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0 )
     {
         fprintf (stderr, "Couldn't get console hardware info\n");
         HI3510_VideoQuit(this);
@@ -1006,7 +1006,7 @@ static int HI3510_VideoInit(_THIS, GAL_PixelFormat *vformat)
         return(-1);
     }
     vformat->BitsPerPixel = vinfo.bits_per_pixel;
- 
+
     for ( i=0; i<vinfo.red.length; ++i ) {
         vformat->Rmask <<= 1;
         vformat->Rmask |= (0x00000001<<vinfo.red.offset);
@@ -1129,102 +1129,102 @@ static GAL_Surface *HI3510_SetVideoMode(_THIS, GAL_Surface *current,
     Sint8 *surfaces_mem;
     int surfaces_len;
     int iAFBufLen = -1;
-    
+
 #if (defined(_TAP_ALL) || defined(_TAP3_VERT_HORI) || defined(_TAP2_VERT) \
      || defined(_TAP2_VERT_HORI)|| defined(_TAP3_VERT)) \
-     && defined(_USE_2D_ACCEL) && defined(_USE_DBUF)    
-	Uint32 uiVirtualYRes = 0;     
-#endif   
+     && defined(_USE_2D_ACCEL) && defined(_USE_DBUF)
+    Uint32 uiVirtualYRes = 0;
+#endif
 
     /* Set the video mode and get the final screen format */
-    if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 ) 
+    if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 )
     {
         fprintf (stderr, "Couldn't get console screen info");
         return(NULL);
     }
-    
+
 #ifdef FBCON_DEBUG
     fprintf(stderr, "Printing original vinfo:\n");
     print_vinfo(&vinfo);
 #endif
 
-  	if (mgIsServer)
-  	{
-	    vinfo.activate = FB_ACTIVATE_NOW;
-	    vinfo.accel_flags = 0;
-	    vinfo.bits_per_pixel = bpp;
-	    vinfo.xres = width;
-	    vinfo.xres_virtual = width;
-	    vinfo.yres = height;
-	    vinfo.yres_virtual = height;
-	    vinfo.xoffset = 0;
-	    vinfo.yoffset = 0;
-	    vinfo.red.length = vinfo.red.offset = 0;
-	    vinfo.green.length = vinfo.green.offset = 0;
-	    vinfo.blue.length = vinfo.blue.offset = 0;
-	    vinfo.transp.length = vinfo.transp.offset = 0;
+      if (mgIsServer)
+      {
+        vinfo.activate = FB_ACTIVATE_NOW;
+        vinfo.accel_flags = 0;
+        vinfo.bits_per_pixel = bpp;
+        vinfo.xres = width;
+        vinfo.xres_virtual = width;
+        vinfo.yres = height;
+        vinfo.yres_virtual = height;
+        vinfo.xoffset = 0;
+        vinfo.yoffset = 0;
+        vinfo.red.length = vinfo.red.offset = 0;
+        vinfo.green.length = vinfo.green.offset = 0;
+        vinfo.blue.length = vinfo.blue.offset = 0;
+        vinfo.transp.length = vinfo.transp.offset = 0;
 
 #ifdef FBCON_DEBUG
-	    fprintf(stderr, "Printing wanted vinfo:\n");
-	    print_vinfo(&vinfo);
+        fprintf(stderr, "Printing wanted vinfo:\n");
+        print_vinfo(&vinfo);
 #endif
-	    if ( ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0 ) 
-	    {
-	            fprintf (stderr, "Couldn't set console screen info");
-	            return(NULL);
-	    }
+        if ( ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0 )
+        {
+                fprintf (stderr, "Couldn't set console screen info");
+                return(NULL);
+        }
     }
 
     /* Get the fixed information about the console hardware.
        This is necessary since finfo.line_length changes.
      */
-    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &saved_finfo) < 0) 
+    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &saved_finfo) < 0)
     {
         fprintf (stderr, "Couldn't get console hardware info");
         return(NULL);
     }
-    
+
 
 #if (defined(_TAP_ALL) || defined(_TAP3_VERT_HORI) || defined(_TAP2_VERT) \
      || defined(_TAP2_VERT_HORI)|| defined(_TAP3_VERT)) \
      && defined(_USE_2D_ACCEL) && defined(_USE_DBUF)
     if (-1 == (iAFBufLen = HI3510_GetAllAFVMem(this,
-    	   saved_finfo.line_length, vinfo.yres, &uiVirtualYRes)))
+           saved_finfo.line_length, vinfo.yres, &uiVirtualYRes)))
     {
        fprintf(stderr, "Don't have enough video mem for AntiFlicker\n");
        tap_level = 0;
-    }   
+    }
     else
     {
         if (mgIsServer)
         {
-	        /* Set the video mode and get the final screen format */
-	        memset(&vinfo, 0, sizeof(struct fb_var_screeninfo));       
-		    if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 ) 
-		    {
-		        fprintf (stderr, "Couldn't get console screen info");
-		        return(NULL);
-		    }
-		    vinfo.yres_virtual = uiVirtualYRes;
-		    
+            /* Set the video mode and get the final screen format */
+            memset(&vinfo, 0, sizeof(struct fb_var_screeninfo));
+            if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 )
+            {
+                fprintf (stderr, "Couldn't get console screen info");
+                return(NULL);
+            }
+            vinfo.yres_virtual = uiVirtualYRes;
+
 #ifdef FBCON_DEBUG
-		    fprintf(stderr, "Printing final vinfo:\n");
-		    print_vinfo(&vinfo);
+            fprintf(stderr, "Printing final vinfo:\n");
+            print_vinfo(&vinfo);
 #endif
 
-		    if ( ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0 ) 
-	        {
-	            fprintf (stderr, "Couldn't set console screen info");
-	            return(NULL);
-	        }
-	    }
-        
+            if ( ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0 )
+            {
+                fprintf (stderr, "Couldn't set console screen info");
+                return(NULL);
+            }
+        }
+
         /*obligate some video memory for antiflicker*/
-	    current->pixels = (void *)((Uint32)mapped_mem 
-	                      + (Uint32)mapped_offset + (Uint32)iAFBufLen); 
-	    surfaces_mem = (Uint8 *)((Uint32)current->pixels 
-	    	            + (Uint32)saved_finfo.line_length * vinfo.yres);
-#if 0         
+        current->pixels = (void *)((Uint32)mapped_mem
+                          + (Uint32)mapped_offset + (Uint32)iAFBufLen);
+        surfaces_mem = (Uint8 *)((Uint32)current->pixels
+                        + (Uint32)saved_finfo.line_length * vinfo.yres);
+#if 0
    icount = 0;
             k = 0;
             while(icount < 1000)
@@ -1236,7 +1236,7 @@ static GAL_Surface *HI3510_SetVideoMode(_THIS, GAL_Surface *current,
                 memset(mapped_mem + mapped_offset, 0x55, saved_finfo.line_length*vinfo.yres);
                 k = 1;
                 printf("res:0\n");
-	        HI3510_SetOffset(console_fd, 0, 0);
+            HI3510_SetOffset(console_fd, 0, 0);
                }
                else
                {
@@ -1245,22 +1245,22 @@ static GAL_Surface *HI3510_SetVideoMode(_THIS, GAL_Surface *current,
                 memset(mapped_mem + mapped_offset + saved_finfo.line_length*(1*vinfo.yres-100), 0x55, saved_finfo.line_length*100);
                 k = 0;
                 printf("res:%d\n", vinfo.yres);
-	        HI3510_SetOffset(console_fd, 0, vinfo.yres);
-               
-               }           
+            HI3510_SetOffset(console_fd, 0, vinfo.yres);
+
+               }
                 usleep(50000);
                icount++;
            }
 #endif
-            
-	    if (mgIsServer)
-	    {
-	        HI3510_SetOffset(console_fd, 0, iAFBufLen/saved_finfo.line_length);
-	    }
-	}
+
+        if (mgIsServer)
+        {
+            HI3510_SetOffset(console_fd, 0, iAFBufLen/saved_finfo.line_length);
+        }
+    }
 #endif
-     
-    
+
+
 #ifdef FBCON_DEBUG
     fprintf (stderr, "Printing actual vinfo:\n");
     print_vinfo(&vinfo);
@@ -1288,10 +1288,10 @@ static GAL_Surface *HI3510_SetVideoMode(_THIS, GAL_Surface *current,
     }
 
     if (!GAL_ReallocFormat(current, vinfo.bits_per_pixel,
-                                      Rmask, Gmask, Bmask, Amask) ) 
+                                      Rmask, Gmask, Bmask, Amask) )
     {
         return(NULL);
-    }    
+    }
 
     /* Set up the new mode framebuffer */
     //current->flags = (GAL_FULLSCREEN|GAL_HWSURFACE);
@@ -1306,14 +1306,14 @@ static GAL_Surface *HI3510_SetVideoMode(_THIS, GAL_Surface *current,
         /* Set up the information for hardware surfaces */
         surfaces_mem = (char *)current->pixels + vinfo.yres * current->pitch;
     }
-    
+
     surfaces_len = mapped_memlen - (surfaces_mem - (Sint8*)mapped_mem);
 
 #ifdef _MGRM_PROCESSES
     if (mgIsServer)
 #endif
     {
-          
+
         HI3510_FreeHWSurfaces(this, current);
         HI3510_InitHWSurfaces(this, current, surfaces_mem, surfaces_len);
 
@@ -1322,13 +1322,13 @@ static GAL_Surface *HI3510_SetVideoMode(_THIS, GAL_Surface *current,
         logosurface.pitch = 2 * BM_WIDTH;
         this->screen = current;
         HI3510_AllocHWSurface (this, &logosurface);
-        FillMemWithData(logosurface.pixels);     
+        FillMemWithData(logosurface.pixels);
     }
 #ifdef _MGRM_PROCESSES
-    else 
+    else
     {
-    	static struct private_hwdata data;
-    	data.pDevice = this;
+        static struct private_hwdata data;
+        data.pDevice = this;
         current->hwdata = &data;
     }
 #endif
@@ -1401,7 +1401,7 @@ static int HI3510_InitHWSurfaces(_THIS, GAL_Surface *screen, char *base, int siz
     screen->hwdata = HI3510_CreateHwData(this, &surfaces);
 #else
     screen->hwdata = (struct private_hwdata *)&surfaces;
-#endif    
+#endif
     return(0);
 }
 
@@ -1547,13 +1547,13 @@ static int HI3510_AllocHWSurface (_THIS, GAL_Surface *surface)
     REP_HWSURFACE reply = {0, 0, NULL};
 #ifdef _MGRM_PROCESSES
     if (mgIsServer)
-        
+
         HI3510_RequestHWSurface (this, &request, &reply);
     else {
         REQUEST req;
         if (surface->w*surface->h == 0)
         {
-            goto NEXT;   	
+            goto NEXT;
         }
         req.id = REQID_HWSURFACE;
         req.data = &request;
@@ -1668,7 +1668,7 @@ static void HI3510_VideoQuit(_THIS)
         HI3510_SetScreenAttr(this, SCREEN_ATTR_ALPHA_CHANNEL, NULL);
         HI3510_SetScreenAttr(this, SCREEN_ATTR_COLORKEY, NULL);
 #endif
-		HI3510_FreeHWSurface (this, &logosurface);
+        HI3510_FreeHWSurface (this, &logosurface);
     }
 
 
@@ -1706,10 +1706,10 @@ void* HI3510_MallocFromVram(int size)
     request.h = (size+pitch-1)/pitch;
 
     HI3510_RequestHWSurface (__mg_current_video, &request, &reply);
-    
+
     if (reply.bucket == NULL)
     {
-        fprintf(stderr, "failed to malloc vram, size:%d!\n", size); 
+        fprintf(stderr, "failed to malloc vram, size:%d!\n", size);
         return NULL;
     }
 
@@ -1734,83 +1734,83 @@ void HI3510_FreeToVram(void* p)
 #ifndef _MGRM_THREADS
 static struct private_hwdata* HI3510_CreateHwData(_THIS, const vidmem_bucket* pBucket)
 {
-	struct private_hwdata* pData;
-	pData = (struct private_hwdata*)malloc(sizeof(struct private_hwdata));
-	if (pData == NULL)
-	{
-		fprintf(stderr, "failed to create private_hwdata!\n");
-		exit(-1);
-	}
-	else
-	{
-		pData->pBucket = pBucket;
-		pData->pDevice = this;
-	}
-		
-	return pData;
+    struct private_hwdata* pData;
+    pData = (struct private_hwdata*)malloc(sizeof(struct private_hwdata));
+    if (pData == NULL)
+    {
+        fprintf(stderr, "failed to create private_hwdata!\n");
+        exit(-1);
+    }
+    else
+    {
+        pData->pBucket = pBucket;
+        pData->pDevice = this;
+    }
+
+    return pData;
 }
 
 int HI3510_ServerSetScreenAttr(Uint8 siAttr, void* pValue)
 {
 
     return HI3510_SetScreenAttr(__mg_current_video, siAttr, pValue);
-}    
+}
 
 
 static int HI3510_SetScreenAttr(_THIS, Uint8 siAttr, void* pValue)
 {
-	int ret = 0;
+    int ret = 0;
 
-	switch(siAttr)
-	{
-		case SCREEN_ATTR_ALPHA_CHANNEL:
-		{
-    		Uint8 alpha0, alpha1;
-    		Uint32 alpha;
-			if (pValue != NULL)
-			{
-				alpha1 = alpha0 = *(Uint8*)pValue* 0x80 / 255 ;
-			}
-			else
-			{
-				alpha1 = alpha0 = 0x80;
-			}
-			
-			alpha  = (alpha1 << 8) + alpha0; 
-			if (ioctl(console_fd, FBIOPUT_ALPHA_HI3510,  &alpha) <0)
-			{
-				fprintf(stderr, "failed to set layer alpha attribute!\n");
-				ret = -1;
-			}
-			break;
-		}
+    switch(siAttr)
+    {
+        case SCREEN_ATTR_ALPHA_CHANNEL:
+        {
+            Uint8 alpha0, alpha1;
+            Uint32 alpha;
+            if (pValue != NULL)
+            {
+                alpha1 = alpha0 = *(Uint8*)pValue* 0x80 / 255 ;
+            }
+            else
+            {
+                alpha1 = alpha0 = 0x80;
+            }
 
-		case SCREEN_ATTR_COLORKEY:
-		{
-			fb_colorkey ck = {0};
+            alpha  = (alpha1 << 8) + alpha0;
+            if (ioctl(console_fd, FBIOPUT_ALPHA_HI3510,  &alpha) <0)
+            {
+                fprintf(stderr, "failed to set layer alpha attribute!\n");
+                ret = -1;
+            }
+            break;
+        }
 
-			if (pValue != NULL)
-			{
+        case SCREEN_ATTR_COLORKEY:
+        {
+            fb_colorkey ck = {0};
+
+            if (pValue != NULL)
+            {
                 ck.key = *(gal_pixel*)pValue;
                 ck.key_enable = 1;
-			}
-			else
-			{
-                ck.key_enable = 0;
-			}
-
-		    if (ioctl(console_fd, FBIOPUT_COLORKEY_HI3510, &ck) < 0)
+            }
+            else
             {
-				fprintf(stderr, "failed to set layer color key attribute!\n");
-				ret = -1;
-	    	}
-		    break;
-		}
-		
-		default:
-			fprintf(stderr, "the attribute :%d is not supported!\n", siAttr);
-			ret = -1;
-	}
+                ck.key_enable = 0;
+            }
+
+            if (ioctl(console_fd, FBIOPUT_COLORKEY_HI3510, &ck) < 0)
+            {
+                fprintf(stderr, "failed to set layer color key attribute!\n");
+                ret = -1;
+            }
+            break;
+        }
+
+        default:
+            fprintf(stderr, "the attribute :%d is not supported!\n", siAttr);
+            ret = -1;
+    }
 
    return ret;
 }
@@ -1851,7 +1851,9 @@ static GAL_VideoDevice *HI3510_CreateDevice (int devindex)
     this->SetVideoMode = HI3510_SetVideoMode;
     //this->SetColors = FB_SetColors;
     this->VideoQuit = HI3510_VideoQuit;
+#if IS_SHAREDFB_SCHEMA_PROCS
     this->RequestHWSurface = HI3510_RequestHWSurface;
+#endif
     this->AllocHWSurface = HI3510_AllocHWSurface;
 #ifdef _USE_2D_ACCEL
 #ifdef _USE_DBUF
@@ -1882,14 +1884,14 @@ VideoBootStrap HI3510_bootstrap = {
 //Added by l56244 on 27,July 2006
 int HI3510_GetVideoFD(void)
 {
-	GAL_VideoDevice* this = __mg_current_video;
-	return console_fd;
+    GAL_VideoDevice* this = __mg_current_video;
+    return console_fd;
 }
 
 void* HI3510_GetMM_0(void)
 {
-	GAL_VideoDevice* this = __mg_current_video;
-	return mapped_mem;
+    GAL_VideoDevice* this = __mg_current_video;
+    return mapped_mem;
 }
 
 #endif

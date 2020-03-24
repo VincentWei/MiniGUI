@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -81,13 +81,16 @@
 #include "clipboard.h"
 #include "license.h"
 
-int __mg_quiting_stage;
-
 #ifdef _MGRM_THREADS
-int __mg_enter_terminategui;
+// deprecated since 5.0.0
+// int __mg_enter_terminategui;
+
+static int _is_minigui_running;
+
+static pthread_t _th_parsor;
 
 /******************************* extern data *********************************/
-extern void* DesktopMain (void* data);
+extern void* __kernel_desktop_main (void* data);
 
 /************************* Entry of the thread of parsor *********************/
 static void ParseEvent (PLWEVENT lwe)
@@ -103,13 +106,14 @@ static void ParseEvent (PLWEVENT lwe)
     Msg.wParam = 0;
     Msg.lParam = 0;
 
-    Msg.time = __mg_timer_counter;
+    Msg.time = __mg_tick_counter;
 
     if (lwe->type == LWETYPE_TIMEOUT) {
         Msg.message = MSG_TIMEOUT;
         Msg.wParam = (WPARAM)lwe->count;
         Msg.lParam = 0;
-        QueueDeskMessage (&Msg);
+        // Since 5.0.0, we do not genenrate MSG_TIMEOUT message any more.
+        // QueueDeskMessage (&Msg);
     }
     else if (lwe->type == LWETYPE_KEY) {
         Msg.wParam = ke->scancode;
@@ -126,7 +130,9 @@ static void ParseEvent (PLWEVENT lwe)
         else if (ke->event == KE_KEYALWAYSPRESS) {
             Msg.message = MSG_KEYALWAYSPRESS;
         }
-        QueueDeskMessage (&Msg);
+
+        if (__mg_check_hook_func (HOOK_EVENT_KEY, &Msg) == HOOK_GOON)
+            QueueDeskMessage (&Msg);
     }
     else if(lwe->type == LWETYPE_MOUSE) {
         Msg.wParam = me->status;
@@ -169,13 +175,15 @@ static void ParseEvent (PLWEVENT lwe)
             int old = Msg.message;
 
             Msg.message = MSG_MOUSEMOVE;
-            QueueDeskMessage (&Msg);
+            if (__mg_check_hook_func (HOOK_EVENT_MOUSE, &Msg) == HOOK_GOON)
+                QueueDeskMessage (&Msg);
             Msg.message = old;
 
             mouse_x = me->x; mouse_y = me->y;
         }
 
-        QueueDeskMessage (&Msg);
+        if (__mg_check_hook_func (HOOK_EVENT_MOUSE, &Msg) == HOOK_GOON)
+            QueueDeskMessage (&Msg);
     }
 }
 
@@ -191,20 +199,22 @@ static void* EventLoop (void* data)
 
     sem_post ((sem_t*)data);
 
-    while (__mg_quiting_stage > _MG_QUITING_STAGE_EVENT) {
+    while (_is_minigui_running) {
         EXTRA_INPUT_EVENT extra;
 
-#if 0
-ndef __USE_TIMER_THREAD
+#if 0   /* deprecated code */
+#ifndef __USE_TIMER_THREAD
         /* VM: Since 4.0.0, update timer counter in event loop */
         if (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
             extern void __mg_timer_action (void *data);
             __mg_timer_action (NULL);
         }
 #endif
+#endif  /* deprecated code */
 
         extra.params_mask = 0;
-        event = IAL_WaitEvent (0, NULL, NULL, NULL, &__mg_event_timeout, &extra);
+        event = IAL_WaitEvent (0, NULL, NULL, NULL, &__mg_event_timeout,
+                &extra);
         if (event < 0)
             continue;
 
@@ -225,7 +235,7 @@ ndef __USE_TIMER_THREAD
             msg.message = extra.event;
             msg.wParam = extra.wparam;
             msg.lParam = extra.lparam;
-            msg.time = __mg_timer_counter;
+            msg.time = __mg_tick_counter;
             if (extra.params_mask) {
                 // packed multiple sub events
                 int i, n = 0;
@@ -233,6 +243,8 @@ ndef __USE_TIMER_THREAD
                     if (extra.params_mask & (1 << i)) {
                         msg.wParam = extra.wparams[i];
                         msg.lParam = extra.lparams[i];
+                        if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                                HOOK_GOON)
                         QueueDeskMessage (&msg);
                         n++;
                     }
@@ -242,25 +254,24 @@ ndef __USE_TIMER_THREAD
                     msg.message = MSG_EXIN_END_CHANGES;
                     msg.wParam = n;
                     msg.lParam = 0;
-                    QueueDeskMessage (&msg);
+                    if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                            HOOK_GOON)
+                        QueueDeskMessage (&msg);
                 }
             }
             else {
-                QueueDeskMessage (&msg);
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON)
+                    QueueDeskMessage (&msg);
             }
         }
         else if (event == 0 && kernel_GetLWEvent (0, &lwe))
             ParseEvent (&lwe);
     }
 
-    /* printf("Quit from EventLoop()\n"); */
     return NULL;
 }
 
-/************************** Thread Information  ******************************/
-
-pthread_key_t __mg_threadinfo_key;
-
+/* The following functions were moved to src/include/internals.h as inline.
 static inline BOOL createThreadInfoKey (void)
 {
     if (pthread_key_create (&__mg_threadinfo_key, NULL))
@@ -272,59 +283,12 @@ static inline void deleteThreadInfoKey (void)
 {
     pthread_key_delete (__mg_threadinfo_key);
 }
-
-MSGQUEUE* mg_InitMsgQueueThisThread (void)
-{
-    MSGQUEUE* pMsgQueue;
-
-    if (!(pMsgQueue = malloc(sizeof(MSGQUEUE))) ) {
-        return NULL;
-    }
-
-    if (!mg_InitMsgQueue(pMsgQueue, 0)) {
-        free (pMsgQueue);
-        return NULL;
-    }
-
-    pthread_setspecific (__mg_threadinfo_key, pMsgQueue);
-    return pMsgQueue;
-}
-
-void mg_FreeMsgQueueThisThread (void)
-{
-    MSGQUEUE* pMsgQueue;
-
-    pMsgQueue = pthread_getspecific (__mg_threadinfo_key);
-#ifdef __VXWORKS__
-    if (pMsgQueue != (void *)0 && pMsgQueue != (void *)-1) {
-#else
-    if (pMsgQueue) {
-#endif
-        mg_DestroyMsgQueue (pMsgQueue);
-        free (pMsgQueue);
-#ifdef __VXWORKS__
-        pthread_setspecific (__mg_threadinfo_key, (void*)-1);
-#else
-        pthread_setspecific (__mg_threadinfo_key, NULL);
-#endif
-    }
-}
-
-/*
-The following function is moved to src/include/internals.h as an inline
-function.
-MSGQUEUE* GetMsgQueueThisThread (void)
-{
-    return (MSGQUEUE*) pthread_getspecific (__mg_threadinfo_key);
-}
 */
 
 /************************** System Initialization ****************************/
-
-int __mg_timer_init (void);
-
 static BOOL SystemThreads(void)
 {
+    pthread_t th;
     sem_t wait;
 
     sem_init (&wait, 0, 0);
@@ -341,16 +305,22 @@ static BOOL SystemThreads(void)
         pthread_attr_t new_attr;
         pthread_attr_init (&new_attr);
         pthread_attr_setstacksize (&new_attr, 16 * 1024);
-        pthread_create (&__mg_desktop, &new_attr, DesktopMain, &wait);
+        pthread_create (&th, &new_attr, __kernel_desktop_main, &wait);
         pthread_attr_destroy (&new_attr);
     }
 #else
-    pthread_create (&__mg_desktop, NULL, DesktopMain, &wait);
+    pthread_create (&th, NULL, __kernel_desktop_main, &wait);
 #endif
 
     sem_wait (&wait);
 
+    if (__mg_dsk_msg_queue == NULL)
+        return FALSE;
+
+#if 0   /* deprecated code */
+    /* Since 5.0.0, we no longer use the timer thread */
     __mg_timer_init ();
+#endif  /* deprecated code */
 
     // this thread collect low level event from outside,
     // if there is no event, this thread will suspend to wait a event.
@@ -359,8 +329,10 @@ static BOOL SystemThreads(void)
     // this thread also parse low level event and translate it to message,
     // then post the message to the approriate message queue.
     // this thread should also have a higher priority.
-    pthread_create (&__mg_parsor, NULL, EventLoop, &wait);
-    pthread_detach (__mg_parsor);
+    pthread_create (&_th_parsor, NULL, EventLoop, &wait);
+    // XXX: Since 5.0.0, event parsor should be joinable
+    //pthread_detach (_th_parsor);
+
     sem_wait (&wait);
 
     sem_destroy (&wait);
@@ -388,9 +360,11 @@ static void sig_handler (int v)
     else if (v == SIGINT) {
         _exit(1); /* force to quit */
     }
-    else if (__mg_quiting_stage > 0) {
+#if 0   /* since 5.0.0, deprecated code */
+    else if (v == SIGTERM) {
         ExitGUISafely(-1);
     }
+#endif  /* since 5.0.0, deprecated code */
     else {
         exit(1); /* force to quit */
     }
@@ -417,12 +391,20 @@ static BOOL InstallSEGVHandler (void)
 #include <locale.h>
 #endif
 
+static IDLEHANDLER std_idle_handler;
+
+static BOOL idle_handler_for_main_thread (MSGQUEUE *msg_queue, BOOL wait)
+{
+    __mg_update_tick_count (NULL);
+    return std_idle_handler (msg_queue, wait);
+}
+
 int GUIAPI InitGUI (int args, const char *agr[])
 {
+    char engine [LEN_ENGINE_NAME + 1];
+    char mode [LEN_VIDEO_MODE + 1];
     int step = 0;
-
-    __mg_quiting_stage = _MG_QUITING_STAGE_RUNNING;
-    __mg_enter_terminategui = 0;
+    MSGQUEUE* msg_queue;
 
 #ifdef HAVE_SETLOCALE
     setlocale (LC_ALL, "C");
@@ -439,50 +421,49 @@ int GUIAPI InitGUI (int args, const char *agr[])
     tcgetattr (0, &savedtermio);
 #endif
 
-    /*initialize default window process*/
+    /*init default window process*/
     __mg_def_proc[0] = PreDefMainWinProc;
     __mg_def_proc[1] = PreDefDialogProc;
     __mg_def_proc[2] = PreDefControlProc;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    __mg_def_proc[3] = PreDefVirtualWinProc;
+#endif
 
     step++;
     if (!mg_InitSliceAllocator ()) {
-        fprintf (stderr, "KERNEL>InitGUI: failed to initialize slice allocator!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init slice allocator!\n");
         return step;
     }
 
     step++;
     if (!mg_InitFixStr ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init Fixed String module failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init fixed string heap!\n");
         return step;
     }
 
     step++;
     /* Init miscelleous*/
     if (!mg_InitMisc ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Initialization of misc things failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init misc module!\n");
         return step;
     }
 
     step++;
-    switch (mg_InitGAL ()) {
+    switch (mg_InitGAL (engine, mode)) {
     case ERR_CONFIG_FILE:
-        fprintf (stderr,
-            "KERNEL>InitGUI: Reading configuration failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Reading configuration failure!\n");
         return step;
 
     case ERR_NO_ENGINE:
-        fprintf (stderr,
-            "KERNEL>InitGUI: No graphics engine defined!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: No graphics engine defined!\n");
         return step;
 
     case ERR_NO_MATCH:
-        fprintf (stderr,
-            "KERNEL>InitGUI: Can not get graphics engine information!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Cannot get graphics engine info!\n");
         return step;
 
     case ERR_GFX_ENGINE:
-        fprintf (stderr,
-            "KERNEL>InitGUI: Can not initialize graphics engine!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Cannot init graphics engine!\n");
         return step;
     }
 
@@ -490,66 +471,61 @@ int GUIAPI InitGUI (int args, const char *agr[])
     InstallSEGVHandler ();
 #endif
 
-    /*
-     * Load system resource here.
-     */
-    step++;
-    if (!mg_InitSystemRes ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Can not initialize system resource!\n");
-        goto failure1;
-    }
-
     /* Init GDI. */
     step++;
     if(!mg_InitGDI()) {
-        fprintf (stderr, "KERNEL>InitGUI: Initialization of GDI failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Initialization of GDI failure!\n");
         goto failure1;
     }
 
     /* Init Master Screen DC here */
     step++;
-    if (!mg_InitScreenDC (__gal_screen)) {
-        fprintf (stderr, "KERNEL>InitGUI: Can not initialize screen DC!\n");
+    if (!mg_InitScreenDC ()) {
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not init screen DC!\n");
         goto failure1;
     }
 
-    g_rcScr.left = 0;
-    g_rcScr.top = 0;
-    g_rcScr.right = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXX) + 1;
-    g_rcScr.bottom = GetGDCapability (HDC_SCREEN_SYS, GDCAP_MAXY) + 1;
+    /*
+     * Load system resource here.
+     */
+    step++;
+    if (!mg_InitSystemRes ()) {
+        _ERR_PRINTF ("KERNEL>InitGUI: Can not init system resource!\n");
+        goto failure1;
+    }
 
-    license_create();
-    splash_draw_framework();
+    __mg_license_create();
+    __mg_splash_draw_framework();
 
     /* Init mouse cursor. */
     step++;
     if( !mg_InitCursor() ) {
-        fprintf (stderr, "KERNEL>InitGUI: Count not init mouse cursor!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: Count not init mouse cursor!\n");
         goto failure1;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     /* Init low level event */
     step++;
     if(!mg_InitLWEvent()) {
-        fprintf(stderr, "KERNEL>InitGUI: Low level event initialization failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init low level event!\n");
         goto failure1;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     /** Init LF Manager */
     step++;
     if (!mg_InitLFManager ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Initialization of LF Manager failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init LF Manager!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
 #ifdef _MGHAVE_MENU
     /* Init menu */
     step++;
     if (!mg_InitMenu ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init Menu module failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init menu module!\n");
         goto failure;
     }
 #endif
@@ -557,44 +533,65 @@ int GUIAPI InitGUI (int args, const char *agr[])
     /* Init control class */
     step++;
     if(!mg_InitControlClass()) {
-        fprintf(stderr, "KERNEL>InitGUI: Init Control Class failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init control classes!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     /* Init accelerator */
     step++;
     if(!mg_InitAccel()) {
-        fprintf(stderr, "KERNEL>InitGUI: Init Accelerator failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init accelerator!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     step++;
     if (!mg_InitDesktop ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init Desktop failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init desktop!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     step++;
     if (!mg_InitFreeQMSGList ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init free QMSG list failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init free QMSG heap!\n");
         goto failure;
     }
-    splash_progress();
+    __mg_splash_progress();
 
     step++;
     if (!createThreadInfoKey ()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init thread hash table failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init thread key!\n");
         goto failure;
     }
 
-    splash_delay();
+    __mg_splash_delay();
+
+    _is_minigui_running = 1;
 
     step++;
     if (!SystemThreads()) {
-        fprintf (stderr, "KERNEL>InitGUI: Init system threads failure!\n");
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to init system threads!\n");
+        goto failure;
+    }
+
+    /* init message queue of main GUI thread */
+    step++;
+    if (!(msg_queue = mg_AllocMsgQueueForThisThread ())) {
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to allocate message queue!\n");
+        goto failure;
+    }
+
+    /* for threads mode, the idle handler for the main threads should
+       call __mg_update_tick_count () */
+    std_idle_handler = msg_queue->OnIdle;
+    msg_queue->OnIdle = idle_handler_for_main_thread;
+
+    /* init timer for tick counter */
+    step++;
+    if (!mg_InitTimer (FALSE)) {
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to start time counter\n");
         goto failure;
     }
 
@@ -605,32 +602,31 @@ int GUIAPI InitGUI (int args, const char *agr[])
     SetCursorPos (g_rcScr.right >> 1, g_rcScr.bottom >> 1);
 
     mg_TerminateMgEtc ();
-
     return 0;
 
 failure:
     mg_TerminateLWEvent ();
 failure1:
     mg_TerminateGAL ();
-    fprintf (stderr, "KERNEL>InitGUI: Init failure, please check "
+    _ERR_PRINTF ("KERNEL>InitGUI: initialization failed; please check "
             "your MiniGUI configuration or resource.\n");
     return step;
 }
 
 void GUIAPI TerminateGUI (int not_used)
 {
-    __mg_enter_terminategui = 1;
+    mg_TerminateTimer (FALSE);
 
-    pthread_join (__mg_desktop, NULL);
+    /* Since 5.0.0 */
+    SendNotifyMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+    pthread_join (__mg_dsk_msg_queue->th, NULL);
 
-    /* DesktopProc() will set __mg_quiting_stage to _MG_QUITING_STAGE_EVENT */
-    pthread_join (__mg_parsor, NULL);
+    /* Tell event parsor quit */
+    _is_minigui_running = 0;
+    pthread_cancel (_th_parsor);
+    pthread_join (_th_parsor, NULL);
 
-    deleteThreadInfoKey ();
-    license_destroy();
-
-    __mg_quiting_stage = _MG_QUITING_STAGE_TIMER;
-    mg_TerminateTimer ();
+    __mg_license_destroy();
 
     mg_TerminateDesktop ();
 
@@ -649,14 +645,19 @@ void GUIAPI TerminateGUI (int not_used)
     mg_TerminateLWEvent ();
 
     mg_TerminateScreenDC ();
-    mg_TerminateGDI ();
     mg_TerminateLFManager ();
+    mg_TerminateSystemRes ();
+    mg_TerminateGDI ();
     mg_TerminateGAL ();
 
 #ifdef _MGHAVE_ADV_2DAPI
-    extern void mg_miFreeArcCache (void);
-    mg_miFreeArcCache ();
+    extern void miFreeArcCache (void);
+    miFreeArcCache ();
 #endif
+
+    mg_FreeMsgQueueForThisThread ();
+
+    deleteThreadInfoKey ();
 
     mg_TerminateSliceAllocator();
 
@@ -670,20 +671,24 @@ void GUIAPI TerminateGUI (int not_used)
 #endif
 }
 
-#endif /* _MGRM_THREADS */
+/* XXX: We need a better policy to exit MiniGUI safely by giving a chance
+   for all windows to save data. */
+
+/* see src/kernel/desktop-*.c */
+#define IDM_CLOSEALLWIN (MINID_RESERVED + 1)
 
 void GUIAPI ExitGUISafely (int exitcode)
 {
-#ifdef _MGRM_PROCESSES
-    if (mgIsServer)
-#endif
-    {
-#   define IDM_CLOSEALLWIN (MINID_RESERVED + 1) /* see src/kernel/desktop-*.c */
-        SendNotifyMessage(HWND_DESKTOP, MSG_COMMAND, IDM_CLOSEALLWIN, 0);
-        SendNotifyMessage(HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+    SendNotifyMessage (HWND_DESKTOP, MSG_COMMAND, IDM_CLOSEALLWIN, 0);
+    __mg_join_all_message_threads ();
+    SendMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
+    pthread_join (__mg_dsk_msg_queue->th, NULL);
 
-        if (__mg_quiting_stage > 0) {
-            __mg_quiting_stage = _MG_QUITING_STAGE_START;
-        }
-    }
+    /* Tell event parsor quit */
+    _is_minigui_running = 0;
+    pthread_cancel (_th_parsor);
+    pthread_join (_th_parsor, NULL);
 }
+
+#endif /* _MGRM_THREADS */
+

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -133,7 +133,7 @@ static void read_data (QPF_GLYPHTREE* tree, uchar** data)
     for (i = 0; i < n; i++) {
         int datasize;
 
-        datasize = tree->glyph[i].metrics->linestep * 
+        datasize = tree->glyph[i].metrics->linestep *
                 tree->glyph[i].metrics->height;
         tree->glyph[i].data = *data; *data += datasize;
     }
@@ -190,14 +190,14 @@ static void* load_font_data (DEVFONT* devfont, const char* font_name, const char
 
     qpf_info->file_size = file_size;
 
-    if ((qpf_info->height 
+    if ((qpf_info->height
                 = fontGetHeightFromName (font_name)) == -1) {
         _WRN_PRINTF ("FONT>QPF: Invalid font name (height): %s.\n",
                 font_name);
         goto error;
     }
 
-    if ((qpf_info->width 
+    if ((qpf_info->width
                 = fontGetWidthFromName (font_name)) == -1) {
         _WRN_PRINTF ("FONT>QPF: Invalid font name (width): %s.\n",
                 font_name);
@@ -278,7 +278,7 @@ static QPF_GLYPHMETRICS def_metrics = {1, 8, 2, 0, 0, 8, 0};
 static unsigned char def_bitmap [] = {0xFE, 0x7F};
 
 static QPF_GLYPHMETRICS def_smooth_metrics = {8, 8, 2, 0, 0, 8, 0};
-static unsigned char def_smooth_bitmap [] = 
+static unsigned char def_smooth_bitmap [] =
 {
         0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00
@@ -297,7 +297,7 @@ static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 
 static int get_ave_width (LOGFONT* logfont, DEVFONT* devfont)
 {
-    return QPFONT_INFO_P (devfont)->width 
+    return QPFONT_INFO_P (devfont)->width
             * GET_DEVFONT_SCALE (logfont, devfont);
 }
 
@@ -309,14 +309,14 @@ static int get_max_width (LOGFONT* logfont, DEVFONT* devfont)
 
 static int get_font_height (LOGFONT* logfont, DEVFONT* devfont)
 {
-    return (QPFONT_INFO_P (devfont)->fm->ascent 
-                    + QPFONT_INFO_P (devfont)->fm->descent) 
+    return (QPFONT_INFO_P (devfont)->fm->ascent
+                    + QPFONT_INFO_P (devfont)->fm->descent)
             * GET_DEVFONT_SCALE (logfont, devfont);
 }
 
 static int get_font_size (LOGFONT* logfont, DEVFONT* devfont, int expect, int df_slot)
 {
-    int height = QPFONT_INFO_P (devfont)->fm->ascent + 
+    int height = QPFONT_INFO_P (devfont)->fm->ascent +
             QPFONT_INFO_P (devfont)->fm->descent;
     unsigned short scale = 1;
 
@@ -396,7 +396,7 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
         uc16 = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uc16 = glyph_value;
-    
+
     glyph = get_glyph (QPFONT_INFO_P (devfont)->tree, uc16);
 
     if (glyph == NULL) {
@@ -407,8 +407,8 @@ static const void* get_glyph_greybitmap (LOGFONT* logfont, DEVFONT* devfont,
     return glyph->data;
 }
 
-static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont, 
-                Glyph32 glyph_value, 
+static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
+                Glyph32 glyph_value,
                 int* px, int* py, int* pwidth, int* pheight)
 {
     unsigned int uc16;
@@ -420,7 +420,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
         uc16 = (*devfont->charset_ops->conv_to_uc32) (glyph_value);
     else
         uc16 = glyph_value;
-    
+
     glyph = get_glyph (QPFONT_INFO_P (devfont)->tree, uc16);
 
     if (glyph == NULL) {
@@ -433,9 +433,9 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
             }
             else {
                 int width, height, ascent;
-                logfont->devfonts[0]->font_ops->get_glyph_advance 
+                logfont->devfonts[0]->font_ops->get_glyph_advance
                         (logfont, logfont->devfonts[0], glyph_value, &width, 0);
-                height = logfont->devfonts[0]->font_ops->get_font_height 
+                height = logfont->devfonts[0]->font_ops->get_font_height
                         (logfont, logfont->devfonts[0]);
                 ascent = logfont->devfonts[0]->font_ops->get_font_ascent
                         (logfont, logfont->devfonts[0]);
@@ -461,7 +461,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
     return glyph->metrics->width * scale;
 }
 
-static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont, 
+static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
                 Glyph32 glyph_value, int* px, int* py)
 {
     unsigned int uc16;
@@ -481,7 +481,7 @@ static int get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
             unsigned char ascii_ch = uc16;
             if (logfont->devfonts[0]->font_ops->get_glyph_advance) {
                 return logfont->devfonts[0]->font_ops->
-                        get_glyph_advance (logfont, logfont->devfonts[0], 
+                        get_glyph_advance (logfont, logfont->devfonts[0],
                             ascii_ch, px, py);
             }
         }

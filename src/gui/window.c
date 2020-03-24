@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -65,6 +65,8 @@
 #include "ctrlclass.h"
 #include "element.h"
 #include "dc.h"
+#include "debug.h"
+
 #ifdef _MGRM_PROCESSES
 #include "client.h"
 #endif
@@ -87,29 +89,24 @@ BOOL BlinkCaret (HWND hWnd);
 void GetCaretBitmaps (PCARETINFO pCaretInfo);
 
 static void RecalcScrollInfo (PMAINWIN pWin, BOOL bIsHBar);
-/* this message will auto-repeat when MSG_IDLE received */
-static MSG sg_repeat_msg = {0, 0, 0, 0};
 
-void GUIAPI SetAutoRepeatMessage (HWND hwnd, UINT msg,
+/* Since 5.0.0, the auto-repeat message will handled by desktop */
+void GUIAPI SetAutoRepeatMessage (HWND hWnd, UINT uMsg,
         WPARAM wParam, LPARAM lParam)
 {
-    PMAINWIN pWin = (PMAINWIN)hwnd;
+    MSG msg;
 
-    /* if hwnd is zero, disable repeate message */
-    if (hwnd == 0) {
-        sg_repeat_msg.hwnd = 0;
-        sg_repeat_msg.message  = 0;
-        sg_repeat_msg.wParam = 0;
-        sg_repeat_msg.lParam = 0;
-        return;
+    if (hWnd) {
+        if (!MG_IS_NORMAL_WINDOW(hWnd))
+            return;
     }
-    else if (hwnd == HWND_INVALID || pWin->DataType != TYPE_HWND)
-        return;
 
-    sg_repeat_msg.hwnd = hwnd;
-    sg_repeat_msg.message  = msg;
-    sg_repeat_msg.wParam = wParam;
-    sg_repeat_msg.lParam = lParam;
+    msg.hwnd = hWnd;
+    msg.message  = uMsg;
+    msg.wParam = wParam;
+    msg.lParam = lParam;
+
+    SendMessage (HWND_DESKTOP, MSG_SETAUTOREPEAT, 0, (LPARAM)&msg);
 }
 
 static void RecalcClientArea (HWND hWnd)
@@ -134,7 +131,12 @@ static void RecalcClientArea (HWND hWnd)
         dc_h = RECTH (secondary_pdc->DevRC);
 
         if ((win_w > dc_w) || (win_h > dc_h)) {
+#if 0   /* deprecated code */
             DeleteSecondaryDC (hWnd);
+#else   /* deprecated code */
+            /* since 5.0.0, call __mg_delete_secondary_dc instead */
+            __mg_delete_secondary_dc (pWin);
+#endif
             pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
 
             if (pWin->secondaryDC == HDC_INVALID) {
@@ -143,6 +145,7 @@ static void RecalcClientArea (HWND hWnd)
                 pWin->secondaryDC = 0;
             }
 
+#if 0   /* deprecated code */
             /* update the privCDC of pWin and child window. */
             if (pWin->dwExStyle & WS_EX_USEPRIVATECDC) {
                 PCONTROL pNext;
@@ -160,6 +163,11 @@ static void RecalcClientArea (HWND hWnd)
                 pWin->privCDC = GetSecondarySubDC (pWin->secondaryDC,
                         (HWND)pWin, TRUE);
             }
+#else   /* deprecated code */
+            // Since 5.0.0, call __mg_update_dc_on_secondary_dc_changed instead
+            __mg_update_dc_on_secondary_dc_changed (pWin);
+#endif
+
         }
     }
 
@@ -308,7 +316,7 @@ HWND GUIAPI ChildWindowFromPointEx (HWND hParent, POINT pt, UINT uFlags)
     unsigned short idx;
     MASKRECT *maskrect;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hParent), HWND_NULL);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hParent), HWND_NULL);
     pWin = MG_GET_WINDOW_PTR (hParent);
 
     pCtrl = (PCONTROL)(pWin->hFirstChild);
@@ -410,7 +418,7 @@ static LRESULT DefaultDTMouseMsgHandler (PMAINWIN pWin, UINT message,
 
     /* houhh 20080804, if click on  scrollbar of mainwin's control, then
      * need to change hc_mainwin, else click on scrollbar of mainwin,
-     * hc_mainwin can not change to HT_CLIENT.*/
+     * hc_mainwin can not change to HT_CLIENT.  */
 
     if (pCtrl && pCtrl->WinType == TYPE_CONTROL &&
             (hc_mainwin >= HT_SB_LEFTARROW &&
@@ -418,61 +426,60 @@ static LRESULT DefaultDTMouseMsgHandler (PMAINWIN pWin, UINT message,
         hc_mainwin = HT_CLIENT;
 
     switch (message) {
-        case MSG_DT_MOUSEMOVE:
-            if (hc_mainwin == HT_CLIENT)
-            {
-                PostMessage ((HWND)pWin, MSG_SETCURSOR,
-                        0, MAKELONG (cx, cy));
-            }else{
-                PostMessage ((HWND)pWin, MSG_NCSETCURSOR,
-                        hc_mainwin, MAKELONG (cx, cy));
-            }
-        case MSG_DT_LBUTTONDBLCLK:
-        case MSG_DT_RBUTTONDBLCLK:
-            if (hc_mainwin == HT_CLIENT) {
-                PostMessage((HWND)pWin,
-                        message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
-                        hc_mainwin, MAKELONG (x, y));
-                PostMessage((HWND)pWin,
-                        message - MSG_DT_MOUSEOFF,
-                        flags, MAKELONG (cx, cy));
-            }
-            else {
-                PostMessage((HWND)pWin,
-                        message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
-                        hc_mainwin, MAKELONG (x, y));
-            }
-            break;
+    case MSG_DT_MOUSEMOVE:
+        if (hc_mainwin == HT_CLIENT) {
+            PostMessage ((HWND)pWin, MSG_SETCURSOR,
+                    0, MAKELONG (cx, cy));
+        }
+        else {
+            PostMessage ((HWND)pWin, MSG_NCSETCURSOR,
+                    hc_mainwin, MAKELONG (cx, cy));
+        }
+        // fallthrough
+    case MSG_DT_LBUTTONDBLCLK:
+    case MSG_DT_RBUTTONDBLCLK:
+        if (hc_mainwin == HT_CLIENT) {
+            PostMessage((HWND)pWin,
+                    message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
+                    hc_mainwin, MAKELONG (x, y));
+            PostMessage((HWND)pWin,
+                    message - MSG_DT_MOUSEOFF,
+                    flags, MAKELONG (cx, cy));
+        }
+        else {
+            PostMessage((HWND)pWin,
+                    message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
+                    hc_mainwin, MAKELONG (x, y));
+        }
+        break;
 
-        case MSG_DT_LBUTTONDOWN:
-        case MSG_DT_RBUTTONDOWN:
-            if (hc_mainwin != HT_CLIENT) {
-                PostMessage ((HWND)pWin,
-                        message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
-                        hc_mainwin, MAKELONG (x, y));
-            }
-            else
-            {
-                PostMessage((HWND)pWin,
-                        message - MSG_DT_MOUSEOFF,
-                        flags, MAKELONG(cx, cy));
-            }
-            break;
+    case MSG_DT_LBUTTONDOWN:
+    case MSG_DT_RBUTTONDOWN:
+        if (hc_mainwin != HT_CLIENT) {
+            PostMessage ((HWND)pWin,
+                    message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
+                    hc_mainwin, MAKELONG (x, y));
+        }
+        else {
+            PostMessage((HWND)pWin,
+                    message - MSG_DT_MOUSEOFF,
+                    flags, MAKELONG(cx, cy));
+        }
+        break;
 
-        case MSG_DT_LBUTTONUP:
-        case MSG_DT_RBUTTONUP:
-            if (hc_mainwin == HT_CLIENT) {
-                PostMessage((HWND)pWin,
-                        message - MSG_DT_MOUSEOFF,
-                        flags, MAKELONG(cx, cy));
-            }
-            else {
-                PostMessage ((HWND)pWin,
-                        message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
-                        hc_mainwin, MAKELONG (x, y));
-            }
-            break;
-
+    case MSG_DT_LBUTTONUP:
+    case MSG_DT_RBUTTONUP:
+        if (hc_mainwin == HT_CLIENT) {
+            PostMessage((HWND)pWin,
+                    message - MSG_DT_MOUSEOFF,
+                    flags, MAKELONG(cx, cy));
+        }
+        else {
+            PostMessage ((HWND)pWin,
+                    message + (MSG_NCMOUSEOFF - MSG_DT_MOUSEOFF),
+                    hc_mainwin, MAKELONG (x, y));
+        }
+        break;
     }
 
     return 0;
@@ -501,7 +508,6 @@ static LRESULT DefaultMouseMsgHandler (PMAINWIN pWin, UINT message,
         if (pUnderPointer && (pUnderPointer->dwStyle & WS_DISABLED))
             pUnderPointer = NULL;
 
-
         if (pUnderPointer) {
             cx = x - pUnderPointer->cl;
             cy = y - pUnderPointer->ct;
@@ -509,146 +515,145 @@ static LRESULT DefaultMouseMsgHandler (PMAINWIN pWin, UINT message,
     }
 
     switch (message) {
-        case MSG_MOUSEMOVE:
-            if (__mgs_captured_ctrl)
-                PostMessage((HWND)__mgs_captured_ctrl, MSG_NCMOUSEMOVE,
-                        CapHitCode, MAKELONG (x, y));
-            else {
-                if (pWin->hOldUnderPointer != (HWND)pUnderPointer) {
-                    if (pWin->hOldUnderPointer) {
-                        PostMessage ((HWND)pWin->hOldUnderPointer,
-                                MSG_MOUSEMOVEIN, FALSE, (LPARAM)pUnderPointer);
-                        PostMessage ((HWND)pWin->hOldUnderPointer,
-                                MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
-                    }
-
-                    if (pUnderPointer)
-                        PostMessage ((HWND)pUnderPointer, MSG_MOUSEMOVEIN,
-                                TRUE, (LPARAM)pWin->hOldUnderPointer);
-
-                    pWin->hOldUnderPointer = (HWND)pUnderPointer;
+    case MSG_MOUSEMOVE:
+        if (__mgs_captured_ctrl)
+            PostMessage((HWND)__mgs_captured_ctrl, MSG_NCMOUSEMOVE,
+                    CapHitCode, MAKELONG (x, y));
+        else {
+            if (pWin->hOldUnderPointer != (HWND)pUnderPointer) {
+                if (pWin->hOldUnderPointer) {
+                    PostMessage ((HWND)pWin->hOldUnderPointer,
+                            MSG_MOUSEMOVEIN, FALSE, (LPARAM)pUnderPointer);
+                    PostMessage ((HWND)pWin->hOldUnderPointer,
+                            MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
                 }
 
-                if (pUnderPointer == NULL) {
-                    pWin->hOldUnderPointer = 0;
-                    break;
-                }
+                if (pUnderPointer)
+                    PostMessage ((HWND)pUnderPointer, MSG_MOUSEMOVEIN,
+                            TRUE, (LPARAM)pWin->hOldUnderPointer);
 
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    SetCursor (GetSystemCursor (IDC_ARROW));
-                    break;
-                }
+                pWin->hOldUnderPointer = (HWND)pUnderPointer;
+            }
 
-                if (UndHitCode == HT_CLIENT) {
-                    PostMessage ((HWND)pUnderPointer,
-                            MSG_SETCURSOR, 0, MAKELONG (cx, cy));
+            if (pUnderPointer == NULL) {
+                pWin->hOldUnderPointer = 0;
+                break;
+            }
 
-                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
-                            UndHitCode, MAKELONG (x, y));
-                    PostMessage((HWND)pUnderPointer, MSG_MOUSEMOVE,
-                            flags, MAKELONG (cx, cy));
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                SetCursor (GetSystemCursor (IDC_ARROW));
+                break;
+            }
+
+            if (UndHitCode == HT_CLIENT) {
+                PostMessage ((HWND)pUnderPointer,
+                        MSG_SETCURSOR, 0, MAKELONG (cx, cy));
+
+                PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
+                        UndHitCode, MAKELONG (x, y));
+                PostMessage((HWND)pUnderPointer, MSG_MOUSEMOVE,
+                        flags, MAKELONG (cx, cy));
+            }
+            else
+            {
+                PostMessage((HWND)pUnderPointer, MSG_NCSETCURSOR,
+                        UndHitCode, MAKELONG (x, y));
+                PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
+                        UndHitCode, MAKELONG (x, y));
+            }
+        }
+        break;
+
+    case MSG_LBUTTONDOWN:
+    case MSG_RBUTTONDOWN:
+    case MSG_MBUTTONDOWN:
+        if (pUnderPointer) {
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                Ping ();
+                break;
+            }
+
+            SendNotifyMessage ((HWND) pUnderPointer,
+                    MSG_MOUSEACTIVE, UndHitCode, 0);
+
+            if (UndHitCode != HT_CLIENT) {
+                if (UndHitCode & HT_NEEDCAPTURE
+                        && message == MSG_LBUTTONDOWN) {
+                    SetCapture ((HWND)pWin);
+                    __mgs_captured_win = pWin;
+                    __mgs_captured_ctrl = pUnderPointer;
                 }
                 else
-                {
-                    PostMessage((HWND)pUnderPointer, MSG_NCSETCURSOR,
-                            UndHitCode, MAKELONG (x, y));
-                    PostMessage((HWND)pUnderPointer, MSG_NCMOUSEMOVE,
-                            UndHitCode, MAKELONG (x, y));
-                }
+                    __mgs_captured_ctrl = NULL;
+
+                PostMessage ((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
+                        UndHitCode, MAKELONG (x, y));
             }
-            break;
-
-        case MSG_LBUTTONDOWN:
-        case MSG_RBUTTONDOWN:
-        case MSG_MBUTTONDOWN:
-            if (pUnderPointer) {
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    Ping ();
-                    break;
-                }
-
-                SendNotifyMessage ((HWND) pUnderPointer,
-                        MSG_MOUSEACTIVE, UndHitCode, 0);
-
-                if (UndHitCode != HT_CLIENT) {
-                    if (UndHitCode & HT_NEEDCAPTURE
-                            && message == MSG_LBUTTONDOWN) {
-                        SetCapture ((HWND)pWin);
-                        __mgs_captured_win = pWin;
-                        __mgs_captured_ctrl = pUnderPointer;
-                    }
-                    else
-                        __mgs_captured_ctrl = NULL;
-
-                    PostMessage ((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
-                            UndHitCode, MAKELONG (x, y));
-                }
-                else if (__mgs_captured_ctrl == NULL) {
-                    PostMessage((HWND)pUnderPointer, message,
-                            flags, MAKELONG(cx, cy));
-                }
+            else if (__mgs_captured_ctrl == NULL) {
+                PostMessage((HWND)pUnderPointer, message,
+                        flags, MAKELONG(cx, cy));
             }
-            else if (pWin->hActiveChild) {
-                SendNotifyMessage (pWin->hActiveChild,
-                        MSG_MOUSEACTIVE, HT_OUT, 0);
-                PostMessage (pWin->hActiveChild, message + MSG_NCMOUSEOFF,
-                        HT_OUT, MAKELONG(x, y));
-            }
-            break;
+        }
+        else if (pWin->hActiveChild) {
+            SendNotifyMessage (pWin->hActiveChild,
+                    MSG_MOUSEACTIVE, HT_OUT, 0);
+            PostMessage (pWin->hActiveChild, message + MSG_NCMOUSEOFF,
+                    HT_OUT, MAKELONG(x, y));
+        }
+        break;
 
-        case MSG_RBUTTONUP:
-        case MSG_LBUTTONUP:
-        case MSG_MBUTTONUP:
-            if (__mgs_captured_ctrl && message == MSG_LBUTTONUP) {
-                PostMessage ((HWND)__mgs_captured_ctrl,
-                        message + MSG_NCMOUSEOFF,
-                        CapHitCode, MAKELONG (x, y));
-                ReleaseCapture ();
-                __mgs_captured_win = NULL;
-                __mgs_captured_ctrl = NULL;
+    case MSG_RBUTTONUP:
+    case MSG_LBUTTONUP:
+    case MSG_MBUTTONUP:
+        if (__mgs_captured_ctrl && message == MSG_LBUTTONUP) {
+            PostMessage ((HWND)__mgs_captured_ctrl,
+                    message + MSG_NCMOUSEOFF,
+                    CapHitCode, MAKELONG (x, y));
+            ReleaseCapture ();
+            __mgs_captured_win = NULL;
+            __mgs_captured_ctrl = NULL;
+        }
+        else if (pUnderPointer) {
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                break;
             }
-            else if (pUnderPointer) {
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    break;
-                }
 
-                if (UndHitCode == HT_CLIENT)
-                    PostMessage((HWND)pUnderPointer, message,
-                            flags, MAKELONG (cx, cy));
-                else
-                    PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
-                            UndHitCode, MAKELONG (x, y));
+            if (UndHitCode == HT_CLIENT)
+                PostMessage((HWND)pUnderPointer, message,
+                        flags, MAKELONG (cx, cy));
+            else
+                PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
+                        UndHitCode, MAKELONG (x, y));
+        }
+        else if (pWin->hActiveChild) {
+            PostMessage(pWin->hActiveChild, message + MSG_NCMOUSEOFF,
+                    HT_OUT, MAKELONG(x, y));
+        }
+        break;
+
+    case MSG_LBUTTONDBLCLK:
+    case MSG_RBUTTONDBLCLK:
+    case MSG_MBUTTONDBLCLK:
+        if (pUnderPointer) {
+            if (pUnderPointer->dwStyle & WS_DISABLED) {
+                Ping ();
+                break;
             }
-            else if (pWin->hActiveChild) {
+
+            if (UndHitCode == HT_CLIENT)
+                PostMessage((HWND)pUnderPointer, message,
+                        flags, MAKELONG(cx, cy));
+            else
+                PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
+                        UndHitCode, MAKELONG (x, y));
+        }
+        else {
+            if (pWin->hActiveChild) {
                 PostMessage(pWin->hActiveChild, message + MSG_NCMOUSEOFF,
                         HT_OUT, MAKELONG(x, y));
             }
-            break;
-
-        case MSG_LBUTTONDBLCLK:
-        case MSG_RBUTTONDBLCLK:
-        case MSG_MBUTTONDBLCLK:
-            if (pUnderPointer) {
-                if (pUnderPointer->dwStyle & WS_DISABLED) {
-                    Ping ();
-                    break;
-                }
-
-                if (UndHitCode == HT_CLIENT)
-                    PostMessage((HWND)pUnderPointer, message,
-                            flags, MAKELONG(cx, cy));
-                else
-                    PostMessage((HWND)pUnderPointer, message + MSG_NCMOUSEOFF,
-                            UndHitCode, MAKELONG (x, y));
-            }
-            else {
-                if (pWin->hActiveChild) {
-                    PostMessage(pWin->hActiveChild, message + MSG_NCMOUSEOFF,
-                            HT_OUT, MAKELONG(x, y));
-                }
-            }
-            break;
-
+        }
+        break;
     }
 
     return 0;
@@ -679,38 +684,46 @@ BOOL wndGetHScrollBarRect (const MAINWIN* pWin,
 
 }
 
-/* rc: position relative to secondary_dc, so need transform
+/* Since 5.0.0, real_dc always is the window DC of the rc: position relative to secondary_dc, so need transform
  * it  relative to real_dc(screen).*/
-void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
-        HDC real_dc, const RECT* rc, DWORD flags)
+void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
+        HDC real_dc, const RECT* update_rc, DWORD flags)
 {
-    PDC pdc_main;
     RECT wnd_rc, clip_rc, client_rc;
+    PDC pdc_real;
 
-    if (!dc_IsVisible((PDC)secondary_dc))
+    if (!(pdc_real  = dc_HDC2PDC(real_dc)))
         return;
-    if (!pWin->pMainWin->secondaryDC) {
+
+    if (!dc_IsVisible((PDC)secondary_dc) ||
+            !pWin->pMainWin->secondaryDC) {
         return;
     }
 
-    pdc_main  = dc_HDC2PDC(real_dc);
-
     /* calculate offset postion. */
-    if (flags == HT_CLIENT){
+    if (flags == HT_CLIENT) {
         gui_WndClientRect ((HWND)pWin, &wnd_rc);
     }
     else {
         gui_WndRect ((HWND)pWin, &wnd_rc);
     }
 
-    /* 1. clip_rc.left/clip_rc.top is real_rc update in the screen (coordinate relative
-     *    to screen).
-     * 2. clip_rc.left/clip_rc.top need translate rc to relative real_dc's DevRC(BitBlt).
-     * */
-    clip_rc.left = wnd_rc.left + rc->left - pdc_main->DevRC.left;
-    clip_rc.top = wnd_rc.top  + rc->top  - pdc_main->DevRC.top;
-    clip_rc.right  = clip_rc.left + RECTWP(rc);
-    clip_rc.bottom = clip_rc.top  + RECTHP(rc);
+    /* 1. clip_rc.left/clip_rc.top is real_rc update in the screen (coordinate
+     *    relative to screen). 
+     * 2. clip_rc.left/clip_rc.top need translate update_rc to relative
+     *    to the real_dc's DevRC.
+     *
+     * XXX: not considered the global control.
+     */
+    clip_rc.left = wnd_rc.left + update_rc->left - pdc_real->DevRC.left;
+    clip_rc.top = wnd_rc.top  + update_rc->top  - pdc_real->DevRC.top;
+#ifdef _MGSCHEMA_COMPOSITING
+    /* For compositing schema, we use origin of the main window for offsets */
+    clip_rc.left -= pWin->pMainWin->left;
+    clip_rc.top -= pWin->pMainWin->top;
+#endif
+    clip_rc.right  = clip_rc.left + RECTWP(update_rc);
+    clip_rc.bottom = clip_rc.top  + RECTHP(update_rc);
 
     IncludeClipRect (real_dc, &clip_rc);
 
@@ -722,20 +735,25 @@ void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
             ClientToWindow((HWND)pWin->pMainWin, &client_rc.left, &client_rc.top);
             ClientToWindow((HWND)pWin->pMainWin, &client_rc.right, &client_rc.bottom);
         }
-        else
-            OffsetRect (&client_rc, -pdc_main->DevRC.left, -pdc_main->DevRC.top);
+        else {
+            OffsetRect (&client_rc, -pdc_real->DevRC.left, -pdc_real->DevRC.top);
+#ifdef _MGSCHEMA_COMPOSITING
+            OffsetRect (&client_rc, -pWin->pMainWin->left, -pWin->pMainWin->top);
+#endif
+        }
+
         ExcludeClipRect (real_dc, &client_rc);
     }
 
     /* exclude tranparent client rect.*/
     if (flags == HT_CLIENT) {
         PCONTROL child;
-        RECT rc = pWin->pMainWin->update_rc;
+        RECT update_rc = pWin->pMainWin->update_rc;
         child = (PCONTROL)pWin->hFirstChild;
         while (child) {
             //if ((child->dwStyle & WS_VISIBLE) && (child->dwExStyle & WS_EX_TRANSPARENT)
             if ((child->dwStyle & WS_VISIBLE)
-                    && DoesIntersect ((const RECT*)&child->left, &rc)) {
+                    && DoesIntersect ((const RECT*)&child->left, &update_rc)) {
                 RECT rcTmp;
                 gui_WndClientRect ((HWND)child, &rcTmp);
                 ScreenToClient ((HWND)pWin->pMainWin,
@@ -748,10 +766,11 @@ void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
         }
     }
 
-    if (pWin->pMainWin->update_secdc == ON_UPDSECDC_DEFAULT)
-        BitBlt (secondary_dc, rc->left, rc->top,
-                RECTWP(rc), RECTHP(rc),
+    if (pWin->pMainWin->update_secdc == ON_UPDSECDC_DEFAULT) {
+        BitBlt (secondary_dc, update_rc->left, update_rc->top,
+                RECTWP(update_rc), RECTHP(update_rc),
                 real_dc, clip_rc.left, clip_rc.top, 0);
+    }
     else if (pWin->pMainWin->update_secdc != ON_UPDSECDC_DONOTHING) {
         if (flags == HT_CLIENT){
             RECT main_update_rc;
@@ -762,11 +781,11 @@ void update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
             ClientToWindow((HWND)pWin->pMainWin,
                     &main_update_rc.right, &main_update_rc.bottom);
             pWin->pMainWin->update_secdc ((HWND)pWin,
-                    secondary_dc, real_dc, rc, &clip_rc, &main_update_rc);
+                    secondary_dc, real_dc, update_rc, &clip_rc, &main_update_rc);
         }
         else {
             pWin->pMainWin->update_secdc ((HWND)pWin,
-                    secondary_dc, real_dc, rc, &clip_rc, &clip_rc);
+                    secondary_dc, real_dc, update_rc, &clip_rc, &clip_rc);
         }
     }
 }
@@ -780,8 +799,9 @@ static void draw_secondary_nc_area (PMAINWIN pWin,
 
     do {
 #if 0
-        /* houhh 20081012, the WS_EX_CTRLASMAINWIN style window have itself's pdc->pGCRInfo
-         * information, so the real_dc's global clip info should use itselft's. */
+        /* houhh 20081012, the WS_EX_CTRLASMAINWIN style window have itself's
+           pdc->pGCRInfo, so for the real_dc's global clip region,
+           we should use itselft's */
         if (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
             real_dc = GetDC ((HWND)pWin);
         else
@@ -794,9 +814,9 @@ static void draw_secondary_nc_area (PMAINWIN pWin,
             break;
 
         if (!IsRectEmpty(&rc)){
-            update_secondary_dc (pWin, hdc, real_dc, &rc, flags);
+            __mg_update_secondary_dc (pWin, hdc, real_dc, &rc, flags);
         }
-    } while (FALSE);
+    } while (0);
 
     if (real_dc)
         ReleaseDC (real_dc);
@@ -892,232 +912,215 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
         SBS_PRESSED_LTUP | SBS_PRESSED_BTDN | SBS_PRESSED_THUMB |
         SBS_HILITE_LTUP | SBS_HILITE_BTDN | SBS_HILITE_THUMB;
 
-	if(hdc == 0)
-	{
-		hdc = get_valid_dc (pWin, FALSE);
-		fGetDC = TRUE;
-	}
-
-    switch (downCode) {
-        case HT_ICON:
-        case HT_MAXBUTTON:
-        case HT_MINBUTTON:
-        case HT_CLOSEBUTTON:
-            {
-                BOOL is_active = TRUE;
-                if (pWin->WinType == TYPE_MAINWIN)
-                    is_active = !(pWin->dwStyle & WS_DISABLED) &&
-                        (GetActiveWindow() == (HWND)pWin);
-                else
-                    is_active = !(pWin->dwStyle & WS_DISABLED) &&
-                        (((PCONTROL)pWin)->pParent->active == (PCONTROL)pWin);
-
-                if (is_active)
-                    info->we_rdr->draw_caption_button ((HWND)pWin,
-                            hdc, downCode, LFRDR_BTN_STATUS_NORMAL|status);
-                else
-                    info->we_rdr->draw_caption_button ((HWND)pWin,
-                            hdc, downCode, LFRDR_BTN_STATUS_INACTIVE|status);
-
-                if (pWin->pMainWin->secondaryDC) {
-                    draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
-                }
-                release_valid_dc (pWin, hdc);
-                return TRUE;
-            }
-
-        case HT_SB_UPARROW:
-            {
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                {
-                    pWin->vscroll.status |= SBS_DISABLED_LTUP;
-                }
-                else
-                {
-                    pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
-                }
-
-                if (status == LFRDR_BTN_STATUS_PRESSED)
-                    pWin->vscroll.status |= SBS_PRESSED_LTUP;
-                else if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->vscroll.status |= SBS_HILITE_LTUP;
-
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                    pWin->vscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
-
-                break;
-            }
-
-        case HT_SB_DOWNARROW:
-            {
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                {
-                    pWin->vscroll.status |= SBS_DISABLED_BTDN;
-                }
-                else
-                {
-                    pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
-                }
-
-                if (status == LFRDR_BTN_STATUS_PRESSED)
-                    pWin->vscroll.status |= SBS_PRESSED_BTDN;
-                else if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->vscroll.status |= SBS_HILITE_BTDN;
-
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    pWin->vscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
-
-                break;
-            }
-
-        case HT_SB_LEFTARROW:
-            {
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                {
-                    pWin->hscroll.status |= SBS_DISABLED_LTUP;
-                }
-                else
-                {
-                    pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
-                }
-
-                if (status == LFRDR_BTN_STATUS_PRESSED)
-                    pWin->hscroll.status |= SBS_PRESSED_LTUP;
-                else if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->hscroll.status |= SBS_HILITE_LTUP;
-
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
-                        >= pWin->hscroll.maxPos)
-                    pWin->hscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
-
-                break;
-            }
-
-        case HT_SB_RIGHTARROW:
-            {
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
-                        >= pWin->hscroll.maxPos)
-                {
-                    pWin->hscroll.status |= SBS_DISABLED_BTDN;
-                }
-                else
-                {
-                    pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
-                }
-
-                if (status == LFRDR_BTN_STATUS_PRESSED)
-                    pWin->hscroll.status |= SBS_PRESSED_BTDN;
-                else if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->hscroll.status |= SBS_HILITE_BTDN;
-
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    pWin->hscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
-
-                break;
-            }
-
-        case HT_SB_HTHUMB:
-            {
-                if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->hscroll.status |= SBS_HILITE_THUMB;
-
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    pWin->hscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
-
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
-                        >= pWin->hscroll.maxPos)
-                    pWin->hscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
-
-                if (pWin->hscroll.pageStep < pWin->hscroll.maxPos
-                        - pWin->hscroll.minPos + 1)
-                {
-                    if (status == LFRDR_BTN_STATUS_PRESSED)
-                        pWin->hscroll.status |= SBS_PRESSED_THUMB;
-                }
-
-                break;
-            }
-
-        case HT_SB_VTHUMB:
-            {
-                if (status == LFRDR_BTN_STATUS_HILITE)
-                    pWin->vscroll.status |= SBS_HILITE_THUMB;
-
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    pWin->vscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
-
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                    pWin->vscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
-
-                if (pWin->vscroll.pageStep < pWin->vscroll.maxPos
-                        - pWin->vscroll.minPos + 1)
-                {
-                    if (status == LFRDR_BTN_STATUS_PRESSED)
-                        pWin->vscroll.status |= SBS_PRESSED_THUMB;
-                }
-
-                break;
-            }
-
-        case HT_SB_LEFTSPACE:
-        case HT_SB_RIGHTSPACE:
-        case HT_HSCROLL:
-            {
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    pWin->hscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
-
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
-                        >= pWin->hscroll.maxPos)
-                    pWin->hscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
-                break;
-            }
-
-        case HT_SB_UPSPACE:
-        case HT_SB_DOWNSPACE:
-        case HT_VSCROLL:
-            {
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    pWin->vscroll.status |= SBS_DISABLED_LTUP;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
-
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                    pWin->vscroll.status |= SBS_DISABLED_BTDN;
-                else
-                    pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
-
-                break;
-            }
-        default:
-            release_valid_dc (pWin, hdc);
-            return FALSE;
+    if(hdc == 0)
+    {
+        hdc = get_effective_dc (pWin, FALSE);
+        fGetDC = TRUE;
     }
 
-    if (! pWin->pMainWin->secondaryDC) {
+    switch (downCode) {
+    case HT_ICON:
+    case HT_MAXBUTTON:
+    case HT_MINBUTTON:
+    case HT_CLOSEBUTTON: {
+        BOOL is_active = TRUE;
+        if (pWin->WinType == TYPE_MAINWIN)
+            is_active = !(pWin->dwStyle & WS_DISABLED) &&
+                (GetActiveWindow() == (HWND)pWin);
+        else
+            is_active = !(pWin->dwStyle & WS_DISABLED) &&
+                (((PCONTROL)pWin)->pParent->active == (PCONTROL)pWin);
+
+        if (is_active)
+            info->we_rdr->draw_caption_button ((HWND)pWin,
+                    hdc, downCode, LFRDR_BTN_STATUS_NORMAL|status);
+        else
+            info->we_rdr->draw_caption_button ((HWND)pWin,
+                    hdc, downCode, LFRDR_BTN_STATUS_INACTIVE|status);
+
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
+        }
+        release_effective_dc (pWin, hdc);
+        return TRUE;
+    }
+
+    case HT_SB_UPARROW: {
+        if (pWin->vscroll.curPos == pWin->vscroll.minPos) {
+            pWin->vscroll.status |= SBS_DISABLED_LTUP;
+        }
+        else {
+            pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
+        }
+
+        if (status == LFRDR_BTN_STATUS_PRESSED)
+            pWin->vscroll.status |= SBS_PRESSED_LTUP;
+        else if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->vscroll.status |= SBS_HILITE_LTUP;
+
+        if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                >= pWin->vscroll.maxPos)
+            pWin->vscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
+
+        break;
+    }
+
+    case HT_SB_DOWNARROW: {
+        if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                >= pWin->vscroll.maxPos) {
+            pWin->vscroll.status |= SBS_DISABLED_BTDN;
+        }
+        else {
+            pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
+        }
+
+        if (status == LFRDR_BTN_STATUS_PRESSED)
+            pWin->vscroll.status |= SBS_PRESSED_BTDN;
+        else if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->vscroll.status |= SBS_HILITE_BTDN;
+
+        if (pWin->vscroll.curPos == pWin->vscroll.minPos)
+            pWin->vscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
+
+        break;
+    }
+
+    case HT_SB_LEFTARROW: {
+        if (pWin->hscroll.curPos == pWin->hscroll.minPos) {
+            pWin->hscroll.status |= SBS_DISABLED_LTUP;
+        }
+        else {
+            pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
+        }
+
+        if (status == LFRDR_BTN_STATUS_PRESSED)
+            pWin->hscroll.status |= SBS_PRESSED_LTUP;
+        else if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->hscroll.status |= SBS_HILITE_LTUP;
+
+        if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
+                >= pWin->hscroll.maxPos)
+            pWin->hscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
+
+        break;
+    }
+
+    case HT_SB_RIGHTARROW: {
+        if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
+                >= pWin->hscroll.maxPos) {
+            pWin->hscroll.status |= SBS_DISABLED_BTDN;
+        }
+        else {
+            pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
+        }
+
+        if (status == LFRDR_BTN_STATUS_PRESSED)
+            pWin->hscroll.status |= SBS_PRESSED_BTDN;
+        else if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->hscroll.status |= SBS_HILITE_BTDN;
+
+        if (pWin->hscroll.curPos == pWin->hscroll.minPos)
+            pWin->hscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
+
+        break;
+    }
+
+    case HT_SB_HTHUMB: {
+        if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->hscroll.status |= SBS_HILITE_THUMB;
+
+        if (pWin->hscroll.curPos == pWin->hscroll.minPos)
+            pWin->hscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
+
+        if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
+                >= pWin->hscroll.maxPos)
+            pWin->hscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
+
+        if (pWin->hscroll.pageStep < pWin->hscroll.maxPos
+                - pWin->hscroll.minPos + 1)
+        {
+            if (status == LFRDR_BTN_STATUS_PRESSED)
+                pWin->hscroll.status |= SBS_PRESSED_THUMB;
+        }
+
+        break;
+    }
+
+    case HT_SB_VTHUMB: {
+        if (status == LFRDR_BTN_STATUS_HILITE)
+            pWin->vscroll.status |= SBS_HILITE_THUMB;
+
+        if (pWin->vscroll.curPos == pWin->vscroll.minPos)
+            pWin->vscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
+
+        if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                >= pWin->vscroll.maxPos)
+            pWin->vscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
+
+        if (pWin->vscroll.pageStep < pWin->vscroll.maxPos
+                - pWin->vscroll.minPos + 1) {
+            if (status == LFRDR_BTN_STATUS_PRESSED)
+                pWin->vscroll.status |= SBS_PRESSED_THUMB;
+        }
+
+        break;
+    }
+
+    case HT_SB_LEFTSPACE:
+    case HT_SB_RIGHTSPACE:
+    case HT_HSCROLL: {
+        if (pWin->hscroll.curPos == pWin->hscroll.minPos)
+            pWin->hscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_LTUP;
+
+        if (pWin->hscroll.curPos + pWin->hscroll.pageStep - 1
+                >= pWin->hscroll.maxPos)
+            pWin->hscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->hscroll.status &= ~SBS_DISABLED_BTDN;
+        break;
+    }
+
+    case HT_SB_UPSPACE:
+    case HT_SB_DOWNSPACE:
+    case HT_VSCROLL: {
+        if (pWin->vscroll.curPos == pWin->vscroll.minPos)
+            pWin->vscroll.status |= SBS_DISABLED_LTUP;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_LTUP;
+
+        if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                >= pWin->vscroll.maxPos)
+            pWin->vscroll.status |= SBS_DISABLED_BTDN;
+        else
+            pWin->vscroll.status &= ~SBS_DISABLED_BTDN;
+
+        break;
+    }
+
+    default:
+        release_effective_dc (pWin, hdc);
+        return FALSE;
+    }
+
+    if (!pWin->pMainWin->secondaryDC) {
         ShrinkScrollbarClipRect((HWND)pWin, hdc, info, downCode);
     }
 
@@ -1127,8 +1130,8 @@ static BOOL wndDrawNCButtonEx (PMAINWIN pWin, HDC hdc, int downCode, int status)
         draw_secondary_nc_area (pWin, info->we_rdr, hdc, downCode);
     }
 
-	if(fGetDC)
-	    release_valid_dc (pWin, hdc);
+    if (fGetDC)
+        release_effective_dc (pWin, hdc);
 
     pWin->hscroll.status &= ~_status;
     pWin->vscroll.status &= ~_status;
@@ -1149,17 +1152,16 @@ static void wndTrackMenuBarOnMouseMove(PMAINWIN pWin, int message,
 
 static int set_hilite_sbpos (int location)
 {
-    switch (location)
-    {
-        case HT_SB_UPARROW:
-        case HT_SB_DOWNARROW:
-        case HT_SB_LEFTARROW:
-        case HT_SB_RIGHTARROW:
-        case HT_SB_HTHUMB:
-        case HT_SB_VTHUMB:
-            return location;
-        default:
-            return HT_SB_UNKNOWN;
+    switch (location) {
+    case HT_SB_UPARROW:
+    case HT_SB_DOWNARROW:
+    case HT_SB_LEFTARROW:
+    case HT_SB_RIGHTARROW:
+    case HT_SB_HTHUMB:
+    case HT_SB_VTHUMB:
+        return location;
+    default:
+        return HT_SB_UNKNOWN;
     }
 }
 
@@ -1193,142 +1195,141 @@ static int wndHandleHScrollBar (PMAINWIN pWin,
     rcBar.left += GetWindowElementAttr ((HWND)pWin, WE_METRICS_SCROLLBAR);
     rcBar.right -= GetWindowElementAttr ((HWND)pWin, WE_METRICS_SCROLLBAR);
 
-    switch( message )
-    {
-        case MSG_NCLBUTTONDOWN:
-            oldBarStart = pWin->hscroll.barStart;
-            oldThumbPos = pWin->hscroll.curPos;
-            oldx = x;
+    switch (message) {
+    case MSG_NCLBUTTONDOWN:
+        oldBarStart = pWin->hscroll.barStart;
+        oldThumbPos = pWin->hscroll.curPos;
+        oldx = x;
 
-            downPos = location;
-            movePos = location;
-            hilitePos = HT_SB_UNKNOWN;
+        downPos = location;
+        movePos = location;
+        hilitePos = HT_SB_UNKNOWN;
 
-            wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_PRESSED);
+        wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_PRESSED);
 
-            if (location == HT_SB_LEFTARROW) {
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    break;
-
-                sbCode = SB_LINELEFT;
-            }
-            else if (location == HT_SB_RIGHTARROW) {
-                if (pWin->hscroll.curPos + pWin->hscroll.pageStep
-                        >= pWin->hscroll.maxPos)
-                    break;
-
-                sbCode = SB_LINERIGHT;
-            }
-            else if (location == HT_SB_LEFTSPACE) {
-                if (pWin->hscroll.curPos == pWin->hscroll.minPos)
-                    break;
-
-                sbCode = SB_PAGELEFT;
-            }
-            else if (location == HT_SB_RIGHTSPACE) {
-                if (pWin->hscroll.curPos == pWin->hscroll.maxPos)
-                    break;
-
-                sbCode = SB_PAGERIGHT;
-            }
-            else if (location == HT_SB_HTHUMB) {
-                sbCode = SB_THUMBTRACK;
+        if (location == HT_SB_LEFTARROW) {
+            if (pWin->hscroll.curPos == pWin->hscroll.minPos)
                 break;
-            }
 
-            if (location != HT_SB_UNKNOWN) {
-                SendNotifyMessage ((HWND)pWin, MSG_HSCROLL, sbCode, x);
-                SetAutoRepeatMessage ((HWND)pWin, MSG_HSCROLL, sbCode, x);
-            }
+            sbCode = SB_LINELEFT;
+        }
+        else if (location == HT_SB_RIGHTARROW) {
+            if (pWin->hscroll.curPos + pWin->hscroll.pageStep
+                    >= pWin->hscroll.maxPos)
+                break;
+
+            sbCode = SB_LINERIGHT;
+        }
+        else if (location == HT_SB_LEFTSPACE) {
+            if (pWin->hscroll.curPos == pWin->hscroll.minPos)
+                break;
+
+            sbCode = SB_PAGELEFT;
+        }
+        else if (location == HT_SB_RIGHTSPACE) {
+            if (pWin->hscroll.curPos == pWin->hscroll.maxPos)
+                break;
+
+            sbCode = SB_PAGERIGHT;
+        }
+        else if (location == HT_SB_HTHUMB) {
+            sbCode = SB_THUMBTRACK;
             break;
+        }
 
-        case MSG_NCLBUTTONUP:
-            if (sbCode == SB_THUMBTRACK
-                    && downPos == HT_SB_HTHUMB) {
-                newBarStart = oldBarStart + x - oldx;
-                if (RECTW(rcBar) != 0)
-                    newThumbPos = CALC_THUMB_HPOS(newBarStart, rcBar, pWin->hscroll);
+        if (location != HT_SB_UNKNOWN) {
+            SendNotifyMessage ((HWND)pWin, MSG_HSCROLL, sbCode, x);
+            SetAutoRepeatMessage ((HWND)pWin, MSG_HSCROLL, sbCode, x);
+        }
+        break;
 
-                pWin->hscroll.status &= ~SBS_PRESSED_LTUP;
-                pWin->hscroll.status &= ~SBS_PRESSED_BTDN;
+    case MSG_NCLBUTTONUP:
+        if (sbCode == SB_THUMBTRACK
+                && downPos == HT_SB_HTHUMB) {
+            newBarStart = oldBarStart + x - oldx;
+            if (RECTW(rcBar) != 0)
+                newThumbPos = CALC_THUMB_HPOS(newBarStart, rcBar, pWin->hscroll);
 
-                if (newThumbPos < pWin->hscroll.minPos)
-                    newThumbPos = pWin->hscroll.minPos;
-                if (newThumbPos > pWin->hscroll.maxPos)
-                    newThumbPos = pWin->hscroll.maxPos;
-                if (newBarStart != oldBarStart)
-                    SendNotifyMessage ((HWND)pWin,
-                            MSG_HSCROLL, SB_THUMBPOSITION, newThumbPos);
+            pWin->hscroll.status &= ~SBS_PRESSED_LTUP;
+            pWin->hscroll.status &= ~SBS_PRESSED_BTDN;
 
-                //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                wndDrawNCButton (pWin, HT_HSCROLL, 0);
+            if (newThumbPos < pWin->hscroll.minPos)
+                newThumbPos = pWin->hscroll.minPos;
+            if (newThumbPos > pWin->hscroll.maxPos)
+                newThumbPos = pWin->hscroll.maxPos;
+            if (newBarStart != oldBarStart)
+                SendNotifyMessage ((HWND)pWin,
+                        MSG_HSCROLL, SB_THUMBPOSITION, newThumbPos);
 
-                downPos = HT_SB_UNKNOWN;
-                movePos = HT_SB_UNKNOWN;
-                hilitePos = HT_SB_UNKNOWN;
-                return -1;
-            }
-
-            if (downPos != HT_SB_UNKNOWN) {
-                //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                wndDrawNCButton (pWin, HT_HSCROLL, 0);
-                SendNotifyMessage ((HWND)pWin, MSG_HSCROLL, SB_ENDSCROLL, 0);
-                /* cancel repeat message */
-                SetAutoRepeatMessage (0, 0, 0, 0);
-            }
+            //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            wndDrawNCButton (pWin, HT_HSCROLL, 0);
 
             downPos = HT_SB_UNKNOWN;
             movePos = HT_SB_UNKNOWN;
             hilitePos = HT_SB_UNKNOWN;
-            return 0;
+            return -1;
+        }
 
-        case MSG_NCMOUSEMOVE:
-            if (sbCode == SB_THUMBTRACK
-                    && downPos == HT_SB_HTHUMB) {
-                newBarStart = oldBarStart + x - oldx;
-                if (RECTW(rcBar) != 0)
-                    newThumbPos = CALC_THUMB_HPOS(newBarStart, rcBar, pWin->hscroll);
+        if (downPos != HT_SB_UNKNOWN) {
+            //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            wndDrawNCButton (pWin, HT_HSCROLL, 0);
+            SendNotifyMessage ((HWND)pWin, MSG_HSCROLL, SB_ENDSCROLL, 0);
+            /* cancel repeat message */
+            SetAutoRepeatMessage (0, 0, 0, 0);
+        }
 
-                if (newThumbPos < pWin->hscroll.minPos)
-                    newThumbPos = pWin->hscroll.minPos;
-                if (newThumbPos > pWin->hscroll.maxPos)
-                    newThumbPos = pWin->hscroll.maxPos;
-                if (newThumbPos != oldThumbPos) {
-                    if (pWin->hscroll.pageStep < pWin->hscroll.maxPos
-                            - pWin->hscroll.minPos + 1)
-                    {
-                        SendNotifyMessage ((HWND)pWin,
-                                MSG_HSCROLL, SB_THUMBTRACK, newThumbPos);
-                        oldThumbPos = newThumbPos;
-                    }
+        downPos = HT_SB_UNKNOWN;
+        movePos = HT_SB_UNKNOWN;
+        hilitePos = HT_SB_UNKNOWN;
+        return 0;
+
+    case MSG_NCMOUSEMOVE:
+        if (sbCode == SB_THUMBTRACK
+                && downPos == HT_SB_HTHUMB) {
+            newBarStart = oldBarStart + x - oldx;
+            if (RECTW(rcBar) != 0)
+                newThumbPos = CALC_THUMB_HPOS(newBarStart, rcBar, pWin->hscroll);
+
+            if (newThumbPos < pWin->hscroll.minPos)
+                newThumbPos = pWin->hscroll.minPos;
+            if (newThumbPos > pWin->hscroll.maxPos)
+                newThumbPos = pWin->hscroll.maxPos;
+            if (newThumbPos != oldThumbPos) {
+                if (pWin->hscroll.pageStep < pWin->hscroll.maxPos
+                        - pWin->hscroll.minPos + 1)
+                {
+                    SendNotifyMessage ((HWND)pWin,
+                            MSG_HSCROLL, SB_THUMBTRACK, newThumbPos);
+                    oldThumbPos = newThumbPos;
                 }
             }
+        }
 
-            if (downPos != HT_SB_UNKNOWN) {
-                if (movePos == downPos && location != downPos)
-                    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                else if (movePos != downPos && location == downPos)
-                    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_PRESSED);
-                movePos = location;
-            }
-            else {
-                PostMessage((HWND)pWin, MSG_NCSETCURSOR, location, MAKELONG (x, y));
-                if (hilitePos != location) {
-                    if (hilitePos != HT_SB_UNKNOWN)
-                        wndDrawNCButton (pWin, hilitePos, LFRDR_BTN_STATUS_NORMAL);
+        if (downPos != HT_SB_UNKNOWN) {
+            if (movePos == downPos && location != downPos)
+                wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            else if (movePos != downPos && location == downPos)
+                wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_PRESSED);
+            movePos = location;
+        }
+        else {
+            PostMessage((HWND)pWin, MSG_NCSETCURSOR, location, MAKELONG (x, y));
+            if (hilitePos != location) {
+                if (hilitePos != HT_SB_UNKNOWN)
+                    wndDrawNCButton (pWin, hilitePos, LFRDR_BTN_STATUS_NORMAL);
 
-                    if (location != HT_SB_UNKNOWN
-                         && ((location & HT_SB_MASK) == HT_SB_MASK && location < HT_SB_VMASK))
-                        wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
-                }
-
-                if ((location & HT_SB_MASK) == HT_SB_MASK && location < HT_SB_VMASK)
-                    hilitePos = set_hilite_sbpos (location);
-                else
-                    hilitePos = HT_SB_UNKNOWN;
+                if (location != HT_SB_UNKNOWN
+                     && ((location & HT_SB_MASK) == HT_SB_MASK && location < HT_SB_VMASK))
+                    wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
             }
 
-            return 0;
+            if ((location & HT_SB_MASK) == HT_SB_MASK && location < HT_SB_VMASK)
+                hilitePos = set_hilite_sbpos (location);
+            else
+                hilitePos = HT_SB_UNKNOWN;
+        }
+
+        return 0;
     }
 
     return 1;
@@ -1365,138 +1366,137 @@ static int wndHandleVScrollBar (PMAINWIN pWin,
     rcBar.top += GetWindowElementAttr ((HWND)pWin, WE_METRICS_SCROLLBAR);
     rcBar.bottom -= GetWindowElementAttr ((HWND)pWin, WE_METRICS_SCROLLBAR);
 
-    switch (message)
-    {
-        case MSG_NCLBUTTONDOWN:
-            oldBarStart = pWin->vscroll.barStart;
-            oldThumbPos = pWin->vscroll.curPos;
-            oldy = y;
-            downPos = location;
-            movePos = location;
-            hilitePos = HT_SB_UNKNOWN;
+    switch (message) {
+    case MSG_NCLBUTTONDOWN:
+        oldBarStart = pWin->vscroll.barStart;
+        oldThumbPos = pWin->vscroll.curPos;
+        oldy = y;
+        downPos = location;
+        movePos = location;
+        hilitePos = HT_SB_UNKNOWN;
 
-            wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_PRESSED);
+        wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_PRESSED);
 
-            if (location == HT_SB_UPARROW) {
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    break;
-                sbCode = SB_LINEUP;
-            }
-            else if (location == HT_SB_DOWNARROW) {
-                if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
-                        >= pWin->vscroll.maxPos)
-                    break;
-                sbCode = SB_LINEDOWN;
-            }
-            else if (location == HT_SB_UPSPACE) {
-                if (pWin->vscroll.curPos == pWin->vscroll.minPos)
-                    break;
-                sbCode = SB_PAGEUP;
-            }
-            else if (location == HT_SB_DOWNSPACE) {
-                if (pWin->vscroll.curPos >= pWin->vscroll.maxPos)
-                    break;
-                sbCode = SB_PAGEDOWN;
-            }
-            else if (location == HT_SB_VTHUMB) {
-                sbCode = SB_THUMBTRACK;
+        if (location == HT_SB_UPARROW) {
+            if (pWin->vscroll.curPos == pWin->vscroll.minPos)
                 break;
-            }
-
-            if (location != HT_SB_UNKNOWN) {
-                SendNotifyMessage ((HWND)pWin, MSG_VSCROLL, sbCode, y);
-                SetAutoRepeatMessage ((HWND)pWin, MSG_VSCROLL, sbCode, y);
-            }
+            sbCode = SB_LINEUP;
+        }
+        else if (location == HT_SB_DOWNARROW) {
+            if (pWin->vscroll.curPos + pWin->vscroll.pageStep - 1
+                    >= pWin->vscroll.maxPos)
+                break;
+            sbCode = SB_LINEDOWN;
+        }
+        else if (location == HT_SB_UPSPACE) {
+            if (pWin->vscroll.curPos == pWin->vscroll.minPos)
+                break;
+            sbCode = SB_PAGEUP;
+        }
+        else if (location == HT_SB_DOWNSPACE) {
+            if (pWin->vscroll.curPos >= pWin->vscroll.maxPos)
+                break;
+            sbCode = SB_PAGEDOWN;
+        }
+        else if (location == HT_SB_VTHUMB) {
+            sbCode = SB_THUMBTRACK;
             break;
+        }
 
-        case MSG_NCLBUTTONUP:
-            if (sbCode == SB_THUMBTRACK
-                    && downPos == HT_SB_VTHUMB) {
-                newBarStart = oldBarStart + y - oldy;
-                if (RECTH(rcBar) != 0)
-                    newThumbPos = CALC_THUMB_VPOS(newBarStart, rcBar, pWin->vscroll);
+        if (location != HT_SB_UNKNOWN) {
+            SendNotifyMessage ((HWND)pWin, MSG_VSCROLL, sbCode, y);
+            SetAutoRepeatMessage ((HWND)pWin, MSG_VSCROLL, sbCode, y);
+        }
+        break;
 
-                pWin->vscroll.status &= ~SBS_PRESSED_LTUP;
-                pWin->vscroll.status &= ~SBS_PRESSED_BTDN;
+    case MSG_NCLBUTTONUP:
+        if (sbCode == SB_THUMBTRACK
+                && downPos == HT_SB_VTHUMB) {
+            newBarStart = oldBarStart + y - oldy;
+            if (RECTH(rcBar) != 0)
+                newThumbPos = CALC_THUMB_VPOS(newBarStart, rcBar, pWin->vscroll);
 
-                if (newThumbPos < pWin->vscroll.minPos)
-                    newThumbPos = pWin->vscroll.minPos;
-                if (newThumbPos > pWin->vscroll.maxPos)
-                    newThumbPos = pWin->vscroll.maxPos;
-                if (newBarStart != oldBarStart) {
-                    SendNotifyMessage ((HWND)pWin,
-                            MSG_VSCROLL, SB_THUMBPOSITION, newThumbPos);
-                }
+            pWin->vscroll.status &= ~SBS_PRESSED_LTUP;
+            pWin->vscroll.status &= ~SBS_PRESSED_BTDN;
 
-                //    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                wndDrawNCButton (pWin, HT_VSCROLL, 0);
-
-                downPos = HT_SB_UNKNOWN;
-                movePos = HT_SB_UNKNOWN;
-                hilitePos = HT_SB_UNKNOWN;
-                return -1;
+            if (newThumbPos < pWin->vscroll.minPos)
+                newThumbPos = pWin->vscroll.minPos;
+            if (newThumbPos > pWin->vscroll.maxPos)
+                newThumbPos = pWin->vscroll.maxPos;
+            if (newBarStart != oldBarStart) {
+                SendNotifyMessage ((HWND)pWin,
+                        MSG_VSCROLL, SB_THUMBPOSITION, newThumbPos);
             }
 
-            if (downPos != HT_SB_UNKNOWN) {
-                //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                wndDrawNCButton (pWin, HT_VSCROLL, 0);
-                SendNotifyMessage ((HWND)pWin, MSG_VSCROLL, SB_ENDSCROLL, 0);
-                /* cancel repeat message */
-                SetAutoRepeatMessage (0, 0, 0, 0);
-            }
+            //    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            wndDrawNCButton (pWin, HT_VSCROLL, 0);
 
             downPos = HT_SB_UNKNOWN;
             movePos = HT_SB_UNKNOWN;
             hilitePos = HT_SB_UNKNOWN;
             return -1;
+        }
 
-        case MSG_NCMOUSEMOVE:
-            if (sbCode == SB_THUMBTRACK
-                    && downPos == HT_SB_VTHUMB) {
-                newBarStart = oldBarStart + y - oldy;
-                if (RECTH(rcBar) != 0)
-                    newThumbPos = CALC_THUMB_VPOS(newBarStart, rcBar, pWin->vscroll);
+        if (downPos != HT_SB_UNKNOWN) {
+            //wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            wndDrawNCButton (pWin, HT_VSCROLL, 0);
+            SendNotifyMessage ((HWND)pWin, MSG_VSCROLL, SB_ENDSCROLL, 0);
+            /* cancel repeat message */
+            SetAutoRepeatMessage (0, 0, 0, 0);
+        }
 
-                if (newThumbPos < pWin->vscroll.minPos)
-                    newThumbPos = pWin->vscroll.minPos;
-                if (newThumbPos >  (1 + pWin->vscroll.maxPos - pWin->vscroll.pageStep))
-                    newThumbPos = pWin->vscroll.maxPos - pWin->vscroll.pageStep + 1;
-                if (newThumbPos != oldThumbPos) {
-                    if (pWin->vscroll.pageStep < pWin->vscroll.maxPos
-                            - pWin->vscroll.minPos + 1)
-                    {
-                        SendNotifyMessage ((HWND)pWin,
-                                MSG_VSCROLL, SB_THUMBTRACK, newThumbPos);
-                        oldThumbPos = newThumbPos;
-                    }
+        downPos = HT_SB_UNKNOWN;
+        movePos = HT_SB_UNKNOWN;
+        hilitePos = HT_SB_UNKNOWN;
+        return -1;
+
+    case MSG_NCMOUSEMOVE:
+        if (sbCode == SB_THUMBTRACK
+                && downPos == HT_SB_VTHUMB) {
+            newBarStart = oldBarStart + y - oldy;
+            if (RECTH(rcBar) != 0)
+                newThumbPos = CALC_THUMB_VPOS(newBarStart, rcBar, pWin->vscroll);
+
+            if (newThumbPos < pWin->vscroll.minPos)
+                newThumbPos = pWin->vscroll.minPos;
+            if (newThumbPos >  (1 + pWin->vscroll.maxPos - pWin->vscroll.pageStep))
+                newThumbPos = pWin->vscroll.maxPos - pWin->vscroll.pageStep + 1;
+            if (newThumbPos != oldThumbPos) {
+                if (pWin->vscroll.pageStep < pWin->vscroll.maxPos
+                        - pWin->vscroll.minPos + 1)
+                {
+                    SendNotifyMessage ((HWND)pWin,
+                            MSG_VSCROLL, SB_THUMBTRACK, newThumbPos);
+                    oldThumbPos = newThumbPos;
                 }
             }
+        }
 
-            if (downPos != HT_SB_UNKNOWN) {
-                if (movePos == downPos && location != downPos)
-                    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
-                else if (movePos != downPos && location == downPos)
-                    wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_PRESSED);
-                movePos = location;
+        if (downPos != HT_SB_UNKNOWN) {
+            if (movePos == downPos && location != downPos)
+                wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_NORMAL);
+            else if (movePos != downPos && location == downPos)
+                wndDrawNCButton (pWin, downPos, LFRDR_BTN_STATUS_PRESSED);
+            movePos = location;
+        }
+        else {
+            PostMessage((HWND)pWin, MSG_NCSETCURSOR, location, MAKELONG (x, y));
+
+            if (hilitePos != location) {
+                if (hilitePos != HT_SB_UNKNOWN)
+                    wndDrawNCButton (pWin, hilitePos, LFRDR_BTN_STATUS_NORMAL);
+
+                if ((location != HT_SB_UNKNOWN)
+                     && ((location & HT_SB_VMASK) == HT_SB_VMASK))
+                    wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
             }
-            else {
-                PostMessage((HWND)pWin, MSG_NCSETCURSOR, location, MAKELONG (x, y));
+            if ((location & HT_SB_VMASK) == HT_SB_VMASK)
+                hilitePos = set_hilite_sbpos (location);
+            else
+                hilitePos = HT_SB_UNKNOWN;
+        }
 
-                if (hilitePos != location) {
-                    if (hilitePos != HT_SB_UNKNOWN)
-                        wndDrawNCButton (pWin, hilitePos, LFRDR_BTN_STATUS_NORMAL);
-
-                    if ((location != HT_SB_UNKNOWN)
-                         && ((location & HT_SB_VMASK) == HT_SB_VMASK))
-                        wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
-                }
-                if ((location & HT_SB_VMASK) == HT_SB_VMASK)
-                    hilitePos = set_hilite_sbpos (location);
-                else
-                    hilitePos = HT_SB_UNKNOWN;
-            }
-
-            break;
+        break;
     }
 
     return 1;
@@ -1517,76 +1517,75 @@ static void wndHandleCustomHotspot (PMAINWIN pWin,
     if (rdr->calc_we_area ((HWND)pWin, location, &rc))
         return;
 
-    switch (message)
-    {
-        case MSG_NCLBUTTONDOWN:
-            downPos = location;
+    switch (message) {
+    case MSG_NCLBUTTONDOWN:
+        downPos = location;
+        movePos = location;
+        hilitePos = HT_UNKNOWN;
+
+        hdc = get_effective_dc (pWin, FALSE);
+        if (rdr->draw_custom_hotspot)
+            rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                    LFRDR_BTN_STATUS_PRESSED);
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, rdr, hdc, location);
+        }
+        release_effective_dc (pWin, hdc);
+
+        if (rdr->on_click_hotspot)
+            rdr->on_click_hotspot ((HWND)pWin, location);
+        break;
+
+    case MSG_NCLBUTTONUP:
+        hdc = get_effective_dc (pWin, FALSE);
+        if (rdr->draw_custom_hotspot && (downPos != HT_UNKNOWN)) {
+            rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                    LFRDR_BTN_STATUS_NORMAL);
+        }
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, rdr, hdc, location);
+        }
+        release_effective_dc (pWin, hdc);
+
+        downPos = HT_UNKNOWN;
+        movePos = HT_UNKNOWN;
+        hilitePos = HT_UNKNOWN;
+        break;
+
+    case MSG_NCMOUSEMOVE:
+        hdc = get_effective_dc (pWin, FALSE);
+        if (downPos != HT_UNKNOWN) {
+            if (rdr->draw_custom_hotspot) {
+                if (movePos == downPos && location != downPos)
+                    rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                            LFRDR_BTN_STATUS_NORMAL);
+                else if (movePos != downPos && location == downPos)
+                    rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                            LFRDR_BTN_STATUS_PRESSED);
+            }
             movePos = location;
-            hilitePos = HT_UNKNOWN;
+        }
+        else {
+            PostMessage((HWND)pWin,
+                    MSG_NCSETCURSOR, location, MAKELONG (x, y));
 
-            hdc = get_valid_dc (pWin, FALSE);
-            if (rdr->draw_custom_hotspot)
-                rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                        LFRDR_BTN_STATUS_PRESSED);
-            if (pWin->pMainWin->secondaryDC) {
-                draw_secondary_nc_area (pWin, rdr, hdc, location);
+            if (rdr->draw_custom_hotspot && (hilitePos != location)) {
+                if (hilitePos != HT_UNKNOWN)
+                    rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                            LFRDR_BTN_STATUS_NORMAL);
+
+                if (location != HT_UNKNOWN)
+                    rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
+                            LFRDR_BTN_STATUS_HILITE);
             }
-            release_valid_dc (pWin, hdc);
+            hilitePos = location;
+        }
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, rdr, hdc, location);
+        }
+        release_effective_dc (pWin, hdc);
 
-            if (rdr->on_click_hotspot)
-                rdr->on_click_hotspot ((HWND)pWin, location);
-            break;
-
-        case MSG_NCLBUTTONUP:
-            hdc = get_valid_dc (pWin, FALSE);
-            if (rdr->draw_custom_hotspot && (downPos != HT_UNKNOWN)) {
-                rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                        LFRDR_BTN_STATUS_NORMAL);
-            }
-            if (pWin->pMainWin->secondaryDC) {
-                draw_secondary_nc_area (pWin, rdr, hdc, location);
-            }
-            release_valid_dc (pWin, hdc);
-
-            downPos = HT_UNKNOWN;
-            movePos = HT_UNKNOWN;
-            hilitePos = HT_UNKNOWN;
-            break;
-
-        case MSG_NCMOUSEMOVE:
-            hdc = get_valid_dc (pWin, FALSE);
-            if (downPos != HT_UNKNOWN) {
-                if (rdr->draw_custom_hotspot) {
-                    if (movePos == downPos && location != downPos)
-                        rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                                LFRDR_BTN_STATUS_NORMAL);
-                    else if (movePos != downPos && location == downPos)
-                        rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                                LFRDR_BTN_STATUS_PRESSED);
-                }
-                movePos = location;
-            }
-            else {
-                PostMessage((HWND)pWin,
-                        MSG_NCSETCURSOR, location, MAKELONG (x, y));
-
-                if (rdr->draw_custom_hotspot && (hilitePos != location)) {
-                    if (hilitePos != HT_UNKNOWN)
-                        rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                                LFRDR_BTN_STATUS_NORMAL);
-
-                    if (location != HT_UNKNOWN)
-                        rdr->draw_custom_hotspot ((HWND)pWin, hdc, location,
-                                LFRDR_BTN_STATUS_HILITE);
-                }
-                hilitePos = location;
-            }
-            if (pWin->pMainWin->secondaryDC) {
-                draw_secondary_nc_area (pWin, rdr, hdc, location);
-            }
-            release_valid_dc (pWin, hdc);
-
-            break;
+        break;
     }
 }
 
@@ -1616,151 +1615,150 @@ static LRESULT DefaultNCMouseMsgHandler(PMAINWIN pWin, UINT message,
     /*process scrollbar*/
     if (pWin->dwStyle & WS_HSCROLL) {
         switch (wndHandleHScrollBar (pWin, message, location, x, y)) {
-            case 1:
-                return 0;
-            case -1:
-                downCode = HT_UNKNOWN;
-                moveCode = HT_UNKNOWN;
-                return 0;
-            /* hscroll do not response this message.*/
-            case 0:
-                break;
+        case 1:
+            return 0;
+        case -1:
+            downCode = HT_UNKNOWN;
+            moveCode = HT_UNKNOWN;
+            return 0;
+        /* hscroll do not response this message.*/
+        case 0:
+            break;
         }
     }
 
     if (pWin->dwStyle & WS_VSCROLL) {
         switch (wndHandleVScrollBar (pWin, message, location, x, y)) {
-            case 1:
-                return 0;
-            case -1:
-                downCode = HT_UNKNOWN;
-                moveCode = HT_UNKNOWN;
-                return 0;
+        case 1:
+            return 0;
+        case -1:
+            downCode = HT_UNKNOWN;
+            moveCode = HT_UNKNOWN;
+            return 0;
         }
     }
 
-    switch (message)
-    {
-        case MSG_NCLBUTTONDOWN:
-
+    switch (message) {
+    case MSG_NCLBUTTONDOWN:
 #ifdef _MGHAVE_MENU
-            if (location == HT_MENUBAR) {
-                barItem = MenuBarHitTest ((HWND)pWin, x, y);
-                if (barItem >= 0)
-                    TrackMenuBar ((HWND)pWin, barItem);
+        if (location == HT_MENUBAR) {
+            barItem = MenuBarHitTest ((HWND)pWin, x, y);
+            if (barItem >= 0)
+                TrackMenuBar ((HWND)pWin, barItem);
 
-                return 0;
-            }
-            else
+            return 0;
+        }
+        else
 #endif
-                if (location & HT_DRAGGABLE && !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
-                    DRAGINFO drag_info;
+        if (location & HT_DRAGGABLE &&
+                !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
+            DRAGINFO drag_info;
 
-                    drag_info.location = location;
-                    drag_info.init_x = x;
-                    drag_info.init_y = y;
-                    SendMessage (HWND_DESKTOP, MSG_STARTDRAGWIN,
-                            (WPARAM)pWin, (LPARAM)&drag_info);
-                }
-                else {
-                    downCode = location;
-                    moveCode = location;
-                    hiliteCode = HT_UNKNOWN;
-
-                    wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
-                }
-            break;
-
-        case MSG_NCMOUSEMOVE:
-            if (pWin->hOldUnderPointer && location == HT_OUT) {
-                PostMessage (pWin->hOldUnderPointer,
-                        MSG_MOUSEMOVEIN, FALSE, 0);
-                PostMessage (pWin->hOldUnderPointer,
-                        MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
-                pWin->hOldUnderPointer = 0;
-            }
-
-            if (downCode != HT_UNKNOWN) {
-                if (moveCode == downCode && location != downCode) {
-                    wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_NORMAL);
-                    moveCode = location;
-                }
-                else if (moveCode != downCode && location == downCode) {
-                    wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
-                    moveCode = location;
-                }
-            }
-            else {
-                /*only move process*/
-                if (hiliteCode != location) {
-                    if (hiliteCode != HT_SB_UNKNOWN)
-                        wndDrawNCButton (pWin, hiliteCode, LFRDR_BTN_STATUS_NORMAL);
-
-                    wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
-                }
-                hiliteCode = location;
-            }
-
-            if (location != HT_CLIENT && downCode == HT_UNKNOWN) {
-                PostMessage((HWND)pWin, MSG_NCSETCURSOR,
-                        location, MAKELONG (x, y));
-            }
-            break;
-
-        case MSG_NCLBUTTONUP:
-            if (downCode & HT_DRAGGABLE && !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
-                SendMessage (HWND_DESKTOP, MSG_CANCELDRAGWIN, (WPARAM)pWin, 0L);
-            }
-            else if (location == downCode) {
-                wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_HILITE);
-                switch (location) {
-                    case HT_CLOSEBUTTON:
-                        SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-                        break;
-
-                    case HT_MAXBUTTON:
-                        SendNotifyMessage ((HWND)pWin, MSG_MAXIMIZE, 0, 0);
-                        break;
-
-                    case HT_MINBUTTON:
-                        SendNotifyMessage ((HWND)pWin, MSG_MINIMIZE, 0, 0);
-                        break;
-
-#ifdef _MGHAVE_MENU
-                    case HT_ICON:
-                        if (pWin->hSysMenu)
-                            TrackPopupMenu (pWin->hSysMenu,
-                                    TPM_SYSCMD, x, y, (HWND)pWin);
-                        break;
-#endif
-
-                    case HT_CAPTION:
-                        break;
-
-                }
-            }
-            downCode = HT_UNKNOWN;
-            moveCode = HT_UNKNOWN;
+            drag_info.location = location;
+            drag_info.init_x = x;
+            drag_info.init_y = y;
+            SendMessage (HWND_DESKTOP, MSG_STARTDRAGWIN,
+                    (WPARAM)pWin, (LPARAM)&drag_info);
+        }
+        else {
+            downCode = location;
+            moveCode = location;
             hiliteCode = HT_UNKNOWN;
-            break;
+
+            wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
+        }
+        break;
+
+    case MSG_NCMOUSEMOVE:
+        if (pWin->hOldUnderPointer && location == HT_OUT) {
+            PostMessage (pWin->hOldUnderPointer,
+                    MSG_MOUSEMOVEIN, FALSE, 0);
+            PostMessage (pWin->hOldUnderPointer,
+                    MSG_NCMOUSEMOVE, HT_OUT, MAKELONG (x, y));
+            pWin->hOldUnderPointer = 0;
+        }
+
+        if (downCode != HT_UNKNOWN) {
+            if (moveCode == downCode && location != downCode) {
+                wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_NORMAL);
+                moveCode = location;
+            }
+            else if (moveCode != downCode && location == downCode) {
+                wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_PRESSED);
+                moveCode = location;
+            }
+        }
+        else {
+            /*only move process*/
+            if (hiliteCode != location) {
+                if (hiliteCode != HT_SB_UNKNOWN)
+                    wndDrawNCButton (pWin, hiliteCode, LFRDR_BTN_STATUS_NORMAL);
+
+                wndDrawNCButton (pWin, location, LFRDR_BTN_STATUS_HILITE);
+            }
+            hiliteCode = location;
+        }
+
+        if (location != HT_CLIENT && downCode == HT_UNKNOWN) {
+            PostMessage((HWND)pWin, MSG_NCSETCURSOR,
+                    location, MAKELONG (x, y));
+        }
+        break;
+
+    case MSG_NCLBUTTONUP:
+        if (downCode & HT_DRAGGABLE && !(pWin->dwExStyle & WS_EX_NOTDRAGGABLE)) {
+            SendMessage (HWND_DESKTOP, MSG_CANCELDRAGWIN, (WPARAM)pWin, 0L);
+        }
+        else if (location == downCode) {
+            wndDrawNCButton (pWin, downCode, LFRDR_BTN_STATUS_HILITE);
+            switch (location) {
+                case HT_CLOSEBUTTON:
+                    SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+                    break;
+
+                case HT_MAXBUTTON:
+                    SendNotifyMessage ((HWND)pWin, MSG_MAXIMIZE, 0, 0);
+                    break;
+
+                case HT_MINBUTTON:
+                    SendNotifyMessage ((HWND)pWin, MSG_MINIMIZE, 0, 0);
+                    break;
 
 #ifdef _MGHAVE_MENU
-        case MSG_NCRBUTTONUP:
-            if (location == HT_CAPTION && pWin->hSysMenu)
-                TrackPopupMenu (pWin->hSysMenu, TPM_SYSCMD, x, y, (HWND)pWin);
-            break;
+                case HT_ICON:
+                    if (pWin->hSysMenu)
+                        TrackPopupMenu (pWin->hSysMenu,
+                                TPM_SYSCMD, x, y, (HWND)pWin);
+                    break;
 #endif
 
-        case MSG_NCLBUTTONDBLCLK:
-            if (location == HT_ICON)
-                SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-            /*            else if (location == HT_CAPTION) */
-            /*                SendNotifyMessage ((HWND)pWin, MSG_MAXIMIZE, 0, 0); */
-            break;
+                case HT_CAPTION:
+                    break;
 
-            /*        case MSG_NCRBUTTONDOWN: */
-            /*        case MSG_NCRBUTTONDBLCLK: */
-            /*            break; */
+            }
+        }
+        downCode = HT_UNKNOWN;
+        moveCode = HT_UNKNOWN;
+        hiliteCode = HT_UNKNOWN;
+        break;
+
+#ifdef _MGHAVE_MENU
+    case MSG_NCRBUTTONUP:
+        if (location == HT_CAPTION && pWin->hSysMenu)
+            TrackPopupMenu (pWin->hSysMenu, TPM_SYSCMD, x, y, (HWND)pWin);
+        break;
+#endif
+
+    case MSG_NCLBUTTONDBLCLK:
+        if (location == HT_ICON)
+            SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+        /*            else if (location == HT_CAPTION) */
+        /*                SendNotifyMessage ((HWND)pWin, MSG_MAXIMIZE, 0, 0); */
+        break;
+
+        /*        case MSG_NCRBUTTONDOWN: */
+        /*        case MSG_NCRBUTTONDBLCLK: */
+        /*            break; */
 
     }
 
@@ -2034,12 +2032,10 @@ BOOL GUIAPI AdjustWindowRectEx (RECT* pRect, DWORD dwStyle,
 }
 
 /* this function is CONTROL safe. */
-static int HittestOnNClient (PMAINWIN pWin, int x, int y)
+static inline int HittestOnNClient (PMAINWIN pWin, int x, int y)
 {
-    const WINDOWINFO *info = GetWindowInfo ((HWND)pWin);
-    return info->we_rdr->hit_test ((HWND)pWin, x, y);
+    return pWin->we_rdr->hit_test ((HWND)pWin, x, y);
 }
-
 
 /************************** internal functions *********************************/
 void gui_WndRect(HWND hWnd, PRECT prc)
@@ -2062,7 +2058,7 @@ void gui_WndRect(HWND hWnd, PRECT prc)
     /* dongjunjie 2009/7/9 main window and control as main window
      * don't need offset
      * */
-    if (pCtrl->WinType == TYPE_MAINWIN )
+    if (pCtrl->WinType == TYPE_MAINWIN)
         return ;
 
     while ((pParent = pParent->pParent)) {
@@ -2097,7 +2093,7 @@ void gui_WndClientRect(HWND hWnd, PRECT prc)
 }
 
 extern HWND __mg_ime_wnd;
-void gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
+void __gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
 {
 #ifndef _MGRM_PROCESSES
     if (__mg_ime_wnd && pWin) {
@@ -2112,7 +2108,8 @@ void gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
                     || edit_status == IME_WINDOW_TYPE_PASSWORD)
                 && open_close) {
             SendNotifyMessage (__mg_ime_wnd, MSG_IME_OPEN, 0, 0);
-        } else {
+        }
+        else {
             SendNotifyMessage (__mg_ime_wnd, MSG_IME_CLOSE, 0, 0);
         }
     }
@@ -2143,139 +2140,140 @@ void gui_open_ime_window (PMAINWIN pWin, BOOL open_close, HWND rev_hwnd)
 static LRESULT DefaultPostMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
-    {
-        case MSG_SETCURSOR:
-            /*
-             ** NOTE:
-             ** this message is only implemented for main window.
-             ** for CONTROL, must handle this message and should NOT
-             ** call default window procedure
-             ** when handle MSG_SETCURSOR.
-             */
-            if (wndMouseInWhichControl (pWin, LOSWORD(lParam), HISWORD(lParam),
-                        NULL))
-                break;
-
-            if (pWin->hCursor)
-                SetCursor(pWin->hCursor);
+    switch (message) {
+    case MSG_SETCURSOR:
+        /*
+         ** NOTE:
+         ** this message is only implemented for main window.
+         ** for CONTROL, must handle this message and should NOT
+         ** call default window procedure
+         ** when handle MSG_SETCURSOR.
+         */
+        if (wndMouseInWhichControl (pWin, LOSWORD(lParam), HISWORD(lParam),
+                    NULL))
             break;
 
-        case MSG_NCSETCURSOR:
-            /*
-             ** NOTE:
-             ** this message is only implemented for main window.
-             ** for CONTROL, must handle this message and should NOT
-             ** call default window procedure
-             ** when handle MSG_SETCURSOR.
-             */
-            switch (wParam) {
-                case HT_BORDER_TOP:
-                case HT_BORDER_BOTTOM:
-                    SetCursor (GetSystemCursor (IDC_SIZENS));
-                    break;
-                case HT_BORDER_LEFT:
-                case HT_BORDER_RIGHT:
-                    SetCursor (GetSystemCursor (IDC_SIZEWE));
-                    break;
-                case HT_CORNER_TL:
-                case HT_CORNER_BR:
-                    SetCursor (GetSystemCursor (IDC_SIZENWSE));
-                    break;
-                case HT_CORNER_BL:
-                case HT_CORNER_TR:
-                    SetCursor (GetSystemCursor (IDC_SIZENESW));
-                    break;
-                default:
-                    SetCursor (GetSystemCursor (IDC_ARROW));
-                    break;
-            }
-            break;
-
-        case MSG_HITTEST:
-            if (PtInRect((PRECT)(&(pWin->cl)), (int)wParam, (int)lParam))
-                return HT_CLIENT;
-            else {
-                CONTROL * pCtrl;
-                if(pWin->WinType == TYPE_MAINWIN && ( pCtrl= (CONTROL*)(pWin->hFirstChildAsMainWin)) != NULL){
-                    int x = (int)wParam;
-                    int y = (int)lParam;
-                    ScreenToClient((HWND)pCtrl->pParent,&x,&y);
-
-                    while(pCtrl){
-                        if((pCtrl->dwStyle&WS_VISIBLE) && PtInRect((PRECT)&(pCtrl->cl),x, y))
-                        {
-                            return HT_CLIENT;
-                        }
-                        pCtrl = pCtrl->next_ctrl_as_main;
-                    }
-                }
-                return HittestOnNClient (pWin,
-                            (int)wParam, (int)lParam);
-            }
+        if (pWin->hCursor)
+            SetCursor(pWin->hCursor);
         break;
 
-        case MSG_CHANGESIZE:
-            OnChangeSize (pWin, (PRECT)wParam, (PRECT)lParam);
-            RecalcClientArea ((HWND)pWin);
+    case MSG_NCSETCURSOR:
+        /*
+         ** NOTE:
+         ** this message is only implemented for main window.
+         ** for CONTROL, must handle this message and should NOT
+         ** call default window procedure
+         ** when handle MSG_SETCURSOR.
+         */
+        switch (wParam) {
+        case HT_BORDER_TOP:
+        case HT_BORDER_BOTTOM:
+            SetCursor (GetSystemCursor (IDC_SIZENS));
             break;
-
-        case MSG_SIZECHANGING:
-            memcpy ((PRECT)lParam, (PRECT)wParam, sizeof (RECT));
+        case HT_BORDER_LEFT:
+        case HT_BORDER_RIGHT:
+            SetCursor (GetSystemCursor (IDC_SIZEWE));
             break;
-
-        case MSG_QUERYNCRECT:
-            OnQueryNCRect(pWin, (PRECT)lParam);
+        case HT_CORNER_TL:
+        case HT_CORNER_BR:
+            SetCursor (GetSystemCursor (IDC_SIZENWSE));
             break;
-
-        case MSG_QUERYCLIENTAREA:
-            OnQueryClientArea(pWin, (PRECT)lParam);
+        case HT_CORNER_BL:
+        case HT_CORNER_TR:
+            SetCursor (GetSystemCursor (IDC_SIZENESW));
             break;
-
-        case MSG_SETFOCUS:
-        case MSG_KILLFOCUS:
-            if (pWin->hActiveChild && !lParam)
-                SendNotifyMessage (pWin->hActiveChild, message, 0, lParam);
+        default:
+            SetCursor (GetSystemCursor (IDC_ARROW));
             break;
+        }
+        break;
 
-        case MSG_MOUSEACTIVE:
-            if (pWin->WinType == TYPE_CONTROL
-                    && !(pWin->dwStyle & WS_DISABLED)) {
+    case MSG_HITTEST:
+        if (PtInRect ((PRECT)(&(pWin->cl)), (int)wParam, (int)lParam))
+            return HT_CLIENT;
+        else {
+            CONTROL * pCtrl;
+            if (pWin->WinType == TYPE_MAINWIN &&
+                    (pCtrl= (CONTROL*)(pWin->hFirstChildAsMainWin)) != NULL) {
+                int x = (int)wParam;
+                int y = (int)lParam;
+                ScreenToClient ((HWND)pCtrl->pParent,&x,&y);
 
-                if (wParam != HT_OUT) {
-                    PCONTROL pCtrl = (PCONTROL)pWin;
-                    PCONTROL old_active = pCtrl->pParent->active;
-
-                    if (old_active != (PCONTROL)pWin) {
-                        if (old_active) {
-                            SendNotifyMessage ((HWND)old_active,
-                                    MSG_ACTIVE, FALSE, wParam);
-                            SendNotifyMessage ((HWND)old_active,
-                                    MSG_KILLFOCUS, (WPARAM)pWin, 0);
-                        }
-
-                        pCtrl->pParent->active = (PCONTROL)pWin;
-
-                        SendNotifyMessage ((HWND)pWin, MSG_ACTIVE, TRUE, 0);
-                        SendNotifyMessage ((HWND)pWin,
-                                MSG_SETFOCUS, (WPARAM)old_active, 0);
+                while (pCtrl) {
+                    if ((pCtrl->dwStyle&WS_VISIBLE) &&
+                            PtInRect((PRECT)&(pCtrl->cl),x, y)) {
+                        return HT_CLIENT;
                     }
+                    pCtrl = pCtrl->next_ctrl_as_main;
                 }
             }
-            break;
+            return HittestOnNClient (pWin, (int)wParam, (int)lParam);
+        }
+        break;
 
-        case MSG_WINDOWDROPPED:
-            {
-                RECT rc;
-                rc.left = LOSWORD (wParam);
-                rc.top = HISWORD (wParam);
-                rc.right = LOSWORD (lParam);
-                rc.bottom = HISWORD (lParam);
+    case MSG_CHANGESIZE:
+        OnChangeSize (pWin, (PRECT)wParam, (PRECT)lParam);
+        RecalcClientArea ((HWND)pWin);
+        break;
 
-                MoveWindow ((HWND)pWin, rc.left, rc.top,
-                        RECTW(rc), RECTH(rc), FALSE);
+    case MSG_SIZECHANGING:
+        memcpy ((PRECT)lParam, (PRECT)wParam, sizeof (RECT));
+        break;
+
+    case MSG_QUERYNCRECT:
+        OnQueryNCRect(pWin, (PRECT)lParam);
+        break;
+
+    case MSG_QUERYCLIENTAREA:
+        OnQueryClientArea(pWin, (PRECT)lParam);
+        break;
+
+    case MSG_SETFOCUS:
+    case MSG_KILLFOCUS:
+        if (pWin->hActiveChild && !lParam)
+            SendNotifyMessage (pWin->hActiveChild, message, 0, lParam);
+        break;
+
+    case MSG_MOUSEACTIVE:
+        if (pWin->WinType == TYPE_CONTROL
+                && !(pWin->dwStyle & WS_DISABLED)) {
+
+            if (wParam != HT_OUT) {
+                PCONTROL pCtrl = (PCONTROL)pWin;
+                PCONTROL old_active = pCtrl->pParent->active;
+
+                if (old_active != (PCONTROL)pWin) {
+                    if (old_active) {
+                        SendNotifyMessage ((HWND)old_active,
+                                MSG_ACTIVE, FALSE, wParam);
+                        SendNotifyMessage ((HWND)old_active,
+                                MSG_KILLFOCUS, (WPARAM)pWin, 0);
+                    }
+
+                    pCtrl->pParent->active = (PCONTROL)pWin;
+
+                    SendNotifyMessage ((HWND)pWin, MSG_ACTIVE, TRUE, 0);
+                    SendNotifyMessage ((HWND)pWin,
+                            MSG_SETFOCUS, (WPARAM)old_active, 0);
+                }
             }
-            break;
+        }
+        break;
+
+    case MSG_WINDOWDROPPED: {
+        RECT rc;
+        rc.left = LOSWORD (wParam);
+        rc.top = HISWORD (wParam);
+        rc.right = LOSWORD (lParam);
+        rc.bottom = HISWORD (lParam);
+
+        MoveWindow ((HWND)pWin, rc.left, rc.top,
+                RECTW(rc), RECTH(rc), FALSE);
+        break;
+    }
+
+    default:
+        break;
     }
 
     return 0;
@@ -2290,7 +2288,7 @@ static void wndEraseBackground(const PMAINWIN pWin,
         GetWindowInfo ((HWND)pWin)->we_rdr;
 
     if (hdc == 0) {
-        hdc = get_valid_dc ((PMAINWIN)pWin, TRUE);
+        hdc = get_effective_dc ((PMAINWIN)pWin, TRUE);
         fGetDC = TRUE;
     }
 
@@ -2313,18 +2311,18 @@ static void wndEraseBackground(const PMAINWIN pWin,
     if (rdr->erase_background)
         rdr->erase_background ((HWND)pWin, hdc, &rcTemp);
 
-    /* do secondaryDC update when EndPaint().*/
 #if 0
+    /* update secondaryDC in EndPaint().*/
     if (pWin->pMainWin->secondaryDC) {
         HDC real_dc = HDC_INVALID;
         real_dc = GetClientDC ((HWND)pWin->pMainWin);
-        update_secondary_dc ((PMAINWIN)pWin, hdc, real_dc, &rcTemp, HT_CLIENT);
+        __mg_update_secondary_dc ((PMAINWIN)pWin, hdc, real_dc, &rcTemp, HT_CLIENT);
         ReleaseDC (real_dc);
     }
 #endif
 
     if (fGetDC) {
-        release_valid_dc ((PMAINWIN)pWin, hdc);
+        release_effective_dc ((PMAINWIN)pWin, hdc);
     }
 }
 
@@ -2336,11 +2334,11 @@ static void wndDrawNCFrame(MAINWIN* pWin, HDC hdc, const RECT* prcInvalid)
     BOOL is_active = TRUE;
 
     /* to avoid some unexpected event... */
-    if (!MG_IS_WINDOW ((HWND)pWin))
+    if (!MG_IS_NORMAL_WINDOW ((HWND)pWin))
         return;
 
     if (hdc == 0) {
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         fGetDC = TRUE;
     }
 
@@ -2404,7 +2402,7 @@ static void wndDrawNCFrame(MAINWIN* pWin, HDC hdc, const RECT* prcInvalid)
 #endif
 
     if (fGetDC)
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
 }
 
 /* this function is CONTROL safe. */
@@ -2413,7 +2411,7 @@ static void wndActiveMainWindow (PMAINWIN pWin, BOOL fActive)
     HDC hdc;
     const WINDOWINFO  *wnd_info;
 
-    hdc = get_valid_dc (pWin, FALSE);
+    hdc = get_effective_dc (pWin, FALSE);
     wnd_info = GetWindowInfo ((HWND)pWin);
 
     wnd_info->we_rdr->draw_caption ((HWND)pWin, hdc, fActive);
@@ -2430,42 +2428,42 @@ static void wndActiveMainWindow (PMAINWIN pWin, BOOL fActive)
         draw_secondary_nc_area (pWin, wnd_info->we_rdr, hdc, HT_BORDER);
     }
 
-    release_valid_dc (pWin, hdc);
+    release_effective_dc (pWin, hdc);
 }
 
 static LRESULT DefaultPaintMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
-    switch( message )
-    {
-        case MSG_NCPAINT:
-            {
-                wndDrawNCFrame (pWin, (HDC)wParam, (const RECT*)lParam);
-                break;
-            }
+    switch( message ) {
+    case MSG_NCPAINT: {
+        wndDrawNCFrame (pWin, (HDC)wParam, (const RECT*)lParam);
+        break;
+    }
 
-        case MSG_ERASEBKGND:
-            if (pWin->WinType == TYPE_CONTROL &&
-                    pWin->dwExStyle & WS_EX_TRANSPARENT)
-                break;
-            wndEraseBackground (pWin, (HDC)wParam, (const RECT*)lParam);
+    case MSG_ERASEBKGND:
+        if (pWin->WinType == TYPE_CONTROL &&
+                pWin->dwExStyle & WS_EX_TRANSPARENT)
             break;
+        wndEraseBackground (pWin, (HDC)wParam, (const RECT*)lParam);
+        break;
 
-        case MSG_NCACTIVATE:
-            wndActiveMainWindow (pWin, (BOOL)wParam);
-            break;
+    case MSG_NCACTIVATE:
+        wndActiveMainWindow (pWin, (BOOL)wParam);
+        break;
 
-        case MSG_SYNCPAINT:
-            wndActiveMainWindow (pWin, (BOOL)wParam);
-            UpdateWindow ((HWND)pWin, TRUE);
-            break;
+    case MSG_SYNCPAINT:
+        wndActiveMainWindow (pWin, (BOOL)wParam);
+        UpdateWindow ((HWND)pWin, TRUE);
+        break;
 
-        case MSG_PAINT:
-            {
-                HDC hdc = BeginPaint ((HWND)pWin);
-                EndPaint ((HWND)pWin, hdc);
-            }
-            break;
+    case MSG_PAINT: {
+        HDC hdc = BeginPaint ((HWND)pWin);
+        EndPaint ((HWND)pWin, hdc);
+        break;
+    }
+
+    default:
+        break;
     }
 
     return 0;
@@ -2477,108 +2475,111 @@ static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
     HDC hdc;
     int len;
 
-    switch( message )
-    {
-        case MSG_ENABLE:
-            if ( (!(pWin->dwStyle & WS_DISABLED) && !wParam)
-                    || ((pWin->dwStyle & WS_DISABLED) && wParam) ) {
-                if (wParam)
-                    pWin->dwStyle &= ~WS_DISABLED;
-                else
-                    pWin->dwStyle |=  WS_DISABLED;
-            }
-            break;
-
-        case MSG_SYSCOMMAND:
-            if (wParam == SC_CLOSE)
-                SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
-            break;
-
-        case MSG_GETTEXTLENGTH:
-            if (pWin->spCaption)
-                return strlen (pWin->spCaption);
+    switch (message) {
+    case MSG_ENABLE:
+        if ( (!(pWin->dwStyle & WS_DISABLED) && !wParam)
+                || ((pWin->dwStyle & WS_DISABLED) && wParam) ) {
+            if (wParam)
+                pWin->dwStyle &= ~WS_DISABLED;
             else
-                return 0;
+                pWin->dwStyle |=  WS_DISABLED;
+        }
+        break;
 
-        case MSG_GETTEXT:
-            if (pWin->spCaption) {
-                char* buffer = (char*)lParam;
+    case MSG_SYSCOMMAND:
+        if (wParam == SC_CLOSE)
+            SendNotifyMessage ((HWND)pWin, MSG_CLOSE, 0, 0);
+        break;
 
-                len = MIN (strlen (pWin->spCaption), wParam);
-                memcpy (buffer, pWin->spCaption, len);
-                buffer [len] = '\0';
-                return len;
-            }
-            else
-                return 0;
-            break;
+    case MSG_GETTEXTLENGTH:
+        if (pWin->spCaption)
+            return strlen (pWin->spCaption);
+        else
+            return 0;
 
-        case MSG_FONTCHANGED:
-            UpdateWindow ((HWND)pWin, TRUE);
-            break;
+    case MSG_GETTEXT:
+        if (pWin->spCaption) {
+            char* buffer = (char*)lParam;
 
-        case MSG_SETTEXT:
-            {
-                RECT  rc;
-                const WINDOWINFO *info;
-                /*
-                 ** NOTE:
-                 ** this message is only implemented for main window.
-                 ** for CONTROL, must handle this message and should NOT
-                 ** call default window procedure
-                 ** when handle MSG_SETTEXT.
-                 */
-                if (pWin->WinType == TYPE_CONTROL)
-                    return 0;
+            len = MIN (strlen (pWin->spCaption), wParam);
+            memcpy (buffer, pWin->spCaption, len);
+            buffer [len] = '\0';
+            return len;
+        }
+        else
+            return 0;
+        break;
 
-                FreeFixStr (pWin->spCaption);
-                len = strlen ((char*)lParam);
-                pWin->spCaption = FixStrAlloc (len);
-                if (len > 0)
-                    strcpy (pWin->spCaption, (char*)lParam);
+    case MSG_FONTCHANGED:
+        UpdateWindow ((HWND)pWin, TRUE);
+        break;
+
+    case MSG_SETTEXT: {
+        RECT  rc;
+        const WINDOWINFO *info;
+        /*
+         ** NOTE:
+         ** this message is only implemented for main window.
+         ** for CONTROL, must handle this message and should NOT
+         ** call default window procedure
+         ** when handle MSG_SETTEXT.
+         */
+        if (pWin->WinType != TYPE_MAINWIN)
+            return -1;
+
+        FreeFixStr (pWin->spCaption);
+        len = strlen ((char*)lParam);
+        pWin->spCaption = FixStrAlloc (len);
+        if (len > 0 && pWin->spCaption) /* Since 5.0.0: validate new buffer */
+            strcpy (pWin->spCaption, (char*)lParam);
+        else
+            return -1;
 
 #ifdef _MGRM_PROCESSES
-                SendMessage (HWND_DESKTOP, MSG_CHANGECAPTION, (WPARAM) pWin, 0L);
+        SendMessage (HWND_DESKTOP, MSG_CHANGECAPTION, (WPARAM) pWin, 0L);
 #endif
-                hdc = get_valid_dc (pWin, FALSE);
-                info = GetWindowInfo ((HWND)pWin);
-                SetRectEmpty (&rc);
+        hdc = get_effective_dc (pWin, FALSE);
+        info = GetWindowInfo ((HWND)pWin);
+        SetRectEmpty (&rc);
 
-                if (pWin->dwStyle & WS_MINIMIZEBOX) {
-                    info->we_rdr->calc_we_area ((HWND)pWin, HT_MINBUTTON, &rc);
-                    --rc.left;
-                    --rc.top;
-                    ExcludeClipRect (hdc, &rc);
-                }
+        if (pWin->dwStyle & WS_MINIMIZEBOX) {
+            info->we_rdr->calc_we_area ((HWND)pWin, HT_MINBUTTON, &rc);
+            --rc.left;
+            --rc.top;
+            ExcludeClipRect (hdc, &rc);
+        }
 
-                if (pWin->dwStyle & WS_MAXIMIZEBOX) {
-                    info->we_rdr->calc_we_area ((HWND)pWin, HT_MAXBUTTON, &rc);
-                    --rc.left;
-                    --rc.top;
-                    ExcludeClipRect (hdc, &rc);
-                }
+        if (pWin->dwStyle & WS_MAXIMIZEBOX) {
+            info->we_rdr->calc_we_area ((HWND)pWin, HT_MAXBUTTON, &rc);
+            --rc.left;
+            --rc.top;
+            ExcludeClipRect (hdc, &rc);
+        }
 
-                if (!(pWin->dwExStyle & WS_EX_NOCLOSEBOX)) {
-                    info->we_rdr->calc_we_area ((HWND)pWin, HT_CLOSEBUTTON, &rc);
-                    --rc.left;
-                    --rc.top;
-                    ExcludeClipRect (hdc, &rc);
-                }
+        if (!(pWin->dwExStyle & WS_EX_NOCLOSEBOX)) {
+            info->we_rdr->calc_we_area ((HWND)pWin, HT_CLOSEBUTTON, &rc);
+            --rc.left;
+            --rc.top;
+            ExcludeClipRect (hdc, &rc);
+        }
 
-                /*Draw caption text information*/
-                info->we_rdr->draw_caption ((HWND)pWin,
-                        hdc, GetForegroundWindow () == (HWND)pWin);
-                if (pWin->pMainWin->secondaryDC) {
-                    draw_secondary_nc_area (pWin, info->we_rdr, hdc, HT_CAPTION);
-                }
-                /*It maybe need to delete. */
+        /*Draw caption text information*/
+        info->we_rdr->draw_caption ((HWND)pWin,
+                hdc, GetForegroundWindow () == (HWND)pWin);
+        if (pWin->pMainWin->secondaryDC) {
+            draw_secondary_nc_area (pWin, info->we_rdr, hdc, HT_CAPTION);
+        }
+        /*It maybe need to delete. */
 #if 0
-                if (info->we_rdr->draw_custom_hotspot)
-                    info->we_rdr->draw_custom_hotspot ((HWND)pWin, hdc, 0, 0);
+        if (info->we_rdr->draw_custom_hotspot)
+            info->we_rdr->draw_custom_hotspot ((HWND)pWin, hdc, 0, 0);
 #endif
-                release_valid_dc (pWin, hdc);
-                break;
-            }
+        release_effective_dc (pWin, hdc);
+        break;
+    }
+
+    default:
+        break;
     }
 
     return 0;
@@ -2587,7 +2588,6 @@ static LRESULT DefaultControlMsgHandler(PMAINWIN pWin, UINT message,
 static LRESULT DefaultSessionMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
-
     /*
      ** NOTE:
      ** Currently does nothing, should handle fowllowing messages:
@@ -2604,18 +2604,18 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
 {
 
     /*
-     ** NOTE:
-     ** Currently does nothing, should handle following messages:
+     ** Should handle following messages:
      **
      ** MSG_IDLE, MSG_CARETBLINK:
      */
-
     if (message == MSG_IDLE) {
-        if (pWin == gui_GetMainWindowPtrOfControl (sg_repeat_msg.hwnd)) {
+#if 0   /* deprecated code */
+        if (pWin == checkAndGetMainWinIfWindow (sg_repeat_msg.hwnd)) {
             SendNotifyMessage (sg_repeat_msg.hwnd,
                     sg_repeat_msg.message,
                     sg_repeat_msg.wParam, sg_repeat_msg.lParam);
         }
+#endif  /* deprecated code */
     }
     else if (message == MSG_CARETBLINK && pWin->dwStyle & WS_VISIBLE) {
         BlinkCaret ((HWND)pWin);
@@ -2665,7 +2665,7 @@ LRESULT PreDefMainWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
         return DefaultSystemMsgHandler(pWin, message, wParam, lParam);
 #if (defined(_MG_ENABLE_SCREENSAVER) || defined(_MG_ENABLE_WATERMARK)) && defined(_MGRM_THREADS)
     else if (message == MSG_CANCELSCREENSAVER) {
-        screensaver_hide();
+        __mg_screensaver_hide();
         SendNotifyMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
     }
 #endif
@@ -2692,18 +2692,93 @@ LRESULT PreDefControlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
     return DefaultMainWinProc (hWnd, message, wParam, lParam);
 }
 
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+LRESULT PreDefVirtualWinProc (HWND hWnd, UINT message,
+        WPARAM wParam, LPARAM lParam)
+{
+    VIRTWIN* pWin = (VIRTWIN*)hWnd;
+
+    switch (message) {
+    case MSG_CLOSE:
+        DestroyVirtualWindow (hWnd);
+        break;
+
+    case MSG_CREATE:
+    case MSG_DESTROY:
+        break;
+
+    case MSG_GETTEXTLENGTH:
+        if (pWin->spCaption)
+            return strlen (pWin->spCaption);
+        else
+            return 0;
+
+    case MSG_GETTEXT:
+        if (pWin->spCaption) {
+            size_t len;
+            char* buffer = (char*)lParam;
+
+            len = MIN (strlen (pWin->spCaption), wParam);
+            memcpy (buffer, pWin->spCaption, len);
+            buffer [len] = '\0';
+            return len;
+        }
+        else
+            return 0;
+        break;
+
+    case MSG_SETTEXT: {
+        size_t len;
+
+        if (pWin->WinType != TYPE_VIRTWIN)
+            return -1;
+
+        FreeFixStr (pWin->spCaption);
+        len = strlen ((char*)lParam);
+        pWin->spCaption = FixStrAlloc (len);
+        if (len > 0 && pWin->spCaption)
+            strcpy (pWin->spCaption, (char*)lParam);
+        break;
+    }
+
+    default:
+        break;
+    }
+
+    /* for any other messages, return 0 by default */
+    return 0;
+}
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+
 LRESULT DefaultWindowProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if (IsMainWindow(hWnd)) {
-        return DefaultMainWinProc (hWnd, message, wParam, lParam);
-    }
-    else if (IsControl(hWnd)) {
+    PMAINWIN pWin;
+
+    /* Since 5.0.0: for error returns -1 */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), -1);
+
+    pWin = MG_GET_WINDOW_PTR (hWnd);
+    switch (pWin->WinType) {
+    case TYPE_CONTROL:
         return DefaultControlProc (hWnd, message, wParam, lParam);
+        break;
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    case TYPE_VIRTWIN:
+        return DefaultVirtualWinProc (hWnd, message, wParam, lParam);
+        break;
+#endif
+
+    default:
+        if (IsDialog (hWnd))
+            return DefaultDialogProc (hWnd, message, wParam, lParam);
+        else
+            return DefaultMainWinProc (hWnd, message, wParam, lParam);
+        break;
     }
-    else if (IsDialog(hWnd)) {
-        return DefaultDialogProc (hWnd, message, wParam, lParam);
-    }
-    return 0;
+
+    /* Since 5.0.0: for error returns -1 */
+    return -1;
 }
 
 /************************* GUI calls support ********************************/
@@ -2734,7 +2809,7 @@ HWND GUIAPI SetFocusChild (HWND hWnd)
 {
     HWND hOldActive;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HWND_INVALID);
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW(hWnd), HWND_INVALID);
 
     if ((hOldActive = set_focus_helper (hWnd)) != HWND_INVALID) {
         do {
@@ -2770,11 +2845,10 @@ HWND GUIAPI SetNullFocus (HWND hParent)
     return hOldActive;
 }
 
-/* NOTE: this function support ONLY main window. */
+/* NOTE: this function works ONLY for main window. */
 HWND GUIAPI SetActiveWindow (HWND hMainWnd)
 {
-    if (!MG_IS_NORMAL_WINDOW(hMainWnd) || !IsMainWindow (hMainWnd))
-        return HWND_INVALID;
+    MG_CHECK_RET (MG_IS_MAIN_WINDOW(hMainWnd), HWND_INVALID);
 
     return (HWND)SendMessage (HWND_DESKTOP,
             MSG_SETACTIVEMAIN, (WPARAM)hMainWnd, 0);
@@ -2810,16 +2884,15 @@ void GUIAPI ReleaseCapture (void)
     SendMessage (HWND_DESKTOP, MSG_SETCAPTURE, 0, 0);
 }
 
-/*************************** Main window and thread **************************/
-
-/* get main window pointer from a handle */
-PMAINWIN gui_CheckAndGetMainWindowPtr (HWND hWnd)
+#if 0   /* deprecated code */
+/* Since 5.0.0, moved to internals.h as inline functions */
+PMAINWIN checkAndGetMainWinIfMainWin (HWND hWnd)
 {
     MG_CHECK_RET (MG_IS_NORMAL_MAIN_WINDOW(hWnd), NULL);
     return MG_GET_WINDOW_PTR (hWnd);
 }
 
-PMAINWIN gui_GetMainWindowPtrOfControl (HWND hWnd)
+PMAINWIN checkAndGetMainWinIfWindow (HWND hWnd)
 {
     PMAINWIN pWin;
 
@@ -2828,44 +2901,52 @@ PMAINWIN gui_GetMainWindowPtrOfControl (HWND hWnd)
 
     return pWin->pMainWin;
 }
+#endif  /* deprecated code */
 
+/*************************** Window and thread **************************/
 BOOL GUIAPI IsWindow (HWND hWnd)
 {
-    return MG_IS_NORMAL_WINDOW (hWnd);
+    /* XXX: how to check validity of the handle? */
+    return MG_IS_WINDOW (hWnd);
 }
 
 BOOL GUIAPI IsMainWindow (HWND hWnd)
 {
-    PMAINWIN pWin;
-
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
-
-    pWin = MG_GET_WINDOW_PTR(hWnd);
-
-    return (pWin->WinType == TYPE_MAINWIN);
+    return MG_IS_MAIN_WINDOW (hWnd);
 }
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+BOOL GUIAPI IsVirtualWindow (HWND hWnd)
+{
+    return MG_IS_VIRTUAL_WINDOW (hWnd);
+}
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 BOOL GUIAPI IsControl (HWND hWnd)
 {
-    PMAINWIN pWin;
-
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
-
-    pWin = MG_GET_WINDOW_PTR(hWnd);
-
-    return (pWin->WinType == TYPE_CONTROL);
+    return MG_IS_CONTROL_WINDOW (hWnd);
 }
 
 BOOL GUIAPI IsDialog (HWND hWnd)
 {
+#if 0   /* Since 5.0.0: use the internal extended style WS_EX_DIALOGBOX */
     return (BOOL)SendAsyncMessage (hWnd, MSG_ISDIALOG, 0, 0);
+#else   /* deprecated code */
+    PMAINWIN pWin;
+
+    MG_CHECK_RET (MG_IS_MAIN_WINDOW(hWnd), FALSE);
+
+    pWin = MG_GET_WINDOW_PTR(hWnd);
+
+    return (pWin->dwExStyle & WS_EX_DIALOGBOX);
+#endif  /* Since 5.0.0: use the internal extended style WS_EX_DIALOGBOX */
 }
 
 HWND GUIAPI GetMainWindowHandle (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_WINDOW(hWnd), HWND_INVALID);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HWND_INVALID);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return (HWND)pWin->pMainWin;
@@ -2875,70 +2956,207 @@ HWND GUIAPI GetParent (HWND hWnd)
 {
     PCONTROL pChildWin = (PCONTROL)hWnd;
 
-    MG_CHECK_RET (MG_IS_WINDOW(hWnd), HWND_INVALID);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HWND_INVALID);
 
     return (HWND)pChildWin->pParent;
 }
 
-HWND GUIAPI GetHosting (HWND hWnd)
+/* Since 5.0.0 */
+HWND GUIAPI GetRootWindow (int *nrWins)
 {
-    PMAINWIN pWin;
+    MSGQUEUE* pMsgQueue;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+    if ((pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
         return HWND_INVALID;
-
-    if (pWin->pHosting == NULL)
-        return HWND_DESKTOP;
-
-    return (HWND)(pWin->pHosting);
-}
-
-HWND GUIAPI GetFirstHosted (HWND hWnd)
-{
-    PMAINWIN pWin;
-
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
-        return HWND_INVALID;
-
-    return (HWND)(pWin->pFirstHosted);
-}
-
-HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted)
-{
-    PMAINWIN pWin;
-    PMAINWIN pHosted;
-
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hHosting)))
-        return HWND_INVALID;
-
-    if (hHosted == 0) {
-        return GetFirstHosted(hHosting);
     }
 
-    if (!(pHosted = gui_CheckAndGetMainWindowPtr (hHosted)))
-        return HWND_INVALID;
+    if (nrWins)
+        *nrWins = pMsgQueue->nrWindows;
 
-    if (pHosted->pHosting != pWin)
+    return (HWND)pMsgQueue->pRootMainWin;
+}
+
+/* Since 5.0.0, works for virtual window as well */
+HWND GUIAPI GetHosting (HWND hWnd)
+{
+    PMAINWIN pMainWin;
+
+    if ((pMainWin = getMainWinIfWindowInThisThread (hWnd)) == NULL) {
         return HWND_INVALID;
+    }
+
+    return pMainWin->pHosting;
+}
+
+/* Since 5.0.0, works for virtual window as well */
+HWND GUIAPI GetFirstHosted (HWND hWnd)
+{
+    PMAINWIN pMainWin;
+
+    if ((pMainWin = getMainWinIfWindowInThisThread (hWnd)) == NULL) {
+        return HWND_INVALID;
+    }
+
+    return pMainWin->pFirstHosted;
+}
+
+/* Since 5.0.0, works for virtual window as well */
+HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted)
+{
+    PMAINWIN pHosting;
+    PMAINWIN pHosted;
+
+    if ((pHosting = getMainWinIfWindowInThisThread (hHosting)) == NULL) {
+        return HWND_INVALID;
+    }
+
+    if (hHosted == HWND_NULL) {
+        return GetFirstHosted (hHosting);
+    }
+
+    if ((pHosted = getMainWinIfWindowInThisThread (hHosted)) == NULL) {
+        return HWND_INVALID;
+    }
+
+    if (MG_UNLIKELY (pHosted->pHosting != pHosting)) {
+        return HWND_INVALID;
+    }
 
     return (HWND)(pHosted->pNextHosted);
+}
+
+struct _search_context {
+    LINT id;
+    DWORD flags;
+    PMAINWIN hosting;
+};
+
+static PMAINWIN search_win_tree_dfs (struct _search_context *ctxt)
+{
+    PMAINWIN hosting = ctxt->hosting;
+    PMAINWIN hosted = GetFirstHosted (hosting);
+
+    while (hosted) {
+        PMAINWIN found;
+
+        ctxt->hosting = hosted;
+        if ((found = search_win_tree_dfs (ctxt))) {
+            return found;
+        }
+
+        if (hosted->id == ctxt->id &&
+                (((ctxt->flags & WIN_SEARCH_FILTER_MAIN) &&
+                hosted->WinType == TYPE_MAINWIN) ||
+                ((ctxt->flags & WIN_SEARCH_FILTER_VIRT) &&
+                hosted->WinType == TYPE_VIRTWIN))) {
+            return hosted;
+        }
+
+        hosted = GetNextHosted (hosting, hosted);
+    }
+
+    return NULL;
+}
+
+static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
+{
+    PMAINWIN hosting = ctxt->hosting;
+    PMAINWIN hosted = GetFirstHosted (hosting);
+
+    while (hosted) {
+        PMAINWIN found;
+
+        if (hosted->id == ctxt->id &&
+                (((ctxt->flags & WIN_SEARCH_FILTER_MAIN) &&
+                hosted->WinType == TYPE_MAINWIN) ||
+                ((ctxt->flags & WIN_SEARCH_FILTER_VIRT) &&
+                hosted->WinType == TYPE_VIRTWIN))) {
+            return hosted;
+        }
+
+        ctxt->hosting = hosted;
+        if ((found = search_win_tree_bfs (ctxt))) {
+            return found;
+        }
+
+        hosted = GetNextHosted (hosting, hosted);
+    }
+
+    return NULL;
+}
+
+/* Since 5.0.0, works for virtual window as well */
+HWND GUIAPI GetHostedById (HWND hHosting, LINT lId, DWORD dwSearchFlags)
+{
+    MSGQUEUE* pMsgQueue;
+    PMAINWIN pHosting;
+    struct _search_context ctxt = { lId, dwSearchFlags };
+
+    if (hHosting == HWND_NULL) {
+        if ((pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
+            return HWND_INVALID;
+        }
+
+        if ((pHosting = pMsgQueue->pRootMainWin) == NULL) {
+            return HWND_NULL;
+        }
+    }
+    else {
+        if ((pMsgQueue = getMsgQueueIfWindowInThisThread (hHosting)) == NULL) {
+            return HWND_INVALID;
+        }
+
+        pHosting = (PMAINWIN)hHosting;
+    }
+
+    ctxt.hosting = pHosting;
+    if ((dwSearchFlags & WIN_SEARCH_METHOD_MASK) == WIN_SEARCH_METHOD_DFS) {
+        // depth first search
+        return (HWND)search_win_tree_dfs (&ctxt);
+    }
+    else {
+        // breadth first search
+        return (HWND)search_win_tree_bfs (&ctxt);
+    }
+}
+
+/* Since 5.0.0, works for virtual window as well */
+LINT GUIAPI GetWindowId (HWND hWnd)
+{
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1L);
+
+    return ((PMAINWIN)hWnd)->id;
+}
+
+/* Since 5.0.0, works for virtual window as well */
+LINT GUIAPI SetWindowId (HWND hWnd, LINT lNewId)
+{
+    LINT lOldId;
+    PMAINWIN pWin;
+
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), -1L);
+    pWin = (PMAINWIN)hWnd;
+
+    lOldId = pWin->id;
+    pWin->id = lNewId;
+    return lOldId;
 }
 
 HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
 {
     PCONTROL pControl, pChild;
 
-    if (hChild == HWND_INVALID) return HWND_INVALID;
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), HWND_INVALID);
+    pControl = MG_GET_CONTROL_PTR (hWnd);
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HWND_INVALID);
-    pControl = MG_GET_CONTROL_PTR(hWnd);
-
-    pChild = (PCONTROL)hChild;
-
-    if (pChild == NULL) {
+    if (hChild == HWND_NULL) {
         return (HWND)pControl->children;
     }
-    else if (pControl != pChild->pParent) {
+
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW (hChild), HWND_INVALID);
+    pChild = (PCONTROL)hChild;
+    if (pControl != pChild->pParent) {
         return HWND_INVALID;
     }
 
@@ -2947,15 +3165,11 @@ HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
 
 HWND GUIAPI GetNextMainWindow (HWND hMainWnd)
 {
-    PMAINWIN pMainWin;
+    MG_CHECK_RET (hMainWnd == HWND_NULL || MG_IS_NORMAL_MAIN_WINDOW (hMainWnd),
+            HWND_INVALID);
 
-    if (hMainWnd == HWND_DESKTOP || hMainWnd == 0)
-        pMainWin = NULL;
-    else if (!(pMainWin = gui_CheckAndGetMainWindowPtr (hMainWnd)))
-        return HWND_INVALID;
-
-    return (HWND) SendMessage (HWND_DESKTOP,
-            MSG_GETNEXTMAINWIN, (WPARAM)pMainWin, 0L);
+    return (HWND)SendMessage (HWND_DESKTOP,
+            MSG_GETNEXTMAINWIN, (WPARAM)hMainWnd, 0L);
 }
 
 /*
@@ -2973,7 +3187,8 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
     if ((dx == 0 && dy == 0))
         return -1;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), -1);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     GetClientRect (hWnd, &rcClient);
@@ -2986,11 +3201,10 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
      * BUGFIX: if we scrolled all area, the all area must
      * be set as invalidate (dongjunjie 2010/7/28)
      */
-    if((dx != 0 && abs(dx) >= RECTW(rcScroll))
-        || (dy != 0 && abs(dy) >= RECTH(rcScroll)))
-    {
-        InvalidateRect(hWnd, &rcScroll, TRUE);
-        goto UPDATERGIN;
+    if ((dx != 0 && abs(dx) >= RECTW(rcScroll)) ||
+            (dy != 0 && abs(dy) >= RECTH(rcScroll))) {
+        InvalidateRect (hWnd, &rcScroll, TRUE);
+        goto UPDATERGN;
     }
 
     swi.iOffx = dx;
@@ -3007,7 +3221,8 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
         child = ((PCONTROL)hWnd)->children;
         while (child) {
 
-            if ((prcClip == NULL) || IsCovered ((const RECT*)&child->left, prcClip)) {
+            if ((prcClip == NULL) ||
+                    IsCovered ((const RECT*)&child->left, prcClip)) {
                 child->left += dx; child->top += dy;
                 child->right += dx; child->bottom += dy;
                 child->cl += dx; child->ct += dy;
@@ -3023,7 +3238,7 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
     /* show caret */
     if (fCaret) ShowCaretEx (hWnd, FALSE);
 
-UPDATERGIN:
+UPDATERGN:
     /* FIXME: we use the invalid region of the window as the update region directly. */
     if (pRgnUpdate) {
         /* copy from window's invalidate region */
@@ -3031,39 +3246,38 @@ UPDATERGIN:
         RECT rc;
         CopyRegion (pRgnUpdate, &pWin->InvRgn.rgn);
         /* FIXME: I have not the best idea to do this */
-        GetClientRect(hWnd, &rcClient);
+        GetClientRect (hWnd, &rcClient);
         rc = rcClient;
-        if(dx > 0)
+        if (dx > 0)
             rc.right = rc.left + dx + 1;
-        else if(dx < 0)
+        else if (dx < 0)
             rc.left = rc.right + dx - 1;
-        if(dx != 0)
-            AddClipRect(pRgnUpdate, &rc);
+        if (dx != 0)
+            AddClipRect (pRgnUpdate, &rc);
         rc = rcClient;
-        if(dy > 0)
+        if (dy > 0)
             rc.bottom = rc.top + dy + 1;
-        else if(dy < 0)
+        else if (dy < 0)
             rc.top = rc.bottom + dy - 1;
-        if(dy != 0)
-            AddClipRect(pRgnUpdate, &rc);
+        if (dy != 0)
+            AddClipRect (pRgnUpdate, &rc);
     }
+
     if (prcUpdate) {
-        if(pRgnUpdate)
+        if (pRgnUpdate)
             *prcUpdate = pRgnUpdate->rcBound;
-        else if(dx != 0 && dy != 0)
-            GetClientRect(hWnd, prcUpdate);
-        else if(dx != 0)
-        {
-            GetClientRect(hWnd, prcUpdate);
-            if(dx > 0)
+        else if (dx != 0 && dy != 0)
+            GetClientRect (hWnd, prcUpdate);
+        else if (dx != 0) {
+            GetClientRect (hWnd, prcUpdate);
+            if (dx > 0)
                 prcUpdate->right = prcUpdate->left + dx + 1;
             else
                 prcUpdate->left = prcUpdate->right + dx - 1;
         }
-        else if(dy != 0)
-        {
-            GetClientRect(hWnd, prcUpdate);
-            if(dy > 0)
+        else if (dy != 0) {
+            GetClientRect (hWnd, prcUpdate);
+            if (dy > 0)
                 prcUpdate->bottom = prcUpdate->top + dx + 1;
             else
                 prcUpdate->top = prcUpdate->bottom + dx - 1;
@@ -3096,7 +3310,8 @@ BOOL GUIAPI EnableScrollBar (HWND hWnd, int iSBar, BOOL bEnable)
     BOOL bPrevState;
     RECT rcBar;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3126,7 +3341,8 @@ BOOL GUIAPI GetScrollPos (HWND hWnd, int iSBar, int* pPos)
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3141,7 +3357,8 @@ BOOL GUIAPI GetScrollRange (HWND hWnd, int iSBar, int* pMinPos, int* pMaxPos)
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3156,9 +3373,9 @@ BOOL GUIAPI SetScrollPos (HWND hWnd, int iSBar, int iNewPos)
 {
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
-    //const WINDOWINFO  *info = GetWindowInfo (hWnd);
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3203,7 +3420,8 @@ BOOL GUIAPI SetScrollRange (HWND hWnd, int iSBar, int iMinPos, int iMaxPos)
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0: not work for virtual window */
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     if ( !(pSBar = wndGetScrollBar (pWin, iSBar)) )
@@ -3407,7 +3625,6 @@ BOOL GUIAPI GetScrollInfo (HWND hWnd, int iSBar, PSCROLLINFO lpsi)
 
 BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
 {
-    //
     PLFSCROLLBARINFO pSBar;
     PMAINWIN pWin;
     BOOL bPrevState;
@@ -3488,12 +3705,350 @@ BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
     return TRUE;
 }
 
+/* moved here from desktop.c; can be used on virtual window */
+static void guiAddNewHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
+{
+    PMAINWIN head, prev;
+
+    pHosted->pNextHosted = NULL;
+
+    head = pHosting->pFirstHosted;
+    if (head) {
+        while (head) {
+            prev = head;
+            head = head->pNextHosted;
+        }
+
+        prev->pNextHosted = pHosted;
+    }
+    else
+        pHosting->pFirstHosted = pHosted;
+}
+
+/* moved here from desktop.c; can be used on virtual window */
+static void guiRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
+{
+    PMAINWIN head, prev;
+
+    head = pHosting->pFirstHosted;
+    if (head == pHosted) {
+        pHosting->pFirstHosted = head->pNextHosted;
+    }
+    else {
+        while (head) {
+            prev = head;
+            head = head->pNextHosted;
+            if (head == pHosted) {
+                prev->pNextHosted = head->pNextHosted;
+                break;
+            }
+        }
+    }
+
+#if 1   /* debug code */
+    head = pHosting->pFirstHosted;
+    while (head) {
+        if (head == pHosted) {
+            assert (0);
+        }
+
+        head = head->pNextHosted;
+    }
+#endif  /* debug code */
+}
+
+/************************* Support for virtual window ************************/
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+
+struct _entry_args {
+    void* (*start_routine)(void *);
+    void* arg;
+    sem_t* wait;
+    void* msg_queue;
+};
+
+static void* _message_thread_entry (void* arg)
+{
+    struct _entry_args* orig_args = (struct _entry_args*)arg;
+    struct _entry_args entry_args = *orig_args;
+
+    if (pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL))
+        goto failed;
+
+    /* create message queue for this thread */
+    if (!(entry_args.msg_queue = mg_AllocMsgQueueForThisThread ()))
+        goto failed;
+
+    orig_args->msg_queue = entry_args.msg_queue;
+    sem_post (entry_args.wait);
+
+    SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+            MSGTHREAD_SIGNIN, (LPARAM)&entry_args.msg_queue);
+
+    if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
+        goto failed;
+
+    /* call start routine of app */
+    entry_args.start_routine (entry_args.arg);
+
+    SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+            MSGTHREAD_SIGNOUT, (LPARAM)&entry_args.msg_queue);
+    mg_FreeMsgQueueForThisThread ();
+
+    return NULL;
+
+failed:
+    sem_post (entry_args.wait);
+    return NULL;
+}
+
+MG_EXPORT int GUIAPI CreateThreadForMessaging (pthread_t* thread,
+        pthread_attr_t* attr, void* (*start_routine)(void *), void* arg,
+        BOOL joinable, size_t stack_size)
+{
+    pthread_attr_t new_attr;
+    sem_t wait;
+    struct _entry_args entry_args;
+    int ret;
+
+    pthread_attr_init (&new_attr);
+    if (attr == NULL) {
+        attr = &new_attr;
+        if (joinable)
+            pthread_attr_setdetachstate (attr, PTHREAD_CREATE_JOINABLE);
+        else
+            pthread_attr_setdetachstate (attr, PTHREAD_CREATE_DETACHED);
+
+#ifdef __NOUNIX__
+        if (stack_size <= 4)
+            stack_size = 4;
+
+        /* hope 4KB is enough for a message thread */
+        pthread_attr_setstacksize (attr, stack_size * 1024);
+#endif
+    }
+
+    entry_args.start_routine = start_routine;
+    entry_args.arg = arg;
+    entry_args.wait = &wait;
+    sem_init (entry_args.wait, 0, 0);
+    ret = pthread_create (thread, attr, _message_thread_entry, &entry_args);
+    sem_wait (entry_args.wait);
+    sem_destroy (&wait);
+
+    pthread_attr_destroy (&new_attr);
+
+    if (ret == 0 && entry_args.msg_queue == NULL) {
+        // failed to create the message queue for the thread.
+        ret = ENOMEM;
+    }
+
+    return ret;
+}
+
+BOOL GUIAPI GetThreadByWindow (HWND hWnd, pthread_t* thread)
+{
+    PMAINWIN pMainWin;
+
+    pMainWin = (PMAINWIN)hWnd;
+
+    if (!MG_IS_APP_WINDOW(hWnd))
+        return FALSE;
+    else {
+        pMainWin = pMainWin->pMainWin;
+    }
+
+    *thread = pMainWin->pMsgQueue->th;
+    return TRUE;
+}
+
+BOOL GUIAPI IsWindowInThisThread (HWND hWnd)
+{
+    return (getMsgQueueIfWindowInThisThread (hWnd) != NULL);
+}
+
+HWND GUIAPI CreateVirtualWindow (HWND hHosting, WNDPROC WndProc,
+        const char* spCaption, LINT id, DWORD dwAddData)
+{
+    PVIRTWIN pVirtWin;
+    PMSGQUEUE pMsgQueue;
+
+    if (!(pMsgQueue = getMsgQueueForThisThread ())) {
+        _WRN_PRINTF ("Not a message thread!\n");
+        return HWND_INVALID;
+    }
+
+    if (!(pVirtWin = calloc (1, sizeof(VIRTWIN)))) {
+        return HWND_INVALID;
+    }
+
+    pVirtWin->DataType      = TYPE_HWND;
+    pVirtWin->WinType       = TYPE_VIRTWIN;
+    pVirtWin->pMsgQueue     = pMsgQueue;
+    pVirtWin->spCaption     = FixStrAlloc (strlen (spCaption));
+    if (spCaption [0])
+        strcpy (pVirtWin->spCaption, spCaption);
+    pVirtWin->id            = id;
+    pVirtWin->WndProc       = WndProc;
+    pVirtWin->dwAddData     = dwAddData;
+
+    pVirtWin->pMainWin      = pVirtWin;
+    if (pMsgQueue->pRootMainWin == NULL) {
+        pMsgQueue->pRootMainWin = (PMAINWIN)pVirtWin;
+    }
+    else if (hHosting == HWND_DESKTOP || hHosting == HWND_NULL) {
+        pVirtWin->pHosting = (PVIRTWIN)pMsgQueue->pRootMainWin;
+    }
+    else {
+        if (pMsgQueue != getMsgQueueIfWindowInThisThread (hHosting)) {
+            goto err;
+        }
+        else {
+            pVirtWin->pHosting = (PVIRTWIN)hHosting;
+        }
+    }
+
+    if (SendMessage ((HWND)pVirtWin, MSG_CREATE,
+                (WPARAM)pVirtWin->pHosting, (LPARAM)dwAddData)) {
+        goto err;
+    }
+
+    /* handle hosting relationship */
+    if (pVirtWin->pHosting)
+        guiAddNewHostedMainWindow ((PMAINWIN)pVirtWin->pHosting,
+                (PMAINWIN)pVirtWin);
+
+    pMsgQueue->nrWindows++;
+    return (HWND)pVirtWin;
+
+err:
+    if (pMsgQueue->pRootMainWin == (PMAINWIN)pVirtWin) {
+        pMsgQueue->pRootMainWin = NULL;
+        assert (pMsgQueue->nrWindows == 0);
+    }
+
+    /* Since 5.0.0: we must throw away the messages for this window, because
+       there are some messages, have been put into the message queue.
+       Or DispatchMessage will panic. */
+    __mg_throw_away_messages (pMsgQueue, (HWND)pVirtWin);
+
+    free (pVirtWin);
+    return HWND_INVALID;
+}
+
+BOOL GUIAPI DestroyVirtualWindow (HWND hVirtWnd)
+{
+    PVIRTWIN pVirtWin;
+    PVIRTWIN hosted;
+    PMSGQUEUE pMsgQueue;
+
+    MG_CHECK_RET (MG_IS_VIRTUAL_WINDOW (hVirtWnd), FALSE);
+    pVirtWin = MG_GET_VIRTUAL_WINDOW_PTR (hVirtWnd);
+
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hVirtWnd))) {
+        return FALSE;
+    }
+
+    /* destroy all hosted virtual windows, main windows, and dialogs here. */
+    hosted = pVirtWin->pFirstHosted;
+    while (hosted) {
+        PVIRTWIN next = hosted->pNextHosted;
+
+        if (hosted->WinType == TYPE_VIRTWIN) {
+            if (DestroyVirtualWindow ((HWND)hosted)) {
+                VirtualWindowCleanup ((HWND)hosted);
+            }
+            else
+                goto broken;
+        }
+        else if (((PMAINWIN)hosted)->dwExStyle & WS_EX_DIALOGBOX) {
+            if (!EndDialog ((HWND)hosted, IDCANCEL))
+                goto broken;
+        }
+        else {
+            assert (hosted->WinType == TYPE_MAINWIN);
+            if (DestroyMainWindow ((HWND)hosted)) {
+                MainWindowCleanup ((HWND)hosted);
+            }
+            else
+                goto broken;
+        }
+
+        hosted = next;
+    }
+
+    if (SendMessage (hVirtWnd, MSG_DESTROY, 0, 0)) {
+        goto broken;
+    }
+
+    /* kill all timers of this window */
+    KillTimer (hVirtWnd, 0);
+
+    /* make the window to be invalid for PeekMessageEx, PostMessage etc */
+    pVirtWin->DataType = TYPE_WINTODEL;
+
+    ThrowAwayMessages (hVirtWnd);
+
+    /* since 5.0.0: destroy local data map */
+    if (pVirtWin->mapLocalData) {
+        __mg_map_destroy (pVirtWin->mapLocalData);
+        pVirtWin->mapLocalData = NULL;
+    }
+
+    if (pVirtWin->pHosting) {
+        guiRemoveHostedMainWindow ((PMAINWIN)pVirtWin->pHosting,
+                (PMAINWIN)pVirtWin);
+        pVirtWin->pHosting = NULL;
+    }
+
+    if (pVirtWin->spCaption) {
+        FreeFixStr (pVirtWin->spCaption);
+        pVirtWin->spCaption = NULL;
+    }
+
+    pMsgQueue->nrWindows--;
+    if (pMsgQueue->pRootMainWin == (PMAINWIN)pVirtWin) {
+        pMsgQueue->pRootMainWin = NULL;
+        assert (pMsgQueue->nrWindows == 0);
+    }
+
+    return TRUE;
+
+broken:
+    return FALSE;
+}
+
+BOOL GUIAPI VirtualWindowCleanup (HWND hVirtWnd)
+{
+    PVIRTWIN pVirtWin;
+
+    if (!(pVirtWin = getVirtWinIfDestroyed (hVirtWnd))) {
+        _WRN_PRINTF ("Unexpected call: Virtual window (%p) not destroyed yet! "
+                "Please call DestroyVirtualWindow() first\n", hVirtWnd);
+        return FALSE;
+    }
+
+    if (!getMsgQueueIfMainWindowInThisThread ((PMAINWIN)pVirtWin)) {
+        _WRN_PRINTF ("Unexpected call: Virtual window (%p) was not created "
+                "in current thread!\n", pVirtWin);
+        return FALSE;
+    }
+
+#ifdef __THREADX__
+    /* to avoid threadx keep pVirtWin's value, which will lead to wrong way */
+    memset (pVirtWin, 0xcc, sizeof(VIRTWIN));
+#endif
+
+    free (pVirtWin);
+    return TRUE;
+}
+
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+
 /*************************** Main window creation ****************************/
-#ifdef _MGRM_THREADS
+#if 0 /* VW: deprecated code */
 int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
-        pthread_attr_t* attr,
-        void * (*start_routine)(void *),
-        void * arg)
+        pthread_attr_t* attr, void * (*start_routine)(void *), void* arg)
 {
     pthread_attr_t new_attr;
     int ret;
@@ -3515,44 +4070,61 @@ int GUIAPI CreateThreadForMainWindow (pthread_t* thread,
     return ret;
 }
 
+pthread_t GUIAPI GetMainWinThread (HWND hMainWnd)
+{
+#ifdef WIN32
+    pthread_t ret;
+    memset(&ret, 0, sizeof(pthread_t));
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hMainWnd), ret);
+#else
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hMainWnd), 0);
+#endif
+
+    return ((PMAINWIN)hMainWnd)->th;
+}
+
+#endif /* deprecated code */
+
+#ifdef _MGRM_THREADS
+/* This function is deprecated since 5.0.0 */
 int GUIAPI WaitMainWindowClose (HWND hWnd, void** returnval)
 {
     pthread_t th;
 
-    if (!(gui_CheckAndGetMainWindowPtr(hWnd)))
+    if (!(checkAndGetMainWinIfMainWin(hWnd)))
         return -1;
 
     th = GetMainWinThread (hWnd);
 
     return pthread_join (th, returnval);
 }
-#endif
+#endif  /* _MGRM_THREADS */
 
-void GUIAPI MainWindowThreadCleanup (HWND hMainWnd)
+BOOL GUIAPI MainWindowCleanup (HWND hMainWnd)
 {
-    PMAINWIN pWin = (PMAINWIN)hMainWnd;
+    PMAINWIN pMainWin;
 
-    _DBG_PRINTF ("window(%p), caption(%s)\n", pWin, pWin->spCaption);
-
-    if (!MG_IS_DESTROYED_WINDOW (hMainWnd)) {
-        _WRN_PRINTF ("Unexpected calling(%s); Window(%p) not destroyed yet!\n",
-                __FUNCTION__, hMainWnd);
-        return;
+    if (!(pMainWin = getMainWinIfDestroyed (hMainWnd))) {
+        _WRN_PRINTF ("Unexpected call: Main window (%p) not destroyed yet! "
+                "Please call DestroyMainualWindow() first\n", hMainWnd);
+        return FALSE;
     }
 
-#ifdef _MGRM_THREADS
-    if (pWin->pHosting == NULL) {
-        mg_FreeMsgQueueThisThread ();
-        _DBG_PRINTF ("Message queure is freed: %p (%s)\n", pWin, pWin->spCaption);
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!getMsgQueueIfMainWindowInThisThread (pMainWin)) {
+        _WRN_PRINTF ("Unexpected call: Main window (%p) was not created "
+                "in current thread!\n", pMainWin);
+        return FALSE;
     }
 #endif
 
 #ifdef __THREADX__
-    /* to avoid threadx keep pWin's value,which will lead to wrong way */
-    memset (pWin, 0xcc, sizeof(MAINWIN));
+    /* to avoid threadx keep pMainWin's value, which will lead to wrong way */
+    memset (pMainWin, 0xcc, sizeof (MAINWIN));
 #endif
 
-    free (pWin);
+    free (pMainWin);
+    return TRUE;
 }
 
 #ifdef __TARGET_FMSOFT__
@@ -3587,10 +4159,10 @@ static void ResetMenuSize (HWND hwnd)
     /** font size of renderer */
     int font_size;
 
-    /** min menu size of renderer*/
+    /** min menu size of renderer */
     int menu_height_min;
 
-    /** expect menu size of renderer*/
+    /** expect menu size of renderer */
     int menu_height_expect;
 
     font_size = ((PLOGFONT)GetWindowElementAttr (hwnd, WE_FONT_MENU))->size;
@@ -3603,73 +4175,68 @@ static void ResetMenuSize (HWND hwnd)
     }
 }
 
-HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
+HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
         const char* werdr_name, const WINDOW_ELEMENT_ATTR* we_attrs,
-        const char* window_name, const char* layer_name)
+        unsigned int surf_flag, DWORD bkgnd_color,
+        int ct, DWORD ct_arg)
 {
-    //
     PMAINWIN pWin;
+    COMPOSITINGINFO ct_info = { ct, ct_arg };
 
     if (pCreateInfo == NULL) {
-
         return HWND_INVALID;
     }
 
-    if (!(pWin = calloc(1, sizeof(MAINWIN)))) {
-
+    if (!(pWin = calloc (1, sizeof(MAINWIN)))) {
         return HWND_INVALID;
     }
 
 #ifdef _MGRM_THREADS
-    if (pCreateInfo->hHosting == HWND_DESKTOP || pCreateInfo->hHosting == 0) {
-        /*
-         ** Create thread infomation and message queue for this new main window.
-         */
-        if ((pWin->pMessages = GetMsgQueueThisThread ()) == NULL) {
-            if (!(pWin->pMessages = mg_InitMsgQueueThisThread ()) ) {
-                free (pWin);
+    /* Create or get the message queue for this new main window. */
+    if ((pWin->pMsgQueue = getMsgQueueForThisThread ()) == NULL) {
+        goto err;
+    }
 
-                return HWND_INVALID;
-            }
-            pWin->pMessages->pRootMainWin = pWin;
-        }
-        else {
-            /* Already have a top level main window, in case of user have set
-               a wrong hosting window */
-            pWin->pHosting = pWin->pMessages->pRootMainWin;
-        }
+    if (pWin->pMsgQueue->pRootMainWin == NULL) {
+        pWin->pMsgQueue->pRootMainWin = pWin;
+    }
+    else if (pCreateInfo->hHosting == HWND_DESKTOP ||
+            pCreateInfo->hHosting == HWND_NULL) {
+        pWin->pHosting = pWin->pMsgQueue->pRootMainWin;
     }
     else {
-        pWin->pMessages = GetMsgQueueThisThread ();
-        if (pWin->pMessages != kernel_GetMsgQueue (pCreateInfo->hHosting) ||
-                pWin->pMessages == NULL) {
-            free (pWin);
-
-            return HWND_INVALID;
+        if (pWin->pMsgQueue != getMsgQueue (pCreateInfo->hHosting)) {
+            goto err;
         }
     }
 
     if (pWin->pHosting == NULL)
-        pWin->pHosting = gui_GetMainWindowPtrOfControl (pCreateInfo->hHosting);
-    /* leave the pHosting is NULL for the first window of this thread. */
-#else
-    pWin->pHosting = gui_GetMainWindowPtrOfControl (pCreateInfo->hHosting);
-    if (pWin->pHosting == NULL)
-        pWin->pHosting = __mg_dsk_win;
+        pWin->pHosting = getMainWindowPtr (pCreateInfo->hHosting);
 
-    pWin->pMessages = __mg_dsk_msg_queue;
-#endif
+#else   /* defined _MGRM_THREADS */
+
+    /* You must create main window in the main thread for non-threads modes */
+    if (getMsgQueueForThisThread () != __mg_dsk_msg_queue)
+        goto err;
+
+    pWin->pHosting = getMainWindowPtr (pCreateInfo->hHosting);
+    if (pWin->pHosting == NULL) {
+        pWin->pHosting = __mg_dsk_win;
+    }
+    else if (pWin->pHosting->pMsgQueue != __mg_dsk_msg_queue) {
+        goto err;
+    }
+
+    assert (__mg_dsk_msg_queue->pRootMainWin == __mg_dsk_win);
+    pWin->pMsgQueue = __mg_dsk_msg_queue;
+#endif  /* not defined _MGRM_THREADS */
 
     pWin->pMainWin      = pWin;
-    pWin->hParent       = 0;
+    pWin->hParent       = HWND_NULL;
     pWin->pFirstHosted  = NULL;
     pWin->pNextHosted   = NULL;
     pWin->DataType      = TYPE_HWND;
     pWin->WinType       = TYPE_MAINWIN;
-
-#ifdef _MGRM_THREADS
-    pWin->th            = pthread_self();
-#endif
 
     pWin->hFirstChild   = 0;
     pWin->hActiveChild  = 0;
@@ -3680,6 +4247,35 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
 
     pWin->dwStyle       = pCreateInfo->dwStyle;
     pWin->dwExStyle     = pCreateInfo->dwExStyle;
+
+    /* Since 5.0.0: clear the control-only style bits */
+    pWin->dwStyle       &= ~WS_CONTROL_ONLY_MASK;
+    if (pWin->dwExStyle & WS_EX_TOPMOST) {
+        pWin->dwExStyle &= ~WS_EX_WINTYPE_MASK;
+        pWin->dwExStyle |= WS_EX_WINTYPE_HIGHER;
+    }
+
+    /* Since 5.0.0: calculate the default postion */
+    if (pWin->dwExStyle & WS_EX_AUTOPOSITION) {
+        CALCPOSINFO info = { pWin->dwStyle, pWin->dwExStyle,
+            {pCreateInfo->lx, pCreateInfo->ty,
+                pCreateInfo->rx, pCreateInfo->by} };
+
+        // we ignore the retval. may fail for client under procs runmode
+        SendMessage (HWND_DESKTOP, MSG_CALC_POSITION, 0, (LPARAM)&info);
+
+        pCreateInfo->lx = info.rc.left;
+        pCreateInfo->ty = info.rc.top;
+        pCreateInfo->rx = info.rc.right;
+        pCreateInfo->by = info.rc.bottom;
+    }
+
+#ifdef __TARGET_FMSOFT__
+    pCreateInfo->lx += __mg_mainwin_offset_x;
+    pCreateInfo->rx += __mg_mainwin_offset_x;
+    pCreateInfo->ty += __mg_mainwin_offset_y;
+    pCreateInfo->by += __mg_mainwin_offset_y;
+#endif
 
 #ifdef _MGHAVE_MENU
     pWin->hMenu         = pCreateInfo->hMenu;
@@ -3696,18 +4292,21 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
 #endif
         pWin->hSysMenu = 0;
 
-    pWin->spCaption    = FixStrAlloc (strlen (pCreateInfo->spCaption));
+    pWin->spCaption         = FixStrAlloc (strlen (pCreateInfo->spCaption));
     if (pCreateInfo->spCaption [0])
         strcpy (pWin->spCaption, pCreateInfo->spCaption);
 
-    pWin->MainWindowProc = pCreateInfo->MainWindowProc;
-    pWin->iBkColor    = pCreateInfo->iBkColor;
+    /* Since 5.0.0 */
+    pWin->id                = id;
 
-    pWin->pCaretInfo = NULL;
+    pWin->MainWindowProc    = pCreateInfo->MainWindowProc;
+    pWin->iBkColor          = pCreateInfo->iBkColor;
 
-    pWin->dwAddData   = pCreateInfo->dwAddData;
-    pWin->dwAddData2  = 0;
-    pWin->secondaryDC = 0;
+    pWin->pCaretInfo        = NULL;
+
+    pWin->dwAddData         = pCreateInfo->dwAddData;
+    pWin->dwAddData2        = 0;
+    pWin->secondaryDC       = 0;
 
     /* Scroll bar */
     if (pWin->dwStyle & WS_VSCROLL) {
@@ -3751,10 +4350,10 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
 
     /** set window element data */
     while (we_attrs && we_attrs->we_attr_id != -1) {
-        // append_window_element_data (pWin,
+        // __mg_append_window_element_data (pWin,
         //       we_attrs->we_attr_id, we_attrs->we_attr);
         DWORD _old;
-        set_window_element_data ((HWND)pWin,
+        __mg_set_window_element_data ((HWND)pWin,
                 we_attrs->we_attr_id, we_attrs->we_attr, &_old);
         ++we_attrs;
     }
@@ -3772,38 +4371,45 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
     /** reset menu size */
     ResetMenuSize ((HWND)pWin);
 
-#ifdef __TARGET_FMSOFT__
-    pCreateInfo->lx += __mg_mainwin_offset_x;
-    pCreateInfo->rx += __mg_mainwin_offset_x;
-    pCreateInfo->ty += __mg_mainwin_offset_y;
-    pCreateInfo->by += __mg_mainwin_offset_y;
-#endif
-
     SendMessage ((HWND)pWin, MSG_SIZECHANGING,
             (WPARAM)&pCreateInfo->lx, (LPARAM)&pWin->left);
     SendMessage ((HWND)pWin, MSG_CHANGESIZE, (WPARAM)&pWin->left, 0);
 
+#ifdef _MGSCHEMA_COMPOSITING
+    pWin->surf = GAL_CreateSurfaceForZNode (surf_flag, pWin->right - pWin->left,
+                pWin->bottom - pWin->top);
+    if ((surf_flag & ST_PIXEL_MASK) != ST_PIXEL_DEFAULT) {
+        pWin->iBkColor = GAL_MapRGBA (pWin->surf->format,
+                GetRValue (bkgnd_color), GetGValue (bkgnd_color),
+                GetBValue (bkgnd_color), GetAValue (bkgnd_color));
+    }
+#else
     pWin->pGCRInfo = &pWin->GCRInfo;
+#endif
 
-    if (SendMessage (HWND_DESKTOP, MSG_ADDNEWMAINWIN, (WPARAM) pWin, 0) < 0)
+    if (SendMessage (HWND_DESKTOP, MSG_ADDNEWMAINWIN,
+            (WPARAM)pWin, (LPARAM)&ct_info) < 0)
         goto err;
 
-    /* houhh20081127, Move these code into dskAddNewMainWindow().*/
 #if 0
+    /* houhh20081127, Move these code into dskAddNewMainWindow().*/
     /* Create secondary window dc. */
     if (pWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
         pWin->secondaryDC = CreateSecondaryDC ((HWND)pWin);
 #endif
 
-    /*
-     * We should add the new main window in system and then
+    /* We should add the new main window in system and then
      * SendMessage MSG_CREATE for application to create
-     * child windows.
-     */
-    if (SendMessage ((HWND)pWin, MSG_CREATE, 0, (LPARAM)pCreateInfo)) {
-        SendMessage(HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)pWin, 0);
+     * child windows. */
+    if (SendMessage ((HWND)pWin, MSG_CREATE,
+                (WPARAM)pWin->pHosting, (LPARAM)pCreateInfo)) {
+        SendMessage (HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)pWin, 0);
         goto err;
     }
+
+    /* handle hosting relationship after the main window was created at last */
+    if (pWin->pHosting)
+        guiAddNewHostedMainWindow (pWin->pHosting, pWin);
 
 #if 0
     /* Create private client dc. */
@@ -3818,31 +4424,91 @@ HWND GUIAPI CreateMainWindowEx (PMAINWINCREATE pCreateInfo,
 #endif
 
 #ifndef _MGRM_PROCESSES
-    screensaver_create();
+    __mg_screensaver_create();
 #endif
 
-    return (HWND)pWin;
-
-err:
-#ifdef _MGRM_THREADS
-    if (pWin->pMessages && pWin->pHosting == NULL) {
-        mg_FreeMsgQueueThisThread ();
+#ifdef _MGSCHEMA_COMPOSITING
+    // Close file descriptor to free kernel memory?
+    if (pWin->surf->shared_header) {
+        close (pWin->surf->shared_header->fd);
+        pWin->surf->shared_header->fd = -1;
     }
 #endif
 
-    if (pWin->secondaryDC) DeleteSecondaryDC ((HWND)pWin);
+    pWin->pMsgQueue->nrWindows++;
+    return (HWND)pWin;
+
+err:
+#ifdef _MGSCHEMA_COMPOSITING
+    if (pWin->surf)
+        GAL_FreeSurface (pWin->surf);
+#endif
+    if (pWin->secondaryDC) {
+#if 0   /* deprecated code */
+        DeleteSecondaryDC ((HWND)pWin);
+#else   /* deprecated code */
+        /* since 5.0.0, call __mg_delete_secondary_dc instead */
+        __mg_delete_secondary_dc (pWin);
+#endif
+    }
+
+    if (pWin->pMsgQueue && pWin->pMsgQueue->pRootMainWin == pWin) {
+        pWin->pMsgQueue->pRootMainWin = NULL;
+        assert (pWin->pMsgQueue->nrWindows == 0);
+    }
+
+    /* Since 5.0.0: we must throw away the messages for this window, because
+       there are some messages, e.g., MSG_CSIZECHANGED, have been put into
+       the message queue.  Or DispatchMessage will panic. */
+    if (pWin->pMsgQueue)
+        __mg_throw_away_messages (pWin->pMsgQueue, (HWND)pWin);
+
     free (pWin);
-
-
     return HWND_INVALID;
 }
 
 BOOL GUIAPI DestroyMainWindow (HWND hWnd)
 {
     PMAINWIN pWin;
-    PMAINWIN head, next;    /* hosted window list. */
+    PMAINWIN hosted;    /* for hosted window list. */
+    PMSGQUEUE pMsgQueue;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd))) return FALSE;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hWnd)))
+        return FALSE;
+
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hWnd))) {
+        return FALSE;
+    }
+
+    /* destroy all hosted main windows and dialogs here. */
+    hosted = pWin->pFirstHosted;
+    while (hosted) {
+        PMAINWIN next = hosted->pNextHosted;
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        if (hosted->WinType == TYPE_VIRTWIN) {
+            if (DestroyVirtualWindow ((HWND)hosted)) {
+                VirtualWindowCleanup ((HWND)hosted);
+            }
+            else
+                return FALSE;
+        }
+        else
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
+        if (pWin->dwExStyle & WS_EX_DIALOGBOX) {
+            if (!EndDialog ((HWND)hosted, IDCANCEL))
+                return FALSE;
+        }
+        else {
+            assert (hosted->WinType == TYPE_MAINWIN);
+            if (DestroyMainWindow ((HWND)hosted))
+                MainWindowCleanup ((HWND)hosted);
+            else
+                return FALSE;
+        }
+
+        hosted = next;
+    }
 
     if (SendMessage (hWnd, MSG_DESTROY, 0, 0))
         return FALSE;
@@ -3850,36 +4516,31 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     /* destroy all controls of this window */
     DestroyAllControls (hWnd);
 
-    /* destroy all hosted main windows and dialogs here. */
-    head = pWin->pFirstHosted;
-    while (head) {
-        next = head->pNextHosted;
-
-        if (IsDialog((HWND)head)) {
-            EndDialog ((HWND)head, IDCANCEL);
-        }
-        else {
-            if (DestroyMainWindow ((HWND)head))
-                MainWindowCleanup ((HWND)head);
-        }
-
-        head = next;
-    }
-
     /* kill all timers of this window */
     KillTimer (hWnd, 0);
 
-    SendMessage(HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)hWnd, 0);
+    /* since 5.0.0: destroy local data map */
+    if (pWin->mapLocalData) {
+        __mg_map_destroy (pWin->mapLocalData);
+        pWin->mapLocalData = NULL;
+    }
 
+    if (pWin->pHosting)
+        guiRemoveHostedMainWindow (pWin->pHosting, pWin);
+
+    SendMessage (HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)hWnd, 0);
+
+#if 0   /* deprecated code */
     if (sg_repeat_msg.hwnd == hWnd)
         sg_repeat_msg.hwnd = 0;
+#endif  /* deprecated code */
 
     /* make the window to be invalid for PeekMessageEx, PostMessage etc */
     pWin->DataType = TYPE_WINTODEL;
 
     ThrowAwayMessages (hWnd);
 
-    /* houhh 20081127, move these code to .*/
+    /* houhh 20081127, move these code to desktop.c .*/
 #if 0
     if ((pWin->dwExStyle & WS_EX_AUTOSECONDARYDC) && pWin->secondaryDC) {
         DeleteSecondaryDC (hWnd);
@@ -3913,10 +4574,14 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     }
 #endif
 
+#ifdef _MGSCHEMA_COMPOSITING
+    GAL_FreeSurface (pWin->surf);
+#else
     EmptyClipRgn (&pWin->pGCRInfo->crgn);
+#endif
     EmptyClipRgn (&pWin->InvRgn.rgn);
 
-    free_window_element_data (hWnd);
+    __mg_free_window_element_data (hWnd);
     --pWin->we_rdr->refcount;
 
 #ifdef _MGRM_THREADS
@@ -3924,13 +4589,19 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
     pthread_mutex_destroy (&pWin->InvRgn.lock);
 #endif
 
+    pMsgQueue->nrWindows--;
+    if (pMsgQueue->pRootMainWin == pWin) {
+        pMsgQueue->pRootMainWin = NULL;
+        assert (pMsgQueue->nrWindows == 0);
+    }
+
     return TRUE;
 }
 
 /*************************** Main window creation ****************************/
 void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
 {
-    MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
+    MG_CHECK (MG_IS_NORMAL_WINDOW (hWnd));
 
     if (fErase)
         SendAsyncMessage (hWnd, MSG_CHANGESIZE, 0, 0);
@@ -3941,37 +4612,6 @@ void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
     else
         InvalidateRect (hWnd, NULL, FALSE);
 
-#if 0
-#if 0
-    MSG Msg;
-    HWND hMainWnd;
-
-    /* MSG_PAINT Must Use PostMessage. Becuse Only PostMessage can give a correct order
-     * when processing MSG_PAINT message
-     *
-     * the Order of MSG_PAINT:
-     *     * The Parent Window Must Be Painted before Children
-     *     * The Previously created window must be Painted before afterwards created
-     *
-     * */
-    if (hWnd != HWND_DESKTOP) {
-        PMAINWIN pWin;
-
-        pWin = (PMAINWIN) hWnd;
-        SendMessage (hWnd, MSG_PAINT, 0, (LPARAM)(&pWin->InvRgn.rgn));
-    }
-    else
-        SendMessage (hWnd, MSG_PAINT, 0, 0);
-
-#else
-    hMainWnd = GetMainWindowHandle(hWnd);
-    while(PeekMessageEx(&Msg, hMainWnd, MSG_PAINT, MSG_PAINT + 1 , FALSE, PM_REMOVE))
-    {
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
-    }
-#endif
-#else /* a new implementation only check the window and its children. */
     {
         PMAINWIN pWin, winStartToUpdate;
 
@@ -3988,12 +4628,11 @@ void GUIAPI UpdateWindow (HWND hWnd, BOOL fErase)
             SendMessage (hWnd, MSG_PAINT, 0, (LPARAM)(&pWin->InvRgn.rgn));
         }
     }
-#endif
 }
 
 void GUIAPI UpdateInvalidClient (HWND hWnd, BOOL fErase)
 {
-    MG_CHECK (MG_IS_NORMAL_WINDOW(hWnd));
+    MG_CHECK (MG_IS_NORMAL_WINDOW (hWnd));
 
     if (fErase) {
         SendAsyncMessage (hWnd, MSG_CHANGESIZE, 0, 0);
@@ -4026,27 +4665,24 @@ void GUIAPI UpdateInvalidClient (HWND hWnd, BOOL fErase)
  */
 BOOL GUIAPI ShowWindow (HWND hWnd, int iCmdShow)
 {
-    //
-    //PrintInvRgn((PMAINWIN)hWnd, 0);
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
 
     if (IsMainWindow (hWnd)) {
-        switch (iCmdShow)
-        {
-            case SW_SHOWNORMAL:
-                SendMessage (HWND_DESKTOP,
-                        MSG_MOVETOTOPMOST, (WPARAM)hWnd, 0);
-                break;
+        switch (iCmdShow) {
+        case SW_SHOWNORMAL:
+            SendMessage (HWND_DESKTOP,
+                    MSG_MOVETOTOPMOST, (WPARAM)hWnd, 0);
+            break;
 
-            case SW_SHOW:
-                SendMessage (HWND_DESKTOP,
-                        MSG_SHOWMAINWIN, (WPARAM)hWnd, 0);
-                break;
+        case SW_SHOW:
+            SendMessage (HWND_DESKTOP,
+                    MSG_SHOWMAINWIN, (WPARAM)hWnd, 0);
+            break;
 
-            case SW_HIDE:
-                SendMessage (HWND_DESKTOP,
-                        MSG_HIDEMAINWIN, (WPARAM)hWnd, 0);
-                break;
+        case SW_HIDE:
+            SendMessage (HWND_DESKTOP,
+                    MSG_HIDEMAINWIN, (WPARAM)hWnd, 0);
+            break;
         }
     }
     else {
@@ -4068,24 +4704,24 @@ BOOL GUIAPI ShowWindow (HWND hWnd, int iCmdShow)
         }
         else {
             switch (iCmdShow) {
-                case SW_SHOWNORMAL:
-                case SW_SHOW:
-                    if (!(pControl->dwStyle & WS_VISIBLE)) {
-                        pControl->dwStyle |= WS_VISIBLE;
+            case SW_SHOWNORMAL:
+            case SW_SHOW:
+                if (!(pControl->dwStyle & WS_VISIBLE)) {
+                    pControl->dwStyle |= WS_VISIBLE;
 
-                        SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
-                        InvalidateRect (hWnd, NULL, TRUE);
-                    }
-                    break;
+                    SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
+                    InvalidateRect (hWnd, NULL, TRUE);
+                }
+                break;
 
-                case SW_HIDE:
-                    if (pControl->dwStyle & WS_VISIBLE) {
+            case SW_HIDE:
+                if (pControl->dwStyle & WS_VISIBLE) {
 
-                        pControl->dwStyle &= ~WS_VISIBLE;
-                        InvalidateRect ((HWND)(pControl->pParent),
-                                (RECT*)(&pControl->left), TRUE);
-                    }
-                    break;
+                    pControl->dwStyle &= ~WS_VISIBLE;
+                    InvalidateRect ((HWND)(pControl->pParent),
+                            (RECT*)(&pControl->left), TRUE);
+                }
+                break;
             }
         }
 
@@ -4148,7 +4784,7 @@ void GUIAPI ScreenToClient (HWND hWnd, int* x, int* y)
     }
 }
 
-void GUIAPI ClientToScreen(HWND hWnd, int* x, int* y)
+void GUIAPI ClientToScreen (HWND hWnd, int* x, int* y)
 {
     PCONTROL pParent;
     PCONTROL pCtrl;
@@ -4236,6 +4872,23 @@ BOOL GUIAPI GetClientRect (HWND hWnd, PRECT prc)
 }
 
 /******************** main window and control styles support *****************/
+/* Since 5.0.0. */
+gal_pixel GUIAPI DWORD2PixelByWindow (HWND hWnd, DWORD dwColor)
+{
+#ifdef _MGSCHEMA_COMPOSITING
+    PMAINWIN pWin = (PMAINWIN)hWnd;
+    if (hWnd == HWND_NULL || hWnd == HWND_DESKTOP || hWnd == HWND_INVALID) {
+        return DWORD2Pixel (HDC_SCREEN, dwColor);
+    }
+
+    return GAL_MapRGBA (pWin->surf->format,
+            GetRValue (dwColor), GetGValue (dwColor),
+            GetBValue (dwColor), GetAValue (dwColor));
+#else
+    return DWORD2Pixel (HDC_SCREEN, dwColor);
+#endif
+}
+
 gal_pixel GUIAPI GetWindowBkColor (HWND hWnd)
 {
     PMAINWIN pWin = (PMAINWIN)hWnd;
@@ -4318,7 +4971,7 @@ HCURSOR GUIAPI SetWindowCursor (HWND hWnd, HCURSOR hNewCursor)
     return 0;
 }
 
-DWORD GetWindowStyle (HWND hWnd)
+DWORD GUIAPI GetWindowStyle (HWND hWnd)
 {
     PMAINWIN pWin;
 
@@ -4350,7 +5003,7 @@ BOOL GUIAPI IncludeWindowStyle (HWND hWnd, DWORD dwStyle)
     return TRUE;
 }
 
-DWORD GetWindowExStyle (HWND hWnd)
+DWORD GUIAPI GetWindowExStyle (HWND hWnd)
 {
     PMAINWIN pWin;
 
@@ -4386,7 +5039,8 @@ DWORD GUIAPI GetWindowAdditionalData (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), 0);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->dwAddData;
@@ -4397,7 +5051,8 @@ DWORD GUIAPI SetWindowAdditionalData (HWND hWnd, DWORD newData)
     DWORD    oldOne;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0L);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), 0L);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     oldOne = pWin->dwAddData;
@@ -4409,7 +5064,8 @@ DWORD GUIAPI GetWindowAdditionalData2 (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0L);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), (DWORD)-1L);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->dwAddData2;
@@ -4420,7 +5076,8 @@ DWORD GUIAPI SetWindowAdditionalData2 (HWND hWnd, DWORD newData)
     DWORD    oldOne;
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0L);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), (DWORD)-1L);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     oldOne = pWin->dwAddData2;
@@ -4430,38 +5087,28 @@ DWORD GUIAPI SetWindowAdditionalData2 (HWND hWnd, DWORD newData)
 
 DWORD GUIAPI GetWindowClassAdditionalData (HWND hWnd)
 {
-    PMAINWIN pWin;
     PCONTROL pCtrl;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0);
-    pWin = MG_GET_WINDOW_PTR (hWnd);
+    /* Since 5.0.0, works for control */
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW(hWnd), (DWORD)-1L);
 
-    if (pWin->WinType == TYPE_CONTROL) {
-        pCtrl = MG_GET_CONTROL_PTR(hWnd);
-        return pCtrl->pcci->dwAddData;
-    }
-
-    return 0;
+    pCtrl = MG_GET_CONTROL_PTR(hWnd);
+    return pCtrl->pcci->dwAddData;
 }
 
 DWORD GUIAPI SetWindowClassAdditionalData (HWND hWnd, DWORD newData)
 {
-    PMAINWIN pWin;
     PCONTROL pCtrl;
+    DWORD oldOne;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), 0);
-    pWin = MG_GET_WINDOW_PTR (hWnd);
+    /* Since 5.0.0, works for control */
+    MG_CHECK_RET (MG_IS_CONTROL_WINDOW(hWnd), (DWORD)-1L);
 
-    if (pWin->WinType == TYPE_CONTROL) {
-        DWORD oldOne;
-
-        pCtrl = MG_GET_CONTROL_PTR(hWnd);
-        oldOne = pCtrl->pcci->dwAddData;
-        pCtrl->pcci->dwAddData = newData;
-        return oldOne;
-    }
-
-    return 0L;
+    /* XXX: send a message to desktop for this operation? */
+    pCtrl = MG_GET_CONTROL_PTR(hWnd);
+    oldOne = pCtrl->pcci->dwAddData;
+    pCtrl->pcci->dwAddData = newData;
+    return oldOne;
 }
 
 const char* GUIAPI GetClassName (HWND hWnd)
@@ -4471,12 +5118,14 @@ const char* GUIAPI GetClassName (HWND hWnd)
 
     pWin = (PMAINWIN)hWnd;
 
-    if (!MG_IS_WINDOW(hWnd))
+    if (!MG_IS_APP_WINDOW (hWnd))
         return NULL;
     else if (hWnd == HWND_DESKTOP)
         return ROOTWINCLASSNAME;
     else if (pWin->WinType == TYPE_MAINWIN)
         return MAINWINCLASSNAME;
+    else if (pWin->WinType == TYPE_VIRTWIN)
+        return VIRTWINCLASSNAME;
     else if (pWin->WinType == TYPE_CONTROL) {
         pCtrl = (PCONTROL)hWnd;
         return pCtrl->pcci->name;
@@ -4490,7 +5139,7 @@ BOOL GUIAPI IsWindowVisible (HWND hWnd)
     PMAINWIN pMainWin;
     PCONTROL pCtrl;
 
-    if ((pMainWin = gui_CheckAndGetMainWindowPtr (hWnd))) {
+    if ((pMainWin = checkAndGetMainWinIfMainWin (hWnd))) {
         return pMainWin->dwStyle & WS_VISIBLE;
     }
     else if (IsControl (hWnd)) {
@@ -4524,7 +5173,8 @@ WNDPROC GUIAPI GetWindowCallbackProc (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), NULL);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), NULL);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->MainWindowProc;
@@ -4535,7 +5185,8 @@ WNDPROC GUIAPI SetWindowCallbackProc (HWND hWnd, WNDPROC newProc)
     PMAINWIN pWin;
     WNDPROC old_proc;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), NULL);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), NULL);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     old_proc = pWin->MainWindowProc;
@@ -4548,7 +5199,8 @@ const char* GUIAPI GetWindowCaption (HWND hWnd)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), NULL);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), NULL);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
     return pWin->spCaption;
@@ -4558,10 +5210,11 @@ BOOL GUIAPI SetWindowCaption (HWND hWnd, const char* spCaption)
 {
     PMAINWIN pWin;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
-    if (pWin->WinType == TYPE_MAINWIN) {
+    if (pWin->WinType == TYPE_MAINWIN || pWin->WinType == TYPE_VIRTWIN) {
         return SetWindowText (hWnd, spCaption);
     }
     else if (pWin->WinType == TYPE_CONTROL) {
@@ -4586,26 +5239,28 @@ BOOL GUIAPI SetWindowCaption (HWND hWnd, const char* spCaption)
 
 int GUIAPI GetWindowTextLength (HWND hWnd)
 {
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1);
 
     return SendMessage (hWnd, MSG_GETTEXTLENGTH, 0, 0);
 }
 
 int GUIAPI GetWindowText (HWND hWnd, char* spString, int nMaxLen)
 {
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), -1);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), -1);
 
     return SendMessage (hWnd, MSG_GETTEXT, (WPARAM)nMaxLen, (LPARAM)spString);
 }
 
 BOOL GUIAPI SetWindowText (HWND hWnd, const char* spString)
 {
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
+    /* Since 5.0.0, works for virtual window as well */
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hWnd), FALSE);
 
     return (SendMessage (hWnd, MSG_SETTEXT, 0, (LPARAM)spString) == 0);
 }
 
-extern BLOCKHEAP __mg_FreeClipRectList;
 /* NOTE: This function is control safe */
 BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
 {
@@ -4622,18 +5277,21 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
     SendMessage (hWnd, MSG_SIZECHANGING,
             (WPARAM)(&rcExpect), (LPARAM)(&rcResult));
 
-    if (EqualRect (&rcWindow, &rcResult))
-    {
+    if (EqualRect (&rcWindow, &rcResult)) {
         return FALSE;
     }
 
-    if (IsMainWindow (hWnd) || (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
-        SendMessage (HWND_DESKTOP, MSG_MOVEMAINWIN,
-                (WPARAM)hWnd, (LPARAM)(&rcResult));
+    if (pWin->WinType == TYPE_MAINWIN ||
+            (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+        // Since 5.0.0: check the return value.
+        if (SendMessage (HWND_DESKTOP, MSG_MOVEMAINWIN,
+                (WPARAM)hWnd, (LPARAM)(&rcResult)))
+            return FALSE;
 
         if (RECTH (rcWindow) != RECTH (rcResult)
-                || RECTW (rcWindow) != RECTW (rcResult))
+                || RECTW (rcWindow) != RECTW (rcResult)) {
             fPaint = TRUE;
+        }
     }
     else {
         PCONTROL pParent;
@@ -4649,106 +5307,23 @@ BOOL GUIAPI MoveWindow (HWND hWnd, int x, int y, int w, int h, BOOL fPaint)
         if (IsWindowVisible (hWnd)
                 && (pParent->InvRgn.frozen == 0)) {
 
-#if 1
             InvalidateRect((HWND)pParent, &rcWindow, TRUE);
             InvalidateRect((HWND)pParent, &rcResult, TRUE);
-#elif 0
-            if (pCtrl->dwExStyle & WS_EX_TRANSPARENT)
-                InvalidateRect (hWnd, NULL, TRUE);
-            else {
-                HDC hdc;
-                hdc = get_valid_dc ((PMAINWIN)pParent, TRUE);
-                BitBlt (hdc, pCtrl->left, pCtrl->top,
-                        pCtrl->right - pCtrl->left,
-                        pCtrl->bottom - pCtrl->top,
-                        hdc, rcResult.left, rcResult.top, 0);
-                release_valid_dc ((PMAINWIN)pParent, hdc);
-            }
-            /* set to invisible temporarily. */
-            /* FIXME: need more optimization. */
-            pCtrl->dwStyle &= ~WS_VISIBLE;
-            InvalidateRect ((HWND)pParent, &rcWindow, TRUE);
-            rcExpect.left = rcResult.left;
-            rcExpect.top = rcResult.top;
-            rcExpect.right = rcResult.left + RECTW (rcWindow);
-            rcExpect.bottom = rcResult.top + RECTH (rcWindow);
-            InvalidateRect ((HWND)pParent, &rcExpect, TRUE);
-            pCtrl->dwStyle |= WS_VISIBLE;
-#else
-            if (pCtrl->dwExStyle & WS_EX_TRANSPARENT) {
-                InvalidateRect ((HWND)pParent, &rcWindow, TRUE);
-                InvalidateRect (hWnd, NULL, TRUE);
-            }
-            else {
-                if (DoesIntersect ((const RECT*)&rcWindow, (const RECT*)&pCtrl->cl)) {
-                    CLIPRGN rgn;
-                    PCLIPRECT  p = NULL;
-                    InitClipRgn (&rgn, &__mg_FreeClipRectList);
-                    AddClipRect (&rgn, &rcWindow);
-                    SubtractClipRect (&rgn, (const RECT*)&pCtrl->cl);
-                    p = rgn.head;
-                    while(p) {
-                        InvalidateRect((HWND)pParent, &p->rc, TRUE);
-                        p = p->next;
-                    }
-                    EmptyClipRgn (&rgn);
-                }
-                else {
-                    InvalidateRect ((HWND)pParent, &rcWindow, TRUE);
-                }
-                if (RECTH (rcWindow) != RECTH (rcResult)
-                        || RECTW (rcWindow) != RECTW (rcResult))
-                {
-                    fPaint = TRUE;
-                }
-                else {
-                    PCONTROL pChild ;
-                    RECT     rc;
-                    BOOL     flag = TRUE;
-
-                    for (pChild = pParent->children; pChild; pChild = pChild->next) {
-                        if (pChild == pCtrl || !(pChild->dwStyle & WS_VISIBLE)
-                                || (pChild->dwExStyle & WS_EX_CTRLASMAINWIN))
-                            continue;
-
-                        if(IntersectRect(&rc, &rcWindow, (const RECT*)&pChild->cl)) {
-                            flag = FALSE;
-                            break;
-                        }
-                    }
-                    if (!flag) {
-                        InvalidateRect ((HWND)pParent, &rcResult, FALSE);
-                    }
-                    else {
-                        HDC hdc;
-                        hdc = get_valid_dc ((PMAINWIN)pParent, TRUE);
-                        BitBlt (hdc, rcWindow.left, rcWindow.top,
-                                RECTW(rcWindow), RECTH(rcWindow),
-                                hdc, rcResult.left, rcResult.top, 0);
-                        release_valid_dc ((PMAINWIN)pParent, hdc);
-
-                        for(pChild = pCtrl->next; pChild; pChild = pChild->next) {
-                            if(!(pChild->dwStyle & WS_VISIBLE)
-                                    || (pChild->dwExStyle & WS_EX_CTRLASMAINWIN))
-                                continue;
-
-                            if(IntersectRect(&rc, &rcResult, (const RECT*)&pChild->cl)) {
-                                OffsetRect(&rc, - pChild->left, - pChild->top);
-                                InvalidateRect((HWND)pChild, &rc, TRUE);
-                            }
-                        }
-                    }
-                }
-            }
-#endif
         }
     }
 
-    if ((RECTW (rcWindow) != w ) || (RECTH (rcWindow) != h))
+    if ((RECTW (rcWindow) != w ) || (RECTH (rcWindow) != h)) {
         SendAsyncMessage (hWnd, MSG_NCPAINT, 0, 0);
+    }
+
     if (fPaint) {
         InvalidateRect (hWnd, NULL, TRUE);
     }
+
+    /* Since 5.0.0: send a MSG_MOVEWINDOW notification message */
+    SendNotifyMessage (hWnd, MSG_MOVEWINDOW,
+            MAKELONG(pWin->left, pWin->top),
+            MAKELONG(pWin->right, pWin->bottom));
 
     return TRUE;
 }
@@ -4769,9 +5344,7 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
     RECT     rcTemp;
     PINVRGN  pInvRgn;
 
-
     pCtrl = (PCONTROL)hWnd;
-
 
     //invalidate itself
     rcClient.left = rcClient.top = 0;
@@ -4780,8 +5353,7 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
 
     pInvRgn = &pCtrl->InvRgn;
 
-    if(!pInvRgn->frozen)
-    {
+    if (!pInvRgn->frozen) {
         PCONTROL pNext;
 #ifdef _MGRM_THREADS
         pthread_mutex_lock(&pInvRgn->lock);
@@ -4790,30 +5362,27 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
             pCtrl->Flags |= WF_ERASEBKGND;
         }
 
-        if(prc) {
+        if (prc) {
             rcInv = *prc;
             NormalizeRect(&rcInv);
-            if(IntersectRect(&rcInv, &rcInv, &rcClient))
-                AddClipRect(&pInvRgn->rgn, &rcInv);
+            if (IntersectRect (&rcInv, &rcInv, &rcClient))
+                AddClipRect (&pInvRgn->rgn, &rcInv);
         }
         else {
             rcInv = rcClient;
-            SetClipRgn(&pInvRgn->rgn, &rcInv);
+            SetClipRgn (&pInvRgn->rgn, &rcInv);
         }
 
         rcTemp = rcInv;
-        OffsetRect(&rcTemp, pCtrl->cl, pCtrl->ct);
+        OffsetRect (&rcTemp, pCtrl->cl, pCtrl->ct);
 
         //subtract from next sibling controls
-        if(pCtrl->WinType == TYPE_CONTROL /*&& ( mark & WIRM_NEXT_SIBLING)*/)
-        {
-            for(pNext = pCtrl->next; pNext; pNext = pNext->next)
-            {
+        if (pCtrl->WinType == TYPE_CONTROL /*&& (mark & WIRM_NEXT_SIBLING)*/) {
+            for (pNext = pCtrl->next; pNext; pNext = pNext->next) {
                 RECT rc;
-                if((pNext->dwStyle & WS_VISIBLE)
-                    && !(pNext->dwExStyle & WS_EX_TRANSPARENT)
-                    && IntersectRect(&rc, &rcTemp, (const RECT*)&pNext->left))
-                {
+                if((pNext->dwStyle & WS_VISIBLE) &&
+                        !(pNext->dwExStyle & WS_EX_TRANSPARENT) &&
+                        IntersectRect(&rc, &rcTemp, (const RECT*)&pNext->left)) {
                     OffsetRect(&rc, - pCtrl->cl, - pCtrl->ct );
                     SubtractClipRect(&pInvRgn->rgn, &rc);
                 }
@@ -4823,59 +5392,54 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
         pthread_mutex_unlock(&pInvRgn->lock);
 #endif
     }
-    else
-    {
+    else {
         return FALSE;
     }
 
     //invalidate parent
-    if( (mark & WIRM_PARENT)
+    if ((mark & WIRM_PARENT)
             && (pCtrl->dwExStyle & WS_EX_TRANSPARENT)
             && pCtrl->WinType != TYPE_MAINWIN
-            && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN))
-    {
+            && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
         /* houhh 20100426, invalide rect for parent must be valid. */
         if (rcTemp.top < rcTemp.bottom && rcTemp.left < rcTemp.right) {
-            _wndInvalidateRect((HWND)pCtrl->pParent, &rcTemp, bEraseBkgnd, WIRM_PARENT|WIRM_SIBLING);
+            _wndInvalidateRect((HWND)pCtrl->pParent, &rcTemp,
+                    bEraseBkgnd, WIRM_PARENT|WIRM_SIBLING);
         }
     }
 
     //invalidate sibling
-    if(pCtrl->WinType==TYPE_CONTROL
+    if (pCtrl->WinType==TYPE_CONTROL
         && (pCtrl->dwExStyle & WS_EX_TRANSPARENT)
         && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)
         && (mark & WIRM_PREV_SIBLING))
     {
-        PCONTROL   pPrev;
-        for(pPrev = pCtrl->prev; pPrev; pPrev = pPrev->prev)
-        {
+        PCONTROL pPrev;
+
+        for (pPrev = pCtrl->prev; pPrev; pPrev = pPrev->prev) {
             RECT rc;
 
-            if(!(pPrev->dwStyle & WS_VISIBLE))
+            if (!(pPrev->dwStyle & WS_VISIBLE))
                 continue;
 
-            if(IntersectRect(&rc, &rcTemp, (const RECT*)&pPrev->cl))
-            {
+            if (IntersectRect(&rc, &rcTemp, (const RECT*)&pPrev->cl)) {
                 OffsetRect(&rc,  - pPrev->cl, - pPrev->ct);
                 _wndInvalidateRect((HWND)pPrev, &rc, bEraseBkgnd, WIRM_CHILDREN);
             }
         }
     }
 
-    if(pCtrl->WinType==TYPE_CONTROL
-        && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)
-        && (mark & WIRM_NEXT_SIBLING))
-    {
+    if (pCtrl->WinType==TYPE_CONTROL &&
+            !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN) &&
+            (mark & WIRM_NEXT_SIBLING)) {
         PCONTROL pNext;
-        for(pNext = pCtrl->next; pNext; pNext = pNext->next)
-        {
+        for (pNext = pCtrl->next; pNext; pNext = pNext->next) {
             RECT rc;
-            if(!(pNext->dwStyle & WS_VISIBLE)
-                || !(pNext->dwExStyle & WS_EX_TRANSPARENT))
+            if (!(pNext->dwStyle & WS_VISIBLE) ||
+                    !(pNext->dwExStyle & WS_EX_TRANSPARENT))
                 continue;
 
-            if(IntersectRect(&rc, &rcTemp, (const RECT*)&pNext->cl))
-            {
+            if (IntersectRect(&rc, &rcTemp, (const RECT*)&pNext->cl)) {
                 OffsetRect(&rc, - pNext->cl, - pNext->ct);
                 _wndInvalidateRect((HWND)pNext, &rc, bEraseBkgnd, WIRM_CHILDREN);
             }
@@ -4884,25 +5448,21 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
 
 
     //check mark for invalidate children
-    if(mark & WIRM_CHILDREN)
-    {
+    if (mark & WIRM_CHILDREN) {
         PCONTROL pChild ;
         RECT     rc;
 
-
-        for(pChild = pCtrl->children; pChild; pChild = pChild->next)
-        {
-            if(!(pChild->dwStyle & WS_VISIBLE)
-                || (pChild->dwExStyle & WS_EX_CTRLASMAINWIN))
+        for (pChild = pCtrl->children; pChild; pChild = pChild->next) {
+            if(!(pChild->dwStyle & WS_VISIBLE) ||
+                    (pChild->dwExStyle & WS_EX_CTRLASMAINWIN))
                 continue;
 
-            if(IntersectRect(&rc, &rcInv, (const RECT*)&pChild->cl))
-            {
+            if (IntersectRect(&rc, &rcInv, (const RECT*)&pChild->cl)) {
                 OffsetRect(&rc, - pChild->cl, - pChild->ct);
                 _wndInvalidateRect((HWND)pChild, &rc, bEraseBkgnd, WIRM_CHILDREN);
             }
-            if(IntersectRect(&rc, &rcInv, (const RECT*)&pChild->left))
-            {
+
+            if (IntersectRect(&rc, &rcInv, (const RECT*)&pChild->left)) {
                 OffsetRect(&rc, - pChild->left, - pChild->top);
                 SendAsyncMessage((HWND)pChild, MSG_NCPAINT, 0, (LPARAM)&rc);
             }
@@ -4928,8 +5488,12 @@ BOOL GUIAPI InvalidateRect (HWND hWnd, const RECT* prc, BOOL bEraseBkgnd)
 /* TODO: Optimize */
 BOOL GUIAPI InvalidateRegion (HWND hWnd, const CLIPRGN* pRgn, BOOL bErase)
 {
-    const CLIPRECT* crc = pRgn->head;
+    const CLIPRECT* crc;
 
+    MG_CHECK_RET (pRgn != NULL, FALSE);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), FALSE);
+
+    crc = pRgn->head;
     while (crc) {
         if (!InvalidateRect (hWnd, &crc->rc,  bErase))
             return FALSE;
@@ -4960,6 +5524,7 @@ BOOL GUIAPI ValidateRegion (HWND hWnd, const CLIPRGN* pRgn)
 {
     PMAINWIN pWin;
 
+    MG_CHECK_RET (pRgn != NULL, FALSE);
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
@@ -5014,20 +5579,13 @@ HDC GUIAPI BeginPaint (HWND hWnd)
         pWin->pCaretInfo->fBlink = TRUE;
     }
 
-    hdc = get_valid_dc (pWin, TRUE);
-
-#if 0
-    /* FIXME: why do this? */
-    if (((PMAINWIN)hWnd)->dwExStyle & WS_EX_TRANSPARENT)
-        SetBkMode (hdc, BM_TRANSPARENT);
-#endif
-
+    hdc = get_effective_dc (pWin, TRUE);
     pInvRgn = &pWin->InvRgn;
 
 #ifdef _MGRM_THREADS
     pthread_mutex_lock (&pInvRgn->lock);
 #endif
-    pInvRgn->frozen ++;
+    pInvRgn->frozen++;
 
     fEraseBk = pWin->Flags & WF_ERASEBKGND;
     pWin->Flags = (pWin->Flags & ~WF_ERASEBKGND);
@@ -5043,55 +5601,57 @@ HDC GUIAPI BeginPaint (HWND hWnd)
     else {
         CopyRect (&pWin->pMainWin->update_rc, &pInvRgn->rgn.rcBound);
     }
+
     rcInv = pInvRgn->rgn.rcBound;
 
     EmptyClipRgn (&pInvRgn->rgn);
 
-    pInvRgn->frozen --;
+    pInvRgn->frozen--;
 #ifdef _MGRM_THREADS
     pthread_mutex_unlock (&pInvRgn->lock);
 #endif
 
-    if(!(pWin->dwStyle & WS_VISIBLE))
+    if (!(pWin->dwStyle & WS_VISIBLE))
         return hdc;
 
     /* exclude the children area from the client */
-    /*    if (pWin->dwExStyle & WS_EX_CLIPCHILDREN)*/ {
+    /*    if (pWin->dwExStyle & WS_EX_CLIPCHILDREN)*/
+
+    {
         child = (PCONTROL)pWin->hFirstChild;
         while (child) {
-            if ((child->dwStyle & WS_VISIBLE) && !(child->dwExStyle & WS_EX_TRANSPARENT)
-                    && DoesIntersect ((const RECT*)&child->left, &rcInv)) {
+            if ((child->dwStyle & WS_VISIBLE) &&
+                    !(child->dwExStyle & WS_EX_TRANSPARENT) &&
+                    DoesIntersect ((const RECT*)&child->left, &rcInv)) {
                 ExcludeClipRect (hdc, (const RECT*)&child->left);
             }
             child = child->next;
         }
     }
+
     //erase bkgnd
-    if(fEraseBk
-            && !(pWin->WinType == TYPE_CONTROL
-                    && !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN)
-                    && (pWin->dwExStyle & WS_EX_TRANSPARENT)
-                )
-        )
-        SendAsyncMessage(hWnd, MSG_ERASEBKGND, (WPARAM)hdc,0); //(LPARAM)&rcInv);
+    if (fEraseBk &&
+            !(pWin->WinType == TYPE_CONTROL &&
+                !(pWin->dwExStyle & WS_EX_CTRLASMAINWIN) &&
+                (pWin->dwExStyle & WS_EX_TRANSPARENT))) {
+        SendAsyncMessage (hWnd, MSG_ERASEBKGND, (WPARAM)hdc, 0);
+    }
 
     //repaint NC area of tranparent children
-    for(child = (PCONTROL)pWin->hFirstChild; child; child = child->next)
-    {
+    for (child = (PCONTROL)pWin->hFirstChild; child; child = child->next) {
         RECT rcTemp;
-        if(!(pWin->dwExStyle & WS_EX_TRANSPARENT)
-            && (!(child->dwStyle & WS_VISIBLE)
-                || !(child->dwExStyle & WS_EX_TRANSPARENT)
-                || ( child->dwExStyle & WS_EX_CTRLASMAINWIN)))
+
+        if (!(pWin->dwExStyle & WS_EX_TRANSPARENT) &&
+                (!(child->dwStyle & WS_VISIBLE) ||
+                 !(child->dwExStyle & WS_EX_TRANSPARENT) ||
+                 ( child->dwExStyle & WS_EX_CTRLASMAINWIN)))
             continue;
 
-        if(IntersectRect(&rcTemp, &rcInv, (const RECT*)&child->left))
-        {
+        if (IntersectRect(&rcTemp, &rcInv, (const RECT*)&child->left)) {
             //draw NC
-            OffsetRect(&rcTemp, -child->left, -child->top);
-            SendAsyncMessage((HWND)child, MSG_NCPAINT, (WPARAM)0, (LPARAM)&rcTemp);
+            OffsetRect (&rcTemp, -child->left, -child->top);
+            SendAsyncMessage ((HWND)child, MSG_NCPAINT, (WPARAM)0, (LPARAM)&rcTemp);
         }
-
     }
 
     return hdc;
@@ -5107,15 +5667,15 @@ void GUIAPI EndPaint (HWND hWnd, HDC hdc)
     if (pWin->pMainWin->secondaryDC) {
         if (!IsRectEmpty(&pWin->pMainWin->update_rc)) {
             HDC real_dc = HDC_INVALID;
-            real_dc = GetClientDC ((HWND)pWin->pMainWin);
 
-            update_secondary_dc (pWin, hdc, real_dc,
+            real_dc = GetClientDC ((HWND)pWin->pMainWin);
+            __mg_update_secondary_dc (pWin, hdc, real_dc,
                     &pWin->pMainWin->update_rc, HT_CLIENT);
             ReleaseDC (real_dc);
         }
     }
 
-    release_valid_dc (pWin, hdc);
+    release_effective_dc (pWin, hdc);
 
     /* privCDC is not need Release, but need clear lcrgn.*/
     if (pWin->dwExStyle & WS_EX_USEPRIVATECDC)
@@ -5204,8 +5764,17 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     PCONTROL pNewCtrl;
     RECT rcExpect;
 
-    if (!(pMainWin = gui_GetMainWindowPtrOfControl (hParentWnd)))
+    if (!(pMainWin = checkAndGetMainWinIfWindow (hParentWnd)))
         return HWND_INVALID;
+
+#if 0
+    /* Since 5.0.0 */
+    if (dwExStyle & WS_EX_CTRLASMAINWIN &&
+            (pMainWin->dwExStyle & WS_EX_WINTYPE_MASK)) {
+        _WRN_PRINTF("Cannot create global controls in a special main window\n");
+        return HWND_INVALID;
+    }
+#endif
 
     cci = (PCTRLCLASSINFO)SendMessage (HWND_DESKTOP,
             MSG_GETCTRLCLASSINFO, 0, (LPARAM)spClassName);
@@ -5237,10 +5806,11 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     else
         pNewCtrl->spCaption = "";
 
+    /* Since 5.0.0: clear style bits for main window only */
+    dwStyle &= ~WS_MAINWIN_ONLY_MASK;
     pNewCtrl->dwStyle   = dwStyle | WS_CHILD | cci->dwStyle;
     pNewCtrl->dwExStyle = dwExStyle | cci->dwExStyle;
 
-    pNewCtrl->iBkColor  = cci->iBkColor;
     pNewCtrl->hCursor   = cci->hCursor;
     pNewCtrl->hMenu     = 0;
     pNewCtrl->hAccel    = 0;
@@ -5280,10 +5850,8 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
         pNewCtrl->hscroll.status = SBS_HIDE | SBS_DISABLED;
 
     /** prefer to use parent renderer */
-    if (pNewCtrl->dwExStyle & WS_EX_USEPARENTRDR)
-    {
-        if (((PCONTROL)hParentWnd)->we_rdr)
-        {
+    if (pNewCtrl->dwExStyle & WS_EX_USEPARENTRDR) {
+        if (((PCONTROL)hParentWnd)->we_rdr) {
             /** only get render from parent */
             pNewCtrl->we_rdr = ((PCONTROL)hParentWnd)->we_rdr;
             ++pNewCtrl->we_rdr->refcount;
@@ -5291,19 +5859,17 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
         else
             return HWND_INVALID;
     }
-    else
-    {
+    else {
         /** set window renderer */
         set_control_renderer (pNewCtrl, werdr_name);
     }
 
     /** set window element data */
-    while (we_attrs && we_attrs->we_attr_id != -1)
-    {
-        //append_window_element_data (pNewCtrl,
+    while (we_attrs && we_attrs->we_attr_id != -1) {
+        //__mg_append_window_element_data (pNewCtrl,
            //     we_attrs->we_attr_id, we_attrs->we_attr);
         DWORD _old;
-        set_window_element_data ((HWND)pNewCtrl,
+        __mg_set_window_element_data ((HWND)pNewCtrl,
                 we_attrs->we_attr_id, we_attrs->we_attr, &_old);
         ++we_attrs;
     }
@@ -5331,7 +5897,7 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     pNewCtrl->old_under_pointer = NULL;
     pNewCtrl->primitive = NULL;
 
-    pNewCtrl->notif_proc = NULL;
+    pNewCtrl->NotifProc = NULL;
 
     pNewCtrl->pMainWin = (PMAINWIN)pMainWin;
     pNewCtrl->pParent  = (PCONTROL)hParentWnd;
@@ -5340,30 +5906,52 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     pNewCtrl->pcci     = cci;
 
     if (dwExStyle & WS_EX_CTRLASMAINWIN) {
-        if ( !(pNewCtrl->pGCRInfo = malloc (sizeof (GCRINFO))) ) {
+#ifdef _MGSCHEMA_COMPOSITING
+        pNewCtrl->surf = GAL_CreateSurfaceForZNodeAs (pMainWin->surf,
+                pNewCtrl->right - pNewCtrl->left,
+                pNewCtrl->bottom - pNewCtrl->top);
+#else
+        if (!(pNewCtrl->pGCRInfo = malloc (sizeof (GCRINFO)))) {
             goto error;
         }
+#endif
     }
     else {
+#ifdef _MGSCHEMA_COMPOSITING
+        pNewCtrl->surf = pMainWin->surf;
+#else
         pNewCtrl->pGCRInfo = pMainWin->pGCRInfo;
+#endif
         pNewCtrl->idx_znode = pMainWin->idx_znode;
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    pNewCtrl->iBkColor = GAL_MapRGBA (pNewCtrl->surf->format,
+            GetRValue (cci->dwBkColor), GetGValue (cci->dwBkColor),
+            GetBValue (cci->dwBkColor), GetAValue (cci->dwBkColor));
+#else
+    pNewCtrl->iBkColor  = cci->iBkColor;
+#endif
 
     if (SendMessage (HWND_DESKTOP,
                 MSG_NEWCTRLINSTANCE,
                 (WPARAM)hParentWnd, (LPARAM)pNewCtrl) < 0)
         goto error;
 
-
     if (cci->dwStyle & CS_OWNDC)
         pNewCtrl->dwExStyle |= WS_EX_USEPRIVATECDC;
 
     if (pNewCtrl->dwExStyle & WS_EX_USEPRIVATECDC) {
+#if 0   /* deprecated code */
         if (pMainWin->dwExStyle & WS_EX_AUTOSECONDARYDC)
             pNewCtrl->privCDC = GetSecondarySubDC (pMainWin->secondaryDC,
                     (HWND)pNewCtrl, TRUE);
         else
             pNewCtrl->privCDC = CreatePrivateClientDC ((HWND)pNewCtrl);
+#else
+        /* since 5.0.0, always call CreatePrivateClientDC */
+        pNewCtrl->privCDC = CreatePrivateClientDC ((HWND)pNewCtrl);
+#endif
     }
     else
         pNewCtrl->privCDC = 0;
@@ -5380,9 +5968,10 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
         goto error;
     }
 
-    //set ctrl as main
-    if(pNewCtrl->dwExStyle & WS_EX_CTRLASMAINWIN){
-        pNewCtrl->next_ctrl_as_main = (PCONTROL)pNewCtrl->pMainWin->hFirstChildAsMainWin;
+    // set ctrl acts as main window
+    if (pNewCtrl->dwExStyle & WS_EX_CTRLASMAINWIN) {
+        pNewCtrl->next_ctrl_as_main =
+            (PCONTROL)pNewCtrl->pMainWin->hFirstChildAsMainWin;
         pMainWin->hFirstChildAsMainWin = (HWND) pNewCtrl;
     }
 
@@ -5403,12 +5992,32 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
 #endif
     }
 
+#ifdef _MGSCHEMA_COMPOSITING
+    // Close file descriptor to free kernel memory?
+    if (dwExStyle & WS_EX_CTRLASMAINWIN && pNewCtrl->surf->shared_header) {
+        close (pNewCtrl->surf->shared_header->fd);
+        pNewCtrl->surf->shared_header->fd = -1;
+    }
+#endif
+
     return (HWND)pNewCtrl;
 
 error:
     if (dwExStyle & WS_EX_CTRLASMAINWIN) {
-        if (pNewCtrl->pGCRInfo) free (pNewCtrl->pGCRInfo);
+#ifdef _MGSCHEMA_COMPOSITING
+        if (pNewCtrl->surf)
+            GAL_FreeSurface (pNewCtrl->surf);
+#else
+        if (pNewCtrl->pGCRInfo)
+            free (pNewCtrl->pGCRInfo);
+#endif
     }
+
+    /* Since 5.0.0: we must throw away the messages for this window, because
+       there are some messages, have been put into the message queue.
+       Or DispatchMessage will panic. */
+    __mg_throw_away_messages (pMainWin->pMsgQueue, (HWND)pNewCtrl);
+
     free (pNewCtrl);
 
     return HWND_INVALID;
@@ -5416,14 +6025,22 @@ error:
 
 BOOL GUIAPI DestroyWindow (HWND hWnd)
 {
-    //
     PCONTROL pCtrl;
     PCONTROL pParent;
 
-    if (!IsControl (hWnd)) return FALSE;
+    if (!IsControl (hWnd))
+        return FALSE;
+
+    pCtrl = (PCONTROL)hWnd;
+    pParent = pCtrl->pParent;
 
     if (SendMessage (hWnd, MSG_DESTROY, 0, 0)) {
         return FALSE;
+    }
+
+    if (SendMessage (HWND_DESKTOP, MSG_REMOVECTRLINSTANCE,
+            (WPARAM)pParent, (LPARAM)pCtrl)) {
+        _WRN_PRINTF ("failed to remove the control instance\n");
     }
 
     /* destroy all controls of this window */
@@ -5432,21 +6049,18 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
     /* kill all timers of this window */
     KillTimer (hWnd, 0);
 
-    pCtrl = (PCONTROL)hWnd;
-    pParent = pCtrl->pParent;
+    /* since 5.0.0: destroy local data map */
+    if (pCtrl->mapLocalData) {
+        __mg_map_destroy (pCtrl->mapLocalData);
+        pCtrl->mapLocalData = NULL;
+    }
+
     if (pParent->active == (PCONTROL) hWnd)
         pParent->active = NULL;
     if (pParent->old_under_pointer == (PCONTROL) hWnd)
         pParent->old_under_pointer = NULL;
     if (pParent->primitive == (PCONTROL) hWnd)
         pParent->primitive = NULL;
-
-    if (SendMessage (HWND_DESKTOP,
-                MSG_REMOVECTRLINSTANCE, (WPARAM)pParent, (LPARAM)pCtrl))
-    {
-
-        return FALSE;
-    }
 
     __mg_reset_mainwin_capture_info (pCtrl);
 
@@ -5455,6 +6069,7 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
         InvalidateRect ((HWND) pParent, (PRECT)(&pCtrl->left), TRUE);
 
     if (pCtrl->privCDC) {
+#if 0   /* deprecated code */
         if (pCtrl->pMainWin->dwExStyle & WS_EX_AUTOSECONDARYDC) {
             ReleaseSecondarySubDC (pCtrl->privCDC);
         }
@@ -5464,21 +6079,33 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
             else
                 DeletePrivateDC (pCtrl->privCDC);
         }
+#else
+        /* Since 5.0.0, always call DeletePrivateDC */
+        DeletePrivateDC (pCtrl->privCDC);
+#endif
         pCtrl->privCDC = 0;
     }
 
+#if 0   /* deprecated code */
     if (sg_repeat_msg.hwnd == hWnd)
         sg_repeat_msg.hwnd = 0;
+#endif  /* deprecated code */
 
     ThrowAwayMessages (hWnd);
 
     if (pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN) {
         PMAINWIN pMainWin;
+#ifndef _MGSCHEMA_COMPOSITING
         EmptyClipRgn (&pCtrl->pGCRInfo->crgn);
+#endif
 #ifdef _MGRM_THREADS
         pthread_mutex_destroy (&pCtrl->pGCRInfo->lock);
 #endif
+#ifdef _MGSCHEMA_COMPOSITING
+        GAL_FreeSurface (pCtrl->surf);
+#else
         free (pCtrl->pGCRInfo);
+#endif
 
         pMainWin = pCtrl->pMainWin;
         if ((PCONTROL) pMainWin->hFirstChildAsMainWin == pCtrl)
@@ -5507,7 +6134,7 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
     if (pCtrl->spCaption)
         FreeFixStr (pCtrl->spCaption);
 
-    free_window_element_data (hWnd);
+    __mg_free_window_element_data (hWnd);
     --pCtrl->we_rdr->refcount;
 
     free (pCtrl);
@@ -5519,12 +6146,10 @@ NOTIFPROC GUIAPI SetNotificationCallback (HWND hwnd, NOTIFPROC notif_proc)
     NOTIFPROC old_proc;
     PCONTROL control = (PCONTROL)hwnd;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hwnd), NULL);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hwnd), NULL);
 
-    old_proc = control->notif_proc;
-
-    control->notif_proc = notif_proc;
-
+    old_proc = control->NotifProc;
+    control->NotifProc = notif_proc;
     return old_proc;
 }
 
@@ -5532,73 +6157,125 @@ NOTIFPROC GUIAPI GetNotificationCallback (HWND hwnd)
 {
     PCONTROL control = (PCONTROL)hwnd;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hwnd), NULL);
+    MG_CHECK_RET (MG_IS_APP_WINDOW(hwnd), NULL);
 
-    return control->notif_proc;
+    return control->NotifProc;
 }
 
-/****************************** Hooks support ********************************/
-#ifndef _MGRM_PROCESSES
-MSGHOOK GUIAPI RegisterKeyMsgHook (void* context, MSGHOOK hook)
+/****************************** Hook support ********************************/
+MSGHOOK GUIAPI RegisterEventHookFunc (int event_type,
+        MSGHOOK hook, void* context)
 {
+    HOOKINFO hook_info = { hook, context };
+
     return (MSGHOOK)SendMessage (HWND_DESKTOP,
-            MSG_REGISTERKEYHOOK, (WPARAM)context, (LPARAM)hook);
+            MSG_REGISTERHOOKFUNC, (WPARAM)event_type, (LPARAM)&hook_info);
 }
 
-MSGHOOK GUIAPI RegisterMouseMsgHook (void* context, MSGHOOK hook)
+/* Since 5.0.0, works for virtual window as well */
+BOOL GUIAPI RegisterEventHookWindow (HWND hwnd, DWORD flags)
 {
-    return (MSGHOOK)SendMessage (HWND_DESKTOP,
-            MSG_REGISTERMOUSEHOOK, (WPARAM)context, (LPARAM)hook);
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hwnd), FALSE);
+
+    return (SendMessage (HWND_DESKTOP,
+                MSG_REGISTERHOOKWIN, (WPARAM)hwnd, (LPARAM)flags) == 0);
 }
 
-#else
+/* Since 5.0.0, works for virtual window as well */
+BOOL GUIAPI UnregisterEventHookWindow (HWND hwnd)
+{
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hwnd), FALSE);
+
+    return (SendMessage (HWND_DESKTOP,
+                MSG_UNREGISTERHOOKWIN, (WPARAM)hwnd, 0) == 0);
+}
 
 /*
  * REQID_REGKEYHOOK        0x0016
  */
 HWND GUIAPI RegisterKeyHookWindow (HWND hwnd, DWORD flag)
 {
-    HWND old_hwnd = HWND_NULL;
+    static HWND hooked_wnd = NULL;
+    HWND old_hook = HWND_NULL;
 
-    if (!mgIsServer) {
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hwnd), HWND_NULL);
 
-        REGHOOKINFO info;
-        REQUEST req;
-
-        info.id_op = ID_REG_KEY;
-        info.hwnd = hwnd;
-        info.flag = flag;
-
-        req.id = REQID_REGISTERHOOK;
-        req.data = &info;
-        req.len_data = sizeof (REGHOOKINFO);
-        ClientRequest (&req, &old_hwnd, sizeof (HWND));
+    old_hook = hooked_wnd;
+    if (hwnd == HWND_NULL) {
+        if (UnregisterEventHookWindow (hwnd)) {
+            hooked_wnd = HWND_NULL;
+        }
+    }
+    else {
+        if (RegisterEventHookWindow (hwnd, flag | HOOK_EVENT_KEY)) {
+            hooked_wnd = hwnd;
+        }
     }
 
-    return old_hwnd;
+    return old_hook;
 }
 
 HWND GUIAPI RegisterMouseHookWindow (HWND hwnd, DWORD flag)
 {
-    HWND old_hwnd = HWND_NULL;
-    if (!mgIsServer) {
+    static HWND hooked_wnd = NULL;
+    HWND old_hook = HWND_NULL;
 
-        REGHOOKINFO info;
-        REQUEST req;
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hwnd), HWND_NULL);
 
-        info.id_op = ID_REG_MOUSE;
-        info.hwnd = hwnd;
-        info.flag = flag;
-
-        req.id = REQID_REGISTERHOOK;
-        req.data = &info;
-        req.len_data = sizeof (REGHOOKINFO);
-        ClientRequest (&req, &old_hwnd, sizeof (HWND));
+    old_hook = hooked_wnd;
+    if (hwnd == HWND_NULL) {
+        if (UnregisterEventHookWindow (hwnd)) {
+            hooked_wnd = HWND_NULL;
+        }
+    }
+    else {
+        if (RegisterEventHookWindow (hwnd, flag | HOOK_EVENT_MOUSE)) {
+            hooked_wnd = hwnd;
+        }
     }
 
-    return old_hwnd;
+    return old_hook;
 }
+
+#ifndef _MGRM_THREADS
+/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
+static int my_event_hook (void* context, HWND dst_wnd,
+        UINT message, WPARAM wparam, LPARAM lparam)
+{
+    MSG msg = { dst_wnd, message, wparam, lparam };
+    SRVEVTHOOK srv_evt_hook = (SRVEVTHOOK)context;
+
+    assert (srv_evt_hook);
+    return srv_evt_hook (&msg);
+}
+
+SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
+{
+    static SRVEVTHOOK srv_evt_hook = NULL;
+    SRVEVTHOOK old_hook;
+
+#ifdef _MGRM_PROCESSES
+    if (!mgIsServer)
+        return NULL;
 #endif
+
+    old_hook = srv_evt_hook;
+    if (SrvEvtHook) {
+        RegisterEventHookFunc (HOOK_EVENT_KEY,   my_event_hook, SrvEvtHook);
+        RegisterEventHookFunc (HOOK_EVENT_MOUSE, my_event_hook, SrvEvtHook);
+        RegisterEventHookFunc (HOOK_EVENT_EXTRA, my_event_hook, SrvEvtHook);
+        srv_evt_hook = SrvEvtHook;
+    }
+    else {
+        RegisterEventHookFunc (HOOK_EVENT_KEY,   NULL, NULL);
+        RegisterEventHookFunc (HOOK_EVENT_MOUSE, NULL, NULL);
+        RegisterEventHookFunc (HOOK_EVENT_EXTRA, NULL, NULL);
+        srv_evt_hook = NULL;
+    }
+
+    return old_hook;
+}
+#endif /* not defined _MGRM_THREADS */
 
 /**************************** IME support ************************************/
 int GUIAPI RegisterIMEWindow (HWND hWnd)
@@ -5738,7 +6415,7 @@ int GUIAPI GetIMETargetInfo (IME_TARGET_INFO *info)
 HICON GetWindowIcon (HWND hWnd)
 {
     PMAINWIN pWin;
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+    if (!(pWin = checkAndGetMainWinIfMainWin (hWnd)))
         return 0;
 
     return pWin->hIcon;
@@ -5749,7 +6426,7 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
     PMAINWIN pWin;
     HICON hOld;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hWnd)))
+    if (!(pWin = checkAndGetMainWinIfMainWin (hWnd)))
         return 0;
 
     hOld = pWin->hIcon;
@@ -5762,7 +6439,7 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
         HDC hdc;
         const WINDOW_ELEMENT_RENDERER* rdr;
 
-        hdc = get_valid_dc (pWin, FALSE);
+        hdc = get_effective_dc (pWin, FALSE);
         rdr = GetWindowInfo ((HWND)pWin)->we_rdr;
         rdr ->draw_caption ((HWND)pWin, hdc,
                 !(pWin->dwStyle & WS_DISABLED) && (GetActiveWindow () == hWnd));
@@ -5770,19 +6447,19 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
         if (pWin->pMainWin->secondaryDC) {
             draw_secondary_nc_area (pWin, rdr, hdc, HT_CAPTION);
         }
-        release_valid_dc (pWin, hdc);
+        release_effective_dc (pWin, hdc);
     }
     return hOld;
 }
 
 /**
- * CalcXYBannedRects:
- *   this function calculates x-y-banned rectangles of MYBITMAP
- *   which is 8 bits per pixels.
+ * calc_xybanned_rects:
+ *   this function calculates x-y-banned rectangles of MYBITMAP or BITMAP.
  *
  * param hwnd           : the window handle
+ * param type           : the type of mask: TYPE_MYBITMAP or TYPE_BITMAP
  * param mask           : MYBITMAP with 8 bits per pixels
- * param rect_size(out) : number of the x-y-banned rectangles
+ * param nr_rcs(out)    : number of the x-y-banned rectangles
  *
  * return               : return NULL on failure, return the x-y-banned
  *                        rectangles on success.
@@ -5801,7 +6478,8 @@ HICON SetWindowIcon (HWND hWnd, HICON hIcon, BOOL bRedraw)
 
 #include "../newgal/blit.h"
 
-static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size, int type)
+static RECT4MASK* calc_xybanned_rects (HDC hdc, int type, const void* mask,
+        int* nr_rcs)
 {
     Uint32  x, y;
     Uint32  pixel;
@@ -5819,7 +6497,7 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
 
     if (!mask) return NULL;
 
-    if (type == TYPE_MYBITMAP){
+    if (type == TYPE_MYBITMAP) {
         w = ((MYBITMAP*)mask)->w;
         h = ((MYBITMAP*)mask)->h;
         bits = ((MYBITMAP*)mask)->bits;
@@ -5838,8 +6516,8 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
     }
     if (h <= 0) return NULL;
 
-    if (rect_size)
-        *rect_size = 0;
+    if (nr_rcs)
+        *nr_rcs = 0;
 
     max_calloced_nr = XYBANNED_RECT_NR_INIT;
     xybanned_rects  = (RECT4MASK *) calloc (max_calloced_nr, sizeof (RECT4MASK));
@@ -5940,27 +6618,27 @@ static RECT4MASK* CalcXYBannedRects (HDC hdc, const void* mask, int * rect_size,
         }
     }// for (y = 1; y < h; ++y)
 
-    if (rect_size)
-        *rect_size = max_index + 1;
+    if (nr_rcs)
+        *nr_rcs = max_index + 1;
 
     return xybanned_rects;
 }
 
-/* API for non-rectangle window.*/
-static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
+/* Internal functions for non-rectangle window. */
+static int set_window_mask_rect (HWND hWnd, WINMASKINFO* mask_info)
 {
     MASKRECT    *new_maskrect;
     PCONTROL    pCtrl;
     int         i, retval;
 
-    if (!rect)
+    if (!mask_info->rcs)
         return FALSE;
 
     if (IsControl (hWnd)) {
         /*
          * Because control without WS_EX_CTRLASMAINWIN has not
          * the own Z order node, we should allocate memory for an
-         * array of rect_size for mask_rects.
+         * array of mask_info->nr_rcs for mask_rects.
          *
          * The prev of first mask_rects indicates the number of the array.
          * The next of last mask_rects is 0.
@@ -5972,11 +6650,11 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
 
             if (pCtrl->mask_rects == NULL) {
                 pCtrl->mask_rects =
-                    (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
+                    (MASKRECT *) calloc (mask_info->nr_rcs, sizeof (MASKRECT));
 
                 if (!pCtrl->mask_rects) {
                     _WRN_PRINTF ("No enough memory!\n");
-                    free (rect);
+                    free (mask_info->rcs);
                     return FALSE;
                 }
             }
@@ -5985,13 +6663,13 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
                  * when number of calloced mask_rects is not enough,
                  * free the old memory and calloc more.
                  */
-                if (pCtrl->mask_rects->prev < rect_size) {
+                if (pCtrl->mask_rects->prev < mask_info->nr_rcs) {
 
                     new_maskrect =
-                        (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
+                        (MASKRECT *) calloc (mask_info->nr_rcs, sizeof (MASKRECT));
                     if (!new_maskrect) {
                         _WRN_PRINTF ("No enough memory!\n");
-                        free (rect);
+                        free (mask_info->rcs);
                         return FALSE;
                     }
                     free (pCtrl->mask_rects);
@@ -5999,23 +6677,22 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
                 }
             }
 
-            for (i = 0; i < rect_size; ++i)
-            {
-                (pCtrl->mask_rects + i)->left   = rect[i].left;
-                (pCtrl->mask_rects + i)->top    = rect[i].top;
-                (pCtrl->mask_rects + i)->right  = rect[i].right;
-                (pCtrl->mask_rects + i)->bottom = rect[i].bottom;
+            for (i = 0; i < mask_info->nr_rcs; ++i) {
+                (pCtrl->mask_rects + i)->left   = mask_info->rcs[i].left;
+                (pCtrl->mask_rects + i)->top    = mask_info->rcs[i].top;
+                (pCtrl->mask_rects + i)->right  = mask_info->rcs[i].right;
+                (pCtrl->mask_rects + i)->bottom = mask_info->rcs[i].bottom;
                 (pCtrl->mask_rects + i)->prev   = i;
                 (pCtrl->mask_rects + i)->next   = i + 1;
             }
 
             /** the field [prev] is used to store number of mask_rects */
-            pCtrl->mask_rects->prev = rect_size;
+            pCtrl->mask_rects->prev = mask_info->nr_rcs;
 
             /** mark the end with 0 */
-            (pCtrl->mask_rects + rect_size - 1)->next = 0;
+            (pCtrl->mask_rects + mask_info->nr_rcs - 1)->next = 0;
 
-            free (rect);
+            free (mask_info->rcs);
 
             if (pCtrl->dwStyle & WS_VISIBLE) {
                 ShowWindow (hWnd, SW_HIDE);
@@ -6026,9 +6703,16 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
         }
     }
 
-    retval = kernel_change_z_order_mask_rect (hWnd, rect, rect_size);
-    free (rect);
+    /* Since 5.0.0: use MSG_SETWINDOWMASK messasge instead of
+       __kernel_change_z_node_mask_rect */
+    retval = (int)SendMessage (HWND_DESKTOP,
+            MSG_SETWINDOWMASK, (WPARAM)hWnd, (LPARAM)mask_info);
+    // retval = __kernel_change_z_node_mask_rect (hWnd, mask_info->rcs, mask_info->nr_rcs);
+    free (mask_info->rcs);
 
+    /* Since 5.0.0. Under compositing schema, the compositor should refresh
+       the screen for the change of region. */
+#ifndef _MGSCHEMA_COMPOSITING
     pCtrl = (PCONTROL)hWnd;
 
     if (!retval && pCtrl->dwStyle & WS_VISIBLE) {
@@ -6039,33 +6723,36 @@ static int gui_GenerateMaskRect(HWND hWnd, RECT4MASK* rect, int rect_size)
                 pCtrl->right - pCtrl->left + 1,
                 pCtrl->bottom - pCtrl->top + 1, FALSE);
     }
+#endif
 
     return retval;
 }
 
 BOOL GUIAPI SetWindowMask (HWND hWnd, const MYBITMAP* mask)
 {
-    int         retval, rect_size;
-    RECT4MASK   *rect;
+    WINMASKINFO mask_info;
+    int         retval;
 
-    rect = CalcXYBannedRects (HDC_SCREEN, mask, &rect_size, TYPE_MYBITMAP);
-    if (!rect)
+    mask_info.rcs = calc_xybanned_rects (HDC_SCREEN, TYPE_MYBITMAP, mask,
+            &mask_info.nr_rcs);
+    if (!mask_info.rcs)
         return FALSE;
 
-    retval = gui_GenerateMaskRect(hWnd, rect, rect_size);
+    retval = set_window_mask_rect (hWnd, &mask_info);
     return (retval == 0 ? TRUE : FALSE);
 }
 
 BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask)
 {
-    int         retval, rect_size;
-    RECT4MASK   *rect;
+    WINMASKINFO mask_info;
+    int         retval;
 
-    rect = CalcXYBannedRects (hdc, mask, &rect_size, TYPE_BITMAP);
-    if (!rect)
+    mask_info.rcs = calc_xybanned_rects (hdc, TYPE_BITMAP, mask,
+            &mask_info.nr_rcs);
+    if (!mask_info.rcs)
         return FALSE;
 
-    retval = gui_GenerateMaskRect(hWnd, rect, rect_size);
+    retval = set_window_mask_rect (hWnd, &mask_info);
     return (retval == 0 ? TRUE : FALSE);
 }
 
@@ -6073,9 +6760,9 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
 {
     MASKRECT    *new_maskrect;
     PCLIPRECT   cliprc;
-    RECT4MASK   *rect;
+    WINMASKINFO mask_info;
     PCONTROL    pCtrl;
-    int         retval, rect_size, i;
+    int         retval, nr_rcs, i;
 
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
 
@@ -6083,14 +6770,14 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
         return FALSE;
 
     /** number of rect */
-    for (rect_size = 1, cliprc = region->head;
-            cliprc && cliprc != region->tail; rect_size++, cliprc=cliprc->next);
+    for (nr_rcs = 1, cliprc = region->head;
+            cliprc && cliprc != region->tail; nr_rcs++, cliprc=cliprc->next);
 
     if (IsControl (hWnd)) {
         /*
          * Because control without WS_EX_CTRLASMAINWIN has not
          * the Z order node, we should allocate memory for an
-         * array of rect_size for mask_rects.
+         * array of nr_rcs for mask_rects.
          *
          * The prev of first mask_rects indicates the number of the array.
          * The next of last mask_rects is 0.
@@ -6102,7 +6789,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
 
             if (pCtrl->mask_rects == NULL) {
                 pCtrl->mask_rects =
-                    (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
+                    (MASKRECT *) calloc (nr_rcs, sizeof (MASKRECT));
 
                 if (!pCtrl->mask_rects) {
                     _WRN_PRINTF ("No enough memory!\n");
@@ -6114,9 +6801,9 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
                  * when number of calloced mask_rects is not enough,
                  * free the old memory and calloc more.
                  */
-                if (pCtrl->mask_rects->prev < rect_size) {
+                if (pCtrl->mask_rects->prev < nr_rcs) {
                     new_maskrect =
-                        (MASKRECT *) calloc (rect_size, sizeof (MASKRECT));
+                        (MASKRECT *) calloc (nr_rcs, sizeof (MASKRECT));
 
                     if (!new_maskrect) {
                         _WRN_PRINTF ("No enough memory!\n");
@@ -6129,7 +6816,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
 
             cliprc = region->head;
 
-            for (i = 0; i < rect_size; ++i) {
+            for (i = 0; i < nr_rcs; ++i) {
                 (pCtrl->mask_rects + i)->left   = cliprc->rc.left;
                 (pCtrl->mask_rects + i)->top    = cliprc->rc.top;
                 (pCtrl->mask_rects + i)->right  = cliprc->rc.right;
@@ -6140,10 +6827,10 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
             }
 
             /** the field [prev] is used to store number of mask_rects */
-            pCtrl->mask_rects->prev = rect_size;
+            pCtrl->mask_rects->prev = nr_rcs;
 
             /** mark the end with 0 */
-            (pCtrl->mask_rects + rect_size - 1)->next = 0;
+            (pCtrl->mask_rects + nr_rcs - 1)->next = 0;
 
             if (pCtrl->dwStyle & WS_VISIBLE) {
                 ShowWindow (hWnd, SW_HIDE);
@@ -6153,26 +6840,31 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
         }
     }
 
-    rect = (RECT4MASK *) calloc(rect_size, sizeof(RECT4MASK));
-    if(rect == NULL) {
+    mask_info.nr_rcs = nr_rcs;
+    mask_info.rcs = (RECT4MASK *) calloc (nr_rcs, sizeof(RECT4MASK));
+    if (mask_info.rcs == NULL) {
         _WRN_PRINTF ("No enough memory!\n");
         return FALSE;
     }
 
     cliprc = region->head;
-
-    for (i = 0; i < rect_size; ++i) {
-        (rect + i)->left    = cliprc->rc.left;
-        (rect + i)->top     = cliprc->rc.top;
-        (rect + i)->right   = cliprc->rc.right;
-        (rect + i)->bottom  = cliprc->rc.bottom;
+    for (i = 0; i < nr_rcs; ++i) {
+        mask_info.rcs[i].left    = cliprc->rc.left;
+        mask_info.rcs[i].top     = cliprc->rc.top;
+        mask_info.rcs[i].right   = cliprc->rc.right;
+        mask_info.rcs[i].bottom  = cliprc->rc.bottom;
         cliprc = cliprc->next;
     }
 
-    retval = kernel_change_z_order_mask_rect (hWnd, rect, rect_size);
-    free (rect);
+    retval = (int)SendMessage (HWND_DESKTOP,
+            MSG_SETWINDOWMASK, (WPARAM)hWnd, (LPARAM)&mask_info);
+    // XXX: retval = __kernel_change_z_node_mask_rect (hWnd, rect, nr_rcs);
+    free (mask_info.rcs);
 
-    pCtrl = (PCONTROL) hWnd;
+    /* Since 5.0.0. Under compositing schema, the compositor should refresh
+       the screen for the change of region. */
+#ifndef _MGSCHEMA_COMPOSITING
+    pCtrl = (PCONTROL)hWnd;
 
     if (!retval && pCtrl->dwStyle & WS_VISIBLE) {
         MoveWindow (hWnd, pCtrl->left, pCtrl->top,
@@ -6182,6 +6874,7 @@ BOOL GUIAPI SetWindowRegion (HWND hWnd, const CLIPRGN * region)
                 pCtrl->right - pCtrl->left + 1,
                 pCtrl->bottom - pCtrl->top + 1, FALSE);
     }
+#endif
 
     return (retval == 0 ? TRUE : FALSE);
 }
@@ -6192,8 +6885,8 @@ BOOL GUIAPI GetWindowRegion (HWND hWnd, CLIPRGN* region)
     int         nr_rects, i;
     RECT        rc;
 
-    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     MG_CHECK_RET (region != NULL, FALSE);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
 
     pCtrl = (PCONTROL) hWnd;
     if (IsControl (hWnd) && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
@@ -6217,7 +6910,7 @@ BOOL GUIAPI GetWindowRegion (HWND hWnd, CLIPRGN* region)
         }
     }
     else {
-        return kernel_get_window_region (hWnd, region) > 0;
+        return __kernel_get_window_region (hWnd, region) > 0;
     }
 
     return TRUE;
@@ -6229,10 +6922,11 @@ int GUIAPI GetWindowZOrder(HWND hWnd)
 {
     PCONTROL pCtrl, pCtrlTmp;
     int idx;
-    if(!IsWindow(hWnd))
+
+    if (!IsWindow (hWnd))
         return -1;
 
-    if(IsMainWindow(hWnd))
+    if (IsMainWindow (hWnd))
         return 0;
 
     pCtrl = (PCONTROL)hWnd;
@@ -6249,14 +6943,15 @@ int GUIAPI GetWindowZOrder(HWND hWnd)
     return idx;
 }
 
-int GUIAPI SetWindowZOrder(HWND hWnd, int zorder)
+int GUIAPI SetWindowZOrder (HWND hWnd, int zorder)
 {
     int idx;
     PCONTROL pCtrl, pCtrlTmp;
-    if(!IsWindow(hWnd))
+
+    if (!IsWindow (hWnd))
         return -1;
 
-    if(IsMainWindow(hWnd))
+    if (IsMainWindow (hWnd))
         return 0;
 
     pCtrl = (PCONTROL)hWnd;
@@ -6264,55 +6959,291 @@ int GUIAPI SetWindowZOrder(HWND hWnd, int zorder)
     pCtrlTmp = pCtrl->pParent->children;
 
     idx = 0;
-    while(idx < zorder && pCtrlTmp && pCtrlTmp != pCtrl){
+    while (idx < zorder && pCtrlTmp && pCtrlTmp != pCtrl) {
         idx ++;
         pCtrlTmp = pCtrlTmp->next;
     }
 
-    if(idx < zorder) //Move Down
-    {
+    if (idx < zorder) {
+        // Move Down
         pCtrlTmp = pCtrlTmp->next;
-        if(pCtrlTmp && pCtrl == pCtrl->pParent->children)
+        if (pCtrlTmp && pCtrl == pCtrl->pParent->children)
             pCtrl->pParent->children = pCtrl->next;
-        while(idx < zorder && pCtrlTmp)
-        {
+        while (idx < zorder && pCtrlTmp) {
             //switch pCtrl and pCtrlTmp
             pCtrl->next = pCtrlTmp->next;
             pCtrlTmp->prev = pCtrl->prev;
             pCtrl->prev = pCtrlTmp;
             pCtrlTmp->next = pCtrl;
-            if(pCtrl->next)
+
+            if (pCtrl->next)
                 pCtrl->next->prev = pCtrl;
-            if(pCtrlTmp->prev)
+            if (pCtrlTmp->prev)
                 pCtrlTmp->prev->next = pCtrlTmp;
+
             pCtrlTmp = pCtrl->next;
         }
     }
-    else if(pCtrlTmp && pCtrlTmp != pCtrl) // Move Up
-    {
+    else if(pCtrlTmp && pCtrlTmp != pCtrl) {
+        // Move Up
         PCONTROL prev;
-        do{
+        do {
             prev = pCtrl->prev;
-            if(prev == NULL)
+            if (prev == NULL)
                 break;
             prev->next = pCtrl->next;
             pCtrl->prev = prev->prev;
             pCtrl->next = prev;
             prev->prev = pCtrl;
-            if(pCtrl->prev)
+            if (pCtrl->prev)
                 pCtrl->prev->next = pCtrl;
-            if(prev->next)
+            if (prev->next)
                 prev->next->prev = prev;
-        }while(prev != pCtrlTmp);
-        if(pCtrlTmp == pCtrl->pParent->children)
+        } while (prev != pCtrlTmp);
+
+        if (pCtrlTmp == pCtrl->pParent->children)
             pCtrl->pParent->children = pCtrl;
 
-        if(prev == NULL)
+        if (prev == NULL)
             return 0;
     }
 
     return idx;
 }
 
-#endif
+#endif /* defined __TARGET_MSTUDIO__ */
+
+/* Since 5.0.0 */
+BOOL GUIAPI SetMainWindowAlwaysTop (HWND hMainWnd, BOOL fSet)
+{
+    PMAINWIN pMainWin;
+
+    if (!(pMainWin = checkAndGetMainWinIfMainWin (hMainWnd))) {
+        return FALSE;
+    }
+
+    return (BOOL)SendMessage (HWND_DESKTOP,
+            MSG_SETALWAYSTOP, (WPARAM)pMainWin, (LPARAM)fSet);
+}
+
+#ifdef _MGSCHEMA_COMPOSITING
+BOOL GUIAPI SetMainWindowCompositing (HWND hMainWnd, int type, DWORD arg)
+{
+    PMAINWIN pMainWin;
+    COMPOSITINGINFO info;
+
+    if (!(pMainWin = checkAndGetMainWinIfMainWin (hMainWnd))) {
+        return FALSE;
+    }
+
+    info.type = type;
+    info.arg = arg;
+    return (BOOL)SendMessage (HWND_DESKTOP,
+            MSG_SETCOMPOSITING, (WPARAM)pMainWin, (LPARAM)&info);
+}
+#endif /* defined _MGSCHEMA_COMPOSITING */
+
+#ifdef _DEBUG
+void GUIAPI DumpWindow (FILE* fp, HWND hwnd)
+{
+    PMAINWIN main_wnd = (PMAINWIN)hwnd;
+
+    fprintf (fp, "Start info of handle (%p) for %s", hwnd, name);
+
+    if (main_wnd->DataType == TYPE_WINTODEL) {
+        fprintf (fp, "The handle (%p) is a %s window to be deleted!\n",
+                hwnd, (main_wnd->WinType == TYPE_MAINWIN) ? "main" : "virtual");
+        return;
+    }
+    else if (main_wnd->DataType != TYPE_HWND) {
+        fprintf (fp, "The handle (%p) is not a window!\n", hwnd);
+        return;
+    }
+
+    if (main_wnd->WinType == TYPE_MAINWIN ||
+            main_wnd->WinType == TYPE_ROOTWIN) {
+        PCONTROL control = (PCONTROL)hwnd;
+
+        fprintf (fp, "The handle (*%p) is a main Windown", hwnd);
+
+        fprintf (fp, "Rect        -- (%d, %d, %d, %d)\n",
+                        main_wnd->left, main_wnd->top,
+                        main_wnd->right, main_wnd->bottom);
+        fprintf (fp, "Client Rect -- (%d, %d, %d, %d)\n",
+                        main_wnd->cl, main_wnd->ct, main_wnd->cr, main_wnd->cb);
+
+        fprintf (fp, "Style       -- %lx\n", main_wnd->dwStyle);
+        fprintf (fp, "ExStyle     -- %lx\n", main_wnd->dwExStyle);
+
+        fprintf (fp, "AddData     -- %lx\n", main_wnd->dwAddData);
+        fprintf (fp, "AddData2    -- %lx\n", main_wnd->dwAddData2);
+
+        fprintf (fp, "WinProc     -- %p\n", main_wnd->MainWindowProc);
+        fprintf (fp, "NotifProc   -- %p\n", main_wnd->NotifProc);
+        fprintf (fp, "Caption     -- %s\n", main_wnd->spCaption);
+        fprintf (fp, "ID          -- %ld\n", main_wnd->id);
+
+        fprintf (fp, "FirstChild  -- %p\n", main_wnd->hFirstChild);
+
+        control = (PCONTROL)main_wnd->hFirstChild;
+        while (control) {
+            fprintf (fp, "    Child   -- %p (%ld); class: %s (%d)\n",
+                    control, control->id,
+                    control->pcci->name, control->pcci->nUseCount);
+            control = control->next;
+        }
+
+        fprintf (fp, "ActiveChild -- %p\n", main_wnd->hActiveChild);
+        fprintf (fp, "Hosting     -- %p\n", main_wnd->pHosting);
+        fprintf (fp, "FirstHosted -- %p\n", main_wnd->pFirstHosted);
+        fprintf (fp, "NextHosted  -- %p\n", main_wnd->pNextHosted);
+        fprintf (fp, "BkColor     -- %x\n", main_wnd->iBkColor);
+        fprintf (fp, "Menu        -- %p\n", main_wnd->hMenu);
+        fprintf (fp, "Accel       -- %p\n", main_wnd->hAccel);
+        fprintf (fp, "Cursor      -- %p\n", main_wnd->hCursor);
+        fprintf (fp, "Icon        -- %p\n", main_wnd->hIcon);
+        fprintf (fp, "SysMenu     -- %p\n", main_wnd->hSysMenu);
+        fprintf (fp, "MsgQueue    -- %p\n", main_wnd->pMsgQueue);
+    }
+    else if (main_wnd->WinType == TYPE_CONTROL) {
+        PCONTROL control = (PCONTROL)hwnd;
+
+        fprintf (fp, "The handle (%p) is a control:\n", hwnd);
+
+        fprintf (fp, "Rect        -- (%d, %d, %d, %d)\n",
+                        control->left, control->top,
+                        control->right, control->bottom);
+        fprintf (fp, "Client Rect -- (%d, %d, %d, %d)\n",
+                        control->cl, control->ct, control->cr, control->cb);
+
+        fprintf (fp, "Style       -- %lx\n", control->dwStyle);
+        fprintf (fp, "ExStyle     -- %lx\n", control->dwExStyle);
+
+        fprintf (fp, "PrivCDC     -- %p\n",  control->privCDC);
+
+        fprintf (fp, "AddData     -- %lx\n", control->dwAddData);
+        fprintf (fp, "AddData2    -- %lx\n", control->dwAddData2);
+
+        fprintf (fp, "WinProc     -- %p\n",  control->ControlProc);
+        fprintf (fp, "NotifProc   -- %p\n",  control->NotifProc);
+
+        fprintf (fp, "Caption     -- %s\n",  control->spCaption);
+        fprintf (fp, "ID          -- %ld\n", control->id);
+
+        fprintf (fp, "FirstChild  -- %p\n",  control->children);
+        fprintf (fp, "ActiveChild -- %p\n",  control->active);
+        fprintf (fp, "Parent      -- %p\n",  control->pParent);
+        fprintf (fp, "Next        -- %p\n",  control->next);
+
+        control = (PCONTROL)control->children;
+        while (control) {
+            fprintf (fp, "    Child   -- %p (%ld); class: %s (%d)\n",
+                    control, control->id,
+                    control->pcci->name, control->pcci->nUseCount);
+            control = control->next;
+        }
+    }
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    else if (main_wnd->WinType == TYPE_VIRTWIN) {
+        PVIRTWIN virt_wnd = (PVIRTWIN)hwnd;
+
+        fprintf (fp, "The handle (*%p) is a virtual Window", hwnd);
+
+        fprintf (fp, "AddData     -- %lx\n", virt_wnd->dwAddData);
+        fprintf (fp, "AddData2    -- %lx\n", virt_wnd->dwAddData2);
+
+        fprintf (fp, "WinProc     -- %p\n",  virt_wnd->WndProc);
+        fprintf (fp, "NotifProc   -- %p\n",  virt_wnd->NotifProc);
+        fprintf (fp, "Caption     -- %s\n",  virt_wnd->spCaption);
+        fprintf (fp, "ID          -- %ld\n", virt_wnd->id);
+
+        fprintf (fp, "Hosting     -- %p\n",  virt_wnd->pHosting);
+        fprintf (fp, "FirstHosted -- %p\n",  virt_wnd->pFirstHosted);
+        fprintf (fp, "NextHosted  -- %p\n",  virt_wnd->pNextHosted);
+
+        fprintf (fp, "MsgQueue    -- %p\n",  virt_wnd->pMsgQueue);
+    }
+#endif  /* defined  _MGHAVE_VIRTUAL_WINDOW */
+    else {
+        fprintf (fp, "The handle (%p) has a bad window type: %d!\n", hwnd,
+                (int)main_wnd->WinType);
+    }
+
+    fprintf (fp, "End of info for handle (%p) of %s", hwnd, name);
+}
+#endif  /* defined _DEBUG */
+
+/* Since 5.0.0 */
+BOOL GUIAPI SetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD local_data, CB_FREE_LOCAL_DATA cb_free)
+{
+    PMAINWIN main_win;
+
+    /* Since 5.0.0: for error returns -1 */
+    MG_CHECK_RET (MG_IS_WINDOW(hwnd), FALSE);
+
+    main_win = MG_GET_WINDOW_PTR (hwnd);
+    if (main_win->mapLocalData == NULL && (main_win->mapLocalData =
+                __mg_map_create (copy_key_string,
+                        free_key_string, NULL, NULL, comp_key_string)) == NULL) {
+        return FALSE;
+    }
+
+    if (__mg_map_find_replace_or_insert (main_win->mapLocalData, data_name,
+            (void*)local_data, (free_val_fn)cb_free))
+        return FALSE;
+
+    return TRUE;
+}
+
+/* Since 5.0.0 */
+BOOL GUIAPI RemoveWindowLocalData (HWND hwnd, const char* data_name)
+{
+    PMAINWIN main_win;
+
+    /* Since 5.0.0: for error returns -1 */
+    MG_CHECK_RET (MG_IS_WINDOW(hwnd), FALSE);
+
+    main_win = MG_GET_WINDOW_PTR (hwnd);
+    if (main_win->mapLocalData == NULL)
+        return FALSE;
+
+    if (data_name) {
+        if (__mg_map_erase (main_win->mapLocalData, (void*)data_name))
+            return FALSE;
+    }
+    else {
+        __mg_map_destroy (main_win->mapLocalData);
+        main_win->mapLocalData = NULL;
+    }
+
+    return TRUE;
+}
+
+/* Since 5.0.0 */
+BOOL GUIAPI GetWindowLocalData (HWND hwnd, const char* data_name,
+        DWORD *local_data, CB_FREE_LOCAL_DATA* cb_free)
+{
+    PMAINWIN main_win;
+    const map_entry_t* entry = NULL;
+
+    /* Since 5.0.0: for error returns -1 */
+    MG_CHECK_RET (MG_IS_WINDOW(hwnd), FALSE);
+
+    main_win = MG_GET_WINDOW_PTR (hwnd);
+    if (main_win->mapLocalData == NULL)
+        return FALSE;
+
+    if ((entry = __mg_map_find (main_win->mapLocalData, data_name))) {
+        if (local_data)
+            *local_data = (DWORD)entry->val;
+
+        if (cb_free)
+            *cb_free = (CB_FREE_LOCAL_DATA)entry->free_val_alt;
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
 

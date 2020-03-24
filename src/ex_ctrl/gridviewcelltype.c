@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -220,14 +220,14 @@ void GridCell_draw_bold_border(HDC hdc, RECT* rect, GridCellFormat* format, int 
     Rectangle (hdc, rect->left, rect->top, rect->right - 1, rect->bottom - 1);
 }
 
-static DWORD halign_format_table[] = 
+static DWORD halign_format_table[] =
 {
     GV_HALIGN_LEFT, DT_LEFT,
     GV_HALIGN_CENTER, DT_CENTER,
     GV_HALIGN_RIGHT, DT_RIGHT
 };
 
-static DWORD valign_format_table[] = 
+static DWORD valign_format_table[] =
 {
     GV_VALIGN_TOP, DT_TOP,
     GV_VALIGN_CENTER, DT_VCENTER,
@@ -280,10 +280,10 @@ void GridCell_draw_image(HDC hdc, RECT* rect, DWORD mask, PBITMAP image)
         {
             MGU_Assert(cell->data.text.image->bmWidth > rect->right-rect->left);
             MGU_Assert(cell->data.text.image->bmHeight > rect->bottom-rect->top);
-            FillBoxWithBitmap (hdc, 
-                    rect->left, 
-                    rect->top, 
-                    cell->data.text.image->bmWidth, 
+            FillBoxWithBitmap (hdc,
+                    rect->left,
+                    rect->top,
+                    cell->data.text.image->bmWidth,
                     cell->data.text.image->bmHeight,
                     cell->data.text.image);
         }
@@ -307,7 +307,7 @@ void GridCell_draw_text(HWND hWnd, HDC hdc, RECT* rect, const char* text, GridCe
         SetBkColor (hdc, GetWindowBkColor (hWnd));
         SetBkMode(hdc, BM_TRANSPARENT);
         DrawText(hdc, text, strlen(text), rect, format->text_format);
-       
+
         if(format->mask & GVITEM_FONT)
             SelectFont(hdc, old_font);
     }
@@ -395,7 +395,7 @@ int GridCellTypeNull_draw(gvGridCellData* cell, gvGridViewData* view,
         GetWindowRect(ctrl, &r);
         ExcludeClipRect(hdc, &r);
     }
-    
+
     cell->func->get_format(cell, view->hCtrl, hdc, &format);
 
     GridCell_fill_background(hdc, rect, &format, is_highlight);
@@ -417,7 +417,7 @@ int GridCellTypeNull_draw_content(gvGridCellData* cell, gvGridViewData* view, HD
     char* buf = NULL;
     int buf_len = cell->func->get_text_value(cell, row, col, NULL, 0) + 1;
     int is_highlight = gvGridCells_is_in_cells(&view->highlight_cells, row, col);
-    int is_current = (row != 0 && col != 0 
+    int is_current = (row != 0 && col != 0
         && row==view->current_row && col==view->current_col);
 
     if(is_current)
@@ -502,24 +502,20 @@ void GridCellTypeTableHeader_get_format(gvGridCellData* cell, HWND hWnd, HDC hdc
 {
     memset(format, 0, sizeof(GridCellFormat));
     format->mask = 0;
-    
-    //format->color_bg = GetWindowElementColor (BKC_BUTTON_DEF);
-    //format->hl_color_bg = GetWindowElementColor (BKC_HILIGHT_NORMAL);
-    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_MAINC_THREED_BODY); 
-    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM); 
+
+    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_MAINC_THREED_BODY);
+    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_BGCOLOR)
         format->color_bg = format->hl_color_bg = cell->data.header.color_bg;
-    
-    //format->color_fg = GetWindowElementColor (FGC_BUTTON_NORMAL);
-    //format->hl_color_fg = GetWindowElementColor (FGC_HILIGHT_NORMAL);
-    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY); 
-    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM); 
+
+    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY);
+    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_FGCOLOR)
         format->color_fg = format->hl_color_fg = cell->data.header.color_fg;
-    
+
     format->color_border = PIXEL_black;
     format->hl_color_border = PIXEL_black;
-    
+
     format->text_format = GridCell_get_text_format(cell->style, DT_LEFT, DT_TOP);
     if(cell->mask & GVITEM_FONT && cell->data.table.font != NULL)
     {
@@ -600,7 +596,7 @@ int GridCellTypeHeader_merge(gvGridCellData* cell, gvGridCellData* data)
             cell->data.header.text = strdup(data->data.header.text);
         }
         else {
-            cell->data.header.text = NULL; 
+            cell->data.header.text = NULL;
         }
         cell->mask |= GVITEM_MAINCONTENT;
     }
@@ -707,25 +703,21 @@ void GridCellTypeHeader_set_text_value(gvGridCellData* cell, int row, int col, c
 void GridCellTypeHeader_get_format(gvGridCellData* cell, HWND hWnd, HDC hdc, GridCellFormat* format)
 {
     memset(format, 0, sizeof(GridCellFormat));
-    
+
     format->mask = 0;
-   // format->color_bg = GetWindowElementColor (BKC_BUTTON_DEF);
-   // format->hl_color_bg = GetWindowElementColor (BKC_HILIGHT_NORMAL);
-    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_MAINC_THREED_BODY); 
-    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM); 
+    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_MAINC_THREED_BODY);
+    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_BGCOLOR)
         format->color_bg = format->hl_color_bg = cell->data.header.color_bg;
-    
-    //format->color_fg = GetWindowElementColor (FGC_BUTTON_NORMAL);
-    //format->hl_color_fg = GetWindowElementColor (FGC_HILIGHT_NORMAL);
-    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY); 
-    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY); 
+
+    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY);
+    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY);
     if(cell->mask & GVITEM_FGCOLOR)
         format->color_fg = format->hl_color_fg = cell->data.header.color_fg;
-    
+
     format->color_border = PIXEL_black;
     format->hl_color_border = PIXEL_black;
-    
+
     format->text_format = GridCell_get_text_format(cell->style, DT_CENTER, DT_VCENTER);
     if(cell->mask & GVITEM_FONT && cell->data.header.font != NULL)
     {
@@ -745,12 +737,12 @@ int GridCellTypeHeader_draw(gvGridCellData* cell, gvGridViewData* view,
     win_info = GetWindowInfo(view->hCtrl);
 
     cell->func->get_format(cell, view->hCtrl, hdc, &format);
-    
+
     win_info->we_rdr->draw_header(view->hCtrl, hdc, rect, 0x0);
 
     rect->right--;
     rect->bottom--;
-    
+
     return cell->func->draw_content(cell, view, hdc, row, col, rect, &format);
 }
 
@@ -869,27 +861,23 @@ void GridCellTypeText_get_format(gvGridCellData* cell, HWND hWnd, HDC hdc, GridC
 {
     memset(format, 0, sizeof(GridCellFormat));
     format->mask = 0;
-    
-    // format->color_bg = GetWindowElementColor (BKC_EDIT_DEF);
-    // format->hl_color_bg = GetWindowElementColor (BKC_HILIGHT_NORMAL);
-    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_WINDOW); 
-    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM); 
+
+    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_WINDOW);
+    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_BGCOLOR) {
         format->color_bg = cell->data.text.color_bg;
         format->hl_color_bg = ~cell->data.text.color_bg;
     }
-   
-    // format->color_fg = GetWindowElementColor (FGC_CONTROL_NORMAL);
-    // format->hl_color_fg = GetWindowElementColor (FGC_HILIGHT_NORMAL);
-    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_WINDOW); 
-    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM); 
+
+    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_WINDOW);
+    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_FGCOLOR) {
         format->color_fg = cell->data.text.color_fg;
         format->hl_color_fg = ~cell->data.text.color_fg;
     }
 
     format->hl_color_border = PIXEL_lightgray;
-    
+
     if(cell->style & GVS_MULTLINE)
         format->text_format = GridCell_get_text_format(cell->style, DT_LEFT, DT_TOP);
     else
@@ -906,7 +894,7 @@ int GridCellTypeText_draw_content(gvGridCellData* cell, gvGridViewData* view, HD
 {
     int is_highlight = gvGridCells_is_in_cells(&view->highlight_cells, row, col);
     int is_current = (row != 0 && col != 0 && row==view->current_row && col==view->current_col);
-    
+
     if(is_current)
         is_highlight = FALSE;
     rect->left += 3;
@@ -1132,28 +1120,24 @@ void GridCellTypeNumber_get_format(gvGridCellData* cell, HWND hWnd, HDC hdc, Gri
 {
     memset(format, 0, sizeof(GridCellFormat));
     format->mask = 0;
-    
-    // format->color_bg = GetWindowElementColor (BKC_EDIT_DEF);
-    // format->hl_color_bg = GetWindowElementColor (BKC_HILIGHT_NORMAL);
-    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_WINDOW); 
-    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM); 
+
+    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_WINDOW);
+    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_BGCOLOR) {
         format->color_bg = cell->data.number.color_bg;
         format->hl_color_bg = ~cell->data.number.color_bg;
     }
-    
-    // format->color_fg = GetWindowElementColor (FGC_CONTROL_NORMAL);
-    // format->hl_color_fg = GetWindowElementColor (FGC_HILIGHT_NORMAL);
-    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_WINDOW); 
-    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM); 
+
+    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_WINDOW);
+    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_FGCOLOR) {
         format->color_fg = cell->data.number.color_fg;
         format->hl_color_fg = ~cell->data.number.color_fg;
     }
-    
+
     format->color_border = PIXEL_lightgray;
     format->hl_color_border = PIXEL_lightgray;
-    
+
     format->text_format = GridCell_get_text_format(cell->style, DT_LEFT, DT_TOP);
     if(cell->mask & GVITEM_FONT && cell->data.number.font != NULL)
     {
@@ -1171,10 +1155,10 @@ int GridCellTypeNumber_draw_content(gvGridCellData* cell, gvGridViewData* view, 
     const char* buf_format = "%f";
     int is_highlight = gvGridCells_is_in_cells(&view->highlight_cells, row, col);
     int is_current = (row != 0 && col != 0 && row==view->current_row && col==view->current_col);
-    
+
     if(is_current)
         is_highlight = FALSE;
-    
+
     if(cell->data.number.format != NULL) {
         buf_len = snprintf (buf_tmp, 63, cell->data.number.format, cell->data.number.num);
     }
@@ -1271,7 +1255,7 @@ int GridCellTypeCheckBox_merge(gvGridCellData* cell, gvGridCellData* data)
             cell->data.checkbox.text = strdup(data->data.checkbox.text);
         }
         else {
-            cell->data.checkbox.text = NULL; 
+            cell->data.checkbox.text = NULL;
         }
 
         cell->mask |= GVITEM_MAINCONTENT;
@@ -1314,28 +1298,24 @@ void GridCellTypeCheckBox_get_format(gvGridCellData* cell, HWND hWnd, HDC hdc, G
 {
     memset(format, 0, sizeof(GridCellFormat));
     format->mask = 0;
-    
-    //format->color_bg = GetWindowElementColor (BKC_CONTROL_DEF);
-    //format->hl_color_bg = GetWindowElementColor (BKC_HILIGHT_NORMAL);
-    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_MAINC_THREED_BODY); 
-    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM); 
+
+    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_MAINC_THREED_BODY);
+    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_BGCOLOR) {
         format->color_bg = cell->data.checkbox.color_bg;
         format->hl_color_bg = ~cell->data.checkbox.color_bg;
     }
-    
-    //format->color_fg = GetWindowElementColor (FGC_CONTROL_NORMAL);
-    //format->hl_color_fg = GetWindowElementColor (FGC_HILIGHT_NORMAL);
-    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY); 
-    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM); 
+
+    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY);
+    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_FGCOLOR) {
         format->color_fg = cell->data.checkbox.color_fg;
         format->hl_color_fg = ~cell->data.checkbox.color_fg;
     }
-    
+
     format->color_border = PIXEL_lightgray;
     format->hl_color_border = PIXEL_lightgray;
-    
+
     if(cell->style & GVS_MULTLINE)
         format->text_format = GridCell_get_text_format(cell->style, DT_LEFT, DT_TOP);
     else
@@ -1392,10 +1372,10 @@ int GridCellTypeCheckBox_draw_content(gvGridCellData* cell, gvGridViewData* view
     RECT r;
     RECT r_bound;
     HWND ctrl = cell->data.checkbox.handle;
-    
+
     GridCell_get_ctrl_rect(cell, view, row, col, rect, &r);
     GetBoundRect(&r_bound, &r, &view->cells_rect);
-    
+
     if(EqualRect(&r_bound, &view->cells_rect))
     {
         int checked = cell->data.checkbox.checked?BST_CHECKED:BST_UNCHECKED;
@@ -1408,7 +1388,7 @@ int GridCellTypeCheckBox_draw_content(gvGridCellData* cell, gvGridViewData* view
         }
         else
             MoveWindow(ctrl, r.left, r.top, RECTW(r), RECTH(r), TRUE);
-        
+
         UpdateWindow(ctrl, TRUE);
 
         SendMessage(ctrl, BM_SETCHECK, checked, 0);
@@ -1581,28 +1561,24 @@ void GridCellTypeSelection_get_format(gvGridCellData* cell, HWND hWnd, HDC hdc, 
 {
     memset(format, 0, sizeof(GridCellFormat));
     format->mask = 0;
-    
-    //format->color_bg = GetWindowElementColor (BKC_CONTROL_DEF);
-    //format->hl_color_bg = GetWindowElementColor (BKC_HILIGHT_NORMAL);
-    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_MAINC_THREED_BODY); 
-    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM); 
+
+    format->color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_MAINC_THREED_BODY);
+    format->hl_color_bg = GetWindowElementPixelEx(hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_BGCOLOR) {
         format->color_bg = cell->data.selection.color_bg;
         format->hl_color_bg = ~cell->data.selection.color_bg;
     }
-    
-    //format->color_fg = GetWindowElementColor (FGC_CONTROL_NORMAL);
-    //format->hl_color_fg = GetWindowElementColor (FGC_HILIGHT_NORMAL);
-    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY); 
-    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM); 
+
+    format->color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_THREED_BODY);
+    format->hl_color_fg = GetWindowElementPixelEx(hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM);
     if(cell->mask & GVITEM_FGCOLOR) {
         format->color_fg = cell->data.selection.color_fg;
         format->hl_color_fg = ~cell->data.selection.color_fg;
     }
-    
+
     format->color_border = PIXEL_lightgray;
     format->hl_color_border = PIXEL_lightgray;
-    
+
     if(cell->style & GVS_MULTLINE)
         format->text_format = GridCell_get_text_format(cell->style, DT_LEFT, DT_TOP);
     else
@@ -1627,7 +1603,7 @@ HWND GridCellTypeSelection_create_selection_ctrl(gvGridViewData* view, gvGridCel
     char* content = strdup(text);
     char* tok = content;
     char *tmp = NULL;
-        
+
     if(cell == NULL)
         return HWND_INVALID;
     if(cell->data.selection.handle != HWND_INVALID)
@@ -1654,11 +1630,11 @@ HWND GridCellTypeSelection_create_selection_ctrl(gvGridViewData* view, gvGridCel
         SendMessage(ctrl, CB_ADDSTRING, 0, (LPARAM)tmp);
         tok++;
     } while(*tok != 0);
-    
+
     free(content);
-    
+
     SendMessage(ctrl, CB_SETCURSEL, cell->data.selection.cur_index, 0);
-    
+
     cell->data.selection.handle = ctrl;
     editdata = calloc(1, sizeof(GridCellEditData));
     editdata->view = view;

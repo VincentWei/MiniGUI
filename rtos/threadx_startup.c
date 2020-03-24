@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 /*
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -69,87 +69,87 @@ int __comminput_init (void)
 
 static short keycode_convert_scancode (UINT8 keycode)
 {
-	short scancode = 0;
-	
-	switch (keycode) {
-		case KBD_KEY_SEND:
-			scancode = SCANCODE_F2;
-	    	break;
-   		case KBD_KEY_END:
-   			scancode = SCANCODE_F1;
-	    	break;
-   		case KBD_KEY_REG:
-   			scancode = SCANCODE_CURSORBLOCKUP;
-	    	break;
-	    case KBD_KEY_INFO_MODE:
-	    	scancode = SCANCODE_CURSORBLOCKDOWN;
-	    	break;
-	    case KBD_KEY_CLEAR:
-	    	scancode = SCANCODE_F3;
-	    	break;
-	    case KBD_KEY_CAMP:
-	    	scancode = SCANCODE_ESCAPE;
-	    	break;
-	    case KBD_KEY_BLANK1:                
-	    	scancode = SCANCODE_CURSORBLOCKLEFT;
-	    	break;
-	    case KBD_KEY_INFO_SELECT:
-	    	scancode = SCANCODE_CURSORBLOCKRIGHT;
-	    	break;
-/*	    case KBD_KEY_POWER:
-	    	scancode = SCANCODE_POWER;
-	    	break;
-	*/    case KBD_KEY_BLANK2:       
-	    	scancode = SCANCODE_F6;
-	    	break;
-	    case KBD_KEY_1:
-	    	scancode = SCANCODE_1;
-	    	break;
-	    case KBD_KEY_2:
-	    	scancode = SCANCODE_2;
-	    	break;
-	    case KBD_KEY_3:
-	    	scancode = SCANCODE_3;
-	    	break;
-/*	    case KBD_KEY_STAR:
-	    	scancode = SCANCODE_F7;
-	    	break;
-	*/case KBD_KEY_UP: 
-	    	scancode = SCANCODE_0;
-	    	break;  
-	case KBD_KEY_4:
-	    	scancode = SCANCODE_4;
-	    	break;
-	    case KBD_KEY_5:
-	    	scancode = SCANCODE_5;
-	    	break;
-	    case KBD_KEY_6:
-	    	scancode = SCANCODE_6;
-	    	break;
-/*	    case KBD_KEY_0:
-	    	scancode = SCANCODE_0;
-	    	break;
-	*/    case KBD_KEY_DOWN:
-	    	scancode = SCANCODE_F7;
-	    	break;
-	    case KBD_KEY_7:
-	    	scancode = SCANCODE_7;
-	    	break;
-	    case KBD_KEY_8:
-	    	scancode = SCANCODE_8;
-	    	break;
-	    case KBD_KEY_9:
-	    	scancode = SCANCODE_9;
-	    	break;
-/*	    case KBD_KEY_HASH:
-	    	scancode = SCANCODE_CURSORBLOCKRIGHT;
-	    	break;
-	*/    case KBD_NO_KEY: //no key press ,timeout
-	    	scancode = 0;
-	    	break;
-	}
-	
-	return scancode;
+    short scancode = 0;
+
+    switch (keycode) {
+        case KBD_KEY_SEND:
+            scancode = SCANCODE_F2;
+            break;
+           case KBD_KEY_END:
+               scancode = SCANCODE_F1;
+            break;
+           case KBD_KEY_REG:
+               scancode = SCANCODE_CURSORBLOCKUP;
+            break;
+        case KBD_KEY_INFO_MODE:
+            scancode = SCANCODE_CURSORBLOCKDOWN;
+            break;
+        case KBD_KEY_CLEAR:
+            scancode = SCANCODE_F3;
+            break;
+        case KBD_KEY_CAMP:
+            scancode = SCANCODE_ESCAPE;
+            break;
+        case KBD_KEY_BLANK1:
+            scancode = SCANCODE_CURSORBLOCKLEFT;
+            break;
+        case KBD_KEY_INFO_SELECT:
+            scancode = SCANCODE_CURSORBLOCKRIGHT;
+            break;
+/*        case KBD_KEY_POWER:
+            scancode = SCANCODE_POWER;
+            break;
+    */    case KBD_KEY_BLANK2:
+            scancode = SCANCODE_F6;
+            break;
+        case KBD_KEY_1:
+            scancode = SCANCODE_1;
+            break;
+        case KBD_KEY_2:
+            scancode = SCANCODE_2;
+            break;
+        case KBD_KEY_3:
+            scancode = SCANCODE_3;
+            break;
+/*        case KBD_KEY_STAR:
+            scancode = SCANCODE_F7;
+            break;
+    */case KBD_KEY_UP:
+            scancode = SCANCODE_0;
+            break;
+    case KBD_KEY_4:
+            scancode = SCANCODE_4;
+            break;
+        case KBD_KEY_5:
+            scancode = SCANCODE_5;
+            break;
+        case KBD_KEY_6:
+            scancode = SCANCODE_6;
+            break;
+/*        case KBD_KEY_0:
+            scancode = SCANCODE_0;
+            break;
+    */    case KBD_KEY_DOWN:
+            scancode = SCANCODE_F7;
+            break;
+        case KBD_KEY_7:
+            scancode = SCANCODE_7;
+            break;
+        case KBD_KEY_8:
+            scancode = SCANCODE_8;
+            break;
+        case KBD_KEY_9:
+            scancode = SCANCODE_9;
+            break;
+/*        case KBD_KEY_HASH:
+            scancode = SCANCODE_CURSORBLOCKRIGHT;
+            break;
+    */    case KBD_NO_KEY: //no key press ,timeout
+            scancode = 0;
+            break;
+    }
+
+    return scancode;
 }
 
 /*
@@ -159,37 +159,37 @@ static short keycode_convert_scancode (UINT8 keycode)
  */
 int __comminput_kb_getdata (short *key, short *status)
 {
-	MAN_KP_INFO kbdinfo;
-	
-	if (tp_man_kp_get_data (&kbdinfo) == 0)
-	{
-		*key = keycode_convert_scancode (kbdinfo.scancode);
-		*status = kbdinfo.status;
-	}
-	
-	if (*key != 0)
-		return 0;
-	return -1;
+    MAN_KP_INFO kbdinfo;
+
+    if (tp_man_kp_get_data (&kbdinfo) == 0)
+    {
+        *key = keycode_convert_scancode (kbdinfo.scancode);
+        *status = kbdinfo.status;
+    }
+
+    if (*key != 0)
+        return 0;
+    return -1;
 }
 
 /*
- * Waits for input for keyboard and touchpanel. 
+ * Waits for input for keyboard and touchpanel.
  * If no data, this function should go into sleep;
  * when data is available, keyboard or touchpanel driver should wake up
  * the task/thread in MiniGUI who call __comminput_wait_for_input.
  *
- * Normal implementation makes this function sleep on a RTOS event object, 
- * such as semaphore, and then returns COMM_MOUSEINPUT or COMM_KBINPUT 
+ * Normal implementation makes this function sleep on a RTOS event object,
+ * such as semaphore, and then returns COMM_MOUSEINPUT or COMM_KBINPUT
  * according to type of the input event.
  */
 int __comminput_wait_for_input (void)
 {
-	MAN_KP_INFO kbdinfo;
-	
-	if (tp_man_wait_input (30) == MAN_KPINPUT)
-			return COMM_KBINPUT;
+    MAN_KP_INFO kbdinfo;
 
-	return 0;
+    if (tp_man_wait_input (30) == MAN_KPINPUT)
+            return COMM_KBINPUT;
+
+    return 0;
 }
 
 /*
@@ -199,7 +199,7 @@ int __comminput_wait_for_input (void)
  */
 int __comminput_ts_getdata (short *x, short *y, short *button)
 {
-	return 0;
+    return 0;
 }
 
 /*
@@ -213,7 +213,7 @@ void  __comminput_deinit (void)
 
 #else /* __TARGET_VFANVIL__ */
 
-/* Please implemente the following functions if your MiniGUI is 
+/* Please implemente the following functions if your MiniGUI is
  * configured to use the comm IAL engine */
 
 #define COMM_MOUSEINPUT    0x01  // mouse event
@@ -231,13 +231,13 @@ int __comminput_init (void)
 }
 
 /*
- * Waits for input for keyboard and touchpanel. 
+ * Waits for input for keyboard and touchpanel.
  * If no data, this function should go into sleep;
  * when data is available, keyboard or touchpanel driver should wake up
  * the task/thread in MiniGUI who call __comminput_wait_for_input.
  *
- * Normal implementation makes this function sleep on a RTOS event object, 
- * such as semaphore, and then returns COMM_MOUSEINPUT or COMM_KBINPUT 
+ * Normal implementation makes this function sleep on a RTOS event object,
+ * such as semaphore, and then returns COMM_MOUSEINPUT or COMM_KBINPUT
  * according to type of the input event.
  */
 int __comminput_wait_for_input (void)
@@ -293,7 +293,7 @@ void  __comminput_deinit (void)
 #define COMMLCD_TRUE_RGB888      4
 #define COMMLCD_TRUE_RGB0888     5
 
-/* Please implemente the following functions if your MiniGUI is 
+/* Please implemente the following functions if your MiniGUI is
  * configured to use the comm IAL engine */
 
 struct commlcd_info {
@@ -306,7 +306,7 @@ struct commlcd_info {
 
 int __commlcd_drv_init (void)
 {
-    /* TODO: Do LCD initialization here, if you have not. */ 
+    /* TODO: Do LCD initialization here, if you have not. */
     return 0;
 }
 
@@ -315,16 +315,16 @@ static char a_fb [320*240*2];
 
 int __commlcd_drv_getinfo (struct commlcd_info *li)
 {
-    /* TODO: 
+    /* TODO:
      * Set LCD information in a commlcd_info structure pointed by li
      * according to properties of your LCD.
      */
-	li->width  = 320;
-	li->height = 240;
-	li->bpp    = 16;
-	li->type   = 0;
-	li->rlen   = 320*2;
-	li->fb     = a_fb;
+    li->width  = 320;
+    li->height = 240;
+    li->bpp    = 16;
+    li->type   = 0;
+    li->rlen   = 320*2;
+    li->fb     = a_fb;
 
     return 0;
 }
@@ -410,7 +410,7 @@ void minigui_app_entry (void)
         return;
     }
 
-    if (init_minigui_malloc (__threadx_heap, __threadx_heap_size, 
+    if (init_minigui_malloc (__threadx_heap, __threadx_heap_size,
             __threadx_heap_lock, __threadx_heap_unlock)) {
         fprintf (stderr, "Can not init MiniGUI heap system.\n");
         return;
@@ -419,7 +419,7 @@ void minigui_app_entry (void)
     /*
      * Initialize MiniGUI's POSIX thread module and call minigui_entry thirdly.
      */
-    if (start_minigui_pthread (minigui_entry, 0, NULL, 
+    if (start_minigui_pthread (minigui_entry, 0, NULL,
             main_stack, MAIN_PTH_DEF_STACK_SIZE)) {
         fprintf (stderr, "Can not init MiniGUI pthread system for ThreadX.\n");
         return;

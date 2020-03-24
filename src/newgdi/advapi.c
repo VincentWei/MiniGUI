@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -243,7 +243,7 @@ void GUIAPI ArcEx (HDC hdc, int x, int y, int width, int height, int ang1, int a
         return;
 
     coor_LP2SP (pdc, &x, &y);
-    
+
     pdc->rc_output.left = x - pdc->pen_width;
     pdc->rc_output.top  = y - pdc->pen_width;
     pdc->rc_output.right = x + width + pdc->pen_width + 1;
@@ -350,7 +350,7 @@ void GUIAPI FillArcEx (HDC hdc, int x, int y, int width, int height, int ang1, i
         return;
 
     coor_LP2SP (pdc, &x, &y);
-    
+
     arc.x = x;
     arc.y = y;
     arc.width = width;
@@ -410,13 +410,13 @@ BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int rw, int rh)
 
     if (x0 >= x1 || y0 >= y1)
         return FALSE;
-    
+
     cw = rw*2;
     ch = rh*2;
-   
+
     if (cw > (x1-x0) || ch > (y1-y0) || cw < 0 || ch < 0)
         return FALSE;
-    
+
     if (rw == 0 || rh == 0) {
         POINT pts [5];
         pts[0].x = x0; pts[0].y = y0;
@@ -436,7 +436,7 @@ BOOL GUIAPI RoundRect (HDC hdc, int x0, int y0, int x1, int y1, int rw, int rh)
     FillArcEx (hdc, x1-cw, y0, cw, ch, 0, a);
     FillArcEx (hdc, x1-cw, y1-ch, cw, ch, -a, a);
     FillArcEx (hdc, x0, y1-ch, cw, ch, -a, -a);
-    
+
     FillBox (hdc,x0 + rw, y0, (x1-x0)-cw, rh);
     FillBox (hdc, x0, y0 + rh, x1-x0, (y1-y0)-ch);
     FillBox (hdc,x0 + rw, y1-rh, (x1-x0)-cw, rh);

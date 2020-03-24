@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.60)
-AC_INIT(libminigui, 4.0.5)
+AC_INIT(libminigui, 5.0.0)
 AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -14,11 +14,11 @@ dnl Set various version strings - taken gratefully from the SDL sources
 # if backwards compatibility has been broken,
 # set MINIGUI_BINARY_AGE and MINIGUI_INTERFACE_AGE to 0.
 #
-MINIGUI_MAJOR_VERSION=4
+MINIGUI_MAJOR_VERSION=5
 MINIGUI_MINOR_VERSION=0
-MINIGUI_MICRO_VERSION=5
-MINIGUI_INTERFACE_AGE=1
-MINIGUI_BINARY_AGE=1
+MINIGUI_MICRO_VERSION=0
+MINIGUI_INTERFACE_AGE=0
+MINIGUI_BINARY_AGE=0
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
 
 AC_SUBST(MINIGUI_MAJOR_VERSION)
@@ -62,7 +62,7 @@ dnl ========================================================================
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS(limits.h math.h locale.h unistd.h termio.h sys/types.h sys/time.h)
+AC_CHECK_HEADERS(limits.h math.h locale.h unistd.h termio.h sys/types.h sys/time.h sys/select.h sys/memfd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -77,7 +77,7 @@ AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(time mktime localtime clock_gettime strdup strcasecmp strncasecmp strerror setlocale)
-AC_CHECK_FUNCS(posix_memalign memalign valloc)
+AC_CHECK_FUNCS(posix_memalign memalign valloc memfd_create poll select)
 
 PKG_CHECK_MODULES(UDEV, [libudev >= 200], have_udev="yes", have_udev="no; need libudev 200+")
 
@@ -92,6 +92,10 @@ message_string="no"
 
 osname="unspecified"
 runtime_mode="procs"
+compositing_schema="no"
+virtual_window="no"
+use_shmopen="no"
+mgslice_use_fallback="no"
 
 incore_res="no"
 use_miniguientry="no"
@@ -102,9 +106,9 @@ build_clipboard="yes"
 use_own_stdio="no"
 use_own_malloc="no"
 use_own_pthread="no"
-
 build_adv2dapi="yes"
-build_syncupdate="no"
+build_updateregion="yes"
+
 build_minimalgdi="no"
 
 dnl Options for look and feel renderer
@@ -120,13 +124,13 @@ build_net_ial_engine="no"
 
 dnl common IAL engines
 build_libinput_ial_engine="yes"
-build_console_ial_engine="no"
+build_console_ial_engine="yes"
 build_console_ps2="no"
-build_console_imps2="no"
+build_console_imps2="yes"
 build_console_ms="no"
 build_console_ms3="no"
 build_console_gpm="no"
-build_text_mode="no"
+build_text_mode="yes"
 
 dnl the customized ial engine
 build_dlcustom_ial_engine="no"
@@ -248,7 +252,7 @@ build_ctrl_monthcal="no"
 build_ctrl_treeview="no"
 build_ctrl_treeview_rdr="no"
 build_ctrl_spinbox="yes"
-build_ctrl_coolbar="no"
+build_ctrl_coolbar="yes"
 build_ctrl_listview="yes"
 build_ctrl_iconview="no"
 build_ctrl_gridview="no"
@@ -265,7 +269,7 @@ enable_video_dfb_st7167="no"
 enable_video_stgfb="no"
 
 enable_video_drm="yes"
-enable_video_fbcon="no"
+enable_video_fbcon="yes"
 enable_video_commlcd="no"
 enable_video_shadow="no"
 enable_video_mlshadow="no"
@@ -317,6 +321,10 @@ AC_ARG_ENABLE(incoreres,
 [  --enable-incoreres       use incore resource instead file IO to initialize MiniGUI <default=no>],
 incore_res=$enableval)
 
+AC_ARG_ENABLE(mgslicefallback,
+[  --enable-mgslicefallback use fallback implementation for mg_slice_xxx <default=no>],
+mgslice_use_fallback=$enableval)
+
 AC_ARG_ENABLE(miniguientry,
 [  --enable-miniguientry    use minigui_entry function in MiniGUI <default=no>],
 use_miniguientry=$enableval)
@@ -353,9 +361,9 @@ AC_ARG_ENABLE(adv2dapi,
 [  --enable-adv2dapi        include advanced 2D graphics APIs <default=yes>],
 build_adv2dapi=$enableval)
 
-AC_ARG_ENABLE(syncupdate,
-[  --enable-syncupdate      include implementation of SyncUpdateDC <default=yes>],
-build_syncupdate=$enableval)
+AC_ARG_ENABLE(updateregion,
+[  --enable-updateregion    Use update region for cumulative updating surfaces <default=yes>],
+build_updateregion=$enableval)
 
 AC_ARG_ENABLE(minimalgdi,
 [  --enable-minimalgdi      build a minimal GDI library only <default=no>],
@@ -470,7 +478,7 @@ AC_ARG_ENABLE(libinputial,
 build_libinput_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleial,
-[  --enable-consoleial      build the console (Linux console) IAL engine <default=no>],
+[  --enable-consoleial      build the console (Linux console) IAL engine <default=yes>],
 build_console_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleps2,
@@ -478,7 +486,7 @@ AC_ARG_ENABLE(consoleps2,
 build_console_ps2=$enableval)
 
 AC_ARG_ENABLE(consoleimps2,
-[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=no>],
+[  --enable-consoleimps2    build the console engine subdriver for IntelligentMouse (IMPS/2) mouse <default=yes>],
 build_console_imps2=$enableval)
 
 AC_ARG_ENABLE(consolems,
@@ -494,7 +502,7 @@ AC_ARG_ENABLE(consolegpm,
 build_console_gpm=$enableval)
 
 AC_ARG_ENABLE(textmode,
-[  --enable-textmode        Linux system have console (text mode) on FrameBuffer <default=no>],
+[  --enable-textmode        Linux system has console (text mode) on Frame Buffer <default=yes>],
 build_text_mode=$enableval)
 
 AC_ARG_ENABLE(rbfsupport,
@@ -829,6 +837,22 @@ AC_ARG_ENABLE(ctrlanimation,
 [  --enable-ctrlanimation   include ANIMATION control and GIF87a/GIF89a support <default=yes>],
 build_ctrl_animation=$enableval)
 
+if test "x$runtime_mode" == "xprocs"; then
+    AC_ARG_ENABLE(compositing,
+[  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=no>],
+    compositing_schema=$enableval)
+
+    AC_ARG_ENABLE(shmopen,
+[  --enable-shmopen         use shm_open <default=no>],
+    use_shmopen=$enableval)
+fi
+
+if test "x$runtime_mode" != "xths"; then
+    AC_ARG_ENABLE(virtualwindow,
+[  --enable-virtualwindow   enable virtual window for MiniGUI-Processes or MiniGUI-Standalone runmode <default=no>],
+    virtual_window=$enableval)
+fi
+
 dnl Set up the Null video driver.
 CheckDummyVideo()
 {
@@ -885,26 +909,22 @@ CheckFBCON()
 dnl Find the DRM includes
 CheckDRM()
 {
-    if test "x$runtime_mode" = "xprocs"; then
-        enable_video_drm="no; DRI engine does not support MiniGUI-Processes runtime mode currently"
-    else
-        AC_ARG_ENABLE(videodrm,
-    [  --enable-videodrm      include Linux DRI NEWGAL engine <default=yes>],
-        enable_video_drm=$enableval)
-        if test "x$enable_video_drm" = "xyes"; then
-            PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_drm="yes",
-                video_drm="no; Linux DRI NEWGAL engine requires libdrm 2.4+")
-            if test "x$video_drm" = "xyes"; then
-                AC_DEFINE(_MGGAL_DRM, 1,
-                    [Define if include Linux DRI NEWGAL engine])
-                VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
-                VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
-                DEP_LIBS="$DEP_LIBS -ldrm -ldl"
-                DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/libdrm"
-                AC_SUBST(DRM_INC_DIR)
-            else
-                AC_MSG_WARN([$video_drm])
-            fi
+    AC_ARG_ENABLE(videodrm,
+[  --enable-videodrm      include Linux DRM NEWGAL engine <default=yes>],
+    enable_video_drm=$enableval)
+    if test "x$enable_video_drm" = "xyes"; then
+        PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_drm="yes",
+            video_drm="no; Linux DRM NEWGAL engine requires libdrm 2.4+")
+        if test "x$video_drm" = "xyes"; then
+            AC_DEFINE(_MGGAL_DRM, 1,
+                [Define if include Linux DRM NEWGAL engine])
+            VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
+            VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
+            DEP_LIBS="$DEP_LIBS -ldrm -ldl"
+            DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/libdrm"
+            AC_SUBST(DRM_INC_DIR)
+        else
+            AC_MSG_WARN([$video_drm])
         fi
     fi
 }
@@ -1703,14 +1723,11 @@ fi
 
 CPPFLAGS="$CPPFLAGS -D__MINIGUI_LIB__"
 
+surface_schema="shared frame buffer"
 case "$runtime_mode" in
     sa)
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
-        AC_DEFINE(_STAND_ALONE, 1,
-            [Define if build MiniGUI-Standalone (back-compatibility definition)])
-        AC_DEFINE(_LITE_VERSION, 1,
-            [Define if build MiniGUI-Standalone (back-compatibility definition)])
         MINIGUI_RUNMODE="sa"
     ;;
     ths)
@@ -1718,18 +1735,50 @@ case "$runtime_mode" in
             [Define if build MiniGUI-Threads])
         CPPFLAGS="$CPPFLAGS -D_REENTRANT"
         MINIGUI_RUNMODE="ths"
+        virtual_window="yes"
     ;;
     *)
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
-        AC_DEFINE(_LITE_VERSION, 1,
-            [Define if build MiniGUI-Processes (back-compatibility definition)])
         MINIGUI_RUNMODE="procs"
+        if test "x$compositing_schema" = "xyes"; then
+          surface_schema="compositing"
+        fi
+
+        if test "x$use_shmopen" = "xyes"; then
+          AC_CHECK_LIB(rt, shm_open, [DEP_LIBS="$DEP_LIBS -lrt"],
+                [use_shmopen="no; shm_open function not found in rt library"])
+        fi
+        if test "x$use_shmopen" = "xyes"; then
+          AC_CHECK_DECLS(SHM_ANON, foo=bar,
+                [use_shmopen="no; SHM_ANON is not declared in <sys/mman.h>"],
+                [#include <sys/mman.h>])
+        fi
+
+        if test "x$use_shmopen" = "xyes"; then
+          AC_DEFINE(_MGUSE_SHMOPEN, 1, [Define if use shm_open])
+        fi
     ;;
 esac
 
+if test "x$surface_schema" = "xcompositing"; then
+    AC_DEFINE(_MGSCHEMA_COMPOSITING, 1,
+            [Define if use compositing schema for the current runmode])
+else
+    AC_DEFINE(_MGSCHEMA_SHAREDFB, 1,
+            [Define if use legacy schema (shared frame buffer) for the current runmode])
+fi
+
+if test "x$virtual_window" = "xyes"; then
+  AC_DEFINE(_MGHAVE_VIRTUAL_WINDOW, 1, [Define if virtual window enabled])
+fi
+
+if test "x$mgslice_use_fallback" = "xyes"; then
+  AC_DEFINE(_MGSLICE_FALLBACK, 1, [Define if use the fallback implementation for mgslice_xxx])
+fi
+
 if test "x$incore_res" = "xno"; then
-    AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
+  AC_DEFINE_UNQUOTED(ETCFILENAME, "${conf}", [MiniGUI configure file name])
 fi
 
 AC_SUBST(MGLIB_SUFFIX)
@@ -1750,9 +1799,9 @@ if test "x$build_adv2dapi" = "xyes"; then
         [Define if include advanced 2D graphics APIs])
 fi
 
-if test "x$build_syncupdate" = "xyes"; then
-    AC_DEFINE(_MGUSE_SYNC_UPDATE, 1,
-        [Define if include implementation of SyncUpdateDC])
+if test "x$build_updateregion" = "xyes"; then
+    AC_DEFINE(_MGUSE_UPDATE_REGION, 1,
+        [Define if use update region for cumulative updating surfaces])
 fi
 
 if test "x$fixed_math" = "xyes"; then
@@ -1769,6 +1818,7 @@ if test "x$devel_mode" = "xyes"; then
     build_auto_ial_engine="yes"
     build_random_ial_engine="yes"
     build_net_ial_engine="yes"
+    build_console_ial_engine="yes"
 
     build_qpf_support="yes"
 
@@ -1814,6 +1864,7 @@ if test "x$devel_mode" = "xyes"; then
     build_ctrl_iconview="yes"
     build_ctrl_gridview="yes"
 
+    enable_video_fbcon="yes"
     enable_video_shadow="yes"
     enable_video_mlshadow="yes"
     enable_video_custom="yes"
@@ -2704,10 +2755,15 @@ AC_MSG_NOTICE([
 ## Global Features:
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
+  * Virtual Window:     ${virtual_window}
+  * Surface schema:     ${surface_schema}
+  * Use shm_open:       ${use_shmopen}
   * Incore resource:    ${incore_res}
+  * Fallback mgslice:   ${mgslice_use_fallback}
   * Developer mode:     ${devel_mode}
   * Target name:        ${with_targetname}
   * Cursor:             ${build_cursor_support}
+  * Update Region:      ${build_updateregion}
 
 ## NEWGAL Engines:
   * dummy:              ${enable_video_dummy}

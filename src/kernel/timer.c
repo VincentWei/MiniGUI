@@ -69,104 +69,92 @@
 #include "ourhdr.h"
 #include "client.h"
 #include "sharedres.h"
-#endif
+#endif /* defined _MGRM_PROCESSES */
 
 #if defined(_DEBUG) && defined(_MGRM_PROCESSES)
-#define TIMER_ERR_SYS(text)         err_sys (text)
+#define TIMER_ERR_SYS(text)         __mg_err_sys (text)
 #else
 #define TIMER_ERR_SYS(text)
 #endif
 
-DWORD __mg_timer_counter = 0;
-static TIMER *timerstr[DEF_NR_TIMERS];
+DWORD __mg_tick_counter = 0;
 
-#ifdef _MGRM_THREADS
-/* lock for protecting timerstr */
-static pthread_mutex_t timerLock;
-#define TIMER_LOCK()   pthread_mutex_lock(&timerLock)
-#define TIMER_UNLOCK() pthread_mutex_unlock(&timerLock)
-#else
-#define TIMER_LOCK()
-#define TIMER_UNLOCK()
-#endif
-
-/* timer action for minigui timers */
-static void __mg_timer_action (void *data)
+/* update timer count for desktop thread */
+void __mg_update_tick_count (void *data)
 {
 #if defined(_MGRM_PROCESSES)
-    SHAREDRES_TIMER_COUNTER = __mg_os_get_time_ms()/10;
-#elif defined(_MGRM_THREADS)
-    __mg_timer_counter = __mg_os_get_time_ms()/10;
-    /* alert desktop */
-    AlertDesktopTimerEvent ();
-#else /* _MGRM_STANDALONE */
-    // do nothing
+    if (mgIsServer) {
+        __mg_tick_counter = __mg_os_get_time_ticks ();
+        SHAREDRES_TIMER_COUNTER = __mg_tick_counter;
+    }
+    else {
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
+    }
+#else   /* defined _MGRM_PROCESSES */
+    __mg_tick_counter = __mg_os_get_time_ticks ();
+#endif  /* not defined _MGRM_PROCESSES */
+
+    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
+       message, and the interval for the timer of desktop changes to 0.05s. */
+    if (__mg_tick_counter >
+            __mg_dsk_msg_queue->last_ticks_desktop + DESKTOP_TIMER_INERTVAL) {
+        __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+#ifdef _MGRM_THREADS    /* only wake up desktop for threads mode */
+        POST_MSGQ (__mg_dsk_msg_queue);
 #endif
-}
-
-/* timer entry for thread version */
-#ifdef _MGRM_THREADS
-
-#ifdef __AOS__
-
-#include "os_api.h"
-
-static OS_TIMER_ID __mg_os_timer = 0;
-
-#else /* __AOS__ */
-static void* TimerEntry (void* data)
-{
-    sem_post ((sem_t*)data);
-
-    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
-        __mg_os_time_delay (10);
-        __mg_timer_action (NULL);
+        __mg_dsk_msg_queue->last_ticks_desktop = __mg_tick_counter;
     }
 
-    /* printf("quit from TimerEntry()\n"); */
-    return NULL;
-}
-#endif /* !__AOS__ */
+#if 0  /* deprecated code */
+#if defined(_MGRM_PROCESSES)
+    if (mgIsServer) {
+        DWORD elapsed_ticks;
 
-int __mg_timer_init (void)
-{
-    if (!mg_InitTimer ()) {
-        fprintf (stderr, "KERNEL>timer: Init Timer failure.\n");
-        return -1;
+        /* Since 5.0.0, we use elapsed time in ms to count the ticks */
+        elapsed_ticks = __mg_os_get_elapsed_ms ();
+        elapsed_ticks = (elapsed_ticks + 5) / 10;
+
+        __mg_tick_counter += elapsed_ticks;
+        SHAREDRES_TIMER_COUNTER = __mg_tick_counter;
     }
-
-#ifdef __AOS__
-    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_timer_action,
-                                         NULL, AOS_TIMER_TICKT,
-                                         OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
-#else /* __AOS__ */
-    {
-        sem_t wait;
-        sem_init (&wait, 0, 0);
-        pthread_create (&__mg_timer, NULL, TimerEntry, &wait);
-        sem_wait (&wait);
-        sem_destroy (&wait);
+    else {
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
     }
-#endif /* !__AOS__ */
+#else   /* defined _MGRM_PROCESSES */
+    DWORD elapsed_ticks;
 
-    return 0;
+    /* Since 5.0.0, we use elapsed time in ms to count the ticks */
+    elapsed_ticks = __mg_os_get_elapsed_ms ();
+    elapsed_ticks = (elapsed_ticks + 5) / 10;
+    __mg_tick_counter += elapsed_ticks;
+#endif  /* not defined _MGRM_PROCESSES */
+
+    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
+       message, and the interval for the timer of desktop changes to 0.05s. */
+    if (__mg_tick_counter >
+            __mg_dsk_msg_queue->last_ticks_desktop + DESKTOP_TIMER_INERTVAL) {
+        __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+#ifdef _MGRM_THREADS    /* only wake up desktop for threads mode */
+        POST_MSGQ (__mg_dsk_msg_queue);
+#endif
+        __mg_dsk_msg_queue->last_ticks_desktop = __mg_tick_counter;
+    }
+#endif  /* deprecated code */
 }
-
-#else /* for MiniGUI-Processes and MiniGUI-Standalone */
 
 #ifdef __NOUNIX__
 
-BOOL mg_InstallIntervalTimer (void)
+static BOOL install_system_timer (void)
 {
     return TRUE;
 }
 
-BOOL mg_UninstallIntervalTimer (void)
+static BOOL unintall_system_timer (void)
 {
     return TRUE;
 }
 
-#else
+#else   /* defined __NOUNIX__ */
 
 #include <signal.h>
 #include <unistd.h>
@@ -175,7 +163,7 @@ BOOL mg_UninstallIntervalTimer (void)
 static struct sigaction old_alarm_handler;
 static struct itimerval old_timer;
 
-BOOL mg_InstallIntervalTimer (void)
+static BOOL install_system_timer (void)
 {
     struct itimerval timerv;
     struct sigaction siga;
@@ -183,7 +171,7 @@ BOOL mg_InstallIntervalTimer (void)
     sigaction (SIGALRM, NULL, &old_alarm_handler);
 
     siga = old_alarm_handler;
-    siga.sa_handler = (void(*)(int))__mg_timer_action;
+    siga.sa_handler = (void(*)(int))__mg_update_tick_count;
 #ifndef _MGRM_STANDALONE
     siga.sa_flags = 0;
 #else
@@ -207,7 +195,7 @@ BOOL mg_InstallIntervalTimer (void)
     return TRUE;
 }
 
-BOOL mg_UninstallIntervalTimer (void)
+static BOOL unintall_system_timer (void)
 {
     if (setitimer (ITIMER_REAL, &old_timer, 0) == -1) {
         TIMER_ERR_SYS ("setitimer call failed!\n");
@@ -222,92 +210,435 @@ BOOL mg_UninstallIntervalTimer (void)
     return TRUE;
 }
 
-#endif /* __NOUNIX__ */
-#endif /* !_MGRM_THREADS */
+#endif /* not defined __NOUNIX__ */
 
-BOOL mg_InitTimer (void)
+BOOL mg_InitTimer (BOOL use_sys_timer)
 {
-    __mg_os_start_time_ms();
+    __mg_tick_counter = 0;
 
-#ifdef _MGRM_THREADS
-    pthread_mutex_init (&timerLock, NULL);
-    __mg_timer_counter = 0;
-#else
-    mg_InstallIntervalTimer ();
-#endif
+    __mg_os_start_time();
+
+    if (use_sys_timer) {
+        install_system_timer ();
+    }
 
     return TRUE;
 }
 
-void mg_TerminateTimer (void)
+void mg_TerminateTimer (BOOL use_sys_timer)
+{
+    if (use_sys_timer)
+        unintall_system_timer ();
+}
+
+/************************* Functions run in message thread *******************/
+int __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter)
+{
+    int nr = 0;
+
+    if (inter == 0)
+        return 0;
+
+    if (msg_queue == NULL) {
+        msg_queue = getMsgQueueForThisThread ();
+    }
+
+    if (msg_queue) {
+        int i;
+        TIMER** timer_slots = msg_queue->timer_slots;
+
+        for (i = 0; i < DEF_NR_TIMERS; i++) {
+            if (timer_slots[i]) {
+                if (__mg_tick_counter >= timer_slots[i]->ticks_expected) {
+                    /* setting timer flag is simple, we do not need to lock
+                       msgq, or else we may encounter dead lock here */
+                    msg_queue->expired_timer_mask |= (0x01UL << i);
+                    POST_MSGQ (msg_queue);
+
+                    timer_slots[i]->ticks_expected += timer_slots[i]->interv;
+                    timer_slots[i]->ticks_fired = __mg_tick_counter;
+                    nr++;
+                }
+#if 0   /* deprecated code */
+                timer_slots[i]->count += inter;
+                if (timer_slots[i]->count >= timer_slots[i]->interv) {
+#ifdef _MGRM_PROCESSES
+                    timer_slots[i]->ticks_current = SHAREDRES_TIMER_COUNTER;
+#else
+                    timer_slots[i]->ticks_current = __mg_tick_counter;
+#endif
+                    /* setting timer flag is simple, we do not need to lock msgq,
+                       or else we may encounter dead lock here */
+                    msg_queue->expired_timer_mask |= (0x01UL << i);
+                    POST_MSGQ (msg_queue);
+                    timer_slots[i]->count -= timer_slots[i]->interv;
+                    nr++;
+                }
+#endif /* deprecated code */
+            }
+        }
+    }
+    else {
+        _WRN_PRINTF ("called for non message thread\n");
+    }
+
+    return nr;
+}
+
+BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD interv,
+                TIMERPROC timer_proc)
+{
+    int i;
+    int slot = -1;
+    TIMER** timer_slots;
+    PMSGQUEUE pMsgQueue;
+
+    if (id == 0) {
+        _WRN_PRINTF ("bad identifier (%ld).\n", id);
+        return FALSE;
+    }
+
+    if (interv == 0) {
+        interv = 1;
+    }
+
+    timer_slots = getTimerSlotsForThisThread (&pMsgQueue);
+    if (MG_UNLIKELY (timer_slots == NULL)) {
+        _WRN_PRINTF ("called for non message thread\n");
+        goto badret;
+    }
+
+    /* Since 5.0.0: only check hWnd if timer_proc is NULL */
+    if (MG_UNLIKELY (timer_proc == NULL &&
+                !getMainWinIfWindowInThisThread (hWnd))) {
+        _WRN_PRINTF ("called for a window not in current thread\n");
+        assert (0);
+        goto badret;
+    }
+
+    /* Is there an empty timer slot? */
+    for (i = 0; i < DEF_NR_TIMERS; i++) {
+        if (timer_slots[i] == NULL) {
+            if (slot < 0)
+                slot = i;
+        }
+        else if (timer_slots[i]->hWnd == hWnd && timer_slots[i]->id == id) {
+            /* Since 5.0.0: we reset timer parameters for duplicated call of
+               this function */
+            timer_slots[i]->interv = interv;
+            timer_slots[i]->ticks_expected = __mg_tick_counter + interv;
+            timer_slots[i]->ticks_fired = 0;
+            timer_slots[i]->proc = timer_proc;
+            return TRUE;
+        }
+    }
+
+    if (slot < 0 || slot == DEF_NR_TIMERS) {
+        _WRN_PRINTF ("no more slot for new timer (total: %d)\n", DEF_NR_TIMERS);
+        goto badret;
+    }
+
+    timer_slots[slot] = mg_slice_new (TIMER);
+
+    timer_slots[slot]->hWnd = hWnd;
+    timer_slots[slot]->id = id;
+    timer_slots[slot]->interv = interv;
+    timer_slots[slot]->ticks_expected = __mg_tick_counter + interv;
+    timer_slots[slot]->ticks_fired = 0;
+    timer_slots[slot]->proc = timer_proc;
+
+    _DBG_PRINTF ("ticks_expected (%d): %lu, tick_counter: %lu\n",
+            slot, timer_slots[slot]->ticks_expected, __mg_tick_counter);
+
+    pMsgQueue->nr_timers++;
+
+    return TRUE;
+
+badret:
+    return FALSE;
+}
+
+#if 0   /* deprected code */
+#ifdef _MGRM_PROCESSES
+static void reset_select_timeout (TIMER** timer_slots)
 {
     int i;
 
+    unsigned int interv = 0;
+    for (i = 0; i < DEF_NR_TIMERS; i++) {
+        if (timer_slots[i]) {
+            if (interv == 0 || timer_slots[i]->interv < interv)
+                interv = timer_slots[i]->interv;
+        }
+    }
+    __mg_set_select_timeout (USEC_10MS * interv);
+}
+#endif
+#endif  /* deprecated code */
+
+void __mg_remove_timer (MSGQUEUE* msg_queue, int slot)
+{
+    TIMER** timer_slots;
+
+    if (slot < 0 || slot >= DEF_NR_TIMERS)
+        return;
+
+    timer_slots = msg_queue->timer_slots;
+    if (MG_LIKELY (timer_slots[slot])) {
+        /* The following code is already moved to message.c...
+         * timer->msg_queue->expired_timer_mask &= ~(0x01UL << slot);
+         */
+        mg_slice_delete (TIMER, timer_slots[slot]);
+        timer_slots [slot] = NULL;
+        msg_queue->nr_timers--;
+    }
+}
+
+void __mg_remove_timers_by_msg_queue (MSGQUEUE* msg_queue)
+{
+    int i;
+    TIMER** timer_slots = msg_queue->timer_slots;
+
+    for (i = 0; i < DEF_NR_TIMERS; i++) {
+        if (timer_slots [i]) {
+            mg_slice_delete (TIMER, timer_slots[i]);
+            timer_slots [i] = NULL;
+        }
+    }
+
+    msg_queue->nr_timers--;
+}
+
+/* If id == 0, clear all timers of the window */
+int GUIAPI KillTimer (HWND hWnd, LINT id)
+{
+    int i;
+    int killed = 0;
+    MSGQUEUE* msg_queue;
+   
+    msg_queue = getMsgQueueForThisThread ();
+    if (msg_queue) {
+
+        TIMER** timer_slots =  msg_queue->timer_slots;
+        for (i = 0; i < DEF_NR_TIMERS; i++) {
+            if ((timer_slots [i] && timer_slots [i]->hWnd == hWnd) &&
+                    (id == 0 || timer_slots [i]->id == id)) {
+                msg_queue->expired_timer_mask &= ~(0x01UL << i);
+                mg_slice_delete (TIMER, timer_slots[i]);
+                timer_slots [i] = NULL;
+                msg_queue->nr_timers--;
+                killed ++;
+
+                if (id)
+                    break;
+            }
+        }
+    }
+    else {
+        _WRN_PRINTF ("called for non message thread\n");
+    }
+
+
+    return killed;
+}
+
+BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD interv,
+                TIMERPROC timer_proc)
+{
+    int i;
+    MSGQUEUE* msg_queue;
+   
+    if (id == 0)
+        return FALSE;
+
+    msg_queue = getMsgQueueForThisThread ();
+    if (MG_LIKELY (msg_queue)) {
+        TIMER** timer_slots = msg_queue->timer_slots;
+
+        for (i = 0; i < DEF_NR_TIMERS; i++) {
+            if (timer_slots[i] &&
+                    timer_slots[i]->hWnd == hWnd && timer_slots[i]->id == id) {
+                /* Should clear old timer flags */
+                msg_queue->expired_timer_mask &= ~(0x01UL << i);
+                timer_slots[i]->interv = interv;
+                timer_slots[i]->ticks_expected = __mg_tick_counter + interv;
+                timer_slots[i]->ticks_fired = 0;
+                if (timer_proc != (TIMERPROC)INV_PTR)
+                    timer_slots[i]->proc = timer_proc;
+
+                return TRUE;
+            }
+        }
+    }
+    else {
+        _WRN_PRINTF ("called for non message thread\n");
+    }
+
+    return FALSE;
+}
+
+BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
+{
+    int i;
+    TIMER** timer_slots;
+
+    if (id == 0)
+        return FALSE;
+
+    timer_slots = getTimerSlotsForThisThread (NULL);
+    if (timer_slots) {
+        for (i = 0; i < DEF_NR_TIMERS; i++) {
+            if (timer_slots[i] &&
+                    timer_slots[i]->hWnd == hWnd &&
+                    timer_slots[i]->id == id) {
+                return TRUE;
+            }
+        }
+    }
+    else {
+        _WRN_PRINTF ("called for non message thread\n");
+    }
+
+    return FALSE;
+}
+
+BOOL GUIAPI HaveFreeTimer (void)
+{
+    int i;
+    TIMER** timer_slots;
+
+    timer_slots = getTimerSlotsForThisThread (NULL);
+    if (timer_slots) {
+        for (i = 0; i < DEF_NR_TIMERS; i++) {
+            if (timer_slots[i] == NULL)
+                return TRUE;
+        }
+    }
+    else {
+        _WRN_PRINTF ("called for non message thread\n");
+    }
+
+    return FALSE;
+}
+
+DWORD GUIAPI GetTickCount (void)
+{
+#if defined(_MGRM_PROCESSES)
+    if (mgIsServer) {
+        __mg_tick_counter = __mg_os_get_time_ticks ();
+        SHAREDRES_TIMER_COUNTER = __mg_tick_counter;
+    }
+    else {
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
+    }
+#else   /* defined _MGRM_PROCESSES */
+    __mg_tick_counter = __mg_os_get_time_ticks ();
+#endif  /* not defined _MGRM_PROCESSES */
+
+    return __mg_tick_counter;
+}
+
+#if 0   /* deprecated code */
+
+/* Since 5.0.0, we no longer use the timer thread for MiniGUI-Threads runmode */
+   in message queue */
+
+/* timer entry for thread version */
+#ifdef _MGRM_THREADS
+
+#ifdef __AOS__
+
+#include "os_api.h"
+
+static OS_TIMER_ID __mg_os_timer = 0;
+
+#else /* __AOS__ */
+static void* TimerEntry (void* data)
+{
+    sem_post ((sem_t*)data);
+
+    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
+        __mg_os_time_delay (10);
+        __mg_update_tick_count (NULL);
+    }
+
+    /* printf("quit from TimerEntry()\n"); */
+    return NULL;
+}
+#endif /* !__AOS__ */
+
+int __mg_timer_init (void)
+{
+    if (!mg_InitTimer ()) {
+        fprintf (stderr, "KERNEL>timer: Init Timer failure.\n");
+        return -1;
+    }
+
+#ifdef __AOS__
+    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_update_tick_count,
+                                         NULL, AOS_TIMER_TICKT,
+                                         OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
+#else /* __AOS__ */
+    {
+        sem_t wait;
+        sem_init (&wait, 0, 0);
+        pthread_create (&__mg_timer, NULL, TimerEntry, &wait);
+        sem_wait (&wait);
+        sem_destroy (&wait);
+    }
+#endif /* !__AOS__ */
+
+    return 0;
+}
+
+void mg_TerminateTimer (void)
+{
 #ifdef __AOS__
     tp_os_timer_delete (__mg_os_timer);
 #endif
 
-#ifndef _MGRM_THREADS
-    mg_UninstallIntervalTimer ();
-#else
-#   ifdef __WINBOND_SWLINUX__
+#ifdef __WINBOND_SWLINUX__
     pthread_detach (__mg_timer); /* XXX: Can we pthread_join()? */
-#   else
+#else
     pthread_join (__mg_timer, NULL);
-#   endif /* __WINBOND_SWLINUX__ */
+#endif /* __WINBOND_SWLINUX__ */
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    pthread_mutex_destroy (&timerLock);
 #endif
 
+#if 0   /* deprecated code */
+    /* Since 5.0.0, we allocate timer slots per thread, and manage the time slots
+       in message queue */
     for (i = 0; i < DEF_NR_TIMERS; i++) {
         if (timerstr[i] != NULL)
             free ( timerstr[i] );
         timerstr[i] = NULL;
     }
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_destroy (&timerLock);
 #endif
+#endif  /* deprecated code */
 }
 
-/************************* Functions run in desktop thread *******************/
-void mg_dispatch_timer_message (DWORD inter)
-{
-    int i;
+#else /* defined _MGRM_THREADS */
+#endif /* defined _MGRM_THREADS */
 
-    if (inter == 0)
-        return;
+/* Since 5.0.0, we use timer slots per thread, and manage the time slots
+   in message queue */
+static TIMER *timerstr[DEF_NR_TIMERS];
 
-    TIMER_LOCK ();
-
-    for (i=0; i<DEF_NR_TIMERS; i++) {
-        if (timerstr[i] && timerstr[i]->msg_queue) {
-            timerstr[i]->count += inter;
-            if (timerstr[i]->count >= timerstr[i]->speed) {
-#ifdef _MGRM_PROCESSES
-                timerstr[i]->tick_count = SHAREDRES_TIMER_COUNTER;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+/* lock for protecting timerstr */
+static pthread_mutex_t timerLock;
+#define TIMER_LOCK()   pthread_mutex_lock(&timerLock)
+#define TIMER_UNLOCK() pthread_mutex_unlock(&timerLock)
 #else
-                timerstr[i]->tick_count = __mg_timer_counter;
+#define TIMER_LOCK()
+#define TIMER_UNLOCK()
 #endif
-                /* setting timer flag is simple, we do not need to lock msgq,
-                   or else we may encounter dead lock here */
-                SetMsgQueueTimerFlag (timerstr[i]->msg_queue, i);
-                timerstr[i]->count -= timerstr[i]->speed;
-            }
-        }
-    }
 
-    TIMER_UNLOCK ();
-}
-
-/* thread safe, no mutex */
-TIMER* __mg_get_timer (int slot)
-{
-    if (slot < 0 || slot >= DEF_NR_TIMERS)
-        return NULL;
-
-    return timerstr[slot];
-}
-
-#if 0
 int __mg_get_timer_slot (HWND hWnd, int id)
 {
     int i;
@@ -336,16 +667,16 @@ void __mg_move_timer_last (TIMER* timer, int slot)
 
     if (timer && timer->msg_queue) {
         /* The following code is already called in message.c...
-         * timer->tick_count = 0;
-         * timer->msg_queue->TimerMask &= ~(0x01 << slot);
+         * timer->ticks_current = 0;
+         * timer->msg_queue->expired_timer_mask &= ~(0x01UL << slot);
          */
 
         if (slot != (DEF_NR_TIMERS - 1)) {
             TIMER* t;
 
-            if (timer->msg_queue->TimerMask & (0x01 << (DEF_NR_TIMERS -1))) {
-                timer->msg_queue->TimerMask |= (0x01 << slot);
-                timer->msg_queue->TimerMask &= ~(0x01 << (DEF_NR_TIMERS -1));
+            if (timer->msg_queue->expired_timer_mask & (0x01UL << (DEF_NR_TIMERS -1))) {
+                timer->msg_queue->expired_timer_mask |= (0x01UL << slot);
+                timer->msg_queue->expired_timer_mask &= ~(0x01UL << (DEF_NR_TIMERS -1));
             }
 
             t = timerstr [DEF_NR_TIMERS - 1];
@@ -357,251 +688,22 @@ void __mg_move_timer_last (TIMER* timer, int slot)
     TIMER_UNLOCK ();
     return;
 }
-#endif
 
-BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD speed,
-                TIMERPROC timer_proc)
+TIMER* __mg_get_timer (int slot)
 {
-    int i;
-    int slot = -1;
-    PMSGQUEUE pMsgQueue;
+    TIMER** timer_slots;
 
-    if (id == 0) {
-        _WRN_PRINTF ("KERNEL>Timer: bad identifier (%ld).\n", id);
-        return FALSE;
-    }
-
-    if (speed == 0) {
-        speed = 1;
-    }
-
-#ifdef _MGRM_THREADS
-    if (!(pMsgQueue = GetMsgQueueThisThread ())) {
-        _WRN_PRINTF ("KERNEL>Timer: Not a GUI thread.\n");
-        return FALSE;
-    }
-#else
-    pMsgQueue = __mg_dsk_msg_queue;
-#endif
-
-    TIMER_LOCK ();
-
-    /* Is there an empty timer slot? */
-    for (i=0; i<DEF_NR_TIMERS; i++) {
-        if (timerstr[i] == NULL) {
-            if (slot < 0)
-                slot = i;
-        }
-        else if (timerstr[i]->hWnd == hWnd && timerstr[i]->id == id) {
-            _WRN_PRINTF ("KERNEL>Timer: duplicated call to SetTimerEx (%p, %ld).\n", hWnd, id);
-            goto badret;
-        }
-    }
-
-    if (slot < 0 || slot == DEF_NR_TIMERS) {
-        _WRN_PRINTF ("KERNEL>Timer: No more slot for new timer (total: %d)\n", DEF_NR_TIMERS);
-        goto badret;
-    }
-
-    timerstr[slot] = malloc (sizeof (TIMER));
-
-    timerstr[slot]->speed = speed;
-    timerstr[slot]->hWnd = hWnd;
-    timerstr[slot]->id = id;
-    timerstr[slot]->count = 0;
-    timerstr[slot]->proc = timer_proc;
-    timerstr[slot]->tick_count = 0;
-    timerstr[slot]->msg_queue = pMsgQueue;
-
-#ifdef _MGRM_PROCESSES
-    if (!mgIsServer)
-        __mg_set_select_timeout (USEC_10MS * speed);
-#endif
-
-    TIMER_UNLOCK ();
-    return TRUE;
-
-badret:
-    TIMER_UNLOCK ();
-    return FALSE;
-}
-
-#ifdef _MGRM_PROCESSES
-static void reset_select_timeout (void)
-{
-    int i;
-
-    unsigned int speed = 0;
-    for (i=0; i<DEF_NR_TIMERS; i++) {
-        if (timerstr[i]) {
-            if (speed == 0 || timerstr[i]->speed < speed)
-                speed = timerstr[i]->speed;
-        }
-    }
-    __mg_set_select_timeout (USEC_10MS * speed);
-}
-
-#endif
-
-void __mg_remove_timer (TIMER* timer, int slot)
-{
     if (slot < 0 || slot >= DEF_NR_TIMERS)
-        return;
+        return NULL;
 
-    TIMER_LOCK ();
-
-    if (timer && timer->msg_queue && timerstr[slot] == timer) {
-        /* The following code is already moved to message.c...
-         * timer->msg_queue->TimerMask &= ~(0x01 << slot);
-         */
-        free (timerstr[slot]);
-        timerstr [slot] = NULL;
-
-#ifdef _MGRM_PROCESSES
-        if (!mgIsServer)
-            reset_select_timeout ();
-#endif
+    timer_slots = getTimerSlotsForThisThread (NULL);
+    if (timer_slots) {
+        return timer_slots[slot];
     }
 
-
-    TIMER_UNLOCK ();
-    return;
+    _WRN_PRINTF ("called for non message thread\n");
+    return NULL;
 }
 
-void mg_remove_timers_by_msg_queue (const MSGQUEUE* msg_que)
-{
-    int i;
-
-    TIMER_LOCK ();
-
-    for (i=0; i<DEF_NR_TIMERS; i++) {
-        if (timerstr [i] && timerstr[i]->msg_queue == msg_que) {
-            free (timerstr[i]);
-            timerstr [i] = NULL;
-        }
-    }
-
-    TIMER_UNLOCK ();
-}
-
-/* If id == 0, clear all timers of the window */
-int GUIAPI KillTimer (HWND hWnd, LINT id)
-{
-    int i;
-    PMSGQUEUE pMsgQueue;
-    int killed = 0;
-
-#ifdef _MGRM_THREADS
-    if (!(pMsgQueue = GetMsgQueueThisThread ()))
-        return 0;
-#else
-    pMsgQueue = __mg_dsk_msg_queue;
-#endif
-
-    TIMER_LOCK ();
-
-    for (i = 0; i < DEF_NR_TIMERS; i++) {
-        if ((timerstr [i] && timerstr [i]->hWnd == hWnd) &&
-                        (id == 0 || timerstr [i]->id == id)) {
-            RemoveMsgQueueTimerFlag (pMsgQueue, i);
-            free (timerstr[i]);
-            timerstr [i] = NULL;
-            killed ++;
-
-            if (id) break;
-        }
-    }
-
-#ifdef _MGRM_PROCESSES
-    if (!mgIsServer && killed)
-        reset_select_timeout ();
-#endif
-
-    TIMER_UNLOCK ();
-    return killed;
-}
-
-BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD speed,
-                TIMERPROC timer_proc)
-{
-    int i;
-    PMSGQUEUE pMsgQueue;
-
-    if (id == 0)
-        return FALSE;
-
-#ifdef _MGRM_THREADS
-    if (!(pMsgQueue = GetMsgQueueThisThread ()))
-        return FALSE;
-#else
-    pMsgQueue = __mg_dsk_msg_queue;
-#endif
-
-    TIMER_LOCK ();
-
-    for (i = 0; i < DEF_NR_TIMERS; i++) {
-      if (timerstr[i] && timerstr[i]->hWnd == hWnd && timerstr[i]->id == id) {
-        /* Should clear old timer flags */
-        RemoveMsgQueueTimerFlag (pMsgQueue, i);
-        timerstr[i]->speed = speed;
-        timerstr[i]->count = 0;
-        if (timer_proc != (TIMERPROC)INV_PTR)
-            timerstr[i]->proc = timer_proc;
-        timerstr[i]->tick_count = 0;
-
-        TIMER_UNLOCK ();
-        return TRUE;
-      }
-    }
-
-    TIMER_UNLOCK ();
-    return FALSE;
-}
-
-BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
-{
-    int i;
-
-    if (id == 0)
-        return FALSE;
-
-    TIMER_LOCK ();
-
-    for (i = 0; i < DEF_NR_TIMERS; i++) {
-        if ( timerstr[i] != NULL ) {
-            if ( timerstr[i]->hWnd == hWnd && timerstr[i]->id == id) {
-                TIMER_UNLOCK ();
-                return TRUE;
-            }
-        }
-    }
-
-    TIMER_UNLOCK ();
-    return FALSE;
-}
-
-/* no lock is ok */
-BOOL GUIAPI HaveFreeTimer (void)
-{
-    int i;
-
-    for (i=0; i<DEF_NR_TIMERS; i++) {
-        if (timerstr[i] == NULL)
-            return TRUE;
-    }
-
-    return FALSE;
-}
-
-DWORD GUIAPI GetTickCount (void)
-{
-#ifdef _MGRM_PROCESSES
-    return SHAREDRES_TIMER_COUNTER;
-#elif defined(_MGRM_STANDALONE)
-    __mg_timer_counter = __mg_os_get_time_ms()/10;
-    return __mg_timer_counter;
-#else
-    return __mg_timer_counter;
-#endif
-}
+#endif  /* deprecated code */
 

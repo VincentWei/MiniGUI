@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -68,13 +68,13 @@ Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -124,7 +124,7 @@ ICEILTEMPDECL
 /*
  * some interesting sematic interpretation of the protocol:
  *
- * Self intersecting arcs (i.e. those spanning 360 degrees) 
+ * Self intersecting arcs (i.e. those spanning 360 degrees)
  *  never join with other arcs, and are drawn without caps
  *  (unless on/off dashed, in which case each dash segment
  *  is capped, except when the last segment meets the
@@ -215,7 +215,7 @@ typedef struct _miArcJoin {
 
 typedef struct _miArcCap {
     int arcIndex;
-    int end;                
+    int end;
 } miArcCapRec, *miArcCapPtr;
 
 typedef struct _miArcFace {
@@ -412,7 +412,7 @@ of the two quadratics
 
 y^2 + ((b+A)/2)y + (Z + (bZ - d)/A) = 0
 
-where 
+where
 
 A = +/- sqrt(8Z + b^2 - 4c)
 b, c, d are the cubic, quadratic, and linear coefficients of the quartic
@@ -457,7 +457,7 @@ int miFreeArcCache (void* data, unsigned int id)
 }
 #endif
 
-void mg_miFreeArcCache (void){
+void miFreeArcCache (void){
     int k;
     arcCacheRec *cent;
 
@@ -569,7 +569,7 @@ static void miComputeEllipseSpans (int lw, miArc *parc, miArcSpanData *spdata)
 
     spdata->count1 = 0;
     spdata->count2 = 0;
-    spdata->hole = (spdata->top && (int)parc->height * lw <= (int)(parc->width * parc->width) 
+    spdata->hole = (spdata->top && (int)parc->height * lw <= (int)(parc->width * parc->width)
                         && lw < (int)parc->height);
 
     for (; K > 0.0; K -= 1.0) {
@@ -657,7 +657,7 @@ static void miComputeEllipseSpans (int lw, miArc *parc, miArcSpanData *spdata)
 
                 if (rs - (t * t) >= 0)
                    t = sqrt(rs - (t * t));
-                else 
+                else
                    t = 0;
 
                 if (flip == 1)
@@ -888,7 +888,7 @@ static miArcSpanData * miComputeWideEllipse (int lw, miArc *parc, BOOL *mustFree
             cacheType = CreateNewResourceType(miFreeArcCache);
             (void) AddResource(FakeClientID(0), cacheType, NULL);
         }
-#endif        
+#endif
     } else {
         lruent = &fakeent;
         lruent->spdata = NULL;
@@ -1063,7 +1063,7 @@ void miPolyArc (PDC pdc, int narcs, miArc *parcs)
             while (parcs->width && parcs->height &&
                    (parcs->angle2 >= FULLCIRCLE ||
                     parcs->angle2 <= -FULLCIRCLE)) {
-                
+
                 miFillWideEllipse (pdc, parcs);
                 if (!--narcs)
                     return;
@@ -1176,7 +1176,7 @@ void miPolyArc (PDC pdc, int narcs, miArc *parcs)
 static double angleBetween (SppPointRec center, SppPointRec point1, SppPointRec point2)
 {
         double        a1, a2, a;
-        
+
         /*
          * reflect from X coordinates back to ellipse
          * coordinates -- y increasing upwards
@@ -1219,7 +1219,7 @@ static void miArcJoin (PDC pdc, miArcFacePtr pLeft, miArcFacePtr pRight,
         double                a;
         double                ae, ac2, ec2, bc2, de;
         double                width;
-        
+
         xOrg = (xOrgRight + xOrgLeft) / 2;
         yOrg = (yOrgRight + yOrgLeft) / 2;
         xFtrans = (xFtransLeft + xFtransRight) / 2;
@@ -1356,7 +1356,7 @@ static void miArcCap (PDC pdc, miArcFacePtr pFace, int end, int xOrg, int yOrg, 
 /* MIROUNDCAP -- a private helper function
  * Put Rounded cap on end. pCenter is the center of this end of the line
  * pEnd is the center of the other end of the line. pCorner is one of the
- * two corners at this end of the line.  
+ * two corners at this end of the line.
  * NOTE:  pOtherCorner must be counter-clockwise from pCorner.
  */
 /*ARGSUSED*/
@@ -1488,7 +1488,7 @@ static double miDatan2 (double dy, double dx)
  * array. (For example, if we want to leave a spare point to make sectors
  * instead of segments.)  So we pass in the malloc()ed chunk that contains the
  * array and an index saying where we should start stashing the points.
- * If there isn't an array already, we just pass in a null pointer and 
+ * If there isn't an array already, we just pass in a null pointer and
  * count on realloc() to handle the null pointer correctly.
  *
  *  parc:   points to an arc
@@ -1509,10 +1509,10 @@ static int miGetArcPts (SppArcPtr parc, int cpt, SppPointPtr *ppPts)
     SppPointPtr poly;
 
     /* The spec says that positive angles indicate counterclockwise motion.
-     * Given our coordinate system (with 0,0 in the upper left corner), 
+     * Given our coordinate system (with 0,0 in the upper left corner),
      * the screen appears flipped in Y.  The easiest fix is to negate the
      * angles given */
-    
+
     st = - parc->angle1;
 
     et = - parc->angle2;
@@ -1532,7 +1532,7 @@ static int miGetArcPts (SppArcPtr parc, int cpt, SppPointPtr *ppPts)
     dt = miDasin ( 1.0 / cdt ); /* minimum step necessary */
     count = et/dt;
     count = abs(count) + 1;
-    dt = et/count;        
+    dt = et/count;
     count++;
 
     cdt = 2 * miDcos(dt);
@@ -1543,7 +1543,7 @@ static int miGetArcPts (SppArcPtr parc, int cpt, SppPointPtr *ppPts)
 
     xc = parc->width/2.0;                /* store half width and half height */
     yc = parc->height/2.0;
-    
+
     x0 = xc * miDcos(st);
     y0 = yc * miDsin(st);
     x1 = xc * miDcos(st + dt);
@@ -1609,7 +1609,7 @@ static void addCap (miArcCapPtr* capsp, int* ncapsp, int* sizep, int end, int ar
     ++*ncapsp;
 }
 
-static void addJoin (miArcJoinPtr* joinsp, int* njoinsp, int* sizep, 
+static void addJoin (miArcJoinPtr* joinsp, int* njoinsp, int* sizep,
                 int end0, int index0, int phase0, int end1, int index1, int phase1)
 {
     int newsize;
@@ -1828,7 +1828,7 @@ static miPolyArcPtr miComputeArcs (miArc *parcs, int narcs, PDC pdc)
             arcTypes        arcType = OTHER;
             Uint16          thisLength;
 
-            if (parcs[i].height == 0 && (parcs[i].angle1 % FULLCIRCLE) == 0x2d00 && parcs[i].angle2 == 0x2d00) 
+            if (parcs[i].height == 0 && (parcs[i].angle1 % FULLCIRCLE) == 0x2d00 && parcs[i].angle2 == 0x2d00)
                 arcType = HORIZONTAL;
             else if (parcs[i].width == 0 && (parcs[i].angle1 % FULLCIRCLE) == 0x1680 && parcs[i].angle2 == 0x2d00)
                 arcType = VERTICAL;
@@ -1885,7 +1885,7 @@ static miPolyArcPtr miComputeArcs (miArc *parcs, int narcs, PDC pdc)
                             dashAngle++;
                     }
                 } else {
-                    thisLength = (dashAngle + dashRemaining <= endAngle) ? 
+                    thisLength = (dashAngle + dashRemaining <= endAngle) ?
                         dashRemaining : endAngle - dashAngle;
 
                     if (arcType == VERTICAL) {
@@ -2116,7 +2116,7 @@ static double angleToLength (int angle, dashMap* map)
         }
         if (oddSide)
                 angle = 90 * 64 - angle;
-                
+
         di = xAngleToDashIndex (angle);
         excess = angle - dashIndexToXAngle (di);
 
@@ -2281,7 +2281,7 @@ static void drawZeroArc (PDC pdc, miArc* tarc, int lw, miArcFacePtr left, miArcF
          */
         startAngle = - ((double) a0 / 64.0);
         endAngle = - ((double) (a0 + a1) / 64.0);
-        
+
         xmax = -w;
         xmin = w;
         ymax = -h;
@@ -2352,7 +2352,7 @@ static void drawZeroArc (PDC pdc, miArc* tarc, int lw, miArcFacePtr left, miArcF
             left->counterClock.x = x1 - lx;
             left->counterClock.y = y1 - ly;
         }
-        
+
         x0 = xmin;
         x1 = xmax;
         y0 = ymin;
@@ -2476,13 +2476,13 @@ static void computeAcc (miArc* tarc, int lw, struct arc_def* def, struct acceler
     acc->yorgl = acc->yorgu + (tarc->height & 1);
     tailEllipseY (def, acc);
 }
-                
+
 /*
  * compute y value bounds of various portions of the arc,
  * the outer edge, the ellipse and the inner edge.
  */
 
-static void computeBound (struct arc_def* def, struct arc_bound* bound, 
+static void computeBound (struct arc_def* def, struct arc_bound* bound,
                 struct accelerators* acc, miArcFacePtr right, miArcFacePtr left)
 {
         double       t;
@@ -2510,7 +2510,7 @@ static void computeBound (struct arc_def* def, struct arc_bound* bound,
         outerx.max = outerXfromXY (ellipsex.max, bound->ellipse.max, def, acc);
         innerx.min = innerXfromXY (ellipsex.min, bound->ellipse.min, def, acc);
         innerx.max = innerXfromXY (ellipsex.max, bound->ellipse.max, def, acc);
-        
+
         /*
          * save the line end points for the
          * cap code to use.  Careful here, these are
@@ -2569,7 +2569,7 @@ static void computeBound (struct arc_def* def, struct arc_bound* bound,
 }
 
 /*
- * this section computes the x value of the span at y 
+ * this section computes the x value of the span at y
  * intersected with the specified face of the ellipse.
  *
  * this is the min/max X value over the set of normal
@@ -2582,7 +2582,7 @@ static void computeBound (struct arc_def* def, struct arc_bound* bound,
  *
  * compute the derivative with-respect-to ellipse_y and solve
  * for zero:
- *    
+ *
  *       (w^2 - h^2) ellipse_y^3 + h^4 y
  * 0 = - ----------------------------------
  *       h w ellipse_y^2 sqrt (h^2 - ellipse_y^2)
@@ -2609,7 +2609,7 @@ static void computeBound (struct arc_def* def, struct arc_bound* bound,
  *
  * or (to use accelerators),
  *
- * y0^3 (h^2 - w^2) - h^2 y (3y0^2 - 2h^2) 
+ * y0^3 (h^2 - w^2) - h^2 y (3y0^2 - 2h^2)
  *
  */
 
@@ -2639,7 +2639,7 @@ static double hookEllipseY (double scan_y, struct arc_bound* bound, struct accel
  * given scan line with the right side of the lower hook
  */
 
-static double hookX (double scan_y, struct arc_def *def, 
+static double hookX (double scan_y, struct arc_def *def,
                 struct arc_bound *bound, struct accelerators *acc, int left)
 {
         double ellipse_y, x;
@@ -2691,7 +2691,7 @@ static double hookX (double scan_y, struct arc_def *def,
  * the given y coordinate
  */
 
-static void arcSpan (int y, int lx, int lw, int rx, int rw, 
+static void arcSpan (int y, int lx, int lw, int rx, int rw,
                 struct arc_def *def, struct arc_bound *bounds, struct accelerators *acc, int mask)
 {
     int linx, loutx, rinx, routx;
@@ -2752,7 +2752,7 @@ static void arcSpan (int y, int lx, int lw, int rx, int rw,
     }
 }
 
-static void arcSpan0 (int lx, int lw, int rx, int rw, 
+static void arcSpan0 (int lx, int lw, int rx, int rw,
                 struct arc_def *def, struct arc_bound *bounds, struct accelerators* acc, int mask)
 {
     double x;
@@ -2772,7 +2772,7 @@ static void arcSpan0 (int lx, int lw, int rx, int rw,
     arcSpan (0, lx, lw, rx, rw, def, bounds, acc, mask);
 }
 
-static void tailSpan (int y, int lw, int rw, 
+static void tailSpan (int y, int lw, int rw,
                 struct arc_def* def, struct arc_bound* bounds, struct accelerators* acc, int mask)
 {
     double yy, xalt, x, lx, rx;
@@ -2834,11 +2834,13 @@ struct finalSpan {
 
 static struct finalSpan  *freeFinalSpans, *tmpFinalSpan;
 
-# define allocFinalSpan()   (freeFinalSpans ?\
-                                ((tmpFinalSpan = freeFinalSpans), \
-                                 (freeFinalSpans = freeFinalSpans->next), \
-                                 (tmpFinalSpan->next = 0), \
-                                 tmpFinalSpan) : \
+static struct finalSpan *realAllocSpan (void);
+
+# define allocFinalSpan()   (freeFinalSpans ?                               \
+                                ((tmpFinalSpan = freeFinalSpans),           \
+                                 (freeFinalSpans = freeFinalSpans->next),   \
+                                 (tmpFinalSpan->next = 0),                  \
+                                 tmpFinalSpan) :                            \
                              realAllocSpan ())
 
 # define SPAN_CHUNK_SIZE    128
@@ -2850,7 +2852,7 @@ struct finalSpanChunk {
 
 static struct finalSpanChunk* chunks;
 
-struct finalSpan * realAllocSpan (void)
+static struct finalSpan * realAllocSpan (void)
 {
         register struct finalSpanChunk        *newChunk;
         register struct finalSpan        *span;
@@ -3094,7 +3096,7 @@ static void drawArc (miArc *tarc, int l, int a0, int a1, miArcFacePtr right, miA
         }                   band[5], sweep[20];
         int                 bandno, sweepno;
         int                 i, j;
-        int                 flipRight = 0, flipLeft = 0;                        
+        int                 flipRight = 0, flipLeft = 0;
         int                 copyEnd = 0;
         miArcSpanData       *spdata;
         BOOL                mustFree;
@@ -3272,7 +3274,7 @@ static void drawArc (miArc *tarc, int l, int a0, int a1, miArcFacePtr right, miA
                                 flipLeft = 1;
                         }
                 }
-                drawQuadrant (&def, &acc, sweep[j].a0, sweep[j].a1, mask, 
+                drawQuadrant (&def, &acc, sweep[j].a0, sweep[j].a1, mask,
                                passRight, passLeft, spdata);
         }
         /*
@@ -3315,7 +3317,7 @@ static void drawArc (miArc *tarc, int l, int a0, int a1, miArcFacePtr right, miA
             free(spdata);
 }
 
-static void drawQuadrant (struct arc_def* def, struct accelerators* acc, 
+static void drawQuadrant (struct arc_def* def, struct accelerators* acc,
                 int a0, int a1, int mask, miArcFacePtr right, miArcFacePtr left, miArcSpanData* spdata)
 {
         struct arc_bound        bound;

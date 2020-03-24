@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -230,7 +230,7 @@ char * __mg_msgstr11 [] =
 char * __mg_msgstr2 [] =
 {
     "MSG_SHOWWINDOW",        // 0x00A0
-    "",                      // 0x00A1
+    "MSG_MOVEWINDOW",        // 0x00A1
     "",                      // 0x00A2
     "",                      // 0x00A3
     "",                      // 0x00A4
@@ -267,7 +267,7 @@ char * __mg_msgstr2 [] =
     "MSG_QUERYENDSESSION",   // 0x00C1
     "MSG_ENDSESSION",        // 0x00C2
     "MSG_REINITSESSION",     // 0x00C3
-    "",                      // 0x00C4
+    "MSG_REINITDESKOPS",     // 0x00C4
     "",                      // 0x00C5
     "",                      // 0x00C6
     "",                      // 0x00C7
@@ -335,10 +335,10 @@ char * __mg_msgstr2 [] =
     "MSG_ISENABLED",         // 0x0101
     "MSG_SETWINCURSOR",      // 0x0102
     "MSG_GETNEXTMAINWIN",    // 0x0103
-    "",                      // 0x0104
-    "",                      // 0x0105
-    "",                      // 0x0106
-    "",                      // 0x0107
+    "MSG_SETALWAYSTOP",      // 0x0104
+    "MSG_SETCOMPOSITING",    // 0x0105
+    "MSG_DUMPZORDER",        // 0x0106
+    "MSG_SETAUTOREPEAT",     // 0x0107
     "",                      // 0x0108
     "",                      // 0x0109
     "MSG_SHOWGLOBALCTRL",    // 0x010A
@@ -346,7 +346,7 @@ char * __mg_msgstr2 [] =
     "",                      // 0x010C
     "",                      // 0x010D
     "",                      // 0x010E
-    ""                       // 0x010F
+    "MSG_SETWINDOWMASK"      // 0x010F
 };
 
 // message string, Group 3: 0x00120 ~ 0x017F
@@ -375,7 +375,7 @@ char * __mg_msgstr3 [] =
     "MSG_GETTEXT",            // 0x0133
     "MSG_SETTEXT",            // 0x0134
     "MSG_ENABLE",             // 0x0135
-    "",                       // 0x0136
+    "MSG_NOTIFICATION",       // 0x0136
     "",                       // 0x0137
     "",                       // 0x0138
     "",                       // 0x0139
@@ -393,11 +393,11 @@ char * __mg_msgstr3 [] =
     "MSG_TIMER",              // 0x0144
     "MSG_CARETBLINK",         // 0x0145
     "MSG_FDEVENT",            // 0x0146
-    "",                       // 0x0147
-    "",                       // 0x0148
-    "",                       // 0x0149
-    "",                       // 0x014A
-    "",                       // 0x014B
+    "MSG_SRVNOTIFY",          // 0x0147
+    "MSG_UPDATECLIWIN",       // 0x0148
+    "MSG_LAYERCHANGED",       // 0x0149
+    "MSG_MANAGE_MSGTHREAD",   // 0x014A
+    "MSG_CALC_POSITION",      // 0x014B
     "",                       // 0x014C
     "",                       // 0x014D
     "",                       // 0x014E
@@ -433,9 +433,9 @@ char * __mg_msgstr3 [] =
     "MSG_REMOVECTRLINSTANCE", // 0x016A
     "MSG_GETCTRLCLASSINFO",   // 0x016B
     "MSG_CTRLCLASSDATAOP",    // 0x016C
-    "MSG_REGISTERKEYHOOK",    // 0x016D
-    "MSG_REGISTERMOUSEHOOK",  // 0x016E
-    "",                       // 0x016F
+    "MSG_REGISTERHOOKFUNC",   // 0x016D
+    "MSG_REGISTERHOOKWIN",    // 0x016E
+    "MSG_UNREGISTERHOOKWIN",  // 0x016F
 
     "MSG_INITMENU",           // 0x0170
     "MSG_INITMENUPOPUP",      // 0x0171

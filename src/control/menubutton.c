@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -76,7 +76,7 @@
 
 #define _INTER_BARTEXT   4
 
-static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, 
+static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam,
                 LPARAM lParam);
 
 BOOL RegisterMenuButtonControl (void)
@@ -87,18 +87,23 @@ BOOL RegisterMenuButtonControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor    = 
-        GetWindowElementPixel (HWND_NULL, WE_MAINC_THREED_BODY);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL,
+            WE_MAINC_THREED_BODY);
+#else
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_NULL,
+            HDC_SCREEN, WE_MAINC_THREED_BODY);
+#endif
     WndClass.WinProc     = MenuButtonCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 static BOOL mbInitMenuButtonData (MENUBTNDATA* mb_data, int len)
 {
     int i;
     PMBITEM pmbi;
-    
+
     mb_data->str_cmp = strncmp;
 
     mb_data->cur_sel = MB_INV_ITEM;
@@ -139,7 +144,7 @@ static void mbMenuButtonCleanUp (MENUBTNDATA* mb_data)
 
         pmbi = next;
     }
-    
+
     free (mb_data->buff_head);
 }
 
@@ -186,7 +191,7 @@ static PMBITEM mbAllocItem (PMENUBTNDATA mb_data)
     }
     else
         pmbi = (PMBITEM) malloc (sizeof (MBITEM));
-    
+
     return pmbi;
 }
 
@@ -200,7 +205,7 @@ static void mbFreeItem (PMENUBTNDATA mb_data, PMBITEM pmbi)
     }
 }
 
-static int mbAddNewItem (DWORD dwStyle, 
+static int mbAddNewItem (DWORD dwStyle,
         PMENUBTNDATA mb_data, PMBITEM newItem, int pos)
 {
     PMBITEM pmbi;
@@ -219,10 +224,10 @@ static int mbAddNewItem (DWORD dwStyle,
         }
         else {
             while (pmbi->next) {
-                if (mb_data->str_cmp (newItem->text, pmbi->next->text, 
+                if (mb_data->str_cmp (newItem->text, pmbi->next->text,
                                     (size_t)-1) <= 0)
                     break;
-            
+
                 pmbi = pmbi->next;
                 insPos ++;
             }
@@ -493,7 +498,7 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
 {
     PMENUBTNDATA mb_data;
     WINDOWINFO  *wnd_info;
-    
+
     wnd_info = (WINDOWINFO*)GetWindowInfo (hWnd);
     if (wnd_info == NULL)
     return -1;
@@ -509,13 +514,13 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
             return -1;
         }
         break;
-       
+
     case MSG_DESTROY:
         mb_data = (PMENUBTNDATA)GetWindowAdditionalData2 (hWnd);
         mbMenuButtonCleanUp (mb_data);
         free (mb_data);
         break;
-        
+
     case MBM_SETSTRCMPFUNC:
         mb_data = (PMENUBTNDATA)GetWindowAdditionalData2 (hWnd);
         if (mb_data->item_count == 0 && lParam) {
@@ -533,7 +538,7 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
 #if _USE_FIXSTR
         int len;
 #endif
-        
+
         mb_data = (PMENUBTNDATA)GetWindowAdditionalData2 (hWnd);
         newItem = mbAllocItem (mb_data);
         if (!newItem) {
@@ -567,13 +572,13 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
             newItem->text = "";
         }
 #endif
-        
+
         newItem->bmp  = want->bmp;
         newItem->data = want->data;
         pos = mbAddNewItem (style, mb_data, newItem, (int)wParam);
         return pos;
     }
-        
+
     case MBM_DELITEM:
     {
         PMBITEM removed;
@@ -609,11 +614,11 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
         mbResetMenuButtonContent (mb_data);
         InvalidateRect (hWnd, NULL, TRUE);
         return MB_OKAY;
-        
+
     case MBM_GETCURITEM:
         mb_data = (PMENUBTNDATA)GetWindowAdditionalData2 (hWnd);
         return mb_data->cur_sel;
-        
+
     case MBM_SETCURITEM:
     {
         int old, new;
@@ -627,7 +632,7 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
         }
 
         return old;
-    } 
+    }
 
     case MBM_SETITEMDATA:
     {
@@ -703,11 +708,11 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
                 NotifyParent (hWnd, GetDlgCtrlID (hWnd), MBN_STARTMENU);
         }
         break;
-        
+
     case MSG_LBUTTONDOWN:
         SetCapture (hWnd);
         break;
-            
+
     case MSG_LBUTTONUP:
     {
         int x, y;
@@ -772,7 +777,7 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
         BITMAP* bmp;
         DWORD fg_color;
         gal_pixel fc;
-        
+
         mb_data = (PMENUBTNDATA)GetWindowAdditionalData2 (hWnd);
         mbGetRects (hWnd, dwStyle,
                         &rcClient, &rcText, &rcMenuBar);
@@ -790,10 +795,10 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
         hdc = BeginPaint (hWnd);
         if (!(dwStyle & MBS_NOBUTTON)){
             fg_color = GetWindowElementAttr (hWnd, WE_MAINC_THREED_BODY);
-            
+
             if (dwExStyle & WS_EX_TRANSPARENT)
                 wnd_info->we_rdr->draw_3dbox (hdc, &rcClient, fg_color,0);
-            else 
+            else
                 wnd_info->we_rdr->draw_3dbox (hdc, &rcClient, fg_color,
                         LFRDR_3DBOX_FILLED);
         }
@@ -810,8 +815,8 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
             }
 
             if (dwStyle & MBS_LEFTARROW) {
-                FillBoxWithBitmapPart (hdc,  
-                            rcMenuBar.right + _INTER_BARTEXT, 
+                FillBoxWithBitmapPart (hdc,
+                            rcMenuBar.right + _INTER_BARTEXT,
                             top,
                             bmp->bmWidth,
                             height,
@@ -820,17 +825,17 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
                             0,
                             0);
                 /*
-                FillBoxWithBitmap (hdc, 
-                            rcMenuBar.right + _INTER_BARTEXT, 
-                            //(rcText.top + rcText.bottom - bmp->bmHeight) >> 1, 
+                FillBoxWithBitmap (hdc,
+                            rcMenuBar.right + _INTER_BARTEXT,
+                            //(rcText.top + rcText.bottom - bmp->bmHeight) >> 1,
                             top,
                             0, 0, bmp);
                             */
                 rcText.left += bmp->bmWidth + _INTER_BARTEXT;
             }
             else {
-                FillBoxWithBitmapPart (hdc,  
-                            rcMenuBar.left - _INTER_BARTEXT -  bmp->bmWidth, 
+                FillBoxWithBitmapPart (hdc,
+                            rcMenuBar.left - _INTER_BARTEXT -  bmp->bmWidth,
                             top,
                             bmp->bmWidth,
                             height,
@@ -839,9 +844,9 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
                             0,
                             0);
                 /*
-                FillBoxWithBitmap (hdc, 
-                            rcMenuBar.left - _INTER_BARTEXT -  bmp->bmWidth, 
-                            (rcText.top + rcText.bottom - bmp->bmHeight) >> 1, 
+                FillBoxWithBitmap (hdc,
+                            rcMenuBar.left - _INTER_BARTEXT -  bmp->bmWidth,
+                            (rcText.top + rcText.bottom - bmp->bmHeight) >> 1,
                             0, 0, bmp);
                             */
                 rcText.right -= bmp->bmWidth + _INTER_BARTEXT;
@@ -866,12 +871,12 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
             SetBkMode (hdc, BM_TRANSPARENT);
 
             if (dwStyle & WS_DISABLED) {
-                wnd_info->we_rdr->disabled_text_out (hWnd, hdc, text, &rcText, 
+                wnd_info->we_rdr->disabled_text_out (hWnd, hdc, text, &rcText,
                                 uFormat);
             }
             else {
                 fg_color = GetWindowElementAttr (hWnd, WE_FGC_WINDOW);
-                fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color), 
+                fc = RGBA2Pixel (hdc, GetRValue(fg_color), GetGValue(fg_color),
                                GetBValue(fg_color), GetAValue(fg_color));
                 SetTextColor (hdc, fc);
                 DrawText (hdc, text, -1, &rcText, uFormat);
@@ -879,11 +884,11 @@ static LRESULT MenuButtonCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARA
         }
 
         fg_color = GetWindowElementAttr (hWnd, WE_FGC_THREED_BODY);
-        wnd_info->we_rdr->draw_arrow (hWnd, hdc, &rcMenuBar, 
+        wnd_info->we_rdr->draw_arrow (hWnd, hdc, &rcMenuBar,
                 fg_color, LFRDR_ARROW_DOWN);
 
         EndPaint (hWnd, hdc);
-          
+
         return 0;
     }
 

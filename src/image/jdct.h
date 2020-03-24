@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -57,9 +57,9 @@
  */
 
 #if BITS_IN_JSAMPLE == 8
-typedef int DCTELEM;		/* 16 or 32 bits is fine */
+typedef int DCTELEM;        /* 16 or 32 bits is fine */
 #else
-typedef INT32 DCTELEM;		/* must have 32 bits */
+typedef INT32 DCTELEM;        /* must have 32 bits */
 #endif
 
 typedef JMETHOD(void, forward_DCT_method_ptr, (DCTELEM * data));
@@ -87,10 +87,10 @@ typedef INT32 ISLOW_MULT_TYPE; /* short or int, whichever is faster */
 
 #if BITS_IN_JSAMPLE == 8
 typedef INT16 IFAST_MULT_TYPE; /* 16 bits is OK, use short if faster */
-#define IFAST_SCALE_BITS  2	/* fractional bits in scale factors */
+#define IFAST_SCALE_BITS  2    /* fractional bits in scale factors */
 #else
-typedef INT32 IFAST_MULT_TYPE;	/* need 32 bits for scaled quantizers */
-#define IFAST_SCALE_BITS  13	/* fractional bits in scale factors */
+typedef INT32 IFAST_MULT_TYPE;    /* need 32 bits for scaled quantizers */
+#define IFAST_SCALE_BITS  13    /* fractional bits in scale factors */
 #endif
 
 typedef FAST_FLOAT FLOAT_MULT_TYPE; /* preferred floating type */
@@ -118,22 +118,22 @@ EXTERN(void) jpeg_fdct_float JPP((FAST_FLOAT * data));
 
 EXTERN(void) jpeg_idct_islow
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
-	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
+     JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
 EXTERN(void) jpeg_idct_ifast
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
-	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
+     JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
 EXTERN(void) jpeg_idct_float
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
-	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
+     JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
 EXTERN(void) jpeg_idct_4x4
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
-	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
+     JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
 EXTERN(void) jpeg_idct_2x2
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
-	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
+     JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
 EXTERN(void) jpeg_idct_1x1
     JPP((j_decompress_ptr cinfo, jpeg_component_info * compptr,
-	 JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
+     JCOEFPTR coef_block, JSAMPARRAY output_buf, JDIMENSION output_col));
 
 
 /*
@@ -146,7 +146,7 @@ EXTERN(void) jpeg_idct_1x1
  * and may differ from one module to the next.
  */
 
-#define ONE	((INT32) 1)
+#define ONE    ((INT32) 1)
 #define CONST_SCALE (ONE << CONST_BITS)
 
 /* Convert a positive real constant to an integer scaled by CONST_SCALE.
@@ -154,7 +154,7 @@ EXTERN(void) jpeg_idct_1x1
  * thus causing a lot of useless floating-point operations at run time.
  */
 
-#define FIX(x)	((INT32) ((x) * CONST_SCALE + 0.5))
+#define FIX(x)    ((INT32) ((x) * CONST_SCALE + 0.5))
 
 /* Descale and correctly round an INT32 value that's scaled by N bits.
  * We assume RIGHT_SHIFT rounds towards minus infinity, so adding
@@ -172,23 +172,23 @@ EXTERN(void) jpeg_idct_1x1
  * correct combination of casts.
  */
 
-#ifdef SHORTxSHORT_32		/* may work if 'int' is 32 bits */
+#ifdef SHORTxSHORT_32        /* may work if 'int' is 32 bits */
 #define MULTIPLY16C16(var,const)  (((INT16) (var)) * ((INT16) (const)))
 #endif
-#ifdef SHORTxLCONST_32		/* known to work with Microsoft C 6.0 */
+#ifdef SHORTxLCONST_32        /* known to work with Microsoft C 6.0 */
 #define MULTIPLY16C16(var,const)  (((INT16) (var)) * ((INT32) (const)))
 #endif
 
-#ifndef MULTIPLY16C16		/* default definition */
+#ifndef MULTIPLY16C16        /* default definition */
 #define MULTIPLY16C16(var,const)  ((var) * (const))
 #endif
 
 /* Same except both inputs are variables. */
 
-#ifdef SHORTxSHORT_32		/* may work if 'int' is 32 bits */
+#ifdef SHORTxSHORT_32        /* may work if 'int' is 32 bits */
 #define MULTIPLY16V16(var1,var2)  (((INT16) (var1)) * ((INT16) (var2)))
 #endif
 
-#ifndef MULTIPLY16V16		/* default definition */
+#ifndef MULTIPLY16V16        /* default definition */
 #define MULTIPLY16V16(var1,var2)  ((var1) * (var2))
 #endif

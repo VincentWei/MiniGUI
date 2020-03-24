@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -70,14 +70,14 @@ static char *bmp_file[5] = { "11.bmp", "22.bmp", "33.bmp", "44.bmp", "55.bmp"};
 
 /**
  * CalcXYBannedRects:
- *   this function calculates x-y-banned rectangles of MYBITMAP 
+ *   this function calculates x-y-banned rectangles of MYBITMAP
  *   which is 8 bits per pixels.
  *
  * param hwnd           : the window handle
  * param new_mask       : MYBITMAP with 8 bits per pixels
  * param rect_size(out) : number of the x-y-banned rectangles
  *
- * return               : return NULL on failure, return the x-y-banned 
+ * return               : return NULL on failure, return the x-y-banned
  *                        rectangles on success.
  *
  * note                 : You are responsible to free the x-y-banned rectangles
@@ -89,11 +89,11 @@ static char *bmp_file[5] = { "11.bmp", "22.bmp", "33.bmp", "44.bmp", "55.bmp"};
 #define XYBANNED_RECT_NR_INIT   10
 #define XYBANNED_RECT_NR_INC    10
 
-static RECT * CalcXYBannedRects (HWND hwnd, 
+static RECT * CalcXYBannedRects (HWND hwnd,
         const MYBITMAP * new_mask, int * rect_size)
 {
     Uint32 x, y;
-    Uint8 bitspp; 
+    Uint8 bitspp;
     int max_index, max_calloced_nr;
     int prev_pos_from, prev_pos_to, next_pos_from, next_pos_to;
     int combined_index, i;
@@ -167,7 +167,7 @@ static RECT * CalcXYBannedRects (HWND hwnd,
                 if (max_index >= max_calloced_nr)
                 {
                     max_calloced_nr += XYBANNED_RECT_NR_INC;
-                    xybanned_rects = (RECT *) realloc (xybanned_rects, 
+                    xybanned_rects = (RECT *) realloc (xybanned_rects,
                             max_calloced_nr * sizeof (RECT));
                     if (!xybanned_rects)
                     {
@@ -255,7 +255,7 @@ static RECT * CalcXYBannedRects (HWND hwnd,
                         if (max_index >= max_calloced_nr)
                         {
                             max_calloced_nr += XYBANNED_RECT_NR_INC;
-                            xybanned_rects = (RECT *) realloc (xybanned_rects, 
+                            xybanned_rects = (RECT *) realloc (xybanned_rects,
                                     max_calloced_nr * sizeof (RECT));
                             if (!xybanned_rects)
                             {
@@ -275,7 +275,7 @@ static RECT * CalcXYBannedRects (HWND hwnd,
                         if (!combined)
                         {
                             combined = TRUE;
-                            next_pos_from = combined_index; 
+                            next_pos_from = combined_index;
                         }
                         else
                         {
@@ -287,7 +287,7 @@ static RECT * CalcXYBannedRects (HWND hwnd,
             }
 
         }// for (x = 0; x < new_mask->w; ++x)
-        
+
         /** adjust the minimum and maximum index */
 
         if ((section.y == 0) && (section.x == 0))
@@ -315,7 +315,7 @@ static int LoadMyBmpWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
     int i;
     int nr_rect;
     RECT *rc_list;
-    switch (message) 
+    switch (message)
     {
         case MSG_CREATE:
             {
@@ -323,9 +323,9 @@ static int LoadMyBmpWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
                 region = CreateClipRgn();
 
                 CreateWindow(CTRL_BUTTON, "Start",
-                        WS_VISIBLE | BS_DEFPUSHBUTTON, 
+                        WS_VISIBLE | BS_DEFPUSHBUTTON,
                         ID_NEXT,
-                        270, 310, 60, 30, 
+                        270, 310, 60, 30,
                         hWnd, 0);
 
                 if (LoadMyBitmap (&mybmp, pal, bmp_file[loop]))
@@ -335,7 +335,7 @@ static int LoadMyBmpWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
             }
         case MSG_COMMAND:
             {
-                if (wParam == ID_NEXT) 
+                if (wParam == ID_NEXT)
                 {
                     ++loop;
                     if(loop > 4) loop = 0;
@@ -357,18 +357,18 @@ static int LoadMyBmpWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
                         printf ("ERROR: fail to CalcXYBannedRects, loop = %d\n", loop);
                         break;
                     }
-                    EmptyClipRgn (region);          
-					HDC hdc = GetClientDC(hWnd);
+                    EmptyClipRgn (region);
+                    HDC hdc = GetClientDC(hWnd);
                     for(i = 0; i < nr_rect; ++i)
                     {
                         printf("RECT :[%-3d %-3d %-3d %-3d]\n",
-								rc_list[i].left, rc_list[i].top,
+                                rc_list[i].left, rc_list[i].top,
                                 rc_list[i].right, rc_list[i].bottom);
-						Rectangle(hdc, rc_list[i].left, rc_list[i].top,
+                        Rectangle(hdc, rc_list[i].left, rc_list[i].top,
                                 rc_list[i].right, rc_list[i].bottom);
                         AddClipRect(region, &rc_list[i]);
                     }
-					ReleaseDC(hdc);
+                    ReleaseDC(hdc);
 
                     free (rc_list);
                     rc_list = NULL;
@@ -379,7 +379,7 @@ static int LoadMyBmpWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
             }
             break;
 
-        
+
         case MSG_PAINT:
             {
                 hdc = BeginPaint (hWnd);
@@ -389,15 +389,15 @@ static int LoadMyBmpWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
                 LineTo(hdc, 300, 300);
                 MoveTo(hdc, 0, 300);
                 LineTo(hdc, 600, 300);
-                TextOut(hdc, 100, 301, "Region"); 
-                TextOut(hdc, 400, 301, "MyBitmap"); 
+                TextOut(hdc, 100, 301, "Region");
+                TextOut(hdc, 400, 301, "MyBitmap");
 
                 ExpandMyBitmap (hdc, &bmp, &mybmp, pal, 0);
                 printf("mybitmap->depth: %d.\n", mybmp.depth);
                 FillBoxWithBitmap (hdc, 301, 1, bmp.bmWidth, bmp.bmHeight, &bmp);
 
                 SelectClipRegion (hdc, region);
-                SetBrushColor(hdc, PIXEL_blue); 
+                SetBrushColor(hdc, PIXEL_blue);
                 FillBox(hdc, 0, 0, 300, 300);
 
                 EndPaint (hWnd, hdc);
@@ -429,7 +429,7 @@ int MiniGUIMain (int argc, const char* argv[])
 #ifdef _MGRM_PROCESSES
     JoinLayer(NAME_DEF_LAYER , "loadbmp" , 0 , 0);
 #endif
-    
+
     CreateInfo.dwStyle = WS_VISIBLE | WS_BORDER | WS_CAPTION;
     CreateInfo.dwExStyle = WS_EX_NONE;
     CreateInfo.spCaption = "bmp2region testing ...";
@@ -444,9 +444,9 @@ int MiniGUIMain (int argc, const char* argv[])
     CreateInfo.iBkColor = PIXEL_lightwhite;
     CreateInfo.dwAddData = 0;
     CreateInfo.hHosting = HWND_DESKTOP;
-    
+
     hMainWnd = CreateMainWindow (&CreateInfo);
-    
+
     if (hMainWnd == HWND_INVALID)
         return -1;
 

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -68,13 +68,13 @@ Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -127,7 +127,7 @@ ICEILTEMPDECL
  *        to traverse each edge is digital differencing analyzer
  *        line algorithm with y as the major axis. There's some funny linear
  *        interpolation involved because of the subpixel postioning.
- * 
+ *
  * count:               number of points
  * ptsIn:               the points
  * xTrans, yTrans:      Translate each point by this
@@ -197,10 +197,10 @@ void miFillSppPoly (PDC pdc, int count, SppPointPtr ptsIn, int xTrans, int yTran
             /* now compute the starting point and slope */
             dy = ptsIn[nextleft].y - ptsIn[left].y;
             if (dy != 0.0)
-            { 
+            {
                 ml = (ptsIn[nextleft].x - ptsIn[left].x) / dy;
                 dy = y - (ptsIn[left].y + yFtrans);
-                xl = (ptsIn[left].x + xFtrans) + ml * MAX(dy, 0); 
+                xl = (ptsIn[left].x + xFtrans) + ml * MAX(dy, 0);
             }
         }
 
@@ -218,10 +218,10 @@ void miFillSppPoly (PDC pdc, int count, SppPointPtr ptsIn, int xTrans, int yTran
 
             /* now compute the starting point and slope */
             dy = ptsIn[nextright].y - ptsIn[right].y;
-            if (dy != 0.0) 
-            { 
+            if (dy != 0.0)
+            {
                 mr = (ptsIn[nextright].x - ptsIn[right].x) / dy;
-                dy = y - (ptsIn[right].y + yFtrans); 
+                dy = y - (ptsIn[right].y + yFtrans);
                 xr = (ptsIn[right].x + xFtrans) + mr * MAX(dy, 0);
             }
         }
@@ -237,7 +237,7 @@ void miFillSppPoly (PDC pdc, int count, SppPointPtr ptsIn, int xTrans, int yTran
         {
             if(Marked[nextleft] && Marked[nextright])
             {
-                /* Arrgh, we're trapped! (no more points) 
+                /* Arrgh, we're trapped! (no more points)
                  * Out, we've got to get out of here before this decadence saps
                  * our will completely! */
                 break;
@@ -250,7 +250,7 @@ void miFillSppPoly (PDC pdc, int count, SppPointPtr ptsIn, int xTrans, int yTran
                 if(!j)
                     j++;
         }
-        while (j > 0) 
+        while (j > 0)
         {
             int cxl, cxr;
 
@@ -259,12 +259,12 @@ void miFillSppPoly (PDC pdc, int count, SppPointPtr ptsIn, int xTrans, int yTran
             cxl = ICEIL(xl);
             cxr = ICEIL(xr);
             /* reverse the edges if necessary */
-            if (xl < xr) 
+            if (xl < xr)
             {
               ptsOut->width = cxr - cxl;
               (ptsOut++)->x = cxl + xTrans;
             }
-            else 
+            else
             {
               ptsOut->width = cxl - cxr;
               (ptsOut++)->x = cxr + xTrans;
@@ -284,7 +284,7 @@ void miFillSppPoly (PDC pdc, int count, SppPointPtr ptsIn, int xTrans, int yTran
     DEALLOCATE_LOCAL(FirstPoint);
 }
 
-
+
 /* Find the index of the point with the smallest y.also return the
  * smallest and largest y */
 static int GetFPolyYBounds(register SppPointPtr pts, int n, double yFtrans, int* by, int* ty)

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -91,7 +91,7 @@ static void teUndoBackup (TextDoc *txtoc);
 #undef _TEXTEDIT_DEBUG
 /* #define _TEXTEDIT_DEBUG */
 
-#ifndef TEXTEDIT_BUFDC 
+#ifndef TEXTEDIT_BUFDC
 #define GETDC(hWnd)           GetClientDC(hWnd)
 #define RELEASEDC(hWnd, hdc)  ReleaseDC(hdc)
 #else
@@ -105,7 +105,7 @@ inline HDC GETDC(HWND hWnd)
     return ptedata->buf_dc;
 }
 
-inline void RELEASEDC(HWND hWnd, HDC hdc)  
+inline void RELEASEDC(HWND hWnd, HDC hdc)
 {
     PTEDATA ptedata = (PTEDATA) GetWindowAdditionalData2 (hWnd);
     if (ptedata && ptedata->buf_dc != hdc)
@@ -153,8 +153,8 @@ static void print_selected (TextDoc *txtdoc)
 
 /* ------------------------------ text document/buffer ------------------------ */
 
-/* 
- * set_current_node : Sets a node as the current insertion/selection node,
+/*
+ * set_current_node : Set a node as the current insertion/selection node,
  *                    must be called when the current node is/will be changed.
  * Params           : newnode - the new node with insertion/selection point
  *                    bSel    - insertion or selection
@@ -183,7 +183,7 @@ set_current_node (TextDoc *txtdoc, TextNode *newnode, BOOL bSel, BOOL bChange)
     return TRUE;
 }
 
-/* 
+/*
  * textnode_create: creat a new text node and initialize it with text
  */
 static TextNode* textnode_create (TextDoc *txtdoc, const char *line, int len)
@@ -207,7 +207,7 @@ static TextNode* textnode_create (TextDoc *txtdoc, const char *line, int len)
     return newnode;
 }
 
-/* 
+/*
  * textnode_destroy: destroy a text node
  */
 static void textnode_destroy (TextNode *node)
@@ -219,9 +219,9 @@ static void textnode_destroy (TextNode *node)
     }
 }
 
-/* 
+/*
  * textdoc_free : free TextDoc nodes
- * Description  : only changes the status fields of a TextDoc object, does not 
+ * Description  : only changes the status fields of a TextDoc object, does not
  *                affect the properties.
  */
 static void textdoc_free (TextDoc *txtdoc)
@@ -338,14 +338,14 @@ static int textdoc_get_paragraph_length (PLOGFONT log_font, TextDoc *txtdoc, int
         node = list_entry (me, TextNode, list);
 
         if (i++ == index) {
-            return __mg_substrlen (log_font, node->content.string, 
+            return __mg_substrlen (log_font, node->content.string,
                     node->content.txtlen, '\n', &count);
         }
     }
     return -1;
 }
 
-static int textdoc_get_paragraph_text (HWND hWnd, TextDoc *txtdoc, 
+static int textdoc_get_paragraph_text (HWND hWnd, TextDoc *txtdoc,
             int index, int start, int len, unsigned char *buffer)
 {
     list_t *me;
@@ -375,17 +375,17 @@ static int textdoc_get_paragraph_text (HWND hWnd, TextDoc *txtdoc,
             count += node->content.txtlen;
             step = start + node->content.txtlen - count;
         }
-        else 
+        else
             step = 0;
 
-        if (!(pos_chars = 
+        if (!(pos_chars =
                 calloc (1, sizeof(int) * (2 * node->content.txtlen + 1))))
             return -1;
 
         hdc = GETDC (hWnd);
-        GetTextExtentPoint (hdc, 
-            (const char*)node->content.string, 
-            strlen((const char*)(node->content.string)), 0, 
+        GetTextExtentPoint (hdc,
+            (const char*)node->content.string,
+            strlen((const char*)(node->content.string)), 0,
             &fit,
             pos_chars,
             NULL,
@@ -396,12 +396,12 @@ static int textdoc_get_paragraph_text (HWND hWnd, TextDoc *txtdoc,
             for (i = 0; i < fit; i++) {
                if (pos_chars[i] == step)
                    break;
-               else if (pos_chars[i] < step 
+               else if (pos_chars[i] < step
                    && ((i+1) >= fit || ((i+1) < fit && pos_chars [i+1] > step))) {
                    step = pos_chars[i] > 0 ? pos_chars[i] : 0;
                    break;
                }
-            } 
+            }
         }
 
         copy_len = MIN(node->content.txtlen-step, len - 1 - total_len);
@@ -424,7 +424,7 @@ static int textdoc_get_paragraph_text (HWND hWnd, TextDoc *txtdoc,
                 for (i = 0; i < fit; i++) {
                    if (pos_chars[i] == last_pos)
                         break;
-                   else if (pos_chars[i] < last_pos && (i+1) < fit 
+                   else if (pos_chars[i] < last_pos && (i+1) < fit
                        && pos_chars [i+1] > last_pos) {
                         last_pos= pos_chars[i];
                         copy_len = last_pos - step;
@@ -501,10 +501,10 @@ static char* get_limited_str(HWND hWnd, const char* str, int bytes)
     RELEASEDC (hWnd, hdc);
     return dst;
 }
-/* 
- * textdoc_settext : setting TextDoc object using a new text content and 
+/*
+ * textdoc_settext : setting TextDoc object using a new text content and
  *                   free the old one
- * Params          : content - new text content, if NULL, the content of the 
+ * Params          : content - new text content, if NULL, the content of the
  *                             TextDoc object will not be changed; if content
  *                             is a null string, txtdoc content will be cleared.
  * TODO            : for not null-terminated text
@@ -523,10 +523,10 @@ static int textdoc_settext (TextDoc *txtdoc, const char*content)
     /*now, total length should be 0*/
     ptedata->curlen = 0;
 
-    if (ptedata->hardLimit != -1 &&  
+    if (ptedata->hardLimit != -1 &&
             ptedata->hardLimit < strlen(content)) {
         str = get_limited_str(hWnd, content, ptedata->hardLimit);
-    } 
+    }
     else {
         str = (char*)content;
     }
@@ -547,8 +547,8 @@ static int textdoc_settext (TextDoc *txtdoc, const char*content)
     txtAddNode (txtdoc, pLine, ptmp-pLine, NULL);
 
     set_current_node (txtdoc, FIRSTNODE(txtdoc), FALSE, TRUE);
-    
-    if (ptedata->hardLimit != -1 &&  
+
+    if (ptedata->hardLimit != -1 &&
             ptedata->hardLimit < strlen(content)) {
         free(str);
     }
@@ -556,7 +556,7 @@ static int textdoc_settext (TextDoc *txtdoc, const char*content)
     return 0;
 }
 static void
-insert_string (TextDoc *txtdoc, TextNode *curnode, int insert_pos, 
+insert_string (TextDoc *txtdoc, TextNode *curnode, int insert_pos,
                const char *newtext, int len)
 {
     StrBuffer *strbuff = &curnode->content;
@@ -571,8 +571,8 @@ insert_string (TextDoc *txtdoc, TextNode *curnode, int insert_pos,
         memmove (pIns + len, pIns, strbuff->txtlen+1 - insert_pos);
         memcpy (pIns, newtext, len);
 
-        if (ptedata->hardLimit !=-1 && 
-            ptedata->curlen + len > ptedata->hardLimit) { 
+        if (ptedata->hardLimit !=-1 &&
+            ptedata->curlen + len > ptedata->hardLimit) {
             Ping ();
             NotifyParent (hWnd, GetDlgCtrlID(hWnd), EN_MAXTEXT);
             return;
@@ -595,20 +595,20 @@ static TextMark* get_start_mark (PTEDATA ptedata)
     TextDoc *txtdoc = &ptedata->txtdoc;
 
     if (ptedata->curItemY < ptedata->selItemY ||
-             (ptedata->curItemY == ptedata->selItemY && 
+             (ptedata->curItemY == ptedata->selItemY &&
               txtdoc->insert.pos_lnOff < txtdoc->selection.pos_lnOff) )
         return &txtdoc->insert;
     else
         return &txtdoc->selection;
 }
 
-/* Gets the start and end selection points in a text node */
+/* Get the start and end selection points in a text node */
 static void
 get_selection_points (PTEDATA ptedata, TextNode *node, int *pos_start, int *pos_end)
 {
     TextDoc *txtdoc = &ptedata->txtdoc;
     TextMark *markStart = get_start_mark (ptedata);
-    TextMark *markEnd = (markStart == &txtdoc->insert) ? 
+    TextMark *markEnd = (markStart == &txtdoc->insert) ?
                           &txtdoc->selection : &txtdoc->insert;
 
     if (node ==  txtdoc->insert.curNode || node == txtdoc->selection.curNode) {
@@ -644,7 +644,7 @@ static int delete_selection (TextDoc *txtdoc)
     PTEDATA ptedata = (PTEDATA)GetWindowAdditionalData2 (hWnd);
 
     markStart = get_start_mark (ptedata);
-    markEnd = (markStart == &txtdoc->insert) ? 
+    markEnd = (markStart == &txtdoc->insert) ?
                           &txtdoc->selection : &txtdoc->insert;
 
     startnode = markStart->curNode;
@@ -674,7 +674,7 @@ static int delete_selection (TextDoc *txtdoc)
         }
         else {
             char del[1] = {127};
-            textdoc_insert_string_ex (txtdoc, startnode, pos_end2-1, NULL, 
+            textdoc_insert_string_ex (txtdoc, startnode, pos_end2-1, NULL,
                                       pos_start2-pos_end2+1);
             textdoc_insert_string_ex_2 (txtdoc, startnode, pos_start2, del, 1);
             txtdoc->insert.curNode = startnode;
@@ -696,7 +696,7 @@ static int delete_selection (TextDoc *txtdoc)
 #endif
 
 static TextNode*
-insert_ln_sep (TextDoc *txtdoc, TextNode *curnode, int insert_pos, 
+insert_ln_sep (TextDoc *txtdoc, TextNode *curnode, int insert_pos,
                            BOOL bChRn)
 {
     StrBuffer *strbuff = &curnode->content;
@@ -707,7 +707,7 @@ insert_ln_sep (TextDoc *txtdoc, TextNode *curnode, int insert_pos,
 
     pIns = strbuff->string + insert_pos;
 
-    newnode = txtAddNode ( txtdoc, (const char*)pIns, strbuff->txtlen - 
+    newnode = txtAddNode ( txtdoc, (const char*)pIns, strbuff->txtlen -
                           (pIns-strbuff->string), curnode );
 
     strbuff->txtlen = insert_pos + len; /* add a line sep */
@@ -726,9 +726,9 @@ insert_ln_sep (TextDoc *txtdoc, TextNode *curnode, int insert_pos,
     return newnode;
 }
 
-/* 
- * textdoc_insert_string_ex : 
- *          inserts a text string(not including line seperator) into 
+/*
+ * textdoc_insert_string_ex :
+ *          inserts a text string(not including line seperator) into
  *          the text buffer at the specified insertion point, or makes
  *          some special operations (inserts line sep, del, bs, ...)
  * params : enode      - the specified node to operate on
@@ -737,7 +737,7 @@ insert_ln_sep (TextDoc *txtdoc, TextNode *curnode, int insert_pos,
  *          len        - len of text to insert or remove
  */
 static int
-textdoc_insert_string_ex (TextDoc *txtdoc, TextNode *enode, int insert_pos, 
+textdoc_insert_string_ex (TextDoc *txtdoc, TextNode *enode, int insert_pos,
                           const char* newtext, int len)
 {
     HWND hWnd = (HWND)txtdoc->fn_data;
@@ -775,7 +775,7 @@ textdoc_insert_string_ex (TextDoc *txtdoc, TextNode *enode, int insert_pos,
     if ( len == 1 || (len == 2 && strcmp(newtext, CH_RN) == 0) ) {
         if ( *newtext == txtdoc->lnsep || (strncmp(newtext, CH_RN, 2) == 0) ) {
             /* add a new line */
-            newnode = insert_ln_sep (txtdoc, curnode, 
+            newnode = insert_ln_sep (txtdoc, curnode,
                                              insert_pos, len == 2);
             if (!enode) {
                 txtdoc->insert.curNode = newnode;
@@ -808,8 +808,8 @@ textdoc_insert_string_ex (TextDoc *txtdoc, TextNode *enode, int insert_pos,
                     txtDelNode (txtdoc, node);
 
                     /* adds the previous line at the beginning of the current line */
-                    insert_pos += textdoc_insert_string_ex (txtdoc, 
-                                        enode, insert_pos, 
+                    insert_pos += textdoc_insert_string_ex (txtdoc,
+                                        enode, insert_pos,
                                        (const char*)tmpstr, cplen-1);
 
                     txtdoc->change_fn (txtdoc, FALSE);
@@ -826,12 +826,12 @@ textdoc_insert_string_ex (TextDoc *txtdoc, TextNode *enode, int insert_pos,
             if ( *pIns == txtdoc->lnsep || is_rn_sep(pIns) ) {
                 TextNode *node = TXTNODE_NEXT(curnode);
                 int oldpos = insert_pos;
-                if (node->content.string[0] != txtdoc->lnsep && 
+                if (node->content.string[0] != txtdoc->lnsep &&
                                 !is_rn_sep(node->content.string)) {
-					
+
                     int cplen = node->content.txtlen;
                     char *tmpstr = NULL;
-					
+
                     /*next node have info*/
                     *pIns = '\0';
 
@@ -845,7 +845,7 @@ textdoc_insert_string_ex (TextDoc *txtdoc, TextNode *enode, int insert_pos,
                     tmpstr[cplen]='\0';
 
                     txtDelNode (txtdoc, node);
-                    textdoc_insert_string_ex (txtdoc, enode, insert_pos, 
+                    textdoc_insert_string_ex (txtdoc, enode, insert_pos,
                                     (const char*)tmpstr, cplen);
                     insert_pos = oldpos;
                     free(tmpstr);
@@ -856,7 +856,7 @@ textdoc_insert_string_ex (TextDoc *txtdoc, TextNode *enode, int insert_pos,
                 return insert_pos;
             }
             else {
-                int chlen = CHLENNEXT(pIns, (curnode->content.txtlen + 
+                int chlen = CHLENNEXT(pIns, (curnode->content.txtlen +
                                              strbuff->string - pIns) );
                 pIns += chlen;
                 insert_pos += chlen;
@@ -948,7 +948,7 @@ static int teGetTitleIndent (HWND hWnd, PTEDATA ptedata, HDC hdc)
 
     if (ptedata->title)
         GetTextExtent(hdc, ptedata->title, strlen(ptedata->title), &txtsize);
-    
+
     return txtsize.cx;
 }
 #endif
@@ -964,7 +964,7 @@ static void tePaint(HWND hWnd, HDC hdc, RECT *rcDraw)
     h = ptedata->nLineHeight - 1;
 
     if (GetWindowStyle(hWnd) & ES_BASELINE) {
-        SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+        SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
         while (h < RECTHP(rc)) {
 #ifdef _TITLE_SUPPORT
             indent = (h == ptedata->nLineHeight - 1) ? ptedata->titleIndent : 0;
@@ -981,27 +981,31 @@ static void setup_dc (HWND hWnd, HDC hdc, BOOL bSel)
         SetBkMode (hdc, BM_TRANSPARENT);
         SetBkColor (hdc, GetWindowBkColor (hWnd));
 
-        SetTextColor (hdc, 
-            GetWindowElementPixel (hWnd, GetWindowStyle(hWnd)&WS_DISABLED?
-            WE_FGC_DISABLED_ITEM : WE_FGC_WINDOW));
+        SetTextColor (hdc,
+            GetWindowElementPixelEx (hWnd, hdc,
+                (GetWindowStyle(hWnd) & WS_DISABLED) ?
+                WE_FGC_DISABLED_ITEM : WE_FGC_WINDOW));
     }
     else {
         SetBkMode (hdc, BM_OPAQUE);
 
-        SetTextColor (hdc, 
-            GetWindowElementPixel (hWnd, GetWindowStyle(hWnd)&WS_DISABLED?
+        SetTextColor (hdc,
+            GetWindowElementPixelEx (hWnd, hdc,
+                (GetWindowStyle(hWnd) & WS_DISABLED) ?
             WE_FGC_DISABLED_ITEM : WE_FGC_SELECTED_ITEM));
 
         if (hWnd == GetFocus(GetParent(hWnd))) {
-            SetBkColor (hdc, GetWindowElementPixel (hWnd, WE_BGC_SELECTED_ITEM));
+            SetBkColor (hdc, GetWindowElementPixelEx (hWnd,
+                        hdc, WE_BGC_SELECTED_ITEM));
         }
         else {
-            SetBkColor (hdc, GetWindowElementPixel (hWnd, WE_BGC_SELECTED_LOSTFOCUS));
+            SetBkColor (hdc, GetWindowElementPixelEx (hWnd,
+                        hdc, WE_BGC_SELECTED_LOSTFOCUS));
         }
     }
 }
 
-/* 
+/*
  * teDrawItem : draw text node/item, including multi lines in wrap mode
  */
 static void teDrawItem (HWND hWnd, HSVITEM hsvi, HDC hdc, RECT *rcDraw)
@@ -1050,7 +1054,7 @@ static void teDrawItem (HWND hWnd, HSVITEM hsvi, HDC hdc, RECT *rcDraw)
     outlen = txtlen;
     if (outlen > 0 && content[outlen-1] == txtdoc->lnsep) {
         outlen --;
-        if (txtdoc->lnsep == '\n' && 
+        if (txtdoc->lnsep == '\n' &&
             (outlen > 0 && content[outlen-1] == '\r'))
             outlen --;
         if (ptedata->lnChar) {
@@ -1095,14 +1099,14 @@ static void teDrawItem (HWND hWnd, HSVITEM hsvi, HDC hdc, RECT *rcDraw)
             if (!ptedata->drawSelected) {
                 setup_dc (hWnd, hdc, TRUE);
                 outw += TabbedTextOutLen (hdc, startx + outw, starty, content, outchars);
-                if (!(ptedata->ex_flags & TEST_EX_SETFOCUS) 
+                if (!(ptedata->ex_flags & TEST_EX_SETFOCUS)
                         && !(ptedata->ex_flags & TEST_EX_KILLFOCUS)) {
                     NotifyParent (hWnd, GetDlgCtrlID(hWnd), EN_SELCHANGED);
                 }
             }
             else {
                 SetBkMode (hdc, BM_OPAQUE);
-                outw += ptedata->drawSelected(hWnd, hdc, startx+outw, starty, 
+                outw += ptedata->drawSelected(hWnd, hdc, startx+outw, starty,
                         content, outchars, selout);
             }
             content += outchars;
@@ -1194,10 +1198,10 @@ static void mySetCaretPos (HWND hWnd, int x, int y)
     scrolled_content_to_visible (ptescr, &x, &y);
     scrolled_visible_to_window (ptescr, &x, &y);
     SetCaretPos (hWnd, x, y);
-    ChangeCaretSize (hWnd, get_caret_width(hWnd, ptedata), 
+    ChangeCaretSize (hWnd, get_caret_width(hWnd, ptedata),
             ptedata->nLineHeight - ptedata->nLineAboveH- ptedata->nLineBaseH);
     if ( (ptedata->flags & TEST_FOCUSED) &&
-             !(ptedata->flags & TEST_NOCARET) 
+             !(ptedata->flags & TEST_NOCARET)
 #ifdef _SELECT_SUPPORT
              && !(ptedata->txtdoc.selection.curNode)
 #endif
@@ -1208,10 +1212,10 @@ static void mySetCaretPos (HWND hWnd, int x, int y)
 }
 
 /*
- * teSetCaretPos : sets the caret position according to the current insertion 
+ * teSetCaretPos : sets the caret position according to the current insertion
  *                 point or sets the selection caret position according to the
  *                 current selection point of the text doc.
- * Description   : should be called after the current insert point or the 
+ * Description   : should be called after the current insert point or the
  *                 selection point of the text document is changed
  */
 static void teSetCaretPos (HWND hWnd, PTEDATA ptedata)
@@ -1227,7 +1231,7 @@ static void teSetCaretPos (HWND hWnd, PTEDATA ptedata)
 
     if (!node) return;
 
-    hdc = GETDC (hWnd); 
+    hdc = GETDC (hWnd);
 
     SelectFont (hdc, GetWindowFont(hWnd));
 
@@ -1263,7 +1267,7 @@ static void teSetCaretPos (HWND hWnd, PTEDATA ptedata)
         */
         lineidx = 0;
         while (txtlen > 0) {
-            DrawTextEx2 (hdc, (const char*)pLine, txtlen, &rc, indent, 
+            DrawTextEx2 (hdc, (const char*)pLine, txtlen, &rc, indent,
                     TE_FORMAT | DT_WORDBREAK | DT_CALCRECT, &fl);
             if (pLine + fl.nr_chars > pIns)
                 break;
@@ -1299,11 +1303,11 @@ static void teSetCaretPos (HWND hWnd, PTEDATA ptedata)
 #endif
         {
             /* FIXME */
-            if ( ptedata->caretShape == ED_CARETSHAPE_BLOCK && 
+            if ( ptedata->caretShape == ED_CARETSHAPE_BLOCK &&
                      RECTW(rc) - w <= (GetWindowFont(hWnd)->size)/2 ) {
-                scrolled_make_pos_visible (hWnd, ptescr, -1, 
+                scrolled_make_pos_visible (hWnd, ptescr, -1,
                         endh + ptedata->nLineHeight);
-                mySetCaretPos (hWnd, indent, 
+                mySetCaretPos (hWnd, indent,
                         h + ptedata->nLineAboveH + ptedata->nLineHeight);
             }
             else {
@@ -1314,11 +1318,11 @@ static void teSetCaretPos (HWND hWnd, PTEDATA ptedata)
     else {
         SIZE txtsize;
 
-        GetTabbedTextExtent(hdc, (const char*)(node->content.string), 
+        GetTabbedTextExtent(hdc, (const char*)(node->content.string),
                 mark->pos_lnOff, &txtsize);
         ptedata->des_caret_x = txtsize.cx + indent;
         endh = (h < ptescr->nContY) ? h : h + ptedata->nLineHeight;
-        scrolled_make_pos_visible (hWnd, ptescr, 
+        scrolled_make_pos_visible (hWnd, ptescr,
                         txtsize.cx + indent, endh > 0 ? endh : 0);
 #ifdef _SELECT_SUPPORT
         if (txtdoc->selection.curNode)
@@ -1342,7 +1346,7 @@ static void textedit_set_svlist (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
         mySetCaretPos (hWnd, -1, -1);
 
     while (node) {
-    	txtdoc->change_cont (txtdoc, node);
+        txtdoc->change_cont (txtdoc, node);
         node = TXTNODE_NEXT(node);
     }
 
@@ -1350,7 +1354,7 @@ static void textedit_set_svlist (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
 }
 
 /*
- * set_caret_pos : Sets the caret/selection position in a node according to
+ * set_caret_pos : Set the caret/selection position in a node according to
  *                 x,y values
  */
 static int
@@ -1403,7 +1407,7 @@ set_caret_pos (HWND hWnd, PTEDATA ptedata, TextNode *node, int x, int y, BOOL bS
         i = 0;
         while (1) {
             if (i > 0) indent = 0;
-            DrawTextEx2 (hdc, (const char*)pLine, txtlen, &rc, indent, 
+            DrawTextEx2 (hdc, (const char*)pLine, txtlen, &rc, indent,
                     TE_FORMAT | DT_WORDBREAK | DT_CALCRECT, &fl);
             if (i == line)
                 break;
@@ -1431,7 +1435,7 @@ set_caret_pos (HWND hWnd, PTEDATA ptedata, TextNode *node, int x, int y, BOOL bS
         txtsize.cx = 0;
     }
     else
-        out_chars = GetTabbedTextExtentPoint (hdc, (const char*)pLine, ln_chars, 
+        out_chars = GetTabbedTextExtentPoint (hdc, (const char*)pLine, ln_chars,
                         x - indent, NULL, NULL, NULL, &txtsize);
 
     RELEASEDC (hWnd, hdc);
@@ -1487,13 +1491,13 @@ static int get_line_nr (HWND hWnd, PTEDATA ptedata, TextNode *node, int indent)
             chln = content[outlen-1];
             content[outlen-1] = ptedata->lnChar;
         }
-        DrawTextEx (hdc, content, outlen, &rc, indent, 
+        DrawTextEx (hdc, content, outlen, &rc, indent,
                     TE_FORMAT | DT_WORDBREAK | DT_CALCRECT);
         if (chln)
             content[outlen-1] = chln;
     }
     else {
-        DrawTextEx (hdc, (const char*)(node->content.string), node->content.txtlen, &rc, indent, 
+        DrawTextEx (hdc, (const char*)(node->content.string), node->content.txtlen, &rc, indent,
                     TE_FORMAT | DT_WORDBREAK | DT_CALCRECT);
     }
 
@@ -1522,7 +1526,7 @@ static int recalc_max_len (HWND hWnd ,PTEDATA ptedata)
     //SelectFont (hdc, GetWindowFont(hWnd));
     list_for_each (me, &txtdoc->queue) {
         node = list_entry (me, TextNode, list);
-        GetTabbedTextExtent(hdc, (const char*)(node->content.string), 
+        GetTabbedTextExtent(hdc, (const char*)(node->content.string),
                         node->content.txtlen, &txtsize);
         if (txtsize.cx > ptedata->maxLen || ptedata->maxLen == 0) {
             ptedata->maxLen = txtsize.cx;
@@ -1576,7 +1580,7 @@ revise_max_len (HWND hWnd, PTEDATA ptedata, TextNode *node, int textlen)
 }
 
 /* set text node line width, for non wrap mode */
-static int 
+static int
 set_line_width (HWND hWnd, PTEDATA ptedata, TextNode *node, int indent)
 {
     SIZE txtsize = {0, 0};
@@ -1592,7 +1596,7 @@ set_line_width (HWND hWnd, PTEDATA ptedata, TextNode *node, int indent)
 
     hdc = GETDC (hWnd);
     SelectFont (hdc, GetWindowFont(hWnd));
-    GetTabbedTextExtent(hdc, (const char*)(node->content.string), 
+    GetTabbedTextExtent(hdc, (const char*)(node->content.string),
                         node->content.txtlen, &txtsize);
     RELEASEDC (hWnd, hdc);
 
@@ -1615,7 +1619,7 @@ static int set_line_size (HWND hWnd, PTEDATA ptedata, TextNode *node)
     linenr = get_line_nr(hWnd, ptedata, node, indent);
     set_line_width (hWnd, ptedata, node, indent);
 
-    return scrollview_set_item_height (hWnd, (HSVITEM)node->addData, 
+    return scrollview_set_item_height (hWnd, (HSVITEM)node->addData,
                         ptedata->nLineHeight*linenr);
 }
 */
@@ -1670,7 +1674,7 @@ static void teNodeInit (TextDoc *txtdoc, TextNode* node, TextNode *prenode)
 
     if (prenode)
         preitem = (HSVITEM)prenode->addData;
-    node->addData = (DWORD) scrollview_add_item (hWnd, &ptedata->svdata, 
+    node->addData = (DWORD) scrollview_add_item (hWnd, &ptedata->svdata,
                                 preitem, &svii, NULL);
 }
 
@@ -1678,7 +1682,7 @@ static void teNodeDel (TextDoc *txtdoc, TextNode *node)
 {
     HWND hWnd = (HWND)txtdoc->fn_data;
     PTEDATA ptedata = (PTEDATA)GetWindowAdditionalData2(hWnd);
-    HSVITEM hsvi = (HSVITEM) node->addData; 
+    HSVITEM hsvi = (HSVITEM) node->addData;
 
     node->addData = 0;
     scrollview_del_item (hWnd, &ptedata->svdata, 0, hsvi);
@@ -1689,15 +1693,15 @@ static void teNodeChange (TextDoc *txtdoc, BOOL bSel)
     PTEDATA ptedata = (PTEDATA)GetWindowAdditionalData2((HWND)txtdoc->fn_data);
 
     if (!bSel) {
-        ptedata->curItemY = scrollview_get_item_ypos (&ptedata->svdata, 
+        ptedata->curItemY = scrollview_get_item_ypos (&ptedata->svdata,
                                      (HSVITEM)txtdoc->insert.curNode->addData);
     }
-#ifdef _SELECT_SUPPORT        
+#ifdef _SELECT_SUPPORT
     else {
-        ptedata->selItemY = scrollview_get_item_ypos (&ptedata->svdata, 
+        ptedata->selItemY = scrollview_get_item_ypos (&ptedata->svdata,
                                      (HSVITEM)txtdoc->selection.curNode->addData);
     }
-#endif        
+#endif
 }
 
 static void teChangeCont (TextDoc *txtdoc, TextNode *node)
@@ -1711,13 +1715,13 @@ static void teChangeCont (TextDoc *txtdoc, TextNode *node)
 
     indent = teGetLineIndent (ptedata, node);
     linenr = get_line_nr(hWnd, ptedata, node, indent);
-    scrollview_set_item_height (hWnd, (HSVITEM)node->addData, 
+    scrollview_set_item_height (hWnd, (HSVITEM)node->addData,
                         ptedata->nLineHeight*linenr);
     set_line_width (hWnd, ptedata, node, indent);
 }
 
 /*
- * textdoc_reset : resets or initializes the properties of a textdoc to 
+ * textdoc_reset : resets or initializes the properties of a textdoc to
  *                 default values
  */
 static int textdoc_reset (HWND hWnd, TextDoc *txtdoc)
@@ -1769,7 +1773,7 @@ int textdoc_copy_to_cb (PTEDATA ptedata, char *buffer, int len, BOOL bCB)
         return 0;
 
     markStart = get_start_mark (ptedata);
-    markEnd = (markStart == &txtdoc->insert) ? 
+    markEnd = (markStart == &txtdoc->insert) ?
                           &txtdoc->selection : &txtdoc->insert;
 
     node = markStart->curNode;
@@ -1892,12 +1896,12 @@ static void teSetCaretPosOnChar (HWND hWnd, PTEDATA ptedata, int old_caret_pos)
 
         newfl.width = 0;
         while (old_caret_pos > 0) {
-            DrawTextEx2 (hdc, (const char*)oldLine, oldtxtlen, &rc, 
-                    lineidx ? 0: indent, 
+            DrawTextEx2 (hdc, (const char*)oldLine, oldtxtlen, &rc,
+                    lineidx ? 0: indent,
                     TE_FORMAT | DT_WORDBREAK | DT_CALCRECT, &oldfl);
 
-            DrawTextEx2 (hdc, (const char*)newLine, newtxtlen, &rc, 
-                    lineidx ? 0 : indent, 
+            DrawTextEx2 (hdc, (const char*)newLine, newtxtlen, &rc,
+                    lineidx ? 0 : indent,
                     TE_FORMAT | DT_WORDBREAK | DT_CALCRECT, &newfl);
 
             /*compare two string */
@@ -1913,9 +1917,9 @@ static void teSetCaretPosOnChar (HWND hWnd, PTEDATA ptedata, int old_caret_pos)
 
             if (oldLine + oldfl.nr_chars > oldIns) {
                 ptedata->nr_diff_line = lineidx;
-                GetTabbedTextExtent(hdc, (const char*)oldLine, 
+                GetTabbedTextExtent(hdc, (const char*)oldLine,
                    oldIns - oldLine, &txtsize);
-		if (txtsize.cx < ptedata->w_nochanged)
+        if (txtsize.cx < ptedata->w_nochanged)
                    ptedata->w_nochanged = txtsize.cx;
             }
 
@@ -1923,7 +1927,7 @@ static void teSetCaretPosOnChar (HWND hWnd, PTEDATA ptedata, int old_caret_pos)
                 break;
 
             newLine += newfl.nr_chars;
-            oldLine += oldfl.nr_chars; 
+            oldLine += oldfl.nr_chars;
             oldtxtlen -= oldfl.nr_chars;
             newtxtlen -= newfl.nr_chars;
             lineidx ++;
@@ -1932,7 +1936,7 @@ static void teSetCaretPosOnChar (HWND hWnd, PTEDATA ptedata, int old_caret_pos)
 
         if (ptedata->nr_diff_line == -1) {
             ptedata->nr_diff_line = lineidx;
-            GetTabbedTextExtent(hdc, (const char*)oldLine, 
+            GetTabbedTextExtent(hdc, (const char*)oldLine,
                old_caret_pos, &txtsize);
             ptedata->w_nochanged = txtsize.cx;
         }
@@ -1944,7 +1948,7 @@ static void teSetCaretPosOnChar (HWND hWnd, PTEDATA ptedata, int old_caret_pos)
         lineidx = 0;
 
         while (newtxtlen > 0) {
-            DrawTextEx2 (hdc, (const char*)newLine, newtxtlen, &rc, indent, 
+            DrawTextEx2 (hdc, (const char*)newLine, newtxtlen, &rc, indent,
                     TE_FORMAT | DT_WORDBREAK | DT_CALCRECT, &newfl);
             if (newLine + newfl.nr_chars > pIns)
                 break;
@@ -1982,11 +1986,11 @@ static void teSetCaretPosOnChar (HWND hWnd, PTEDATA ptedata, int old_caret_pos)
 #endif
         {
             /* FIXME */
-            if ( ptedata->caretShape == ED_CARETSHAPE_BLOCK && 
+            if ( ptedata->caretShape == ED_CARETSHAPE_BLOCK &&
                      RECTW(rc) - w <= (GetWindowFont(hWnd)->size)/2 ) {
-                scrolled_make_pos_visible (hWnd, ptescr, -1, 
+                scrolled_make_pos_visible (hWnd, ptescr, -1,
                         endh + ptedata->nLineHeight);
-                mySetCaretPos (hWnd, indent, 
+                mySetCaretPos (hWnd, indent,
                         h + ptedata->nLineAboveH + ptedata->nLineHeight);
             }
             else {
@@ -1999,16 +2003,16 @@ static void teSetCaretPosOnChar (HWND hWnd, PTEDATA ptedata, int old_caret_pos)
 
         ptedata->nr_diff_line = 0;
 
-        GetTabbedTextExtent(hdc, 
+        GetTabbedTextExtent(hdc,
                 (const char*)(node->content.string), old_caret_pos, &txtsize);
         ptedata->w_nochanged = indent + txtsize.cx;
 
-        GetTabbedTextExtent(hdc, (const char*)(node->content.string), 
+        GetTabbedTextExtent(hdc, (const char*)(node->content.string),
                 mark->pos_lnOff, &txtsize);
         ptedata->des_caret_x = txtsize.cx + indent;
 
         endh = (h < ptescr->nContY) ? h : h + ptedata->nLineHeight;
-        scrolled_make_pos_visible (hWnd, ptescr, 
+        scrolled_make_pos_visible (hWnd, ptescr,
                         txtsize.cx + indent, endh > 0 ? endh : 0);
 #ifdef _SELECT_SUPPORT
         if (txtdoc->selection.curNode) {
@@ -2082,7 +2086,7 @@ static void teOnChar (HWND hWnd, PTEDATA ptedata, WPARAM wParam)
     oldlinenr = NODE_LINENR(node);
     testr_copy(&(ptedata->tebuff), &(node->content));
 
-    if (ptedata->hardLimit == -1 || (ptedata->curlen + chlen <= ptedata->hardLimit) 
+    if (ptedata->hardLimit == -1 || (ptedata->curlen + chlen <= ptedata->hardLimit)
             || (chlen == 1 && (ch[0] == '\b' || ch[0] == 127))) {
         if (textdoc_insert_string (&ptedata->txtdoc, (const char*)ch, chlen)) {
             teSetCaretPosOnChar (hWnd, ptedata, old_caret_pos);
@@ -2090,21 +2094,21 @@ static void teOnChar (HWND hWnd, PTEDATA ptedata, WPARAM wParam)
             rcInv.left = ptedata->w_nochanged;
             rcInv.top = ptedata->nr_diff_line * ptedata->nLineHeight;
             rcInv.right = ptedata->svdata.scrdata.nContWidth;
-            rcInv.bottom = rcInv.top + ptedata->nLineHeight - ptedata->nLineBaseH; 
+            rcInv.bottom = rcInv.top + ptedata->nLineHeight - ptedata->nLineBaseH;
             REFRESH_NODE_EX(node, &rcInv);
-           // UpdateWindow(hWnd, FALSE); 
+           // UpdateWindow(hWnd, FALSE);
 
             newlinenr = NODE_LINENR(node);
             rcInv.left = 0;
             for (i = ptedata->nr_diff_line + 1; i < MAX(oldlinenr, newlinenr); i++) {
                 rcInv.top += ptedata->nLineHeight;
-                rcInv.bottom = rcInv.top + ptedata->nLineHeight  - ptedata->nLineBaseH; 
+                rcInv.bottom = rcInv.top + ptedata->nLineHeight  - ptedata->nLineBaseH;
                 REFRESH_NODE_EX(node, &rcInv);
-             //   UpdateWindow(hWnd, FALSE); 
+             //   UpdateWindow(hWnd, FALSE);
             }
             /* houhh 20090814, UpdataWindow will invalidate all edit area, but
              * erase area is not same with msg_paint area.*/
-            UpdateWindow(hWnd, FALSE); 
+            UpdateWindow(hWnd, FALSE);
             //SendMessage(hWnd, MSG_PAINT, 0, 0);
         }
     }
@@ -2212,7 +2216,7 @@ te_set_selection (HWND hWnd, PTEDATA ptedata)
     RECT rcSel;
 
     markStart = get_start_mark (ptedata);
-    markEnd = (markStart == &txtdoc->insert) ? 
+    markEnd = (markStart == &txtdoc->insert) ?
                               &txtdoc->selection : &txtdoc->insert;
 
     node = markStart->curNode;
@@ -2248,7 +2252,7 @@ static int te_select_all (HWND hWnd, PTEDATA ptedata)
     last = LASTNODE(&ptedata->txtdoc);
     selection->curNode = last;
     selection->pos_lnOff = last->content.txtlen;
-    ptedata->selItemY = scrollview_get_total_item_height (&ptedata->svdata) 
+    ptedata->selItemY = scrollview_get_total_item_height (&ptedata->svdata)
                         - NODE_HEIGHT(last);
     /* FIXME, optimize */
     teSetCaretPos (hWnd, ptedata);
@@ -2259,11 +2263,11 @@ static int te_select_all (HWND hWnd, PTEDATA ptedata)
 #endif
 
 /*
- * te_set_position : Sets insertion or selection position
+ * te_set_position : Set insertion or selection position
  * Params          : mark - insertion or selection point
  */
 static TextNode*
-te_set_position (HWND hWnd, PTEDATA ptedata, TextMark *mark, 
+te_set_position (HWND hWnd, PTEDATA ptedata, TextMark *mark,
                  int line, int char_pos, int *item_y, int *newpos)
 {
     TextNode *markNode;
@@ -2279,7 +2283,7 @@ te_set_position (HWND hWnd, PTEDATA ptedata, TextMark *mark,
 
     pos_chars = ALLOCATE_LOCAL (markNode->content.txtlen * sizeof(int));
     nr_chars = GetTextMCharInfo (GetWindowFont (hWnd),
-                    (const char*)(markNode->content.string), 
+                    (const char*)(markNode->content.string),
                     markNode->content.txtlen, pos_chars);
 
     if (char_pos > nr_chars) {
@@ -2325,16 +2329,16 @@ TE_OnMouseDown (HWND hWnd, HSVITEM hsvi, POINT* pt, int item_y, BOOL bShift)
         teOnMouseDown (hWnd, node, pt, item_y, bShift);
 
         /*
-	 * FIXME
+     * FIXME
          * ShowCaret (hWnd);
-	 */
+     */
         /*
         NotifyParent (hWnd, GetDlgCtrlID(hWnd), EN_CLICKED);
         */
         /*
-	 * FIXME
+     * FIXME
          * NotifyParent (hWnd, GetDlgCtrlID(hWnd), EN_CHANGE);
-	 */
+     */
     }
 #ifdef _SELECT_SUPPORT
     else {
@@ -2446,7 +2450,7 @@ te_cursor_updown (HWND hWnd, PTEDATA ptedata, int len, BOOL bShift)
  * te_cursor_shift : process shift keys, including left and right arrow, Home,
  *                   End keys.
  * Params          : bShift - Whether shift key is in pressed status
- */ 
+ */
 static void
 te_cursor_shift (HWND hWnd, PTEDATA ptedata, int kcode, BOOL bShift)
 {
@@ -2470,7 +2474,7 @@ te_cursor_shift (HWND hWnd, PTEDATA ptedata, int kcode, BOOL bShift)
     }
 #else
     mark = &txtdoc->insert;
-#endif    
+#endif
 
     node = mark->curNode;
     pIns = node->content.string + mark->pos_lnOff;
@@ -2492,7 +2496,7 @@ te_cursor_shift (HWND hWnd, PTEDATA ptedata, int kcode, BOOL bShift)
                 ptedata->curItemY += NODE_HEIGHT(node);
         }
         else {
-            mark->pos_lnOff += CHLENNEXT(pIns, (node->content.string + 
+            mark->pos_lnOff += CHLENNEXT(pIns, (node->content.string +
                                                 node->content.txtlen - pIns));
         }
     }
@@ -2629,19 +2633,19 @@ static void te_cursor_move (HWND hWnd, PTEDATA ptedata, POINT *pt)
     if (oldpt.x != newpt.x && oldpt.y == newpt.y)
     {
         rcInv.left   = newpt.x > oldpt.x ? oldpt.x : newpt.x;
-        rcInv.top    = 0; 
+        rcInv.top    = 0;
         rcInv.right  = oldpt.x > newpt.x ? oldpt.x : newpt.x;
-        rcInv.bottom = rcInv.top + ptedata->nLineHeight - ptedata->nLineBaseH;     
-        
+        rcInv.bottom = rcInv.top + ptedata->nLineHeight - ptedata->nLineBaseH;
+
         REFRESH_NODE_EX(selection->curNode, &rcInv);
-    }else if (oldpt.y != newpt.y) { 
+    }else if (oldpt.y != newpt.y) {
         rcInv.left   = 0;
         rcInv.top    = 0;
         rcInv.right  = rcInv.left + ptedata->svdata.scrdata.nContWidth;
-        //rcInv.bottom = (newpt.y > oldpt.y ? newpt.y : oldpt.y) 
-        rcInv.bottom = abs(newpt.y - oldpt.y) 
-            + ptedata->nLineHeight - ptedata->nLineBaseH;    
-        
+        //rcInv.bottom = (newpt.y > oldpt.y ? newpt.y : oldpt.y)
+        rcInv.bottom = abs(newpt.y - oldpt.y)
+            + ptedata->nLineHeight - ptedata->nLineBaseH;
+
         REFRESH_NODE_EX(selection->curNode, &rcInv);
     }
 #endif
@@ -2689,7 +2693,7 @@ static int textedit_get_pos_ex (HWND hWnd, int *line_pos, int *char_pos, BOOL bS
         *line_pos = NODE_INDEX(mark->curNode);
     }
     if (char_pos) {
-        nr_chars = GetTextMCharInfo (GetWindowFont (hWnd), 
+        nr_chars = GetTextMCharInfo (GetWindowFont (hWnd),
                       (const char*)mark->curNode->content.string, mark->pos_lnOff, NULL);
         *char_pos = nr_chars;
     }
@@ -2718,7 +2722,7 @@ static int textedit_set_pos_ex (HWND hWnd, int line_pos, int char_pos, BOOL bSel
     if ( !(mark = GETMARK(bSel)) )
         return -1;
 
-    if ( !(node = te_set_position (hWnd, ptedata, mark, 
+    if ( !(node = te_set_position (hWnd, ptedata, mark,
                                    line_pos, char_pos, &item_y, &newpos)) )
         return -1;
 
@@ -2743,7 +2747,7 @@ static int textedit_set_pos_ex (HWND hWnd, int line_pos, int char_pos, BOOL bSel
 }
 
 #ifdef _TITLE_SUPPORT
-static int 
+static int
 textedit_get_titletext (HWND hWnd, PTEDATA ptedata, int tlen, char *buffer)
 {
     int len, title_len;
@@ -2767,7 +2771,7 @@ textedit_get_titletext (HWND hWnd, PTEDATA ptedata, int tlen, char *buffer)
     return title_len;
 }
 
-static int 
+static int
 textedit_set_titletext (HWND hWnd, PTEDATA ptedata, int tlen, const char *newtitle)
 {
     int len;
@@ -2818,7 +2822,7 @@ textedit_reset_content (HWND hWnd, PTEDATA ptedata, const char *newtext, BOOL bL
         teSetCaretPos (hWnd, ptedata);
     }
     else {
-        mySetCaretPos (hWnd, teGetLineIndent(ptedata, FIRSTNODE(txtdoc)), 
+        mySetCaretPos (hWnd, teGetLineIndent(ptedata, FIRSTNODE(txtdoc)),
                     0 + ptedata->nLineAboveH);
     }
 
@@ -2834,7 +2838,7 @@ int textedit_insert_text (HWND hWnd, const char* text, int len)
     /*
     TextNode *node = txtdoc->insert.curNode;
     TextNode *nextnode = NULL;
-    
+
     if (!BE_LAST_NODE(node))
         nextnode = TXTNODE_NEXT (node);
     */
@@ -2899,7 +2903,7 @@ static int teInitData (HWND hWnd, PTEDATA ptedata)
 
     /* init scrollview object */
     scrollview_init (hWnd, &ptedata->svdata);
-    
+
     /* change default move_content function */
     ptedata->svdata.scrdata.move_content = textedit_set_svlist;
 
@@ -2993,7 +2997,7 @@ static int te_init_undo (HWND hWnd, PTEDATA ptedata)
 
 static int textedit_init (HWND hWnd, PTEDATA ptedata)
 {
-	HDC hdc ;
+    HDC hdc ;
     if (!ptedata)
         return -1;
 
@@ -3005,7 +3009,7 @@ static int textedit_init (HWND hWnd, PTEDATA ptedata)
     // create caret with the max font width, so that the
     // caret bitmap memery is enought for caret shape changed.
     hdc = GETDC (hWnd);
-    CreateCaret (hWnd, NULL, GetMaxFontWidth(hdc), 
+    CreateCaret (hWnd, NULL, GetMaxFontWidth(hdc),
             ptedata->nLineHeight - ptedata->nLineAboveH- ptedata->nLineBaseH);
     RELEASEDC (hWnd, hdc);
     /* SetFocus (hWnd); */
@@ -3188,7 +3192,7 @@ static LRESULT TextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 if (wParam == SCANCODE_F1) {
                     /* print_selected (&ptedata->txtdoc); */
                     printf ("current node item y = %d\n", ptedata->curItemY);
-                    printf ("current total item h = %d\n", 
+                    printf ("current total item h = %d\n",
                             ptedata->svdata.svlist.nTotalItemH);
                 }
 #endif
@@ -3370,12 +3374,12 @@ static LRESULT TextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 TextNode *node = FIRSTNODE(txtdoc);
 
                 DestroyCaret (hWnd);
-                ptedata->nLineHeight = GetWindowFont(hWnd)->size + 
+                ptedata->nLineHeight = GetWindowFont(hWnd)->size +
                     ptedata->nLineAboveH + ptedata->nLineBaseH;
 
                 // create caret with the max font width, so that the
                 // caret bitmap memery is enought for caret shape changed.
-                CreateCaret (hWnd, NULL, GetMaxFontWidth(hdc), 
+                CreateCaret (hWnd, NULL, GetMaxFontWidth(hdc),
                         ptedata->nLineHeight - ptedata->nLineAboveH- ptedata->nLineBaseH);
 
                 while (node) {
@@ -3571,7 +3575,7 @@ static LRESULT TextEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM 
                 int index = info->paragraph_index;
                 unsigned char* buff = (unsigned char*)(info->buff);
 
-                return textdoc_get_paragraph_text (hWnd, &ptedata->txtdoc, 
+                return textdoc_get_paragraph_text (hWnd, &ptedata->txtdoc,
                         index, start, len, buff);
             }
 
@@ -3598,20 +3602,25 @@ BOOL RegisterTextEditControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_IBEAM);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = TextEditCtrlProc;
 
-    if (AddNewControlClass (&WndClass) != ERR_OK)
+    if (gui_AddNewControlClass (&WndClass) != ERR_OK)
         return FALSE;
 
     WndClass.spClassName = CTRL_MLEDIT;
 
-    if (AddNewControlClass (&WndClass) != ERR_OK)
+    if (gui_AddNewControlClass (&WndClass) != ERR_OK)
         return FALSE;
 
     WndClass.spClassName = CTRL_MEDIT;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #endif /* _MGCTRL_TEXTEDIT */

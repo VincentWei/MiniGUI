@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -57,6 +57,10 @@
 #include "memops.h"
 #include "leaks.h"
 
+#ifdef _MGRM_PROCESSES
+#include <sys/mman.h>   /* for munmap */
+#endif  /* _MGRM_PROCESSES */
+
 /* Public routines */
 /*
  * Create an empty RGB surface of the appropriate depth
@@ -71,22 +75,22 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     GAL_Surface *surface;
 
     /* Check to see if we desire the surface in video memory */
-    if ( video ) {
+    if (video) {
         screen = GAL_PublicSurface;
     } else {
         screen = NULL;
     }
-    if ( screen && ((screen->flags&GAL_HWSURFACE) == GAL_HWSURFACE) ) {
-        if ( (flags&(GAL_SRCCOLORKEY|GAL_SRCALPHA)) != 0 ) {
+    if (screen && ((screen->flags&GAL_HWSURFACE) == GAL_HWSURFACE)) {
+        if ((flags&(GAL_SRCCOLORKEY|GAL_SRCALPHA)) != 0) {
             flags |= GAL_HWSURFACE;
         }
-        if ( (flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY ) {
-            if ( ! __mg_current_video->info.blit_hw_CC ) {
+        if ((flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
+            if (! __mg_current_video->info.blit_hw_CC) {
                 flags &= ~GAL_HWSURFACE;
             }
         }
-        if ( (flags & GAL_SRCALPHA) == GAL_SRCALPHA ) {
-            if ( ! __mg_current_video->info.blit_hw_A ) {
+        if ((flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
+            if (! __mg_current_video->info.blit_hw_A) {
                 flags &= ~GAL_HWSURFACE;
             }
         }
@@ -96,7 +100,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
 
     /* Allocate the surface */
     surface = (GAL_Surface *)malloc(sizeof(*surface));
-    if ( surface == NULL ) {
+    if (surface == NULL) {
         GAL_OutOfMemory();
         return(NULL);
     }
@@ -112,7 +116,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
      * with different color format against the screen surface
      */
 #if 0
-    if ( (flags & GAL_HWSURFACE) == GAL_HWSURFACE ) {
+    if ((flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
         depth = screen->format->BitsPerPixel;
         Rmask = screen->format->Rmask;
         Gmask = screen->format->Gmask;
@@ -124,33 +128,37 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
         surface->flags |= GAL_SRCPIXELALPHA;
     }
     surface->format = GAL_AllocFormat(depth, Rmask, Gmask, Bmask, Amask);
-    if ( surface->format == NULL ) {
-        free(surface);
+    if (surface->format == NULL) {
+        free (surface);
         return(NULL);
     }
     surface->w = width;
     surface->h = height;
     surface->pitch = GAL_CalculatePitch(surface);
     surface->pixels = NULL;
-    surface->offset = 0;
+    surface->pixels_off = 0;
     // for off-screen surface, DPI always be the default value
     surface->dpi = GDCAP_DPI_DEFAULT;
     surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;
+#if IS_COMPOSITING_SCHEMA
+    surface->shared_header = NULL;
+    surface->dirty_info = NULL;
+#endif
     GAL_SetClipRect(surface, NULL);
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     /* Initialize update region */
     InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
 #endif
 
     /* Get the pixels */
-    if ( surface->w && surface->h ) {
-        if ( ((flags&GAL_HWSURFACE) == GAL_SWSURFACE) ||
-                (video->AllocHWSurface(this, surface) < 0) ) {
+    if (surface->w && surface->h) {
+        if (((flags&GAL_HWSURFACE) == GAL_SWSURFACE) ||
+                (video->AllocHWSurface(this, surface) < 0)) {
             surface->pixels = malloc(surface->h*surface->pitch);
-            if ( surface->pixels == NULL ) {
+            if (surface->pixels == NULL) {
                 GAL_FreeSurface(surface);
                 GAL_OutOfMemory();
                 return(NULL);
@@ -169,7 +177,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
 
     /* Allocate an empty mapping */
     surface->map = GAL_AllocBlitMap();
-    if ( surface->map == NULL ) {
+    if (surface->map == NULL) {
         GAL_FreeSurface(surface);
         return(NULL);
     }
@@ -192,7 +200,7 @@ GAL_Surface * GAL_CreateRGBSurfaceFrom (void *pixels,
 
     surface = GAL_CreateRGBSurface(GAL_SWSURFACE, 0, 0, depth,
                                    Rmask, Gmask, Bmask, Amask);
-    if ( surface != NULL ) {
+    if (surface != NULL) {
         surface->flags |= GAL_PREALLOC;
         surface->pixels = pixels;
         surface->w = width;
@@ -208,8 +216,8 @@ GAL_Surface * GAL_CreateRGBSurfaceFrom (void *pixels,
 int GAL_SetColorKey (GAL_Surface *surface, Uint32 flag, Uint32 key)
 {
     /* Sanity check the flag as it gets passed in */
-    if ( flag & GAL_SRCCOLORKEY ) {
-        if ( flag & (GAL_RLEACCEL|GAL_RLEACCELOK) ) {
+    if (flag & GAL_SRCCOLORKEY) {
+        if (flag & (GAL_RLEACCEL|GAL_RLEACCELOK)) {
             flag = (GAL_SRCCOLORKEY | GAL_RLEACCELOK);
         } else {
             flag = GAL_SRCCOLORKEY;
@@ -219,29 +227,29 @@ int GAL_SetColorKey (GAL_Surface *surface, Uint32 flag, Uint32 key)
     }
 
     /* Optimize away operations that don't change anything */
-    if ( (flag == (surface->flags & (GAL_SRCCOLORKEY|GAL_RLEACCELOK))) &&
-         (key == surface->format->colorkey) ) {
+    if ((flag == (surface->flags & (GAL_SRCCOLORKEY|GAL_RLEACCELOK))) &&
+         (key == surface->format->colorkey)) {
         return(0);
     }
 
     /* UnRLE surfaces before we change the colorkey */
-    if ( surface->flags & GAL_RLEACCEL ) {
+    if (surface->flags & GAL_RLEACCEL) {
             GAL_UnRLESurface(surface, 1);
     }
 
-    if ( flag ) {
+    if (flag) {
         GAL_VideoDevice *video = __mg_current_video;
         GAL_VideoDevice *this  = __mg_current_video;
 
         surface->flags |= GAL_SRCCOLORKEY;
         surface->format->colorkey = key;
-        if ( (surface->flags & GAL_HWACCEL) == GAL_HWACCEL ) {
-            if ( (video->SetHWColorKey == NULL) ||
-                 (video->SetHWColorKey(this, surface, key) < 0) ) {
+        if ((surface->flags & GAL_HWACCEL) == GAL_HWACCEL) {
+            if ((video->SetHWColorKey == NULL) ||
+                 (video->SetHWColorKey(this, surface, key) < 0)) {
                 surface->flags &= ~GAL_HWACCEL;
             }
         }
-        if ( flag & GAL_RLEACCELOK ) {
+        if (flag & GAL_RLEACCELOK) {
             surface->flags |= GAL_RLEACCELOK;
         } else {
             surface->flags &= ~GAL_RLEACCELOK;
@@ -259,20 +267,20 @@ int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 value)
     Uint32  oldalpha = surface->format->alpha;
 
     /* Sanity check the flag as it gets passed in */
-    if ( flag & GAL_SRCALPHA ) {
-        if ( flag & (GAL_RLEACCEL|GAL_RLEACCELOK) ) {
+    if (flag & GAL_SRCALPHA) {
+        if (flag & (GAL_RLEACCEL|GAL_RLEACCELOK)) {
             flag = GAL_SRCALPHA|GAL_RLEACCELOK;
         } else {
             flag = GAL_SRCALPHA;
         }
 
         /* Optimize away operations that don't change anything */
-        if ( (flag == (surface->flags & (GAL_SRCALPHA|GAL_RLEACCELOK)))
-                && (!flag || value == oldalpha) ) {
+        if ((flag == (surface->flags & (GAL_SRCALPHA|GAL_RLEACCELOK)))
+                && (!flag || value == oldalpha)) {
             return(0);
         }
-    } else if ( flag & GAL_SRCPIXELALPHA ){
-        if ( flag & (GAL_RLEACCEL|GAL_RLEACCELOK) ) {
+    } else if (flag & GAL_SRCPIXELALPHA){
+        if (flag & (GAL_RLEACCEL|GAL_RLEACCELOK)) {
             flag = GAL_SRCPIXELALPHA|GAL_RLEACCELOK;
         } else {
             flag = GAL_SRCPIXELALPHA;
@@ -284,25 +292,25 @@ int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 value)
     if(!(flag & GAL_RLEACCELOK) && (surface->flags & GAL_RLEACCEL))
         GAL_UnRLESurface(surface, 1);
 
-    if ( flag ) {
+    if (flag) {
         GAL_VideoDevice *video = __mg_current_video;
         GAL_VideoDevice *this  = __mg_current_video;
 
-        if ( flag & GAL_SRCALPHA ) {
+        if (flag & GAL_SRCALPHA) {
             surface->flags |= GAL_SRCALPHA;
             surface->format->alpha = value;
-        } else if ( flag & GAL_SRCPIXELALPHA ){
+        } else if (flag & GAL_SRCPIXELALPHA){
             surface->flags |= GAL_SRCPIXELALPHA;
         }
 
 
-        if ( (surface->flags & GAL_HWACCEL) == GAL_HWACCEL ) {
-            if ( (video->SetHWAlpha == NULL) ||
-                 (video->SetHWAlpha(this, surface, value) < 0) ) {
+        if ((surface->flags & GAL_HWACCEL) == GAL_HWACCEL) {
+            if ((video->SetHWAlpha == NULL) ||
+                 (video->SetHWAlpha(this, surface, value) < 0)) {
                 surface->flags &= ~GAL_HWACCEL;
             }
         }
-        if ( flag & GAL_RLEACCELOK ) {
+        if (flag & GAL_RLEACCELOK) {
                 surface->flags |= GAL_RLEACCELOK;
         } else {
                 surface->flags &= ~GAL_RLEACCELOK;
@@ -326,41 +334,6 @@ int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 value)
 }
 
 /*
- * A function to calculate the intersection of two rectangles:
- * return true if the rectangles intersect, false otherwise
- */
-static inline
-GAL_bool GAL_IntersectRect(const GAL_Rect *A, const GAL_Rect *B, GAL_Rect *intersection)
-{
-    int Amin, Amax, Bmin, Bmax;
-
-    /* Horizontal intersection */
-    Amin = A->x;
-    Amax = Amin + A->w;
-    Bmin = B->x;
-    Bmax = Bmin + B->w;
-    if(Bmin > Amin)
-            Amin = Bmin;
-    intersection->x = Amin;
-    if(Bmax < Amax)
-            Amax = Bmax;
-    intersection->w = Amax - Amin > 0 ? Amax - Amin : 0;
-
-    /* Vertical intersection */
-    Amin = A->y;
-    Amax = Amin + A->h;
-    Bmin = B->y;
-    Bmax = Bmin + B->h;
-    if(Bmin > Amin)
-            Amin = Bmin;
-    intersection->y = Amin;
-    if(Bmax < Amax)
-            Amax = Bmax;
-    intersection->h = Amax - Amin > 0 ? Amax - Amin : 0;
-
-    return (intersection->w && intersection->h);
-}
-/*
  * Set the clipping rectangle for a blittable surface
  */
 GAL_bool GAL_SetClipRect(GAL_Surface *surface, GAL_Rect *rect)
@@ -368,7 +341,7 @@ GAL_bool GAL_SetClipRect(GAL_Surface *surface, GAL_Rect *rect)
     GAL_Rect full_rect;
 
     /* Don't do anything if there's no surface to act on */
-    if ( ! surface ) {
+    if (! surface) {
         return GAL_FALSE;
     }
 
@@ -379,34 +352,28 @@ GAL_bool GAL_SetClipRect(GAL_Surface *surface, GAL_Rect *rect)
     full_rect.h = surface->h;
 
     /* Set the clipping rectangle */
-    if ( ! rect ) {
+    if (! rect) {
         surface->clip_rect = full_rect;
         return 1;
     }
     return GAL_IntersectRect(rect, &full_rect, &surface->clip_rect);
 }
+
 void GAL_GetClipRect(GAL_Surface *surface, GAL_Rect *rect)
 {
-    if ( surface && rect ) {
+    if (surface && rect) {
         *rect = surface->clip_rect;
     }
 }
 
-#if defined ( _MGGAL_SIGMA8654) || defined (_MGGAL_MSTAR) || defined (_MGGAL_STGFB)
+#if defined (_MGGAL_SIGMA8654) || defined (_MGGAL_MSTAR) || defined (_MGGAL_STGFB)
 #   define MG_CONFIG_USE_OWN_OVERLAPPED_BITBLIT
 #endif
 
 #ifdef MG_CONFIG_USE_OWN_OVERLAPPED_BITBLIT
 #include <assert.h>
 
-static inline void galrect_2_rect(GAL_Rect *gal_rect, RECT *rc) {
-    rc->left = gal_rect->x;
-    rc->top = gal_rect->y;
-    rc->right = gal_rect->x + gal_rect->w;
-    rc->bottom = gal_rect->y + gal_rect->h;
-}
-
-int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect *srcrect,
+static int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect *srcrect,
         struct GAL_Surface *dst, GAL_Rect *dstrect) {
     int w, W, x;
     int h, H, y;
@@ -416,8 +383,8 @@ int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, GAL_Rect
 
     assert(srcrect->w == dstrect->w || srcrect->h == dstrect->h);
 
-    galrect_2_rect(srcrect, &src_rc);
-    galrect_2_rect(dstrect, &dst_rc);
+    GAL_Rect2RECT(srcrect, &src_rc);
+    GAL_Rect2RECT(dstrect, &dst_rc);
 
     /* don't intersect or horizontal left or up or left-up overlapped blit directly */
     if (! IntersectRect(&intersect, &src_rc, &dst_rc)
@@ -540,15 +507,15 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
     int ret;
 
     /* Check to make sure the blit mapping is valid */
-    if ( (src->map->dst != dst) ||
-             (src->map->dst->format_version != src->map->format_version) ) {
-        if ( GAL_MapSurface(src, dst) < 0 ) {
+    if ((src->map->dst != dst) ||
+             (src->map->dst->format_version != src->map->format_version)) {
+        if (GAL_MapSurface(src, dst) < 0) {
             return(-1);
         }
     }
 
     /* Figure out which blitter to use */
-    if ( (src->flags & GAL_HWACCEL) == GAL_HWACCEL ) {
+    if ((src->flags & GAL_HWACCEL) == GAL_HWACCEL) {
         do_blit = src->map->hw_blit;
     } else {
         do_blit = src->map->sw_blit;
@@ -591,7 +558,7 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
                 srcrect->w, srcrect->h,
                 srcrect->x, srcrect->y, src,
                 dstrect->x, dstrect->y, dst
-              );
+             );
     }
 #endif
 
@@ -605,13 +572,13 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
     GAL_Rect fulldst;
     int srcx, srcy, w, h;
 
-    if ( ! src || ! dst ) {
+    if (! src || ! dst) {
         GAL_SetError("NEWGAL: GAL_UpperBlit: passed a NULL surface.\n");
         return(-1);
     }
 
     /* If the destination rectangle is NULL, use the entire dest surface */
-    if ( dstrect == NULL ) {
+    if (dstrect == NULL) {
         fulldst.x = fulldst.y = 0;
         dstrect = &fulldst;
     }
@@ -704,9 +671,9 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
     }
 
     /* If 'dstrect' == NULL, then fill the whole surface */
-    if ( dstrect ) {
+    if (dstrect) {
         /* Perform clipping */
-        if ( !GAL_IntersectRect(dstrect, &dst->clip_rect, &my_dstrect) ) {
+        if (!GAL_IntersectRect(dstrect, &dst->clip_rect, &my_dstrect)) {
             return(0);
         }
     } else {
@@ -714,18 +681,18 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
     }
 
     /* Check for hardware acceleration */
-    if ( ((dst->flags & GAL_HWSURFACE) == GAL_HWSURFACE) &&
-                    video->info.blit_fill ) {
+    if (((dst->flags & GAL_HWSURFACE) == GAL_HWSURFACE) &&
+                    video->info.blit_fill) {
         return(video->FillHWRect(this, dst, &my_dstrect, color));
     }
 
     row = (Uint8 *)dst->pixels+my_dstrect.y*dst->pitch+
             my_dstrect.x*dst->format->BytesPerPixel;
-    if ( dst->format->palette || (color == 0) ) {
+    if (dst->format->palette || (color == 0)) {
         x = my_dstrect.w*dst->format->BytesPerPixel;
-        if ( !color && !((long)row&3) && !(x&3) && !(dst->pitch&3) ) {
+        if (!color && !((long)row&3) && !(x&3) && !(dst->pitch&3)) {
             int n = x >> 2;
-            for ( y=my_dstrect.h; y; --y ) {
+            for (y=my_dstrect.h; y; --y) {
                 GAL_memset4(row, 0, n);
                 row += dst->pitch;
             }
@@ -804,7 +771,7 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
     } else {
         switch (dst->format->BytesPerPixel) {
             case 2:
-            for ( y=my_dstrect.h; y; --y ) {
+            for (y=my_dstrect.h; y; --y) {
                 Uint16 *pixels = (Uint16 *)row;
                 Uint16 c = color;
                 Uint32 cc = (Uint32)c << 16 | c;
@@ -824,9 +791,9 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
             case 3:
             if(GAL_BYTEORDER == GAL_BIG_ENDIAN)
                 color <<= 8;
-            for ( y=my_dstrect.h; y; --y ) {
+            for (y=my_dstrect.h; y; --y) {
                 Uint8 *pixels = row;
-                for ( x=my_dstrect.w; x; --x ) {
+                for (x=my_dstrect.w; x; --x) {
                     memcpy(pixels, &color, 3);
                     pixels += 3;
                 }
@@ -1018,7 +985,7 @@ static int _PutBoxAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, 
         return -1;
 
     if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
-        while ( h-- ) {
+        while (h--) {
             dstpixels = dstrow;
             srcpixels = srcrow;
             DUFFS_LOOP(
@@ -1049,7 +1016,7 @@ static int _PutBoxAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, 
         int alpha_mask_row;
         GET_ALPHA_MASK_INDEX (srcrow, box, alpha_mask_pitch, alpha_mask_row);
 
-        while ( h-- ) {
+        while (h--) {
             dstpixels = dstrow;
             srcpixels = srcrow;
             alpha_mask_index = alpha_mask_row;
@@ -1133,7 +1100,7 @@ static int _PutBoxAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w,
         }
         else
         {
-            while ( h-- ) {
+            while (h--) {
                 dstpixels = dstrow;
                 srcpixels = srcrow;
                 DUFFS_LOOP(
@@ -1168,7 +1135,7 @@ static int _PutBoxAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w,
         int alpha_mask_row;
         GET_ALPHA_MASK_INDEX (srcrow, box, alpha_mask_pitch, alpha_mask_row);
 
-        while ( h-- ) {
+        while (h--) {
             dstpixels = dstrow;
             srcpixels = srcrow;
             alpha_mask_index = alpha_mask_row;
@@ -1212,7 +1179,7 @@ static int _PutBoxAlphaChannel (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Ui
     if (bpp == 1)
         return -1;
 
-    while ( h-- ) {
+    while (h--) {
         dstpixels = dstrow;
         srcpixels = srcrow;
         DUFFS_LOOP(
@@ -1254,7 +1221,7 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
         return -1;
 
     if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
-        while ( h-- ) {
+        while (h--) {
             dstpixels = dstrow;
             srcpixels = srcrow;
             DUFFS_LOOP(
@@ -1268,7 +1235,7 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
                 unsigned dG;
                 unsigned dB;
                 RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-                if ((pixel & rgbmask) != ckey ) {
+                if ((pixel & rgbmask) != ckey) {
                     RGBA_FROM_PIXEL (pixel, dstfmt, sR, sG, sB, sA);
                     DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
                     ALPHA_BLEND (sR, sG, sB, (alpha*sA)/255, dR, dG, dB);
@@ -1288,7 +1255,7 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
         int alpha_mask_row;
         GET_ALPHA_MASK_INDEX (srcrow, box, alpha_mask_pitch, alpha_mask_row);
 
-        while ( h-- ) {
+        while (h--) {
             dstpixels = dstrow;
             srcpixels = srcrow;
             alpha_mask_index = alpha_mask_row;
@@ -1303,7 +1270,7 @@ static int _PutBoxKeyAlphaChannelEx (GAL_Surface* dst, BYTE* dstrow, BYTE* srcro
                 unsigned dG;
                 unsigned dB;
                 RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-                if ((pixel & rgbmask) != ckey ) {
+                if ((pixel & rgbmask) != ckey) {
                     RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
                     DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
                     sA = box->bmAlphaMask[alpha_mask_index];
@@ -1339,7 +1306,7 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
         return -1;
 
     if (!(box->bmType & BMP_TYPE_ALPHA_MASK)) {
-        while ( h-- ) {
+        while (h--) {
             dstpixels = dstrow;
             srcpixels = srcrow;
             DUFFS_LOOP(
@@ -1353,7 +1320,7 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
                 unsigned dG;
                 unsigned dB;
                 RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-                if ((pixel & rgbmask) != ckey ) {
+                if ((pixel & rgbmask) != ckey) {
                     RGBA_FROM_PIXEL (pixel, dstfmt, sR, sG, sB, sA);
                     DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
                     ALPHA_BLEND (sR, sG, sB, sA, dR, dG, dB);
@@ -1373,7 +1340,7 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
         int alpha_mask_row;
         GET_ALPHA_MASK_INDEX (srcrow, box, alpha_mask_pitch, alpha_mask_row);
 
-        while ( h-- ) {
+        while (h--) {
             dstpixels = dstrow;
             srcpixels = srcrow;
             alpha_mask_index = alpha_mask_row;
@@ -1388,7 +1355,7 @@ static int _PutBoxKeyAlpha (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32
                 unsigned dG;
                 unsigned dB;
                 RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-                if ((pixel & rgbmask) != ckey ) {
+                if ((pixel & rgbmask) != ckey) {
                     RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
                     DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
                     sA = box->bmAlphaMask[alpha_mask_index];
@@ -1433,7 +1400,7 @@ static int _PutBoxKey (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow, Uint32 w, U
             dstrow += dst->pitch;
         }
     }
-    else while ( h-- ) {
+    else while (h--) {
         dstpixels = dstrow;
         srcpixels = srcrow;
         DUFFS_LOOP(
@@ -1472,7 +1439,7 @@ static int _PutBoxKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow,
     if (bpp == 1)
         return -1;
 
-    while ( h-- ) {
+    while (h--) {
         dstpixels = dstrow;
         srcpixels = srcrow;
         DUFFS_LOOP(
@@ -1485,7 +1452,7 @@ static int _PutBoxKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow, BYTE* srcrow,
             unsigned dG;
             unsigned dB;
             RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-            if ( pixel != ckey ) {
+            if (pixel != ckey) {
                 RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
                 DISEMBLE_RGB (dstpixels, bpp, dstfmt, pixel, dR, dG, dB);
                 ALPHA_BLEND (sR, sG, sB, alpha, dR, dG, dB);
@@ -1646,15 +1613,15 @@ GAL_Surface * GAL_ConvertSurface (GAL_Surface *surface,
     GAL_Rect bounds;
 
     /* Check for empty destination palette! (results in empty image) */
-    if ( format->palette != NULL ) {
+    if (format->palette != NULL) {
         int i;
-        for ( i=0; i<format->palette->ncolors; ++i ) {
-            if ( (format->palette->colors[i].r != 0) ||
+        for (i=0; i<format->palette->ncolors; ++i) {
+            if ((format->palette->colors[i].r != 0) ||
                  (format->palette->colors[i].g != 0) ||
-                 (format->palette->colors[i].b != 0) )
+                 (format->palette->colors[i].b != 0))
                 break;
         }
-        if ( i == format->palette->ncolors ) {
+        if (i == format->palette->ncolors) {
             GAL_SetError("NEWGAL: Empty destination palette.\n");
             return(NULL);
         }
@@ -1664,12 +1631,12 @@ GAL_Surface * GAL_ConvertSurface (GAL_Surface *surface,
     convert = GAL_CreateRGBSurface(flags,
                 surface->w, surface->h, format->BitsPerPixel,
         format->Rmask, format->Gmask, format->Bmask, format->Amask);
-    if ( convert == NULL ) {
+    if (convert == NULL) {
         return(NULL);
     }
 
     /* Copy the palette if any */
-    if ( format->palette && convert->format->palette ) {
+    if (format->palette && convert->format->palette) {
         memcpy(convert->format->palette->colors,
                 format->palette->colors,
                 format->palette->ncolors*sizeof(GAL_Color));
@@ -1678,7 +1645,7 @@ GAL_Surface * GAL_ConvertSurface (GAL_Surface *surface,
 
     /* Save the original surface color key and alpha */
     surface_flags = surface->flags;
-    if ( (surface_flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY ) {
+    if ((surface_flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
         /* Convert colourkeyed surfaces to RGBA if requested */
         if((flags & GAL_SRCCOLORKEY) != GAL_SRCCOLORKEY
            && format->Amask) {
@@ -1688,7 +1655,7 @@ GAL_Surface * GAL_ConvertSurface (GAL_Surface *surface,
             GAL_SetColorKey(surface, 0, 0);
         }
     }
-    if ( (surface_flags & GAL_SRCALPHA) == GAL_SRCALPHA ) {
+    if ((surface_flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
         alpha = surface->format->alpha;
         GAL_SetAlpha(surface, 0, 0);
     }
@@ -1701,12 +1668,12 @@ GAL_Surface * GAL_ConvertSurface (GAL_Surface *surface,
     GAL_LowerBlit(surface, &bounds, convert, &bounds);
 
     /* Clean up the original surface, and update converted surface */
-    if ( convert != NULL ) {
+    if (convert != NULL) {
         GAL_SetClipRect(convert, &surface->clip_rect);
     }
-    if ( (surface_flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY ) {
+    if ((surface_flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
         Uint32 cflags = surface_flags&(GAL_SRCCOLORKEY|GAL_RLEACCELOK);
-        if ( convert != NULL ) {
+        if (convert != NULL) {
             Uint8 keyR, keyG, keyB;
 
             GAL_GetRGB(colorkey,surface->format,&keyR,&keyG,&keyB);
@@ -1715,9 +1682,9 @@ GAL_Surface * GAL_ConvertSurface (GAL_Surface *surface,
         }
         GAL_SetColorKey(surface, cflags, colorkey);
     }
-    if ( (surface_flags & GAL_SRCALPHA) == GAL_SRCALPHA ) {
+    if ((surface_flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
         Uint32 aflags = surface_flags&(GAL_SRCALPHA|GAL_RLEACCELOK);
-        if ( convert != NULL ) {
+        if (convert != NULL) {
                 GAL_SetAlpha(convert, aflags|(flags&GAL_RLEACCELOK),
                 alpha);
         }
@@ -1735,7 +1702,7 @@ void GAL_FreeSurface (GAL_Surface *surface)
 {
     /* Free anything that's not NULL, and not the screen surface */
     if ((surface == NULL) ||
-        (__mg_current_video && (surface == GAL_VideoSurface))) {
+            (__mg_current_video && (surface == GAL_VideoSurface))) {
         return;
     }
 
@@ -1743,37 +1710,75 @@ void GAL_FreeSurface (GAL_Surface *surface)
         return;
     }
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     EmptyClipRgn (&surface->update_region);
 #endif
 
-    if ( (surface->flags & GAL_RLEACCEL) == GAL_RLEACCEL ) {
-            GAL_UnRLESurface(surface, 0);
+    if ((surface->flags & GAL_RLEACCEL) == GAL_RLEACCEL) {
+        GAL_UnRLESurface(surface, 0);
     }
-    if ( surface->format ) {
+
+    if (surface->format) {
         GAL_FreeFormat(surface->format);
         surface->format = NULL;
     }
-    if ( surface->map != NULL ) {
+
+    if (surface->map != NULL) {
         GAL_FreeBlitMap(surface->map);
         surface->map = NULL;
     }
-    if ( (surface->flags & GAL_HWSURFACE) == GAL_HWSURFACE ) {
-        GAL_VideoDevice *video = __mg_current_video;
-        GAL_VideoDevice *this  = __mg_current_video;
-        video->FreeHWSurface(this, surface);
+
+#if IS_COMPOSITING_SCHEMA
+    if (surface->shared_header == NULL && surface->dirty_info != NULL) {
+        free (surface->dirty_info);
     }
-    if ( surface->pixels &&
-         ((surface->flags & GAL_PREALLOC) != GAL_PREALLOC) ) {
-        free(surface->pixels);
+
+    if (surface->shared_header) {
+        if (surface->shared_header->creator == getpid())
+            GAL_FreeSharedSurfaceData(surface);
+        else
+            GAL_DettachSharedSurfaceData(surface);
+
+        surface->hwdata = NULL;
+        surface->pixels = NULL;
     }
-    free(surface);
+    else
+#endif
+
+    if ((surface->flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
+        GAL_VideoDevice *video = surface->video;
+
+        assert (video);
+        assert (video->FreeHWSurface);
+        video->FreeHWSurface (video, surface);
+    }
+#ifdef _MGRM_PROCESSES
+    else if ((surface->flags & GAL_HWSURFACE) == GAL_SWSURFACE &&
+            (surface->flags & GAL_PREALLOC) == GAL_PREALLOC &&
+            surface->hwdata) {
+        // This is a surface created in / attached to a named shared memory.
+
+        size_t map_size;
+        uint8_t* buff;
+
+        map_size = (size_t)surface->hwdata;
+        buff = surface->pixels - surface->pixels_off;
+        munmap (buff, map_size);
+    }
+#endif  /* _MGRM_PROCESSES */
+    else if (surface->pixels &&
+            ((surface->flags & GAL_PREALLOC) != GAL_PREALLOC)) {
+        free (surface->pixels);
+    }
+
+    free (surface);
+
 #ifdef CHECK_LEAKS
     --surfaces_allocated;
 #endif
 }
 
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA_PROCS
 void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
 {
     if (__mg_current_video->RequestHWSurface) {
@@ -1784,7 +1789,6 @@ void GAL_RequestHWSurface (const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
         /* NULL */
     }
 }
-
 #endif
 
 BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst, BYTE* dstrow,
@@ -1802,7 +1806,7 @@ BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst, BYTE* dstrow,
     if (bpp == 1)
         return dstrow;
 
-    //while ( h-- ) {
+    //while (h--) {
         //dstpixels = dstrow;
         //srcpixels = srcrow;
         //DUFFS_LOOP(
@@ -1816,7 +1820,7 @@ BYTE*  gal_PutPixelKeyAlpha (GAL_Surface* dst, BYTE* dstrow,
             unsigned dG;
             unsigned dB;
             //RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-            if ((pixel & rgbmask) != ckey ) {
+            if ((pixel & rgbmask) != ckey) {
                 RGBA_FROM_PIXEL (pixel, srcfmt, sR, sG, sB, sA);
                 DISEMBLE_RGB (dstrow, bpp, dstfmt, pixel, dR, dG, dB);
                 ALPHA_BLEND (sR, sG, sB, sA, dR, dG, dB);
@@ -1846,7 +1850,7 @@ BYTE* gal_PutPixelAlpha (GAL_Surface* dst, BYTE* dstrow,
     if (bpp == 1)
         return dstrow;
 
-    //while ( h-- ) {
+    //while (h--) {
         //dstpixels = dstrow;
         //srcpixels = srcrow;
         //DUFFS_LOOP(
@@ -1890,7 +1894,7 @@ BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow,
     if (bpp == 1)
         return dstrow;
 
-    //while ( h-- ) {
+    //while (h--) {
         //dstpixels = dstrow;
         //srcpixels = srcrow;
         //DUFFS_LOOP(
@@ -1903,7 +1907,7 @@ BYTE*  gal_PutPixelKeyAlphaChannel (GAL_Surface* dst, BYTE* dstrow,
             unsigned dG;
             unsigned dB;
             //RETRIEVE_RGB_PIXEL (srcpixels, bpp, pixel);
-            if ( pixel != ckey ) {
+            if (pixel != ckey) {
                 RGB_FROM_PIXEL (pixel, dstfmt, sR, sG, sB);
                 DISEMBLE_RGB (dstrow, bpp, dstfmt, pixel, dR, dG, dB);
                 ALPHA_BLEND (sR, sG, sB, alpha, dR, dG, dB);
@@ -1959,7 +1963,7 @@ BYTE* gal_PutPixelAlphaChannel (GAL_Surface* dst, BYTE* dstrow,
     if (bpp == 1)
         return dstrow;
 
-    //while ( h-- ) {
+    //while (h--) {
         //dstpixels = dstrow;
         //srcpixels = srcrow;
         //DUFFS_LOOP(

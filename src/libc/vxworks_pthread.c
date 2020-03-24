@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -90,7 +90,7 @@ static int pthreads_tobejoined;
 #define KEY_MAP_TYPE_SIZE (sizeof(KEY_MAP_TYPE)*8) // in BITS!
 static KEY_MAP_TYPE thread_key [PTHREAD_KEYS_MAX/KEY_MAP_TYPE_SIZE];
 static void (*key_destructor [PTHREAD_KEYS_MAX]) (void *);
-    
+
 // Index of next pthread_info to allocate from thread_table array.
 static int thread_info_next = 0;
 
@@ -149,7 +149,7 @@ pthread_info *pthread_info_id (pthread_t id)
     // Check for a valid entry
     if(info == NULL)
         return NULL;
-    
+
     // Check that this is a valid entry
     if (info->state == PTHREAD_STATE_FREE ||
             info->state == PTHREAD_STATE_EXITED)
@@ -188,8 +188,8 @@ static __inline int checkforcancel (void)
 {
     pthread_info *self = pthread_self_info ();
 
-    if (self != NULL && 
-            self->cancelpending && 
+    if (self != NULL &&
+            self->cancelpending &&
             self->cancelstate == PTHREAD_CANCEL_ENABLE)
         return 1;
     else
@@ -210,7 +210,7 @@ static void pthread_reap ()
     // Loop over the thread table looking for exited threads. The
     // pthreads_exited counter springs us out of this once we have
     // found them all (and keeps us out if there are none to do).
- 
+
     for (i = 0; pthreads_exited > 0 && i < VXPTHNUM_POSIX_PTHREAD_THREADS_MAX ; i++) {
         pthread_info *thread = thread_table[i];
 
@@ -270,10 +270,10 @@ static pthread_t main_thread;
 
 //-----------------------------------------------------------------------------
 // Main entry function.
-// This is set as the start_routine of the main thread. 
+// This is set as the start_routine of the main thread.
 // It invokes the entry function passed by thread argument.
 
-struct _main_pth_entry_info 
+struct _main_pth_entry_info
 {
     int (* pth_entry) (int argc, const char* argv []);
     int argc;
@@ -282,7 +282,7 @@ struct _main_pth_entry_info
 
 static void *main_pthread_entry (void *data)
 {
-    struct _main_pth_entry_info* entry_info 
+    struct _main_pth_entry_info* entry_info
         = (struct _main_pth_entry_info*) data;
 
     entry_info->pth_entry (entry_info->argc, entry_info->argv);
@@ -292,7 +292,7 @@ static void *main_pthread_entry (void *data)
 /* -------------------------------------------------------------------------- */
 /* Start Pthreads system and create the main() thread. */
 int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []),
-                int argc, const char* argv[], 
+                int argc, const char* argv[],
                 char* stack_base, unsigned int stack_size)
 {
     int i;
@@ -311,15 +311,15 @@ int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []),
     for (i = 0; i < (PTHREAD_KEYS_MAX/KEY_MAP_TYPE_SIZE); i++) {
         thread_key [i] = ~0;
     }
- 
+
     // Create the main thread
     if (pth_entry) {
         pthread_attr_t attr;
         struct sched_param schedparam;
         static struct _main_pth_entry_info entry_info;
 
-        entry_info.pth_entry = pth_entry; 
-        entry_info.argc = argc; 
+        entry_info.pth_entry = pth_entry;
+        entry_info.argc = argc;
         entry_info.argv = argv;
 
         if (stack_size < MAIN_PTH_MIN_STACK_SIZE) {
@@ -364,7 +364,7 @@ int pthread_create (pthread_t *thread,
     void* stackmem = 0;
     pthread_info *nthread;
     int thread_next = thread_info_next;
- 
+
     pthread_attr_t use_attr;
 
     PTHREAD_ENTRY();
@@ -374,7 +374,7 @@ int pthread_create (pthread_t *thread,
 
     // Set use_attr to the set of attributes we are going to
     // actually use. Either those passed in, or the default set.
-   
+
     if (attr == NULL)
         pthread_attr_init (&use_attr);
     else
@@ -417,10 +417,10 @@ int pthread_create (pthread_t *thread,
     }
 
     semTake (__vxpthread_mutex, WAIT_FOREVER);
-    
+
     /* Dispose of any dead threads */
     pthread_reap ();
-    
+
     /* Find a free slot in the thread table */
     while (thread_table[thread_next] != NULL) {
         thread_next++;
@@ -436,9 +436,9 @@ int pthread_create (pthread_t *thread,
         }
     }
 
-/* 
+/*
  * For _STACK_GROWS_DOWN:
- * 
+ *
  *.CS
  *     - HIGH MEMORY -
  *  ---------------------
@@ -458,7 +458,7 @@ int pthread_create (pthread_t *thread,
  *
  *
  * For _STACK_GROWS_UP:
- * 
+ *
  *.CS
  *     - HIGH MEMORY -
  *  ---------------------
@@ -494,7 +494,7 @@ int pthread_create (pthread_t *thread,
 
     // Set new next index
     thread_info_next = thread_next + 1;
-    
+
     // step the cookie
     thread_id_cookie += THREAD_ID_COOKIE_INC;
 
@@ -509,14 +509,14 @@ int pthread_create (pthread_t *thread,
 
     nthread->freestack          = freestack;
     nthread->stackmem           = stackmem;
-    
+
     nthread->cancelstate        = PTHREAD_CANCEL_ENABLE;
     nthread->canceltype         = PTHREAD_CANCEL_DEFERRED;
     nthread->cancelbuffer       = NULL;
     nthread->cancelpending      = FALSE;
 
     memset(nthread->thread_data, 0, PTHREAD_KEYS_MAX);
-    
+
     /* Initialize the joiner event flag */
     nthread->joiner = semBCreate (SEM_Q_PRIORITY, SEM_FULL);
 
@@ -538,7 +538,7 @@ int pthread_create (pthread_t *thread,
             free (stackmem);
         PTHREAD_RETURN (EINVAL);
     }
- 
+
     /* return thread ID */
     *thread = nthread->id;
 
@@ -558,9 +558,9 @@ int pthread_create (pthread_t *thread,
 pthread_t pthread_self (void)
 {
     pthread_info* info;
-    
+
     PTHREAD_ENTRY();
-    
+
     info = pthread_self_info ();
 
     return info->id;
@@ -572,7 +572,7 @@ pthread_t pthread_self (void)
 int pthread_equal (pthread_t thread1, pthread_t thread2)
 {
     PTHREAD_ENTRY();
-    
+
     return thread1 == thread2;
 }
 
@@ -585,7 +585,7 @@ static void vxpth_pthread_exit (pthread_info* thread, void *retval)
     BOOL call_exit = FALSE;
 
     PTHREAD_ENTRY ();
-    
+
     // Call cancellation handlers. We eat up the buffers as we go in
     // case any of the routines calls pthread_exit() itthread.
     while (thread->cancelbuffer != NULL) {
@@ -599,7 +599,7 @@ static void vxpth_pthread_exit (pthread_info* thread, void *retval)
         // The specification of this is that we must continue to call the
         // destructor functions until all the per-thread data values are NULL or
         // we have done it PTHREAD_DESTRUCTOR_ITERATIONS times.
-    
+
         BOOL destructors_called;
         int destructor_iterations = 0;
 
@@ -607,7 +607,7 @@ static void vxpth_pthread_exit (pthread_info* thread, void *retval)
             unsigned int key;
 
             destructors_called = FALSE;
-        
+
             for (key = 0; key < PTHREAD_KEYS_MAX; key++) {
                 // Skip unallocated keys
                 if (thread_key[key/KEY_MAP_TYPE_SIZE] & 1<<(key%KEY_MAP_TYPE_SIZE))
@@ -634,12 +634,12 @@ static void vxpth_pthread_exit (pthread_info* thread, void *retval)
 
             // Count the iteration
             destructor_iterations++;
-        
+
         } while (destructors_called &&
                  (destructor_iterations <= PTHREAD_DESTRUCTOR_ITERATIONS));
 
     }
-    
+
     vx_ret = semTake (__vxpthread_mutex, WAIT_FOREVER);
 
     // Set the retval for any joiner
@@ -647,7 +647,7 @@ static void vxpth_pthread_exit (pthread_info* thread, void *retval)
 
     // If we are already detached, go to EXITED state, otherwise
     // go into JOIN state.
- 
+
     if (PTHREAD_STATE_DETACHED == thread->state) {
         thread->state = PTHREAD_STATE_EXITED;
         pthreads_exited++;
@@ -668,12 +668,12 @@ static void vxpth_pthread_exit (pthread_info* thread, void *retval)
         call_exit = TRUE;
 
     vx_ret = semGive (__vxpthread_mutex);
-    
+
     taskDelete (thread->task_id);
 
     // This loop keeps some compilers happy. pthread_exit() is marked
     // with the noreturn attribute, and without this they generate a
-    // call to abort() here in case Cyg_Thread::exit() returns. 
+    // call to abort() here in case Cyg_Thread::exit() returns.
 
     //FIXME
     for(;;) continue;
@@ -697,15 +697,15 @@ int pthread_join (pthread_t thread, void **thread_return)
     pthread_info* joinee;
 
     PTHREAD_ENTRY ();
-    
+
     // check for cancellation first.
     pthread_testcancel ();
 
     vx_ret = semTake (__vxpthread_mutex, WAIT_FOREVER);
-    
+
     // Dispose of any dead threads
     pthread_reap ();
-    
+
     self = pthread_self_info ();
     joinee = pthread_info_id (thread);
 
@@ -722,7 +722,7 @@ int pthread_join (pthread_t thread, void **thread_return)
         case PTHREAD_STATE_RUNNING:
             // The thread is still running, we must wait for it.
         while (joinee->state == PTHREAD_STATE_RUNNING) {
-  
+
             semGive (__vxpthread_mutex);
             vx_ret = semTake (joinee->joiner, WAIT_FOREVER);
             semTake (__vxpthread_mutex, WAIT_FOREVER);
@@ -742,39 +742,39 @@ int pthread_join (pthread_t thread, void **thread_return)
 
         // The thread has become unjoinable while we waited, so we
         // fall through to complain.
-        
+
         case PTHREAD_STATE_FREE:
         case PTHREAD_STATE_DETACHED:
         case PTHREAD_STATE_EXITED:
         // None of these may be joined.
             err = EINVAL;
             break;
-            
+
         case PTHREAD_STATE_JOIN:
             break;
         }
     }
 
     if (!err) {
-    
+
         // here, we know that joinee is a thread that has exited and is
         // ready to be joined.
 
         // Get the retval
         if (thread_return != NULL)
             *thread_return = joinee->retval;
-        
+
         // set state to exited.
         joinee->state = PTHREAD_STATE_EXITED;
         pthreads_exited++;
         pthreads_tobejoined--;
-    
+
         // Dispose of any dead threads
         pthread_reap ();
     }
 
     vx_ret = semGive (__vxpthread_mutex);
-    
+
     // check for cancellation before returning
     pthread_testcancel ();
 
@@ -792,11 +792,11 @@ int pthread_detach (pthread_t thread)
     pthread_info* detachee;
 
     PTHREAD_ENTRY();
-    
+
     vx_ret = semTake (__vxpthread_mutex, WAIT_FOREVER);
 
     detachee = pthread_info_id (thread);
-    
+
     if (detachee == NULL)
         ret = ESRCH;                    // No such thread
     else if (detachee->state == PTHREAD_STATE_DETACHED)
@@ -807,10 +807,10 @@ int pthread_detach (pthread_t thread)
         detachee->state = PTHREAD_STATE_DETACHED;
         semGive (detachee->joiner);
     }
-    
+
     // Dispose of any dead threads
     pthread_reap ();
-    
+
     vx_ret = semGive (__vxpthread_mutex);
 
     PTHREAD_RETURN (ret);
@@ -829,14 +829,14 @@ int pthread_detach (pthread_t thread)
 // schedparam           == unset
 // stackaddr            == unset
 // stacksize            == 0
-// 
+//
 
 int pthread_attr_init (pthread_attr_t *attr)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
-    
+
     attr->detachstate                 = PTHREAD_CREATE_JOINABLE;
     attr->scope                       = PTHREAD_SCOPE_SYSTEM;
     attr->inheritsched                = PTHREAD_INHERIT_SCHED;
@@ -848,7 +848,7 @@ int pthread_attr_init (pthread_attr_t *attr)
     attr->stackaddr                   = NULL;
     attr->stacksize_valid             = 0;
     attr->stacksize                   = 0;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -858,11 +858,11 @@ int pthread_attr_init (pthread_attr_t *attr)
 int pthread_attr_destroy (pthread_attr_t *attr)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     // Nothing to do here...
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -873,7 +873,7 @@ int pthread_attr_setdetachstate (pthread_attr_t *attr,
                                          int detachstate)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (detachstate == PTHREAD_CREATE_JOINABLE
@@ -881,7 +881,7 @@ int pthread_attr_setdetachstate (pthread_attr_t *attr,
         attr->detachstate = detachstate;
         PTHREAD_RETURN (0);
     }
-    
+
     PTHREAD_RETURN (EINVAL);
 }
 
@@ -891,12 +891,12 @@ int pthread_attr_getdetachstate (const pthread_attr_t *attr,
                                          int *detachstate)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (detachstate != NULL)
         *detachstate = attr->detachstate;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -906,7 +906,7 @@ int pthread_attr_getdetachstate (const pthread_attr_t *attr,
 int pthread_attr_setscope (pthread_attr_t *attr, int scope)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (scope == PTHREAD_SCOPE_SYSTEM) {
@@ -917,7 +917,7 @@ int pthread_attr_setscope (pthread_attr_t *attr, int scope)
     else if (scope == PTHREAD_SCOPE_PROCESS) {
         PTHREAD_RETURN (ENOTSUP);
     }
-    
+
     PTHREAD_RETURN (EINVAL);
 }
 
@@ -927,12 +927,12 @@ int pthread_attr_setscope (pthread_attr_t *attr, int scope)
 int pthread_attr_getscope (const pthread_attr_t *attr, int *scope)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (scope != NULL)
         *scope = attr->scope;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -942,10 +942,10 @@ int pthread_attr_getscope (const pthread_attr_t *attr, int *scope)
 int pthread_attr_setinheritsched (pthread_attr_t *attr, int inherit)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
-    if (inherit == PTHREAD_INHERIT_SCHED 
+    if (inherit == PTHREAD_INHERIT_SCHED
             || inherit == PTHREAD_EXPLICIT_SCHED) {
         attr->inheritsched = inherit;
 
@@ -962,12 +962,12 @@ int pthread_attr_getinheritsched (const pthread_attr_t *attr,
                                           int *inherit)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if( inherit != NULL )
         *inherit = attr->inheritsched;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -977,7 +977,7 @@ int pthread_attr_getinheritsched (const pthread_attr_t *attr,
 int pthread_attr_setschedpolicy (pthread_attr_t *attr, int policy)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (policy == SCHED_FIFO) {
@@ -988,7 +988,7 @@ int pthread_attr_setschedpolicy (pthread_attr_t *attr, int policy)
     else if (policy == SCHED_OTHER || policy == SCHED_RR) {
         PTHREAD_RETURN (ENOTSUP);
     }
-    
+
     PTHREAD_RETURN (EINVAL);
 }
 
@@ -999,12 +999,12 @@ int pthread_attr_getschedpolicy (const pthread_attr_t *attr,
                                          int *policy)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (policy != NULL)
         *policy = attr->schedpolicy;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1014,12 +1014,12 @@ int pthread_attr_setschedparam (pthread_attr_t *attr,
                         const struct sched_param *param)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
     PTHREAD_CHECK (param);
 
     attr->schedparam = *param;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1030,12 +1030,12 @@ int pthread_attr_getschedparam (const pthread_attr_t *attr,
                                         struct sched_param *param)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (param != NULL)
         *param = attr->schedparam;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1047,12 +1047,12 @@ int pthread_attr_getschedparam (const pthread_attr_t *attr,
 int pthread_attr_setstackaddr (pthread_attr_t *attr, void *stackaddr)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     attr->stackaddr       = stackaddr;
     attr->stackaddr_valid = 1;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1063,7 +1063,7 @@ int pthread_attr_getstackaddr (const pthread_attr_t *attr,
                                        void **stackaddr)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (stackaddr != NULL) {
@@ -1088,16 +1088,16 @@ int pthread_attr_setstacksize (pthread_attr_t *attr,
                                        size_t stacksize)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     // Reject inadequate stack sizes
     if( stacksize < PTHREAD_STACK_MIN )
         PTHREAD_RETURN (EINVAL);
-        
+
     attr->stacksize_valid = 1;
     attr->stacksize = stacksize;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1108,16 +1108,16 @@ int pthread_attr_getstacksize (const pthread_attr_t *attr,
                                        size_t *stacksize)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     // Reject attempts to get a stack size when one has not been set.
     if (!attr->stacksize_valid)
         PTHREAD_RETURN (EINVAL);
-    
+
     if (stacksize != NULL)
         *stacksize = attr->stacksize;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1136,15 +1136,15 @@ int pthread_setschedparam (pthread_t thread_id,
 
     PTHREAD_ENTRY ();
 
-    if (policy != SCHED_OTHER && 
-            policy != SCHED_FIFO && 
+    if (policy != SCHED_OTHER &&
+            policy != SCHED_FIFO &&
             policy != SCHED_RR)
         PTHREAD_RETURN (EINVAL);
 
     PTHREAD_CHECK (param);
 
     // The parameters seem OK, change the thread...
-    
+
     vx_ret = semTake (__vxpthread_mutex, WAIT_FOREVER);
 
     thread = pthread_info_id (thread_id);
@@ -1153,7 +1153,7 @@ int pthread_setschedparam (pthread_t thread_id,
         vx_ret = semGive (__vxpthread_mutex);
         PTHREAD_RETURN (ESRCH);
     }
-    
+
     thread->attr.schedpolicy = policy;
     thread->attr.schedparam = *param;
 
@@ -1163,7 +1163,7 @@ int pthread_setschedparam (pthread_t thread_id,
     //vx_ret = NU_Change_Time_Slice (thread->thread, param->time_slice);
 
     vx_ret = semGive (__vxpthread_mutex);
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1193,9 +1193,9 @@ int pthread_getschedparam (pthread_t thread_id,
 
     if (param != NULL)
         *param = thread->attr.schedparam;
-    
+
     vx_ret = semGive (__vxpthread_mutex);
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1225,7 +1225,7 @@ int pthread_once (pthread_once_t *once_control,
 
     // If the once_control was zero, call the init_routine().
     if (!old) init_routine ();
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1256,7 +1256,7 @@ int pthread_key_create (pthread_key_t *key,
     UINT vx_ret;
     unsigned int i;
     pthread_key_t k = -1;
-    
+
     PTHREAD_ENTRY();
 
     vx_ret = semTake (__vxpthread_mutex, WAIT_FOREVER);
@@ -1278,7 +1278,7 @@ int pthread_key_create (pthread_key_t *key,
 
             // Install destructor
             key_destructor[k] = destructor;
-            
+
             // break out with key found
             break;
         }
@@ -1287,7 +1287,7 @@ int pthread_key_create (pthread_key_t *key,
     if (k != -1) {
         // plant a NULL in all the valid thread data slots for this
         // key in case we are reusing a key we used before.
-        
+
         for (i = 0; i < VXPTHNUM_POSIX_PTHREAD_THREADS_MAX ; i++) {
             pthread_info *thread = thread_table[i];
 
@@ -1295,14 +1295,14 @@ int pthread_key_create (pthread_key_t *key,
                 thread->thread_data[k] = NULL;
         }
     }
-    
+
     semGive (__vxpthread_mutex);
 
     if (k == -1)
         PTHREAD_RETURN (EAGAIN);
 
     *key = k;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1321,7 +1321,7 @@ int pthread_key_delete (pthread_key_t key)
     thread_key [key/KEY_MAP_TYPE_SIZE] |= 1<<(key%(KEY_MAP_TYPE_SIZE));
 
     vx_ret = semGive (__vxpthread_mutex);
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1341,7 +1341,7 @@ int pthread_setspecific (pthread_key_t key, const void *pointer)
     self = pthread_self_info ();
 
     self->thread_data[key] = (void *)pointer;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1385,22 +1385,22 @@ int pthread_setcancelstate (int state, int *oldstate)
     if (state != PTHREAD_CANCEL_ENABLE &&
             state != PTHREAD_CANCEL_DISABLE)
         PTHREAD_RETURN (EINVAL);
-    
+
     vx_ret = semTake (__vxpthread_mutex, WAIT_FOREVER);
 
     self = pthread_self_info ();
 
     if (oldstate != NULL) *oldstate = self->cancelstate;
-    
+
     self->cancelstate = state;
-    
+
     vx_ret = semGive (__vxpthread_mutex);
-    
+
     // Note: This function may have made it possible for a pending
     // cancellation to now be delivered. However the standard does not
     // list this function as a cancellation point, so for now we do
     // nothing. In future we might call pthread_testcancel() here.
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1418,22 +1418,22 @@ int pthread_setcanceltype (int type, int *oldtype)
     if (type != PTHREAD_CANCEL_ASYNCHRONOUS &&
             type != PTHREAD_CANCEL_DEFERRED )
         PTHREAD_RETURN (EINVAL);
-    
+
     vx_ret = semTake (__vxpthread_mutex, WAIT_FOREVER);
 
     self = pthread_self_info ();
-        
+
     if (oldtype != NULL) *oldtype = self->canceltype;
 
     self->canceltype = type;
-    
+
     vx_ret = semGive (__vxpthread_mutex);
 
     // Note: This function may have made it possible for a pending
     // cancellation to now be delivered. However the standard does not
     // list this function as a cancellation point, so for now we do
     // nothing. In future we might call pthread_testcancel() here.
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1468,7 +1468,7 @@ int pthread_cancel (pthread_t thread)
             vxpth_pthread_exit (th, PTHREAD_CANCELED);
         }
         else if (th->canceltype == PTHREAD_CANCEL_DEFERRED) {
-            // If the thread has cancellation enabled, and it is in 
+            // If the thread has cancellation enabled, and it is in
             // deferred mode, wake the thread up so that cancellation
             // points can test for cancellation.
 
@@ -1480,7 +1480,7 @@ int pthread_cancel (pthread_t thread)
 
     // Otherwise the thread has cancellation disabled, in which case
     // it is up to the thread to enable cancellation
-    
+
     vx_ret = semGive (__vxpthread_mutex);
 
     PTHREAD_RETURN (0);
@@ -1496,8 +1496,8 @@ void pthread_testcancel (void)
 
     if (checkforcancel ()) {
         // If we have cancellation enabled, and there is a cancellation
-        // pending, then go ahead and do the deed. 
-        
+        // pending, then go ahead and do the deed.
+
         // Exit now with special retval. pthread_exit() calls the
         // cancellation handlers implicitly.
         pthread_exit (PTHREAD_CANCELED);
@@ -1521,7 +1521,7 @@ void pthread_cleanup_push_inner (struct pthread_cleanup_buffer *buffer,
 
     buffer->routine     = routine;
     buffer->arg         = arg;
-    
+
     buffer->prev        = self->cancelbuffer;
 
     self->cancelbuffer  = buffer;
@@ -1537,9 +1537,9 @@ void pthread_cleanup_pop_inner (struct pthread_cleanup_buffer *buffer,
     PTHREAD_ENTRY ();
 
     self = pthread_self_info ();
-    
+
     VXPTH_ASSERT (self->cancelbuffer == buffer, "Stacking error in cleanup buffers");
-    
+
     if (self->cancelbuffer == buffer) {
         // Remove the buffer from the stack
         self->cancelbuffer = buffer->prev;

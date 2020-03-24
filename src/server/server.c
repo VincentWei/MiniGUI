@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -77,25 +77,26 @@
 #include "server.h"
 #include "sharedres.h"
 #include "drawsemop.h"
+#include "timer.h"
 #include "license.h"
 
-extern DWORD __mg_timer_counter;
+extern DWORD __mg_tick_counter;
 
 ON_NEW_DEL_CLIENT OnNewDelClient = NULL;
 
+#if 0
+/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
 static SRVEVTHOOK srv_evt_hook = NULL;
 
 SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
 {
     SRVEVTHOOK old_hook = srv_evt_hook;
 
-    if (!mgIsServer)
-        return NULL;
-
     srv_evt_hook = SrvEvtHook;
 
     return old_hook;
 }
+#endif /* deprecated code; moved to window.c */
 
 static void ParseEvent (PMSGQUEUE msg_que, int event)
 {
@@ -118,17 +119,14 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
     if (!kernel_GetLWEvent (event, &lwe))
         return;
 
-    Msg.time = __mg_timer_counter;
+    Msg.time = __mg_tick_counter;
     if (lwe.type == LWETYPE_TIMEOUT) {
         Msg.message = MSG_TIMEOUT;
         Msg.wParam = (WPARAM)lwe.count;
         Msg.lParam = 0;
 
-        /*
-         * No need to send TIME_OUT message to the client
-         * Send2Client (&Msg, CLIENT_ACTIVE);
-         */
-        kernel_QueueMessage (msg_que, &Msg);
+        // Since 5.0.0, we do not genenrate MSG_TIMEOUT message any more.
+        // kernel_QueueMessage (msg_que, &Msg);
     }
     else if (lwe.type == LWETYPE_KEY) {
         Msg.wParam = ke->scancode;
@@ -146,19 +144,27 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             Msg.message = MSG_KEYALWAYSPRESS;
         }
 
+#if 0   /* Since 5.0.0 */
         if (__mg_do_drag_drop_window (Msg.message, 0, 0))
             return;
 
         if (!(srv_evt_hook && srv_evt_hook (&Msg))) {
             kernel_QueueMessage (msg_que, &Msg);
         }
+#else   /* deprecated code */
+        if (__mg_check_hook_func (HOOK_EVENT_KEY, &Msg) == HOOK_GOON) {
+            kernel_QueueMessage (msg_que, &Msg);
+        }
+#endif  /* use __mg_check_hook_func instead */
     }
     else if (lwe.type == LWETYPE_MOUSE) {
+#if 0   /* Since 5.0.0: move to desktop */
         static int down_client = -1;
         static int down_by;
         int cur_client = __mg_get_znode_at_point (__mg_zorder_info,
                         me->x, me->y, NULL);
-        Msg.wParam = me->status;
+#endif  /* moved to desktop */
+
         switch (me->event) {
         case ME_MOVED:
             Msg.message = MSG_MOUSEMOVE;
@@ -166,14 +172,14 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         case ME_LEFTDOWN:
             Msg.message = MSG_LBUTTONDOWN;
             break;
-        case ME_RIGHTDOWN:
-            Msg.message = MSG_RBUTTONDOWN;
-            break;
         case ME_LEFTUP:
             Msg.message = MSG_LBUTTONUP;
             break;
         case ME_LEFTDBLCLICK:
             Msg.message = MSG_LBUTTONDBLCLK;
+            break;
+        case ME_RIGHTDOWN:
+            Msg.message = MSG_RBUTTONDOWN;
             break;
         case ME_RIGHTUP:
             Msg.message = MSG_RBUTTONUP;
@@ -181,27 +187,42 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         case ME_RIGHTDBLCLICK:
             Msg.message = MSG_RBUTTONDBLCLK;
             break;
+        case ME_MIDDLEDOWN:
+            Msg.message = MSG_MBUTTONDOWN;
+            break;
+        case ME_MIDDLEUP:
+            Msg.message = MSG_MBUTTONUP;
+            break;
+        case ME_MIDDLEDBLCLICK:
+            Msg.message = MSG_MBUTTONDBLCLK;
+            break;
         }
 
+        Msg.wParam = me->status;
+        Msg.lParam = MAKELONG (me->x, me->y);
+
+        if (__mg_check_hook_func (HOOK_EVENT_MOUSE, &Msg) == HOOK_GOON) {
+            kernel_QueueMessage (msg_que, &Msg);
+        }
+
+#if 0   /* Since 5.0.0: move to desktop */
         if (__mg_do_drag_drop_window (Msg.message, me->x, me->y)) {
             down_client = -1;
             return;
         }
 
         switch (Msg.message) {
-            case MSG_LBUTTONDOWN:
-            case MSG_RBUTTONDOWN:
-                if (cur_client >= 0 && down_client == -1) {
-                    down_client = cur_client;
-                    down_by = Msg.message;
-                }
-                break;
+        case MSG_LBUTTONDOWN:
+        case MSG_RBUTTONDOWN:
+            if (cur_client >= 0 && down_client == -1) {
+                down_client = cur_client;
+                down_by = Msg.message;
+            }
+            break;
         }
 
         if (cur_client == -1)
             SetDefaultCursor (GetSystemCursor (IDC_ARROW));
-
-        Msg.lParam = MAKELONG (me->x, me->y);
 
         if (__mg_handle_mouse_hook (Msg.message,
                                 Msg.wParam, Msg.lParam) == HOOK_STOP)
@@ -211,7 +232,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             int target_client = cur_client;
 
             if (down_client < 0) {
-                if (!__mg_capture_wnd && me->event == ME_MOVED) {
+                if (!__mg_captured_wnd && me->event == ME_MOVED) {
                     int cli = __mg_handle_normal_mouse_move (__mg_zorder_info,
                                     me->x, me->y);
 
@@ -226,15 +247,15 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
                 Msg.hwnd = 0;
 #ifdef _MG_CONFIG_FAST_MOUSEMOVE
                 if (Msg.message == MSG_MOUSEMOVE) {
-                    lock_mousemove_sem();
-                    {
-                        if (SHAREDRES_MOUSEMOVECLIENT > 0 && SHAREDRES_MOUSEMOVECLIENT != target_client) {
-                            printf("drop a mouse move message, old_client=%d, target_client=%d\n", SHAREDRES_MOUSEMOVECLIENT, target_client);
-                        }
+                    LOCK_MOUSEMOVE_SEM();
+                    if (SHAREDRES_MOUSEMOVECLIENT > 0 &&
+                            SHAREDRES_MOUSEMOVECLIENT != target_client) {
+                        _DBG_PRINTF ("drop a mouse move message, old_client=%d, target_client=%d\n",
+                                SHAREDRES_MOUSEMOVECLIENT, target_client);
                     }
                     SHAREDRES_MOUSEMOVECLIENT = target_client;
                     ++ SHAREDRES_MOUSEMOVESERIAL;
-                    unlock_mousemove_sem();
+                    UNLOCK_MOUSEMOVE_SEM();
                 }
                 else
 #endif
@@ -252,6 +273,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         if (Msg.message == MSG_RBUTTONUP && down_by == MSG_RBUTTONDOWN) {
             down_client = -1;
         }
+#endif  /* moved to desktop */
     }
 }
 
@@ -261,7 +283,6 @@ static int maxi;
 BOOL GUIAPI ServerStartup (int nr_globals,
                 int def_nr_topmosts, int def_nr_normals)
 {
-
     if (!mgIsServer)
         return FALSE;
 
@@ -270,6 +291,7 @@ BOOL GUIAPI ServerStartup (int nr_globals,
     if (def_nr_normals <= 0) def_nr_normals = DEF_NR_NORMALS;
 
     nr_globals = (nr_globals + 7) & ~0x07;
+    nr_globals -= NR_FIXED_ZNODES;
     def_nr_topmosts = (def_nr_topmosts + 7) & ~0x07;
     def_nr_normals = (def_nr_normals + 7) & ~0x07;
 
@@ -277,8 +299,10 @@ BOOL GUIAPI ServerStartup (int nr_globals,
     SHAREDRES_DEF_NR_TOPMOSTS = def_nr_topmosts;
     SHAREDRES_DEF_NR_NORMALS = def_nr_normals;
 
-    if (__mg_init_layers () == -1)
+    if (__mg_init_layers () == -1) {
+        _ERR_PRINTF ("mginit: failed to initialize layers\n");
         return FALSE;
+    }
 
     SHAREDRES_NR_LAYSERS = 1;
     mgTopmostLayer = mgLayers;
@@ -286,22 +310,32 @@ BOOL GUIAPI ServerStartup (int nr_globals,
 
     /* reserve the first client slot for the server */
     __mg_client_id = __mg_client_add (0, getpid (), 0);
-    mgClients [0].layer = mgTopmostLayer;
+    mgClients[0].layer = mgTopmostLayer;
 
     /* obtain fd to listen for client requests on */
-    if ( (listenfd = serv_listen (CS_PATH)) < 0)
+    if ((listenfd = serv_listen (CS_PATH)) < 0) {
+        _ERR_PRINTF ("mginit: failed to open socket (%s) to listen: %m\n",
+                CS_PATH);
         goto fail;
+    }
 
-    FD_ZERO (&mg_rfdset);
-    FD_SET (listenfd, &mg_rfdset);
-    mg_maxfd = listenfd;
+    FD_SET (listenfd, &__mg_dsk_msg_queue->rfdset);
+    __mg_dsk_msg_queue->maxfd = listenfd;
     maxi = -1;
 
-    mg_InitTimer ();
+    mg_InitTimer (TRUE);
 
     __mg_start_server_desktop ();
 
-    screensaver_create();
+    __mg_screensaver_create();
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (!mg_InitCompositor ()) {
+        _ERR_PRINTF ("mginit: failed to initialize compositor!\n");
+        goto fail;
+    }
+    atexit (mg_TerminateCompositor);
+#endif
 
     return TRUE;
 
@@ -314,56 +348,67 @@ void server_ServerCleanup (void)
 {
     __mg_cleanup_layers ();
 
-    mg_UninstallIntervalTimer ();
+    mg_TerminateTimer (TRUE);
 
     unlink (CS_PATH);
 }
 
-BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
+BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
 {
-    int    i, n, clifd, nread;
+    int    i, evt, clifd, nread;
     pid_t  pid;
     uid_t  uid;
-    struct timeval sel_timeout = {0, 0};
+    struct timeval sel_timeout = {0, 10000};
+    struct timeval sel_timeout_nd = {0, 0};
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
+    int nevts = 0;              // Since 5.0.0; for timer and fd events
 
-    if (__mg_timer_counter != SHAREDRES_TIMER_COUNTER) {
-        __mg_timer_counter = SHAREDRES_TIMER_COUNTER;
-        SetDesktopTimerFlag ();
+#if 0   /* deprecated code */
+    /* since 5.0.0, use __mg_update_tick_count instead */
+    if (__mg_tick_counter != SHAREDRES_TIMER_COUNTER) {
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
+        AlertDesktopTimerEvent ();
     }
+#endif  /* deprecated code */
 
-    rset = mg_rfdset;        /* rset gets modified each time around */
-    if (mg_wfdset) {
-        wset = *mg_wfdset;
+    /* rset gets modified each time around */
+    rset = __mg_dsk_msg_queue->rfdset;
+    if (__mg_dsk_msg_queue->nr_wfds) {
+        wset = __mg_dsk_msg_queue->wfdset;
         wsetptr = &wset;
     }
-    if (mg_efdset) {
-        eset = *mg_efdset;
+    if (__mg_dsk_msg_queue->nr_efds) {
+        eset = __mg_dsk_msg_queue->efdset;
         esetptr = &eset;
     }
 
 #ifdef _MGHAVE_CURSOR
-    /* if the cursor has been hide by GDI function of clients
-     * this call will show the cursor
+    /* This call change the cursor position actually.
+     * Under sharedfb schema, if the cursor has been hide by GDI function of
+     * clients, this call will re-show the cursor.
      */
     kernel_ReShowCursor ();
 #endif
 
+#ifdef _MGSCHEMA_COMPOSITING
+    __mg_composite_dirty_znodes ();
+#endif
+
     extra.params_mask = 0;
-    if ((n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?NULL:(&sel_timeout), &extra)) < 0) {
+    if ((evt = IAL_WaitEvent (__mg_dsk_msg_queue->maxfd, &rset, wsetptr, esetptr,
+                wait?&sel_timeout:&sel_timeout_nd, &extra)) < 0) {
 
         /* It is time to check event again. */
         if (errno == EINTR) {
-            if (msg_queue)
+            if (wait)
                 ParseEvent (msg_queue, 0);
             return FALSE;
         }
 #ifdef _DEBUG
-        err_msg ("select error on server");
+        __mg_err_msg ("select error on server");
 #endif
     }
 
@@ -371,7 +416,7 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         /* accept new client request */
         if ( (clifd = serv_accept (listenfd, &pid, &uid)) < 0) {
 #ifdef _DEBUG
-            err_msg ("serv_accept error: %d", clifd);
+            __mg_err_msg ("serv_accept error: %d", clifd);
 #endif
             return TRUE;
         }
@@ -383,28 +428,28 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
         }
         if (OnNewDelClient) OnNewDelClient (LCO_NEW_CLIENT, i);
 
-        FD_SET (clifd, &mg_rfdset);
-        if (clifd > mg_maxfd)
-            mg_maxfd = clifd;  /* max fd for select() */
+        FD_SET (clifd, &__mg_dsk_msg_queue->rfdset);
+        if (clifd > __mg_dsk_msg_queue->maxfd)
+            __mg_dsk_msg_queue->maxfd = clifd;  /* max fd for select() */
         if (i > maxi)
             maxi = i;       /* max index in client[] array */
 #ifdef _DEBUG
-        err_msg ("new connection: uid %d, fd %d", uid, clifd);
+        __mg_err_msg ("new connection: uid %d, fd %d", uid, clifd);
 #endif
         return TRUE;
     }
 
     for (i = 0; i <= maxi; i++) {    /* go through client[] array */
-        if ( (clifd = mgClients [i].fd) < 0)
+        if ( (clifd = mgClients[i].fd) < 0)
             continue;
         if (FD_ISSET (clifd, &rset)) {
             int req_id;
 
             /* read request id from client */
-            if ( (nread = sock_read (clifd, &req_id, sizeof (int)))
+            if ((nread = sock_read (clifd, &req_id, sizeof (int)))
                             == SOCKERR_IO) {
 #ifdef _DEBUG
-                err_msg ("server: read error on fd %d", clifd);
+                __mg_err_msg ("server: read error on fd %d", clifd);
 #endif
                 if (OnNewDelClient) OnNewDelClient (LCO_DEL_CLIENT, i);
                 __mg_remove_client (i, clifd);
@@ -412,24 +457,28 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
             else if (nread == SOCKERR_CLOSED) {
                 if (OnNewDelClient) OnNewDelClient (LCO_DEL_CLIENT, i);
                 __mg_remove_client (i, clifd);
-            } else            /* process client's rquest */
+            }
+            else    /* process client's rquest */
                 __mg_handle_request (clifd, req_id, i);
         }
     }
 
-    if (msg_queue == NULL)
-        return (n > 0);
-
     /* handle intput event (mouse/touch-screen or keyboard) */
-    if (n & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
-    if (n & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
-    if (n & IAL_EVENT_EXTRA) {
+    if (evt & IAL_MOUSEEVENT) {
+        ParseEvent (msg_queue, IAL_MOUSEEVENT);
+        nevts++;
+    }
+    if (evt & IAL_KEYEVENT) {
+        ParseEvent (msg_queue, IAL_KEYEVENT);
+        nevts++;
+    }
+    if (evt & IAL_EVENT_EXTRA) {
         MSG msg;
         msg.hwnd = HWND_DESKTOP;
         msg.message = extra.event;
         msg.wParam = extra.wparam;
         msg.lParam = extra.lparam;
-        msg.time = __mg_timer_counter;
+        msg.time = __mg_tick_counter;
         if (extra.params_mask) {
             // packed multiple sub events
             int i, n = 0;
@@ -437,7 +486,11 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
                 if (extra.params_mask & (1 << i)) {
                     msg.wParam = extra.wparams[i];
                     msg.lParam = extra.lparams[i];
-                    kernel_QueueMessage (msg_queue, &msg);
+                    if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                            HOOK_GOON) {
+                        kernel_QueueMessage (msg_queue, &msg);
+                        nevts++;
+                    }
                     n++;
                 }
             }
@@ -446,47 +499,31 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue)
                 msg.message = MSG_EXIN_END_CHANGES;
                 msg.wParam = n;
                 msg.lParam = 0;
-                kernel_QueueMessage (msg_queue, &msg);
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                        HOOK_GOON) {
+                    kernel_QueueMessage (msg_queue, &msg);
+                    nevts++;
+                }
             }
         }
         else {
-            kernel_QueueMessage (msg_queue, &msg);
+            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON) {
+                kernel_QueueMessage (msg_queue, &msg);
+                nevts++;
+            }
         }
     }
-    else if (n == 0)
+    else if (evt == 0) {
         ParseEvent (msg_queue, 0);
-
-    /* go through registered listen fds */
-    for (i = 0; i < MAX_NR_LISTEN_FD; i++) {
-        MSG Msg;
-
-        Msg.message = MSG_FDEVENT;
-
-        if (mg_listen_fds [i].fd) {
-            fd_set* temp = NULL;
-            int type = mg_listen_fds [i].type;
-
-            switch (type) {
-            case POLLIN:
-                temp = &rset;
-                break;
-            case POLLOUT:
-                temp = wsetptr;
-                break;
-            case POLLERR:
-                temp = esetptr;
-                break;
-            }
-
-            if (temp && FD_ISSET (mg_listen_fds [i].fd, temp)) {
-                Msg.hwnd = (HWND)mg_listen_fds [i].hwnd;
-                Msg.wParam = MAKELONG (mg_listen_fds [i].fd, type);
-                Msg.lParam = (LPARAM)mg_listen_fds [i].context;
-                kernel_QueueMessage (msg_queue, &Msg);
-            }
-        }
     }
 
-    return TRUE;
+    /* Since 5.0.0: Always check timers */
+    nevts += __mg_check_expired_timers (msg_queue,
+            SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+
+    /* go through registered listening fds */
+    nevts += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
+    return (nevts > 0);
 }
 

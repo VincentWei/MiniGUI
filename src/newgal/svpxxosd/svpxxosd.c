@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -134,9 +134,6 @@ static GAL_VideoDevice * SVPXXOSD_CreateDevice (int devindex)
     device->SetVideoMode = SVPXXOSD_SetVideoMode;
     device->SetColors = SVPXXOSD_SetColors;
     device->VideoQuit = SVPXXOSD_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = SVPXXOSD_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
@@ -158,23 +155,23 @@ VideoBootStrap SVPXXOSD_bootstrap = {
 static int SVPXXOSD_VideoInit (_THIS, GAL_PixelFormat * vformat)
 {
     VIDEO_MODE_INFO info;
-#ifndef _SVPXXOSD_8BPP_     
+#ifndef _SVPXXOSD_8BPP_
     uint16 *ptrVideo;
 #else
     uint8 *ptrVideo;
 #endif
-    
+
     XY_SIZE desk_sz;
     //set default mode :16bit graphics display,4CIF capture,CIF encode and CIF decode
     SetW9961Application (AP_GFX_ENC_DEC, BPP_16, FOUR_CIF, CIF, CIF);
 
     //set display mode
-#ifndef _SVPXXOSD_8BPP_     
+#ifndef _SVPXXOSD_8BPP_
     SetDisplayMode (MODE_BPP_16);
 #else
     SetDisplayMode (MODE_BPP_8);
 #endif
-    
+
     if (GetVideoModeInfo (&info) == Successful) {
         printf ("SVPXXOSD: screen width = %d\n", info.vmiScreenWidth);
         printf ("SVPXXOSD: screen height= %d\n", info.vmiScreenHeight);
@@ -186,17 +183,17 @@ static int SVPXXOSD_VideoInit (_THIS, GAL_PixelFormat * vformat)
     GetDesktopSize(&desk_sz);
     printf("GetDesktopSize(&desk_sz): %dx%d\n",desk_sz.w,desk_sz.h);
     //get graphics display buffer
-#ifndef _SVPXXOSD_8BPP_     
-    ptrVideo = (uint16 *) GetVideoBaseAddr ();   
-#else 
-    ptrVideo = (uint8 *) GetVideoBaseAddr ();   
+#ifndef _SVPXXOSD_8BPP_
+    ptrVideo = (uint16 *) GetVideoBaseAddr ();
+#else
+    ptrVideo = (uint8 *) GetVideoBaseAddr ();
 #endif
-    
+
     if (ptrVideo == 0)
         goto fail;
 
     printf ("SVPXXOSD: graphics base = 0x%lx\n", ptrVideo);
-    
+
     this->hidden->w = info.vmiScreenWidth;
     this->hidden->h = info.vmiScreenHeight;
     this->hidden->pitch = info.vmiStride;
@@ -255,7 +252,7 @@ static void SVPXXOSD_FreeHWSurface (_THIS, GAL_Surface * surface)
 {
     surface->pixels = NULL;
 }
- 
+
 static GAL_Color pal_tmp[300];
 
 static int SVPXXOSD_SetColors (_THIS, int first, int count, GAL_Color * palette)
@@ -268,7 +265,7 @@ static int SVPXXOSD_SetColors (_THIS, int first, int count, GAL_Color * palette)
         pal_tmp[i].g = palette[i].g ;
         pal_tmp[i].b = palette[i].r ;
     }
-    
+
     sETpALETTE (first, pal_tmp, count);
 #endif /* _SVPXXOSD_8BPP_ */
     return 0;

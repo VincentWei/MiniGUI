@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -94,9 +94,9 @@
     "Switch Layer",             // 23
     "Delete Layer",             // 24
     "Error",                     // 25
-    "LOGO",                      // 26 
-    "Current Path",              // 27 
-    "File",                      // 28 
+    "LOGO",                      // 26
+    "Current Path",              // 27
+    "File",                      // 28
 #if (!defined (__NOUNIX__) || defined (WIN32)) && defined (_MGCTRL_LISTVIEW)
     "Location",                 //0 + 29
     "Up",                       //1 + 29
@@ -152,9 +152,9 @@ const char* SysText [] =
     "Switch Layer",             // 23
     "Delete Layer",             // 24
     "Error",                     // 25
-    "LOGO",                      // 26 
-    "Current Path",              // 27 
-    "File",                      // 28 
+    "LOGO",                      // 26
+    "Current Path",              // 27
+    "File",                      // 28
 #if (!defined (__NOUNIX__) || defined (WIN32)) && defined (_MGCTRL_LISTVIEW)
     "Location",                 //0 + 29
     "Up",                       //1 + 29
@@ -301,25 +301,25 @@ void __mg_init_local_sys_text (void)
 #ifdef _MGCHARSET_GB
     if (strcmp (charset, FONT_CHARSET_GB2312_0) == 0) {
         local_SysText = SysText_GB;
-	}
+    }
 #endif
 
 #ifdef _MGCHARSET_GBK
     if (strcmp (charset, FONT_CHARSET_GBK) == 0) {
         local_SysText = SysText_GB;
-	}
+    }
 #endif
 
 #ifdef _MGCHARSET_GB18030
     if (strcmp (charset, FONT_CHARSET_GB18030_0) == 0) {
         local_SysText = SysText_GB;
-	}
+    }
 #endif
 
 #ifdef _MGCHARSET_BIG5
     if (strcmp (charset, FONT_CHARSET_BIG5) == 0) {
         local_SysText = SysText_BIG5;
-	}
+    }
 #endif
 
 }
@@ -328,7 +328,7 @@ const char* GUIAPI GetSysText (unsigned int id)
 {
     if (id > IDS_MGST_MAXNUM)
         return NULL;
-        
+
     return local_SysText [id];
 }
 
@@ -443,10 +443,10 @@ const char** GUIAPI GetSysTextInUTF8 (const char* language)
 {
     if (strncasecmp (language, "zh_CN", 5) == 0) {
         return SysText_GB_UTF8;
-	}
+    }
     else if (strncasecmp (language, "zh_TW", 5) == 0) {
         return SysText_BIG5_UTF8;
-	}
+    }
 
     return SysText;
 }

@@ -94,26 +94,70 @@ static void COMMLCD_DeleteDevice(GAL_VideoDevice *device)
 static void COMMLCD_UpdateRects_Sync (_THIS, int numrects, GAL_Rect *rects)
 {
     int i;
+    RECT bound;
 
-    /* sync update */
+    bound = this->hidden->rc_dirty;
     for (i = 0; i < numrects; i++) {
         RECT rc;
         SetRect (&rc, rects[i].x, rects[i].y,
                 rects[i].x + rects[i].w, rects[i].y + rects[i].h);
-        if (!IsRectEmpty (&rc)) {
-            __mg_commlcd_ops.update (&rc);
+        if (IsRectEmpty (&bound))
+            bound = rc;
+        else
+            GetBoundRect (&bound, &bound, &rc);
+    }
+
+    if (!IsRectEmpty (&bound)) {
+        RECT rcScr = GetScreenRect();
+
+        if (IntersectRect (&bound, &bound, &rcScr)) {
+            this->hidden->rc_dirty = bound;
+            this->hidden->dirty = TRUE;
         }
     }
 }
 
-static BOOL _valid_async_updater = TRUE;
+static BOOL COMMLCD_SyncUpdate_Sync (_THIS)
+{
+    if (!IsRectEmpty (&this->hidden->rc_dirty)) {
+        __mg_commlcd_ops.update (&this->hidden->rc_dirty);
+        SetRect (&this->hidden->rc_dirty, 0, 0, 0, 0);
+        this->hidden->dirty = FALSE;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static BOOL COMMLCD_SyncUpdate_Async (_THIS)
+{
+    BOOL rc = FALSE;
+
+    pthread_mutex_lock (&this->hidden->update_lock);
+
+    if (this->hidden->dirty) {
+        // signal the update thread to do update
+        sem_post (&this->hidden->sem_update);
+        rc = TRUE;
+    }
+
+    pthread_mutex_unlock (&this->hidden->update_lock);
+    return rc;
+}
 
 static void* task_do_update (void* data)
 {
     _THIS;
     this = data;
 
+    if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
+        return NULL;
+
     do {
+        sem_wait (&this->hidden->sem_update);
+
+        pthread_testcancel ();
+
         pthread_mutex_lock (&this->hidden->update_lock);
         if (this->hidden->dirty) {
             __mg_commlcd_ops.update (&this->hidden->rc_dirty);
@@ -122,8 +166,11 @@ static void* task_do_update (void* data)
             this->hidden->dirty = FALSE;
         }
         pthread_mutex_unlock (&this->hidden->update_lock);
+
+#if 0 /* since 5.0.0: use semaphore */
         __mg_os_time_delay(50); /* 50 ms */
-    } while (_valid_async_updater);
+#endif
+    } while (1);
 
     return NULL;
 }
@@ -147,7 +194,9 @@ static void COMMLCD_UpdateRects_Async (_THIS, int numrects, GAL_Rect *rects)
     }
 
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+        RECT rcScr = GetScreenRect();
+
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             this->hidden->rc_dirty = bound;
             this->hidden->dirty = TRUE;
         }
@@ -183,16 +232,14 @@ static GAL_VideoDevice *COMMLCD_CreateDevice (int devindex)
     device->SetVideoMode = COMMLCD_SetVideoMode;
     device->SetColors = COMMLCD_SetColors;
     device->VideoQuit = COMMLCD_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = COMMLCD_AllocHWSurface;
+    device->FreeHWSurface = COMMLCD_FreeHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
     device->SetHWColorKey = NULL;
     device->SetHWAlpha = NULL;
-    device->FreeHWSurface = COMMLCD_FreeHWSurface;
     device->UpdateRects = NULL;
+    device->SyncUpdate = NULL;
 
     device->free = COMMLCD_DeleteDevice;
     return device;
@@ -308,11 +355,15 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
 
     if (li.update_method == COMMLCD_UPDATE_NONE) {
         this->UpdateRects = NULL;
+        this->SyncUpdate = NULL;
         this->hidden->update_th = 0;
     }
     else if (li.update_method == COMMLCD_UPDATE_ASYNC) {
         this->UpdateRects = COMMLCD_UpdateRects_Async;
+        this->SyncUpdate = COMMLCD_SyncUpdate_Async;
 
+        pthread_mutex_init (&this->hidden->update_lock, NULL);
+        sem_init (&this->hidden->sem_update, 0, 0);
 #if 0
         pthread_attr_t new_attr;
 
@@ -325,10 +376,10 @@ static GAL_Surface *COMMLCD_SetVideoMode(_THIS, GAL_Surface *current,
         pthread_create (&this->hidden->update_th, NULL,
                         task_do_update, this);
 #endif
-        pthread_mutex_init (&this->hidden->update_lock, NULL);
     }
     else {
         this->UpdateRects = COMMLCD_UpdateRects_Sync;
+        this->SyncUpdate = COMMLCD_SyncUpdate_Sync;
         this->hidden->update_th = 0;
     }
 
@@ -343,9 +394,9 @@ static void COMMLCD_VideoQuit (_THIS)
     }
 
     if (this->hidden->update_th) {
-        /* quit the update task */
-        _valid_async_updater = FALSE;
-        pthread_join(this->hidden->update_th, NULL);
+        /* send cancel request */
+        pthread_cancel (this->hidden->update_th);
+        pthread_join (this->hidden->update_th, NULL);
     }
 
     if (__mg_commlcd_ops.release)

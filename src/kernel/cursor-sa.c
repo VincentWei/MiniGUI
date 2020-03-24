@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -90,7 +90,7 @@ static BYTE* savedbits = NULL;
 static BYTE* cursorbits = NULL;
 static int csrimgsize;
 static unsigned int csrimgpitch;
- 
+
 static int oldboxleft = -100, oldboxtop = -100;
 static int nShowCount = 0;
 static PCURSOR pCurCsr = NULL;
@@ -115,7 +115,7 @@ HCURSOR GUIAPI CreateCursor(int xhotspot, int yhotspot, int w, int h,
                      const BYTE* pANDBits, const BYTE* pXORBits, int colornum)
 {
     PCURSOR pcsr;
-    
+
     if( w != CURSORWIDTH || h != CURSORHEIGHT ) return 0;
 
     /* allocate memory. */
@@ -136,21 +136,21 @@ HCURSOR GUIAPI CreateCursor(int xhotspot, int yhotspot, int w, int h,
     pcsr->height = h;
 
     if (colornum == 1) {
-        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch, 
-                        pANDBits, MONOPITCH, w, h, MYBMP_FLOW_UP, 
-                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF), 
+        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch,
+                        pANDBits, MONOPITCH, w, h, MYBMP_FLOW_UP,
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF),
                         RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0xFF));
-        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch, 
-                        pXORBits, MONOPITCH, w, h, MYBMP_FLOW_UP, 
-                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0x00), 
+        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch,
+                        pXORBits, MONOPITCH, w, h, MYBMP_FLOW_UP,
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0x00),
                         RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0x00));
     }
     else if (colornum == 4) {
-        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch, 
-                        pANDBits, MONOPITCH, w, h, MYBMP_FLOW_UP, 
-                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF), 
+        ExpandMonoBitmap (HDC_SCREEN_SYS, pcsr->AndBits, csrimgpitch,
+                        pANDBits, MONOPITCH, w, h, MYBMP_FLOW_UP,
+                        RGBA2Pixel (HDC_SCREEN_SYS, 0, 0, 0, 0xFF),
                         RGBA2Pixel (HDC_SCREEN_SYS, 0xFF, 0xFF, 0xFF, 0xFF));
-        Expand16CBitmapEx (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch, 
+        Expand16CBitmapEx (HDC_SCREEN_SYS, pcsr->XorBits, csrimgpitch,
                         pXORBits, MONOPITCH*4, w, h, MYBMP_FLOW_UP, NULL, FALSE, 0x00);
     }
 
@@ -222,7 +222,7 @@ BOOL GUIAPI DestroyCursor(HCURSOR hcsr)
 HCURSOR GUIAPI GetSystemCursor(int csrid)
 {
     if(csrid > MAX_SYSCURSORINDEX || csrid < 0)
-        return 0; 
+        return 0;
 
     return (HCURSOR)(SysCursor[csrid]);
 }
@@ -240,12 +240,12 @@ BOOL mg_InitCursor(void)
 
     csrimgsize = GAL_GetBoxSize (__gal_screen, CURSORWIDTH, CURSORHEIGHT, &csrimgpitch);
 
-    /* always initialize fields by explicitly assignments */
+    /* NOTE: Always initialize the structue fields with explicit assignments */
     csr_bmp.bmType = BMP_TYPE_NORMAL;
-    csr_bmp.bmWidth = CURSORWIDTH;
-    csr_bmp.bmHeight = CURSORHEIGHT;
     csr_bmp.bmBitsPerPixel = __gal_screen->format->BitsPerPixel;
     csr_bmp.bmBytesPerPixel = __gal_screen->format->BytesPerPixel;
+    csr_bmp.bmWidth = CURSORWIDTH;
+    csr_bmp.bmHeight = CURSORHEIGHT;
     csr_bmp.bmPitch = csrimgpitch;
 
     if( !(savedbits = malloc(csrimgsize)) )
@@ -261,18 +261,18 @@ BOOL mg_InitCursor(void)
         goto error;
 
     number = atoi(szValue);
-    
+
     if(number <= 0)
         return TRUE;
 
-    number = number < (MAX_SYSCURSORINDEX + 1) ? 
+    number = number < (MAX_SYSCURSORINDEX + 1) ?
              number : (MAX_SYSCURSORINDEX + 1);
 
     for(i = 0; i < number; i++) {
         if ( !(SysCursor[i] = sysres_load_system_cursor(i)) )
              goto error;
     }
-	
+
     return TRUE;
 error:
     mg_TerminateCursor();
@@ -291,7 +291,7 @@ void mg_TerminateCursor( void )
     savedbits = NULL;
     pCurCsr = NULL;
     nShowCount = 0;
- 
+
     for(i = 0; i<= MAX_SYSCURSORINDEX; i++) {
         if( SysCursor[i] ) {
             free(SysCursor[i]->AndBits);
@@ -329,12 +329,9 @@ static void hidecursor (void)
     csr_bmp.bmBits = savedbits;
 
     GAL_SetClipRect (__gal_screen, NULL);
-    GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp); 
+    GAL_PutBox (__gal_screen, &csr_rect, &csr_bmp);
     GAL_UpdateRects (__gal_screen, 1, &csr_rect);
 }
-
-void _dc_restore_alpha_in_bitmap (const GAL_PixelFormat* format,
-                void* dst_bits, unsigned int nr_bytes);
 
 static void showcursor (void)
 {
@@ -398,6 +395,7 @@ BOOL kernel_RefreshCursor (int* x, int* y, int* button)
         if (nShowCount >= 0 && pCurCsr) {
             hidecursor ();
             showcursor ();
+            GAL_SyncUpdate (__gal_screen);
         }
 #endif /* _MGHAVE_CURSOR */
 
@@ -437,6 +435,7 @@ HCURSOR GUIAPI SetCursorEx (HCURSOR hcsr, BOOL setdef)
     if (pCurCsr && nShowCount >= 0)
         showcursor();
 
+    GAL_SyncUpdate (__gal_screen);
     return (HCURSOR) old;
 }
 
@@ -450,9 +449,11 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     prc = &cur_pdc->rc_output;
 
     if (cur_pdc->surface != __gal_screen) {
-        if (fShow)
-            GAL_UpdateRect (cur_pdc->surface, 
+        if (fShow) {
+            GAL_UpdateRect (cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+            //GAL_SyncUpdate (cur_pdc->surface);
+        }
     }
     else {
         csrleft = boxleft();
@@ -466,9 +467,11 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         intbottom = (csrbottom < prc->bottom) ? csrbottom : prc->bottom;
 
         if (intleft >= intright || inttop >= intbottom) {
-            if (fShow)
-                GAL_UpdateRect (cur_pdc->surface, 
+            if (fShow) {
+                GAL_UpdateRect (cur_pdc->surface,
                                 prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+                //GAL_SyncUpdate (cur_pdc->surface);
+            }
             return;
         }
 
@@ -479,8 +482,11 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
             hidecursor();
         }
 
-        if (fShow)
-            GAL_UpdateRect (cur_pdc->surface, prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+        if (fShow) {
+            GAL_UpdateRect (cur_pdc->surface, prc->left, prc->top,
+                    RECTWP(prc), RECTHP(prc));
+            //GAL_SyncUpdate (cur_pdc->surface);
+        }
     }
 }
 
@@ -497,6 +503,7 @@ int GUIAPI ShowCursor (BOOL fShow)
            hidecursor();
     }
 
+    GAL_SyncUpdate (__gal_screen);
     return nShowCount;
 }
 
@@ -510,7 +517,7 @@ void kernel_ShowCursorForGDI(BOOL fShow, void* pdc)
     prc = &cur_pdc->rc_output;
 
     if (fShow)
-        GAL_UpdateRect (cur_pdc->surface, 
+        GAL_UpdateRect (cur_pdc->surface,
                         prc->left, prc->top, RECTWP(prc), RECTHP(prc));
 }
 

@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** client.c: routines for client.
-** 
+**
 ** The idea comes from sample code in APUE.
 ** Thank Mr. Richard Stevens for his perfect work.
 **
@@ -88,10 +88,13 @@ ON_LOCK_CLIENT_REQ  OnLockClientReq = NULL;
 ON_TRYLOCK_CLIENT_REQ  OnTrylockClientReq = NULL;
 ON_UNLOCK_CLIENT_REQ  OnUnlockClientReq = NULL;
 
-#define TIMEOUT_START_REPEAT    20
-#define TIMEOUT_REPEAT          10
-static struct timeval my_timeout;
+#define TIMEOUT_START_REPEAT    30
+#define TIMEOUT_REPEAT          5
 
+#if 0   /* deprecated code */
+/* set the timer to 10ms can make the client respond more faster */
+
+static struct timeval my_timeout;
 void __mg_set_select_timeout (unsigned int usec)
 {
     my_timeout.tv_sec = 0;
@@ -108,24 +111,23 @@ void __mg_set_select_timeout (unsigned int usec)
     else {
         my_timeout.tv_usec = USEC_10MS * TIMEOUT_START_REPEAT;
     }
-#else /* set the timer to 10ms can make the client respond more faster */
-    my_timeout.tv_usec = USEC_10MS;
 #endif
+    my_timeout.tv_usec = USEC_10MS;
 }
+#endif  /* deprecated code */
 
 BOOL client_ClientStartup (void)
 {
     struct sigaction siga;
 
     /* connect to server */
-    if ( (conn_fd = cli_conn (CS_PATH, 'a')) < 0)
+    if ((conn_fd = cli_conn (CS_PATH, 'a')) < 0)
         return FALSE;
 
-    FD_ZERO (&mg_rfdset);
-    FD_SET (conn_fd, &mg_rfdset);
-    mg_maxfd = conn_fd;
+    FD_SET (conn_fd, &__mg_dsk_msg_queue->rfdset);
+    __mg_dsk_msg_queue->maxfd = conn_fd;
 
-    __mg_set_select_timeout (0);
+    // __mg_set_select_timeout (0);
 
     /* ignore the SIGPIPE signal */
     siga.sa_handler = SIG_IGN;
@@ -150,41 +152,53 @@ int GUIAPI GetSockFD2Server (void)
     return conn_fd;
 }
 
-static void process_network_message(MSG *msg) {
-    if (msg->message == MSG_UPDATECLIWIN && 
+#include "debug.h"
+
+static void process_socket_message (MSG *msg)
+{
+    if (msg->message == MSG_UPDATECLIWIN &&
             __mg_client_check_hwnd (msg->hwnd, __mg_client_id)) {
-        __mg_update_window (msg->hwnd, 
+        __mg_update_window (msg->hwnd,
                 LOSWORD(msg->wParam), HISWORD(msg->wParam),
                 LOSWORD(msg->lParam), HISWORD(msg->lParam));
-    } else {
-        if (msg->hwnd == 0) {
+    }
+    else {
+        if (msg->hwnd == HWND_NULL) {
             msg->hwnd = HWND_DESKTOP;
+            //dump_message (msg, __func__);
             QueueDeskMessage (msg);
-        } else if (__mg_client_check_hwnd (msg->hwnd, __mg_client_id)) {
+        }
+        else if (__mg_client_check_hwnd (msg->hwnd, __mg_client_id)) {
             QueueDeskMessage (msg);
         }
     }
 }
 
-int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_data_len, 
-                void* result, int len_rslt)
+int GUIAPI ClientRequestEx2 (const REQUEST* request,
+                const void* ex_data, size_t ex_data_len, int fd_to_send,
+                void* result, size_t len_rslt, int* fd_received)
 {
     int n;
-    size_t len_data;
-    MSG msg;
+
     if (mgIsServer)
         return -1;
 
+/*
 #ifdef _MGGAL_MLSHADOW
-    if ((request->id != REQID_MLSHADOW_CLIREQ) 
+    if ((request->id != REQID_MLSHADOW_CLIREQ)
             && (__mg_client_id == 0 && request->id != REQID_JOINLAYER)) {
 #elif defined(_MGGAL_NEXUS)
-    if ((request->id != REQID_NEXUS_CLIENT_GET_SURFACE)
+    if ((request->id != REQID_NEXUS_HWSURFACE)
             && (__mg_client_id == 0 && request->id != REQID_JOINLAYER)) {
+#elif defined(_MGSCHEMA_COMPOSITING)
+    if (__mg_client_id == 0 && request->id != REQID_JOINLAYER &&
+            request->id != REQID_GETSHAREDSURFACE) {
 #else
     if (__mg_client_id == 0 && request->id != REQID_JOINLAYER) {
 #endif
-        fprintf (stderr, "CLIENT: please call JoinLayer first.\n");
+*/
+    if (__mg_client_id == 0 && (request->id & REQMASK_JOINLAYERFIRST)) {
+        _ERR_PRINTF ("CLIENT: please call JoinLayer first.\n");
         exit (255);
         return -1;
     }
@@ -192,25 +206,76 @@ int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_
     if (OnLockClientReq && OnUnlockClientReq)
         OnLockClientReq();
 
-    n = sock_write (conn_fd, &request->id, sizeof (int));
-    if (n < 0) goto sock_error;
+#if 0
+    {
+        size_t len_data;
 
-    if (ex_data_len <= 0 || ex_data == NULL) {
-        ex_data = NULL;
-        ex_data_len = 0;
-    }
-
-    len_data = request->len_data + ex_data_len;
-    n = sock_write (conn_fd, &len_data, sizeof (size_t));
-    if (n < 0) goto sock_error;
-
-    n = sock_write (conn_fd, request->data, request->len_data);
-    if (n < 0) goto sock_error;
-
-    if (ex_data_len > 0) {
-        n = sock_write (conn_fd, ex_data, ex_data_len);
+        n = sock_write (conn_fd, &request->id, sizeof (int));
         if (n < 0) goto sock_error;
+
+        if (ex_data_len <= 0 || ex_data == NULL) {
+            ex_data = NULL;
+            ex_data_len = 0;
+        }
+
+        len_data = request->len_data + ex_data_len;
+        n = sock_write (conn_fd, &len_data, sizeof (size_t));
+        if (n < 0) goto sock_error;
+
+        n = sock_write (conn_fd, request->data, request->len_data);
+        if (n < 0) goto sock_error;
+
+        if (ex_data_len > 0) {
+            n = sock_write (conn_fd, ex_data, ex_data_len);
+            if (n < 0) goto sock_error;
+        }
     }
+#else /* use sendmsg */
+    {
+        struct iovec    iov[2];
+        struct msghdr   msg;
+        struct cmsghdr  *cmsg = NULL;
+
+        n = sock_write (conn_fd, &request->id, sizeof (int));
+        if (n < 0) goto sock_error;
+
+        n = sock_write (conn_fd, &request->len_data, sizeof (size_t));
+        if (n < 0) goto sock_error;
+
+        n = sock_write (conn_fd, &ex_data_len, sizeof (size_t));
+        if (n < 0) goto sock_error;
+
+        iov[0].iov_base = (void*)request->data;
+        iov[0].iov_len  = request->len_data;
+
+        iov[1].iov_base = (void*)ex_data;
+        iov[1].iov_len  = ex_data_len;
+
+        msg.msg_iov     = iov;
+        msg.msg_iovlen  = 2;
+        msg.msg_name    = NULL;
+        msg.msg_namelen = 0;
+
+        if (fd_to_send >= 0) {
+            cmsg = alloca (CMSG_LEN (sizeof (int)));
+
+            cmsg->cmsg_level    = SOL_SOCKET;
+            cmsg->cmsg_type     = SCM_RIGHTS;
+            cmsg->cmsg_len      = CMSG_LEN (sizeof (int));
+            memcpy (CMSG_DATA (cmsg), &fd_to_send, sizeof (int));
+
+            msg.msg_control     = cmsg;
+            msg.msg_controllen  = CMSG_LEN (sizeof (int));
+        }
+        else {
+            msg.msg_control    = NULL;
+            msg.msg_controllen = 0;
+        }
+
+        if ((n = sock_sendmsg (conn_fd, &msg, 0)) < 0)
+            goto sock_error;
+    }
+#endif
 
     if (result == NULL || len_rslt == 0) {
         if (OnLockClientReq && OnUnlockClientReq)
@@ -218,21 +283,69 @@ int GUIAPI ClientRequestEx (const REQUEST* request, const void* ex_data, int ex_
         return 0;
     }
 
-    do {
-        n = sock_read (conn_fd, &msg, sizeof (MSG));
-        if (n < 0) {
+    {
+        MSG msg;
+
+        do {
+            n = sock_read (conn_fd, &msg, sizeof (MSG));
+            if (n < 0) {
+                goto sock_error;
+            }
+
+            if (msg.hwnd == HWND_INVALID) {
+                break;
+            }
+            else {
+                process_socket_message(&msg);
+            }
+        } while (TRUE);
+    }
+
+#if 0
+    {
+        n = sock_read (conn_fd, result, len_rslt);
+        if (n < 0) goto sock_error;
+    }
+#else /* use recvmsg */
+    {
+        struct iovec    iov[1];
+        struct msghdr   msg;
+        struct cmsghdr  *cmsg = NULL;
+
+        /* receive the real reply result */
+        iov[0].iov_base = result;
+        iov[0].iov_len  = len_rslt;
+
+        msg.msg_iov     = iov;
+        msg.msg_iovlen  = 1;
+        msg.msg_name    = NULL;
+        msg.msg_namelen = 0;
+
+        if (fd_received) {
+            *fd_received = -1;
+
+            cmsg = alloca (CMSG_LEN (sizeof (int)));
+            msg.msg_control     = cmsg;
+            msg.msg_controllen  = CMSG_LEN (sizeof (int));
+        }
+        else {
+            msg.msg_control     = NULL;
+            msg.msg_controllen  = 0;
+        }
+
+        if ((n = sock_recvmsg (conn_fd, &msg, 0)) < 0) {
             goto sock_error;
         }
 
-        if (msg.hwnd == HWND_INVALID) {
-            break;
-        } else {
-            process_network_message(&msg);
+        if (fd_received && msg.msg_controllen == CMSG_LEN (sizeof (int))) {
+            memcpy (fd_received, CMSG_DATA(cmsg), sizeof (int));
         }
-    } while (TRUE);
 
-    n = sock_read (conn_fd, result, len_rslt);
-    if (n < 0) goto sock_error;
+        if (fd_received && *fd_received == -1) {
+            _WRN_PRINTF ("Received an invalid file descriptor.\n");
+        }
+    }
+#endif
 
     if (OnLockClientReq && OnUnlockClientReq)
         OnUnlockClientReq();
@@ -257,168 +370,151 @@ static void check_live (void)
 {
     REQUEST req;
 
-    if (__mg_timer_counter != SHAREDRES_TIMER_COUNTER) {
-        SetDesktopTimerFlag ();
-        __mg_timer_counter = SHAREDRES_TIMER_COUNTER;
+#if 0   /* deprecated code */
+    /* Since 5.0.0, call __mg_update_tick_count instead */
+    if (__mg_tick_counter != SHAREDRES_TIMER_COUNTER) {
+        AlertDesktopTimerEvent ();
+        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
     }
+#endif  /* deprecated code */
+
+    __mg_update_tick_count (NULL);
 
     /* Tell server that I am live */
     req.id = REQID_IAMLIVE;
-    req.data = &__mg_timer_counter;
+    req.data = &__mg_tick_counter;
     req.len_data = sizeof (unsigned int);
     ClientRequest (&req, NULL, 0);
 }
 
-BOOL client_IdleHandler4Client (PMSGQUEUE msg_que)
+BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
 {
     static DWORD old_timer;
-    static long repeat_timeout = TIMEOUT_START_REPEAT;
+    static DWORD repeat_timeout = TIMEOUT_START_REPEAT;
     fd_set rset, wset, eset;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
-    int i, n, nread;
+    int n, nread;
     struct timeval sel_timeout;
     MSG Msg;
 
     check_live ();
 
-    rset = mg_rfdset;        /* rset gets modified each time around */
-    if (mg_wfdset) {
-        wset = *mg_wfdset;
+    /* rset gets modified each time around */
+    rset = msg_queue->rfdset;
+    if (msg_queue->nr_wfds) {
+        wset = msg_queue->wfdset;
         wsetptr = &wset;
     }
-    if (mg_efdset) {
-        eset = *mg_efdset;
+    if (msg_queue->nr_efds) {
+        eset = msg_queue->efdset;
         esetptr = &eset;
     }
 
-    if (msg_que)
-        sel_timeout = my_timeout;
+    if (wait) {
+        sel_timeout.tv_sec = 0;
+        sel_timeout.tv_usec = USEC_10MS;
+    }
     else {  /* check fd only: for HavePendingMessage function */
         sel_timeout.tv_sec = 0;
         sel_timeout.tv_usec = 0;
     }
 
-    if ((n = select (mg_maxfd + 1, 
+    if ((n = select (msg_queue->maxfd + 1,
             &rset, wsetptr, esetptr, &sel_timeout)) < 0) {
         if (errno == EINTR) {
-            /* it is time to check message again. */
+            /* no event */
             return FALSE;
         }
-        err_sys ("client: select error");
+        __mg_err_sys ("client: select error");
     }
     else if (n == 0) {
+        static int old_mouse_x = -1, old_mouse_y = -1, old_buttons = -1;
+        static unsigned int old_mouse_move_serial = 0xdeadbeef;
+        int flag = 0, mouse_x = -1, mouse_y = -1, buttons = -1;
+
         check_live ();
-        if (msg_que 
-                && (__mg_timer_counter - old_timer) >= repeat_timeout) {
+        if (wait && (__mg_tick_counter - old_timer) >= repeat_timeout) {
             Msg.hwnd = HWND_DESKTOP;
             Msg.message = MSG_TIMEOUT;
-            Msg.wParam = (WPARAM)__mg_timer_counter;
+            Msg.wParam = (WPARAM)__mg_tick_counter;
             Msg.lParam = 0;
-            Msg.time = __mg_timer_counter;
-            kernel_QueueMessage (msg_que, &Msg);
+            Msg.time = __mg_tick_counter;
+            // Since 5.0.0, we do not genenrate MSG_TIMEOUT message any more.
+            // kernel_QueueMessage (msg_queue, &Msg);
 
-            old_timer = __mg_timer_counter;
+            old_timer = __mg_tick_counter;
             repeat_timeout = TIMEOUT_REPEAT;
         }
 
-#ifdef _MG_CONFIG_FAST_MOUSEMOVE
-        {
-            static int old_mouse_x = -1, old_mouse_y = -1, old_buttons = -1;
-            static unsigned int old_mouse_move_serial = 0xdeadbeef;
-            int flag = 0, mouse_x = -1, mouse_y = -1, buttons = -1;
-
-            lock_mousemove_sem();
-            if (SHAREDRES_MOUSEMOVECLIENT == __mg_client_id
-                    && SHAREDRES_MOUSEMOVESERIAL != old_mouse_move_serial) {
-                mouse_x = SHAREDRES_MOUSEX;
-                mouse_y = SHAREDRES_MOUSEY;
-                buttons = SHAREDRES_SHIFTSTATUS;
-                flag = 1;
-            }
-            old_mouse_move_serial = SHAREDRES_MOUSEMOVESERIAL;
-            unlock_mousemove_sem();
-
-            if (flag && (mouse_x != old_mouse_x || mouse_y != old_mouse_y || buttons != old_buttons)) {
-                MSG msg;
-                old_mouse_x = mouse_x;
-                old_mouse_y = mouse_y;
-                old_buttons = buttons;
-
-                msg.hwnd = HWND_DESKTOP;
-                msg.message = MSG_MOUSEMOVE;
-                msg.wParam = buttons;
-                msg.lParam = MAKELONG(mouse_x, mouse_y);
-                QueueDeskMessage(&msg);
-            }
+        LOCK_MOUSEMOVE_SEM();
+        if (SHAREDRES_MOUSEMOVECLIENT == __mg_client_id
+                && SHAREDRES_MOUSEMOVESERIAL != old_mouse_move_serial) {
+            mouse_x = SHAREDRES_MOUSEX;
+            mouse_y = SHAREDRES_MOUSEY;
+            buttons = SHAREDRES_SHIFTSTATUS;
+            flag = 1;
         }
-#endif
+        old_mouse_move_serial = SHAREDRES_MOUSEMOVESERIAL;
+        UNLOCK_MOUSEMOVE_SEM();
 
-        return FALSE;
+        if (flag && (mouse_x != old_mouse_x || mouse_y != old_mouse_y ||
+                    buttons != old_buttons)) {
+            MSG msg;
+            old_mouse_x = mouse_x;
+            old_mouse_y = mouse_y;
+            old_buttons = buttons;
+
+            msg.hwnd = HWND_DESKTOP;
+            msg.message = MSG_MOUSEMOVE;
+            msg.wParam = buttons;
+            msg.lParam = MAKELONG(mouse_x, mouse_y);
+            kernel_QueueMessage (msg_queue, &msg);
+            n++;
+
+            //dump_message (&msg, __func__);
+        }
     }
-    /* check fd only: for HavePendingMessage function. */
-    else if (msg_que == NULL) 
-        return TRUE;
 
-    old_timer = __mg_timer_counter;
-    repeat_timeout = TIMEOUT_START_REPEAT;
+    /* Since 5.0.0: always check timer */
+    n += __mg_check_expired_timers (msg_queue,
+            SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
 
-    if (FD_ISSET (conn_fd, &rset) && 
-        (!OnTrylockClientReq || !OnUnlockClientReq
-        || (OnTrylockClientReq && OnUnlockClientReq && !OnTrylockClientReq()))) {
+    if (FD_ISSET (conn_fd, &rset) &&
+        (!OnTrylockClientReq || !OnUnlockClientReq ||
+         (OnTrylockClientReq && OnUnlockClientReq &&
+            !OnTrylockClientReq()))) {
 
-        if ( (nread = sock_read (conn_fd, &Msg, sizeof (MSG))) < 0) {
+        if ((nread = sock_read (conn_fd, &Msg, sizeof (MSG))) < 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
-            err_sys ("client: read error on fd %d", conn_fd);
+            __mg_err_sys ("client: read error on fd %d", conn_fd);
         }
         else if (nread == 0) {
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
-            err_sys ("client: server closed");
+            __mg_err_sys ("client: server closed");
             close (conn_fd);
         }
         else {           /* process event from server */
             if (OnTrylockClientReq && OnUnlockClientReq)
                 OnUnlockClientReq();
-            process_network_message(&Msg);
+            process_socket_message (&Msg);
         }
     }
 
     /* go through registered listen fds */
-    for (i = 0; i < MAX_NR_LISTEN_FD; i++) {
-        MSG Msg;
-
-        Msg.message = MSG_FDEVENT;
-
-        if (mg_listen_fds [i].fd) {
-            fd_set* temp = NULL;
-            int type = mg_listen_fds [i].type;
-
-            switch (type) {
-            case POLLIN:
-                temp = &rset;
-                break;
-            case POLLOUT:
-                temp = wsetptr;
-                break;
-            case POLLERR:
-                temp = esetptr;
-                break;
-            }
-
-            if (temp && FD_ISSET (mg_listen_fds [i].fd, temp)) {
-                Msg.hwnd = (HWND)mg_listen_fds [i].hwnd;
-                Msg.wParam = MAKELONG (mg_listen_fds [i].fd, type);
-                Msg.lParam = (LPARAM)mg_listen_fds [i].context;
-                kernel_QueueMessage (msg_que, &Msg);
-            }
-        }
-    }
+    n += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
 
     check_live ();
 
-    return TRUE;
+    if (n > 0) {
+        old_timer = __mg_tick_counter;
+        repeat_timeout = TIMEOUT_START_REPEAT;
+    }
+
+    return (n > 0);
 }
 
 GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
@@ -474,7 +570,6 @@ GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
         __mg_layer = layer_handle;
 
         zi  = (ZORDERINFO*) shmat (joined_info.zo_shmid, 0, SHM_RDONLY);
-
         if (zi == (void*)-1) {
             return INV_LAYER_HANDLE;
         }
@@ -482,13 +577,15 @@ GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
         __mg_zorder_info = zi;
     }
 
+    __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
+
     __mg_start_client_desktop ();
 
 ret:
     return layer_handle;
 }
 
-GHANDLE GUIAPI GetLayerInfo (const char* layer_name, 
+GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
                 int* nr_clients, BOOL* is_topmost, int* cli_active)
 {
     if (mgIsServer)
@@ -518,7 +615,7 @@ ret:
     return INV_LAYER_HANDLE;
 }
 
-BOOL GUIAPI SetTopmostLayer (BOOL handle_name, 
+BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
                 GHANDLE handle, const char* name)
 {
     BOOL ret = FALSE;
@@ -526,13 +623,13 @@ BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
     REQUEST req;
 
     if (mgIsServer)
-        return ret;
+        return FALSE;
 
     if (!handle_name && name == NULL)
-        return ret;
+        return FALSE;
 
     if (handle_name && handle == INV_LAYER_HANDLE)
-        return ret;
+        return FALSE;
 
     info.id_op = ID_LAYEROP_SETTOP;
     info.handle_name = handle_name;
@@ -555,7 +652,7 @@ BOOL GUIAPI SetTopmostLayer (BOOL handle_name,
     return ret;
 }
 
-BOOL GUIAPI DeleteLayer (BOOL handle_name, 
+BOOL GUIAPI DeleteLayer (BOOL handle_name,
                 GHANDLE handle, const char* name)
 {
     BOOL ret = FALSE;
@@ -563,13 +660,13 @@ BOOL GUIAPI DeleteLayer (BOOL handle_name,
     REQUEST req;
 
     if (mgIsServer)
-        return ret;
+        return FALSE;
 
     if (!handle_name && name == NULL)
-        return ret;
+        return FALSE;
 
     if (handle_name && handle == INV_LAYER_HANDLE)
-        return ret;
+        return FALSE;
 
     info.id_op = ID_LAYEROP_DELETE;
     info.handle_name = handle_name;
@@ -590,5 +687,68 @@ BOOL GUIAPI DeleteLayer (BOOL handle_name,
         ret = FALSE;
 
     return ret;
+}
+
+/* Since 5.0.0 */
+BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
+{
+    if (layer_handle != INV_LAYER_HANDLE) {
+        ZORDERINFO* zi;
+
+        __mg_layer = INV_LAYER_HANDLE;
+        __mg_zorder_info = NULL;
+
+        if (shmdt (__mg_zorder_info) < 0) {
+            _ERR_PRINTF ("Failed to detach from the shared zorder info: %m\n");
+            return FALSE;
+        }
+
+        zi  = (ZORDERINFO*) shmat (zi_shmid, 0, SHM_RDONLY);
+        if (zi == (void*)-1) {
+            _ERR_PRINTF ("Failed to attach to the shared zorder info: %m\n");
+            return FALSE;
+        }
+
+        __mg_layer = layer_handle;
+        __mg_zorder_info = zi;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/* Since 5.0.0 */
+BOOL GUIAPI MoveToLayer (BOOL handle_name, GHANDLE handle, const char* name)
+{
+    MOVETOLAYERINFO info;
+    MOVEDCLIENTINFO moved_info;
+    REQUEST req;
+
+    if (mgIsServer)
+        return FALSE;
+
+    if (!handle_name && name == NULL)
+        return FALSE;
+
+    if (handle_name && handle == INV_LAYER_HANDLE)
+        return FALSE;
+
+    info.handle_name = handle_name;
+    if (handle_name) {
+        info.layer.handle = handle;
+    }
+    else {
+        strncpy (info.layer.name, name, LEN_LAYER_NAME);
+        info.layer.name [LEN_LAYER_NAME] = '\0';
+    }
+
+    req.id = REQID_MOVETOLAYER;
+    req.data = &info;
+    req.len_data = sizeof (MOVETOLAYERINFO);
+
+    if (ClientRequest (&req, &moved_info, sizeof (MOVEDCLIENTINFO)) < 0)
+        return FALSE;
+
+    return __mg_client_on_layer_changed (moved_info.layer, moved_info.zo_shmid);
 }
 

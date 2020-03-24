@@ -203,7 +203,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     return 0;
 }
 
-BOOL InitNetInput (INPUT* input, const char* mdev, const char* mtype)
+BOOL ial_InitNetInput (INPUT* input, const char* mdev, const char* mtype)
 {
     sock_descriptor = socket (AF_INET, SOCK_STREAM, 0);
     if (sock_descriptor == -1)

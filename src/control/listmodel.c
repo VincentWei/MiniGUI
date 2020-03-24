@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -96,7 +96,7 @@ int mglist_get_sort_index (MgList *mglst, MgItem *newci, BOOL bAdd)
 /*
  * mgitem_add : add an item to the list
  */
-int mglist_add_item (MgList *mglst, MgItem *ci, MgItem* preitem, 
+int mglist_add_item (MgList *mglst, MgItem *ci, MgItem* preitem,
                          MgItem* nextitem, int nItem, int *idx)
 {
     int ret;
@@ -172,7 +172,7 @@ int mglist_adjust_items_height (HWND hWnd, MgList *mglst, PSCRDATA pscrdata, int
     if (mglist_is_frozen(mglst))
         return 0;
 
-    scrolled_set_cont_height (hWnd, pscrdata, mglst->nTotalItemH + 1);//+1! where? 
+    scrolled_set_cont_height (hWnd, pscrdata, mglst->nTotalItemH + 1);//+1! where?
     scrolled_refresh_content (pscrdata);
     return 0;
 }
@@ -267,7 +267,7 @@ void mglist_freeze (HWND hWnd, MgList *mglst, BOOL lock)
     }
 }
 
-int mglstSortItems (MgList *mglst, void* pfn, int fn_type)
+static int mglstSortItems (MgList *mglst, void* pfn, int fn_type)
 {
     MgItem *pci, *pci2;
     list_t *me, *me2;
@@ -325,7 +325,7 @@ void mglist_refresh_item_ex (MgList *mglst, HITEM hitem, const RECT *rcInv)
 {
     RECT rcItem, rcTmp;
 
-    if (!hitem || mglst->flags & MGLIST_ST_FROZEN) 
+    if (!hitem || mglst->flags & MGLIST_ST_FROZEN)
         return;
 
     mglst->iop.getRect (mglst->hLst, hitem, &rcItem, TRUE);
@@ -340,7 +340,7 @@ void mglist_refresh_item (MgList *mglst, HITEM hitem)
 {
     RECT rcItem;
 
-    if (!hitem || mglst->flags & MGLIST_ST_FROZEN) 
+    if (!hitem || mglst->flags & MGLIST_ST_FROZEN)
         return;
 
     mglst->iop.getRect (mglst->hLst, hitem, &rcItem, TRUE);
@@ -353,7 +353,7 @@ void mglist_redraw_item (MgList *mglst, HITEM hivi)
     RECT rcItem;
     HDC hdc = GetClientDC (mglst->hLst);
 
-    if (!hivi) 
+    if (!hivi)
         return;
 
     mglst->iop.getRect (mglst->hLst, hivi, &rcItem, TRUE);
@@ -404,7 +404,7 @@ void mglist_set_itemops (MgList *mglst, PMGITEMOPS iop)
     mglst->iop = *iop;
 }
 
-int DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam, 
+int DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
                          PSCRDATA pscrdata, MgList *mglst)
 {
     switch (message) {
@@ -548,9 +548,9 @@ int DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
         else
             hitem = (HITEM)mglist_getitem_byindex(mglst, wParam);
 
-        if (!hitem) 
+        if (!hitem)
             return -1;
-        
+
         mglist_select_item (mglst, (MgItem *)hitem, TRUE);
         mglist_make_item_visible (mglst, pscrdata, hitem);
         return 0;
@@ -566,7 +566,7 @@ int DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
     case SVM_SORTITEMS:
     {
         SVITEM_CMP pfn = (SVITEM_CMP)lParam;
- 
+
         if (mglist_sort_items (mglst, (void*)pfn, MG_CMP_TYPE_NORMAL) == 0) {
             //FIXME, need ?
             InvalidateRect (hWnd, NULL, TRUE);

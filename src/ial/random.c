@@ -397,7 +397,7 @@ struct _keyboard_event_machine {
     int                 pressed_normal_key;
 };
 
-struct _keyboard_shift_key {
+static struct _keyboard_shift_key {
     int keycode;
     uint32_t flag;
 } keyboard_shift_keys[] = {
@@ -1529,7 +1529,7 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
 
 #define LEN_EVENT_TYPES     127
 
-BOOL InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
+BOOL ial_InitRandomInput (INPUT* input, const char* mdev, const char* mtype)
 {
     char logfile[MAX_PATH + 1];
     char eventtypes[LEN_EVENT_TYPES + 1];

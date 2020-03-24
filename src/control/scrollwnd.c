@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -79,7 +79,7 @@ static void container_reset_content (HWND hWnd, PCONTDATA pcontdata);
 /* ---------------------------------------------------------------------------- */
 
 /* adjust the position and size of the container window */
-static void 
+static void
 scrollwnd_set_container (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
 {
     PSWDATA pswdata = (PSWDATA) GetWindowAdditionalData2 (hWnd);
@@ -89,7 +89,7 @@ scrollwnd_set_container (HWND hWnd, PSCRDATA pscrdata, BOOL visChanged)
                 pscrdata->nContHeight, TRUE);
 }
 
-int scrollwnd_add_controls (HWND hWnd, PSWDATA pswdata, 
+static int scrollwnd_add_controls (HWND hWnd, PSWDATA pswdata,
                              int ctrl_nr, PCTRLDATA pCtrlData)
 {
     int i;
@@ -125,27 +125,27 @@ static void create_container (HWND hWnd, PSWDATA pswdata)
 {
     PCONTAINERINFO cont_info = (PCONTAINERINFO) GetWindowAdditionalData(hWnd);
 
-    pswdata->hContainer = CreateWindowEx (CTRL_CONTAINER, "", 
+    pswdata->hContainer = CreateWindowEx (CTRL_CONTAINER, "",
                             WS_VISIBLE, WS_EX_NONE,
                             IDC_STATIC,
-                            pswdata->scrdata.nContX, 
+                            pswdata->scrdata.nContX,
                             pswdata->scrdata.nContY,
                             pswdata->scrdata.nContWidth,
                             pswdata->scrdata.nContHeight,
                             hWnd, 0);
 
-    pswdata->pContdata = 
+    pswdata->pContdata =
         (PCONTDATA) GetWindowAdditionalData2 (pswdata->hContainer);
 
     if (cont_info && cont_info->user_proc)
         SetWindowCallbackProc (pswdata->hContainer, cont_info->user_proc);
 
     if (cont_info && (cont_info->controlnr > 0))
-        scrollwnd_add_controls (hWnd, pswdata, 
+        scrollwnd_add_controls (hWnd, pswdata,
                 cont_info->controlnr, cont_info->controls);
 
-    SendMessage (pswdata->hContainer, 
-                MSG_INITCONTAINER, 
+    SendMessage (pswdata->hContainer,
+                MSG_INITCONTAINER,
                 0, cont_info ? cont_info->dwAddData : 0);
 }
 
@@ -155,18 +155,18 @@ static void create_container (HWND hWnd, PSWDATA pswdata)
 static int svInitData (HWND hWnd, PSWDATA pswdata)
 {
     scrolled_init (hWnd, &pswdata->scrdata, 0, 0);
-    pswdata->scrdata.move_content = scrollwnd_set_container; 
+    pswdata->scrdata.move_content = scrollwnd_set_container;
     pswdata->flags = 0;
 
     create_container (hWnd, pswdata);
     return 0;
 }
 
-/* 
+/*
  * shoulded be called before scrollwnd is used
  * hWnd: the scrolled window
  */
-int scrollwnd_init (HWND hWnd, PSWDATA pswdata)
+static int scrollwnd_init (HWND hWnd, PSWDATA pswdata)
 {
     if (!pswdata)
         return -1;
@@ -181,21 +181,19 @@ int scrollwnd_init (HWND hWnd, PSWDATA pswdata)
     /* set scrollbar status */
     scrolled_set_hscrollinfo (hWnd, &pswdata->scrdata);
     scrolled_set_vscrollinfo (hWnd, &pswdata->scrdata);
-                                    
+
     return 0;
 }
 
 /*
  * destroy a scrollwnd
  */
-void scrollwnd_destroy (PSWDATA pswdata)
+static inline void scrollwnd_destroy (PSWDATA pswdata)
 {
     DestroyWindow (pswdata->hContainer);
 }
 
-/* --------------------------------------------------------------------------------- */
-
-void scrollwnd_reset_content (HWND hWnd, PSWDATA pswdata)
+static void scrollwnd_reset_content (HWND hWnd, PSWDATA pswdata)
 {
     /* delete all container content */
     container_reset_content (pswdata->hContainer, pswdata->pContdata);
@@ -244,7 +242,7 @@ static LRESULT ScrollWndCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM
         scrollwnd_destroy (pswdata);
         free (pswdata);
         break;
-    
+
     case MSG_GETDLGCODE:
         return DLGC_WANTTAB | DLGC_WANTARROWS;
 
@@ -286,10 +284,15 @@ BOOL RegisterScrollWndControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = ScrollWndCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 /* ------------------------------------ container --------------------------- */
@@ -322,7 +325,7 @@ static void container_destroy (HWND hWnd, PCONTDATA pcontdata)
 
 /* ---------------------------------------------------------------------------- */
 
-LRESULT GUIAPI 
+LRESULT GUIAPI
 DefaultContainerProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PCONTDATA pcontdata = NULL;
@@ -341,7 +344,7 @@ DefaultContainerProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case MSG_COMMAND:
         pcontdata = (PCONTDATA) GetWindowAdditionalData2 (hWnd);
-        SendNotifyMessage (GetParent(pcontdata->hSV), 
+        SendNotifyMessage (GetParent(pcontdata->hSV),
                 MSG_SVCONTCMD, wParam, lParam);
         break;
 
@@ -358,10 +361,15 @@ static BOOL RegisterContainer (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = DefaultContainerProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 #endif /* _MGCTRL_SCROLLVIEW */

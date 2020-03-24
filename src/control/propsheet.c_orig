@@ -160,7 +160,7 @@ BOOL RegisterPropSheetControl (void)
     WndClass.iBkColor    = PIXEL_lightgray;
     WndClass.WinProc     = PropSheetCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 static int DefPSProc(HWND hwnd, int message, WPARAM wParam, LPARAM lParam);
@@ -240,7 +240,7 @@ static int PropSheetCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPar
 			break;
 		}
 
-		case PSM_GETACTIVEINDEX: 				//Retrieves the index of the active page of the property sheet.
+		case PSM_GETACTIVEINDEX: 				//Retrieve the index of the active page of the property sheet.
 		{
 			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
 			
@@ -250,7 +250,7 @@ static int PropSheetCtrlProc (HWND hwnd, int message, WPARAM wParam, LPARAM lPar
 			return 	pData->index;
 		}
 
-		case PSM_GETPAGECOUNT:					//Retrieves the number of pages in the property sheet
+		case PSM_GETPAGECOUNT:					//Retrieve the number of pages in the property sheet
 		{
 			pData = (PROPSHEETDATA *)pCtrl->dwAddData2;
 			

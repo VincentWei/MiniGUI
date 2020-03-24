@@ -161,7 +161,7 @@ static int keyboard_update(void)
             (my_ctxt.last_keycode <= SCANCODE_F10) &&
             my_ctxt.kbd_state[my_ctxt.last_keycode])) {
 
-        if (mg_linux_tty_switch_vt(my_ctxt.last_keycode - SCANCODE_F1 + 1) == 0) {
+        if (__mg_linux_tty_switch_vt(my_ctxt.last_keycode - SCANCODE_F1 + 1) == 0) {
             my_ctxt.kbd_state[my_ctxt.last_keycode] = 0;
             my_ctxt.kbd_state[SCANCODE_LEFTCONTROL] = 0;
             my_ctxt.kbd_state[SCANCODE_LEFTALT] = 0;
@@ -1381,9 +1381,9 @@ static void set_leds (unsigned int leds)
     }
 }
 
-BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype)
+BOOL ial_InitLibInput (INPUT* input, const char* mdev, const char* mtype)
 {
-    if (mg_linux_tty_enable_vt_switch() == 0) {
+    if (__mg_linux_tty_enable_vt_switch() == 0) {
         _DBG_PRINTF("IAL>LIBINPUT: vt switch enabled\n");
         my_ctxt.vt_switch = 1;
     }
@@ -1449,7 +1449,7 @@ void TermLibInput (void)
     my_ctxt.li = NULL;
     my_ctxt.udev = NULL;
 
-    mg_linux_tty_disable_vt_switch();
+    __mg_linux_tty_disable_vt_switch();
 }
 
 #endif /* _MGIAL_LIBINPUT */

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -54,7 +54,7 @@
 
 #define BTREE_ERRNO_SCHILD  1
 #define BTREE_ERRNO_SNEXT   0
-#define BTREE_ERRNO_SNULL  -1 
+#define BTREE_ERRNO_SNULL  -1
 
 DECLARE_OBJECT(mCommBTreeNode)
 DECLARE_OBJECT(mCommBTree)
@@ -83,7 +83,7 @@ DECLARE_OBJECT(mCommBTreeLeafIterator)
     /* Number of children of this node. */      \
     unsigned int numChildren:16;                \
     /* Total number of leaves in the subtree rooted here. */\
-    unsigned int numLeaves; 
+    unsigned int numLeaves;
 
 
 #define mCommBTreeNodeClassHeader(Clss, Super)       \
@@ -95,7 +95,7 @@ DECLARE_OBJECT(mCommBTreeLeafIterator)
     BOOL (*isNullKey)(Clss *self);
 
 #define mCommBTreeHeader(Clss)   \
-	mObjectHeader(Clss)         \
+    mObjectHeader(Clss)         \
     mCommBTreeNode *rootNode;    \
     int minChildrenNum;         \
     int maxChildrenNum;         \
@@ -113,11 +113,11 @@ DECLARE_OBJECT(mCommBTreeLeafIterator)
             mCommBTreeNode *sibLeaf, mCommBTreeNode *leaf);       \
     mCommBTreeNode* (*search)(Clss *self, void* searchInfo, int flags);     \
     mCommBTreeNode* (*newNode)(Clss *self);                      \
-    mCommBTreeNode* (*newLeaf)(Clss *self);                  
+    mCommBTreeNode* (*newLeaf)(Clss *self);
 
 //search flags
 enum {
-	BTSF_RETLAST_IF_OUTOFRANGE = 0x1
+    BTSF_RETLAST_IF_OUTOFRANGE = 0x1
 };
 
 DEFINE_OBJECT(mCommBTreeNode, mObject)

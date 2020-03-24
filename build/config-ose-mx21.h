@@ -269,7 +269,7 @@
 /*#define _MGHAVE_MOUSECALIBRATE 1*/
 
 /* Define if include skin support */
-#define _EXT_SKIN 1  
+#define _EXT_SKIN 1
 
 /* Define if include 16BPP FB subdriver */
 /* #undef _MGFONT_FBLIN16 */

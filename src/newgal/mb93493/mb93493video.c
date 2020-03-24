@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 **  $Id: mb93493video.c 8944 2007-12-29 08:29:16Z xwyan $
-**  
+**
 **  Copyright (C) 2004 ~ 2007 Feynman Software.
 */
 
@@ -248,9 +248,6 @@ static GAL_VideoDevice *MB93493_CreateDevice(int devindex)
     device->SetVideoMode = MB93493_SetVideoMode;
     device->SetColors = MB93493_SetColors;
     device->VideoQuit = MB93493_VideoQuit;
-#ifndef _MGRM_THREADS
-    device->RequestHWSurface = NULL;
-#endif
     device->AllocHWSurface = MB93493_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
@@ -475,7 +472,7 @@ static void MB93493_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     for (i = 0; i < numrects; i++) {
         RECT rc;
 
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                         rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -484,7 +481,9 @@ static void MB93493_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+        RECT rcScr = GetScreenRect();
+
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             this->hidden->update = bound;
             this->hidden->dirty = TRUE;
         }

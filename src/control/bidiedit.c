@@ -106,10 +106,15 @@ BOOL RegisterBIDISLEditControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_IBEAM);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_NULL,
+            HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = SLEditCtrlProc;
 
-    if (AddNewControlClass (&WndClass) != ERR_OK)
+    if (gui_AddNewControlClass (&WndClass) != ERR_OK)
         return FALSE;
 
     return TRUE;
@@ -158,15 +163,13 @@ static int get_text_achar_index (PBIDISLEDITDATA sled, int text_index)
     return -1;
 }
 
-int get_achar_char_len(PBIDISLEDITDATA sled, int achar_index)
+static inline int get_achar_char_len(PBIDISLEDITDATA sled, int achar_index)
 {
     if (achar_index<0 || achar_index > ACHARSLEN)
         return -1;
 
     return (*(ACHARSMAP + achar_index)).char_len;
 }
-
-
 
 /* Update achar sring and achar map info */
 static void update_achar_info (HWND hWnd, PBIDISLEDITDATA sled)
@@ -210,9 +213,10 @@ static void setup_dc (HWND hWnd, BIDISLEDITDATA *sled, HDC hdc, BOOL bSel)
 
         if (dwStyle & WS_DISABLED)
             SetTextColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_FGC_DISABLED_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_DISABLED_ITEM));
         else
-            SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+            SetTextColor (hdc,
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
 
         SetBkColor (hdc, GetWindowBkColor (hWnd));
     }
@@ -222,17 +226,17 @@ static void setup_dc (HWND hWnd, BIDISLEDITDATA *sled, HDC hdc, BOOL bSel)
 
         if (dwStyle & WS_DISABLED)
             SetTextColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_FGC_DISABLED_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_DISABLED_ITEM));
         else
             SetTextColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_FGC_SELECTED_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_FGC_SELECTED_ITEM));
 
         if (sled->status & EST_FOCUSED)
             SetBkColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_BGC_SELECTED_ITEM));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_BGC_SELECTED_ITEM));
         else
             SetBkColor (hdc,
-                    GetWindowElementPixel (hWnd, WE_BGC_SELECTED_LOSTFOCUS));
+                    GetWindowElementPixelEx (hWnd, hdc, WE_BGC_SELECTED_LOSTFOCUS));
     }
 }
 
@@ -505,7 +509,7 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
     }
 
     if (dwStyle & ES_BASELINE) {
-        SetPenColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+        SetPenColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
 #ifdef _PHONE_WINDOW_STYLE
         MoveTo (hdc, sled->leftMargin, sled->rcVis.bottom);
         LineTo (hdc, sled->rcVis.right, sled->rcVis.bottom);
@@ -2171,8 +2175,8 @@ esleft_input_char_refresh (HWND hWnd,
     char_size = cur_edit_pos_x - cur_sel_start_x;
     sel_size = abs(old_sel_start_x - old_sel_end_x);
 
-    scroll_rc.top = sled->rcVis.top;		
-    scroll_rc.bottom = sled->rcVis.bottom;		
+    scroll_rc.top = sled->rcVis.top;
+    scroll_rc.bottom = sled->rcVis.bottom;
     refresh_rc.top = sled->rcVis.top;
     refresh_rc.bottom = sled->rcVis.bottom;
 
@@ -2191,7 +2195,7 @@ esleft_input_char_refresh (HWND hWnd,
                     if ((old_nContX > 0) &&
                         ((achars_len_x - old_nContX) <= sled->rcVis.right)) {
                         scroll_len = sel_size - char_size;
-                        scroll_rc.left = sled->rcVis.left;		
+                        scroll_rc.left = sled->rcVis.left;
                         scroll_rc.right = old_sel_start_x < old_sel_end_x
                                 ? old_sel_start_x : old_sel_end_x;
 
@@ -2206,7 +2210,7 @@ esleft_input_char_refresh (HWND hWnd,
                     else{//left scroll window
                         scroll_len = -(sel_size - char_size);
                         scroll_rc.left = old_sel_start_x < old_sel_end_x
-                            ? old_sel_end_x : old_sel_start_x;		
+                            ? old_sel_end_x : old_sel_start_x;
                         scroll_rc.right = sled->rcVis.right;
 
                         ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
@@ -2220,8 +2224,8 @@ esleft_input_char_refresh (HWND hWnd,
                 else{//when char_size > sel_size right scroll window
                     scroll_len = char_size - sel_size;
                     scroll_rc.left = old_sel_start_x < old_sel_end_x
-                        ? old_sel_end_x : old_sel_start_x;		
-                    scroll_rc.right = sled->rcVis.right;		
+                        ? old_sel_end_x : old_sel_start_x;
+                    scroll_rc.right = sled->rcVis.right;
 
                     ScrollWindow(hWnd, scroll_len, 0, &scroll_rc, NULL);
 
@@ -2563,7 +2567,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         else{
             if (dwStyle & ES_LEFT) {
             //if ((dwStyle&0xffff) ==  ES_LEFT) {
-	            esleft_input_char_refresh(hWnd, sled, (char*)charBuffer, chars);
+                esleft_input_char_refresh(hWnd, sled, (char*)charBuffer, chars);
                 set_edit_caret_pos(hWnd, sled);
 
                 sled->changed = TRUE;

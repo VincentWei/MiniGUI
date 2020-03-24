@@ -1,39 +1,39 @@
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
 /*
- *          MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *          MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *          pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -49,8 +49,8 @@
 static int ascii_to_scancode(int asc2);
 
 static short scancode_table[SCANCODE_USER]=
-{ 
-        0,		         //0
+{
+        0,                 //0
         0,
         0,
         0,
@@ -58,12 +58,12 @@ static short scancode_table[SCANCODE_USER]=
         0,
         0,
         0,
-        SCANCODE_BACKSPACE,	//8
+        SCANCODE_BACKSPACE,    //8
         SCANCODE_TAB,
         0,
         0,
         0,
-        SCANCODE_ENTER,		//13
+        SCANCODE_ENTER,        //13
         0,
         0,
         0,
@@ -77,7 +77,7 @@ static short scancode_table[SCANCODE_USER]=
         0,
         0,
         0,
-        SCANCODE_ESCAPE,	//27
+        SCANCODE_ESCAPE,    //27
         0,
         0,
         0,
@@ -94,89 +94,89 @@ static short scancode_table[SCANCODE_USER]=
         SCANCODE_0, /*sign ())*/
         SCANCODE_8, /* sign(*) */
         SCANCODE_EQUAL, /*sign (+)*/
-        SCANCODE_COMMA,			//44,
-        SCANCODE_MINUS,     	//45
+        SCANCODE_COMMA,            //44,
+        SCANCODE_MINUS,         //45
         SCANCODE_PERIOD,
         SCANCODE_SLASH, // /
-        SCANCODE_0,		//48                     
-        SCANCODE_1,		//49     
-        SCANCODE_2,		//50
-        SCANCODE_3,		//51
-        SCANCODE_4,             //52         
-        SCANCODE_5,		//53                    
-        SCANCODE_6,		//54
-        SCANCODE_7,		//55                      
-        SCANCODE_8,		//56                      
-        SCANCODE_9,		//57
-        SCANCODE_SEMICOLON,	//58:
-        SCANCODE_SEMICOLON,	//59;
+        SCANCODE_0,        //48
+        SCANCODE_1,        //49
+        SCANCODE_2,        //50
+        SCANCODE_3,        //51
+        SCANCODE_4,             //52
+        SCANCODE_5,        //53
+        SCANCODE_6,        //54
+        SCANCODE_7,        //55
+        SCANCODE_8,        //56
+        SCANCODE_9,        //57
+        SCANCODE_SEMICOLON,    //58:
+        SCANCODE_SEMICOLON,    //59;
         0,
-        SCANCODE_EQUAL,		//61
+        SCANCODE_EQUAL,        //61
         0,
         0,
         SCANCODE_2,     /* @ */
-        SCANCODE_A,		//65
+        SCANCODE_A,        //65
         SCANCODE_B,
         SCANCODE_C,
         SCANCODE_D,
-        SCANCODE_E,		
+        SCANCODE_E,
         SCANCODE_F,
         SCANCODE_G,
         SCANCODE_H,
-        SCANCODE_I,	
+        SCANCODE_I,
         SCANCODE_J,
         SCANCODE_K,
         SCANCODE_L,
         SCANCODE_M,
         SCANCODE_N,
-        SCANCODE_O,		
-        SCANCODE_P,		                    
-        SCANCODE_Q,		
-        SCANCODE_R,		
+        SCANCODE_O,
+        SCANCODE_P,
+        SCANCODE_Q,
+        SCANCODE_R,
         SCANCODE_S,
-        SCANCODE_T,		
-        SCANCODE_U,		
+        SCANCODE_T,
+        SCANCODE_U,
         SCANCODE_V,
-        SCANCODE_W,		
+        SCANCODE_W,
         SCANCODE_X,
-        SCANCODE_Y,		
-        SCANCODE_Z,		//90
+        SCANCODE_Y,
+        SCANCODE_Z,        //90
         SCANCODE_BRACKET_LEFT,  /* [ */
         SCANCODE_BACKSLASH,  /* \ */
         SCANCODE_BRACKET_RIGHT, /* ] */
         SCANCODE_6,
-        SCANCODE_MINUS,     	/* _ (95)*/
+        SCANCODE_MINUS,         /* _ (95)*/
         0,
-        SCANCODE_A,		//97
+        SCANCODE_A,        //97
         SCANCODE_B,
         SCANCODE_C,
         SCANCODE_D,
-        SCANCODE_E,		
+        SCANCODE_E,
         SCANCODE_F,
         SCANCODE_G,
         SCANCODE_H,
-        SCANCODE_I,	
+        SCANCODE_I,
         SCANCODE_J,
         SCANCODE_K,
         SCANCODE_L,
         SCANCODE_M,
         SCANCODE_N,
-        SCANCODE_O,		
-        SCANCODE_P,		                    
-        SCANCODE_Q,		
-        SCANCODE_R,		
+        SCANCODE_O,
+        SCANCODE_P,
+        SCANCODE_Q,
+        SCANCODE_R,
         SCANCODE_S,
-        SCANCODE_T,		
-        SCANCODE_U,		
+        SCANCODE_T,
+        SCANCODE_U,
         SCANCODE_V,
-        SCANCODE_W,		
+        SCANCODE_W,
         SCANCODE_X,
-        SCANCODE_Y,		
-        SCANCODE_Z	,	//122
+        SCANCODE_Y,
+        SCANCODE_Z    ,    //122
 };
 
 //0xE000
-static short scancode_private1_table[22] = 
+static short scancode_private1_table[22] =
 {
         SCANCODE_HOME,
         SCANCODE_END,
@@ -204,7 +204,7 @@ static short scancode_private1_table[22] =
 };
 
 //0xEf00
-static short scancode_private2_table[13] = 
+static short scancode_private2_table[13] =
 {
         0,//0
         SCANCODE_F1,
@@ -224,17 +224,17 @@ static short scancode_private2_table[13] =
 static int ascii_to_scancode (int asc2)
 {
     unsigned int ret, index=0;
-    
+
     ret = (asc2) & 0xef00;
     index = asc2 & 0x00ff;
-    
+
     if (ret==0) {
-        return scancode_table[index]; 
+        return scancode_table[index];
     } else if (ret == 0xe000) {
         return scancode_private1_table [index];
     } else if (ret == 0xef00) {
         return scancode_private2_table[index];
-    }      
+    }
     return 0;
 }
 
@@ -254,10 +254,10 @@ static int ascii_to_scancode (int asc2)
 static UGL_INPUT_SERVICE_ID inputServiceId;
 static UGL_DEVICE_ID devId;
 static UGL_MSG msg;
-static UGL_GC_ID gc;	
+static UGL_GC_ID gc;
 static UGL_INPUT_DEV_ID pointerDevId;
 static UGL_INT32 pdType;
-static UGL_CDDB_ID cursorDdb;    
+static UGL_CDDB_ID cursorDdb;
 
 int __comminput_init (void)
 {
@@ -268,14 +268,14 @@ int __comminput_init (void)
 }
 
 int __comminput_ts_getdata (short *x, short *y, short *button)
-{   
-   	*x = msg.data.pointer.position.x;
-   	*y = msg.data.pointer.position.y;
+{
+       *x = msg.data.pointer.position.x;
+       *y = msg.data.pointer.position.y;
 
     *x = *x<1024 ? *x : 1024;
     *y = *y<768 ? *y : 768;
-    
-   	*button = (msg.data.pointer.buttonState) ;
+
+       *button = (msg.data.pointer.buttonState) ;
     return 0;
 }
 
@@ -283,27 +283,27 @@ int __comminput_kb_getdata (short *key, short *status)
 {
    *key = ascii_to_scancode (msg.data.keyboard.key);
    if (msg.data.keyboard.modifiers & UGL_KBD_KEYDOWN)
-   	   *status = 1;
+          *status = 1;
    else
-   	   *status = 0;
-   
-   return 0; 
+          *status = 0;
+
+   return 0;
 }
 
 int __comminput_wait_for_input (void)
 {
     UGL_STATUS status;
     __mg_os_time_delay(10);
-    
+
     status = uglInputMsgGet (inputServiceId, &msg, UGL_NO_WAIT);
-    
+
     if (status != UGL_STATUS_Q_EMPTY)
     {
         if (msg.type == MSG_KEYBOARD){
             msg.type = 0;
             return VX_KBINPUT;
         }else if (msg.type == MSG_POINTER) {
-    	    msg.type = 0;
+            msg.type = 0;
             return VX_MOUSEINPUT;
         }
     }
@@ -312,7 +312,7 @@ int __comminput_wait_for_input (void)
 
 void __comminput_deinit (void)
 {
-	uglGcDestroy (gc);
+    uglGcDestroy (gc);
     uglDeinitialize();
 }
 
@@ -333,25 +333,25 @@ static UGL_EVENT event;
 
 int __comminput_init (void)
 {
-    if (uglDriverFind (UGL_EVENT_SERVICE_TYPE, 0, 
+    if (uglDriverFind (UGL_EVENT_SERVICE_TYPE, 0,
             (UGL_UINT32 *)&eventServiceId) != UGL_STATUS_OK) {
-        return 1; 
+        return 1;
     }
 
     return 0;
 }
 
 int __comminput_ts_getdata (short *x, short *y, short *button)
-{   
+{
     int tmp;
 
-   	*x = pInputEvent->x;
-   	*y = pInputEvent->y;
+       *x = pInputEvent->x;
+       *y = pInputEvent->y;
 
     *x<1024 ? *x : 1024 ;
     *y<768 ? *y : 768 ;
-    
-   	*button = (pInputEvent->type.pointer.buttonState) ;
+
+       *button = (pInputEvent->type.pointer.buttonState) ;
 
     return 0;
 }
@@ -360,21 +360,21 @@ int __comminput_kb_getdata (short *key, short *status)
 {
    *key = ascii_to_scancode (pInputEvent->type.keyboard.key);
    if (pInputEvent->modifiers & UGL_KEYBOARD_KEYDOWN)
-   	   *status = 1;
+          *status = 1;
    else
-   	   *status = 0;
-   
-   return 0; 
+          *status = 0;
+
+   return 0;
 }
 
 int __comminput_wait_for_input (void)
 {
     UGL_STATUS status;
     __mg_os_time_delay(10);
-    
-    status = uglInputEventGet (eventServiceId, UGL_NO_WAIT, 
+
+    status = uglInputEventGet (eventServiceId, UGL_NO_WAIT,
             (UGL_EVENT *)pInputEvent, sizeof (UGL_EVENT));
-    
+
     if (status == UGL_STATUS_OK) {
         if (pInputEvent->header.type == UGL_EVENT_TYPE_KEYBOARD){
             pInputEvent->header.type = 0;
@@ -394,7 +394,7 @@ void __comminput_deinit (void)
 
 #else /*__TARGET_PPC__*/
 
-/* Please implemente the following functions if your MiniGUI is 
+/* Please implemente the following functions if your MiniGUI is
  * configured to use the comm IAL engine */
 
 #define COMM_MOUSEINPUT    0x01  // mouse event
@@ -412,13 +412,13 @@ int __comminput_init (void)
 }
 
 /*
- * Waits for input for keyboard and touchpanel. 
+ * Waits for input for keyboard and touchpanel.
  * If no data, this function should go into sleep;
  * when data is available, keyboard or touchpanel driver should wake up
  * the task/thread in MiniGUI who call __comminput_wait_for_input.
  *
- * Normal implementation makes this function sleep on a RTOS event object, 
- * such as semaphore, and then returns COMM_MOUSEINPUT or COMM_KBINPUT 
+ * Normal implementation makes this function sleep on a RTOS event object,
+ * such as semaphore, and then returns COMM_MOUSEINPUT or COMM_KBINPUT
  * according to type of the input event.
  */
 int __comminput_wait_for_input (void)
@@ -474,7 +474,7 @@ void  __comminput_deinit (void)
 #define COMMLCD_TRUE_RGB888      4
 #define COMMLCD_TRUE_RGB0888     5
 
-/* Please implemente the following functions if your MiniGUI is 
+/* Please implemente the following functions if your MiniGUI is
  * configured to use the comm IAL engine */
 
 struct commlcd_info {
@@ -495,27 +495,27 @@ static UGL_DEVICE_ID devId;
 #ifndef _COMM_IAL
 static UGL_GC_ID gc;
 #endif
-    
+
 int __commlcd_drv_init (void)
 {
     if (uglInitialize() == UGL_STATUS_ERROR)
         return 1;
-    
-    return 0; 
+
+    return 0;
 }
 
 int __commlcd_drv_getinfo (struct commlcd_info *li)
 {
     UGL_MODE_INFO modeInfo;
 
-    
+
     /* Obtain display device identifier */
-    devId = (UGL_DEVICE_ID) uglRegistryFind (UGL_DISPLAY_TYPE,  
+    devId = (UGL_DEVICE_ID) uglRegistryFind (UGL_DISPLAY_TYPE,
                     0, 0, 0)->id;
-   
+
     /* Create a graphics context */
     gc = uglGcCreate (devId);
-    
+
 #ifndef _VESA_SUPPORT
     uglInfo (devId, UGL_MODE_INFO_REQ, &modeInfo);
     li->type = COMMLCD_PSEUDO_RGB332;
@@ -538,17 +538,17 @@ int __commlcd_drv_release (void)
     return 0;
 }
 
-#ifndef _VESA_SUPPORT    
+#ifndef _VESA_SUPPORT
 int __commlcd_drv_setclut (int firstcolor, int ncolors, GAL_Color *colors)
 {
     int i;
-   
+
     UGL_ARGB argb [256];
     if (ncolors > 256) ncolors = 256;
-    
+
     for (i = 0; i < ncolors; i++)
         argb [i] = UGL_MAKE_RGB (colors[i].r, colors[i].g, colors[i].b);
-    
+
     uglClutSet (devId, firstcolor, argb, ncolors);
     return 1;
 }
@@ -569,26 +569,26 @@ static UGL_DEVICE_ID devId;
 #ifndef _COMM_IAL
 static UGL_GC_ID gc;
 #endif
-    
+
 int __commlcd_drv_init (void)
 {
     if (uglInitialize() == UGL_STATUS_ERROR)
         return 1;
-    
-    return 0; 
+
+    return 0;
 }
 
 int __commlcd_drv_getinfo (struct commlcd_info *li)
 {
     UGL_MODE_INFO modeInfo;
 
-    
+
     /* Obtain display device identifier */
     uglDriverFind (UGL_DISPLAY_TYPE, 0, (UGL_UINT32 *)&devId);
-   
+
     /* Create a graphics context */
     gc = uglGcCreate (devId);
-    
+
     uglInfo (devId, UGL_MODE_INFO_REQ, &modeInfo);
 
     li->height = modeInfo.height;
@@ -609,7 +609,7 @@ int __commlcd_drv_setclut (int firstcolor, int ncolors, GAL_Color *colors)
 
 int __commlcd_drv_release (void)
 {
-    uglGcDestroy (gc); 
+    uglGcDestroy (gc);
     uglDeinitialize();
     return 0;
 }
@@ -618,7 +618,7 @@ int __commlcd_drv_release (void)
 
 int __commlcd_drv_init (void)
 {
-    /* TODO: Do LCD initialization here, if you have not. */ 
+    /* TODO: Do LCD initialization here, if you have not. */
     return 0;
 }
 
@@ -627,16 +627,16 @@ static char a_fb [320*240*2];
 
 int __commlcd_drv_getinfo (struct commlcd_info *li)
 {
-    /* TODO: 
+    /* TODO:
      * Set LCD information in a commlcd_info structure pointed by li
      * according to properties of your LCD.
      */
-	li->width  = 320;
-	li->height = 240;
-	li->bpp    = 16;
-	li->type   = 0;
-	li->rlen   = 320*2;
-	li->fb     = a_fb;
+    li->width  = 320;
+    li->height = 240;
+    li->bpp    = 16;
+    li->type   = 0;
+    li->rlen   = 320*2;
+    li->fb     = a_fb;
 
     return 0;
 }
@@ -704,7 +704,7 @@ void minigui_app_entry (void)
      */
 
     /* TODO: call VxWorks system call to create a mutex. */
-    if (init_minigui_malloc (__vxworks_heap, __vxworks_heap_size, 
+    if (init_minigui_malloc (__vxworks_heap, __vxworks_heap_size,
             __vxworks_heap_lock, __vxworks_heap_unlock)) {
         fprintf (stderr, "Can not init MiniGUI heap system.\n");
         return;
@@ -715,7 +715,7 @@ void minigui_app_entry (void)
     /*
      * Initialize MiniGUI's POSIX thread module and call minigui_entry thirdly.
      */
-    if (start_minigui_pthread (minigui_entry, 0, NULL, 
+    if (start_minigui_pthread (minigui_entry, 0, NULL,
             main_stack, MAIN_PTH_DEF_STACK_SIZE)) {
         fprintf (stderr, "Can not init MiniGUI's pthread implementation.\n");
         return;

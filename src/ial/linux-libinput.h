@@ -56,7 +56,7 @@
 extern "C" {
 #endif  /* __cplusplus */
 
-BOOL InitLibInput (INPUT* input, const char* mdev, const char* mtype);
+BOOL ial_InitLibInput (INPUT* input, const char* mdev, const char* mtype);
 void TermLibInput (void);
 
 #ifdef __cplusplus

@@ -221,15 +221,15 @@ void __mg_unicode_break_indic(ScriptType writing_system,
                 if (next_wc != 0) {
                     not_cursor_position(bos + i+1);
                     if ((next_next_wc != 0) &&
-                            (next_wc == 0x09CD ||	/* Bengali */
-                             next_wc == 0x0ACD ||	/* Gujarati */
-                             next_wc == 0x094D ||	/* Hindi */
-                             next_wc == 0x0CCD ||	/* Kannada */
-                             next_wc == 0x0D4D ||	/* Malayalam */
-                             next_wc == 0x0B4D ||	/* Oriya */
-                             next_wc == 0x0A4D ||	/* Punjabi */
-                             next_wc == 0x0BCD ||	/* Tamil */
-                             next_wc == 0x0C4D))	/* Telugu */
+                            (next_wc == 0x09CD ||    /* Bengali */
+                             next_wc == 0x0ACD ||    /* Gujarati */
+                             next_wc == 0x094D ||    /* Hindi */
+                             next_wc == 0x0CCD ||    /* Kannada */
+                             next_wc == 0x0D4D ||    /* Malayalam */
+                             next_wc == 0x0B4D ||    /* Oriya */
+                             next_wc == 0x0A4D ||    /* Punjabi */
+                             next_wc == 0x0BCD ||    /* Tamil */
+                             next_wc == 0x0C4D))    /* Telugu */
                     {
                         not_cursor_position(bos + i + 2);
                     }

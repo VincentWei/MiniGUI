@@ -53,15 +53,15 @@ static void GDIDemo_Region (HWND hWnd, HDC hdc)
 
     FillBox (hdc, 400, 0, 180, 200);
 
-    /* 
-     * Empty two clipping region to free the clipping rectangles used 
+    /*
+     * Empty two clipping region to free the clipping rectangles used
      * by them.
      */
     EmptyClipRgn (&my_cliprgn1);
     EmptyClipRgn (&my_cliprgn2);
 
-    /* 
-     * You should not forget to destroy the FreeClipRectList in your 
+    /*
+     * You should not forget to destroy the FreeClipRectList in your
      * applications.
      * Here we do not destroy the heap because we will use it in next call.
      *

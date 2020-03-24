@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -154,7 +154,7 @@ static void insert_chset (FAMILY* fami, const char* chset_name)
 
 static FAMILY* create_font_attrlist (void)
 {
-    const DEVFONT* font = NULL; 
+    const DEVFONT* font = NULL;
     char* font_name;
 
     char* fm_name_start;
@@ -195,7 +195,7 @@ static FAMILY* create_font_attrlist (void)
 
         fami_cur = find_insert_family(fami_head, fm_name_start);
 
-        while (*cs_name_start) 
+        while (*cs_name_start)
         {
             /*find a charset */
             cs_name_sep = strchr (cs_name_start, ',');
@@ -231,7 +231,7 @@ static void free_font_attrlist (FAMILY* fami_head)
             free (chset_cur);
             chset_cur = chset_tmp;
         }
-        
+
         /*delete current family node*/
         fami_tmp = fami_cur->next;
         free (fami_cur);
@@ -355,7 +355,7 @@ static CTRLDATA ctrls [] =
     },
 };
 
-static DLGTEMPLATE dlg_temp = 
+static DLGTEMPLATE dlg_temp =
 {
     WS_BORDER|WS_CAPTION|WS_VISIBLE,
     WS_EX_NONE,
@@ -376,7 +376,7 @@ static char* weight_str [] =
     "medium",
     "regular",
 };
-static char weight_arg [] = 
+static char weight_arg [] =
 {
     FONT_WEIGHT_BLACK,
     FONT_WEIGHT_BOLD,
@@ -387,7 +387,7 @@ static char weight_arg [] =
     FONT_WEIGHT_REGULAR,
 };
 
-static char* slant_str [] = 
+static char* slant_str [] =
 {
     "italic",
     "oblique",
@@ -408,7 +408,7 @@ static char* flip_str [] =
     "horzvert",
 };
 
-static char flip_arg [] = 
+static char flip_arg [] =
 {
     FONT_FLIP_NIL,
     FONT_FLIP_HORZ,
@@ -438,11 +438,11 @@ static int fresh_chset_list (HWND hWnd)
     CHARSET* chset_cur;
 
     fami_lb = GetDlgItem (hWnd, ID_FAMILY);
-    chset_lb = GetDlgItem (hWnd, ID_CHARSET);    
+    chset_lb = GetDlgItem (hWnd, ID_CHARSET);
 
     cur_sel = SendMessage (fami_lb, LB_GETCURSEL, 0, 0);
     SendMessage (fami_lb, LB_GETTEXT, cur_sel, (LPARAM)str_buffer);
-    
+
     fami_head = (FAMILY*)GetWindowAdditionalData (hWnd);
     fami_cur = find_family (fami_head, str_buffer);
 
@@ -515,7 +515,7 @@ static LOGFONT* create_sel_font(HWND hWnd)
     char flip;
     int sel;
     HWND hctrl;
-    
+
     hctrl = GetDlgItem (hWnd, ID_FAMILY);
     sel = SendMessage (hctrl, LB_GETCURSEL, 0, 0);
     SendMessage (hctrl, LB_GETTEXT, sel, (LPARAM)family);
@@ -535,9 +535,9 @@ static LOGFONT* create_sel_font(HWND hWnd)
 
     sel = SendMessage (GetDlgItem (hWnd, ID_SIZE), LB_GETCURSEL, 0, 0);
 
-    return CreateLogFont (FONT_TYPE_NAME_ALL, family, 
-                chset, weight, slant, flip, 
-                FONT_OTHER_AUTOSCALE, FONT_UNDERLINE_NONE, 
+    return CreateLogFont (FONT_TYPE_NAME_ALL, family,
+                chset, weight, slant, flip,
+                FONT_OTHER_AUTOSCALE, FONT_UNDERLINE_NONE,
                 FONT_STRUCKOUT_NONE , sel+MIN_FONT_SIZE, 0);
 
 }
@@ -632,7 +632,7 @@ LOGFONT* font_sel_dialog (HWND hWnd)
     }
 
     fami_head = create_font_attrlist ();
-    font = (LOGFONT*)DialogBoxIndirectParam(&dlg_temp, hWnd, 
+    font = (LOGFONT*)DialogBoxIndirectParam(&dlg_temp, hWnd,
             dialog_proc, (LPARAM)fami_head);
 
     free_font_attrlist (fami_head);

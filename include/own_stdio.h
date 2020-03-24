@@ -14,16 +14,16 @@
  * \file own_stdio.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  * \brief ISO C standard I/O routines - with some POSIX 1003.1 extensions
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
@@ -57,7 +57,7 @@
 /*
  * $Id: own_stdio.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 

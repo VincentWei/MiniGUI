@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 
-/* 
+/*
  * Framebuffer console based video driver implementation.
  */
 
@@ -74,31 +74,49 @@
 #include "fbmatrox.h"
 #include "fbneomagic.h"
 
-#ifdef _MGGAL_SIGMA8654 
+// #define FBCON_DEBUG     1
+// #define FBACCEL_DEBUG   1
+
+#ifdef _MGGAL_SIGMA8654
 extern int sigma8654_hdmi_init();
 extern int sigma8654_hdmi_quit();
 #endif
-/*
-#define FBACCEL_DEBUG   1
-#define FBCON_DEBUG   1
-*/
 
 /* Initialization/Query functions */
 static int FB_GetFBInfo(VIDEO_MEM_INFO *video_mem_info);
 static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat);
 static GAL_Rect **FB_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags);
-static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current, int width, int height, int bpp, Uint32 flags);
+static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
+        int width, int height, int bpp, Uint32 flags);
 static int FB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors);
 static void FB_VideoQuit(_THIS);
 
 /* Hardware surface functions */
 static int FB_InitHWSurfaces(_THIS, GAL_Surface *screen, char *base, int size);
 static void FB_FreeHWSurfaces(_THIS);
-static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply);
+static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request,
+        REP_HWSURFACE* reply);
 static int FB_AllocHWSurface(_THIS, GAL_Surface *surface);
 static void FB_FreeHWSurface(_THIS, GAL_Surface *surface);
 static void FB_WaitVBL(_THIS);
 static void FB_WaitIdle(_THIS);
+
+#ifdef _MGSCHEMA_COMPOSITING
+
+#include "../shadow-screen.h"
+#include "debug.h"
+
+static BOOL FB_SyncUpdate (_THIS)
+{
+    if (IsRectEmpty (&this->hidden->dirty_rc))
+        return FALSE;
+
+    if (shadowScreen_BlitToReal (this) == 0)
+        return TRUE;
+
+    return FALSE;
+}
+#endif /* _MGSCHEMA_COMPOSITING */
 
 #if 0
 static int FB_LockHWSurface(_THIS, GAL_Surface *surface);
@@ -118,18 +136,28 @@ static int FB_Available(void)
     const char *GAL_fbdev;
 
     GAL_fbdev = getenv("FRAMEBUFFER");
-    if ( GAL_fbdev == NULL ) {
+    if (GAL_fbdev == NULL) {
         GAL_fbdev = "/dev/fb0";
     }
     console = open(GAL_fbdev, O_RDWR, 0);
-    if ( console >= 0 ) {
+    if (console >= 0) {
         close(console);
     }
+    else {
+        _WRN_PRINTF ("failed to open %s: %m\n", GAL_fbdev);
+    }
+
     return(console >= 0);
 }
 
 static void FB_DeleteDevice(GAL_VideoDevice *device)
 {
+#ifdef _MGSCHEMA_COMPOSITING
+    if (device->hidden->shadow_screen) {
+        GAL_FreeSurface (device->hidden->real_screen);
+    }
+#endif  /* _MGSCHEMA_COMPOSITING */
+
     free(device->hidden);
     free(device);
 }
@@ -139,19 +167,24 @@ static GAL_VideoDevice *FB_CreateDevice(int devindex)
     GAL_VideoDevice *this;
     /* Initialize all variables that we clean on shutdown */
     this = (GAL_VideoDevice *)malloc(sizeof(GAL_VideoDevice));
-    if ( this ) {
+    if (this) {
         memset(this, 0, (sizeof *this));
         this->hidden = (struct GAL_PrivateVideoData *)
                 malloc((sizeof *this->hidden));
     }
-    if ( (this == NULL) || (this->hidden == NULL) ) {
+    if ((this == NULL) || (this->hidden == NULL)) {
         GAL_OutOfMemory();
-        if ( this ) {
+        if (this) {
             free(this);
         }
         return(0);
     }
     memset(this->hidden, 0, (sizeof *this->hidden));
+    /* For compositing schema, we force to use double buffering */
+#ifdef _MGSCHEMA_COMPOSITING
+    this->hidden->magic = MAGIC_SHADOW_SCREEN_HEADER;
+    this->hidden->version = 0;
+#endif
     wait_vbl = FB_WaitVBL;
     wait_idle = FB_WaitIdle;
 
@@ -221,12 +254,12 @@ static int FB_EnterGraphicsMode (_THIS)
         /* open tty, enter graphics mode */
         ttyfd = open (tty_dev, O_RDWR);
         if (ttyfd < 0) {
-            fprintf (stderr,"NEWGAL>FBCON: Can't open %s: %m\n", tty_dev);
+            _WRN_PRINTF ("Can't open %s: %m\n", tty_dev);
             goto fail;
         }
         if (ioctl (ttyfd, KDSETMODE, KD_GRAPHICS) == -1) {
-            fprintf (stderr,"NEWGAL>FBCON: Error when setting the terminal to graphics mode: %m\n");
-            fprintf (stderr,"NEWGAL>FBCON: Maybe is not a console.\n");
+            _WRN_PRINTF ("Error when setting the terminal to graphics mode: %m\n");
+            _WRN_PRINTF ("Maybe is not a console.\n");
             goto fail;
         }
 #ifdef _MGRM_PROCESSES
@@ -255,23 +288,23 @@ static int FB_GetFBInfo(VIDEO_MEM_INFO *video_mem_info)
     int fd;
 
     GAL_fbdev = getenv("FRAMEBUFFER");
-    if ( GAL_fbdev == NULL ) {
+    if (GAL_fbdev == NULL) {
         GAL_fbdev = "/dev/fb0";
     }
-    
+
     fd = open(GAL_fbdev, O_RDWR, 0);
-    if ( fd < 0 ) {
+    if (fd < 0) {
         GAL_SetError("NEWGAL>FBCON: Unable to open %s\n", GAL_fbdev);
         return(-1);
     }
 
     /* Get the type of video hardware */
-    if ( ioctl(fd, FBIOGET_FSCREENINFO, &finfo) < 0 ) {
+    if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo) < 0) {
         close(fd);
         GAL_SetError("NEWGAL>FBCON: Couldn't get console hardware info\n");
         return(-1);
     }
-    
+
     offset = (((long)finfo.smem_start) -
                     (((long)finfo.smem_start)&~(getpagesize () - 1)));
     memlen = finfo.smem_len+offset;
@@ -281,7 +314,7 @@ static int FB_GetFBInfo(VIDEO_MEM_INFO *video_mem_info)
     video_mem_info->video_pitch = finfo.line_length;
     video_mem_info->type = 2;
     video_mem_info->video_mem_offset = 0;
-    
+
 #ifdef FBCON_DEBUG
     fprintf(stderr, "Printing finfo:\n");
     fprintf(stderr, "tsmem_start = %p\n", (char *)finfo.smem_start);
@@ -310,17 +343,17 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
 
     /* Initialize the library */
     GAL_fbdev = getenv("FRAMEBUFFER");
-    if ( GAL_fbdev == NULL ) {
+    if (GAL_fbdev == NULL) {
         GAL_fbdev = "/dev/fb0";
     }
     console_fd = open(GAL_fbdev, O_RDWR, 0);
-    if ( console_fd < 0 ) {
+    if (console_fd < 0) {
         GAL_SetError("NEWGAL>FBCON: Unable to open %s\n", GAL_fbdev);
         return(-1);
     }
 
     /* Get the type of video hardware */
-    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0 ) {
+    if (ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0) {
         GAL_SetError("NEWGAL>FBCON: Couldn't get console hardware info\n");
         FB_VideoQuit(this);
         return(-1);
@@ -356,7 +389,7 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     mapped_offset = (((long)finfo.smem_start) -
                     (((long)finfo.smem_start)&~(getpagesize () - 1)));
     mapped_memlen = finfo.smem_len+mapped_offset;
-    
+
 #ifdef __uClinux__
 #  if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
     mapped_mem = mmap(NULL, mapped_memlen,
@@ -369,7 +402,7 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     mapped_mem = mmap(NULL, mapped_memlen,
                             PROT_READ|PROT_WRITE, MAP_SHARED, console_fd, 0);
 #endif
-    
+
     if (mapped_mem == (char *)-1) {
         GAL_SetError("NEWGAL>FBCON: Unable to memory map the video hardware\n");
         mapped_mem = NULL;
@@ -378,29 +411,29 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     }
 
     /* Determine the current screen depth */
-    if ( ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 ) {
+    if (ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0) {
         GAL_SetError("NEWGAL>FBCON: Couldn't get console pixel format\n");
         FB_VideoQuit(this);
         return(-1);
     }
     vformat->BitsPerPixel = vinfo.bits_per_pixel;
-    if ( vformat->BitsPerPixel < 8 ) {
+    if (vformat->BitsPerPixel < 8) {
         vformat->MSBLeft = !(vinfo.red.msb_right);
         return 0;
     }
-    for ( i=0; i<vinfo.red.length; ++i ) {
+    for (i=0; i<vinfo.red.length; ++i) {
         vformat->Rmask <<= 1;
         vformat->Rmask |= (0x00000001<<vinfo.red.offset);
     }
-    for ( i=0; i<vinfo.green.length; ++i ) {
+    for (i=0; i<vinfo.green.length; ++i) {
         vformat->Gmask <<= 1;
         vformat->Gmask |= (0x00000001<<vinfo.green.offset);
     }
-    for ( i=0; i<vinfo.blue.length; ++i ) {
+    for (i=0; i<vinfo.blue.length; ++i) {
         vformat->Bmask <<= 1;
         vformat->Bmask |= (0x00000001<<vinfo.blue.offset);
     }
-    for ( i=0; i<vinfo.transp.length; ++i ) {
+    for (i=0; i<vinfo.transp.length; ++i) {
         vformat->Amask <<= 1;
         vformat->Amask |= (0x00000001<<vinfo.transp.offset);
     }
@@ -412,11 +445,11 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     /* If the I/O registers are available, memory map them so we
        can take advantage of any supported hardware acceleration.
      */
-    if ( finfo.accel && finfo.mmio_len ) {
+    if (finfo.accel && finfo.mmio_len) {
         mapped_iolen = finfo.mmio_len;
         mapped_io = mmap(NULL, mapped_iolen, PROT_READ|PROT_WRITE,
                          MAP_SHARED, console_fd, mapped_memlen);
-        if ( mapped_io == (char *)-1 ) {
+        if (mapped_io == (char *)-1) {
             /* Hmm, failed to memory map I/O registers */
             mapped_io = NULL;
         }
@@ -425,7 +458,7 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     /* Fill in our hardware acceleration capabilities */
     this->info.hw_available = 1;
     this->info.video_mem = finfo.smem_len/1024;
-    if ( mapped_io ) {
+    if (mapped_io) {
         switch (finfo.accel) {
         case FB_ACCEL_MATROX_MGA2064W:
         case FB_ACCEL_MATROX_MGA1064SG:
@@ -434,15 +467,11 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
         case FB_ACCEL_MATROX_MGAG100:
         /*case FB_ACCEL_MATROX_MGAG200: G200 acceleration broken! */
         case FB_ACCEL_MATROX_MGAG400:
-#ifdef FBACCEL_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: Matrox hardware accelerator!\n");
-#endif
+            _DBG_PRINTF ("Matrox hardware accelerator!\n");
             FB_MatroxAccel(this, finfo.accel);
             break;
         case FB_ACCEL_3DFX_BANSHEE:
-#ifdef FBACCEL_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: 3DFX hardware accelerator!\n");
-#endif
+            _DBG_PRINTF ("3DFX hardware accelerator!\n");
             FB_3DfxAccel (this, finfo.accel);
             break;
 
@@ -451,17 +480,13 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
         case FB_ACCEL_NEOMAGIC_NM2230:
         case FB_ACCEL_NEOMAGIC_NM2360:
         case FB_ACCEL_NEOMAGIC_NM2380:
-#ifdef FBACCEL_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: NeoMagic hardware accelerator!\n");
-#endif
+            _DBG_PRINTF ("NeoMagic hardware accelerator!\n");
             FB_NeoMagicAccel (this, finfo.accel);
             break;
 #endif
 
         default:
-#ifdef FBACCEL_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: Unknown hardware accelerator!\n");
-#endif
+            _DBG_PRINTF ("Unknown hardware accelerator!\n");
             break;
         }
     }
@@ -529,7 +554,7 @@ static void print_finfo(struct fb_fix_screeninfo *finfo)
     fprintf(stderr, "tmmio_len = %d\n", finfo->mmio_len);
     fprintf(stderr, "taccel = %d\n", finfo->accel);
 }
-#endif
+#endif  /* FBCON_DEBUG */
 
 static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
@@ -558,18 +583,21 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
             return(NULL);
         }
 #endif
-
         /* Restore the original palette */
         FB_RestorePalette (this);
     }
 
     /* Set the video mode and get the final screen format */
-    if (ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0 ) {
-        GAL_SetError("NEWGAL>FBCON: Couldn't get console screen info");
+    if (ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0) {
+        GAL_SetError("NEWGAL>FBCON: Couldn't get console screen info\n");
         return(NULL);
     }
+
 #ifdef FBCON_DEBUG
-    fprintf(stderr, "NEWGAL>FBCON: Printing original vinfo:\n");
+    fprintf (stderr, "Printing original finfo:\n");
+    print_finfo(&finfo);
+
+    fprintf (stderr, "Printing original vinfo:\n");
     print_vinfo(&vinfo);
 #endif
 
@@ -578,11 +606,11 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         vinfo.xres = width;
         vinfo.yres = height;
     }
-    if ( mgIsServer && ((vinfo.xres != width) || (vinfo.yres != height) ||
-         (vinfo.bits_per_pixel != bpp) /* || (flags & GAL_DOUBLEBUF) */) ) {
+    if (mgIsServer && ((vinfo.xres != width) || (vinfo.yres != height) ||
+         (vinfo.bits_per_pixel != bpp) /* || (flags & GAL_DOUBLEBUF) */)) {
 #else
-    if ( ((vinfo.xres != width) || (vinfo.yres != height) ||
-         (vinfo.bits_per_pixel != bpp) /* || (flags & GAL_DOUBLEBUF) */) ) {
+    if (((vinfo.xres != width) || (vinfo.yres != height) ||
+         (vinfo.bits_per_pixel != bpp) /* || (flags & GAL_DOUBLEBUF) */)) {
 #endif
         vinfo.activate = FB_ACTIVATE_NOW;
         vinfo.accel_flags = 0;
@@ -598,13 +626,13 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         vinfo.blue.length = vinfo.blue.offset = 0;
         vinfo.transp.length = vinfo.transp.offset = 0;
 #ifdef FBCON_DEBUG
-        fprintf(stderr, "NEWGAL>FBCON: Printing wanted vinfo:\n");
+        fprintf (stderr, "Printing wanted vinfo:\n");
         print_vinfo(&vinfo);
 #endif
-        if ( ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0 ) {
+        if (ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0) {
             vinfo.yres_virtual = height;
-            if ( ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0 ) {
-                GAL_SetError("NEWGAL>FBCON: Couldn't set console screen info");
+            if (ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0) {
+                GAL_SetError("NEWGAL>FBCON: Couldn't set console screen info\n");
                 return(NULL);
             }
         }
@@ -613,7 +641,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
 
         /* Figure out how much video memory is available */
         maxheight = height;
-        if ( vinfo.yres_virtual > maxheight ) {
+        if (vinfo.yres_virtual > maxheight) {
             vinfo.yres_virtual = maxheight;
         }
     }
@@ -624,46 +652,46 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
 #endif
 
 //#ifdef __TARGET_STB810__
-#if defined( __TARGET_STB810__) || defined(_MGGAL_SIGMA8654)
+#if defined(__TARGET_STB810__) || defined(_MGGAL_SIGMA8654)
     Amask = 0xFF000000;
     Rmask = 0x00FF0000;
     Gmask = 0x0000FF00;
     Bmask = 0x000000FF;
 #else /* __TARGET_STB810__ */
     Rmask = 0;
-    for ( i=0; i<vinfo.red.length; ++i ) {
+    for (i=0; i<vinfo.red.length; ++i) {
         Rmask <<= 1;
         Rmask |= (0x00000001<<vinfo.red.offset);
     }
     Gmask = 0;
-    for ( i=0; i<vinfo.green.length; ++i ) {
+    for (i=0; i<vinfo.green.length; ++i) {
         Gmask <<= 1;
         Gmask |= (0x00000001<<vinfo.green.offset);
     }
     Bmask = 0;
-    for ( i=0; i<vinfo.blue.length; ++i ) {
+    for (i=0; i<vinfo.blue.length; ++i) {
         Bmask <<= 1;
         Bmask |= (0x00000001<<vinfo.blue.offset);
     }
     Amask = 0;
-    for ( i=0; i<vinfo.transp.length; ++i ) {
+    for (i=0; i<vinfo.transp.length; ++i) {
         Amask <<= 1;
         Amask |= (0x00000001<<vinfo.transp.offset);
     }
 #endif /* !__TARGET_STB810__ */
 
     if (!GAL_ReallocFormat(current, vinfo.bits_per_pixel,
-                                      Rmask, Gmask, Bmask, Amask) ) {
+                                      Rmask, Gmask, Bmask, Amask)) {
         return(NULL);
     }
-    if ( vinfo.bits_per_pixel < 8 ) {
+    if (vinfo.bits_per_pixel < 8) {
         current->format->MSBLeft = !(vinfo.red.msb_right);
     }
 
     /* Get the fixed information about the console hardware.
        This is necessary since finfo.line_length changes.
      */
-    if ( ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0 ) {
+    if (ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0) {
         GAL_SetError("NEWGAL>FBCON: Couldn't get console hardware info");
         return(NULL);
     }
@@ -707,7 +735,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     }
 
 #ifdef _MGHAVE_PCIACCESS
-    if (pci_accel_driver) /* Init accelerated hardware via pciaccess */
+    if (pci_accel_driver > 0) /* Init accelerated hardware via pciaccess */
         FB_InitPCIAccelDriver (this, current);
 #endif
 
@@ -718,11 +746,50 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         sigma8654_hdmi_init();
 #endif
 
+#ifdef _MGSCHEMA_COMPOSITING
+    if (mgIsServer) {
+        // this is a trick in order that GAL_CreateRGBSurface tries to
+        // allocate hardware surface first.
+        GAL_PublicSurface = current;
+
+        /* create shadow screen */
+        this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
+                current->w, current->h,
+                current->format->BitsPerPixel,
+                current->format->Rmask, current->format->Gmask,
+                current->format->Bmask, current->format->Amask);
+
+        if (this->hidden->shadow_screen) {
+            this->info.hw_cursor = 1;
+            this->hidden->cursor = NULL;
+            this->SetCursor = shadowScreen_SetCursor;
+            this->MoveCursor = shadowScreen_MoveCursor;
+            this->UpdateRects = shadowScreen_UpdateRects;
+            this->SyncUpdate = FB_SyncUpdate;
+
+            this->hidden->real_screen = current;
+            current = this->hidden->shadow_screen;
+
+            GAL_SetClipRect (this->hidden->real_screen, NULL);
+            GAL_SetColorKey (this->hidden->shadow_screen, 0, 0);
+            GAL_SetAlpha (this->hidden->shadow_screen, 0, 0);
+        }
+        else {
+            this->hidden->real_screen = NULL;
+            this->hidden->shadow_screen = NULL;
+        }
+    }
+    else {
+        // client never call SetVideoMode
+        assert (0);
+    }
+#endif /* _MGSCHEMA_COMPOSITING */
+
     /* We're done */
-    return(current);
+    return (current);
 }
 
-#ifdef FBCON_DEBUG
+#ifdef FBACCEL_DEBUG
 static void FB_DumpHWSurfaces(_THIS)
 {
     vidmem_bucket *bucket;
@@ -730,26 +797,26 @@ static void FB_DumpHWSurfaces(_THIS)
     fprintf(stderr, "Memory left: %d (%d total)\n", surfaces_memleft, surfaces_memtotal);
     fprintf(stderr, "\n");
     fprintf(stderr, "         Base  Size\n");
-    for ( bucket=&surfaces; bucket; bucket=bucket->next ) {
+    for (bucket=&surfaces; bucket; bucket=bucket->next) {
         fprintf(stderr, "Bucket:  %p, %d (%s)\n", bucket->base, bucket->size, bucket->used ? "used" : "free");
-        if ( bucket->prev ) {
-            if ( bucket->base != bucket->prev->base+bucket->prev->size ) {
+        if (bucket->prev) {
+            if (bucket->base != bucket->prev->base+bucket->prev->size) {
                 fprintf(stderr, "Warning, corrupt bucket list! (prev)\n");
             }
         } else {
-            if ( bucket != &surfaces ) {
+            if (bucket != &surfaces) {
                 fprintf(stderr, "Warning, corrupt bucket list! (!prev)\n");
             }
         }
-        if ( bucket->next ) {
-            if ( bucket->next->base != bucket->base+bucket->size ) {
+        if (bucket->next) {
+            if (bucket->next->base != bucket->base+bucket->size) {
                 fprintf(stderr, "Warning, corrupt bucket list! (next)\n");
             }
         }
     }
     fprintf(stderr, "\n");
 }
-#endif
+#endif  /* FBACCEL_DEBUG */
 
 static int FB_InitHWSurfaces(_THIS, GAL_Surface *screen, char *base, int size)
 {
@@ -758,9 +825,9 @@ static int FB_InitHWSurfaces(_THIS, GAL_Surface *screen, char *base, int size)
     surfaces_memtotal = size;
     surfaces_memleft = size;
 
-    if ( surfaces_memleft > 0 ) {
+    if (surfaces_memleft > 0) {
         bucket = (vidmem_bucket *)malloc(sizeof(*bucket));
-        if ( bucket == NULL ) {
+        if (bucket == NULL) {
             GAL_OutOfMemory();
             return(-1);
         }
@@ -789,7 +856,7 @@ static void FB_FreeHWSurfaces(_THIS)
     vidmem_bucket *bucket, *freeable;
 
     bucket = surfaces.next;
-    while ( bucket ) {
+    while (bucket) {
         freeable = bucket;
         bucket = bucket->next;
         free(freeable);
@@ -805,11 +872,6 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
         int extra;
 
         reply->bucket = NULL;
-        /* Temporarily, we only allow surfaces the same width as display.
-           Some blitters require the pitch between two hardware surfaces
-           to be the same.  Others have interesting alignment restrictions.
-           Until someone who knows these details looks at the code...
-        */
         if (request->pitch > GAL_VideoSurface->pitch) {
 #ifdef FBCON_DEBUG
             GAL_SetError("NEWGAL>FBCON: Surface requested wider than screen\n");
@@ -817,14 +879,21 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
             return;
         }
 
-        reply->pitch = GAL_VideoSurface->pitch;
+        /* Before 5.0.0, we only allow surfaces the same width as display.
+           Because some blitters require the pitch between two hardware surfaces
+           to be the same.  Others have interesting alignment restrictions.
+           Until someone who knows these details looks at the code...
+
+           reply->pitch = GAL_VideoSurface->pitch;
+
+           Since 5.0.0, we use the original pitch to save the memory use.
+        */
+        reply->pitch = request->pitch;
         size = request->h * reply->pitch;
-#ifdef FBCON_DEBUG
-        fprintf(stderr, "NEWGAL>FBCON: Allocating bucket of %d bytes\n", size);
-#endif
+        _DBG_PRINTF ("Allocating bucket of %d bytes\n", size);
 
         /* Quick check for available mem */
-        if ( size > surfaces_memleft ) {
+        if (size > surfaces_memleft) {
 #ifdef FBCON_DEBUG
             GAL_SetError("NEWGAL>FBCON: Not enough video memory\n");
 #endif
@@ -832,12 +901,12 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
         }
 
         /* Search for an empty bucket big enough */
-        for ( bucket=&surfaces; bucket; bucket=bucket->next ) {
-            if ( ! bucket->used && (size <= bucket->size) ) {
+        for (bucket=&surfaces; bucket; bucket=bucket->next) {
+            if (! bucket->used && (size <= bucket->size)) {
                 break;
             }
         }
-        if ( bucket == NULL ) {
+        if (bucket == NULL) {
 #ifdef FBCON_DEBUG
             GAL_SetError("NEWGAL>FBCON: Video memory too fragmented\n");
 #endif
@@ -846,14 +915,12 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
 
         /* Create a new bucket for left-over memory */
         extra = (bucket->size - size);
-        if ( extra ) {
+        if (extra) {
             vidmem_bucket *newbucket;
 
-#ifdef FBCON_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: Adding new free bucket of %d bytes\n", extra);
-#endif
+            _DBG_PRINTF ("Adding new free bucket of %d bytes\n", extra);
             newbucket = (vidmem_bucket *)malloc(sizeof(*newbucket));
-            if ( newbucket == NULL ) {
+            if (newbucket == NULL) {
                 GAL_OutOfMemory();
                 return;
             }
@@ -862,7 +929,7 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
             newbucket->base = bucket->base + size;
             newbucket->size = extra;
             newbucket->next = bucket->next;
-            if ( bucket->next ) {
+            if (bucket->next) {
                 bucket->next->prev = newbucket;
             }
             bucket->next = newbucket;
@@ -872,9 +939,7 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
         bucket->used = 1;
         bucket->size = size;
         bucket->dirty = 0;
-#ifdef FBCON_DEBUG
-        fprintf(stderr, "NEWGAL>FBCON: Allocated %d bytes at %p\n", bucket->size, bucket->base);
-#endif
+        _DBG_PRINTF ("Allocated %d bytes at %p\n", bucket->size, bucket->base);
         surfaces_memleft -= size;
 
         reply->bucket = bucket;
@@ -884,42 +949,36 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
         vidmem_bucket *bucket, *freeable;
 
         /* Look for the bucket in the current list */
-        for ( bucket=&surfaces; bucket; bucket=bucket->next ) {
-            if ( bucket == (vidmem_bucket *)request->bucket) {
+        for (bucket=&surfaces; bucket; bucket=bucket->next) {
+            if (bucket == (vidmem_bucket *)request->bucket) {
                 break;
             }
         }
-        if ( bucket && bucket->used ) {
+        if (bucket && bucket->used) {
         /* Add the memory back to the total */
-#ifdef FBCON_DEBUG
-            fprintf(stderr, "NEWGAL>FBCON: Freeing bucket of %d bytes\n", bucket->size);
-#endif
+            _DBG_PRINTF ("Freeing bucket of %d bytes\n", bucket->size);
             surfaces_memleft += bucket->size;
 
             /* Can we merge the space with surrounding buckets? */
             bucket->used = 0;
-            if ( bucket->next && ! bucket->next->used ) {
-#ifdef FBCON_DEBUG
-                fprintf(stderr, "NEWGAL>FBCON: Merging with next bucket, for %d total bytes\n", 
+            if (bucket->next && ! bucket->next->used) {
+                _DBG_PRINTF ("Merging with next bucket, for %d total bytes\n",
                                 bucket->size+bucket->next->size);
-#endif
                 freeable = bucket->next;
                 bucket->size += bucket->next->size;
                 bucket->next = bucket->next->next;
-                if ( bucket->next ) {
+                if (bucket->next) {
                     bucket->next->prev = bucket;
                 }
                 free(freeable);
             }
-            if ( bucket->prev && ! bucket->prev->used ) {
-#ifdef FBCON_DEBUG
-                fprintf(stderr, "NEWGAL>FBCON: Merging with previous bucket, for %d total bytes\n", 
+            if (bucket->prev && ! bucket->prev->used) {
+                _DBG_PRINTF ("Merging with previous bucket, for %d total bytes\n",
                                 bucket->prev->size+bucket->size);
-#endif
                 freeable = bucket;
                 bucket->prev->size += bucket->size;
                 bucket->prev->next = bucket->next;
-                if ( bucket->next ) {
+                if (bucket->next) {
                     bucket->next->prev = bucket->prev;
                 }
                 free(freeable);
@@ -1038,10 +1097,10 @@ static void FB_SavePalette(_THIS, struct fb_fix_screeninfo *finfo,
     int i;
 
     /* Save hardware palette, if needed */
-    if ( finfo->visual == FB_VISUAL_PSEUDOCOLOR ) {
+    if (finfo->visual == FB_VISUAL_PSEUDOCOLOR) {
         saved_cmaplen = 1<<vinfo->bits_per_pixel;
         saved_cmap=(__u16 *)malloc(3*saved_cmaplen*sizeof(*saved_cmap));
-        if ( saved_cmap != NULL ) {
+        if (saved_cmap != NULL) {
             FB_SavePaletteTo(this, saved_cmaplen, saved_cmap);
         }
     }
@@ -1055,18 +1114,18 @@ static void FB_SavePalette(_THIS, struct fb_fix_screeninfo *finfo,
        Adam Meyerowitz 1/19/2000
        ameyerow@optonline.com
     */
-    if ( finfo->visual == FB_VISUAL_DIRECTCOLOR ) {
+    if (finfo->visual == FB_VISUAL_DIRECTCOLOR) {
         __u16 new_entries[3*256];
 
         /* Save the colormap */
         saved_cmaplen = 256;
         saved_cmap=(__u16 *)malloc(3*saved_cmaplen*sizeof(*saved_cmap));
-        if ( saved_cmap != NULL ) {
+        if (saved_cmap != NULL) {
             FB_SavePaletteTo(this, saved_cmaplen, saved_cmap);
         }
 
         /* Allocate new identity colormap */
-        for ( i=0; i<256; ++i ) {
+        for (i=0; i<256; ++i) {
                   new_entries[(0*256)+i] =
             new_entries[(1*256)+i] =
             new_entries[(2*256)+i] = (i<<8)|i;
@@ -1078,7 +1137,7 @@ static void FB_SavePalette(_THIS, struct fb_fix_screeninfo *finfo,
 static void FB_RestorePalette(_THIS)
 {
     /* Restore the original palette */
-    if ( saved_cmap ) {
+    if (saved_cmap) {
         FB_RestorePaletteFrom(this, saved_cmaplen, saved_cmap);
         free(saved_cmap);
         saved_cmap = NULL;
@@ -1126,8 +1185,8 @@ static int FB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
     cmap.blue = b;
     cmap.transp = NULL;
 
-    if( (ioctl(console_fd, FBIOPUTCMAP, &cmap) < 0) ||
-            !(this->screen->flags & GAL_HWPALETTE) ) {
+    if((ioctl(console_fd, FBIOPUTCMAP, &cmap) < 0) ||
+            !(this->screen->flags & GAL_HWPALETTE)) {
 
         colors = this->screen->format->palette->colors;
         ncolors = this->screen->format->palette->ncolors;
@@ -1136,8 +1195,8 @@ static int FB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
         memset(r, 0, sizeof(r));
         memset(g, 0, sizeof(g));
         memset(b, 0, sizeof(b));
-        if ( ioctl(console_fd, FBIOGETCMAP, &cmap) == 0 ) {
-            for ( i=ncolors-1; i>=0; --i ) {
+        if (ioctl(console_fd, FBIOGETCMAP, &cmap) == 0) {
+            for (i=ncolors-1; i>=0; --i) {
                 colors[i].r = (r[i]>>8);
                 colors[i].g = (g[i]>>8);
                 colors[i].b = (b[i]>>8);
@@ -1154,26 +1213,32 @@ static int FB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
 static void FB_VideoQuit(_THIS)
 {
 #ifdef _MGRM_PROCESSES
-    if ( mgIsServer && this->screen ) {
+    if (mgIsServer && this->screen) {
 #else
-    if ( this->screen ) {
+    if (this->screen) {
 #endif
         /* Clear screen and tell GAL not to free the pixels */
-        if ( this->screen->pixels ) {
+        if (this->screen->pixels) {
 #ifdef __powerpc__    /* SIGBUS when using memset() ?? */
             Uint8 *rowp = (Uint8 *)this->screen->pixels;
             int left = this->screen->pitch*this->screen->h;
-            while ( left-- ) { *rowp++ = 0; }
+            while (left--) { *rowp++ = 0; }
 #else
             memset(this->screen->pixels,0,this->screen->h*this->screen->pitch);
 #endif
         }
         /* This test fails when using the VGA16 shadow memory */
-        if ( ((char *)this->screen->pixels >= mapped_mem) &&
-             ((char *)this->screen->pixels < (mapped_mem+mapped_memlen)) ) {
+        if (((char *)this->screen->pixels >= mapped_mem) &&
+             ((char *)this->screen->pixels < (mapped_mem+mapped_memlen))) {
             this->screen->pixels = NULL;
         }
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (mgIsServer && this->hidden->shadow_screen) {
+        GAL_FreeSurface (this->hidden->shadow_screen);
+    }
+#endif
 
     /* Clean up the memory bucket list */
 #ifdef _MGRM_PROCESSES
@@ -1184,19 +1249,19 @@ static void FB_VideoQuit(_THIS)
     }
 
     /* Close console and input file descriptors */
-    if ( console_fd > 0 ) {
+    if (console_fd > 0) {
         /* Unmap the video framebuffer and I/O registers */
-        if ( mapped_mem ) {
+        if (mapped_mem) {
             munmap(mapped_mem, mapped_memlen);
             mapped_mem = NULL;
         }
-        if ( mapped_io ) {
+        if (mapped_io) {
             munmap(mapped_io, mapped_iolen);
             mapped_io = NULL;
         }
 
 #ifdef _MGHAVE_PCIACCESS
-        if (pci_accel_driver) {
+        if (pci_accel_driver > 0) {
             FB_CleanupPCIAccelDriver (this);
             pci_accel_driver = 0;
         }
@@ -1225,6 +1290,5 @@ static void FB_VideoQuit(_THIS)
 #endif
         sigma8654_hdmi_quit();
 #endif
-
 }
 

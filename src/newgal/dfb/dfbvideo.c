@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -93,7 +93,6 @@ IDirectFB *__mg_dfb = NULL;
 /* The primary layer of DirectFB */
 IDirectFBSurface *pFrameBuffer = NULL;
 
-
 /* Initialization/Query functions */
 static int DFB_VideoInit (_THIS, GAL_PixelFormat *vformat);
 static GAL_Rect **DFB_ListModes (_THIS, GAL_PixelFormat *format, Uint32 flags);
@@ -110,7 +109,6 @@ static int DFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *ds
 static int DFB_CheckHWBlit (_THIS, GAL_Surface * src, GAL_Surface * dst);
 static int DFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);
 
-
 /* common dfb function address */
 GAL_FunctionTable mgGALFuncTable = {
     DFB_VideoInit,
@@ -119,7 +117,7 @@ GAL_FunctionTable mgGALFuncTable = {
     DFB_SetColors,
     DFB_UpdateRects,
     DFB_VideoQuit,
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA_PROCS
     DFB_RequestHWSurface,
 #endif
     DFB_AllocHWSurface,
@@ -145,7 +143,7 @@ static void DFB_DeleteDevice (GAL_VideoDevice *device)
 static GAL_VideoDevice *DFB_CreateDevice (int devindex)
 {
     GAL_VideoDevice *device;
-    
+
     device = (GAL_VideoDevice *)malloc(sizeof(GAL_VideoDevice));
     if (device) {
         memset(device, 0, (sizeof *device));
@@ -161,7 +159,7 @@ static GAL_VideoDevice *DFB_CreateDevice (int devindex)
     }
 
     memset(device->hidden, 0, (sizeof *device->hidden));
-     
+
     if (ISSERVER) {
         device->VideoInit = DFB_VideoInit;
         device->ListModes = DFB_ListModes;
@@ -169,7 +167,7 @@ static GAL_VideoDevice *DFB_CreateDevice (int devindex)
         device->SetColors = DFB_SetColors;
         device->VideoQuit = DFB_VideoQuit;
         device->UpdateRects = DFB_UpdateRects;
-#ifdef _MGRM_PROCESSES
+#if IS_SHAREDFB_SCHEMA_PROCS
         device->RequestHWSurface = DFB_RequestHWSurface;
 #endif
         device->AllocHWSurface = DFB_AllocHWSurface;
@@ -179,7 +177,7 @@ static GAL_VideoDevice *DFB_CreateDevice (int devindex)
         device->SetHWAlpha = NULL;
         device->FreeHWSurface = DFB_FreeHWSurface;
         device->free = DFB_DeleteDevice;
-       
+
         /* platform callback function */
         if ( mgChangeDeviceCallback(device) != 0 ) {
             fprintf (stderr, "NEWGAL>DFB: Change Device failed\n");
@@ -205,20 +203,20 @@ static int DFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     if (ISSERVER) {
         /* Initialise DirectFB. */
         RETCHECK(DirectFBInit(NULL, NULL) != DFB_OK, "dfb init failed", goto init_err);
-        
+
         /* Create the DirectFB root interface. */
         RETCHECK(DirectFBCreate(&__mg_dfb) != DFB_OK, "dfb create failed", goto init_err);
-        
+
         /* Use full screen mode so that a surface has full control of a layer and no windows are created. */
-        RETCHECK(__mg_dfb->SetCooperativeLevel(__mg_dfb, DFSCL_FULLSCREEN) != DFB_OK, 
+        RETCHECK(__mg_dfb->SetCooperativeLevel(__mg_dfb, DFSCL_FULLSCREEN) != DFB_OK,
                 "SetCooperativeLevel failed", goto init_err);
-        
+
         /* Set the surface description - specify which fields are set and set them. */
-        dsc.flags = DSDESC_CAPS; 
+        dsc.flags = DSDESC_CAPS;
         dsc.caps  = DSCAPS_PRIMARY | DSCAPS_VIDEOONLY;
-        
+
         /* Create the frame buffer primary surface by passing our surface description. */
-        RETCHECK(__mg_dfb->CreateSurface(__mg_dfb, &dsc, &pFrameBuffer) != DFB_OK, 
+        RETCHECK(__mg_dfb->CreateSurface(__mg_dfb, &dsc, &pFrameBuffer) != DFB_OK,
                 "dfb create primary failed", goto init_err);
     }
 
@@ -230,12 +228,12 @@ static int DFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
     /* TODO: add your platform pixelformt here */
     switch (pixelformat) {
         case DSPF_ARGB1555:
-            vformat->BitsPerPixel = 16; 
+            vformat->BitsPerPixel = 16;
             vformat->BytesPerPixel = 2;
             break;
 
         case DSPF_RGB555:
-            vformat->BitsPerPixel = 16; 
+            vformat->BitsPerPixel = 16;
             vformat->BytesPerPixel = 2;
             break;
 
@@ -244,10 +242,10 @@ static int DFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             vformat->BytesPerPixel = 4;
             break;
 
-		case DSPF_ARGB:
-			vformat->BitsPerPixel = 32;
-			vformat->BytesPerPixel = 4;
-			break;
+        case DSPF_ARGB:
+            vformat->BitsPerPixel = 32;
+            vformat->BytesPerPixel = 4;
+            break;
 
         default:
             fprintf(stderr, "NEWGAL>DFB: Unsupported pixel format:%x \n", pixelformat);
@@ -256,9 +254,9 @@ static int DFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             break;
     }
 
-    RETCHECK(__mg_dfb->GetDeviceDescription(__mg_dfb, &dev_dsc) != DFB_OK, 
-            "dfb get dev_dsc failed", goto init_err); 
- 
+    RETCHECK(__mg_dfb->GetDeviceDescription(__mg_dfb, &dev_dsc) != DFB_OK,
+            "dfb get dev_dsc failed", goto init_err);
+
     /* set the acceleration info flags */
     this->info.hw_available = 1;
     this->info.video_mem = dev_dsc.video_memory / 1024;
@@ -277,37 +275,37 @@ init_err:
 
 static GAL_Rect **DFB_ListModes (_THIS, GAL_PixelFormat *format, Uint32 flags)
 {
-	return (GAL_Rect **)-1;
+    return (GAL_Rect **)-1;
 }
 
 static void DFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
-	__mg_dfb->WaitForSync(__mg_dfb);
+    __mg_dfb->WaitForSync(__mg_dfb);
 }
 
 #if 0
 static void *task_do_update(void *data)
 {
-	_THIS;
-	//IDirectFBSurface *pFrameBuffer = this->hidden->framebuffer;
+    _THIS;
+    //IDirectFBSurface *pFrameBuffer = this->hidden->framebuffer;
 
-	this = data;
+    this = data;
 
-	while(this->hidden->shadow) {
-		usleep(100*1000);
+    while(this->hidden->shadow) {
+        usleep(100*1000);
 
-		if(this->hidden->dirty) {
-			pthread_mutex_lock(&this->hidden->lock);
+        if(this->hidden->dirty) {
+            pthread_mutex_lock(&this->hidden->lock);
 
-			fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
-			pFrameBuffer->Flip(pFrameBuffer, NULL, triple ? DSFLIP_ONSYNC : DSFLIP_WAITFORSYNC );
-			fprintf(stderr, "<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+            fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+            pFrameBuffer->Flip(pFrameBuffer, NULL, triple ? DSFLIP_ONSYNC : DSFLIP_WAITFORSYNC );
+            fprintf(stderr, "<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
-			pthread_mutex_unlock(&this->hidden->lock);
+            pthread_mutex_unlock(&this->hidden->lock);
 
-			this->hidden->dirty = FALSE;
-		}
-	}
+            this->hidden->dirty = FALSE;
+        }
+    }
 }
 #endif
 
@@ -404,8 +402,8 @@ static GAL_Surface *DFB_SetVideoMode (_THIS, GAL_Surface *current,
     current->flags = GAL_FULLSCREEN | GAL_HWSURFACE;
     this->hidden->w = current->w;
     this->hidden->h = current->h;
-    
-	pFrameBuffer->Lock(pFrameBuffer, DSLF_READ | DSLF_WRITE, &current->pixels, (int*)&current->pitch);
+
+    pFrameBuffer->Lock(pFrameBuffer, DSLF_READ | DSLF_WRITE, &current->pixels, (int*)&current->pitch);
 
     /* We're done */
     return (current);
@@ -445,7 +443,7 @@ static int DFB_AllocHWSurface (_THIS, GAL_Surface *surface)
         return -1;
 
     surface->flags |= GAL_HWSURFACE;
-	hw_surface->Lock(hw_surface, DSLF_READ | DSLF_WRITE, &surface->pixels, (int*)&surface->pitch);
+    hw_surface->Lock(hw_surface, DSLF_READ | DSLF_WRITE, &surface->pixels, (int*)&surface->pitch);
 
     return 0;
 }
@@ -487,7 +485,7 @@ static void DFB_FreeHWSurface (_THIS, GAL_Surface *surface)
 static void DFB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
 {
     /* alloc hw surface */
-    if (request->bucket == NULL) {     
+    if (request->bucket == NULL) {
         DFBSurfaceDescription dsc;
         IDirectFBSurface *hw_surface = NULL;
 
@@ -495,13 +493,13 @@ static void DFB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSUR
             calloc(1, sizeof(struct private_hwdata));
         if (hwdata == NULL)
             return;
-        
+
         dsc.flags = DSDESC_CAPS | DSDESC_WIDTH | DSDESC_HEIGHT;
-        dsc.caps  = DSCAPS_VIDEOONLY; 
+        dsc.caps  = DSCAPS_VIDEOONLY;
         dsc.width = request->w;
         dsc.height = request->h;
 
-        RETCHECK(__mg_dfb->CreateSurface(__mg_dfb, &dsc, &hw_surface) != DFB_OK, "dfb create surface failed", 
+        RETCHECK(__mg_dfb->CreateSurface(__mg_dfb, &dsc, &hw_surface) != DFB_OK, "dfb create surface failed",
                 free(hwdata);hwdata=NULL);
 
         hwdata->dfb_surface = hw_surface;
@@ -512,7 +510,7 @@ static void DFB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSUR
 
     }
     /* free hw surface */
-    else { 
+    else {
         struct private_hwdata* hwdata = (struct private_hwdata*)request->bucket;
         hwdata->dfb_surface->Unlock(hwdata->dfb_surface);
         hwdata->dfb_surface->ReleaseSource(hwdata->dfb_surface);
@@ -557,28 +555,28 @@ static int DFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color
 
     /* set the fill color */
     GAL_GetRGBA(color, dst->format, &r, &g, &b, &a);
-    RETCHECK(dfb_dst_surface->SetColor(dfb_dst_surface, r, g, b, a) != DFB_OK, 
+    RETCHECK(dfb_dst_surface->SetColor(dfb_dst_surface, r, g, b, a) != DFB_OK,
             "dfb set color failed", ;);
 
     /* set the dfb fill flags. */
-    //fprintf(stderr, "NEWGAL>DFB: draw flags:%x\n", draw_flags); 
-    RETCHECK(dfb_dst_surface->SetDrawingFlags(dfb_dst_surface, draw_flags) != DFB_OK, 
+    //fprintf(stderr, "NEWGAL>DFB: draw flags:%x\n", draw_flags);
+    RETCHECK(dfb_dst_surface->SetDrawingFlags(dfb_dst_surface, draw_flags) != DFB_OK,
             "dfb set draw flags failed", ;);
-    
+
     /* call dfb FillRectangle to do hardware acceleration. */
-    RETCHECK(dfb_dst_surface->FillRectangle(dfb_dst_surface, rect->x, rect->y, rect->w, rect->h), 
+    RETCHECK(dfb_dst_surface->FillRectangle(dfb_dst_surface, rect->x, rect->y, rect->w, rect->h),
             "dfb fill failed", goto fill_err);
 
     /* call dfb Filp to update the blit rect. */
-    RETCHECK(dfb_dst_surface->Flip(dfb_dst_surface, &dfb_update_rg, DSFLIP_WAITFORSYNC) != DFB_OK, 
+    RETCHECK(dfb_dst_surface->Flip(dfb_dst_surface, &dfb_update_rg, DSFLIP_WAITFORSYNC) != DFB_OK,
             "dfb Flip failed", goto fill_err);
 
     /* restore the color, becareful if not restore it,
      * maybe other draw operation not visible. */
-    RETCHECK(dfb_dst_surface->SetColor(dfb_dst_surface, 0xFF, 0xFF, 0xFF, 0xFF) != DFB_OK, 
+    RETCHECK(dfb_dst_surface->SetColor(dfb_dst_surface, 0xFF, 0xFF, 0xFF, 0xFF) != DFB_OK,
             "dfb set color failed", ;);
 
-    /* when acceleration is done, remember to lock the dfb surface, 
+    /* when acceleration is done, remember to lock the dfb surface,
      * because minigui surface need the dfb surface pixels. */
     dfb_dst_surface->Lock(dfb_dst_surface, DSLF_READ | DSLF_WRITE, &dst->pixels, (int*)&dst->pitch);
     return 0;
@@ -647,17 +645,17 @@ static int DFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *ds
     /* TODO: colorkey, alpha, pixel-alpha etc. */
     if (src->flags & GAL_SRCCOLORKEY) {
         blit_flags |= DSBLIT_SRC_COLORKEY;
-   
+
         Uint8* pixels = (Uint8*)src->pixels;
         GAL_GetRGB(src->format->colorkey, src->format, &r, &g, &b);
 
-        RETCHECK(dfb_src_surface->SetSrcColorKey(dfb_src_surface, r, g, b) != DFB_OK, 
+        RETCHECK(dfb_src_surface->SetSrcColorKey(dfb_src_surface, r, g, b) != DFB_OK,
                 "dfb set src_color_key failed", ;);
     }
 
     if (src->flags & GAL_SRCALPHA) {
         blit_flags |= DSBLIT_BLEND_COLORALPHA;
-        RETCHECK(dfb_dst_surface->SetColor(dfb_dst_surface, 0xFF, 0xFF, 0xFF, src->format->alpha) != DFB_OK, 
+        RETCHECK(dfb_dst_surface->SetColor(dfb_dst_surface, 0xFF, 0xFF, 0xFF, src->format->alpha) != DFB_OK,
                 "dfb set color failed", ;);
     }
 
@@ -666,23 +664,23 @@ static int DFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *ds
     }
 
     /* set the dfb Blit flags. */
-    RETCHECK(dfb_dst_surface->SetBlittingFlags(dfb_dst_surface, blit_flags) != DFB_OK, 
+    RETCHECK(dfb_dst_surface->SetBlittingFlags(dfb_dst_surface, blit_flags) != DFB_OK,
             "dfb set blit flags failed", ;);
 
     /* call dfb Blit to do hardware acceleration. */
-    RETCHECK(dfb_dst_surface->Blit(dfb_dst_surface, dfb_src_surface, &dfb_src_rc, dst_x, dst_y) != DFB_OK, 
+    RETCHECK(dfb_dst_surface->Blit(dfb_dst_surface, dfb_src_surface, &dfb_src_rc, dst_x, dst_y) != DFB_OK,
             "dfb bilt failed", goto blit_err);
 
     /* call dfb Filp to update the blit rect. */
-    RETCHECK(dfb_dst_surface->Flip(dfb_dst_surface, &dfb_update_rg, DSFLIP_WAITFORSYNC) != DFB_OK, 
+    RETCHECK(dfb_dst_surface->Flip(dfb_dst_surface, &dfb_update_rg, DSFLIP_WAITFORSYNC) != DFB_OK,
             "dfb Flip failed", goto blit_err);
 
     /* restore the color, becareful if not restore it,
      * maybe other draw operation not visible. */
-    RETCHECK(dfb_dst_surface->SetColor(dfb_dst_surface, 0xFF, 0xFF, 0xFF, 0xFF) != DFB_OK, 
+    RETCHECK(dfb_dst_surface->SetColor(dfb_dst_surface, 0xFF, 0xFF, 0xFF, 0xFF) != DFB_OK,
             "dfb set color failed", ;);
 
-    /* when acceleration is done, remember to lock the dfb surface, 
+    /* when acceleration is done, remember to lock the dfb surface,
      * because minigui surface need the dfb surface pixels. */
     dfb_src_surface->Lock(dfb_src_surface, DSLF_READ | DSLF_WRITE, &src->pixels, (int*)&src->pitch);
     dfb_dst_surface->Lock(dfb_dst_surface, DSLF_READ | DSLF_WRITE, &dst->pixels, (int*)&dst->pitch);
@@ -701,7 +699,7 @@ static int DFB_CheckHWBlit (_THIS, GAL_Surface * src, GAL_Surface * dst)
 
     /* only supported the hw surface accelerated. */
     if (!(src->flags & GAL_HWSURFACE) || !(dst->flags & GAL_HWSURFACE)) {
-        fprintf(stderr, "src(%s) dst(%s)\n", 
+        fprintf(stderr, "src(%s) dst(%s)\n",
                 (src->flags & GAL_HWSURFACE) ? "HW" : "SW",
                 (dst->flags & GAL_HWSURFACE) ? "HW" : "SW");
         return -1;
@@ -727,7 +725,7 @@ static void DFB_VideoQuit (_THIS)
         return;
 #endif
 
-	pFrameBuffer->Unlock(pFrameBuffer);
+    pFrameBuffer->Unlock(pFrameBuffer);
     pFrameBuffer->ReleaseSource(pFrameBuffer);
     pFrameBuffer->Release(pFrameBuffer);
 

@@ -420,13 +420,13 @@ unsigned short font_GetBestScaleFactor (int height, int expect)
 }
 
 
-#ifdef _DEBUG
+#ifdef _DEBUG_DEVFONT
 
 #define PRINT_DEVFONTS(head, devfont, count) \
 { \
     devfont = head; \
     while (devfont) { \
-        _DBG_PRINTF ("  %d: %s, charsetname: %s, style: %08x\n",  \
+        _MG_PRINTF ("  %d: %s, charsetname: %s, style: %08x\n",  \
                 count,  \
                 devfont->name, devfont->charset_ops->name, devfont->style); \
             devfont = devfont->next; \
@@ -439,17 +439,15 @@ void dbg_dumpDevFonts (void)
     int         count = 0;
     DEVFONT*    devfont;
 
-    _DBG_PRINTF ("============= SBDevFonts ============\n");
+    _MG_PRINTF ("============= SBDevFonts ============\n");
     PRINT_DEVFONTS (sb_dev_font_head, devfont, count);
-    _DBG_PRINTF ("========== End of SBDevFonts =========\n");
+    _MG_PRINTF ("========== End of SBDevFonts =========\n");
 
-    _DBG_PRINTF ("\n============= MBDevFonts ============\n");
+    _MG_PRINTF ("\n============= MBDevFonts ============\n");
     PRINT_DEVFONTS (mb_dev_font_head, devfont, count);
-    _DBG_PRINTF ("========== End of MBDevFonts =========\n");
+    _MG_PRINTF ("========== End of MBDevFonts =========\n");
 }
-#endif
-
-
+#endif /* _DEBUG_DEVFONT */
 
 /***** Added in MiniGUI V2.2 for bitmap font *****/
 
@@ -847,7 +845,7 @@ BOOL font_InitIncoreFonts (void)
 #endif
 
 #ifdef _MGFONT_SEF
-    if(!initialize_scripteasy()) {
+    if(!font_InitializeScripteasy()) {
         _WRN_PRINTF ("Can not initialize ScriptEasy fonts!\n");
         return FALSE;
     }
@@ -880,8 +878,12 @@ BOOL font_TerminateIncoreFonts (void)
 #endif
 
 #ifdef _MGFONT_SEF
-    uninitialize_scripteasy();
+    font_UninitializeScripteasy();
 #endif
+
+    for (i = 0; i < NR_NULL_FONTS; i++) {
+        font_DelDevFont (_null_font_names[i]);
+    }
 
     return TRUE;
 }
@@ -1072,7 +1074,7 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
             if ((add_dev_font (font_name, font_file, TRUE)) == TRUE)
                 added_num++;
             else if ((0 == __mg_path_joint(font_path, MAX_PATH + 1,
-                        sysres_get_system_res_path(), font_file))
+                        __sysres_get_system_res_path(), font_file))
                     && ((add_dev_font (font_name, font_path, TRUE)) == TRUE))
                 added_num++;
         }
@@ -1098,6 +1100,8 @@ void font_TermSpecificalFonts (char* etc_section)
     init_or_term_specifical_fonts (etc_section, TRUE);
 }
 
+#if 0
+/* Since 5.0.0, we always initialize vector fonts for all runtime modes */
 #ifndef _MGRM_THREADS
 
 static int init_count = 0;
@@ -1136,6 +1140,6 @@ void GUIAPI TermVectorialFonts (void)
     font_TermFreetypeLibrary ();
 #endif
 }
+#endif /* not defined _MGRM_THREADS */
 
-#endif /* !_MGRM_THREADS */
-
+#endif  /* deprecated code */

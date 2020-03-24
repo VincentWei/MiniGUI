@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -164,7 +164,11 @@ inline static void DestroyFreeTMIList(void)
 
 /************************* Module initialization *****************************/
 
-static BITMAP bmp_menuitem;
+#if 0 /* unused code */
+    static BITMAP bmp_menuitem;
+    return InitBitmap (HDC_SCREEN_SYS, 16, 12, 0, NULL, &bmp_menuitem);
+    UnloadBitmap (&bmp_menuitem);
+#endif
 
 BOOL mg_InitMenu (void)
 {
@@ -172,7 +176,7 @@ BOOL mg_InitMenu (void)
     InitFreeMIList ();
     InitFreeTMIList ();
 
-    return InitBitmap (HDC_SCREEN_SYS, 16, 12, 0, NULL, &bmp_menuitem);
+    return TRUE;
 }
 
 /************************* Module termination *******************************/
@@ -181,8 +185,6 @@ void mg_TerminateMenu (void)
     DestroyFreeTMIList ();
     DestroyFreeMBList ();
     DestroyFreeMIList ();
-
-    UnloadBitmap (&bmp_menuitem);
 }
 
 /***************************** Menu creation *******************************/
@@ -1090,7 +1092,7 @@ int GUIAPI SetMenuItemInfo (HMENU hmnu, LINT item,
         case MFT_MARKCHECK:
         case MFT_BMPSTRING:
             {
-				int len;
+                int len;
                 if (pmii->typedata == 0) {
                     pmi->typedata = 0;
                     return ERR_INVALID_ARGS;
@@ -1221,9 +1223,9 @@ int GUIAPI SetMenuItemBitmaps (HMENU hmnu, LINT item, UINT flags,
     return 0;
 }
 
-#ifdef _DEBUG
+#ifdef _DEBUG_MENU
 
-void mnuDumpMenuItem (PMENUITEM pmi)
+static void mnuDumpMenuItem (PMENUITEM pmi)
 {
     PMENUITEM ptmpmi;
 
@@ -1254,7 +1256,7 @@ void mnuDumpMenuItem (PMENUITEM pmi)
     printf ("End of Info of Menu Item: 0x%p\n", pmi);
 }
 
-void DumpMenu (HMENU hmnu)
+void dbg_DumpMenu (HMENU hmnu)
 {
     PMENUBAR pmb;
     PMENUITEM pmi;
@@ -1285,7 +1287,7 @@ void DumpMenu (HMENU hmnu)
         mnuDumpMenuItem (pmi);
     }
 }
-#endif  // _DEBUG
+#endif  // _DEBUG_MENU
 
 /***************************** Menu owner ***********************************/
 // Global function defined in Desktop module.
@@ -1295,7 +1297,7 @@ HMENU GUIAPI SetMenu (HWND hwnd, HMENU hmnu)
     PMAINWIN pWin;
     HMENU hOld;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hwnd))) return 0;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return 0;
 
     hOld = pWin->hMenu;
     pWin->hMenu = hmnu;
@@ -1315,7 +1317,7 @@ HMENU GUIAPI GetMenu (HWND hwnd)
 {
     PMAINWIN pWin;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hwnd))) return 0;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return 0;
 
     return pWin->hMenu;
 }
@@ -1324,7 +1326,7 @@ HMENU GUIAPI GetSystemMenu (HWND hwnd, BOOL flag)
 {
     PMAINWIN pWin;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hwnd))) return 0;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return 0;
 
     return pWin->hSysMenu;
 }
@@ -1559,7 +1561,7 @@ HMENU GUIAPI GetMenuBarItemRect (HWND hwnd, int pos, RECT* prc)
     int count;
     SIZE size;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hwnd))) return 0;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return 0;
 
     if (!pWin->hMenu) return 0;
 
@@ -1605,7 +1607,7 @@ static BOOL mnuGetMenuBarRect (HWND hwnd, RECT* prc)
     PMAINWIN pWin;
     int h;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hwnd))) return FALSE;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return FALSE;
 
     prc->left = pWin->cl - pWin->left;
 
@@ -1691,7 +1693,7 @@ int MenuBarHitTest (HWND hwnd, int mx, int my)
     int count;
     SIZE size;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hwnd))) return -1;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return -1;
 
     if (!pWin->hMenu) return -1;
 
@@ -1809,7 +1811,7 @@ void GUIAPI DrawMenuBar (HWND hwnd)
     PMAINWIN pWin;
     HDC hdc;
 
-    if (!(pWin = gui_CheckAndGetMainWindowPtr (hwnd))) return;
+    if (!(pWin = checkAndGetMainWinIfMainWin (hwnd))) return;
 
     if (!pWin->hMenu) return;
 
@@ -2169,35 +2171,89 @@ static int DrawMenuPic (HWND hwnd, HDC hdc, int x, int y,
     return 0;
 }
 
+#ifdef _MGSCHEMA_COMPOSITING
+static int create_memdc_for_menu (TRACKMENUINFO* ptmi)
+{
+    GAL_Surface* surf;
+    POINT wo;
+
+    if (IsRectEmpty(&ptmi->rc))
+        return -1;
+
+    surf = GAL_CreateSurfaceForZNode (ST_DEFAULT, RECTW(ptmi->rc),
+            RECTH(ptmi->rc));
+    if (surf == NULL) {
+        return -1;
+    }
+
+    ptmi->dc = CreateMemDCFromSurface (surf);
+    if (ptmi->dc == HDC_INVALID) {
+        GAL_FreeSurface (surf);
+        return -1;
+    }
+
+    wo.x = ptmi->rc.left;
+    wo.y = ptmi->rc.top;
+
+    SetMapMode (ptmi->dc, MM_ANISOTROPIC);
+    SetWindowOrg (ptmi->dc, &wo);
+    return 0;
+}
+
+static void delete_memdc_for_menu (TRACKMENUINFO* ptmi)
+{
+    if (ptmi->dc != HDC_INVALID) {
+
+#if 0   /* deprecated code: we always do refcount++ for any memdc */
+        /* we must free the surface here, or it can not be freed actually
+           due to the referenced count. */
+        GAL_Surface *surf = GetSurfaceFromDC (ptmi->dc);
+        GAL_FreeSurface (surf);
+#endif  /* deprecated code */
+        DeleteMemDC (ptmi->dc);
+        ptmi->dc = HDC_INVALID;
+    }
+}
+
+static inline int save_box_under_menu (TRACKMENUINFO* ptmi) { return 0; }
+static inline void restore_dc_under_menu (TRACKMENUINFO* ptmi) { }
+
+#else /* not define _MGSCHEMA_COMPOSITING */
+
+static inline int create_memdc_for_menu (TRACKMENUINFO* ptmi) {
+    ptmi->dc = HDC_SCREEN_SYS;
+    return 0;
+}
+
+static inline void delete_memdc_for_menu (TRACKMENUINFO* ptmi) { }
+
 #ifdef _MENU_SAVE_BOX
-static void do_save_box (TRACKMENUINFO* ptmi)
+static int save_box_under_menu (TRACKMENUINFO* ptmi)
 {
     memset (&ptmi->savedbox, 0, sizeof (BITMAP));
     if (!GetBitmapFromDC (HDC_SCREEN_SYS, ptmi->rc.left, ptmi->rc.top,
-                    RECTW (ptmi->rc), RECTH (ptmi->rc), &ptmi->savedbox))
+                    RECTW (ptmi->rc), RECTH (ptmi->rc), &ptmi->savedbox)) {
         return -1;
+    }
+
+    return 0;
 }
 
-static void do_restore_box (TRACKMENUINFO* ptmi)
+static void restore_dc_under_menu (TRACKMENUINFO* ptmi)
 {
     FillBoxWithBitmap (HDC_SCREEN_SYS, ptmi->rc.left, ptmi->rc.top,
                         RECTW (ptmi->rc), RECTH (ptmi->rc), &ptmi->savedbox);
-}
-
-static void do_free_box (TRACKMENUINFO* ptmi)
-{
     free (ptmi->savedbox.bmBits);
 }
 
-#else /* _MENU_SAVE_BOX */
+#else /* not defined _MENU_SAVE_BOX */
 
-#define do_save_box(ptmi) do {} while (0)
-#define do_free_box(ptmi) do {} while (0)
+static inline int save_box_under_menu(TRACKMENUINFO* ptmi) { return 0; }
 
 static int mnuShowPopupMenu (PTRACKMENUINFO ptmi);
 static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite);
 
-static void do_restore_box (TRACKMENUINFO* ptmi_hiding)
+static void restore_dc_under_menu (TRACKMENUINFO* ptmi_hiding)
 {
     TRACKMENUINFO* ptmi;
     if (ptmi_hiding == NULL || ptmi_hiding->prev == NULL)
@@ -2225,6 +2281,7 @@ static void do_restore_box (TRACKMENUINFO* ptmi_hiding)
 }
 
 #endif /* _MENU_SAVE_BOX */
+#endif /* not defined _MGSCHEMA_COMPOSITING */
 
 static void draw_down_arrowhead(PTRACKMENUINFO ptmi, HDC hdc)
 {
@@ -2310,9 +2367,12 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
         return -1;
     }
 
-    bgc = GetWindowElementAttr (ptmi->hwnd, WE_BGC_MENU);
+    if (save_box_under_menu (ptmi)) {
+        _WRN_PRINTF ("Can not get DC to show popup menu: %p\n", pWin);
+        return -1;
+    }
 
-    do_save_box (ptmi);
+    bgc = GetWindowElementAttr (ptmi->hwnd, WE_BGC_MENU);
 
     inter = LFRDR_INTERMENUITEMY;
     mioffx = LFRDR_MENUITEMOFFX;
@@ -2354,8 +2414,8 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
     lighter_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-    darker_pixel = DWORD2Pixel (HDC_SCREEN_SYS, darker_dword);
-    lighter_pixel = DWORD2Pixel (HDC_SCREEN_SYS, lighter_dword);
+    darker_pixel = DWORD2Pixel (ptmi->dc, darker_dword);
+    lighter_pixel = DWORD2Pixel (ptmi->dc, lighter_dword);
 
     if ((ptmi->rc.bottom > g_rcScr.bottom)
             && ((ptmi->rc.bottom - ptmi->rc.top) > g_rcScr.bottom)){
@@ -2379,7 +2439,7 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
     x = ptmi->rc.left;
     y = ptmi->rc.top;
 
-    pWin->we_rdr->draw_3dbox (HDC_SCREEN_SYS, &ptmi->show_rc, bgc,
+    pWin->we_rdr->draw_3dbox (ptmi->dc, &ptmi->show_rc, bgc,
             LFRDR_3DBOX_FILLED | LFRDR_3DBOX_THICKFRAME);
 
     x = ptmi->show_rc.left + marginlx;
@@ -2395,7 +2455,7 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
 
         offy = (pmi->h - bmp->bmHeight) >> 1;
 
-        FillBoxWithBitmap (HDC_SCREEN_SYS, x, y + offy,
+        FillBoxWithBitmap (ptmi->dc, x, y + offy,
                         ((BITMAP*)pmi->typedata)->bmWidth,
                         pmi->h - (offy << 1), bmp);
 
@@ -2403,16 +2463,16 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
     else if (pmi->mnutype == MFT_SEPARATOR) {
 
         /** two horizontal separator */
-        SetPenColor (HDC_SCREEN_SYS, darker_pixel);
-        MoveTo (HDC_SCREEN_SYS,
+        SetPenColor (ptmi->dc, darker_pixel);
+        MoveTo (ptmi->dc,
             x, y + (pmi->h>>1) - inter + 1);
-        LineTo (HDC_SCREEN_SYS,
+        LineTo (ptmi->dc,
             ptmi->show_rc.right - marginrx, y + (pmi->h>>1) - inter + 1);
 
-        SetPenColor (HDC_SCREEN_SYS, lighter_pixel);
-        MoveTo (HDC_SCREEN_SYS,
+        SetPenColor (ptmi->dc, lighter_pixel);
+        MoveTo (ptmi->dc,
             x, y + (pmi->h>>1) - inter + 2);
-        LineTo (HDC_SCREEN_SYS,
+        LineTo (ptmi->dc,
             ptmi->show_rc.right - marginrx, y + (pmi->h>>1) - inter + 2);
     }
     else if (pmi->mnutype == MFT_OWNERDRAW) {
@@ -2421,52 +2481,52 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
         font_offy = (pmi->h - ((PLOGFONT)GetWindowElementAttr
                     (ptmi->hwnd, WE_FONT_MENU))->size) >> 1;
 
-        SelectFont (HDC_SCREEN_SYS, (PLOGFONT)GetWindowElementAttr
+        SelectFont (ptmi->dc, (PLOGFONT)GetWindowElementAttr
                 (ptmi->hwnd, WE_FONT_MENU));
 
         if (pmi->type == TYPE_PPPMENU) {
-            old_mode = SetBkMode (HDC_SCREEN_SYS, BM_TRANSPARENT);
-            SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                    (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
-            TextOut (HDC_SCREEN_SYS, x + mioffx, y + font_offy,
+            old_mode = SetBkMode (ptmi->dc, BM_TRANSPARENT);
+            SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                    (ptmi->hwnd, ptmi->dc, WE_FGC_MENU));
+            TextOut (ptmi->dc, x + mioffx, y + font_offy,
                 (char*)pmi->typedata);
-            SetBkMode (HDC_SCREEN_SYS, old_mode);
+            SetBkMode (ptmi->dc, old_mode);
 
-            SetPenColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                    (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
+            SetPenColor (ptmi->dc, GetWindowElementPixelEx
+                    (ptmi->hwnd, ptmi->dc, WE_FGC_MENU));
 
-            MoveTo (HDC_SCREEN_SYS, x, y + pmi->h - (inter<<1));
-            LineTo (HDC_SCREEN_SYS, ptmi->show_rc.right - marginrx,
+            MoveTo (ptmi->dc, x, y + pmi->h - (inter<<1));
+            LineTo (ptmi->dc, ptmi->show_rc.right - marginrx,
                     y + pmi->h - (inter<<1));
-            MoveTo (HDC_SCREEN_SYS, x, y + pmi->h - inter);
-            LineTo (HDC_SCREEN_SYS, ptmi->show_rc.right - marginrx,
+            MoveTo (ptmi->dc, x, y + pmi->h - inter);
+            LineTo (ptmi->dc, ptmi->show_rc.right - marginrx,
                     y + pmi->h - inter);
         }
         else {
             int bmp_w = mioffx;
 
             /** draw radio, checkmark or bitmap */
-            DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS, x + 1, y, pmi, FALSE, &bmp_w);
+            DrawMenuPic (ptmi->hwnd, ptmi->dc, x + 1, y, pmi, FALSE, &bmp_w);
 
             /** menu text */
-            old_mode = SetBkMode (HDC_SCREEN_SYS, BM_TRANSPARENT);
+            old_mode = SetBkMode (ptmi->dc, BM_TRANSPARENT);
             if (pmi->mnustate & MFS_DISABLED)
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_DISABLED_ITEM));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_DISABLED_ITEM));
             else if (pmi->mnustate & MFS_HILITE)
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_HIGHLIGHT_ITEM));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_HIGHLIGHT_ITEM));
             else
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_MENU));
 
-            TextOut (HDC_SCREEN_SYS, x + bmp_w, y + font_offy,
+            TextOut (ptmi->dc, x + bmp_w, y + font_offy,
                 (char*)pmi->typedata);
-            SetBkMode (HDC_SCREEN_SYS, old_mode);
+            SetBkMode (ptmi->dc, old_mode);
 
             /** draw menu sub */
             if (pmi->submenu) {
-                DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+                DrawMenuPic (ptmi->hwnd, ptmi->dc,
                         ptmi->show_rc.right - mioffx - marginrx,
                         y, pmi, TRUE, 0);
             }
@@ -2496,13 +2556,13 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
 
             offy = (psubmi->h - bmp->bmHeight) >> 1;
 
-            FillBoxWithBitmap (HDC_SCREEN_SYS, x, y + offy,
+            FillBoxWithBitmap (ptmi->dc, x, y + offy,
                         ((BITMAP*)psubmi->typedata)->bmWidth,
                         psubmi->h - (offy << 1), bmp);
 
             /** draw menu sub */
             if (psubmi->submenu) {
-                DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+                DrawMenuPic (ptmi->hwnd, ptmi->dc,
                         ptmi->show_rc.right - mioffx - marginrx,
                         y, psubmi, TRUE, 0);
             }
@@ -2511,14 +2571,14 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
         else if (psubmi->mnutype == MFT_SEPARATOR) {
 
             /** two horizontal separator */
-            SetPenColor (HDC_SCREEN_SYS, darker_pixel);
-            MoveTo (HDC_SCREEN_SYS, x, y + (psubmi->h>>1) - inter + 1);
-            LineTo (HDC_SCREEN_SYS, ptmi->show_rc.right - marginrx,
+            SetPenColor (ptmi->dc, darker_pixel);
+            MoveTo (ptmi->dc, x, y + (psubmi->h>>1) - inter + 1);
+            LineTo (ptmi->dc, ptmi->show_rc.right - marginrx,
                     y + (psubmi->h>>1) - inter + 1);
 
-            SetPenColor (HDC_SCREEN_SYS, lighter_pixel);
-            MoveTo (HDC_SCREEN_SYS, x, y + (psubmi->h>>1) - inter + 2);
-            LineTo (HDC_SCREEN_SYS, ptmi->show_rc.right - marginrx,
+            SetPenColor (ptmi->dc, lighter_pixel);
+            MoveTo (ptmi->dc, x, y + (psubmi->h>>1) - inter + 2);
+            LineTo (ptmi->dc, ptmi->show_rc.right - marginrx,
                     y + (psubmi->h>>1) - inter + 2);
         }
         else if (pmi->mnutype == MFT_OWNERDRAW) {
@@ -2527,32 +2587,32 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
             int old_mode, bmp_w = mioffx;
 
             /** draw radio, checkmark or bitmap */
-            DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS, x + 1, y, psubmi, FALSE, &bmp_w);
+            DrawMenuPic (ptmi->hwnd, ptmi->dc, x + 1, y, psubmi, FALSE, &bmp_w);
 
             /** menu text */
-            SelectFont (HDC_SCREEN_SYS, (PLOGFONT)GetWindowElementAttr
+            SelectFont (ptmi->dc, (PLOGFONT)GetWindowElementAttr
                     (ptmi->hwnd, WE_FONT_MENU));
-            old_mode = SetBkMode (HDC_SCREEN_SYS, BM_TRANSPARENT);
+            old_mode = SetBkMode (ptmi->dc, BM_TRANSPARENT);
             if (psubmi->mnustate & MFS_DISABLED)
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_DISABLED_ITEM));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_DISABLED_ITEM));
             else if (psubmi->mnustate & MFS_HILITE)
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_HIGHLIGHT_ITEM));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_HIGHLIGHT_ITEM));
             else
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_MENU));
 
             offy = (psubmi->h - ((PLOGFONT)GetWindowElementAttr
                     (ptmi->hwnd, WE_FONT_MENU))->size) >> 1;
 
-            TextOut (HDC_SCREEN_SYS, x + bmp_w, y + offy,
+            TextOut (ptmi->dc, x + bmp_w, y + offy,
                 (char*)psubmi->typedata);
-            SetBkMode (HDC_SCREEN_SYS, old_mode);
+            SetBkMode (ptmi->dc, old_mode);
 
             /** draw menu sub */
             if (psubmi->submenu) {
-                DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+                DrawMenuPic (ptmi->hwnd, ptmi->dc,
                         ptmi->show_rc.right - mioffx - marginrx,
                         y, psubmi, TRUE, 0);
             }
@@ -2564,14 +2624,13 @@ static int mnuShowPopupMenu (PTRACKMENUINFO ptmi)
 
     }
     /*add*/
-    if (ptmi->draw_bottom_flag){
+    if (ptmi->draw_bottom_flag) {
         draw_bottom_scroll_button(ptmi);
     }
     /*add end*/
 
     return 0;
 }
-
 
 static int get_start_to_end_height(PTRACKMENUINFO ptmi)
 {
@@ -2632,10 +2691,10 @@ static void draw_top_scroll_button(PTRACKMENUINFO ptmi)
 
     bgc = GetWindowElementAttr (ptmi->hwnd, WE_BGC_MENU);
 
-    pWin->we_rdr->draw_3dbox (HDC_SCREEN_SYS, &ptmi->top_scroll_rc, bgc,
+    pWin->we_rdr->draw_3dbox (ptmi->dc, &ptmi->top_scroll_rc, bgc,
             LFRDR_3DBOX_FILLED | LFRDR_3DBOX_THICKFRAME);
 
-    draw_up_arrowhead(ptmi, HDC_SCREEN_SYS);
+    draw_up_arrowhead(ptmi, ptmi->dc);
 }
 
 
@@ -2674,7 +2733,10 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
     }
 
     bgc = GetWindowElementAttr (ptmi->hwnd, WE_BGC_MENU);
-    do_save_box (ptmi);
+    if (save_box_under_menu (ptmi)) {
+        _WRN_PRINTF ("Can not get DC to show scrolled popup menu: %p\n", pWin);
+        return -1;
+    }
 
     inter = LFRDR_INTERMENUITEMY;
     mioffx = LFRDR_MENUITEMOFFX;
@@ -2689,8 +2751,8 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
     lighter_dword = pWin->we_rdr->calc_3dbox_color
         (bgc_dword, LFRDR_3DBOX_COLOR_LIGHTEST);
 
-    darker_pixel = DWORD2Pixel (HDC_SCREEN_SYS, darker_dword);
-    lighter_pixel = DWORD2Pixel (HDC_SCREEN_SYS, lighter_dword);
+    darker_pixel = DWORD2Pixel (ptmi->dc, darker_dword);
+    lighter_pixel = DWORD2Pixel (ptmi->dc, lighter_dword);
 
     h = get_start_to_end_height(ptmi);
     if ( (h + ptmi->top_scroll_rc.bottom) <= ptmi->bottom_scroll_rc.bottom){
@@ -2720,7 +2782,7 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
     x = ptmi->show_rc.left;
     y = ptmi->show_rc.top;
 
-    pWin->we_rdr->draw_3dbox (HDC_SCREEN_SYS, &ptmi->show_rc, bgc,
+    pWin->we_rdr->draw_3dbox (ptmi->dc, &ptmi->show_rc, bgc,
             LFRDR_3DBOX_FILLED | LFRDR_3DBOX_THICKFRAME);
 
     x = ptmi->show_rc.left + marginlx;
@@ -2734,22 +2796,22 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
 
         offy = (pmi->h - bmp->bmHeight) >> 1;
 
-        FillBoxWithBitmap (HDC_SCREEN_SYS, x, y + offy,
+        FillBoxWithBitmap (ptmi->dc, x, y + offy,
                ((BITMAP*)pmi->typedata)->bmWidth, pmi->h - (offy << 1), bmp);
     }
     else if (pmi->mnutype == MFT_SEPARATOR) {
 
         /** two horizontal separator */
-        SetPenColor (HDC_SCREEN_SYS, darker_pixel);
-        MoveTo (HDC_SCREEN_SYS,
+        SetPenColor (ptmi->dc, darker_pixel);
+        MoveTo (ptmi->dc,
             x, y + (pmi->h>>1) - inter + 1);
-        LineTo (HDC_SCREEN_SYS,
+        LineTo (ptmi->dc,
             ptmi->show_rc.right - marginrx, y + (pmi->h>>1) - inter + 1);
 
-        SetPenColor (HDC_SCREEN_SYS, lighter_pixel);
-        MoveTo (HDC_SCREEN_SYS,
+        SetPenColor (ptmi->dc, lighter_pixel);
+        MoveTo (ptmi->dc,
             x, y + (pmi->h>>1) - inter + 2);
-        LineTo (HDC_SCREEN_SYS,
+        LineTo (ptmi->dc,
             ptmi->show_rc.right - marginrx, y + (pmi->h>>1) - inter + 2);
     }
     else if (pmi->mnutype == MFT_OWNERDRAW) {
@@ -2758,31 +2820,31 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
         font_offy = (pmi->h - ((PLOGFONT)GetWindowElementAttr
                     (ptmi->hwnd, WE_FONT_MENU))->size) >> 1;
 
-        SelectFont (HDC_SCREEN_SYS, (PLOGFONT)GetWindowElementAttr
+        SelectFont (ptmi->dc, (PLOGFONT)GetWindowElementAttr
                 (ptmi->hwnd, WE_FONT_MENU));
 
         if (pmi->type == TYPE_PPPMENU) {
-            old_mode = SetBkMode (HDC_SCREEN_SYS, BM_TRANSPARENT);
-            SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                    (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
-            TextOut (HDC_SCREEN_SYS, x + mioffx, y + font_offy,
+            old_mode = SetBkMode (ptmi->dc, BM_TRANSPARENT);
+            SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                    (ptmi->hwnd, ptmi->dc, WE_FGC_MENU));
+            TextOut (ptmi->dc, x + mioffx, y + font_offy,
                 (char*)pmi->typedata);
-            SetBkMode (HDC_SCREEN_SYS, old_mode);
+            SetBkMode (ptmi->dc, old_mode);
 
-            SetPenColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                    (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
+            SetPenColor (ptmi->dc, GetWindowElementPixelEx
+                    (ptmi->hwnd, ptmi->dc, WE_FGC_MENU));
 
             /** two horizontal separator */
-            MoveTo (HDC_SCREEN_SYS,
+            MoveTo (ptmi->dc,
                 x,
                 y + pmi->h - (inter<<1));
-            LineTo (HDC_SCREEN_SYS,
+            LineTo (ptmi->dc,
                 ptmi->show_rc.right - marginrx,
                 y + pmi->h - (inter<<1));
-            MoveTo (HDC_SCREEN_SYS,
+            MoveTo (ptmi->dc,
                 x,
                 y + pmi->h - inter);
-            LineTo (HDC_SCREEN_SYS,
+            LineTo (ptmi->dc,
                 ptmi->show_rc.right - marginrx,
                 y + pmi->h - inter);
         }
@@ -2790,27 +2852,27 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
             int bmp_w = mioffx;
 
             /** draw radio, checkmark or bitmap */
-            DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS, x + 1, y, pmi, FALSE, &bmp_w);
+            DrawMenuPic (ptmi->hwnd, ptmi->dc, x + 1, y, pmi, FALSE, &bmp_w);
 
             /** menu text */
-            old_mode = SetBkMode (HDC_SCREEN_SYS, BM_TRANSPARENT);
+            old_mode = SetBkMode (ptmi->dc, BM_TRANSPARENT);
             if (pmi->mnustate & MFS_DISABLED)
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_DISABLED_ITEM));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_DISABLED_ITEM));
             else if (pmi->mnustate & MFS_HILITE)
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_HIGHLIGHT_ITEM));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_HIGHLIGHT_ITEM));
             else
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_MENU));
 
-            TextOut (HDC_SCREEN_SYS, x + bmp_w, y + font_offy,
+            TextOut (ptmi->dc, x + bmp_w, y + font_offy,
                 (char*)pmi->typedata);
-            SetBkMode (HDC_SCREEN_SYS, old_mode);
+            SetBkMode (ptmi->dc, old_mode);
 
             /** draw menu sub */
             if (pmi->submenu) {
-                DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+                DrawMenuPic (ptmi->hwnd, ptmi->dc,
                         ptmi->show_rc.right - mioffx - marginrx,
                         y, pmi, TRUE, 0);
             }
@@ -2839,13 +2901,13 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
 
             offy = (psubmi->h - bmp->bmHeight) >> 1;
 
-            FillBoxWithBitmap (HDC_SCREEN_SYS, x, y + offy,
+            FillBoxWithBitmap (ptmi->dc, x, y + offy,
                             ((BITMAP*)psubmi->typedata)->bmWidth,
                             psubmi->h - (offy << 1), bmp);
 
             /** draw menu sub */
             if (psubmi->submenu) {
-                DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+                DrawMenuPic (ptmi->hwnd, ptmi->dc,
                         ptmi->show_rc.right - mioffx - marginrx,
                         y, psubmi, TRUE, 0);
             }
@@ -2853,16 +2915,16 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
         else if (psubmi->mnutype == MFT_SEPARATOR) {
 
             /** tow horizontal separator */
-            SetPenColor (HDC_SCREEN_SYS, darker_pixel);
-            MoveTo (HDC_SCREEN_SYS,
+            SetPenColor (ptmi->dc, darker_pixel);
+            MoveTo (ptmi->dc,
                 x, y + (psubmi->h>>1) - inter + 1);
-            LineTo (HDC_SCREEN_SYS,
+            LineTo (ptmi->dc,
                 ptmi->show_rc.right - marginrx, y + (psubmi->h>>1) - inter + 1);
 
-            SetPenColor (HDC_SCREEN_SYS, lighter_pixel);
-            MoveTo (HDC_SCREEN_SYS,
+            SetPenColor (ptmi->dc, lighter_pixel);
+            MoveTo (ptmi->dc,
                 x, y + (psubmi->h>>1) - inter + 2);
-            LineTo (HDC_SCREEN_SYS,
+            LineTo (ptmi->dc,
                 ptmi->show_rc.right - marginrx, y + (psubmi->h>>1) - inter + 2);
         }
         else if (pmi->mnutype == MFT_OWNERDRAW) {
@@ -2871,32 +2933,32 @@ static int show_scroll_popup_menu (PTRACKMENUINFO ptmi)
             int old_mode, bmp_w = mioffx;
 
             /** draw radio, checkmark or bitmap */
-            DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS, x + 1, y, psubmi, FALSE, &bmp_w);
+            DrawMenuPic (ptmi->hwnd, ptmi->dc, x + 1, y, psubmi, FALSE, &bmp_w);
 
             /** menu text*/
-            SelectFont (HDC_SCREEN_SYS, (PLOGFONT)GetWindowElementAttr
+            SelectFont (ptmi->dc, (PLOGFONT)GetWindowElementAttr
                     (ptmi->hwnd, WE_FONT_MENU));
-            old_mode = SetBkMode (HDC_SCREEN_SYS, BM_TRANSPARENT);
+            old_mode = SetBkMode (ptmi->dc, BM_TRANSPARENT);
             if (psubmi->mnustate & MFS_DISABLED)
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_DISABLED_ITEM));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_DISABLED_ITEM));
             else if (psubmi->mnustate & MFS_HILITE)
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_HIGHLIGHT_ITEM));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_HIGHLIGHT_ITEM));
             else
-                SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                        (ptmi->hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
+                SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                        (ptmi->hwnd, ptmi->dc, WE_FGC_MENU));
 
             offy = (psubmi->h - ((PLOGFONT)GetWindowElementAttr
                     (ptmi->hwnd, WE_FONT_MENU))->size) >> 1;
 
-            TextOut (HDC_SCREEN_SYS, x + bmp_w, y + offy,
+            TextOut (ptmi->dc, x + bmp_w, y + offy,
                 (char*)psubmi->typedata);
-            SetBkMode (HDC_SCREEN_SYS, old_mode);
+            SetBkMode (ptmi->dc, old_mode);
 
             /** draw menu sub */
             if (psubmi->submenu) {
-                DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+                DrawMenuPic (ptmi->hwnd, ptmi->dc,
                         ptmi->show_rc.right - mioffx - marginrx,
                         y, psubmi, TRUE, 0);
             }
@@ -3150,30 +3212,30 @@ static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite)
     if (ptemp->mnustate & MFS_DISABLED)
     {
         /** render a disabled item */
-        SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                (hwnd, HDC_SCREEN_SYS, WE_FGC_DISABLED_ITEM));
+        SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                (hwnd, ptmi->dc, WE_FGC_DISABLED_ITEM));
         if (ptemp->mnustate & MFS_HILITE)
-            pWin->we_rdr->draw_disabled_menu_item (hwnd, HDC_SCREEN_SYS, &rect,
+            pWin->we_rdr->draw_disabled_menu_item (hwnd, ptmi->dc, &rect,
                     GetWindowElementAttr (hwnd, WE_BGC_DISABLED_ITEM));
         else
-            pWin->we_rdr->draw_disabled_menu_item (hwnd, HDC_SCREEN_SYS, &rect,
+            pWin->we_rdr->draw_disabled_menu_item (hwnd, ptmi->dc, &rect,
                     GetWindowElementAttr (hwnd, WE_BGC_MENU));
     }
     else if (ptemp->mnustate & MFS_HILITE)
     {
         /** render a hilite item */
-        SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                (hwnd, HDC_SCREEN_SYS, WE_FGC_HIGHLIGHT_ITEM));
-        pWin->we_rdr->draw_hilite_menu_item (hwnd, HDC_SCREEN_SYS, &rect,
+        SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                (hwnd, ptmi->dc, WE_FGC_HIGHLIGHT_ITEM));
+        pWin->we_rdr->draw_hilite_menu_item (hwnd, ptmi->dc, &rect,
                 GetWindowElementAttr (hwnd, WE_BGC_HIGHLIGHT_ITEM));
     }
     else
     {
         /** render a normal item as unhilite */
-        SetTextColor (HDC_SCREEN_SYS, GetWindowElementPixelEx
-                (hwnd, HDC_SCREEN_SYS, WE_FGC_MENU));
+        SetTextColor (ptmi->dc, GetWindowElementPixelEx
+                (hwnd, ptmi->dc, WE_FGC_MENU));
 
-        pWin->we_rdr->draw_normal_menu_item (hwnd, HDC_SCREEN_SYS, &rect,
+        pWin->we_rdr->draw_normal_menu_item (hwnd, ptmi->dc, &rect,
                 GetWindowElementAttr (hwnd, WE_BGC_MENU));
     }
 
@@ -3189,13 +3251,13 @@ static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite)
 
         offy = (ptemp->h - bmp->bmHeight) >> 1;
 
-        FillBoxWithBitmap (HDC_SCREEN_SYS, rc.left + marginlx, rc.top + offy,
+        FillBoxWithBitmap (ptmi->dc, rc.left + marginlx, rc.top + offy,
                         ((BITMAP*)ptemp->typedata)->bmWidth,
                         ptemp->h - (offy << 1), bmp);
 
         /** draw menu sub */
         if (ptemp->submenu) {
-            DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+            DrawMenuPic (ptmi->hwnd, ptmi->dc,
                     rc.right - mioffx - marginrx,
                     rc.top, ptemp, TRUE, 0);
         }
@@ -3206,23 +3268,23 @@ static void mnuHiliteMenuItem (PTRACKMENUINFO ptmi, PMENUITEM pmi, BOOL bHilite)
         int old_mode, bmp_w = mioffx;
 
         /** draw radio, checkmark or bitmap */
-        DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+        DrawMenuPic (ptmi->hwnd, ptmi->dc,
                 rc.left + marginlx + 1, rc.top, ptemp, FALSE, &bmp_w);
 
         /** menu text */
-        SelectFont (HDC_SCREEN_SYS, (PLOGFONT)GetWindowElementAttr
+        SelectFont (ptmi->dc, (PLOGFONT)GetWindowElementAttr
                 (ptmi->hwnd, WE_FONT_MENU));
-        old_mode = SetBkMode (HDC_SCREEN_SYS, BM_TRANSPARENT);
+        old_mode = SetBkMode (ptmi->dc, BM_TRANSPARENT);
         offy = (ptemp->h - ((PLOGFONT)GetWindowElementAttr
                     (ptmi->hwnd, WE_FONT_MENU))->size) >> 1;
 
-        TextOut (HDC_SCREEN_SYS, rc.left + bmp_w + marginlx, rc.top + offy,
+        TextOut (ptmi->dc, rc.left + bmp_w + marginlx, rc.top + offy,
             (char*)ptemp->typedata);
-        SetBkMode (HDC_SCREEN_SYS, old_mode);
+        SetBkMode (ptmi->dc, old_mode);
 
         /** draw menu sub */
         if (ptemp->submenu) {
-            DrawMenuPic (ptmi->hwnd, HDC_SCREEN_SYS,
+            DrawMenuPic (ptmi->hwnd, ptmi->dc,
                     rc.right - mioffx - marginrx, rc.top, ptemp, TRUE, 0);
         }
     }
@@ -3399,7 +3461,6 @@ static void cursor_block_down(PTRACKMENUINFO pcurtmi, PMENUITEM pcurmi)
 {
     PMENUITEM pnewmi;
     int y;
-
 
     pnewmi = mnuGetNextMenuItem (pcurtmi, pcurmi);
 
@@ -4028,27 +4089,57 @@ static int mnuTrackMenuOnButtonUp (PTRACKMENUINFO ptmi,
     return 0;
 }
 
-int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
-    int message, WPARAM wParam, LPARAM lParam)
+/* Since 5.0.0 */
+#ifdef _MGSCHEMA_COMPOSITING
+static void sync_update_ppp (PTRACKMENUINFO ptmi)
 {
+    PTRACKMENUINFO phead;
+
+    // get first tracking menu.
+    phead = ptmi;
+    while (phead->prev) {
+        phead = phead->prev;
+    }
+
+    do {
+        if (phead->dc != HDC_INVALID)
+            SyncUpdateDC (phead->dc);
+        phead = phead->next;
+    } while (phead);
+}
+#else /* defined _MGSCHEMA_COMPOSITING */
+static inline void sync_update_ppp (PTRACKMENUINFO ptmi)
+{
+    SyncUpdateDC (HDC_SCREEN_SYS);
+}
+#endif /* not defined _MGSCHEMA_COMPOSITING */
+
+int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
+        int message, WPARAM wParam, LPARAM lParam)
+{
+    int ret_value;
     switch (message) {
         case MSG_INITMENU:
             mnuGetPopupMenuExtent (ptmi);
+            return create_memdc_for_menu (ptmi);
         break;
 
         case MSG_SHOWMENU:
             if (GetCurrentCursor() != GetSystemCursor(IDC_ARROW))
                 SetCursor(GetSystemCursor(IDC_ARROW));
-            return mnuShowPopupMenu (ptmi);
+            ret_value = mnuShowPopupMenu (ptmi);
+            /* Since 5.0.0 */
+            sync_update_ppp (ptmi);
+            return ret_value;
         break;
 
         case MSG_HIDEMENU:
-            do_restore_box (ptmi);
+            restore_dc_under_menu (ptmi);
             mnuUnhiliteMenu (ptmi->pmi);
         break;
 
         case MSG_ENDTRACKMENU:
-            do_free_box (ptmi);
+            delete_memdc_for_menu (ptmi);
             if (ptmi->hwnd != HWND_DESKTOP)
                 SendNotifyMessage (ptmi->hwnd, MSG_ENDTRACKMENU,
                             (WPARAM)ptmi->pmi, (LPARAM)ptmi->pmb);
@@ -4064,20 +4155,28 @@ int PopupMenuTrackProc (PTRACKMENUINFO ptmi,
             if (mnuTrackMenuOnButtonDown (ptmi,
                     message, (int)wParam, (int)lParam) < 0)
                 return 1;
+            /* Since 5.0.0 */
+            sync_update_ppp (ptmi);
         break;
 
         case MSG_LBUTTONUP:
         case MSG_RBUTTONUP:
             mnuTrackMenuOnButtonUp (ptmi, message, (int)wParam, (int)lParam);
+            /* Since 5.0.0 */
+            sync_update_ppp (ptmi);
             return 1;
 
         case MSG_MOUSEMOVE:
-            mnu_scroll_menu(ptmi, (int)wParam, (int)lParam);
+            mnu_scroll_menu (ptmi, (int)wParam, (int)lParam);
+            /* Since 5.0.0 */
+            sync_update_ppp (ptmi);
             break;
 
         case MSG_KEYDOWN:
         case MSG_KEYUP:
             mnuTrackMenuWithKey (ptmi, message, (int)wParam, (DWORD)lParam);
+            /* Since 5.0.0 */
+            sync_update_ppp (ptmi);
             break;
 
         default:
@@ -4172,4 +4271,5 @@ int GUIAPI TrackMenuBar (HWND hwnd, int pos)
 
     return 0;
 }
-#endif
+#endif /* defined _MGHAVE_MENU */
+

@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** pci_smi.c: accelerated NEWGAL>FBCON driver for Silicon Motion graphics 
+** pci_smi.c: accelerated NEWGAL>FBCON driver for Silicon Motion graphics
 **      chipsets.
 **
 ** Author: WEI Yongming (2009/07/19)
@@ -279,7 +279,7 @@ static BOOL SMI_MapMem (_THIS)
 
     if (pSmi->videoRAMBytes) {
         /* Map the frame buffer */
-        if (pSmi->Chipset == SMI_LYNX3DM) 
+        if (pSmi->Chipset == SMI_LYNX3DM)
             pSmi->fbMapOffset = 0x200000;
         else
             pSmi->fbMapOffset = 0x0;
@@ -296,7 +296,7 @@ static BOOL SMI_MapMem (_THIS)
                         PCI_DEV_MAP_FLAG_WRITABLE |
                         PCI_DEV_MAP_FLAG_WRITE_COMBINE,
                         result);
-      
+
             if (err) {
                 perror ("pci_device_map_range");
                 _WRN_PRINTF ("NEWGAL>FBCON>SMI: pci_device_map_range failure.\n");
@@ -793,11 +793,11 @@ static int SMI_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect,
     }
 
     if ((src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
-        SMI_BlitTransRect (srcx, srcy, srcrect->w, srcrect->h, 
+        SMI_BlitTransRect (srcx, srcy, srcrect->w, srcrect->h,
                     dstx, dsty, src->format->colorkey);
     }
     else {
-        SMI_BlitRect (srcx, srcy, srcrect->w, srcrect->h, 
+        SMI_BlitRect (srcx, srcy, srcrect->w, srcrect->h,
                     dstx, dsty);
     }
 
@@ -825,7 +825,7 @@ static void SMI_WaitIdle (_THIS)
 #endif
 }
 
-/* Sets video mem colorkey and accelerated blit function */
+/* Set video mem colorkey and accelerated blit function */
 static int SMI_SetHWColorKey (_THIS, GAL_Surface *surface, Uint32 key)
 {
     return 0;
@@ -846,7 +846,7 @@ static int SMI_CheckHWBlit (_THIS, GAL_Surface *src, GAL_Surface *dst)
     if (src->format->BitsPerPixel < 8)
         src->flags &= ~GAL_HWACCEL;
 
-    if (src->format->BitsPerPixel == 24 && 
+    if (src->format->BitsPerPixel == 24 &&
             (src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
         src->flags &= ~GAL_HWACCEL;
     }
@@ -928,7 +928,7 @@ int SMI_Probe (_THIS, const struct fb_fix_screeninfo* fb_finfo, PCI_VIDEO_DRIVER
     iter = pci_id_match_iterator_create (&id_match);
 
     while ((dev = pci_device_next (iter)) != NULL) {
-        _DBG_PRINTF ("NEWGAL>FBCON>SMI: found PCI video device by SMI: 0x%x (0x%x, 0x%x)\n", 
+        _DBG_PRINTF ("NEWGAL>FBCON>SMI: found PCI video device by SMI: 0x%x (0x%x, 0x%x)\n",
                 dev->device_id, dev->subvendor_id, dev->subdevice_id);
 
         int i = 0;
@@ -950,7 +950,7 @@ found:
         SMIPtr pSmi = &smi_rec;
 
         _DBG_PRINTF ("NEWGAL>FBCON>SMI: found SMI chipset: %d, %s (id of fb is %s)\n",
-                SMIChipsets [num_chipset].token, 
+                SMIChipsets [num_chipset].token,
                 SMIChipsets [num_chipset].name,
                 fb_finfo->id);
 

@@ -14,10 +14,10 @@
  * \file ctrlhelper.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2001/12/29
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,13 +55,13 @@
 /*
  * $Id: ctrlhelper.h 10829 2008-08-26 07:47:17Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
 #ifndef _MGUI_CTRL_CTRLHELPER_H
 #define _MGUI_CTRL_CTRLHELPER_H
- 
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,7 +114,7 @@ typedef enum
  * This function outputs a grayed text at the specified position.
  *
  * \param hdc The device context.
- * \param hwnd Tell the function to draw with the color definitions of this window.
+ * \param hwnd Tell the function to draw with the color definitions of the window.
  * \param x The x-coordinate of start point.
  * \param y The y-coordinate of start point.
  * \param szText The null-terminated text to be output.
@@ -129,24 +129,24 @@ MG_EXPORT void GUIAPI DisabledTextOutEx (HDC hdc, HWND hwnd, int x, int y, const
  * \brief Creates a tool tip window.
  *
  * This function creates a tool tip window and returns the handle to it.
- * You can call \a DestroyToolTipWin to destroy it. This function also 
- * receives \a printf-like arguments to format a string. 
+ * You can call \a DestroyToolTipWin to destroy it. This function also
+ * receives \a printf-like arguments to format a string.
  *
- * Note that the tool tip window will disappear automatically after the 
- * specified milliseconds by \a timeout_ms if \a timeout_ms is larger 
+ * Note that the tool tip window will disappear automatically after the
+ * specified milliseconds by \a timeout_ms if \a timeout_ms is larger
  * than 9 ms.
  *
  * \param hParentWnd The hosting main window.
  * \param x The position of the tool tip window.
  * \param y The position of the tool tip window.
- * \param timeout_ms The timeout value of the tool tip window. 
+ * \param timeout_ms The timeout value of the tool tip window.
  * \param text The format string.
  *
  * \return The handle to the tool tip window on success, HWND_INVALID on error.
  *
  * \sa ResetToolTipWin, DestroyToolTipWin
  */
-MG_EXPORT HWND CreateToolTipWin (HWND hParentWnd, int x, int y, 
+MG_EXPORT HWND CreateToolTipWin (HWND hParentWnd, int x, int y,
                 int timeout_ms, const char* text, ...);
 
 /**
@@ -158,7 +158,7 @@ MG_EXPORT HWND CreateToolTipWin (HWND hParentWnd, int x, int y,
  * position, text displayed in it, and the visible status. If the tool tip is
  * invisible, it will become visible.
  *
- * This function also receives \a printf-like arguments to format a string. 
+ * This function also receives \a printf-like arguments to format a string.
  *
  * \param hwnd The tool tip window handle returned by \a CreateToolTipWin.
  * \param x The new position of the tool tip window.
@@ -167,40 +167,45 @@ MG_EXPORT HWND CreateToolTipWin (HWND hParentWnd, int x, int y,
  *
  * \sa CreateToolTipWin, DestroyToolTipWin
  */
-MG_EXPORT void ResetToolTipWin (HWND hwnd, int x, int y, 
+MG_EXPORT void ResetToolTipWin (HWND hwnd, int x, int y,
                 const char* text, ...);
 
 /**
  * \fn void DestroyToolTipWin (HWND hwnd)
- * \brief Destroies a tool tip window.
+ * \brief Destroy a tool tip window.
  *
- * This function destroies the specified tool tip window \a hwnd, which 
+ * This function destroys the specified tool tip window \a hwnd, which
  * is returned by \a CreateToolTipWin.
  *
  * \param hwnd The handle to the tool tip window.
- * 
+ *
  * \sa CreateToolTipWin
  */
 MG_EXPORT void DestroyToolTipWin (HWND hwnd);
 
 /**
- * \fn void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data)
- * \brief Sends a notification message to the parent.
+ * \fn void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code,
+ *      DWORD add_data)
+ * \brief Send a notification message to the parent.
  *
- * By default, the notification from a control will be sent to its parent
- * window within a MSG_COMMAND messsage.
+ * This function send a notification message to the parent.
  *
- * Since version 1.2.6, MiniGUI defines the Nofication Callback Procedure 
- * for control. You can specify a callback function for a control by calling
- * \a SetNotificationCallback to receive and handle the notification from 
- * the control.
+ * In the early version, the notification from a control will be sent to
+ * its parent window within a MSG_COMMAND message.
  *
- * If you have defined the Notificaton Callback Procedure for the control,
- * calling NotifyParentEx will call the notification callback procedure,
- * not send the notification message to the parent.
+ * Since version 1.2.6, MiniGUI defines the Notification Callback Procedure
+ * for a window. You can specify a callback function to a window by calling
+ * \a SetNotificationCallback to receive and handle the notification from
+ * its children in the procedure.
  *
- * Note that if the control has WS_EX_NOPARENTNOTIFY style, this function
+ * Note that if the control has \a WS_EX_NOPARENTNOTIFY style, this function
  * will not notify the parent.
+ *
+ * Note taht there was a mistake in the implementation. This function will
+ * check and call the notification callback procedure of the control itself
+ * instead of its parent.
+ *
+ * Since 5.0.0, you can call NotifyWindow to notify any kind of window.
  *
  * \param hwnd The handle to current control window.
  * \param id The identifier of current control.
@@ -209,20 +214,21 @@ MG_EXPORT void DestroyToolTipWin (HWND hwnd);
  *
  * \note The type of \a id change from int to LINT since v3.2.
  *
- * \sa SetNotificationCallback
+ * \sa NotifyWindow, SetNotificationCallback
  */
-MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_data);
+MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code,
+        DWORD add_data);
 
 /**
  * \def NotifyParent(hwnd, id, code)
- * \brief Sends a notification message to the parent, 
+ * \brief Sends a notification message to the parent,
  *        but without additional data.
  *
  * \param hwnd The handle to current control window.
  * \param id The identifier of current control.
  * \param code The notification code.
  *
- * \note This function is actually a macro of NotifyParentEx with 
+ * \note This function is actually a macro of \a NotifyParentEx with
  *       \a dwAddData being zero.
  *
  * \sa NotifiyParentEx
@@ -238,7 +244,7 @@ MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code, DWORD add_da
  * an integer less than, equal to, or greater than zero if  \a s1 is found,
  * respectively, to be less than, to match, or be greater than \a s2.
  *
- * Note that it only compares the first (at most) \a n characters of s1 and s2. 
+ * Note that it only compares the first (at most) \a n characters of s1 and s2.
  */
 typedef int (*STRCMP) (const char* s1, const char* s2, size_t n);
 

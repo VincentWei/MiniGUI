@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -103,16 +103,16 @@ static void create_normal_listbox (HWND parent)
     DIR*    dir;
     struct  dirent* dir_ent;
 
-    CreateWindow (CTRL_STATIC, 
-                "A normal listbox (sorted):", 
+    CreateWindow (CTRL_STATIC,
+                "A normal listbox (sorted):",
                 WS_CHILD | SS_NOTIFY | SS_SIMPLE | WS_VISIBLE,
-                IDC_STATIC, 
+                IDC_STATIC,
                 10, 10, 200, 20, parent, 0);
 
     hwnd = CreateWindow (CTRL_LISTBOX,
-                "Files in the current direcotory", 
-                WS_CHILD | WS_VISIBLE | WS_BORDER | LBS_SORT | LBS_MULTIPLESEL | WS_VSCROLL, 
-                IDC_LISTBOX, 
+                "Files in the current direcotory",
+                WS_CHILD | WS_VISIBLE | WS_BORDER | LBS_SORT | LBS_MULTIPLESEL | WS_VSCROLL,
+                IDC_LISTBOX,
                 10, 40, 200, 100, parent, 0);
 
     dir = opendir ("./");
@@ -131,16 +131,16 @@ static void create_image_listbox (HWND parent)
     LISTBOXITEMINFO lbii;
     int h;
 
-    CreateWindow (CTRL_STATIC, 
-                "A listbox with LBS_USEICON style:", 
+    CreateWindow (CTRL_STATIC,
+                "A listbox with LBS_USEICON style:",
                 WS_CHILD | SS_NOTIFY | SS_SIMPLE | WS_VISIBLE,
-                IDC_STATIC, 
+                IDC_STATIC,
                 10, 150, 180, 20, parent, 0);
 
     hwnd = CreateWindow (CTRL_LISTBOX,
-                "Files in the current direcotory", 
-                WS_CHILD | WS_VISIBLE | WS_BORDER | LBS_USEICON | WS_VSCROLL, 
-                IDC_LISTBOX + 1, 
+                "Files in the current direcotory",
+                WS_CHILD | WS_VISIBLE | WS_BORDER | LBS_USEICON | WS_VSCROLL,
+                IDC_LISTBOX + 1,
                 10, 180, 200, 100, parent, 0);
 
     GetIconSize (GetSmallSystemIcon (IDI_APPLICATION), NULL, &h);
@@ -176,17 +176,17 @@ static void create_multisel_listbox (HWND parent)
     LISTBOXITEMINFO lbii;
     int h;
 
-    CreateWindow (CTRL_STATIC, 
-                "A listbox with LBS_MULTIPLESEL style:", 
+    CreateWindow (CTRL_STATIC,
+                "A listbox with LBS_MULTIPLESEL style:",
                 WS_CHILD | SS_NOTIFY | SS_SIMPLE | WS_VISIBLE,
-                IDC_STATIC, 
+                IDC_STATIC,
                 220, 10, 200, 20, parent, 0);
 
     hwnd = CreateWindow (CTRL_LISTBOX,
-                "Files in the current direcotory", 
+                "Files in the current direcotory",
                 WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL |
-                LBS_SORT | LBS_USEICON | LBS_MULTIPLESEL, 
-                IDC_LISTBOX + 3, 
+                LBS_SORT | LBS_USEICON | LBS_MULTIPLESEL,
+                IDC_LISTBOX + 3,
                 220, 40, 200, 100, parent, 0);
 
     GetIconSize (GetSmallSystemIcon (IDI_APPLICATION), NULL, &h);
@@ -235,7 +235,7 @@ static void add_proc (HWND hwnd, int id, int nc, DWORD add_data)
             lbii.cmFlag = CMFLAG_BLANK;
             lbii.hIcon = icon2;
             lbii.string = buffer;
-            
+
             cur_sel = SendDlgItemMessage (parent, IDC_LISTBOX + 2, LB_GETCURSEL, 0, 0);
             SendDlgItemMessage (parent, IDC_LISTBOX + 2, LB_INSERTSTRING, cur_sel, (LPARAM)&lbii);
         }
@@ -251,8 +251,8 @@ static void del_proc (HWND hwnd, int id, int nc, DWORD add_data)
         HWND listbox = GetDlgItem (parent , IDC_LISTBOX + 2);
 
         cur_sel = SendMessage (listbox, LB_GETCURSEL, 0, 0);
-        if (cur_sel >= 0 && MessageBox (parent, 
-                "Are you sure to delete this item?", 
+        if (cur_sel >= 0 && MessageBox (parent,
+                "Are you sure to delete this item?",
                 "Listbox", MB_YESNOCANCEL | MB_ICONQUESTION) == IDYES)
             SendMessage (listbox, LB_DELETESTRING, cur_sel, 0);
     }
@@ -295,40 +295,40 @@ static void create_checkbox_listbox (HWND parent)
     int height;
 
     CreateWindow (CTRL_EDIT,
-                "Add me to the box bellow", 
-                WS_CHILD | WS_VISIBLE | WS_BORDER, 
-                IDC_ITEMTEXT, 
+                "Add me to the box bellow",
+                WS_CHILD | WS_VISIBLE | WS_BORDER,
+                IDC_ITEMTEXT,
                 220, 150, 190, 20, parent, 0);
 
     CreateWindow (CTRL_BUTTON,
-                "Add", 
-                WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 
-                IDC_ADDITEM, 
+                "Add",
+                WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                IDC_ADDITEM,
                 430, 150, 60, 20, parent, 0);
 
     hwnd = CreateWindow (CTRL_LISTBOX,
                 CTRL_LISTBOX,
                 WS_CHILD | WS_VISIBLE | WS_BORDER | /* WS_VSCROLL | */
                 LBS_NOTIFY | LBS_AUTOCHECKBOX | LBS_USEICON,
-                IDC_LISTBOX + 2, 
+                IDC_LISTBOX + 2,
                 220, 180, 190, 100, parent, 0);
 
     CreateWindow (CTRL_BUTTON,
-                "Delete", 
+                "Delete",
                 WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                 IDC_DELITEM,
                 220, 290, 60, 20, parent, 0);
-                              
+
     CreateWindow (CTRL_EDIT,
                 NULL,
-                WS_CHILD | WS_VISIBLE | WS_BORDER, 
-                IDC_STRING, 
+                WS_CHILD | WS_VISIBLE | WS_BORDER,
+                IDC_STRING,
                 290, 290, 120, 20, parent, 0);
 
     CreateWindow (CTRL_BUTTON,
-                "Find", 
-                WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 
-                IDC_FIND, 
+                "Find",
+                WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                IDC_FIND,
                 430, 290, 60, 20, parent, 0);
 
     GetIconSize (icon1, NULL, &height);
@@ -366,10 +366,10 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
             create_multisel_listbox (hWnd);
             create_checkbox_listbox (hWnd);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Close", 
-                          WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE, 
-                          IDCANCEL, 
+            CreateWindow (CTRL_BUTTON,
+                          "Close",
+                          WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE,
+                          IDCANCEL,
                           430, 330, 60, 25, hWnd, 0);
         break;
 
@@ -379,12 +379,12 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
             }
             break;
 
-	case MSG_DESTROY:
+    case MSG_DESTROY:
             DestroyIcon (icon1);
             DestroyIcon (icon2);
             DestroyAllControls (hWnd);
             hMainWnd = HWND_INVALID;
-	    return 0;
+        return 0;
 
         case MSG_CLOSE:
             DestroyMainWindow (hWnd);
@@ -404,11 +404,12 @@ static void InitCreateInfo(PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor (IDC_ARROW);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = ControlTestWinProc;
-    pCreateInfo->lx = 0; 
+    pCreateInfo->lx = 0;
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 500;
     pCreateInfo->by = 400;
-    pCreateInfo->iBkColor = GetWindowElementColor (WE_MAINC_THREED_BODY); 
+    pCreateInfo->iBkColor =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }

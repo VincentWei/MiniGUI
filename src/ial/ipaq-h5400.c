@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** ipaq-h5400.c: Low Level Input Engine for iPAQ H5400.
-** 
+**
 ** Created by Wei Yongming, 2001/08/20
 */
 
@@ -122,7 +122,7 @@ static int TTY_Open (void)
      * scancode sequences (e.g. E0 XX) onto single keycodes.
      */
     ioctl (kbd_fd, KDGKBMODE, &startup_kbdmode);
-    if (ioctl(kbd_fd, KDSKBMODE, K_MEDIUMRAW) < 0) 
+    if (ioctl(kbd_fd, KDSKBMODE, K_MEDIUMRAW) < 0)
         goto err;
     return kbd_fd;
 
@@ -174,7 +174,7 @@ static int keyboard_update(void)
     int is_pressed;
     int retvalue;
 
-    retvalue = TTY_Read (&buf, &modifier); 
+    retvalue = TTY_Read (&buf, &modifier);
 
     if ((retvalue == -1) || (retvalue == 0))
         return 0;
@@ -183,7 +183,7 @@ static int keyboard_update(void)
         is_pressed = !(buf & 0x80);
         ch         = buf & 0x7f;
         switch (ch) {
-            //navigation mid 
+            //navigation mid
         case 96:
             state[SCANCODE_ENTER] = is_pressed;
             break;
@@ -193,33 +193,33 @@ static int keyboard_update(void)
             state[SCANCODE_CURSORBLOCKUP] = is_pressed;
             break;
 
-            //navigation left 
+            //navigation left
         case 105:
             state[SCANCODE_CURSORBLOCKLEFT] = is_pressed;
             break;
 
-            //navigation right 
+            //navigation right
         case 106:
             state[SCANCODE_CURSORBLOCKRIGHT] = is_pressed;
             break;
 
-            //navigation down 
+            //navigation down
         case 108:
             state[SCANCODE_CURSORBLOCKDOWN] = is_pressed;
             break;
 
             //left 2
-        case 122: 
+        case 122:
             state[SCANCODE_F3] = is_pressed;
             break;
 
             //left 1
-        case 123: 
+        case 123:
             state[SCANCODE_F1] = is_pressed;
             break;
 
             //right 1
-        case 124: 
+        case 124:
             state[SCANCODE_F2] = is_pressed;
             break;
 
@@ -335,24 +335,15 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
 
     if ((which & IAL_MOUSEEVENT) && ts_fd >= 0) {
         FD_SET (ts_fd, in);
-#ifndef _MGRM_THREADS
         if (ts_fd > maxfd) maxfd = ts_fd;
-#endif
     }
     if ((which & IAL_KEYEVENT) && kbd_fd >= 0){
         FD_SET (kbd_fd, in);
-#ifndef _MGRM_THREADS
         if(kbd_fd > maxfd) maxfd = kbd_fd;
-#endif
     }
 
-#ifndef _MGRM_THREADS
     e = select (maxfd + 1, in, out, except, timeout);
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout);
-#endif
-
-    if (e > 0) { 
+    if (e > 0) {
         /* If data is present on the mouse fd, service it: */
         if (ts_fd >= 0 && FD_ISSET (ts_fd, in)) {
             short data [4];

@@ -74,21 +74,13 @@
 #include "cursor.h"
 #include "event.h"
 #include "menu.h"
+#include "timer.h"
 #include "ourhdr.h"
 
-extern DWORD __mg_timer_counter;
+extern DWORD __mg_tick_counter;
+#if 0   /* deprecated code */
 static DWORD old_timer_counter = 0;
-
-static SRVEVTHOOK srv_evt_hook = NULL;
-
-SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
-{
-    SRVEVTHOOK old_hook = srv_evt_hook;
-
-    srv_evt_hook = SrvEvtHook;
-
-    return old_hook;
-}
+#endif  /* deprecated code */
 
 static void ParseEvent (PMSGQUEUE msg_que, int event)
 {
@@ -109,13 +101,14 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
     if (!kernel_GetLWEvent (event, &lwe))
         return;
 
-    Msg.time = __mg_timer_counter;
+    Msg.time = __mg_tick_counter;
     if (lwe.type == LWETYPE_TIMEOUT) {
         Msg.message = MSG_TIMEOUT;
         Msg.wParam = (WPARAM)lwe.count;
         Msg.lParam = 0;
 
-        kernel_QueueMessage (msg_que, &Msg);
+        // Since 5.0.0, we do not genenrate MSG_TIMEOUT message any more.
+        // kernel_QueueMessage (msg_que, &Msg);
     }
     else if (lwe.type == LWETYPE_KEY) {
         Msg.wParam = ke->scancode;
@@ -133,16 +126,23 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
             Msg.message = MSG_KEYALWAYSPRESS;
         }
 
+#if 0   /* Since 5.0.0 */
         if (!(srv_evt_hook && srv_evt_hook (&Msg))) {
             kernel_QueueMessage (msg_que, &Msg);
         }
+#else   /* deprecated code */
+        if (__mg_check_hook_func (HOOK_EVENT_KEY, &Msg) == HOOK_GOON) {
+            kernel_QueueMessage (msg_que, &Msg);
+        }
+#endif  /* use __mg_check_hook_func instead */
     }
     else if (lwe.type == LWETYPE_MOUSE) {
-        Msg.wParam = me->status;
+
         switch (me->event) {
         case ME_MOVED:
             Msg.message = MSG_MOUSEMOVE;
-            SetCursor (GetSystemCursor (IDC_ARROW));
+            /* Since 5.0.0, do not call SetCursor here. */
+            //SetCursor (GetSystemCursor (IDC_ARROW));
             break;
         case ME_LEFTDOWN:
             Msg.message = MSG_LBUTTONDOWN;
@@ -162,47 +162,47 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         case ME_RIGHTDBLCLICK:
             Msg.message = MSG_RBUTTONDBLCLK;
             break;
+        case ME_MIDDLEDOWN:
+            Msg.message = MSG_MBUTTONDOWN;
+            break;
+        case ME_MIDDLEUP:
+            Msg.message = MSG_MBUTTONUP;
+            break;
+        case ME_MIDDLEDBLCLICK:
+            Msg.message = MSG_MBUTTONDBLCLK;
+            break;
         }
 
+        Msg.wParam = me->status;
         Msg.lParam = MAKELONG (me->x, me->y);
+#if 0   /* Since 5.0.0 */
         if (!(srv_evt_hook && srv_evt_hook (&Msg))) {
             kernel_QueueMessage (msg_que, &Msg);
         }
+#else   /* deprecated code */
+        if (__mg_check_hook_func (HOOK_EVENT_MOUSE, &Msg) == HOOK_GOON) {
+            kernel_QueueMessage (msg_que, &Msg);
+        }
+#endif  /* use __mg_check_hook_func instead */
     }
 }
 
-extern void  __mg_os_start_time_ms(void);
-extern DWORD __mg_os_get_time_ms(void);
-
 BOOL GUIAPI salone_StandAloneStartup (void)
 {
-    mg_fd_zero (&mg_rfdset);
-    mg_maxfd = 0;
-
-#if 0 /* VW: do not use signal based interval timer; since 4.0 */
-    mg_InstallIntervalTimer ();
-#endif
-
-    __mg_os_start_time_ms();
-
+    /* VW: do not use signal based interval timer; since 4.0 */
+    mg_InitTimer (FALSE);
     return TRUE;
 }
 
 void salone_StandAloneCleanup (void)
 {
-#if 0 /* VW: do not use signal based interval timer; since 4.0 */
-    mg_UninstallIntervalTimer ();
-#endif
+    /* VW: do not use signal based interval timer; since 4.0 */
+    mg_TerminateTimer (FALSE);
 }
 
-BOOL minigui_idle (void)
+BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)
 {
-    return salone_IdleHandler4StandAlone (__mg_dsk_msg_queue);
-}
-
-BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
-{
-    int    i, n;
+    int levt;       // low input event flags
 #ifdef __NOUNIX__
     struct timeval sel_timeout = {0, 10000};
 #elif defined (_MGGAL_BF533)
@@ -212,79 +212,72 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
 #endif
     struct timeval sel_timeout_nd = {0, 0};
     fd_set rset, wset, eset;
+    fd_set* rsetptr = NULL;
     fd_set* wsetptr = NULL;
     fd_set* esetptr = NULL;
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
+    int nevts = 0;              // Since 5.0.0; for timer and fd events
 
-    if (old_timer_counter != __mg_timer_counter) {
-        old_timer_counter = __mg_timer_counter;
-        SetDesktopTimerFlag ();
+#if 0   /* deprecated code */
+    /* Since 5.0.0, call __mg_update_tick_count instead */
+    if (old_timer_counter != __mg_tick_counter) {
+        old_timer_counter = __mg_tick_counter;
+        AlertDesktopTimerEvent ();
     }
+#endif  /* deprecated code */
 
-    rset = mg_rfdset;        /* rset gets modified each time around */
-    if (mg_wfdset) {
-        wset = *mg_wfdset;
+    __mg_update_tick_count (NULL);
+
+    /* rset gets modified each time around */
+    if (msg_queue->nr_rfds) {
+        rset = msg_queue->rfdset;
+        rsetptr = &rset;
+    }
+    if (msg_queue->nr_wfds) {
+        wset = msg_queue->wfdset;
         wsetptr = &wset;
     }
-    if (mg_efdset) {
-        eset = *mg_efdset;
+    if (msg_queue->nr_efds) {
+        eset = msg_queue->efdset;
         esetptr = &eset;
     }
 
     extra.params_mask = 0;
 #ifdef __NOUNIX__
-    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
-
-    /* update __mg_timer_counter */
-    if (msg_queue) {
-        //__mg_timer_counter += 10;
-        /**
-        10 is too fast, the "repeat_threshold" is 5, use ++, repeate 5 times
-        **/
-        __mg_timer_counter++;
-    }
+    levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+                wait?&sel_timeout:&sel_timeout_nd, &extra);
 #elif defined (_MGGAL_BF533)
-    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
-
-    /* update __mg_timer_counter */
-    if (msg_queue) {
-        __mg_timer_counter += 1;
-    }
+    levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+                wait?&sel_timeout:&sel_timeout_nd, &extra);
 #else
-    n = IAL_WaitEvent (mg_maxfd, &rset, wsetptr, esetptr,
-                msg_queue?&sel_timeout:&sel_timeout_nd, &extra);
-    /* update __mg_timer_counter */
-    __mg_timer_counter = __mg_os_get_time_ms()/10;
+    levt = IAL_WaitEvent (msg_queue->maxfd, rsetptr, wsetptr, esetptr,
+                wait?&sel_timeout:&sel_timeout_nd, &extra);
 #endif
 
-    if (msg_queue == NULL)
-        msg_queue = __mg_dsk_msg_queue;
-
-    if (n < 0) {
-
+    if (levt < 0) {
         /* It is time to check event again. */
         if (errno == EINTR) {
-            //if (msg_queue)
             ParseEvent (msg_queue, 0);
         }
         return FALSE;
     }
-/*
-    else if (msg_queue == NULL)
-        return (n > 0);
-*/
+
     /* handle intput event (mouse/touch-screen or keyboard) */
-    if (n & IAL_MOUSEEVENT) ParseEvent (msg_queue, IAL_MOUSEEVENT);
-    if (n & IAL_KEYEVENT) ParseEvent (msg_queue, IAL_KEYEVENT);
-    if (n & IAL_EVENT_EXTRA) {
+    if (levt & IAL_MOUSEEVENT) {
+        nevts++;
+        ParseEvent (msg_queue, IAL_MOUSEEVENT);
+    }
+    if (levt & IAL_KEYEVENT) {
+        nevts++;
+        ParseEvent (msg_queue, IAL_KEYEVENT);
+    }
+    if (levt & IAL_EVENT_EXTRA) {
         MSG msg;
         msg.hwnd = HWND_DESKTOP;
         msg.message = extra.event;
         msg.wParam = extra.wparam;
         msg.lParam = extra.lparam;
-        msg.time = __mg_timer_counter;
+        msg.time = __mg_tick_counter;
         if (extra.params_mask) {
             // packed multiple sub events
             int i, n = 0;
@@ -292,56 +285,65 @@ BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue)
                 if (extra.params_mask & (1 << i)) {
                     msg.wParam = extra.wparams[i];
                     msg.lParam = extra.lparams[i];
-                    kernel_QueueMessage (msg_queue, &msg);
+                    if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) ==
+                            HOOK_GOON) {
+                        kernel_QueueMessage (msg_queue, &msg);
+                        nevts++;
+                    }
                     n++;
                 }
             }
+
 
             if (n > 0) {
                 msg.message = MSG_EXIN_END_CHANGES;
                 msg.wParam = n;
                 msg.lParam = 0;
-                kernel_QueueMessage (msg_queue, &msg);
+                if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON) {
+                    kernel_QueueMessage (msg_queue, &msg);
+                    nevts++;
+                }
             }
         }
         else {
-            kernel_QueueMessage (msg_queue, &msg);
+            if (__mg_check_hook_func (HOOK_EVENT_EXTRA, &msg) == HOOK_GOON) {
+                kernel_QueueMessage (msg_queue, &msg);
+                nevts++;
+            }
         }
     }
-    else if (n == 0)
+    else if (levt == 0) {
         ParseEvent (msg_queue, 0);
+    }
+
+    /* Since 5.0.0: always check timers */
+    __mg_update_tick_count (NULL);
+
+    nevts += __mg_check_expired_timers (msg_queue,
+            __mg_tick_counter - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = __mg_tick_counter;
 
     /* go through registered listen fds */
-    for (i = 0; i < MAX_NR_LISTEN_FD; i++) {
-        MSG Msg;
-
-        Msg.message = MSG_FDEVENT;
-
-        if (mg_listen_fds [i].fd) {
-            fd_set* temp = NULL;
-            int type = mg_listen_fds [i].type;
-
-            switch (type) {
-            case POLLIN:
-                temp = &rset;
-                break;
-            case POLLOUT:
-                temp = wsetptr;
-                break;
-            case POLLERR:
-                temp = esetptr;
-                break;
-            }
-
-            if (temp && mg_fd_isset (mg_listen_fds [i].fd, temp)) {
-                Msg.hwnd = (HWND)mg_listen_fds [i].hwnd;
-                Msg.wParam = MAKELONG (mg_listen_fds [i].fd, type);
-                Msg.lParam = (LPARAM)mg_listen_fds [i].context;
-                kernel_QueueMessage (msg_queue, &Msg);
-            }
-        }
-    }
-
-    return (n > 0);
+    nevts += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
+    return (nevts > 0);
 }
+
+#if 0   /* deprecated code */
+/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
+static SRVEVTHOOK srv_evt_hook = NULL;
+
+SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
+{
+    SRVEVTHOOK old_hook = srv_evt_hook;
+
+    srv_evt_hook = SrvEvtHook;
+
+    return old_hook;
+}
+
+BOOL minigui_idle (void)
+{
+    return salone_IdleHandler4StandAlone (__mg_dsk_msg_queue, TRUE);
+}
+#endif /* deprecated code */
 

@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** ucb1x00.c: IAL Engine for UCB1x00 board.
-** 
+**
 ** Author: Zhong Shuyi (2003/12/28)
 */
 
@@ -72,16 +72,16 @@
 #include "ucb1x00.h"
 
 
-#define _DEBUG_UCB1X00	0
+#define _DEBUG_UCB1X00    0
 
 /* ------------------------------------------------------------------------- */
 
 #ifndef KEY_RELEASED
-#define KEY_RELEASED	0x80
+#define KEY_RELEASED    0x80
 #endif
 
 #ifndef KEY_NUM
-#define KEY_NUM		0x7F
+#define KEY_NUM        0x7F
 #endif
 
 /* for data reading from /dev/tpanel */
@@ -145,13 +145,13 @@ static int keyboard_update(void)
     key = btn_state & KEY_NUM;
 
     if (key == SCANCODE_CURSORLEFT)
-	key = SCANCODE_CURSORBLOCKLEFT;
+    key = SCANCODE_CURSORBLOCKLEFT;
     else if (key == SCANCODE_CURSORRIGHT)
-	key = SCANCODE_CURSORBLOCKRIGHT;
+    key = SCANCODE_CURSORBLOCKRIGHT;
     else if (key == SCANCODE_CURSORUP)
-	key = SCANCODE_CURSORBLOCKUP;
+    key = SCANCODE_CURSORBLOCKUP;
     else if (key == SCANCODE_CURSORDOWN)
-	key = SCANCODE_CURSORBLOCKDOWN;
+    key = SCANCODE_CURSORBLOCKDOWN;
 
     state[key] = status;
 
@@ -163,13 +163,8 @@ static const char* keyboard_getstate(void)
     return (char *)state;
 }
 
-#ifdef _LITE_VERSION 
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     fd_set rfds;
     int    retvalue = 0;
@@ -181,23 +176,15 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
     if ((which & IAL_MOUSEEVENT) && ts >= 0) {
         FD_SET (ts, in);
-#ifdef _LITE_VERSION
         if (ts > maxfd) maxfd = ts;
-#endif
     }
     if ((which & IAL_KEYEVENT) && kb_fd >= 0){
         FD_SET (kb_fd, in);
-#ifdef _LITE_VERSION
         if(kb_fd > maxfd) maxfd = kb_fd;
-#endif
     }
 
-#ifdef _LITE_VERSION
     if ( select (maxfd + 1, in, out, except, timeout) < 0 )
-#else
-    if ( select (FD_SETSIZE, in, out, except, timeout) < 0 )
-#endif
-	return -1;
+        return -1;
 
     if (ts >= 0 && FD_ISSET (ts, in))
     {
@@ -205,18 +192,18 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
         if ( read (ts, &raw_pos, sizeof (RAW_POS)) == sizeof(RAW_POS) ) {
             if (raw_pos.header != 0) {
-	            transform(&pos, &raw_pos);
+                transform(&pos, &raw_pos);
             }
-            else 
+            else
                 pos.header = raw_pos.header;
-    	    pos.header = ( pos.header > 0 ? 4:0 );
-	        printf("raw:header=%d x=%d y=%d\n", raw_pos.header, raw_pos.x, raw_pos.y);
-	        printf("header=%d x=%d y=%d\n", pos.header, pos.x, pos.y);
+            pos.header = ( pos.header > 0 ? 4:0 );
+            printf("raw:header=%d x=%d y=%d\n", raw_pos.header, raw_pos.x, raw_pos.y);
+            printf("header=%d x=%d y=%d\n", pos.header, pos.x, pos.y);
             retvalue |= IAL_MOUSEEVENT;
         }
         else {
-    	    fprintf (stderr, "read pos data error!\n");
-    	    return -1;
+            fprintf (stderr, "read pos data error!\n");
+            return -1;
         }
     }
 
@@ -228,19 +215,19 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 
         if (read(kb_fd, &scankey, sizeof(scankey)) == sizeof(scankey)) {
 #if _DEBUG_UCB1X00
-	    printf ("scankey = %d\n", scankey);
+        printf ("scankey = %d\n", scankey);
 #endif
-	    /* 224 where from ? */
-	    if (scankey == 224) {
-		return -1;
-	    }
+        /* 224 where from ? */
+        if (scankey == 224) {
+        return -1;
+        }
 
             btn_state = scankey;
             retvalue |= IAL_KEYEVENT;
         }
         else {
-    	    fprintf (stderr, "read pos data error!\n");
-    	    return -1;
+            fprintf (stderr, "read pos data error!\n");
+            return -1;
         }
     }
 
@@ -254,26 +241,26 @@ BOOL InitUCB1X00Input (INPUT* input, const char* mdev, const char* mtype)
     const char *p;
     int i = 0, j = 0;
 
-    //read /etc/pointercal 
+    //read /etc/pointercal
     conffd = open ("/etc/pointercal", O_RDONLY);
     if(conffd < 0) {
-	    fprintf (stderr, "UCB1X00: Can not open calibrate configure\n");
-	    return FALSE;	
+        fprintf (stderr, "UCB1X00: Can not open calibrate configure\n");
+        return FALSE;
     }
     read(conffd, buff, 128);
     while(j <7) {
-	    p = &buff[i];
-	    if(j == 0) a = atoi(p);
-	    else if(j == 1) b = atoi(p);
-	    else if(j == 2) c = atoi(p);
-	    else if(j == 3) d = atoi(p);
-	    else if(j == 4) e = atoi(p);
-	    else if(j == 5) f = atoi(p);
-	    else if(j == 6) s = atoi(p);
-	    else break;
-	    j ++;
-	    while(buff[i] != 0x20 && buff[i] != 0) i++;
-	    i ++;
+        p = &buff[i];
+        if(j == 0) a = atoi(p);
+        else if(j == 1) b = atoi(p);
+        else if(j == 2) c = atoi(p);
+        else if(j == 3) d = atoi(p);
+        else if(j == 4) e = atoi(p);
+        else if(j == 5) f = atoi(p);
+        else if(j == 6) s = atoi(p);
+        else break;
+        j ++;
+        while(buff[i] != 0x20 && buff[i] != 0) i++;
+        i ++;
     }
     close(conffd);
 
@@ -307,7 +294,7 @@ BOOL InitUCB1X00Input (INPUT* input, const char* mdev, const char* mtype)
 
     input->wait_event = wait_event;
     pos.x = pos.y = pos.header = 0;
-    
+
     return TRUE;
 }
 
@@ -316,7 +303,7 @@ void TermUCB1X00Input (void)
     if (ts >= 0)
         close(ts);
     if (kb_fd >= 0)
-	close(kb_fd);
+    close(kb_fd);
 }
 
 #endif /* _UCB1X00_IAL */

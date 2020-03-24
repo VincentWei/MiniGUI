@@ -56,6 +56,7 @@
 #include "common.h"
 
 #include "minigui.h"
+#include "constants.h"
 #include "misc.h"
 #include "ial.h"
 
@@ -133,9 +134,6 @@
     #include "linux-libinput.h"
 #endif
 
-#define LEN_ENGINE_NAME        16
-#define LEN_MTYPE_NAME         16
-
 static INPUT inputs [] =
 {
 /* General IAL engines ... */
@@ -152,13 +150,13 @@ static INPUT inputs [] =
     {"wvfb", InitWVFBInput, TermWVFBInput},
 #endif
 #ifdef _MGIAL_DUMMY
-    {"dummy", InitDummyInput, TermDummyInput},
+    {"dummy", ial_InitDummyInput, TermDummyInput},
 #endif
 #ifdef _MGIAL_AUTO
-    {"auto", InitAutoInput, TermAutoInput},
+    {"auto", ial_InitAutoInput, TermAutoInput},
 #endif
 #ifdef _MGIAL_RANDOM
-    {"random", InitRandomInput, TermRandomInput},
+    {"random", ial_InitRandomInput, TermRandomInput},
 #endif
 #ifdef _MGIAL_CUSTOM
     {"custom", InitCustomInput, TermCustomInput},
@@ -170,7 +168,7 @@ static INPUT inputs [] =
     {"comm", InitCOMMInput, TermCOMMInput},
 #endif
 #ifdef _MGGAL_PCXVFB
-    {"pc_xvfb", InitPCXVFBInput, TermPCXVFBInput},
+    {"pc_xvfb", ial_InitPCXVFBInput, TermPCXVFBInput},
 #endif
 #ifdef _MGGAL_RTOSXVFB
     {"rtos_xvfb", InitRTOSXVFBInput, TermRTOSXVFBInput},
@@ -179,7 +177,7 @@ static INPUT inputs [] =
     {"console", InitNativeInput, TermNativeInput},
 #endif
 #ifdef _MGIAL_NET
-    {"net", InitNetInput, TermNetInput},
+    {"net", ial_InitNetInput, TermNetInput},
 #endif
 #ifdef _MGIAL_IPAQ_H3600
     {"ipaq3600", InitIPAQH3600Input, TermIPAQH3600Input},
@@ -194,7 +192,7 @@ static INPUT inputs [] =
     {"tslib", InitTSLibInput, TermTSLibInput},
 #endif
 #ifdef _MGIAL_NEXUS
-	{"nexus", InitNexusInput, TermNexusInput},
+    {"nexus", InitNexusInput, TermNexusInput},
 #endif
 #ifdef _MGIAL_DAVINCI6446
     {"davinci6446", InitDavinci6446Input, TermDavinci6446Input},
@@ -212,7 +210,7 @@ static INPUT inputs [] =
     {"usvfb", InitUSVFBInput, TermUSVFBInput},
 #endif
 #ifdef _MGIAL_LIBINPUT
-    {"libinput", InitLibInput, TermLibInput},
+    {"libinput", ial_InitLibInput, TermLibInput},
 #endif
 /* ... end of general IAL engines */
 };
@@ -292,6 +290,7 @@ int mg_InitIAL (void)
     }
 
     //strcpy (__mg_cur_input->mdev, mdev);
+    __mg_cur_input->mdev = strdup (mdev);
 
     if (!IAL_InitInput (__mg_cur_input, mdev, mtype)) {
         _ERR_PRINTF ("IAL: Failed to initialize the IAL engine: %s.\n", __mg_cur_input->id);
@@ -306,8 +305,12 @@ int mg_InitIAL (void)
 
 void mg_TerminateIAL (void)
 {
-    if (__mg_cur_input && __mg_cur_input->term_input) {
-        IAL_TermInput ();
+    if (__mg_cur_input) {
+        if (__mg_cur_input->mdev)
+            free (__mg_cur_input->mdev);
+
+        if (__mg_cur_input->term_input)
+            IAL_TermInput ();
     }
 }
 

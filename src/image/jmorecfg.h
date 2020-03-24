@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -51,7 +51,7 @@
  *   8   for 8-bit sample values (the usual setting)
  *   12  for 12-bit sample values
  */
-#define BITS_IN_JSAMPLE  8	/* use 8 or 12 */
+#define BITS_IN_JSAMPLE  8    /* use 8 or 12 */
 
 /*
  * Maximum number of components (color channels) allowed in JPEG image.
@@ -62,7 +62,7 @@
  * bytes of storage, whether actually used in an image or not.)
  */
 
-#define MAX_COMPONENTS  10	/* maximum number of image components */
+#define MAX_COMPONENTS  10    /* maximum number of image components */
 
 
 #if BITS_IN_JSAMPLE == 8
@@ -70,8 +70,8 @@
 typedef unsigned char JSAMPLE;
 #define GETJSAMPLE(value)  ((int) (value))
 
-#define MAXJSAMPLE	255
-#define CENTERJSAMPLE	128
+#define MAXJSAMPLE    255
+#define CENTERJSAMPLE    128
 
 #endif /* BITS_IN_JSAMPLE == 8 */
 
@@ -81,8 +81,8 @@ typedef unsigned char JSAMPLE;
 typedef short JSAMPLE;
 #define GETJSAMPLE(value)  ((int) (value))
 
-#define MAXJSAMPLE	4095
-#define CENTERJSAMPLE	2048
+#define MAXJSAMPLE    4095
+#define CENTERJSAMPLE    2048
 
 #endif /* BITS_IN_JSAMPLE == 12 */
 
@@ -129,10 +129,10 @@ typedef unsigned int JDIMENSION;
  * or code profilers that require it.
  */
 
-#define METHODDEF(type)		static type
-#define LOCAL(type)		static type
-#define GLOBAL(type)		type
-#define EXTERN(type)		extern type
+#define METHODDEF(type)        static type
+#define LOCAL(type)        static type
+#define GLOBAL(type)        type
+#define EXTERN(type)        extern type
 
 /* This macro is used to declare a "method", that is, a function pointer.
  * We want to supply prototype parameters if the compiler can cope.
@@ -146,11 +146,11 @@ typedef unsigned int JDIMENSION;
 typedef int boolean;
 #endif
 
-#ifndef FALSE			/* in case these macros already exist */
-#define FALSE	0		/* values of boolean */
+#ifndef FALSE            /* in case these macros already exist */
+#define FALSE    0        /* values of boolean */
 #endif
 #ifndef TRUE
-#define TRUE	1
+#define TRUE    1
 #endif
 
 
@@ -180,14 +180,14 @@ typedef int boolean;
 
 /* Capability options common to encoder and decoder: */
 
-#define DCT_IFAST_SUPPORTED	/* faster, less accurate integer method */
+#define DCT_IFAST_SUPPORTED    /* faster, less accurate integer method */
 
 /* Encoder capability options: */
 
 #undef  C_ARITH_CODING_SUPPORTED    /* Arithmetic coding back end? */
 #define C_MULTISCAN_FILES_SUPPORTED /* Multiple-scan JPEG files? */
-#define C_PROGRESSIVE_SUPPORTED	    /* Progressive JPEG? (Requires MULTISCAN)*/
-#define ENTROPY_OPT_SUPPORTED	    /* Optimization of entropy coding parms? */
+#define C_PROGRESSIVE_SUPPORTED        /* Progressive JPEG? (Requires MULTISCAN)*/
+#define ENTROPY_OPT_SUPPORTED        /* Optimization of entropy coding parms? */
 /* Note: if you selected 12-bit data precision, it is dangerous to turn off
  * ENTROPY_OPT_SUPPORTED.  The standard Huffman tables are only good for 8-bit
  * precision, so jchuff.c normally uses entropy optimization to compute
@@ -202,19 +202,19 @@ typedef int boolean;
 
 #undef  D_ARITH_CODING_SUPPORTED    /* Arithmetic coding back end? */
 #define D_MULTISCAN_FILES_SUPPORTED /* Multiple-scan JPEG files? */
-#define D_PROGRESSIVE_SUPPORTED	    /* Progressive JPEG? (Requires MULTISCAN)*/
+#define D_PROGRESSIVE_SUPPORTED        /* Progressive JPEG? (Requires MULTISCAN)*/
 #define BLOCK_SMOOTHING_SUPPORTED   /* Block smoothing? (Progressive only) */
-#define IDCT_SCALING_SUPPORTED	    /* Output rescaling via IDCT? */
+#define IDCT_SCALING_SUPPORTED        /* Output rescaling via IDCT? */
 #undef  UPSAMPLE_SCALING_SUPPORTED  /* Output rescaling at upsample stage? */
 #define UPSAMPLE_MERGING_SUPPORTED  /* Fast path for sloppy upsampling? */
-#define QUANT_1PASS_SUPPORTED	    /* 1-pass color quantization? */
-#define QUANT_2PASS_SUPPORTED	    /* 2-pass color quantization? */
+#define QUANT_1PASS_SUPPORTED        /* 1-pass color quantization? */
+#define QUANT_2PASS_SUPPORTED        /* 2-pass color quantization? */
 
 
-#define RGB_RED		0	/* Offset of Red in an RGB scanline element */
-#define RGB_GREEN	1	/* Offset of Green */
-#define RGB_BLUE	2	/* Offset of Blue */
-#define RGB_PIXELSIZE	3	/* JSAMPLEs per RGB scanline element */
+#define RGB_RED        0    /* Offset of Red in an RGB scanline element */
+#define RGB_GREEN    1    /* Offset of Green */
+#define RGB_BLUE    2    /* Offset of Blue */
+#define RGB_PIXELSIZE    3    /* JSAMPLEs per RGB scanline element */
 
 
 /* Definitions for speed-related optimizations. */

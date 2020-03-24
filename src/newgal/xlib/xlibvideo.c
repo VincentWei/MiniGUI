@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -81,7 +81,7 @@ typedef int key_t;
 #include "sysvideo.h"
 #include "xlibvideo.h"
 
-#endif                  /* end ECOS */  
+#endif                  /* end ECOS */
 
 #define WINDOW_CAPTION_LEN 255
 #define EXECL_FILENAME_LEN 255
@@ -108,7 +108,7 @@ static int shm_init_lock(key_t key)
         struct semid_ds* buf;
         unsigned short* array;
     } sem;
-    
+
     semid = semget(key,1,IPC_CREAT|0666);
     if(semid==-1){
         fprintf(stderr,"create semaphoreerror\n");
@@ -116,7 +116,7 @@ static int shm_init_lock(key_t key)
     }
     sem.val=1;
     semctl(semid,0,SETVAL,sem);
-    
+
     return 0;
 }
 
@@ -137,10 +137,10 @@ static int execl_xxvfb(void)
     char ch_pid[10];
     int i;
 #if defined (WIN32) || !defined(__NOUNIX__)
-	char* env_value;
+    char* env_value;
 #endif
 
-    if (GetMgEtcValue ("xxvfb", "exec_file", 
+    if (GetMgEtcValue ("xxvfb", "exec_file",
                 execl_file, EXECL_FILENAME_LEN) < 0)
         return ERR_CONFIG_FILE;
     execl_file[EXECL_FILENAME_LEN] = '\0';
@@ -165,7 +165,7 @@ static int execl_xxvfb(void)
 
     sprintf(ch_pid, "%d", getppid());
 
-	fprintf(stderr,"start-xxvfb: %s xxvfb %s %s\n", execl_file, ch_pid, mode);
+    fprintf(stderr,"start-xxvfb: %s xxvfb %s %s\n", execl_file, ch_pid, mode);
     if (execl(execl_file, execl_file, "xxvfb", ch_pid, mode, NULL) < 0)
         fprintf(stderr, "execl error!!\n");
 
@@ -205,7 +205,7 @@ static void XXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     for (i = 0; i < numrects; i++) {
         RECT rc;
 
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                 rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -236,7 +236,7 @@ static GAL_VideoDevice *XXVFB_CreateDevice (int devindex)
     this = (GAL_VideoDevice *)malloc(sizeof(GAL_VideoDevice));
     if (this) {
         memset (this, 0, (sizeof *this));
-        this->hidden 
+        this->hidden
             = (struct GAL_PrivateVideoData *) malloc ((sizeof *this->hidden));
     }
 
@@ -303,11 +303,11 @@ static int XXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 
         //FIXME
         server_len = sizeof(server_address);
-        bind(__mg_xxvfb_server_sockfd, 
+        bind(__mg_xxvfb_server_sockfd,
                 (struct sockaddr *)&server_address, server_len);
         listen(__mg_xxvfb_server_sockfd, 5);
         client_len = sizeof(client_address);
-        
+
         shm_init_lock(getpid());
 
         if ((pid = fork()) < 0) {
@@ -326,8 +326,8 @@ static int XXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         if (GetMgEtcIntValue ("xxvfb", "display", &display) < 0)
             display = 0;
 
-        __mg_xxvfb_client_sockfd = 
-                accept (__mg_xxvfb_server_sockfd, 
+        __mg_xxvfb_client_sockfd =
+                accept (__mg_xxvfb_server_sockfd,
                     (struct sockaddr *)&client_address, &client_len);
 
         read(__mg_xxvfb_client_sockfd, &shmid, sizeof(int));
@@ -367,7 +367,7 @@ static int XXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
                 "virtual FrameBuffer server.\n");
         return -1;
     }
-    
+
     data->hdr = (XXVFBHeader *) data->shmrgn;
     vformat->BitsPerPixel = data->hdr->depth;
     switch (vformat->BitsPerPixel) {
@@ -405,7 +405,7 @@ static int XXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
             vformat->Bmask = data->hdr->Bmask;
             break;
         default:
-            GAL_SetError ("NEWGAL>XXQVFB: Not supported depth: %d, " 
+            GAL_SetError ("NEWGAL>XXQVFB: Not supported depth: %d, "
                     "please try to use Shadow NEWGAL engine with targetname qvfb.\n",
                     vformat->BitsPerPixel);
             return -1;
@@ -444,7 +444,7 @@ static void XXVFB_FreeHWSurface(_THIS, GAL_Surface *surface)
     surface->pixels = NULL;
 }
 
-static int XXVFB_SetColors(_THIS, int firstcolor, 
+static int XXVFB_SetColors(_THIS, int firstcolor,
         int ncolors, GAL_Color *colors)
 {
 #if 0
@@ -452,7 +452,7 @@ static int XXVFB_SetColors(_THIS, int firstcolor,
     int pixel = firstcolor;
     XVFBPalEntry *palette;
 
-    palette = (XVFBPalEntry *)((BYTE *)this->hidden->hdr 
+    palette = (XVFBPalEntry *)((BYTE *)this->hidden->hdr
             + this->hidden->hdr->palette_offset);
 
     for (i = 0; i < ncolors; i++) {

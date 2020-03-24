@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -72,7 +72,7 @@
 
 #define    NALLOC       4        /* #Client structs to alloc/realloc for */
 
-extern DWORD __mg_timer_counter;
+extern DWORD __mg_tick_counter;
 
 MG_Client* mgClients = NULL;
 int mgClientSize = 0;
@@ -80,8 +80,8 @@ int mgClientSize = 0;
 #define off_pointer(p,off)                  \
         do {                                \
             if (p) {                        \
-                intptr_t tmp;           \
-                tmp = (intptr_t)p;      \
+                intptr_t tmp;               \
+                tmp = (intptr_t)p;          \
                 tmp += off;                 \
                 p = (void*)tmp;             \
             }                               \
@@ -117,11 +117,11 @@ static BOOL client_alloc (void)
     if (mgClients == NULL)
         mgClients = malloc (NALLOC * sizeof(MG_Client));
     else {
-        char* new_head = realloc (mgClients, 
+        char* new_head = realloc (mgClients,
                         (mgClientSize + NALLOC) * sizeof(MG_Client));
 
         if (new_head) {
-            offset_pointers ((MG_Client*) new_head, mgClientSize, 
+            offset_pointers ((MG_Client*) new_head, mgClientSize,
                             new_head - (char*)mgClients);
         }
 
@@ -141,9 +141,9 @@ static BOOL client_alloc (void)
     return TRUE;
 }
 
-/* 
- * Called by IdleHandler4Server() when connection request 
- * from a new client arrives 
+/*
+ * Called by IdleHandler4Server() when connection request
+ * from a new client arrives
  */
 int __mg_client_add (int fd, pid_t pid, uid_t uid)
 {
@@ -159,7 +159,7 @@ again:
             mgClients[i].pid = pid;
             mgClients[i].uid = uid;
             mgClients[i].has_dirty = FALSE;
-            mgClients[i].last_live_time = __mg_timer_counter;
+            mgClients[i].last_live_time = __mg_tick_counter;
             mgClients[i].layer = NULL;
             return (i);    /* return index in client[] array */
         }
@@ -178,7 +178,7 @@ void __mg_client_del (int cli)
     MG_Client* deleting = mgClients + cli;
     MG_Layer* layer = deleting->layer;
 
-    _WRN_PRINTF ("SERVER: Remove a client: %s\n", deleting->name);
+    _DBG_PRINTF ("SERVER: Remove a client: %s\n", deleting->name);
 
     if (layer == NULL)
         goto ret;
@@ -186,10 +186,11 @@ void __mg_client_del (int cli)
     if (deleting->global_res)
         __mg_release_global_res (cli);
     __mg_remove_all_znodes_of_client (cli);
+    __mg_free_hook_wins (cli);  /* Since 5.0.0 */
 
     if (deleting->next)
         deleting->next->prev = deleting->prev;
-    if (deleting->prev) 
+    if (deleting->prev)
         deleting->prev->next = deleting->next;
 
     if (deleting == layer->cli_head) {
@@ -221,19 +222,43 @@ ret:
 void __mg_remove_client (int cli, int clifd)
 {
 #ifdef _DEBUG
-    err_msg ("client closed: uid %d, fd %d", mgClients [cli].uid, clifd);
+    __mg_err_msg ("client closed: uid %d, fd %d", mgClients [cli].uid, clifd);
 #endif
+
+    if (OnChangeLayer)
+        OnChangeLayer (LCO_REMOVE_CLIENT,
+                mgClients[cli].layer, mgClients + cli);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_REMOVE_CLIENT,
+                mgClients[cli].layer, mgClients + cli);
+
     __mg_client_del (cli);    /* client has closed conn */
-    FD_CLR (clifd, &mg_rfdset);
+    FD_CLR (clifd, &__mg_dsk_msg_queue->rfdset);
     close (clifd);
 }
 
-int __mg_send2client (const MSG* msg, MG_Client* client)
+int __mg_send2client (const MSG* Msg, MG_Client* client)
 {
     int ret;
 
-    if (__mg_timer_counter < (client->last_live_time + THRES_LIVE)) {
-        ret = sock_write_t (client->fd, msg, sizeof (MSG), TO_SOCKIO);
+    if (__mg_tick_counter < (client->last_live_time + THRES_LIVE)) {
+
+#if 1
+        ret = sock_write_t (client->fd, Msg, sizeof (MSG), TO_SOCKIO);
+#else /* use sendmsg */
+        struct iovec    iov[1];
+        struct msghdr   msg;
+
+        iov[0].iov_base = &Msg;
+        iov[0].iov_len  = sizeof (MSG);
+
+        msg.msg_name        = NULL;
+        msg.msg_namelen     = 0;
+        msg.msg_iov         = iov;
+        msg.msg_iovlen      = 1;
+        msg.msg_control     = NULL;
+        msg.msg_controllen  = 0;
+        ret = sock_sendmsg_t (client->fd, &msg, 0, TO_SOCKIO);
+#endif
 
         switch (ret) {
         case SOCKERR_TIMEOUT:
@@ -269,7 +294,7 @@ void __mg_set_active_client (MG_Client* client)
         return;
 
     if (layer->cli_active) {
-        MSG msg = {0, MSG_SETFOCUS, 0, 0, __mg_timer_counter};
+        MSG msg = {0, MSG_SETFOCUS, 0, 0, __mg_tick_counter};
 
         __mg_send2client (&msg, layer->cli_active);
     }
@@ -277,13 +302,14 @@ void __mg_set_active_client (MG_Client* client)
     /* Notify that active client changed. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_ACTIVE_CHANGED, layer, client);
+    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_ACTIVE_CHANGED, layer, client);
     layer->cli_active = client;
 }
 
 /* send message to client(s) */
 int GUIAPI Send2Client (const MSG* msg, int cli)
 {
-	
+
     int i, n;
     MG_Client* client;
 
@@ -336,7 +362,7 @@ int GUIAPI Send2Client (const MSG* msg, int cli)
 
 BOOL GUIAPI Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
-    MSG msg = {0, nMsg, wParam, lParam, __mg_timer_counter};
+    MSG msg = {0, nMsg, wParam, lParam, __mg_tick_counter};
 
     if (!mgIsServer)
         return FALSE;
@@ -347,7 +373,7 @@ BOOL GUIAPI Send2TopMostClients (UINT nMsg, WPARAM wParam, LPARAM lParam)
     return TRUE;
 }
 
-BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer, 
+BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer,
                 UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     int active_win;
@@ -359,7 +385,7 @@ BOOL GUIAPI Send2ActiveWindow (const MG_Layer* layer,
     if (active_win <= 0)
         return FALSE;
 
-    if (__mg_post_msg_by_znode (layer->zorder_info, 
+    if (__mg_post_msg_by_znode (layer->zorder_info,
                             active_win, nMsg, wParam, lParam) > 0)
         return TRUE;
 
@@ -373,7 +399,7 @@ BOOL GUIAPI SetTopmostClient (int cli)
 
     if (cli < 0 || cli >= mgClientSize || mgClients [cli].fd == -1)
         return FALSE;
-                 
+
     return ServerSetTopmostLayer (mgClients [cli].layer);
 }
 

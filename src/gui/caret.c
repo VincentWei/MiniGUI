@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -69,7 +69,7 @@ BOOL GUIAPI CreateCaret (HWND hWnd, PBITMAP pBitmap, int nWidth, int nHeight)
     if (!pWin->pCaretInfo) {
         if (!(pWin->pCaretInfo = malloc (sizeof (CARETINFO))))
             return FALSE;
-        
+
         pWin->pCaretInfo->pBitmap = pBitmap;
         if (pBitmap) {
             nWidth  = pBitmap->bmWidth;
@@ -85,7 +85,7 @@ BOOL GUIAPI CreateCaret (HWND hWnd, PBITMAP pBitmap, int nWidth, int nHeight)
         pWin->pCaretInfo->caret_bmp.bmAlphaMask = NULL;
         pWin->pCaretInfo->caret_bmp.bmAlphaPitch = 0;
 
-        pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (__gal_screen, 
+        pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (__gal_screen,
                         nWidth, nHeight, &pWin->pCaretInfo->caret_bmp.bmPitch);
         pWin->pCaretInfo->pNormal = malloc (pWin->pCaretInfo->nBytesNr);
         pWin->pCaretInfo->pXored  = malloc (pWin->pCaretInfo->nBytesNr);
@@ -98,10 +98,10 @@ BOOL GUIAPI CreateCaret (HWND hWnd, PBITMAP pBitmap, int nWidth, int nHeight)
         }
 
         pWin->pCaretInfo->x = pWin->pCaretInfo->y = 0;
-        
+
         pWin->pCaretInfo->fBlink  = FALSE;
         pWin->pCaretInfo->fShow   = FALSE;
-        
+
         pWin->pCaretInfo->hOwner  = hWnd;
         pWin->pCaretInfo->uTime   = 500;
     }
@@ -136,7 +136,7 @@ BOOL GUIAPI DestroyCaret (HWND hWnd)
 
     free (pWin->pCaretInfo->pNormal);
     free (pWin->pCaretInfo->pXored);
-    
+
     free (pWin->pCaretInfo);
     pWin->pCaretInfo = NULL;
 
@@ -153,7 +153,7 @@ UINT GUIAPI GetCaretBlinkTime (HWND hWnd)
 
     if (!pWin->pCaretInfo)
         return 0;
-    
+
     return pWin->pCaretInfo->uTime;
 }
 
@@ -193,51 +193,56 @@ BOOL GUIAPI HideCaretEx (HWND hWnd, BOOL ime)
     pWin->pCaretInfo->fBlink = FALSE;
     if (pWin->pCaretInfo->fShow) {
         HDC hdc;
-        
+
         pWin->pCaretInfo->fShow = FALSE;
 
         // hide caret immediately
         hdc = GetClientDC (hWnd);
         pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pNormal;
         FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
         ReleaseDC (hdc);
     }
 
     if (ime) {
-        gui_open_ime_window (pWin, FALSE, (HWND)hWnd);
+        __gui_open_ime_window (pWin, FALSE, (HWND)hWnd);
     }
 
     return TRUE;
 }
 
+/* Since 5.0.0: Use client dc instead of HDC_SCREEN_SYS of the owner
+   to get the caret bitmaps */
 void GetCaretBitmaps (PCARETINFO pCaretInfo)
 {
     int i;
     int sx, sy;
-        
+    HDC hdc;
+
     // convert to screen coordinates
     sx = pCaretInfo->x;
     sy = pCaretInfo->y;
-    ClientToScreen (pCaretInfo->hOwner, &sx, &sy);
 
     // save normal bitmap first.
     pCaretInfo->caret_bmp.bmBits = pCaretInfo->pNormal;
-    GetBitmapFromDC (HDC_SCREEN_SYS, sx, sy, 
+    hdc = GetClientDC (pCaretInfo->hOwner);
+    GetBitmapFromDC (hdc, sx, sy,
                     pCaretInfo->caret_bmp.bmWidth,
                     pCaretInfo->caret_bmp.bmHeight,
                     &pCaretInfo->caret_bmp);
+    ReleaseDC (hdc);
+
     // generate XOR bitmap.
     if (pCaretInfo->pBitmap) {
         BYTE* normal;
         BYTE* bitmap;
         BYTE* xored;
-                
+
         normal = pCaretInfo->pNormal;
         bitmap = pCaretInfo->pBitmap->bmBits;
         xored  = pCaretInfo->pXored;
-            
+
         for (i = 0; i < pCaretInfo->nBytesNr; i++)
             xored[i] = normal[i] ^ bitmap[i];
     }
@@ -250,10 +255,10 @@ void GetCaretBitmaps (PCARETINFO pCaretInfo)
             xor_byte = 0x0F;
         else
             xor_byte = 0xFF;
-                
+
         normal = pCaretInfo->pNormal;
         xored  = pCaretInfo->pXored;
-            
+
         for (i = 0; i < pCaretInfo->nBytesNr; i++)
             xored[i] = normal[i] ^ xor_byte;
     }
@@ -278,7 +283,7 @@ BOOL BlinkCaret (HWND hWnd)
         // show caret
         pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pXored;
         FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
 
         pWin->pCaretInfo->fShow = TRUE;
@@ -287,12 +292,12 @@ BOOL BlinkCaret (HWND hWnd)
         // hide caret
         pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pNormal;
         FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
 
         pWin->pCaretInfo->fShow = FALSE;
     }
-    
+
     ReleaseDC (hdc);
 
     return TRUE;
@@ -308,9 +313,9 @@ BOOL GUIAPI ShowCaretEx (HWND hWnd, BOOL ime)
         return FALSE;
 
     /* XXX: In order to re-open ime window, we need to open ime window before checking fBlink flag
-     */ 
+     */
     if (ime) {
-        gui_open_ime_window (pWin, TRUE, (HWND)hWnd);
+        __gui_open_ime_window (pWin, TRUE, (HWND)hWnd);
     }
 
     if (pWin->pCaretInfo->fBlink)
@@ -318,16 +323,16 @@ BOOL GUIAPI ShowCaretEx (HWND hWnd, BOOL ime)
 
     pWin->pCaretInfo->fBlink = TRUE;
     GetCaretBitmaps (pWin->pCaretInfo);
-    
+
     if (!pWin->pCaretInfo->fShow) {
 
         HDC hdc;
-        
+
         // show caret immediately
         hdc = GetClientDC (hWnd);
         pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pXored;
         FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
         ReleaseDC (hdc);
 
@@ -346,7 +351,7 @@ BOOL GUIAPI SetCaretPos (HWND hWnd, int x, int y)
     if (!pWin->pCaretInfo)
         return FALSE;
 
-    info.ptCaret.x = x; 
+    info.ptCaret.x = x;
     if (pWin->pLogFont)
         info.ptCaret.y = y + pWin->pLogFont->size;
     else
@@ -357,7 +362,7 @@ BOOL GUIAPI SetCaretPos (HWND hWnd, int x, int y)
     SetIMETargetInfo(&info);
 
     if (pWin->pCaretInfo->x == x && pWin->pCaretInfo->y == y) {
-        
+
         return TRUE;
     }
 
@@ -369,7 +374,7 @@ BOOL GUIAPI SetCaretPos (HWND hWnd, int x, int y)
             hdc = GetClientDC (hWnd);
             pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pNormal;
             FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
 
             // then update position
@@ -378,18 +383,18 @@ BOOL GUIAPI SetCaretPos (HWND hWnd, int x, int y)
 
             // save normal bitmap first
             GetCaretBitmaps (pWin->pCaretInfo);
-            
+
             // show caret again
             pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pXored;
             FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
 
             ReleaseDC (hdc);
         }
         else {
             HDC hdc;
-        
+
             // update position
             pWin->pCaretInfo->x = x;
             pWin->pCaretInfo->y = y;
@@ -401,7 +406,7 @@ BOOL GUIAPI SetCaretPos (HWND hWnd, int x, int y)
             hdc = GetClientDC (hWnd);
             pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pXored;
             FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
 
             ReleaseDC (hdc);
@@ -426,14 +431,14 @@ BOOL GUIAPI ChangeCaretSize (HWND hWnd, int newWidth, int newHeight)
 
     if (!pWin->pCaretInfo)
         return FALSE;
-    
+
     if (newWidth == pWin->pCaretInfo->caret_bmp.bmWidth
             && newHeight == pWin->pCaretInfo->caret_bmp.bmHeight)
         return TRUE;
-        
+
     if (newWidth <= 0 || newHeight <= 0)
         return FALSE;
-    
+
     if (pWin->pCaretInfo->fBlink) {
         if (pWin->pCaretInfo->fShow) {
 
@@ -443,17 +448,17 @@ BOOL GUIAPI ChangeCaretSize (HWND hWnd, int newWidth, int newHeight)
             hdc = GetClientDC (hWnd);
             pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pNormal;
             FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
 
             // then update size info
             pWin->pCaretInfo->caret_bmp.bmWidth = newWidth;
             pWin->pCaretInfo->caret_bmp.bmHeight= newHeight;
-            pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (__gal_screen, 
+            pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (__gal_screen,
                     newWidth, newHeight, &pWin->pCaretInfo->caret_bmp.bmPitch);
 
             // when the caret size big then original, re-malloc it
-            if (newWidth > pWin->pCaretInfo->nWidth 
+            if (newWidth > pWin->pCaretInfo->nWidth
                     || newHeight > pWin->pCaretInfo->nHeight) {
                 pWin->pCaretInfo->nWidth = newWidth;
                 pWin->pCaretInfo->nHeight = newHeight;
@@ -469,7 +474,7 @@ BOOL GUIAPI ChangeCaretSize (HWND hWnd, int newWidth, int newHeight)
             // show caret again
             pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pXored;
             FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
 
             ReleaseDC (hdc);
@@ -481,11 +486,11 @@ BOOL GUIAPI ChangeCaretSize (HWND hWnd, int newWidth, int newHeight)
             // then update size info
             pWin->pCaretInfo->caret_bmp.bmWidth = newWidth;
             pWin->pCaretInfo->caret_bmp.bmHeight= newHeight;
-            pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (__gal_screen, 
+            pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (__gal_screen,
                     newWidth, newHeight, &pWin->pCaretInfo->caret_bmp.bmPitch);
 
             // when the caret size big then original, re-malloc it
-            if (newWidth > pWin->pCaretInfo->nWidth 
+            if (newWidth > pWin->pCaretInfo->nWidth
                     || newHeight > pWin->pCaretInfo->nHeight) {
                 pWin->pCaretInfo->nWidth = newWidth;
                 pWin->pCaretInfo->nHeight = newHeight;
@@ -494,7 +499,7 @@ BOOL GUIAPI ChangeCaretSize (HWND hWnd, int newWidth, int newHeight)
                 pWin->pCaretInfo->pNormal = malloc (pWin->pCaretInfo->nBytesNr);
                 pWin->pCaretInfo->pXored  = malloc (pWin->pCaretInfo->nBytesNr);
             }
-            
+
             // save normal bitmap first
             GetCaretBitmaps (pWin->pCaretInfo);
 
@@ -502,7 +507,7 @@ BOOL GUIAPI ChangeCaretSize (HWND hWnd, int newWidth, int newHeight)
             hdc = GetClientDC (hWnd);
             pWin->pCaretInfo->caret_bmp.bmBits = pWin->pCaretInfo->pXored;
             FillBoxWithBitmap (hdc,
-                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0, 
+                        pWin->pCaretInfo->x, pWin->pCaretInfo->y, 0, 0,
                         &pWin->pCaretInfo->caret_bmp);
 
             ReleaseDC (hdc);

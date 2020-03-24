@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -72,8 +72,8 @@ static int kill_wvfb(void);
 
 int win_sleep(int usec)
 {
-	Sleep(usec);
-	return 0;
+    Sleep(usec);
+    return 0;
 }
 
 /* decide if win fb is available */
@@ -82,7 +82,7 @@ int win_PCXVFbAvailable (void)
     hMutex = CreateMutex (NULL, FALSE, "WVFBScreenObject");
     if (hMutex == NULL)
         return 0;
-	
+
     return 1;
 }
 
@@ -119,7 +119,7 @@ void* win_PCXVFbInit (char* execl_file, char* etc_param, const char *skin)
 
     // Initial for the socket ......
     wVersionRequested = MAKEWORD16 (2, 2);
-    if (0 != WSAStartup(wVersionRequested, &wsaData)) 
+    if (0 != WSAStartup(wVersionRequested, &wsaData))
     {
         return NULL;
     }
@@ -142,8 +142,8 @@ void* win_PCXVFbInit (char* execl_file, char* etc_param, const char *skin)
         color_num = 1 << depth;
 
     ZeroMemory(&pi,sizeof(PROCESS_INFORMATION));
-    ZeroMemory(&si,sizeof(STARTUPINFO));   
-    si.cb           = sizeof(STARTUPINFO);   
+    ZeroMemory(&si,sizeof(STARTUPINFO));
+    si.cb           = sizeof(STARTUPINFO);
     si.wShowWindow  = SW_SHOW;
     si.dwFlags      = STARTF_USESHOWWINDOW;
 
@@ -155,7 +155,7 @@ void* win_PCXVFbInit (char* execl_file, char* etc_param, const char *skin)
     ser_addr.sin_port = htons(pid); //port : use the pid
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    bind((SOCKET)__mg_pcxvfb_server_sockfd, 
+    bind((SOCKET)__mg_pcxvfb_server_sockfd,
             (struct sockaddr *)&ser_addr, sizeof(ser_addr));
 
     listen((SOCKET)__mg_pcxvfb_server_sockfd, 3);
@@ -175,8 +175,8 @@ void* win_PCXVFbInit (char* execl_file, char* etc_param, const char *skin)
     }
 
     client_len = sizeof(c_addr);
-    __mg_pcxvfb_client_sockfd = 
-        accept ((SOCKET)__mg_pcxvfb_server_sockfd, 
+    __mg_pcxvfb_client_sockfd =
+        accept ((SOCKET)__mg_pcxvfb_server_sockfd,
                 (struct sockaddr *)&c_addr, &client_len);
 
     datalen = pitch * height + color_num * sizeof(XVFBPalEntry) + sizeof(XVFBHeader);
@@ -199,11 +199,11 @@ void* win_PCXVFbInit (char* execl_file, char* etc_param, const char *skin)
         return 0;
     }
 
-    hScreen = CreateFileMapping(g_map_file_handle, NULL,PAGE_READWRITE,  0, datalen,  NULL);  
+    hScreen = CreateFileMapping(g_map_file_handle, NULL,PAGE_READWRITE,  0, datalen,  NULL);
 
     lpScreen =  MapViewOfFile(hScreen, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-    if (lpScreen == NULL) 
-    { 
+    if (lpScreen == NULL)
+    {
         fprintf(stderr, "WVFB NEWGAL Engine: Could not map view of file.");
         return NULL;
     }
@@ -220,10 +220,10 @@ void win_PCXVFbClose (void)
     CloseHandle (hScreen);
     CloseHandle (hMutex);
     CloseHandle(g_map_file_handle);
-	DeleteFile(g_map_file);
-	{
-		DWORD err = GetLastError();
-	}
+    DeleteFile(g_map_file);
+    {
+        DWORD err = GetLastError();
+    }
     /*
     if (__mg_pcxvfb_server_sockfd >=0 ){
         closesocket((SOCKET)__mg_pcxvfb_server_sockfd);
@@ -234,12 +234,12 @@ void win_PCXVFbClose (void)
         __mg_pcxvfb_client_sockfd = -1;
     }
     */
-	WSACleanup();
+    WSACleanup();
 }
 
 /* extern for pcxvfbial.c to close socket fd */
 int win_PCXVFbCloseSocket (int sockfd)
 {
-	return closesocket((SOCKET)sockfd);
+    return closesocket((SOCKET)sockfd);
 }
 #endif /* _PCXFB_ENGINE*/

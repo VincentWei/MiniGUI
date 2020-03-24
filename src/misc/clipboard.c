@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -163,7 +163,7 @@ int GUIAPI CreateClipBoard (const char* cb_name, size_t size)
 
 #endif
 
-int GUIAPI destroy_clip_board (const char* cb_name)
+static int destroy_clip_board (const char* cb_name)
 {
     int i;
 
@@ -269,7 +269,7 @@ int GUIAPI SetClipBoardData (const char* cb_name, void* data, size_t n, int cbop
     }
     else {
         REQ_CLIPBOARD* req_data;
-        REQUEST request; 
+        REQUEST request;
         int ret;
 
         req_data = ALLOCATE_LOCAL (sizeof (REQ_CLIPBOARD) + n);
@@ -541,7 +541,7 @@ int GUIAPI GetClipBoardByte (const char* cb_name, int index, unsigned char* byte
 #ifdef _MGRM_PROCESSES
 int ServerSendReply (int clifd, const void* reply, int len);
 
-int clipboard_op (int cli, int clifd, void* buff, size_t len)
+int __mg_clipboard_op (int cli, int clifd, void* buff, size_t len)
 {
     REQ_CLIPBOARD* request = (REQ_CLIPBOARD*) buff;
     int ret;
@@ -556,7 +556,7 @@ int clipboard_op (int cli, int clifd, void* buff, size_t len)
             break;
 
         case CBREQ_SETDATA:
-            ret = set_clip_board_data (request->name, (char*)buff + sizeof(REQ_CLIPBOARD), 
+            ret = set_clip_board_data (request->name, (char*)buff + sizeof(REQ_CLIPBOARD),
                                        request->len_data, request->cbop);
             break;
 

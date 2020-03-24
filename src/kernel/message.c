@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -66,6 +66,12 @@
 #include "internals.h"
 #include "ctrlclass.h"
 #include "timer.h"
+#include "misc.h"
+#include "debug.h"
+
+#ifdef HAVE_SELECT
+#include "mgsock.h"
+#endif
 
 #ifdef _MGRM_PROCESSES
 #include "sharedres.h"
@@ -78,44 +84,60 @@
 
 /******************************************************************************/
 
-#ifdef _MGRM_THREADS
+#if 0   /* deprecated code */
+/* since 5.0.0, we use post_quit_to_all_message_threads instead */
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 
-  #define SET_PADD(value) pMsg->pAdd = value
-  #define SYNMSGNAME pMsg->pAdd?"Sync":"Normal"
+  #define SET_PADD(value) pMsg->pSyncMsg = value
+  #define SYNMSGNAME pMsg->pSyncMsg?"Sync":"Normal"
 
-#else
+  /* XXX: Need desktop thread keep alive to wakeup sem_wait()
+     by delivering messages */
+  #define TEST_NEED_TO_QUIT(queue)                      \
+    ((__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) && \
+     ((queue)!=__mg_dsk_msg_queue))
+#else /* defined _MGHAVE_VIRTUAL_WINDOW */
 
   #define SET_PADD(value)
   #define SYNMSGNAME "Normal"
+  #define TEST_NEED_TO_QUIT(queue)                     \
+    (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE)
 
-#endif
+#endif /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
-#ifdef _MGRM_THREADS
-/* XXX: Need desktop thread keep alive to wakeup sem_wait() by delivering messages */
-#   define TEST_NEED_TO_QUIT(queue) ((__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE) && ((queue)!=__mg_dsk_msg_queue))
+#define TEST_IF_QUIT(queue, hWnd)                       \
+    do {                                                \
+        if (TEST_NEED_TO_QUIT(queue)) {                 \
+            LOCK_MSGQ (queue);                          \
+            if (!(queue->dwState & QS_QUIT)){           \
+                queue->loop_depth++;                    \
+                queue->dwState |= QS_QUIT;              \
+                UNLOCK_MSGQ (queue);                    \
+                if (IsDialog(hWnd)) {                   \
+                    EndDialog (hWnd, IDCANCEL);         \
+                }                                       \
+                else {                                  \
+                    DestroyMainWindow (hWnd);           \
+                }                                       \
+            } else {                                    \
+                UNLOCK_MSGQ (queue);                    \
+            }                                           \
+        }                                               \
+    } while (0)
+#endif  /* deprecated code */
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+#   define SET_PADD(value) pMsg->pSyncMsg = value
 #else
-#   define TEST_NEED_TO_QUIT(queue) (__mg_quiting_stage <= _MG_QUITING_STAGE_FORCE)
+#   define SET_PADD(value)
 #endif
-#define TEST_IF_QUIT(queue, hWnd) do { \
-    if (TEST_NEED_TO_QUIT(queue)) { \
-        /* printf("force to quit, queue=%p\n", queue); */ \
-        LOCK_MSGQ (queue); \
-        if (!(queue->dwState & QS_QUIT)){ \
-            queue->loop_depth ++; \
-            queue->dwState |= QS_QUIT; \
-            UNLOCK_MSGQ (queue); \
-            if (IsDialog(hWnd)) { \
-                EndDialog (hWnd, IDCANCEL); \
-            } else { \
-                DestroyMainWindow (hWnd); \
-            } \
-        } else { \
-            UNLOCK_MSGQ (queue); \
-        } \
-    } \
-} while (0)
 
-#define ERR_MSG_CANCELED    ERR_QUEUE_FULL
+#define TEST_IF_QUIT(queue, hWnd)
+
+#define ALLOCQMSG()         (PQMSG)BlockDataAlloc(&QMSGHeap)
+#define FREEQMSG(pqmsg)     BlockDataFree(&QMSGHeap, pqmsg)
+#define GETWNDPROC(hWnd)    (((PMAINWIN)hWnd)->MainWindowProc)
+#define GETNOTIFPROC(hWnd)  (((PMAINWIN)hWnd)->NotifProc)
 
 /****************************** Message Allocation ****************************/
 static BLOCKHEAP QMSGHeap;
@@ -132,17 +154,155 @@ void mg_DestroyFreeQMSGList (void)
     DestroyBlockDataHeap (&QMSGHeap);
 }
 
-inline static PQMSG QMSGAlloc (void)
-{
-    return (PQMSG) BlockDataAlloc (&QMSGHeap);
-}
-
-inline static void FreeQMSG (PQMSG pqmsg)
-{
-    BlockDataFree (&QMSGHeap, pqmsg);
-}
-
 /****************************** Message Queue Management ************************/
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+pthread_key_t __mg_threadinfo_key;
+#endif
+
+MSGQUEUE* mg_AllocMsgQueueForThisThread (void)
+{
+    MSGQUEUE* pMsgQueue;
+
+    if (!(pMsgQueue = malloc (sizeof(MSGQUEUE)))) {
+        return NULL;
+    }
+
+    if (!mg_InitMsgQueue (pMsgQueue, 0)) {
+        free (pMsgQueue);
+        return NULL;
+    }
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    pMsgQueue->th = pthread_self();
+    pthread_setspecific (__mg_threadinfo_key, pMsgQueue);
+#endif
+
+    // register this new message queue
+    SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+            MSGTHREAD_SIGNIN, (LPARAM)pMsgQueue);
+    return pMsgQueue;
+}
+
+void mg_FreeMsgQueueForThisThread (void)
+{
+    MSGQUEUE* pMsgQueue;
+
+    pMsgQueue = getMsgQueueForThisThread ();
+
+    if (pMsgQueue) {
+        if (pMsgQueue->nrWindows > 0) {
+            _WRN_PRINTF ("there are still some windows not destroyed\n");
+        }
+
+        mg_DestroyMsgQueue (pMsgQueue);
+        free (pMsgQueue);
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+#ifdef __VXWORKS__
+        pthread_setspecific (__mg_threadinfo_key, (void*)-1);
+#else
+        pthread_setspecific (__mg_threadinfo_key, NULL);
+#endif
+#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
+    }
+    else {
+        _WRN_PRINTF ("message queue for this thread has gone\n");
+    }
+}
+
+static int handle_idle_message (MSGQUEUE* msg_queue)
+{
+    int n = 0;
+
+    msg_queue->idle_counter++;
+    if (msg_queue->idle_counter >= MAX_IDLE_COUNTER) {
+        // it is time to post MSG_IDLE to all windows in this thread.
+        MSG msg = { HWND_NULL, MSG_IDLE, __mg_tick_counter, 0 };
+        n = __mg_broadcast_message (msg_queue, &msg);
+        msg_queue->idle_counter = 0;
+    }
+
+    return n;
+}
+
+#ifdef HAVE_SELECT
+/* the idle handler for a message queue with checking listening fds */
+static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
+{
+    int retval, n = 0;
+    fd_set rset, wset, eset;
+    fd_set* rsetptr = NULL;
+    fd_set* wsetptr = NULL;
+    fd_set* esetptr = NULL;
+    struct timeval sel_timeout;
+
+    if (wait) {
+        sel_timeout.tv_sec = 0;
+        sel_timeout.tv_usec = USEC_10MS;
+    }
+    else {
+        sel_timeout.tv_sec = 0;
+        sel_timeout.tv_usec = 0;
+    }
+
+    /* a fdset got modified each time around */
+    if (msg_queue->nr_rfds) {
+        rset = msg_queue->rfdset;
+        rsetptr = &rset;
+    }
+    if (msg_queue->nr_wfds) {
+        wset = msg_queue->wfdset;
+        wsetptr = &wset;
+    }
+    if (msg_queue->nr_efds) {
+        eset = msg_queue->efdset;
+        esetptr = &eset;
+    }
+
+    if ((retval = select (msg_queue->maxfd + 1,
+            rsetptr, wsetptr, esetptr, &sel_timeout)) < 0) {
+        /* no event. */
+        if (errno != EINTR) {
+            _WRN_PRINTF ("unexpected error of select(): %m\n");
+        }
+        return FALSE;
+    }
+
+    n += __mg_check_expired_timers (msg_queue,
+            __mg_tick_counter - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = __mg_tick_counter;
+
+    if (rsetptr || wsetptr || esetptr) {
+        n += __mg_kernel_check_listen_fds (msg_queue, rsetptr, wsetptr, esetptr);
+    }
+
+    return n > 0;
+}
+
+#else   /* defined HAVE_SELECT */
+
+static BOOL std_idle_handler (MSGQUEUE* msg_queue, BOOL wait)
+{
+    int n = 0;
+    long timeout_ms;
+
+    if (wait) {
+        timeout_ms = 10;
+    }
+    else {
+        timeout_ms = 0;
+    }
+
+    if (timeout_ms > 0)
+        __mg_os_time_delay (timeout_ms);
+
+    n = __mg_check_expired_timers (msg_queue,
+            __mg_tick_counter - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = __mg_tick_counter;
+    return n > 0;
+}
+
+#endif  /* not defined HAVE_SELECT */
 
 BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 {
@@ -150,10 +310,24 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
 
     pMsgQueue->dwState = QS_EMPTY;
 
-#ifdef _MGRM_THREADS
-    pthread_mutex_init (&pMsgQueue->lock, NULL);
-    sem_init (&pMsgQueue->wait, 0, 0);
-    sem_init (&pMsgQueue->sync_msg, 0, 0);
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    /* since 5.0.0, we use recursive lock */
+    {
+        int ret;
+        pthread_mutexattr_t my_attr;
+
+        ret = pthread_mutexattr_init (&my_attr);
+        if (ret) return FALSE;
+        ret = pthread_mutexattr_settype (&my_attr, PTHREAD_MUTEX_RECURSIVE);
+        if (ret) return FALSE;
+        ret = pthread_mutex_init (&pMsgQueue->lock, &my_attr);
+        if (ret) return FALSE;
+        ret = pthread_mutexattr_destroy (&my_attr);
+        if (ret) return FALSE;
+        ret = sem_init (&pMsgQueue->wait, 0, 0);
+        if (ret) return FALSE;
+        //sem_init (&pMsgQueue->sync_msg, 0, 0);
+    }
 #endif
 
     if (iBufferLen <= 0)
@@ -162,18 +336,37 @@ BOOL mg_InitMsgQueue (PMSGQUEUE pMsgQueue, int iBufferLen)
     pMsgQueue->msg = malloc (sizeof (MSG) * iBufferLen);
 
     if (!pMsgQueue->msg) {
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
         pthread_mutex_destroy (&pMsgQueue->lock);
         sem_destroy (&pMsgQueue->wait);
-        sem_destroy (&pMsgQueue->sync_msg);
+        //sem_destroy (&pMsgQueue->sync_msg);
         return FALSE;
 #endif
     }
 
     pMsgQueue->len = iBufferLen;
 
-    pMsgQueue->FirstTimerSlot = 0;
-    pMsgQueue->TimerMask = 0;
+    pMsgQueue->OnIdle = std_idle_handler;
+
+    /* Since 5.0.0, MiniGUI provides support for timers per message thread */
+    // pMsgQueue->first_timer_slot = 0;
+    // pMsgQueue->expired_timer_mask = 0;
+    // memset (pMsgQueue->timer_slots, 0, sizeof (pMsgQueue->timer_slots));
+    pMsgQueue->old_tick_count = __mg_tick_counter;
+
+#ifdef HAVE_SELECT
+    /* Since 5.0.0, MiniGUI supports listening file descriptors
+       per message thread */
+    // pMsgQueue->nr_fd_slots = 0;
+    // pMsgQueue->maxfd = 0;
+    // pMsgQueue->nr_rfds = 0;
+    // pMsgQueue->nr_wfds = 0;
+    // pMsgQueue->nr_efds = 0;
+    // pMsgQueue->fd_slots = NULL;
+    mg_fd_zero (&pMsgQueue->rfdset);
+    mg_fd_zero (&pMsgQueue->wfdset);
+    mg_fd_zero (&pMsgQueue->efdset);
+#endif
 
     return TRUE;
 }
@@ -183,40 +376,29 @@ void mg_DestroyMsgQueue (PMSGQUEUE pMsgQueue)
     PQMSG head;
     PQMSG next;
 
+    if (pMsgQueue->nrWindows > 0) {
+        _WRN_PRINTF ("There are still some windows not destroyed.\n");
+    }
+
     head = next = pMsgQueue->pFirstNotifyMsg;
     while (head) {
         next = head->next;
 
-        FreeQMSG (head);
+        FREEQMSG (head);
         head = next;
     }
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_destroy (&pMsgQueue->lock);
     sem_destroy (&pMsgQueue->wait);
-    sem_destroy (&pMsgQueue->sync_msg);
+    //sem_destroy (&pMsgQueue->sync_msg);
 #endif
 
-    mg_remove_timers_by_msg_queue (pMsgQueue);
+    __mg_remove_timers_by_msg_queue (pMsgQueue);
 
     if (pMsgQueue->msg)
         free (pMsgQueue->msg);
     pMsgQueue->msg = NULL;
-}
-
-/*
- * hWnd may belong to a different thread,
- * so this function should be thread-safe
- */
-PMSGQUEUE kernel_GetMsgQueue (HWND hWnd)
-{
-    PMAINWIN pWin;
-
-    pWin = getMainWindowPtr(hWnd);
-
-    if (pWin)
-        return pWin->pMessages;
-    return NULL;
 }
 
 /* post a message to a message queue */
@@ -227,7 +409,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
 
     LOCK_MSGQ(msg_que);
 
-    msg->time = __mg_timer_counter;
+    msg->time = __mg_tick_counter;
 
     /* check for the duplicated messages */
     if (msg->message == MSG_MOUSEMOVE
@@ -278,6 +460,7 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
     }
 
     if ((msg_que->writepos + 1) % msg_que->len == msg_que->readpos) {
+        // message queue is full.
         UNLOCK_MSGQ(msg_que);
         return FALSE;
     }
@@ -285,19 +468,15 @@ BOOL kernel_QueueMessage (PMSGQUEUE msg_que, PMSG msg)
     /* Write the data and advance write pointer */
     msg_que->msg [msg_que->writepos] = *msg;
     msg_que->writepos++;
-#if 0
-    if (msg_que->writepos >= msg_que->len) msg_que->writepos = 0;
-#else
     msg_que->writepos %= msg_que->len;
-#endif
 
 ret:
     msg_que->dwState |= QS_POSTMSG;
 
     UNLOCK_MSGQ (msg_que);
 
-#ifdef _MGRM_THREADS
-    if (!BE_THIS_THREAD (msg->hwnd))
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!getMainWinIfWindowInThisThread (msg->hwnd))
         POST_MSGQ (msg_que);
 #endif
 
@@ -306,15 +485,14 @@ ret:
 
 /******************************************************************************/
 
-static inline WNDPROC GetWndProc (HWND hWnd)
-{
-     return ((PMAINWIN)hWnd)->MainWindowProc;
-}
-
 HWND kernel_CheckInvalidRegion (PMAINWIN pWin)
 {
     PCONTROL pCtrl = (PCONTROL)pWin;
     HWND hwnd;
+
+    /* Since 5.0.0: skip virtual window */
+    if (pWin->WinType == TYPE_VIRTWIN)
+        return HWND_NULL;
 
     if (pCtrl->InvRgn.rgn.head)
         return (HWND)pCtrl;
@@ -331,25 +509,14 @@ HWND kernel_CheckInvalidRegion (PMAINWIN pWin)
     return HWND_NULL;
 }
 
-#if 0
-static PMAINWIN msgGetHostingRoot (PMAINWIN pHosted)
-{
-    PMAINWIN pHosting;
-
-    pHosting = pHosted->pHosting;
-    if (pHosting)
-        return msgGetHostingRoot (pHosting);
-
-    return pHosted;
-}
-#endif
-
 static HWND msgCheckHostedTree (PMAINWIN pHosting)
 {
     HWND hNeedPaint;
     PMAINWIN pHosted;
 
-    if ((hNeedPaint = kernel_CheckInvalidRegion (pHosting)))
+    /* Since 5.0.0: always skip desktop */
+    if (pHosting != __mg_dsk_win &&
+            (hNeedPaint = kernel_CheckInvalidRegion (pHosting)))
         return hNeedPaint;
 
     pHosted = pHosting->pFirstHosted;
@@ -367,16 +534,16 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 {
     PMSGQUEUE pMsgQueue;
 
-    if (hWnd == 0) {
-#ifdef _MGRM_THREADS
-        if (!(pMsgQueue = GetMsgQueueThisThread ()))
+    if (hWnd == HWND_NULL) {
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        if (!(pMsgQueue = getMsgQueueForThisThread ()))
             return FALSE;
 #else
         pMsgQueue = __mg_dsk_msg_queue;
 #endif
     }
     else {
-        if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
+        if (!(pMsgQueue = getMsgQueueIfWindowInThisThread (hWnd)))
             return FALSE;
     }
 
@@ -384,7 +551,7 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
 
     LOCK_MSGQ (pMsgQueue);
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     if (pMsgQueue->dwState & QS_SYNCMSG) {
         if (pMsgQueue->pFirstSyncMsg) goto retok;
     }
@@ -402,25 +569,24 @@ BOOL GUIAPI HavePendingMessageEx (HWND hWnd, BOOL bNoDeskTimer)
         goto retok;
     }
 
-    if (pMsgQueue->TimerMask)
+    if (pMsgQueue->expired_timer_mask)
         goto retok;
-#ifndef _MGRM_THREADS
+
     /*
-     * FIXME
      * We do not need to check QS_DESKTIMER, because it is for the
      * desktop window, and user don't care it.
      */
-    if (!bNoDeskTimer && (pMsgQueue->dwState & QS_DESKTIMER)) {
+    if (!bNoDeskTimer && pMsgQueue == __mg_dsk_msg_queue &&
+            (pMsgQueue->dwState & QS_DESKTIMER)) {
         goto retok;
     }
-#endif
 
     UNLOCK_MSGQ (pMsgQueue);
-#ifndef _MGRM_THREADS
-    return pMsgQueue->OnIdle (NULL);
-#else
+
+    /* Since 5.0.0, always call OnIdle with no wait */
+    if (pMsgQueue->OnIdle)
+        return pMsgQueue->OnIdle (pMsgQueue, FALSE);
     return FALSE;
-#endif
 
 retok:
     UNLOCK_MSGQ (pMsgQueue);
@@ -442,6 +608,66 @@ int GUIAPI BroadcastMessage (UINT nMsg, WPARAM wParam, LPARAM lParam)
 
     return SendMessage (HWND_DESKTOP, MSG_BROADCASTMSG, 0, (LPARAM)(&msg));
 }
+
+static void travel_all_hosted (PMAINWIN pWin,
+    void (*cb) (PMAINWIN, void*), void* data)
+{
+    PMAINWIN pNext = pWin->pFirstHosted;
+
+    while (pNext) {
+
+        travel_all_hosted (pNext, cb, data);
+        cb (pNext, data);
+
+        pNext = pNext->pNextHosted;
+    }
+}
+
+static void _my_travel_cb (PMAINWIN win, void* data)
+{
+    MSG* msg = (MSG*)data;
+
+    msg->hwnd = (HWND)win;
+    if (kernel_QueueMessage (win->pMsgQueue, msg)) {
+        msg->time++;
+    }
+}
+
+int __mg_broadcast_message (PMSGQUEUE msg_queue, MSG* msg)
+{
+    PMAINWIN win;
+
+    msg->time = 0;
+
+    if ((win = msg_queue->pRootMainWin)) {
+        travel_all_hosted (win, _my_travel_cb, msg);
+        _my_travel_cb (win, msg);
+    }
+
+    return (int)msg->time;
+}
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+int GUIAPI BroadcastMessageInThisThread (UINT nMsg,
+        WPARAM wParam, LPARAM lParam)
+{
+    MSGQUEUE* pMsgQueue;
+    MSG msg = { HWND_NULL, nMsg, wParam, lParam };
+
+    pMsgQueue = (MSGQUEUE*)pthread_getspecific (__mg_threadinfo_key);
+#ifdef __VXWORKS__
+    if (pMsgQueue == (void *)-1) {
+        pMsgQueue = NULL;
+    }
+#endif
+
+    if (pMsgQueue == NULL)
+        return -1;
+
+    return __mg_broadcast_message (pMsgQueue, &msg);
+}
+
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
 #ifdef _MGHAVE_MSG_STRING
 #include "msgstr.h"
@@ -468,12 +694,11 @@ void GUIAPI PrintMessage (FILE* fp, HWND hWnd,
     fprintf (fp, "Message %s: hWnd: %p, wP: %p, lP: %p.\n",
              Message2Str (nMsg), hWnd, (PVOID)wParam, (PVOID)lParam);
 }
-
-#endif
+#endif /* defined _MGHAVE_MSG_STRING */
 
 static inline void CheckCapturedMouseMessage (PMSG pMsg)
 {
-    if (__mg_capture_wnd == pMsg->hwnd
+    if (__mg_captured_wnd == pMsg->hwnd
             && pMsg->message >= MSG_FIRSTMOUSEMSG
             && pMsg->message <= MSG_LASTMOUSEMSG
             && !(pMsg->wParam & KS_CAPTURED)) {
@@ -489,22 +714,23 @@ static inline void CheckCapturedMouseMessage (PMSG pMsg)
 }
 
 #define IS_MSG_WANTED(message) \
-        ( (nMsgFilterMin <= 0 && nMsgFilterMax <= 0) || \
+        ((nMsgFilterMin <= 0 && nMsgFilterMax <= 0) || \
           (nMsgFilterMin > 0 && nMsgFilterMax >= nMsgFilterMin && \
-           message >= nMsgFilterMin && message <= nMsgFilterMax) )
+           message >= nMsgFilterMin && message <= nMsgFilterMax))
 
-BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax,
-                          BOOL bWait, UINT uRemoveMsg)
+BOOL PeekMessageEx (PMSG pMsg, HWND hWnd,
+        UINT nMsgFilterMin, UINT nMsgFilterMax, BOOL bWait, UINT uRemoveMsg)
 {
     PMSGQUEUE pMsgQueue;
     PQMSG phead;
 
-    if (!pMsg || (hWnd != HWND_DESKTOP && !MG_IS_MAIN_WINDOW(hWnd)))
+    if (MG_UNLIKELY (pMsg == NULL ||
+                (hWnd != HWND_DESKTOP && !MG_IS_MAIN_VIRT_WINDOW (hWnd))))
         return FALSE;
 
-#ifdef _MGRM_THREADS
-    if (!(pMsgQueue = GetMsgQueueThisThread ())) {
-        _WRN_PRINTF ("Kernel>message: no message queue.\n");
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!(pMsgQueue = getMsgQueueForThisThread ())) {
+        _WRN_PRINTF ("not a message thread.\n");
         return FALSE;
     }
 #else
@@ -512,13 +738,11 @@ BOOL PeekMessageEx (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin, UINT nMsgFilterMax
 #endif
 
     memset (pMsg, 0, sizeof(MSG));
-#ifdef _MGRM_PROCESSES
-    pMsg->time = SHAREDRES_TIMER_COUNTER;
-#else
-    pMsg->time = __mg_timer_counter;
-#endif
+    pMsg->time = __mg_tick_counter;
 
 checkagain:
+
+    TEST_CANCEL;
 
     TEST_IF_QUIT(pMsgQueue, hWnd);
 
@@ -543,18 +767,18 @@ checkagain:
     }
 
     /* Dealing with sync messages before notify messages is better ? */
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     if (pMsgQueue->dwState & QS_SYNCMSG) {
         if (pMsgQueue->pFirstSyncMsg) {
             *pMsg = pMsgQueue->pFirstSyncMsg->Msg;
             SET_PADD (pMsgQueue->pFirstSyncMsg);
             if (IS_MSG_WANTED(pMsg->message)) {
-              if (uRemoveMsg == PM_REMOVE) {
-                  pMsgQueue->pFirstSyncMsg = pMsgQueue->pFirstSyncMsg->pNext;
-              }
+                if (uRemoveMsg == PM_REMOVE) {
+                    pMsgQueue->pFirstSyncMsg = pMsgQueue->pFirstSyncMsg->pNext;
+                }
 
-              UNLOCK_MSGQ (pMsgQueue);
-              return TRUE;
+                UNLOCK_MSGQ (pMsgQueue);
+                goto got_ret;
             }
         }
         else
@@ -569,13 +793,15 @@ checkagain:
             SET_PADD (NULL);
 
             if (IS_MSG_WANTED(pMsg->message)) {
-              if (uRemoveMsg == PM_REMOVE) {
-                  pMsgQueue->pFirstNotifyMsg = phead->next;
-                  FreeQMSG (phead);
-              }
+                if (uRemoveMsg == PM_REMOVE) {
+                    pMsgQueue->pFirstNotifyMsg = phead->next;
+                    if (pMsgQueue->pFirstNotifyMsg == NULL)
+                        pMsgQueue->pLastNotifyMsg = NULL;
+                    FREEQMSG (phead);
+                }
 
-              UNLOCK_MSGQ (pMsgQueue);
-              return TRUE;
+                UNLOCK_MSGQ (pMsgQueue);
+                goto got_ret;
             }
         }
         else
@@ -590,16 +816,11 @@ checkagain:
                 CheckCapturedMouseMessage (pMsg);
                 if (uRemoveMsg == PM_REMOVE) {
                     pMsgQueue->readpos++;
-#if 0
-                    if (pMsgQueue->readpos >= pMsgQueue->len)
-                        pMsgQueue->readpos = 0;
-#else
                     pMsgQueue->readpos %= pMsgQueue->len;
-#endif
                 }
 
                 UNLOCK_MSGQ (pMsgQueue);
-                return TRUE;
+                goto got_ret;
             }
         }
         else
@@ -609,57 +830,35 @@ checkagain:
     /*
      * check invalidate region of the windows
      */
-
     if (pMsgQueue->dwState & QS_PAINT && IS_MSG_WANTED(MSG_PAINT)) {
         PMAINWIN pHostingRoot;
         HWND hNeedPaint;
         PMAINWIN pWin;
-
-#ifdef _MGRM_THREADS
-        /* REMIND this */
-        if (hWnd == HWND_DESKTOP) {
-            pMsg->hwnd = hWnd;
-            pMsg->message = MSG_PAINT;
-            pMsg->wParam = 0;
-            pMsg->lParam = 0;
-            SET_PADD (NULL);
-
-            if (uRemoveMsg == PM_REMOVE) {
-                pMsgQueue->dwState &= ~QS_PAINT;
-            }
-            UNLOCK_MSGQ (pMsgQueue);
-            return TRUE;
-        }
-#endif
 
         pMsg->message = MSG_PAINT;
         pMsg->wParam = 0;
         pMsg->lParam = 0;
         SET_PADD (NULL);
 
-#ifndef _MGRM_THREADS
-        pHostingRoot = __mg_dsk_win;
-#else
         pHostingRoot = pMsgQueue->pRootMainWin;
-#endif
 
-        if ( (hNeedPaint = msgCheckHostedTree (pHostingRoot)) ) {
+        if ((hNeedPaint = msgCheckHostedTree (pHostingRoot))) {
             pMsg->hwnd = hNeedPaint;
+
+            //dump_window (hNeedPaint, "repainting");
+
             pWin = (PMAINWIN) hNeedPaint;
             pMsg->lParam = (LPARAM)(&pWin->InvRgn.rgn);
             UNLOCK_MSGQ (pMsgQueue);
-            return TRUE;
+            goto got_ret;
         }
 
         /* no paint message */
         pMsgQueue->dwState &= ~QS_PAINT;
     }
 
-    /*
-     * handle timer here
-     */
-#ifndef _MGRM_THREADS
-    if (pMsgQueue->dwState & QS_DESKTIMER) {
+    /* handle desktop timer here */
+    if (pMsgQueue == __mg_dsk_msg_queue && pMsgQueue->dwState & QS_DESKTIMER) {
         pMsg->hwnd = HWND_DESKTOP;
         pMsg->message = MSG_TIMER;
         pMsg->wParam = 0;
@@ -668,49 +867,35 @@ checkagain:
         if (uRemoveMsg == PM_REMOVE) {
             pMsgQueue->dwState &= ~QS_DESKTIMER;
         }
-        return TRUE;
-    }
-#endif
 
-    if (pMsgQueue->TimerMask && IS_MSG_WANTED(MSG_TIMER)) {
+        UNLOCK_MSGQ (pMsgQueue);
+        goto got_ret;
+    }
+
+    /* handle general timer here */
+    if (pMsgQueue->expired_timer_mask && IS_MSG_WANTED(MSG_TIMER)) {
         int slot;
         TIMER* timer;
 
-#ifdef _MGRM_THREADS
-        if (hWnd == HWND_DESKTOP) {
-            pMsg->hwnd = hWnd;
-            pMsg->message = MSG_TIMER;
-            pMsg->wParam = 0;
-            pMsg->lParam = 0;
-            SET_PADD (NULL);
-
-            if (uRemoveMsg == PM_REMOVE) {
-                pMsgQueue->TimerMask = 0;
-            }
-            UNLOCK_MSGQ (pMsgQueue);
-            return TRUE;
-        }
-#endif
-
         /* get the first expired timer slot */
-        slot = pMsgQueue->FirstTimerSlot;
+        slot = pMsgQueue->first_timer_slot;
         do {
-            if (pMsgQueue->TimerMask & (0x01UL << slot))
+            if (pMsgQueue->expired_timer_mask & (0x01UL << slot))
                 break;
 
             slot ++;
             slot %= DEF_NR_TIMERS;
-            if (slot == pMsgQueue->FirstTimerSlot) {
+            if (slot == pMsgQueue->first_timer_slot) {
                 slot = -1;
                 break;
             }
         } while (TRUE);
 
-        pMsgQueue->FirstTimerSlot ++;
-        pMsgQueue->FirstTimerSlot %= DEF_NR_TIMERS;
+        pMsgQueue->first_timer_slot ++;
+        pMsgQueue->first_timer_slot %= DEF_NR_TIMERS;
 
-        if ((timer = __mg_get_timer (slot))) {
-            pMsgQueue->TimerMask &= ~(0x01UL << slot);
+        if ((timer = pMsgQueue->timer_slots[slot])) {
+            pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
 
             if (timer->proc) {
                 BOOL ret_timer_proc;
@@ -720,14 +905,14 @@ checkagain:
 
                 /* calling the timer callback procedure */
                 ret_timer_proc = timer->proc (timer->hWnd,
-                        timer->id, timer->tick_count);
+                        timer->id, timer->ticks_fired);
 
                 /* lock the message queue again */
                 LOCK_MSGQ (pMsgQueue);
 
                 if (!ret_timer_proc) {
                     /* remove the timer */
-                    __mg_remove_timer (timer, slot);
+                    __mg_remove_timer (pMsgQueue, slot);
                 }
                 UNLOCK_MSGQ (pMsgQueue);
                 goto checkagain;
@@ -736,37 +921,59 @@ checkagain:
                 pMsg->message = MSG_TIMER;
                 pMsg->hwnd = timer->hWnd;
                 pMsg->wParam = timer->id;
-                pMsg->lParam = timer->tick_count;
+                pMsg->lParam = timer->ticks_fired;
                 SET_PADD (NULL);
 
                 UNLOCK_MSGQ (pMsgQueue);
-                return TRUE;
+                goto got_ret;
             }
         }
     }
 
     UNLOCK_MSGQ (pMsgQueue);
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     if (bWait) {
         /* no message, wait again. */
-        sem_wait (&pMsgQueue->wait);
+        if (pMsgQueue->OnIdle) {
+            if (sem_trywait (&pMsgQueue->wait) == 0)
+                goto checkagain;
+
+            if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+                handle_idle_message (pMsgQueue);
+            }
+        }
+        else {
+            sem_wait (&pMsgQueue->wait);
+        }
+
         goto checkagain;
     }
-#else
+#else   /* defined _MGHAVE_VIRTUAL_WINDOW */
     /* no message, idle */
     if (bWait) {
-         pMsgQueue->OnIdle (pMsgQueue);
-         goto checkagain;
+        assert (pMsgQueue->OnIdle);
+        if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+            handle_idle_message (pMsgQueue);
+        }
+        goto checkagain;
     }
-#endif
+#endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
     /* no message */
     return FALSE;
+
+got_ret:
+    if (pMsg->hwnd != HWND_DESKTOP) {
+        /* since 5.0.0, reset idle counter */
+        pMsgQueue->idle_counter = 0;
+    }
+
+    return TRUE;
 }
 
-/*
-The following two functions are moved to window.h as inline functions.
+#if 0   /* moved code */
+/* The following two functions are moved to window.h as inline functions. */
 int GUIAPI GetMessage (PMSG pMsg, HWND hWnd)
 {
     return PeekMessageEx (pMsg, hWnd, 0, 0, TRUE, PM_REMOVE);
@@ -778,7 +985,7 @@ BOOL GUIAPI PeekMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
     return PeekMessageEx (pMsg, hWnd, nMsgFilterMin, nMsgFilterMax,
                            FALSE, uRemoveMsg);
 }
-*/
+#endif  /* moved code */
 
 /* wait for message */
 BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hWnd)
@@ -788,12 +995,16 @@ BOOL GUIAPI WaitMessage (PMSG pMsg, HWND hWnd)
     if (!pMsg)
         return FALSE;
 
-    if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread(hWnd)))
         return FALSE;
+
+    pMsgQueue->idle_counter = 0;
 
     memset (pMsg, 0, sizeof(MSG));
 
 checkagain:
+
+    TEST_CANCEL;
 
     TEST_IF_QUIT(pMsgQueue, hWnd);
 
@@ -803,7 +1014,7 @@ checkagain:
         goto getit;
     }
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     if (pMsgQueue->dwState & QS_SYNCMSG) {
         if (pMsgQueue->pFirstSyncMsg) {
             goto getit;
@@ -827,24 +1038,36 @@ checkagain:
         goto getit;
     }
 
-#ifndef _MGRM_THREADS
-    if (pMsgQueue->dwState & QS_DESKTIMER) {
-        goto getit;
-    }
-#endif
-
-    if (pMsgQueue->TimerMask) {
+    if (pMsgQueue == __mg_dsk_msg_queue && pMsgQueue->dwState & QS_DESKTIMER) {
         goto getit;
     }
 
-#ifdef _MGRM_THREADS
-    /* no message, wait again. */
+    if (pMsgQueue->expired_timer_mask) {
+        goto getit;
+    }
+
     UNLOCK_MSGQ (pMsgQueue);
-    sem_wait (&pMsgQueue->wait);
-#else
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    /* no message, try wait, if no message call idle. */
+    if (pMsgQueue->OnIdle) {
+        if (sem_trywait (&pMsgQueue->wait) == 0)
+            goto checkagain;
+
+        if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+            handle_idle_message (pMsgQueue);
+        }
+    }
+    else {
+        sem_wait (&pMsgQueue->wait);
+    }
+#else   /* defined _MGHAVE_VIRTUAL_WINDOW */
     /* no message, idle */
-    pMsgQueue->OnIdle (pMsgQueue);
-#endif
+    assert (pMsgQueue->OnIdle);
+    if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+        handle_idle_message (pMsgQueue);
+    }
+#endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
     goto checkagain;
 
@@ -862,7 +1085,7 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
     if (!pMsg)
         return FALSE;
 
-    if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread(hWnd)))
         return FALSE;
 
     LOCK_MSGQ (pMsgQueue);
@@ -887,12 +1110,7 @@ BOOL GUIAPI PeekPostMessage (PMSG pMsg, HWND hWnd, UINT nMsgFilterMin,
 
             if (uRemoveMsg == PM_REMOVE) {
                 pMsgQueue->readpos++;
-#if 0
-                if (pMsgQueue->readpos >= pMsgQueue->len)
-                    pMsgQueue->readpos = 0;
-#else
                 pMsgQueue->readpos %= pMsgQueue->len;
-#endif
             }
 
             UNLOCK_MSGQ (pMsgQueue);
@@ -909,32 +1127,34 @@ LRESULT GUIAPI SendMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
 {
     WNDPROC WndProc;
 
-    MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
+    MG_CHECK_RET (MG_IS_WINDOW(hWnd), ERR_INV_HWND);
 
-#ifdef _MGRM_THREADS
-    if (!BE_THIS_THREAD(hWnd))
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!getMainWinIfWindowInThisThread (hWnd))
         return SendSyncMessage (hWnd, nMsg, wParam, lParam);
 #endif
 
-    if ( !(WndProc = GetWndProc(hWnd)) )
+    if (!(WndProc = GETWNDPROC(hWnd)))
         return ERR_INV_HWND;
 
     return (*WndProc)(hWnd, nMsg, wParam, lParam);
 
 }
 
-/* houhh 20090619, send notify message to topmost of queue.*/
-LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+/* Since 5.0.0, delcare as a GUIAPI */
+/* houhh 20090619, send a prior notify message. */
+int GUIAPI SendPriorNotifyMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam)
 {
     PMSGQUEUE pMsgQueue;
     PQMSG pqmsg;
 
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), ERR_INV_HWND);
 
-    if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueue(hWnd)))
         return ERR_INV_HWND;
 
-    pqmsg = QMSGAlloc();
+    pqmsg = ALLOCQMSG();
 
     LOCK_MSGQ (pMsgQueue);
 
@@ -943,6 +1163,7 @@ LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
     pqmsg->Msg.message = nMsg;
     pqmsg->Msg.wParam = wParam;
     pqmsg->Msg.lParam = lParam;
+    pqmsg->Msg.time = __mg_tick_counter;
     pqmsg->next = NULL;
 
     if (pMsgQueue->pFirstNotifyMsg == NULL) {
@@ -956,8 +1177,8 @@ LRESULT SendTopNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
     pMsgQueue->dwState |= QS_NOTIFYMSG;
 
     UNLOCK_MSGQ (pMsgQueue);
-#ifdef _MGRM_THREADS
-    if ( !BE_THIS_THREAD(hWnd) )
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!getMainWinIfWindowInThisThread(hWnd))
         POST_MSGQ(pMsgQueue);
 #endif
 
@@ -971,10 +1192,10 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
 
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), ERR_INV_HWND);
 
-    if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueue(hWnd)))
         return ERR_INV_HWND;
 
-    pqmsg = QMSGAlloc();
+    pqmsg = ALLOCQMSG();
 
     LOCK_MSGQ (pMsgQueue);
 
@@ -983,12 +1204,14 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
     pqmsg->Msg.message = nMsg;
     pqmsg->Msg.wParam = wParam;
     pqmsg->Msg.lParam = lParam;
+    pqmsg->Msg.time = __mg_tick_counter;
     pqmsg->next = NULL;
 
     if (pMsgQueue->pFirstNotifyMsg == NULL) {
         pMsgQueue->pFirstNotifyMsg = pMsgQueue->pLastNotifyMsg = pqmsg;
     }
     else {
+        assert (pMsgQueue->pLastNotifyMsg);
         pMsgQueue->pLastNotifyMsg->next = pqmsg;
         pMsgQueue->pLastNotifyMsg = pqmsg;
     }
@@ -996,8 +1219,50 @@ int GUIAPI SendNotifyMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam
     pMsgQueue->dwState |= QS_NOTIFYMSG;
 
     UNLOCK_MSGQ (pMsgQueue);
-#ifdef _MGRM_THREADS
-    if ( !BE_THIS_THREAD(hWnd) )
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!getMainWinIfWindowInThisThread(hWnd))
+        POST_MSGQ(pMsgQueue);
+#endif
+
+    return ERR_OK;
+}
+
+int GUIAPI NotifyWindow (HWND hWnd, LINT id, int code, DWORD dwAddData)
+{
+    PMSGQUEUE pMsgQueue;
+    PQMSG pqmsg;
+
+    MG_CHECK_RET (MG_IS_WINDOW(hWnd), ERR_INV_HWND);
+
+    if (!(pMsgQueue = getMsgQueue(hWnd)))
+        return ERR_INV_HWND;
+
+    pqmsg = ALLOCQMSG();
+
+    LOCK_MSGQ (pMsgQueue);
+
+    /* queue the notification message. */
+    pqmsg->Msg.hwnd = hWnd;
+    pqmsg->Msg.message = MSG_NOTIFICATION;
+    pqmsg->Msg.wParam = (WPARAM)id;
+    pqmsg->Msg.lParam = (LPARAM)code;
+    pqmsg->Msg.time = dwAddData;
+    pqmsg->next = NULL;
+
+    if (pMsgQueue->pFirstNotifyMsg == NULL) {
+        pMsgQueue->pFirstNotifyMsg = pMsgQueue->pLastNotifyMsg = pqmsg;
+    }
+    else {
+        assert (pMsgQueue->pLastNotifyMsg);
+        pMsgQueue->pLastNotifyMsg->next = pqmsg;
+        pMsgQueue->pLastNotifyMsg = pqmsg;
+    }
+
+    pMsgQueue->dwState |= QS_NOTIFYMSG;
+    UNLOCK_MSGQ (pMsgQueue);
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!getMainWinIfWindowInThisThread(hWnd))
         POST_MSGQ(pMsgQueue);
 #endif
 
@@ -1009,15 +1274,15 @@ int GUIAPI PostMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
     PMSGQUEUE pMsgQueue;
     MSG msg;
 
-    if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueue(hWnd)))
         return ERR_INV_HWND;
 
     if (nMsg == MSG_PAINT) {
         LOCK_MSGQ (pMsgQueue);
         pMsgQueue->dwState |= QS_PAINT;
         UNLOCK_MSGQ (pMsgQueue);
-#ifdef _MGRM_THREADS
-        if ( !BE_THIS_THREAD(hWnd) )
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        if (!getMainWinIfWindowInThisThread(hWnd))
             POST_MSGQ(pMsgQueue);
 #endif
         return ERR_OK;
@@ -1041,7 +1306,7 @@ int GUIAPI PostQuitMessage (HWND hWnd)
     if (hWnd && hWnd != HWND_INVALID) {
         PMAINWIN pWin = (PMAINWIN)hWnd;
         if (pWin->DataType == TYPE_HWND || pWin->DataType == TYPE_WINTODEL) {
-            pMsgQueue = pWin->pMainWin->pMessages;
+            pMsgQueue = pWin->pMainWin->pMsgQueue;
         }
     }
 
@@ -1055,8 +1320,8 @@ int GUIAPI PostQuitMessage (HWND hWnd)
     }
     UNLOCK_MSGQ (pMsgQueue);
 
-#ifdef _MGRM_THREADS
-    if (!BE_THIS_THREAD (hWnd))
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    if (!getMainWinIfWindowInThisThread (hWnd))
         POST_MSGQ (pMsgQueue);
 #endif
 
@@ -1068,7 +1333,7 @@ int GUIAPI PostQuitMessage (HWND hWnd)
 LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 {
     WNDPROC WndProc;
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     PSYNCMSG pSyncMsg;
 #endif
     LRESULT lRet;
@@ -1077,16 +1342,14 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 
 #ifdef _MGHAVE_TRACE_MSG
     if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
-        fprintf (stderr, "Message %u (%s): hWnd: %p, wP: %p, lP: %p. %s\n",
-            pMsg->message, Message2Str (pMsg->message),
-            pMsg->hwnd, (PVOID)pMsg->wParam, (PVOID)pMsg->lParam, SYNMSGNAME);
+        dump_message (pMsg, __func__);
     }
 #endif
 
     if (pMsg->hwnd == HWND_INVALID) {
-#ifdef _MGRM_THREADS
-        if (pMsg->pAdd) {
-            pSyncMsg = (PSYNCMSG)pMsg->pAdd;
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+        if (pMsg->pSyncMsg) {
+            pSyncMsg = (PSYNCMSG)pMsg->pSyncMsg;
             pSyncMsg->retval = ERR_MSG_CANCELED;
             sem_post (pSyncMsg->sem_handle);
         }
@@ -1094,8 +1357,7 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 
 #ifdef _MGHAVE_TRACE_MSG
         if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
-            fprintf (stderr, "Message %u (%s) has been thrown away.\n",
-                pMsg->message, Message2Str (pMsg->message));
+            dump_message (pMsg, "thrown away");
         }
 #endif
         return -1;
@@ -1104,15 +1366,31 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
     if (pMsg->hwnd == 0)
         return -1;
 
-    if (!(WndProc = GetWndProc (pMsg->hwnd)))
+    if (!(WndProc = GETWNDPROC (pMsg->hwnd)))
         return -1;
 
-    lRet = WndProc (pMsg->hwnd, pMsg->message, pMsg->wParam, pMsg->lParam);
+    /* Since 5.0.0 */
+    if (pMsg->message == MSG_NOTIFICATION) {
+        NOTIFPROC NotifProc = GETNOTIFPROC (pMsg->hwnd);
+        if (NotifProc) {
+            NotifProc (pMsg->hwnd, (LINT)pMsg->wParam, (int)pMsg->lParam,
+                    pMsg->time);
+            lRet = 0;
+        }
+        else {
+            lRet = WndProc (pMsg->hwnd, MSG_COMMAND,
+                    MAKELONG (pMsg->wParam, pMsg->lParam), pMsg->time);
+        }
+    }
+    else {
+        lRet = WndProc (pMsg->hwnd, pMsg->message, pMsg->wParam, pMsg->lParam);
+    }
 
-#ifdef _MGRM_THREADS
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     /* this is a sync message. */
-    if (pMsg->pAdd) {
-        pSyncMsg = (PSYNCMSG)pMsg->pAdd;
+    if (pMsg->pSyncMsg) {
+        pSyncMsg = (PSYNCMSG)pMsg->pSyncMsg;
         pSyncMsg->retval = lRet;
         sem_post (pSyncMsg->sem_handle);
     }
@@ -1120,22 +1398,20 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
 
 #ifdef _MGHAVE_TRACE_MSG
     if (pMsg->message != MSG_TIMEOUT && pMsg->message != MSG_CARETBLINK) {
-        fprintf (stderr, "Message %u (%s) done, return value: %p\n",
-            pMsg->message, Message2Str (pMsg->message), (PVOID)lRet);
+        dump_message_with_retval (pMsg, lRet, __func__);
     }
 #endif
 
     return lRet;
 }
 
-/* define this to print debug info of ThrowAwayMessages */
-/* #define _DEBUG_TAM 1 */
-#undef _DEBUG_TAM
-
-int GUIAPI ThrowAwayMessages (HWND hWnd)
+/* Throw away messages in the message queue for the specified window.
+   If the specified window is a main window, all messages sent
+   to the controls of the main window will be thrown away as well. */
+int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 {
+    PMAINWIN    pMainWin = (PMAINWIN)hWnd;
     PMSG        pMsg;
-    PMSGQUEUE   pMsgQueue = NULL;
     PQMSG       pQMsg;
     int         nCountN = 0;
     int         nCountS = 0;
@@ -1143,39 +1419,63 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     int         readpos;
     int         slot;
 
-    if (hWnd && hWnd != HWND_INVALID) {
-        PMAINWIN pWin = (PMAINWIN)hWnd;
-        if (pWin->DataType == TYPE_HWND || pWin->DataType == TYPE_WINTODEL) {
-            pMsgQueue = pWin->pMainWin->pMessages;
-        }
-    }
-
-    if (pMsgQueue == NULL)
-        return ERR_INV_HWND;
-
     LOCK_MSGQ (pMsgQueue);
 
+    /* for virtual window and main window, use pMainWin to check whether we
+       should throw away a message for controls of a main window.
+       checkAndGetMainWindowIfControl returns NULL for non control. */
+    if (pMainWin != HWND_NULL && pMainWin != HWND_INVALID &&
+            (pMainWin->WinType == TYPE_MAINWIN ||
+             pMainWin->WinType == TYPE_VIRTWIN))
+        pMainWin = (PMAINWIN)hWnd;
+    else
+        pMainWin = NULL;
+
     if (pMsgQueue->pFirstNotifyMsg) {
+        PQMSG pPrev = NULL, pNext;
         pQMsg = pMsgQueue->pFirstNotifyMsg;
 
         while (pQMsg) {
             pMsg = &pQMsg->Msg;
 
-            if (pMsg->hwnd == hWnd || gui_GetMainWindowPtrOfControl (pMsg->hwnd)
-                    == (PMAINWIN)hWnd) {
+            if (pMsg->hwnd == hWnd ||
+                    checkAndGetMainWindowIfControl (pMsg->hwnd) == pMainWin) {
+#if 0   /* deprecated code */
                 pMsg->hwnd = HWND_INVALID;
-                nCountN ++;
-            }
+#else   /* deprecated code */
+                // since 5.0.0, we free the msg structure for notification.
+                if (pPrev) {
+                    pPrev->next = pQMsg->next;
+                }
+                else {
+                    pMsgQueue->pFirstNotifyMsg = pQMsg->next;
+                }
 
-            pQMsg = pQMsg->next;
+                if (pMsgQueue->pLastNotifyMsg == pQMsg) {
+                    if (pPrev)
+                        pMsgQueue->pLastNotifyMsg = pPrev;
+                    else
+                        pMsgQueue->pLastNotifyMsg = pMsgQueue->pFirstNotifyMsg;
+                }
+
+                /* keep pPrev unchanged */
+                pNext = pQMsg->next;
+                FREEQMSG (pQMsg);
+                pQMsg = pNext;
+#endif
+                nCountN++;
+            }
+            else {
+                pPrev = pQMsg;
+                pQMsg = pQMsg->next;
+            }
         }
     }
 
-#ifdef _DEBUG_TAM
-    printf ("ThrowAwayMessages: %d notification messages thrown\n", nCountN);
-#endif
+    _DBG_PRINTF ("%d notification messages thrown for window: %p\n",
+            nCountN, hWnd);
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     if (pMsgQueue->pFirstSyncMsg) {
         PSYNCMSG pSyncMsg, pSyncPrev = NULL;
         pSyncMsg = pMsgQueue->pFirstSyncMsg;
@@ -1183,18 +1483,15 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
         while (pSyncMsg) {
             pMsg = &pSyncMsg->Msg;
 
-            if (pMsg->hwnd == hWnd || gui_GetMainWindowPtrOfControl (pMsg->hwnd)
-                            == (PMAINWIN)hWnd) {
+            if (pMsg->hwnd == hWnd ||
+                    checkAndGetMainWindowIfControl (pMsg->hwnd) == pMainWin) {
                 pMsg->hwnd = HWND_INVALID;
                 nCountS ++;
 
-                /*
-                 * notify the waiting thread and remove the node from
-                 * msg queue
-                 */
+                // notify the waiting thread and remove the node from msg queue
                 pSyncMsg->retval = ERR_MSG_CANCELED;
                 if (pSyncPrev) {
-                    pSyncPrev->pNext = pSyncMsg->pNext ? pSyncMsg->pNext : NULL;
+                    pSyncPrev->pNext = pSyncMsg->pNext;
                 }
                 else {
                     pSyncPrev = pSyncMsg;
@@ -1212,42 +1509,56 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
         }
     }
 
-#ifdef _DEBUG_TAM
-    printf ("ThrowAwayMessages: %d sync messages thrown\n", nCountS);
-#endif
-
-#endif
+    _DBG_PRINTF ("%d sync messages thrown for window %p, pMainWin (%p)\n",
+            nCountS, hWnd, pMainWin);
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
     readpos = pMsgQueue->readpos;
     while (readpos != pMsgQueue->writepos) {
         pMsg = pMsgQueue->msg + readpos;
 
-        if (pMsg->hwnd == hWnd
-                || gui_GetMainWindowPtrOfControl (pMsg->hwnd) == (PMAINWIN)hWnd) {
-            pMsg->hwnd = HWND_INVALID;
-            nCountP ++;
-        }
+        if (pMsg->hwnd == hWnd ||
+                checkAndGetMainWindowIfControl (pMsg->hwnd) == pMainWin) {
 
-        readpos++;
-#if 0
-        if (readpos >= pMsgQueue->len) readpos = 0;
-#else
-        readpos %= pMsgQueue->len;
-#endif
+            nCountP++;
+            pMsg->hwnd = HWND_INVALID;
+
+            int pos = readpos;
+            int old_pos = readpos;
+
+            do {
+                pos++;
+                pos %= pMsgQueue->len;
+
+                if (pos != pMsgQueue->writepos) {
+                    pMsgQueue->msg[old_pos] = pMsgQueue->msg[pos];
+                    old_pos = pos;
+                }
+                else
+                    break;
+
+            } while (1);
+
+            if (pMsgQueue->writepos > 0)
+                pMsgQueue->writepos--;
+            else
+                pMsgQueue->writepos = pMsgQueue->len - 1;
+        }
+        else {
+            readpos++;
+            readpos %= pMsgQueue->len;
+        }
     }
 
-#ifdef _DEBUG_TAM
-    printf ("ThrowAwayMessages: %d post messages thrown\n", nCountP);
-#endif
+    _DBG_PRINTF ("%d post messages thrown for window %p\n", nCountP, hWnd);
 
     /* clear timer message flags of this window */
     for (slot = 0; slot < DEF_NR_TIMERS; slot++) {
-        if (pMsgQueue->TimerMask & (0x01UL << slot)) {
-            HWND timer_wnd = __mg_get_timer_hwnd (slot);
-            if (timer_wnd == hWnd
-                    || (MG_IS_MAIN_WINDOW (hWnd) &&
-                        gui_GetMainWindowPtrOfControl (timer_wnd) == (PMAINWIN)hWnd)) {
-                RemoveMsgQueueTimerFlag (pMsgQueue, slot);
+        if (pMsgQueue->expired_timer_mask & (0x01UL << slot)) {
+            HWND timer_wnd = pMsgQueue->timer_slots [slot]->hWnd;
+            if (timer_wnd == hWnd ||
+                     checkAndGetMainWindowIfControl (timer_wnd) == pMainWin) {
+                pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
             }
         }
     }
@@ -1257,21 +1568,65 @@ int GUIAPI ThrowAwayMessages (HWND hWnd)
     return nCountN + nCountS + nCountP;
 }
 
-#ifndef _MGRM_THREADS
+int GUIAPI ThrowAwayMessages (HWND hWnd)
+{
+    PMSGQUEUE pMsgQueue = NULL;
+
+    if (hWnd && hWnd != HWND_INVALID) {
+        PMAINWIN pWin = (PMAINWIN)hWnd;
+        if (pWin->DataType == TYPE_HWND || pWin->DataType == TYPE_WINTODEL) {
+            pMsgQueue = pWin->pMainWin->pMsgQueue;
+        }
+    }
+
+    if (pMsgQueue == NULL)
+        return ERR_INV_HWND;
+
+    return __mg_throw_away_messages (pMsgQueue, hWnd);
+}
 
 BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
 {
     PMSGQUEUE   pMsgQueue;
     PQMSG       pQMsg, temp;
 
-    if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueueIfWindowInThisThread(hWnd)))
         return FALSE;
+
+#ifdef _MGHAVE_VIRTUAL_WINDOW
+    /* Since 5.0.0, we cancel all sync messages */
+    if (pMsgQueue->pFirstSyncMsg) {
+        PSYNCMSG pSyncMsg, pSyncPrev = NULL;
+        pSyncMsg = pMsgQueue->pFirstSyncMsg;
+
+        while (pSyncMsg) {
+            pSyncMsg->Msg.hwnd = HWND_INVALID;
+
+                // notify the waiting thread and remove the node from msg queue
+            pSyncMsg->retval = ERR_MSG_CANCELED;
+            if (pSyncPrev) {
+                pSyncPrev->pNext = pSyncMsg->pNext;
+            }
+            else {
+                pSyncPrev = pSyncMsg;
+                pSyncMsg = pSyncMsg->pNext;
+                pMsgQueue->pFirstSyncMsg = pSyncMsg;
+                sem_post (pSyncPrev->sem_handle);
+                pSyncPrev = NULL;
+                continue;
+            }
+            sem_post (pSyncMsg->sem_handle);
+            pSyncPrev = pSyncMsg;
+            pSyncMsg = pSyncMsg->pNext;
+        }
+    }
+#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
     if (pMsgQueue->pFirstNotifyMsg) {
         pQMsg = pMsgQueue->pFirstNotifyMsg;
         while (pQMsg) {
             temp = pQMsg->next;
-            FreeQMSG (pQMsg);
+            FREEQMSG (pQMsg);
             pQMsg = temp;
         }
     }
@@ -1282,15 +1637,13 @@ BOOL GUIAPI EmptyMessageQueue (HWND hWnd)
     pMsgQueue->readpos = 0;
     pMsgQueue->writepos = 0;
 
-    mg_TerminateTimer ();
-
     pMsgQueue->dwState = QS_EMPTY;
-    pMsgQueue->TimerMask = 0;
+    pMsgQueue->expired_timer_mask = 0;
 
     return TRUE;
 }
 
-#else
+#ifdef _MGHAVE_VIRTUAL_WINDOW
 
 /* send a synchronous message to a window in a different thread */
 LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -1299,27 +1652,27 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     SYNCMSG SyncMsg;
     sem_t sync_msg;
 
-    if (!(pMsgQueue = kernel_GetMsgQueue(hWnd)))
+    if (!(pMsgQueue = getMsgQueue(hWnd)))
         return ERR_INV_HWND;
 
 #define _SYNC_NEED_REENTERABLE
 #ifndef _SYNC_NEED_REENTERABLE
-    if ((thinfo = GetMsgQueueThisThread ())) {
+    if ((thinfo = getMsgQueueForThisThread ())) {
         /* avoid to create a new semaphore object, Note: it's not reenterable.*/
         SyncMsg.sem_handle = &thinfo->sync_msg;
     }
     else {
-        /* this is not a GUI thread */
+        /* this is not a message thread */
         sem_init (&sync_msg, 0, 0);
         SyncMsg.sem_handle = &sync_msg;
     }
-#else
-    //The following DispatchMessage will need this function is reentrant function,
-    //so we must use unique semaphore.
-    thinfo = GetMsgQueueThisThread ();
+#else   /* not defined _SYNC_NEED_REENTERABLE */
+    /* For reentrantable implementation, we use a unique semaphore which is
+       created in the stack. */
+    thinfo = getMsgQueueForThisThread ();
     sem_init (&sync_msg, 0, 0);
     SyncMsg.sem_handle = &sync_msg;
-#endif
+#endif  /* defined _SYNC_NEED_REENTERABLE */
 
     /* queue the sync message. */
     SyncMsg.Msg.hwnd = hWnd;
@@ -1329,11 +1682,11 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     SyncMsg.retval = ERR_MSG_CANCELED;
     SyncMsg.pNext = NULL;
 
-#if 1
     /* add by houhh 20081030, deal with itself's SyncMsg first before
      * SendSyncMessage to other thread, because other thread maybe wait
      * for SyncMsg for you.*/
     if (thinfo) {
+#if 0   /* deprecated code */
         MSG msg;
         PMSGQUEUE pMsgQueue = thinfo;
 
@@ -1342,11 +1695,11 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (pMsgQueue->dwState & QS_SYNCMSG) {
                 if (pMsgQueue->pFirstSyncMsg) {
                     msg = pMsgQueue->pFirstSyncMsg->Msg;
-                    msg.pAdd = (pMsgQueue->pFirstSyncMsg);
+                    msg.pSyncMsg = (pMsgQueue->pFirstSyncMsg);
                     pMsgQueue->pFirstSyncMsg = pMsgQueue->pFirstSyncMsg->pNext;
                     UNLOCK_MSGQ (pMsgQueue);
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
+                    TranslateMessage (&msg);
+                    DispatchMessage (&msg);
                 }
                 else {
                     UNLOCK_MSGQ (pMsgQueue);
@@ -1359,8 +1712,28 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 break;
             }
         }
+#else   /* deprecated code */
+        /* tuned since 5.0.0 */
+        MSG msg;
+        PMSGQUEUE msg_queue = thinfo;
+
+        LOCK_MSGQ (msg_queue);
+        while (msg_queue->dwState & QS_SYNCMSG) {
+            if (msg_queue->pFirstSyncMsg) {
+                msg = msg_queue->pFirstSyncMsg->Msg;
+                msg.pSyncMsg = (msg_queue->pFirstSyncMsg);
+                msg_queue->pFirstSyncMsg = msg_queue->pFirstSyncMsg->pNext;
+                TranslateMessage (&msg);
+                DispatchMessage (&msg);
+            }
+            else {
+                msg_queue->dwState &= ~QS_SYNCMSG;
+            }
+        }
+
+        UNLOCK_MSGQ (msg_queue);
+#endif  /* tuned code */
     }
-#endif
 
     LOCK_MSGQ (pMsgQueue);
 
@@ -1379,8 +1752,7 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     /* suspend until the message has been handled. */
     if (sem_wait (SyncMsg.sem_handle) < 0) {
-        fprintf (stderr,
-            "KERNEL>SendSyncMessage: thread is interrupted abnormally!\n");
+        _ERR_PRINTF ("SendSyncMessage: thread is interrupted abnormally!\n");
     }
 
 #ifndef _SYNC_NEED_REENTERABLE
@@ -1394,26 +1766,28 @@ LRESULT SendSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return SyncMsg.retval;
 }
 
-LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI PostSyncMessage (HWND hWnd, UINT msg,
+        WPARAM wParam, LPARAM lParam)
 {
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
-    if (BE_THIS_THREAD(hWnd))
+    if (getMainWinIfWindowInThisThread(hWnd))
         return -1;
 
     return SendSyncMessage (hWnd, msg, wParam, lParam);
 }
 
-LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+LRESULT GUIAPI SendAsyncMessage (HWND hWnd, UINT nMsg,
+        WPARAM wParam, LPARAM lParam)
 {
     WNDPROC WndProc;
 
     MG_CHECK_RET (MG_IS_WINDOW(hWnd), -1);
 
-    if (!(WndProc = GetWndProc(hWnd)))
+    if (!(WndProc = GETWNDPROC(hWnd)))
         return -1;
 
     return WndProc (hWnd, nMsg, wParam, lParam);
 }
 
-#endif /* !LITE_VERSION */
+#endif /* defined _MGHAVE_VIRTUAL_WINDOW */
 

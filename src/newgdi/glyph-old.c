@@ -15,7 +15,7 @@ static BITMAP char_bmp;
 static void* char_bits;
 static size_t char_bits_size;
 
-BOOL InitTextBitmapBuffer (void)
+BOOL gdi_InitTextBitmapBuffer (void)
 {
     char_bits = NULL;
     char_bmp.bmBits = NULL;
@@ -1896,9 +1896,7 @@ int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
     }
 
 
-#ifndef _MGRM_THREADS
-    if (CHECK_DRAWING (pdc)) goto end;
-#endif
+    if (WITHOUT_DRAWING (pdc)) goto end;
 
     ENTER_DRAWING (pdc);
 

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -77,36 +77,36 @@
 //Panel type definition
 #define MONO_4BIT             0x2200 //swinv - mono
 #define MONO_8BIT             0x2600 //swinv - mono
-#define COLOR_4BIT            0x4000 
+#define COLOR_4BIT            0x4000
 #define COLOR_8BIT_F1         0x4400
 #define COLOR_8BIT_F2         0x4c00
 ///////////////////////////////////////////////////////////////
-//  Define Declare Section 
+//  Define Declare Section
 ///////////////////////////////////////////////////////////////
 
 
-#define	LCD_CON_ADDR				0x50
-#define LCD_BPP					16
+#define    LCD_CON_ADDR                0x50
+#define LCD_BPP                    16
 
-#define	VRAM_ADDR_1           0x2000000 // (0x200_0000~0x202_5800-1), range:0x25800
-#define	VRAM_ADDR_2           0x2025800 // (0x202_5800~0x204_b000-1), range:0x25800
+#define    VRAM_ADDR_1           0x2000000 // (0x200_0000~0x202_5800-1), range:0x25800
+#define    VRAM_ADDR_2           0x2025800 // (0x202_5800~0x204_b000-1), range:0x25800
 #define VIRTUAL_VRAM_ADDR_1   0x20cb000 // (0x204_b000~0x20a_2e40-1), range:0x57e40
 #define VIRTUAL_VRAM_ADDR_2   0x204b000 // (0x204_b000~0x20a_2e40-1), range:0x57e40
 #define VIRTUAL_SCREEN_WIDTH  320
 #define VIRTUAL_SCREEN_HEIGHT 240
-#define VIEW_PORT_WIDTH	      200
+#define VIEW_PORT_WIDTH          200
 #define VIEW_PORT_HEIGHT      180
-#define PIP_X		      5
-#define PIP_Y		      40	
-#define STEP_X		     (VIRTUAL_SCREEN_WIDTH-VIEW_PORT_WIDTH)/10
-#define STEP_Y		     (VIRTUAL_SCREEN_HEIGHT-VIEW_PORT_HEIGHT)/10
+#define PIP_X              5
+#define PIP_Y              40
+#define STEP_X             (VIRTUAL_SCREEN_WIDTH-VIEW_PORT_WIDTH)/10
+#define STEP_Y             (VIRTUAL_SCREEN_HEIGHT-VIEW_PORT_HEIGHT)/10
 
 #define COLOR_PANEL
-//#define PANEL_YMIRROR	
-#define SCREEN_WIDTH    	320
-#define SCREEN_HEIGHT   	240
-#define LCD_BPP_UNIT		2
-#define LINE_SPACE		20
+//#define PANEL_YMIRROR
+#define SCREEN_WIDTH        320
+#define SCREEN_HEIGHT       240
+#define LCD_BPP_UNIT        2
+#define LINE_SPACE        20
 
 ////////////////////////////////////////////////////////////////*Extended I/O port pins*/
 #ifdef L05DMT
@@ -173,5 +173,5 @@
 #define SET_VRAM_EX         *(volatile unsigned short*) 0x380210|=0x8000 //set external sdram as vram
 #define SET_VRAM_IN         *(volatile unsigned short*) 0x380210&=0x7fff //set internal vram as vra
 
-#endif // _GPCDRV_ 
+#endif // _GPCDRV_
 

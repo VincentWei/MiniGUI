@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** psos_pthread.c: This file contains the implementation of the POSIX 
+** psos_pthread.c: This file contains the implementation of the POSIX
 **      pthread functions for pSOS.
 **
 ** Author: Wei Yongming
@@ -64,7 +64,7 @@
 #include "psos_pprivate.h"
 
 /* ========================================================================== */
-/* Internal data structures */ 
+/* Internal data structures */
 
 /* Mutex for controlling access to shared data structures */
 unsigned long __psospth_pthread_mutex;
@@ -83,7 +83,7 @@ static int pthreads_exited;
 /* Count of number of threads that are waiting to be joined */
 static int pthreads_tobejoined;
 
-/* 
+/*
  * Per-thread key allocation. This key map has a 1 bit set for each
  * key that is free, zero if it is allocated.
  */
@@ -91,7 +91,7 @@ static int pthreads_tobejoined;
 #define KEY_MAP_TYPE_SIZE (sizeof(KEY_MAP_TYPE)*8) /* in BITS! */
 static KEY_MAP_TYPE thread_key [PTHREAD_KEYS_MAX/KEY_MAP_TYPE_SIZE];
 static void (*key_destructor [PTHREAD_KEYS_MAX]) (void *);
-    
+
 /* Index of next pthread_info to allocate from thread_table array. */
 static int thread_info_next = 0;
 
@@ -135,7 +135,7 @@ pthread_info *pthread_info_id (pthread_t id)
     /* Check for a valid entry */
     if(info == NULL)
         return NULL;
-    
+
     /* Check that this is a valid entry */
     if (info->state == PTHREAD_STATE_FREE ||
             info->state == PTHREAD_STATE_EXITED)
@@ -185,7 +185,7 @@ static void posix_asr (unsigned long signals)
         /* enabled and we are in asynchronous mode, then we can do the */
         /* cancellation processing.  Since pthread_exit() does */
         /* everything we need to do, we just call that here. */
-        
+
         pthread_exit (PTHREAD_CANCELED);
     }
 
@@ -221,8 +221,8 @@ static __inline int checkforcancel (void)
 {
      pthread_info *self = pthread_self_info ();
 
-    if (self != NULL && 
-            self->cancelpending && 
+    if (self != NULL &&
+            self->cancelpending &&
             self->cancelstate == PTHREAD_CANCEL_ENABLE)
         return 1;
     else
@@ -243,7 +243,7 @@ static void pthread_reap (void)
     /* Loop over the thread table looking for exited threads. The */
     /* pthreads_exited counter springs us out of this once we have */
     /* found them all (and keeps us out if there are none to do). */
-   
+
     for (i = 0; pthreads_exited && i < PSOSPTHNUM_POSIX_PTHREAD_THREADS_MAX ; i++) {
         pthread_info *thread = thread_table[i];
 
@@ -254,9 +254,9 @@ static void pthread_reap (void)
             /* also reached EXITED state before we can tidy it up. */
             unsigned long reg_value;
 
-            while (t_getreg (thread->psos_tid, 
+            while (t_getreg (thread->psos_tid,
                     PSOSPTH_SELFINFO_REGNUM, &reg_value) == 0) {
-            
+
                 /* The pSOS task has not yet exited. This is */
                 /* probably because its priority is too low to allow */
                 /* it to complete.  We fix this here by raising its */
@@ -274,7 +274,7 @@ static void pthread_reap (void)
 #if 0
                 tx_thread_relinquish ();
 #endif
-    
+
                 /* and keep looping until he exits. */
             }
 
@@ -314,11 +314,11 @@ static pthread_t main_thread;
 
 /* -------------------------------------------------------------------------- */
 /* Main entry function.
- * This is set as the start_routine of the main thread. 
+ * This is set as the start_routine of the main thread.
  * It invokes the entry function passed by thread argument.
  */
 
-struct _main_pth_entry_info 
+struct _main_pth_entry_info
 {
     int (*pth_entry) (int argc, const char* argv []);
     int argc;
@@ -327,7 +327,7 @@ struct _main_pth_entry_info
 
 static void *main_pthread_entry (void *data)
 {
-    struct _main_pth_entry_info* entry_info 
+    struct _main_pth_entry_info* entry_info
         = (struct _main_pth_entry_info*) data;
 
     entry_info->pth_entry (entry_info->argc, entry_info->argv);
@@ -338,15 +338,15 @@ static void *main_pthread_entry (void *data)
 /* -------------------------------------------------------------------------- */
 /* Start Pthreads system and create the main() thread. */
 int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []),
-                int argc, const char* argv [], 
+                int argc, const char* argv [],
                 char* stack_base, unsigned int stack_size)
 {
     int i;
     unsigned long psos_ret;
 
     /* Initialize the global mutex object */
-    psos_ret = mu_create (PSOSPTH_GLOBAL_MUTEX, 
-                MU_LOCAL | MU_NORECURSIVE | MU_FIFO, 
+    psos_ret = mu_create (PSOSPTH_GLOBAL_MUTEX,
+                MU_LOCAL | MU_NORECURSIVE | MU_FIFO,
                 PSOSPTH_GLOBAL_MUTEX_CEILING,
                 &__psospth_pthread_mutex);
     if (psos_ret) {
@@ -360,15 +360,15 @@ int start_minigui_pthread (int (* pth_entry) (int argc, const char* argv []),
     for (i = 0; i < (PTHREAD_KEYS_MAX/KEY_MAP_TYPE_SIZE); i++) {
         thread_key [i] = ~0;
     }
-    
+
     /* Create the main thread */
     if (pth_entry) {
         pthread_attr_t attr;
         struct sched_param schedparam;
         struct _main_pth_entry_info entry_info;
 
-        entry_info.pth_entry = pth_entry; 
-        entry_info.argc = argc; 
+        entry_info.pth_entry = pth_entry;
+        entry_info.argc = argc;
         entry_info.argv = argv;
 
         if (stack_size < MAIN_PTH_MIN_STACK_SIZE) {
@@ -410,7 +410,7 @@ int pthread_create (pthread_t *thread,
     int thread_next = thread_info_next;
     unsigned long mode;
     unsigned long targs [4];
-    
+
     pthread_attr_t use_attr;
 
     PTHREAD_ENTRY();
@@ -420,7 +420,7 @@ int pthread_create (pthread_t *thread,
 
     /* Set use_attr to the set of attributes we are going to */
     /* actually use. Either those passed in, or the default set. */
-   
+
     if (attr == NULL)
         pthread_attr_init (&use_attr);
     else
@@ -437,7 +437,7 @@ int pthread_create (pthread_t *thread,
 
     /* If the stack size is not valid, we can assume that it is at */
     /* least PTHREAD_STACK_DEFAULT bytes. */
-        
+
     if (use_attr.stacksize_valid)
         stacksize = use_attr.stacksize;
     else
@@ -450,10 +450,10 @@ int pthread_create (pthread_t *thread,
 
     /* Get sole access to data structures */
     psos_ret = mu_lock (__psospth_pthread_mutex, MU_WAIT, 0);
-    
+
     /* Dispose of any dead threads */
     pthread_reap ();
-    
+
     /* Find a free slot in the thread table */
     while (thread_table[thread_next] != NULL) {
         thread_next++;
@@ -473,7 +473,7 @@ int pthread_create (pthread_t *thread,
 
     /* Set new next index */
     thread_info_next = thread_next;
-    
+
     /* step the cookie */
     thread_id_cookie += THREAD_ID_COOKIE_INC;
 
@@ -492,9 +492,9 @@ int pthread_create (pthread_t *thread,
     nthread->cancelpending      = FALSE;
 
     nthread->thread_data        = NULL;
-    
+
     /* create a semaphore for the joiner */
-    psos_ret = sm_create (PSOSPTH_NAME_SEMAPHORE, 0, 
+    psos_ret = sm_create (PSOSPTH_NAME_SEMAPHORE, 0,
             SM_LOCAL | SM_FIFO | SM_UNBOUNDED, &nthread->joiner);
     if (psos_ret) {
         thread_table [thread_next] = NULL;
@@ -504,7 +504,7 @@ int pthread_create (pthread_t *thread,
     }
 
     /* create the underlying pSOS task */
-    psos_ret = t_create (PSOSPTH_NAME_TASK, 
+    psos_ret = t_create (PSOSPTH_NAME_TASK,
                         use_attr.schedparam.priority,
                         128, stacksize,
                         T_LOCAL, &nthread->psos_tid);
@@ -562,9 +562,9 @@ int pthread_create (pthread_t *thread,
 pthread_t pthread_self (void)
 {
     pthread_info* info;
-    
+
     PTHREAD_ENTRY();
-    
+
     info = pthread_self_info ();
 
     return info->id;
@@ -576,7 +576,7 @@ pthread_t pthread_self (void)
 int pthread_equal (pthread_t thread1, pthread_t thread2)
 {
     PTHREAD_ENTRY();
-    
+
     return thread1 == thread2;
 }
 
@@ -589,7 +589,7 @@ static void psospth_pthread_exit (pthread_info* thread, void *retval)
     BOOL call_exit = FALSE;
 
     PTHREAD_ENTRY ();
-    
+
     /* Call cancellation handlers. We eat up the buffers as we go in */
     /* case any of the routines calls pthread_exit() itthread. */
     while (thread->cancelbuffer != NULL) {
@@ -605,7 +605,7 @@ static void psospth_pthread_exit (pthread_info* thread, void *retval)
         /* The specification of this is that we must continue to call the */
         /* destructor functions until all the per-thread data values are */
         /* NULL or we have done it PTHREAD_DESTRUCTOR_ITERATIONS times. */
-    
+
         BOOL destructors_called;
         int destructor_iterations = 0;
 
@@ -613,7 +613,7 @@ static void psospth_pthread_exit (pthread_info* thread, void *retval)
             unsigned int key;
 
             destructors_called = FALSE;
-        
+
             for (key = 0; key < PTHREAD_KEYS_MAX; key++) {
                 /* Skip unallocated keys */
                 if (thread_key[key/KEY_MAP_TYPE_SIZE] & 1<<(key%KEY_MAP_TYPE_SIZE))
@@ -640,12 +640,12 @@ static void psospth_pthread_exit (pthread_info* thread, void *retval)
 
             /* Count the iteration */
             destructor_iterations++;
-        
+
         } while (destructors_called &&
                  (destructor_iterations <= PTHREAD_DESTRUCTOR_ITERATIONS));
 
     }
-    
+
     psos_ret = mu_lock (__psospth_pthread_mutex, MU_WAIT, 0);
 
     /* Set the retval for any joiner */
@@ -653,7 +653,7 @@ static void psospth_pthread_exit (pthread_info* thread, void *retval)
 
     /* If we are already detached, go to EXITED state, otherwise */
     /* go into JOIN state. */
-    
+
     if (PTHREAD_STATE_DETACHED == thread->state) {
         thread->state = PTHREAD_STATE_EXITED;
         pthreads_exited++;
@@ -674,7 +674,7 @@ static void psospth_pthread_exit (pthread_info* thread, void *retval)
         call_exit = TRUE;
 
     psos_ret = mu_unlock (__psospth_pthread_mutex);
-    
+
 #if 0
     /* Finally, call the exit function; this will not return. */
     if (call_exit)
@@ -703,15 +703,15 @@ int pthread_join (pthread_t thread, void **thread_return)
     pthread_info* joinee;
 
     PTHREAD_ENTRY ();
-    
+
     /* check for cancellation first. */
     pthread_testcancel ();
 
     psos_ret = mu_lock (__psospth_pthread_mutex, MU_WAIT, 0);
-    
+
     /* Dispose of any dead threads */
     pthread_reap ();
-    
+
     self = pthread_self_info ();
     joinee = pthread_info_id (thread);
 
@@ -744,39 +744,39 @@ int pthread_join (pthread_t thread, void **thread_return)
 
         /* The thread has become unjoinable while we waited, so we */
         /* fall through to complain. */
-        
+
         case PTHREAD_STATE_FREE:
         case PTHREAD_STATE_DETACHED:
         case PTHREAD_STATE_EXITED:
         /* None of these may be joined. */
             err = EINVAL;
             break;
-            
+
         case PTHREAD_STATE_JOIN:
             break;
         }
     }
 
     if (!err) {
-    
+
         /* here, we know that joinee is a thread that has exited and is */
         /* ready to be joined. */
 
         /* Get the retval */
         if (thread_return != NULL)
             *thread_return = joinee->retval;
-        
+
         /* set state to exited. */
         joinee->state = PTHREAD_STATE_EXITED;
         pthreads_exited++;
         pthreads_tobejoined--;
-    
+
         /* Dispose of any dead threads */
         pthread_reap ();
     }
 
     psos_ret = mu_unlock (__psospth_pthread_mutex);
-    
+
     /* check for cancellation before returning */
     pthread_testcancel ();
 
@@ -794,11 +794,11 @@ int pthread_detach (pthread_t thread)
     pthread_info* detachee;
 
     PTHREAD_ENTRY();
-    
+
     psos_ret = mu_lock (__psospth_pthread_mutex, MU_WAIT, 0);
 
     detachee = pthread_info_id (thread);
-    
+
     if (detachee == NULL)
         ret = ESRCH;                    /* No such thread */
     else if (detachee->state == PTHREAD_STATE_DETACHED)
@@ -810,10 +810,10 @@ int pthread_detach (pthread_t thread)
             sm_v (detachee->joiner);
         }
     }
-    
+
     /* Dispose of any dead threads */
     pthread_reap ();
-    
+
     mu_unlock (__psospth_pthread_mutex);
 
     PTHREAD_RETURN (ret);
@@ -834,9 +834,9 @@ int pthread_detach (pthread_t thread)
 int pthread_attr_init (pthread_attr_t *attr)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
-    
+
     attr->detachstate                 = PTHREAD_CREATE_JOINABLE;
     attr->inheritsched                = PTHREAD_INHERIT_SCHED;
     attr->schedpolicy                 = SCHED_FIFO;
@@ -844,7 +844,7 @@ int pthread_attr_init (pthread_attr_t *attr)
     attr->schedparam.time_slice       = PSOSPTH_THREAD_DEF_TIME_SLICE;
     attr->stacksize_valid             = 0;
     attr->stacksize                   = 0;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -854,11 +854,11 @@ int pthread_attr_init (pthread_attr_t *attr)
 int pthread_attr_destroy (pthread_attr_t *attr)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     /* Nothing to do here... */
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -869,7 +869,7 @@ int pthread_attr_setdetachstate (pthread_attr_t *attr,
                                          int detachstate)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (detachstate == PTHREAD_CREATE_JOINABLE
@@ -877,7 +877,7 @@ int pthread_attr_setdetachstate (pthread_attr_t *attr,
         attr->detachstate = detachstate;
         PTHREAD_RETURN (0);
     }
-    
+
     PTHREAD_RETURN (EINVAL);
 }
 
@@ -887,12 +887,12 @@ int pthread_attr_getdetachstate (const pthread_attr_t *attr,
                                          int *detachstate)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (detachstate != NULL)
         *detachstate = attr->detachstate;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -902,10 +902,10 @@ int pthread_attr_getdetachstate (const pthread_attr_t *attr,
 int pthread_attr_setinheritsched (pthread_attr_t *attr, int inherit)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
-    if (inherit == PTHREAD_INHERIT_SCHED 
+    if (inherit == PTHREAD_INHERIT_SCHED
             || inherit == PTHREAD_EXPLICIT_SCHED) {
         attr->inheritsched = inherit;
 
@@ -922,12 +922,12 @@ int pthread_attr_getinheritsched (const pthread_attr_t *attr,
                                           int *inherit)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if( inherit != NULL )
         *inherit = attr->inheritsched;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -937,7 +937,7 @@ int pthread_attr_getinheritsched (const pthread_attr_t *attr,
 int pthread_attr_setschedpolicy (pthread_attr_t *attr, int policy)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (policy == SCHED_FIFO || policy == SCHED_RR || policy == SCHED_OTHER) {
@@ -948,7 +948,7 @@ int pthread_attr_setschedpolicy (pthread_attr_t *attr, int policy)
     else {
         PTHREAD_RETURN (ENOTSUP);
     }
-    
+
     PTHREAD_RETURN (EINVAL);
 }
 
@@ -959,12 +959,12 @@ int pthread_attr_getschedpolicy (const pthread_attr_t *attr,
                                          int *policy)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (policy != NULL)
         *policy = attr->schedpolicy;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -974,12 +974,12 @@ int pthread_attr_setschedparam (pthread_attr_t *attr,
                         const struct sched_param *param)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
     PTHREAD_CHECK (param);
 
     attr->schedparam = *param;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -990,12 +990,12 @@ int pthread_attr_getschedparam (const pthread_attr_t *attr,
                                         struct sched_param *param)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     if (param != NULL)
         *param = attr->schedparam;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1006,16 +1006,16 @@ int pthread_attr_setstacksize (pthread_attr_t *attr,
                                        size_t stacksize)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     /* Reject inadequate stack sizes */
     if( stacksize < PTHREAD_STACK_MIN )
         PTHREAD_RETURN (EINVAL);
-        
-    attr->stacksize_valid = 1;    
+
+    attr->stacksize_valid = 1;
     attr->stacksize = stacksize;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1026,16 +1026,16 @@ int pthread_attr_getstacksize (const pthread_attr_t *attr,
                                        size_t *stacksize)
 {
     PTHREAD_ENTRY ();
-    
+
     PTHREAD_CHECK (attr);
 
     /* Reject attempts to get a stack size when one has not been set. */
     if (!attr->stacksize_valid)
         PTHREAD_RETURN (EINVAL);
-    
+
     if (stacksize != NULL)
         *stacksize = attr->stacksize;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1054,15 +1054,15 @@ int pthread_setschedparam (pthread_t thread_id,
 
     PTHREAD_ENTRY ();
 
-    if (policy != SCHED_OTHER && 
-            policy != SCHED_FIFO && 
+    if (policy != SCHED_OTHER &&
+            policy != SCHED_FIFO &&
             policy != SCHED_RR)
         PTHREAD_RETURN (EINVAL);
 
     PTHREAD_CHECK (param);
 
     /* The parameters seem OK, change the thread... */
-    
+
     psos_ret = mu_lock (__psospth_pthread_mutex, MU_WAIT, 0);
 
     thread = pthread_info_id (thread_id);
@@ -1071,7 +1071,7 @@ int pthread_setschedparam (pthread_t thread_id,
         psos_ret = mu_unlock (__psospth_pthread_mutex);
         PTHREAD_RETURN (ESRCH);
     }
-    
+
     thread->attr.schedpolicy = policy;
     thread->attr.schedparam = *param;
 
@@ -1079,7 +1079,7 @@ int pthread_setschedparam (pthread_t thread_id,
     psos_ret = t_tslice (thread->psos_tid, param->time_slice, NULL);
 
     psos_ret = mu_unlock (__psospth_pthread_mutex);
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1109,9 +1109,9 @@ int pthread_getschedparam (pthread_t thread_id,
 
     if (param != NULL)
         *param = thread->attr.schedparam;
-    
+
     psos_ret = mu_unlock (__psospth_pthread_mutex);
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1141,7 +1141,7 @@ int pthread_once (pthread_once_t *once_control,
 
     /* If the once_control was zero, call the init_routine(). */
     if (!old) init_routine ();
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1172,7 +1172,7 @@ int pthread_key_create (pthread_key_t *key,
     unsigned long psos_ret;
     unsigned int i;
     pthread_key_t k = -1;
-    
+
     PTHREAD_ENTRY();
 
     psos_ret = mu_lock (__psospth_pthread_mutex, MU_WAIT, 0);
@@ -1194,7 +1194,7 @@ int pthread_key_create (pthread_key_t *key,
 
             /* Install destructor */
             key_destructor[k] = destructor;
-            
+
             /* break out with key found */
             break;
         }
@@ -1203,7 +1203,7 @@ int pthread_key_create (pthread_key_t *key,
     if (k != -1) {
         /* plant a NULL in all the valid thread data slots for this */
         /* key in case we are reusing a key we used before. */
-        
+
         for (i = 0; i < PSOSPTHNUM_POSIX_PTHREAD_THREADS_MAX ; i++) {
             pthread_info *thread = thread_table[i];
 
@@ -1211,14 +1211,14 @@ int pthread_key_create (pthread_key_t *key,
                 thread->thread_data[k] = NULL;
         }
     }
-    
+
     psos_ret = mu_unlock (__psospth_pthread_mutex);
 
     if (k == -1)
         PTHREAD_RETURN (EAGAIN);
 
     *key = k;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1237,7 +1237,7 @@ int pthread_key_delete (pthread_key_t key)
     thread_key [key/KEY_MAP_TYPE_SIZE] |= 1<<(key%(KEY_MAP_TYPE_SIZE));
 
     psos_ret = mu_unlock (__psospth_pthread_mutex);
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1266,9 +1266,9 @@ int pthread_setspecific (pthread_key_t key, const void *pointer)
         for (i  = 0; i < PTHREAD_KEYS_MAX; i++)
             self->thread_data[i] = NULL;
     }
-    
+
     self->thread_data[key] = (void *)pointer;
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1312,22 +1312,22 @@ int pthread_setcancelstate (int state, int *oldstate)
     if (state != PTHREAD_CANCEL_ENABLE &&
             state != PTHREAD_CANCEL_DISABLE)
         PTHREAD_RETURN (EINVAL);
-    
+
     psos_ret = mu_lock (__psospth_pthread_mutex, MU_WAIT, 0);
 
     self = pthread_self_info ();
 
     if (oldstate != NULL) *oldstate = self->cancelstate;
-    
+
     self->cancelstate = state;
-    
+
     psos_ret = mu_unlock (__psospth_pthread_mutex);
-    
+
     /* Note: This function may have made it possible for a pending */
     /* cancellation to now be delivered. However the standard does not */
     /* list this function as a cancellation point, so for now we do */
     /* nothing. In future we might call pthread_testcancel() here. */
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1345,22 +1345,22 @@ int pthread_setcanceltype (int type, int *oldtype)
     if (type != PTHREAD_CANCEL_ASYNCHRONOUS &&
             type != PTHREAD_CANCEL_DEFERRED )
         PTHREAD_RETURN (EINVAL);
-    
+
     psos_ret = mu_lock (__psospth_pthread_mutex, MU_WAIT, 0);
 
     self = pthread_self_info ();
-        
+
     if (oldtype != NULL) *oldtype = self->canceltype;
 
     self->canceltype = type;
-    
+
     psos_ret = mu_unlock (__psospth_pthread_mutex);
 
     /* Note: This function may have made it possible for a pending */
     /* cancellation to now be delivered. However the standard does not */
     /* list this function as a cancellation point, so for now we do */
     /* nothing. In future we might call pthread_testcancel() here. */
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1406,9 +1406,9 @@ int pthread_cancel (pthread_t thread)
 
     /* Otherwise the thread has cancellation disabled, in which case */
     /* it is up to the thread to enable cancellation */
-    
+
     psos_ret = mu_unlock (__psospth_pthread_mutex);
-    
+
     PTHREAD_RETURN (0);
 }
 
@@ -1423,7 +1423,7 @@ void pthread_testcancel (void)
     if (checkforcancel ()) {
         /* If we have cancellation enabled, and there is a cancellation */
         /* pending, then go ahead and do the deed.  */
-        
+
         /* Exit now with special retval. pthread_exit() calls the */
         /* cancellation handlers implicitly. */
         pthread_exit (PTHREAD_CANCELED);
@@ -1433,7 +1433,7 @@ void pthread_testcancel (void)
 }
 
 /* -------------------------------------------------------------------------- */
-/* These two functions actually implement the cleanup push and pop 
+/* These two functions actually implement the cleanup push and pop
  * functionality.
  */
 
@@ -1449,7 +1449,7 @@ void pthread_cleanup_push_inner (struct pthread_cleanup_buffer *buffer,
 
     buffer->routine     = routine;
     buffer->arg         = arg;
-    
+
     buffer->prev        = self->cancelbuffer;
 
     self->cancelbuffer  = buffer;
@@ -1465,10 +1465,10 @@ void pthread_cleanup_pop_inner (struct pthread_cleanup_buffer *buffer,
     PTHREAD_ENTRY ();
 
     self = pthread_self_info ();
-    
-    PSOSPTH_ASSERT (self->cancelbuffer == buffer, 
+
+    PSOSPTH_ASSERT (self->cancelbuffer == buffer,
                 "Stacking error in cleanup buffers");
-    
+
     if (self->cancelbuffer == buffer) {
         /* Remove the buffer from the stack */
         self->cancelbuffer = buffer->prev;

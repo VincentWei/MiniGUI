@@ -57,6 +57,7 @@
 #include "blit.h"
 #include "pixels_c.h"
 #include "license.h"
+#include "debug.h"
 
 /* Available video drivers */
 static VideoBootStrap *bootstrap[] = {
@@ -164,7 +165,7 @@ static VideoBootStrap *bootstrap[] = {
 
 GAL_VideoDevice *__mg_current_video = NULL;
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
 BLOCKHEAP __mg_free_update_region_list;
 #endif
 
@@ -172,7 +173,7 @@ BLOCKHEAP __mg_free_update_region_list;
 int GAL_VideoInit(const char *driver_name, Uint32 flags);
 void GAL_VideoQuit(void);
 
-GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
+static GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
 {
     GAL_VideoDevice *video;
     int index;
@@ -180,26 +181,28 @@ GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
 
     index = 0;
     video = NULL;
-    if ( driver_name != NULL ) {
-        for ( i=0; bootstrap[i]; ++i ) {
-            if ( strncmp(bootstrap[i]->name, driver_name,
-                        strlen(bootstrap[i]->name)) == 0 ) {
-                if ( bootstrap[i]->available() ) {
+    if (driver_name != NULL) {
+        for (i=0; bootstrap[i]; ++i) {
+            if (strncmp(bootstrap[i]->name, driver_name,
+                        strlen(bootstrap[i]->name)) == 0) {
+                if (bootstrap[i]->available()) {
                     video = bootstrap[i]->create(index);
                     break;
                 }
             }
         }
-    } else {
-        for ( i=0; bootstrap[i]; ++i ) {
-            if ( bootstrap[i]->available() ) {
+    }
+    else {
+        for (i=0; bootstrap[i]; ++i) {
+            if (bootstrap[i]->available()) {
                 video = bootstrap[i]->create(index);
-                if ( video != NULL ) {
+                if (video != NULL) {
                     break;
                 }
             }
         }
     }
+
     if (video == NULL)
         return NULL;
 
@@ -225,42 +228,42 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
     GAL_PixelFormat vformat;
     Uint32 video_flags;
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     InitFreeClipRectList (&__mg_free_update_region_list, SIZE_UPDATERECTHEAP);
 #endif
 
     /* Check to make sure we don't overwrite '__mg_current_video' */
-    if ( __mg_current_video != NULL ) {
+    if (__mg_current_video != NULL) {
         GAL_VideoQuit();
     }
 
     video = GAL_GetVideo(driver_name);
-
-    if ( video == NULL ) {
+    if (video == NULL) {
         return (-1);
     }
+
     video->screen = NULL;
     __mg_current_video = video;
 
     /* Initialize the video subsystem */
     memset(&vformat, 0, sizeof(vformat));
-    if ( video->VideoInit(video, &vformat) < 0 ) {
+    if (video->VideoInit(video, &vformat) < 0) {
         GAL_VideoQuit();
         return(-1);
     }
 
     {
-#define FLAGS_BLIT_FILL  0x01
-#define FLAGS_BLIT_HW    0x02
+#define FLAGS_BLIT_FILL     0x01
+#define FLAGS_BLIT_HW       0x02
 #define FLAGS_BLIT_HW_CC    0x04
-#define FLAGS_BLIT_HW_A    0x08
+#define FLAGS_BLIT_HW_A     0x08
         char *env;
         if ((env = getenv("MG_ENV_HWACCEL_FLAGS"))) {
             GAL_VideoInfo *video_info = &video->info;
             int flags = atoi(env);
 
             /* FillRect */
-            video_info->blit_fill = (video_info->blit_fill && (flags & FLAGS_BLIT_FILL)) ? 1 : 0;
+            video_info->blit_fill = (video_info->blit_fill &&(flags & FLAGS_BLIT_FILL)) ? 1 : 0;
             /* BitBlit */
             video_info->blit_hw = (video_info->blit_hw && (flags & FLAGS_BLIT_HW)) ? 1 : 0;
             /* Colorkey */
@@ -276,7 +279,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
             vformat.BitsPerPixel,
             vformat.Rmask, vformat.Gmask, vformat.Bmask, vformat.Amask);
 
-    if ( GAL_VideoSurface == NULL ) {
+    if (GAL_VideoSurface == NULL) {
         GAL_VideoQuit();
         return(-1);
     }
@@ -290,7 +293,7 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
 
 char *GAL_VideoDriverName(char *namebuf, int maxlen)
 {
-    if ( __mg_current_video != NULL ) {
+    if (__mg_current_video != NULL) {
         strncpy(namebuf, __mg_current_video->name, maxlen-1);
         namebuf[maxlen-1] = '\0';
         return(namebuf);
@@ -306,7 +309,7 @@ GAL_Surface *GAL_GetVideoSurface(void)
     GAL_Surface *visible;
 
     visible = NULL;
-    if ( __mg_current_video ) {
+    if (__mg_current_video) {
         visible = __mg_current_video->screen;
     }
     return(visible);
@@ -320,7 +323,7 @@ const GAL_VideoInfo *GAL_GetVideoInfo(void)
     const GAL_VideoInfo *info;
 
     info = NULL;
-    if ( __mg_current_video ) {
+    if (__mg_current_video) {
         info = &__mg_current_video->info;
     }
     return(info);
@@ -340,8 +343,8 @@ GAL_Rect ** GAL_ListModes (GAL_PixelFormat *format, Uint32 flags)
     GAL_Rect **modes;
 
     modes = NULL;
-    if ( GAL_VideoSurface ) {
-        if ( format == NULL ) {
+    if (GAL_VideoSurface) {
+        if (format == NULL) {
             format = GAL_VideoSurface->format;
         }
         modes = video->ListModes(this, format, flags);
@@ -376,10 +379,10 @@ int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags)
     GAL_Rect **sizes;
 
     /* Currently 1 and 4 bpp are not supported */
-    if ( bpp < 8 || bpp > 32 ) {
+    if (bpp < 8 || bpp > 32) {
         return(0);
     }
-    if ( (width == 0) || (height == 0) ) {
+    if ((width == 0) || (height == 0)) {
         return(0);
     }
 
@@ -389,22 +392,22 @@ int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags)
     table = ((bpp+7)/8)-1;
     GAL_closest_depths[table][0] = bpp;
     GAL_closest_depths[table][7] = 0;
-    for ( b = 0; !supported && GAL_closest_depths[table][b]; ++b ) {
+    for (b = 0; !supported && GAL_closest_depths[table][b]; ++b) {
         format.BitsPerPixel = GAL_closest_depths[table][b];
         sizes = GAL_ListModes(&format, flags);
-        if ( sizes == (GAL_Rect **)0 ) {
+        if (sizes == (GAL_Rect **)0) {
             /* No sizes supported at this bit-depth */
             continue;
         }
         else {
-            if ( (sizes == (GAL_Rect **)-1) ||
-                    __mg_current_video->handles_any_size ) {
+            if ((sizes == (GAL_Rect **)-1) ||
+                    __mg_current_video->handles_any_size) {
                 /* Any size supported at this bit-depth */
                 supported = 1;
                 continue;
             }
             else {
-                for ( i=0; sizes[i]; ++i ) {
+                for (i=0; sizes[i]; ++i) {
                     if ((sizes[i]->w >= width) && (sizes[i]->h >= height)) {
                         supported = 1;
                         break;
@@ -414,7 +417,7 @@ int GAL_VideoModeOK (int width, int height, int bpp, Uint32 flags)
         }
     }
 
-    if ( supported ) {
+    if (supported) {
         --b;
         return(GAL_closest_depths[table][b]);
     }
@@ -440,10 +443,10 @@ static int GAL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
         return 0;
     }
 
-    if ( native_bpp == *BitsPerPixel ) {
+    if (native_bpp == *BitsPerPixel) {
         return(1);
     }
-    if ( native_bpp > 0 ) {
+    if (native_bpp > 0) {
         *BitsPerPixel = native_bpp;
         return(1);
     }
@@ -455,16 +458,16 @@ static int GAL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
     GAL_closest_depths[table][0] = *BitsPerPixel;
     GAL_closest_depths[table][7] = GAL_VideoSurface->format->BitsPerPixel;
 
-    for ( b = 0; !supported && GAL_closest_depths[table][b]; ++b ) {
+    for (b = 0; !supported && GAL_closest_depths[table][b]; ++b) {
         format.BitsPerPixel = GAL_closest_depths[table][b];
         sizes = GAL_ListModes(&format, flags);
-        if ( sizes == (GAL_Rect **)0 ) {
+        if (sizes == (GAL_Rect **)0) {
             /* No sizes supported at this bit-depth */
             continue;
         }
-        for ( i=0; sizes[i]; ++i ) {
+        for (i=0; sizes[i]; ++i) {
             if ((sizes[i]->w < *w) || (sizes[i]->h < *h)) {
-                if ( i > 0 ) {
+                if (i > 0) {
                     --i;
                     *w = sizes[i]->w;
                     *h = sizes[i]->h;
@@ -476,7 +479,7 @@ static int GAL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
                 break;
             }
         }
-        if ( (i > 0) && ! sizes[i] ) {
+        if ((i > 0) && ! sizes[i]) {
             /* The smallest mode was larger than requested, OK */
             --i;
             *w = sizes[i]->w;
@@ -485,14 +488,14 @@ static int GAL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
             supported = 1;
         }
     }
-    if ( ! supported ) {
+    if (! supported) {
         GAL_SetError("NEWGAL: No video mode large enough for the resolution "
                 "specified.\n");
     }
     return(supported);
 }
 
-/* This should probably go somewhere else -- like GAL_surface.c */
+/* This should probably go somewhere else -- like surface.c */
 static void GAL_ClearSurface(GAL_Surface *surface)
 {
     Uint32 black;
@@ -515,7 +518,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     this = video = __mg_current_video;
 
     /* Default to the current video bpp */
-    if ( bpp == 0 ) {
+    if (bpp == 0) {
         flags |= GAL_ANYFORMAT;
         bpp = GAL_VideoSurface->format->BitsPerPixel;
     }
@@ -525,23 +528,23 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     video_h = height;
     video_bpp = bpp;
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer && !GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags)){
+    if (mgIsServer && !GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags)) {
 #else
-
-    if ( !GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags) ) {
+    if (!GAL_GetVideoMode(&video_w, &video_h, &video_bpp, flags)) {
 #endif
-            GAL_SetError ("NEWGAL: GAL_GetVideoMode error, "
-                        "not supported video mode: %dx%d-%dbpp.\n",
-                        video_w, video_h, video_bpp);
-            return(NULL);
-        }
+        GAL_SetError ("NEWGAL: GAL_GetVideoMode error, "
+                    "not supported video mode: %dx%d-%dbpp.\n",
+                    video_w, video_h, video_bpp);
+        return(NULL);
+    }
+
     /* Check the requested flags */
     /* There's no palette in > 8 bits-per-pixel mode */
-    if ( video_bpp > 8 ) {
+    if (video_bpp > 8) {
         flags &= ~GAL_HWPALETTE;
     }
 
-    if ( video->physpal ) {
+    if (video->physpal) {
         free(video->physpal->colors);
         free(video->physpal);
         video->physpal = NULL;
@@ -556,13 +559,14 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 
     if ((mode != NULL)) {
         /* Sanity check */
-        if ( (mode->w < width) || (mode->h < height) ) {
-            GAL_SetError("NEWGAL: Video mode smaller than requested.\n");
+        if ((mode->w < width) || (mode->h < height)) {
+            GAL_SetError("NEWGAL: Video size (%d x %d) smaller than requested.\n",
+                    mode->w, mode->h);
             return(NULL);
         }
 
         /* If we have a palettized surface, create a default palette */
-        if ( mode->format->palette ) {
+        if (mode->format->palette) {
             GAL_PixelFormat *vf = mode->format;
             GAL_DitherColors(vf->palette->colors, vf->BitsPerPixel);
             vf->DitheredPalette = TRUE;
@@ -582,7 +586,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
         /* Clear the surface to black */
         video->offset_x = 0;
         video->offset_y = 0;
-        mode->offset = 0;
+        mode->pixels_off = 0;
 #ifdef _MGRM_PROCESSES
         if (mgIsServer) {
 #endif
@@ -597,7 +601,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
                 "NEWGAL: Requested mode: %dx%dx%d, obtained mode %dx%dx%d "
                 "(offset %d)\n",
                 width, height, bpp,
-                mode->w, mode->h, mode->format->BitsPerPixel, mode->offset);
+                mode->w, mode->h, mode->format->BitsPerPixel, mode->pixels_off);
 #endif
         mode->w = width;
         mode->h = height;
@@ -605,7 +609,7 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
     }
 
     /* If we failed setting a video mode, return NULL... (Uh Oh!) */
-    if ( mode == NULL ) {
+    if (mode == NULL) {
         return(NULL);
     }
 
@@ -618,6 +622,22 @@ GAL_Surface * GAL_SetVideoMode (int width, int height, int bpp, Uint32 flags)
 
     return(GAL_PublicSurface);
 }
+
+#ifdef _MGSCHEMA_COMPOSITING
+void GAL_SetVideoModeInfo(GAL_Surface* screen)
+{
+    assert(screen);
+
+    GAL_VideoSurface = screen;
+    __mg_current_video->info.vfmt = __gal_screen->format;
+    __mg_current_video->offset_x = 0;
+    __mg_current_video->offset_y = 0;
+
+    __gal_screen->video = __mg_current_video;
+    __gal_screen->pixels_off = 0;
+    GAL_SetClipRect(screen, NULL);
+}
+#endif  /* _MGSCHEMA_COMPOSITING */
 
 /*
  * Convert a surface into the video pixel format.
@@ -668,7 +688,7 @@ GAL_Surface *GAL_DisplayFormatAlpha(GAL_Surface *surface)
             /* For XGY5[56]5, use, AXGY8888, where {X, Y} = {R, B}.
                For anything else (like ARGB4444) it doesn't matter
                since we have no special code for it anyway */
-            if ( (vf->Rmask == 0x1f) &&
+            if ((vf->Rmask == 0x1f) &&
                     (vf->Bmask == 0xf800 || vf->Bmask == 0x7c00)) {
                 rmask = 0xff;
                 bmask = 0xff0000;
@@ -679,7 +699,7 @@ GAL_Surface *GAL_DisplayFormatAlpha(GAL_Surface *surface)
         case 4:
             /* Keep the video format, as long as the high 8 bits are
                unused or alpha */
-            if ( (vf->Rmask == 0xff) && (vf->Bmask == 0xff0000) ) {
+            if ((vf->Rmask == 0xff) && (vf->Bmask == 0xff0000)) {
                 rmask = 0xff;
                 bmask = 0xff0000;
             }
@@ -701,51 +721,93 @@ GAL_Surface *GAL_DisplayFormatAlpha(GAL_Surface *surface)
 /*
  * Update a specific portion of the physical screen
  */
-void GAL_UpdateRect (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h)
+void GAL_UpdateRect (GAL_Surface *screen,
+        Sint32 x, Sint32 y, Uint32 w, Uint32 h)
 {
-    GAL_VideoDevice *video = (GAL_VideoDevice *)screen->video;
-    if (!video)
-        return;
+    GAL_Rect rect;
 
-    if (screen && (video->UpdateRects || video->UpdateSurfaceRects)) {
-        GAL_Rect rect;
+    /* Perform some checking */
+    if (w == 0)
+        w = screen->w;
+    if (h == 0)
+        h = screen->h;
 
-        /* Perform some checking */
-        if (w == 0)
-            w = screen->w;
-        if (h == 0)
-            h = screen->h;
+    if ((int)(x+w) > screen->w)
+        w = screen->w - x;
+    if ((int)(y+h) > screen->h)
+        h = screen->h - x;
 
-        if ((int)(x+w) > screen->w)
-            w = screen->w - x;
-        if ((int)(y+h) > screen->h)
-            h = screen->h - x;
-
-        /* Fill the rectangle */
-        rect.x = x;
-        rect.y = y;
-        rect.w = w;
-        rect.h = h;
-        GAL_UpdateRects (screen, 1, &rect);
-    }
+    /* Fill the rectangle */
+    rect.x = x;
+    rect.y = y;
+    rect.w = w;
+    rect.h = h;
+    GAL_UpdateRects (screen, 1, &rect);
 }
 
-#ifdef _MGUSE_SYNC_UPDATE
-
-void GAL_UpdateRects (GAL_Surface *screen, int numrects, GAL_Rect *rects)
+#ifdef _MGSCHEMA_COMPOSITING
+static void mark_surface_dirty (GAL_Surface* surface,
+            int numrects, GAL_Rect* rects)
 {
     int i;
-    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
+    GAL_DirtyInfo* di = surface->dirty_info;
 
-    if (this == NULL)
-        return;
+    assert (di);
+    assert (numrects <= NR_DIRTY_RECTS);
 
-    if (this->info.mlt_surfaces == 0 && this->UpdateRects == NULL) {
-        return;
+    if (di->nr_dirty_rcs + numrects <= NR_DIRTY_RECTS) {
+        for (i = di->nr_dirty_rcs; i < (di->nr_dirty_rcs + numrects); i++) {
+            int j = i - di->nr_dirty_rcs;
+            di->dirty_rcs [i].left     = rects[j].x;
+            di->dirty_rcs [i].top      = rects[j].y;
+            di->dirty_rcs [i].right    = rects[j].x + rects[j].w;
+            di->dirty_rcs [i].bottom   = rects[j].y + rects[j].h;
+        }
+
+        di->nr_dirty_rcs += numrects;
     }
-    else if (this->UpdateSurfaceRects) {
-        return;
+    else {
+        RECT rc_bound;
+
+        SetRect (&rc_bound, 0, 0, 0, 0);
+        for (i = 0; i < di->nr_dirty_rcs; i++) {
+            GetBoundRect (&rc_bound, &rc_bound, di->dirty_rcs + i);
+        }
+
+        for (i = 0; i < numrects; i++) {
+            RECT rc = { rects [i].x,  rects [i].y,
+                        rects [i].x + rects [i].w,
+                        rects [i].y + rects [i].h };
+
+            GetBoundRect (&rc_bound, &rc_bound, &rc);
+        }
+
+        di->nr_dirty_rcs = 1;
+        di->dirty_rcs[0] = rc_bound;
+
+        _DBG_PRINTF("Too many un-synced dirty rects, merged to one.\n");
     }
+
+    di->dirty_age++;
+}
+#endif /* defined _MGSCHEMA_COMPOSITING */
+
+#ifdef _MGSCHEMA_COMPOSITING
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+
+#include "sharedres.h"
+#include "ourhdr.h"
+#include "drawsemop.h"
+#endif /* defined _MGSCHEMA_COMPOSITING */
+
+#ifdef _MGUSE_UPDATE_REGION
+
+static inline void add_rects_to_update_region (CLIPRGN* region,
+        int numrects, GAL_Rect *rects)
+{
+    int i;
 
     for (i = 0; i < numrects; i++) {
         RECT rc;
@@ -753,11 +815,42 @@ void GAL_UpdateRects (GAL_Surface *screen, int numrects, GAL_Rect *rects)
         rc.top    = rects[i].y;
         rc.right  = rects[i].x + rects[i].w;
         rc.bottom = rects[i].y + rects[i].h;
-        AddClipRect (&screen->update_region, &rc);
+        AddClipRect (region, &rc);
     }
 }
 
-static int convert_region_to_rects (const CLIPRGN * rgn, GAL_Rect *rects, int max_nr)
+void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
+{
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (surface->dirty_info) {
+        add_rects_to_update_region (&surface->update_region, numrects, rects);
+        return;
+    }
+#endif
+
+    if (this == NULL) {
+        goto notsupport;
+    }
+
+    if (this->info.mlt_surfaces == 0 && this->UpdateRects == NULL) {
+        goto notsupport;
+    }
+    else if (this->UpdateSurfaceRects) {
+        goto notsupport;
+    }
+
+    add_rects_to_update_region (&surface->update_region, numrects, rects);
+    return;
+
+notsupport:
+    if (this)
+        _DBG_PRINTF ("No UpdateRects method for NEWGAL engine (%s)\n", this->name);
+}
+
+int __mg_convert_region_to_rects (const CLIPRGN * rgn,
+        GAL_Rect *rects, int max_nr)
 {
     int nr = 0;
     PCLIPRECT clip_rect = rgn->head;
@@ -776,72 +869,108 @@ static int convert_region_to_rects (const CLIPRGN * rgn, GAL_Rect *rects, int ma
     if (clip_rect == NULL) {
         return nr;
     }
+    else {
+        SetRect (&left_rc, 0, 0, 0, 0);
+        while (clip_rect) {
+            GetBoundRect (&left_rc, &left_rc, &clip_rect->rc);
+            clip_rect = clip_rect->next;
+        }
 
-    SetRect (&left_rc, 0, 0, 0, 0);
-    while (clip_rect) {
-        UnionRect (&left_rc, &left_rc, &clip_rect->rc);
-        clip_rect = clip_rect->next;
+        rects [nr].x = left_rc.left;
+        rects [nr].y = left_rc.top;
+        rects [nr].w = left_rc.right - left_rc.left;
+        rects [nr].h = left_rc.bottom - left_rc.top;
+
+        nr++;
     }
-
-    rects [nr].x = left_rc.left;
-    rects [nr].y = left_rc.top;
-    rects [nr].w = left_rc.right - left_rc.left;
-    rects [nr].h = left_rc.bottom - left_rc.top;
-
-    nr++;
 
     return nr;
 }
 
-BOOL GAL_SyncUpdate (GAL_Surface *screen)
+BOOL GAL_SyncUpdate (GAL_Surface *surface)
 {
-    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
-    GAL_Rect rects[8];
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
+    GAL_Rect rects[NR_DIRTY_RECTS];
     int numrects;
+    BOOL rc = TRUE;
 
-    if (this == NULL)
+    numrects = __mg_convert_region_to_rects (&surface->update_region,
+            rects, NR_DIRTY_RECTS);
+    if (numrects <= 0) {
         return FALSE;
-
-    numrects = convert_region_to_rects (&screen->update_region, rects, 8);
-    if (numrects <= 0)
-        return FALSE;
-
-    if (this->info.mlt_surfaces == 0 && this->UpdateRects) {
-        this->UpdateRects (this, numrects, rects);
-    }
-    else if (this->UpdateSurfaceRects) {
-        this->UpdateSurfaceRects (this, screen, numrects, rects);
     }
 
-    EmptyClipRgn (&screen->update_region);
-    return TRUE;
+#ifdef _MGSCHEMA_COMPOSITING
+    if (surface->shared_header) {
+        LOCK_SURFACE_SEM (surface->shared_header->sem_num);
+        mark_surface_dirty (surface, numrects, rects);
+        UNLOCK_SURFACE_SEM (surface->shared_header->sem_num);
+    }
+    else if (surface->dirty_info) {
+        mark_surface_dirty (surface, numrects, rects);
+    }
+#endif
+
+    if (this) {
+        if (this->info.mlt_surfaces == 0 && this->UpdateRects) {
+            this->UpdateRects (this, numrects, rects);
+        }
+        else if (this->UpdateSurfaceRects) {
+            this->UpdateSurfaceRects (this, surface, numrects, rects);
+        }
+
+        if (this->SyncUpdate) {
+            rc = this->SyncUpdate (this);
+        }
+
+        _DBG_PRINTF ("%d rects updated\n", numrects);
+    }
+
+    EmptyClipRgn (&surface->update_region);
+    return rc;
 }
 
-#else
+#else /* defined _MGUSE_UPDATE_REGION */
 
-void GAL_UpdateRects (GAL_Surface *screen, int numrects, GAL_Rect *rects)
+void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
 {
-    GAL_VideoDevice *this = (GAL_VideoDevice *)screen->video;
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
 
-    if (this->info.mlt_surfaces == 0) {
-        if (this && this->UpdateRects)
-            this->UpdateRects (this, numrects, rects);
+#ifdef _MGSCHEMA_COMPOSITING
+    if (surface->dirty_info) {
+        mark_surface_dirty (surface, numrects, rects);
     }
-    else {
-        if (this && this->UpdateSurfaceRects) {
-            this->UpdateSurfaceRects (this, screen, numrects, rects);
+#endif
+
+    if (this) {
+        if (this->info.mlt_surfaces == 0 && this->UpdateRects) {
+            this->UpdateRects (this, numrects, rects);
+        }
+        else if (this->UpdateSurfaceRects) {
+            this->UpdateSurfaceRects (this, surface, numrects, rects);
         }
     }
 }
 
-#endif /* _MGUSE_SYNC_UPDATE */
+BOOL GAL_SyncUpdate (GAL_Surface *surface)
+{
+    GAL_VideoDevice *this = (GAL_VideoDevice *)surface->video;
+
+    if (this && this->SyncUpdate) {
+        return this->SyncUpdate (this);
+    }
+
+    return FALSE;
+}
+
+#endif /* not defined _MGUSE_UPDATE_REGION */
 
 static void SetPalette_logical(GAL_Surface *screen, GAL_Color *colors,
         int firstcolor, int ncolors)
 {
     GAL_Palette *pal = screen->format->palette;
 
-    if ( colors != (pal->colors + firstcolor) ) {
+    if (colors != (pal->colors + firstcolor)) {
         memcpy(pal->colors + firstcolor, colors,
                 ncolors * sizeof(*colors));
     }
@@ -855,13 +984,13 @@ static int SetPalette_physical(GAL_Surface *screen,
     /* GAL_VideoDevice *video = __mg_current_video; */
     GAL_VideoDevice *video;
     int gotall = 1;
-    if ( screen->video == NULL ) {
+    if (screen->video == NULL) {
         return 0;
     }
 
     video = screen->video;
 
-    if ( video->physpal ) {
+    if (video->physpal) {
         /* We need to copy the new colors, since we haven't
          * already done the copy in the logical set above.
          */
@@ -877,7 +1006,7 @@ static int SetPalette_physical(GAL_Surface *screen,
         if (video->SetSurfaceColors)
             gotall = video->SetSurfaceColors(screen, firstcolor, ncolors, colors);
 
-    if ( ! gotall ) {
+    if (! gotall) {
         /* The video flags shouldn't have GAL_HWPALETTE, and
            the video driver is responsible for copying back the
            correct colors into the video surface palette.
@@ -903,25 +1032,25 @@ int GAL_SetPalette(GAL_Surface *screen, int which,
     GAL_Palette *pal;
     int gotall;
     int palsize;
-    if ( ! __mg_current_video ) {
+    if (! __mg_current_video) {
         return 0;
     }
-    if ( screen->video == NULL ) {
+    if (screen->video == NULL) {
         /* only screens have physical palettes */
         which &= ~GAL_PHYSPAL;
-    } else if( (screen->flags & GAL_HWPALETTE) != GAL_HWPALETTE ) {
+    } else if((screen->flags & GAL_HWPALETTE) != GAL_HWPALETTE) {
         /* hardware palettes required for split colormaps */
         which |= GAL_PHYSPAL | GAL_LOGPAL;
     }
 
     /* Verify the parameters */
     pal = screen->format->palette;
-    if( !pal ) {
+    if(!pal) {
         return 0;    /* not a palettized surface */
     }
     gotall = 1;
     palsize = 1 << screen->format->BitsPerPixel;
-    if ( ncolors > (palsize - firstcolor) ) {
+    if (ncolors > (palsize - firstcolor)) {
         ncolors = (palsize - firstcolor);
         gotall = 0;
     }
@@ -946,7 +1075,7 @@ int GAL_SetPalette(GAL_Surface *screen, int which,
         if(!video)
             return gotall;    /* video not yet initialized */
 
-        if(!video->physpal && !(which & GAL_LOGPAL) ) {
+        if(!video->physpal && !(which & GAL_LOGPAL)) {
             /* Lazy physical palette allocation */
             int size;
             GAL_Palette *pp = malloc(sizeof(*pp));
@@ -957,8 +1086,8 @@ int GAL_SetPalette(GAL_Surface *screen, int which,
             pp->colors = malloc(size);
             memcpy(pp->colors, pal->colors, size);
         }
-        if ( ! SetPalette_physical(screen,
-                    colors, firstcolor, ncolors) ) {
+        if (! SetPalette_physical(screen,
+                    colors, firstcolor, ncolors)) {
             gotall = 0;
         }
     }
@@ -979,22 +1108,33 @@ int GAL_SetColors(GAL_Surface *screen, GAL_Color *colors, int firstcolor,
  */
 void GAL_VideoQuit (void)
 {
-    GAL_Surface *ready_to_go;
-
-    if ( __mg_current_video ) {
+    if (__mg_current_video) {
         GAL_VideoDevice *video = __mg_current_video;
         GAL_VideoDevice *this  = __mg_current_video;
         /* Clean up the system video */
         video->VideoQuit (this);
 
         if (GAL_VideoSurface != NULL) {
+#ifdef _MGSCHEMA_COMPOSITING
+            GAL_VideoSurface = NULL;
+            if (IsServer()) {
+                GAL_FreeSurface (__gal_screen);
+                GAL_FreeSurface (__gal_fake_screen);
+            }
+            else {
+                GAL_FreeSurface (__gal_screen);
+            }
+#else
+            GAL_Surface *ready_to_go;
             ready_to_go = GAL_VideoSurface;
             GAL_VideoSurface = NULL;
             GAL_FreeSurface (ready_to_go);
+#endif
         }
+
         GAL_PublicSurface = NULL;
         /* Clean up miscellaneous memory */
-        if ( video->physpal ) {
+        if (video->physpal) {
             free(video->physpal->colors);
             free(video->physpal);
             video->physpal = NULL;
@@ -1004,8 +1144,8 @@ void GAL_VideoQuit (void)
         video->free(this);
         __mg_current_video = NULL;
 
-#ifdef _MGUSE_SYNC_UPDATE
-	    DestroyFreeClipRectList (&__mg_free_update_region_list);
+#ifdef _MGUSE_UPDATE_REGION
+        DestroyFreeClipRectList (&__mg_free_update_region_list);
 #endif
     }
     return;
@@ -1058,7 +1198,7 @@ void gal_SlaveVideoQuit (GAL_Surface * surface)
             }
 
             /* Clean up miscellaneous memory */
-            if ( video->physpal ) {
+            if (video->physpal) {
                 free(video->physpal->colors);
                 free(video->physpal);
                 video->physpal = NULL;
@@ -1085,7 +1225,7 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
 
     surface = (GAL_Surface *)malloc(sizeof(*surface));
 
-    if ( surface == NULL ) {
+    if (surface == NULL) {
         GAL_OutOfMemory();
         return(NULL);
     }
@@ -1095,7 +1235,7 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     }
     surface->format = GAL_AllocFormat(depth, Rmask, Gmask, Bmask, Amask);
 
-    if ( surface->format == NULL ) {
+    if (surface->format == NULL) {
         free(surface);
         return(NULL);
     }
@@ -1105,20 +1245,24 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     surface->h = 0;
     surface->pitch = GAL_CalculatePitch(surface);
     surface->pixels = NULL;
-    surface->offset = 0;
+    surface->pixels_off = 0;
     surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;
+#if IS_COMPOSITING_SCHEMA
+    surface->shared_header = NULL;
+    surface->dirty_info = NULL;
+#endif
     GAL_SetClipRect(surface, NULL);
 
-#ifdef _MGUSE_SYNC_UPDATE
+#ifdef _MGUSE_UPDATE_REGION
     /* Initialize update region */
     InitClipRgn (&surface->update_region, &__mg_free_update_region_list);
 #endif
 
     /* Allocate an empty mapping */
     surface->map = GAL_AllocBlitMap();
-    if ( surface->map == NULL ) {
+    if (surface->map == NULL) {
         Slave_FreeSurface(surface);
         return(NULL);
     }
@@ -1185,18 +1329,18 @@ static int Slave_GetVideoMode (GAL_VideoDevice *this,
     GAL_closest_depths[table][0] = *BitsPerPixel;
     GAL_closest_depths[table][7] = surface->format->BitsPerPixel;
 
-    for ( b = 0; !supported && GAL_closest_depths[table][b]; ++b ) {
+    for (b = 0; !supported && GAL_closest_depths[table][b]; ++b) {
         format.BitsPerPixel = GAL_closest_depths[table][b];
         sizes = Slave_ListModes(this, &format, flags);
 
-        if ( sizes == (GAL_Rect **)0 ) {
+        if (sizes == (GAL_Rect **)0) {
             /* No sizes supported at this bit-depth */
             continue;
         }
 
-        for ( i=0; sizes[i]; ++i ) {
+        for (i=0; sizes[i]; ++i) {
             if ((sizes[i]->w < *w) || (sizes[i]->h < *h)) {
-                if ( i > 0 ) {
+                if (i > 0) {
                     --i;
                     *w = sizes[i]->w;
                     *h = sizes[i]->h;
@@ -1209,7 +1353,7 @@ static int Slave_GetVideoMode (GAL_VideoDevice *this,
             }
         }
 
-        if ( (i > 0) && ! sizes[i] ) {
+        if ((i > 0) && ! sizes[i]) {
             /* The smallest mode was larger than requested, OK */
             --i;
             *w = sizes[i]->w;
@@ -1228,7 +1372,8 @@ static int Slave_GetVideoMode (GAL_VideoDevice *this,
 }
 
 static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
-                GAL_Surface* surface, int width, int height, int bpp, Uint32 flags)
+                GAL_Surface* surface, int width, int height,
+                int bpp, Uint32 flags)
 {
     GAL_VideoDevice *video, *this;
     int video_w;
@@ -1273,7 +1418,7 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
             return (NULL);
         }
         /* If we have a palettized surface, create a default palette */
-        if ( surface->format->palette ) {
+        if (surface->format->palette) {
             GAL_PixelFormat *vf = surface->format;
             GAL_DitherColors(vf->palette->colors, vf->BitsPerPixel);
             vf->DitheredPalette = TRUE;
@@ -1292,7 +1437,7 @@ static GAL_Surface * Slave_SetVideoMode (GAL_VideoDevice *device,
         /* Clear the surface to black */
         video->offset_x = 0;
         video->offset_y = 0;
-        surface->offset = 0;
+        surface->pixels_off = 0;
 
         surface->w = width;
         surface->h = height;
@@ -1316,7 +1461,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     video = GAL_GetVideo(driver_name);
 
     if (video == NULL) {
-        _DBG_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n",
+        _ERR_PRINTF ("NEWGAL: Does not find the slave video engine: %s.\n",
                         driver_name);
         return NULL;
     }
@@ -1324,8 +1469,8 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     /* Initialize the video subsystem */
     memset(&vformat, 0, sizeof(vformat));
 
-    if ( video->VideoInit(video, &vformat) < 0 ) {
-        _DBG_PRINTF ("NEWGAL: Can not init the slave video engine: %s.\n",
+    if (video->VideoInit(video, &vformat) < 0) {
+        _ERR_PRINTF ("NEWGAL: Can not init the slave video engine: %s.\n",
                         driver_name);
         gal_SlaveVideoQuit (video->screen);
         return NULL;
@@ -1334,7 +1479,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
     surface = Slave_CreateSurface (video, 0, 0, vformat.BitsPerPixel,
             vformat.Rmask, vformat.Gmask, vformat.Bmask, 0);
     if (!surface) {
-        _DBG_PRINTF ("NEWGAL: Create slave video surface failure.\n");
+        _ERR_PRINTF ("NEWGAL: Create slave video surface failure.\n");
         return NULL;
     }
 
@@ -1345,7 +1490,7 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
 
     if (!(Slave_SetVideoMode(video, surface, w, h, depth, GAL_HWPALETTE))) {
         gal_SlaveVideoQuit (video->screen);
-        _DBG_PRINTF ("NEWGAL: Set video mode failure.\n");
+        _ERR_PRINTF ("NEWGAL: Set video mode failure.\n");
         return NULL;
     }
 
@@ -1356,6 +1501,8 @@ GAL_Surface *gal_SlaveVideoInit(const char* driver_name, const char* mode, int d
 
     return surface;
 }
+
+BOOL __mg_switch_away;
 
 /* Since 4.0.0; activate/deactivate video device, for switching virtual terminals */
 int GAL_ResumeVideo(void)
@@ -1370,9 +1517,7 @@ int GAL_ResumeVideo(void)
     }
 #endif
 
-#ifndef _MGRM_THREADS
     __mg_switch_away = FALSE;
-#endif
 
 #ifdef _MGRM_PROCESSES
     UpdateTopmostLayer (NULL);
@@ -1389,9 +1534,7 @@ int GAL_SuspendVideo(void)
     DisableClientsOutput ();
 #endif
 
-#ifndef _MGRM_THREADS
     __mg_switch_away = TRUE;
-#endif
 
 #ifdef _MGRM_PROCESSES
     if (mgIsServer) {
@@ -1406,3 +1549,14 @@ int GAL_SuspendVideo(void)
     return 0;
 }
 
+#ifdef _MGRM_PROCESSES
+BOOL GAL_CopyVideoInfoToSharedRes (void)
+{
+    if (__mg_current_video && __mg_current_video->CopyVideoInfoToSharedRes) {
+        __mg_current_video->CopyVideoInfoToSharedRes(__mg_current_video);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+#endif  /* _MGRM_PROCESSES */

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -58,12 +58,12 @@
 /*        EXCLUDED TO THE FULLEST EXTENT PERMITTED BY LAW                    */
 /*                                                                           */
 /*****************************************************************************/
-/**                                                                            
- @File   linuxcommon.h                                                         
- @brief                                                                         
-                                                                               
-                                                                               
-                                                                               
+/**
+ @File   linuxcommon.h
+ @brief
+
+
+
 */
 
 #ifndef _LINUX_COMMON_H_
@@ -79,12 +79,12 @@
 #include <linux/config.h>
 #endif
 #include <linux/module.h>
-#include <linux/kernel.h> 
-#include <linux/init.h>   
+#include <linux/kernel.h>
+#include <linux/init.h>
 #include <linux/types.h>
 #include <linux/fs.h>
-#include <linux/mm.h>    
-#include <linux/errno.h> 
+#include <linux/mm.h>
+#include <linux/errno.h>
 #include <linux/ioport.h>
 #include <linux/spinlock.h>
 #include <linux/time.h>
@@ -106,7 +106,7 @@
 #include <asm/uaccess.h>
 #include <asm/unistd.h>
 #else
-#define _GNU_SOURCE 1 
+#define _GNU_SOURCE 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -149,8 +149,8 @@
 #define STFDMA_IOCTL_MAJOR       0
 #define STVMIX_IOCTL_MAJOR       0
 #define STDENC_IOCTL_MAJOR       0
-#define STGXOBJ_IOCTL_MAJOR      0 
-#define STGFB_IOCTL_MAJOR        0 
+#define STGXOBJ_IOCTL_MAJOR      0
+#define STGFB_IOCTL_MAJOR        0
 #define STEVT_IOCTL_MAJOR        0
 #define STCLKRV_IOCTL_MAJOR      0
 #define STSMART_IOCTL_MAJOR      0
@@ -183,8 +183,8 @@
 #define STBLIT_CORE_MAJOR        0
 #define STVMIX_CORE_MAJOR        0
 #define STDENC_CORE_MAJOR        0
-#define STGXOBJ_CORE_MAJOR       0 
-#define STGFB_CORE_MAJOR         0 
+#define STGXOBJ_CORE_MAJOR       0
+#define STGFB_CORE_MAJOR         0
 #define STEVT_CORE_MAJOR         0
 #define STCLKRV_CORE_MAJOR       0
 #define STSMART_CORE_MAJOR       0
@@ -252,7 +252,7 @@
 #define STFSK_IOCTL_MAGIC_NUMBER        0xE8
 #define STPCCRD_IOCTL_MAGIC_NUMBER      0xE9
 #define STFRONTEND_IOCTL_MAGIC_NUMBER   0xEA
-#define STUART_IOCTL_MAGIC_NUMBER       0xEB 
+#define STUART_IOCTL_MAGIC_NUMBER       0xEB
 
 #endif
 

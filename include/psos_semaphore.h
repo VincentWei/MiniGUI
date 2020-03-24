@@ -14,8 +14,8 @@
  * \file psos_semaphore.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2007/05/16
- * 
- * \brief This is the POSIX semaphore implementation in order to 
+ *
+ * \brief This is the POSIX semaphore implementation in order to
           run MiniGUI on pSOS.
  *
  \verbatim
@@ -27,11 +27,11 @@
 
     We do this work in order to run MiniGUI on pSOS.
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
-    Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+    Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
     Copyright (C) 1998~2002, WEI Yongming
 
     This program is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@
 /*
  * $Id: psos_semaphore.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -80,7 +80,7 @@ extern "C" {
 
 typedef unsigned long sem_t;
 
-#define SEM_VALUE_MAX	UINT_MAX
+#define SEM_VALUE_MAX    UINT_MAX
 
 /*-----------------------------------------------------------------------------
 ** Semaphore functions

@@ -11,41 +11,41 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
 ** gif.c: Low-level GIF file read/save routines.
-** 
+**
 ** Current maintainer: Wei Yongming
 **
 ** Create date: 2000/08/29
@@ -110,7 +110,7 @@ static int ReadColorMap(MG_RWops* src, int number, unsigned char buffer[3][MAXCO
 static int GetDataBlock(MG_RWops* src, unsigned char *buf ,void * info_data);
 static int GetCode(MG_RWops* src, int code_size, int flag , void * info);
 static int LWZReadByte(MG_RWops* src, int flag, int input_code_size, void * info_data);
-static int ReadImage(MG_RWops* src, MYBITMAP* bmp, int len, int height, 
+static int ReadImage(MG_RWops* src, MYBITMAP* bmp, int len, int height,
                 int interlace , CB_ONE_SCANLINE cb, void* context , void * info);
 /*
  *
@@ -144,7 +144,7 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
     info->width = 0;
     info->height = 0;
     info->interlace = 0;
-    
+
     info->gif89.transparent = -1;
     info->gif89.delayTime = -1;
     info->gif89.inputFlag = -1;
@@ -180,10 +180,10 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
              _WRN_PRINTF ("MYBMP>Gif: no image\n" );
             goto fini;
          }
-        
+
         if ('!' == c) /* Start of the Extension*/
         {
-            if (!ReadOK (fp, &c, 1)) 
+            if (!ReadOK (fp, &c, 1))
                 goto fini;
             if (0xfe == c) {
                 while (GetDataBlock(fp, (unsigned char *) buf , info) != 0);
@@ -191,18 +191,18 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
             if (0xff == c) {
                 while (GetDataBlock(fp, (unsigned char *) buf , info) != 0);
             }
-            
+
             if (0xf9 == c) {
                 GetDataBlock (fp, (unsigned char *) buf , info);
                 info->gif89.disposal = (buf[0] >> 2) & 0x7;//000 000 0 0 the middle 2 bit is disposal
-                info->gif89.inputFlag = (buf[0] >> 1) & 0x1;//000 000 0 0 the secand last bit 
+                info->gif89.inputFlag = (buf[0] >> 1) & 0x1;//000 000 0 0 the secand last bit
                             //is user input flag
                 info->gif89.delayTime = LM_to_uint(buf[1], buf[2]);
                 if ((buf[0] & 0x1) != 0)// 000 000 0 0 the last bit is transparent flag
                     info->gif89.transparent = buf[3];
             }
         }
-        
+
 
         if (',' == c) /* Start of the Image Descriptor*/
             break;
@@ -239,13 +239,13 @@ void* __mg_init_gif (MG_RWops* fp, MYBITMAP *gif, RGB *pal)
     info->width = LM_to_uint(buf[4], buf[5]);
     info->height = LM_to_uint(buf[6], buf[7]);
     info->interlace = BitSet(buf[8], INTERLACE);
-        
+
     gif->w = info->width;
     gif->h = info->height;
     gif->frames = 1;
     gif->depth = 8;
-    bmp_ComputePitch (8, info->width, &gif->pitch, TRUE);
-  
+    __mg_bmp_compute_pitch (8, info->width, &gif->pitch, TRUE);
+
     gif->flags |= MYBMP_FLOW_DOWN;
     if ( info->gif89.transparent > 0 ) {
         gif->flags |= MYBMP_TRANSPARENT;
@@ -266,7 +266,7 @@ int __mg_load_gif (MG_RWops* fp, void* init_info, MYBITMAP *gif, CB_ONE_SCANLINE
     GifInfo * info = (GifInfo *)init_info;
 
     if (!info ->useGColormap) {
-        ok = ReadImage (fp, gif, info->width, 
+        ok = ReadImage (fp, gif, info->width,
                         info->height,
                         info->interlace,
                         cb, context, info);
@@ -285,7 +285,7 @@ int __mg_load_gif (MG_RWops* fp, void* init_info, MYBITMAP *gif, CB_ONE_SCANLINE
 
 void __mg_cleanup_gif (void* init_info)
 {
-    free (init_info);   /* free the GifInfo struct */    
+    free (init_info);   /* free the GifInfo struct */
 }
 
 static int
@@ -383,7 +383,7 @@ LWZReadByte(MG_RWops *src, int flag, int input_code_size , void * info_data)
     static int clear_code, end_code;
     static int table[2][(1 << MAX_LWZ_BITS)];
     static int stack[(1 << (MAX_LWZ_BITS)) * 2], *sp;
-    
+
     GifInfo * info = info_data;
 
     if (flag) {
@@ -482,7 +482,7 @@ LWZReadByte(MG_RWops *src, int flag, int input_code_size , void * info_data)
 }
 
 static int
-ReadImage(MG_RWops* src, MYBITMAP* bmp, int len, int height, 
+ReadImage(MG_RWops* src, MYBITMAP* bmp, int len, int height,
         int interlace , CB_ONE_SCANLINE cb, void* context , void * info)
 {
     unsigned char c;

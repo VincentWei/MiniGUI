@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -84,21 +84,26 @@ BOOL RegisterTreeViewRdrControl (void)
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (0);
-    WndClass.iBkColor = GetWindowElementPixel (HWND_NULL, WE_BGC_WINDOW);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL, WE_BGC_WINDOW);
+#else
+    WndClass.iBkColor    =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_BGC_WINDOW);
+#endif
     WndClass.WinProc     = TreeViewCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 /*
  * Initialize Treeview.
  */
-static 
+static
 BOOL tvInitTVData (HWND hwnd, PTVDATA pData, DWORD dwStyle, PTVITEMINFO root_ii)
-{    
+{
     PTVITEM    tvRoot;
     HDC hdc;
-    char* text; 
+    char* text;
 
     if (root_ii) {
         if (root_ii->text ==  NULL || root_ii->text[0] == '\0')
@@ -176,7 +181,7 @@ BOOL tvInitTVData (HWND hwnd, PTVDATA pData, DWORD dwStyle, PTVITEMINFO root_ii)
  * Get the parent node of the given node.
  */
 static PTVITEM getParent (PTVDATA pData, PTVITEM pChild)
-{ 
+{
     if (pChild == pData->root || pChild == NULL)
         return NULL;
 
@@ -286,7 +291,7 @@ static int getTVWidth (PTVDATA pData)
 {
     int width = 0;
 
-    TVWidth (pData, pData->root, &width); 
+    TVWidth (pData, pData->root, &width);
 
     return width;
 }
@@ -315,7 +320,7 @@ static void RemoveSubTree (PTVDATA pData, PTVITEM p)
 #endif
     free (p);
     p = NULL;
-    pData->nItemCount--;    
+    pData->nItemCount--;
 }
 
 /*
@@ -459,7 +464,7 @@ static PTVITEM ItemFromCount (PTVITEM p, int count, int* cnt)
         q = p->child;
         while (q != NULL && !(t = ItemFromCount (q, count, cnt)))
             q = q->next;
-    } else 
+    } else
         return NULL;
 
     return t;
@@ -517,10 +522,10 @@ static void InsertChild (HWND hwnd, PTVDATA pData, PTVITEM pParent, PTVITEM pChi
     pChild->child = pChild->next = NULL;
     if (pParent->child == NULL)
         pParent->child = pChild;
-    else if (pData->dwStyle & TVS_SORT) 
+    else if (pData->dwStyle & TVS_SORT)
     {
         p = pParent->child;
-        while (pData->str_cmp (pChild->text, p->text, (size_t)-1) > 0 
+        while (pData->str_cmp (pChild->text, p->text, (size_t)-1) > 0
                         && p->next != NULL) {
             t = p;
             p = p->next;
@@ -535,7 +540,7 @@ static void InsertChild (HWND hwnd, PTVDATA pData, PTVITEM pParent, PTVITEM pChi
             pChild->next = p;
         }
     }
-    else 
+    else
     {
         p = pParent->child;
         while (p->next != NULL)
@@ -559,7 +564,7 @@ static void InsertChild (HWND hwnd, PTVDATA pData, PTVITEM pParent, PTVITEM pChi
     ReleaseDC (hdc);
 }
 
-static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX, 
+static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX,
         int centerY, PTVITEM p, int up, int down)
 {
     int h = pData->nItemHeight;
@@ -571,8 +576,8 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX,
     rc.left   = centerX - TV_BOXHALFHEIGHT;
     rc.top    = centerY - (h>>1);
     rc.right  = centerX + TV_BOXHALFHEIGHT;
-    rc.bottom = h + rc.top; 
-    
+    rc.bottom = h + rc.top;
+
     fg_color = GetWindowElementAttr (hWnd, WE_FGC_MENU);
 
     wnd_info = (WINDOWINFO*)GetWindowInfo (hWnd);
@@ -622,8 +627,8 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX,
     if (p->dwFlags & TVIF_SELECTED)
     {
         SetBkMode (hdc, BM_OPAQUE);
-        SetBkColor (hdc, GetWindowElementPixel (hWnd, WE_BGC_HIGHLIGHT_ITEM));
-        SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_HIGHLIGHT_ITEM));
+        SetBkColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_BGC_HIGHLIGHT_ITEM));
+        SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_HIGHLIGHT_ITEM));
 
         rc.left = centerX;
         rc.top = centerY - (h>>1);
@@ -634,13 +639,13 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX,
 
         if (pData->dwStyle & TVS_FOCUS) {
             rc.bottom -= 1;
-            wnd_info->we_rdr->draw_focus_frame (hdc, &rc, 
+            wnd_info->we_rdr->draw_focus_frame (hdc, &rc,
                     GetWindowElementAttr (hWnd, WE_FGC_WINDOW));
         }
     } else {
         SetBkMode (hdc, BM_TRANSPARENT);
         SetBkColor (hdc, GetWindowBkColor (hWnd));
-        SetTextColor (hdc, GetWindowElementPixel (hWnd, WE_FGC_WINDOW));
+        SetTextColor (hdc, GetWindowElementPixelEx (hWnd, hdc, WE_FGC_WINDOW));
 
         TextOut (hdc, centerX, centerY - (h>>1), p->text);
     }
@@ -649,7 +654,7 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX,
 /*
  * draw all items.
  */
-static void doAll (HWND hWnd, HDC hdc, PTVDATA pData, PTVITEM p, int cenX, 
+static void doAll (HWND hWnd, HDC hdc, PTVDATA pData, PTVITEM p, int cenX,
                 int cenY, int* count, int* depth)
 {
     int up, down, h = pData->nItemHeight;
@@ -657,7 +662,7 @@ static void doAll (HWND hWnd, HDC hdc, PTVDATA pData, PTVITEM p, int cenX,
 
     up = getItemsWithPrev (pData, p);
     down = getItemsWithNext (pData, p);
-    tvDrawItem (hWnd, hdc, pData, cenX + *depth * h , cenY + 
+    tvDrawItem (hWnd, hdc, pData, cenX + *depth * h , cenY +
             (*count - pData->nItemTop) * h, p, up, down);
 
     (*count)++;
@@ -666,7 +671,7 @@ static void doAll (HWND hWnd, HDC hdc, PTVDATA pData, PTVITEM p, int cenX,
         (*depth)++;
         while (t) {
             doAll (hWnd, hdc, pData, t, cenX, cenY , count, depth);
-            if (*count > pData->nItemTop + pData->nVisCount) 
+            if (*count > pData->nItemTop + pData->nVisCount)
                 return;
             t = t->next;
         }
@@ -692,7 +697,7 @@ static void tvOnDraw (HWND hwnd, HDC hdc, PTVDATA pData)
         y += TV_BORDER;
         w -= (TV_BORDER<<1);
         h -= (TV_BORDER<<1);
-    }        
+    }
 
     centerX = x - pData->nLeft + TV_BOXGAP + (pData->nItemHeight>>1);
     centerY = y + (pData->nItemHeight >> 1);
@@ -955,9 +960,9 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
                 count = getCountFromItem (pData, new_sel);
 
-                if (count <= pData->nItemTop) 
+                if (count <= pData->nItemTop)
                     pData->nItemTop = count;
-                else if (count >= pData->nItemTop + pData->nVisCount) 
+                else if (count >= pData->nItemTop + pData->nVisCount)
                     pData->nItemTop = count - pData->nVisCount;
 
                 recalc_redraw (hwnd, pData);
@@ -1043,7 +1048,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     info->dwFlags = item->dwFlags;
                     info->hIconFold = item->hIconFold;
                     info->hIconUnfold = item->hIconUnfold;
-				  info->dwAddData = item->dwAddData;
+                  info->dwAddData = item->dwAddData;
                 }
 
                 return 0;
@@ -1160,13 +1165,13 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 if (pData->dwStyle & TVS_WITHICON) {
                     newItem->hIconFold = (HICON) pTVItemInfo->hIconFold;
                     newItem->hIconUnfold = (HICON) pTVItemInfo->hIconUnfold;
-                } 
+                }
                 else {
                     newItem->hIconFold = 0L;
                     newItem->hIconUnfold = 0L;
                 }
 
-                if (pTVItemInfo->dwFlags & TVIF_FOLD) 
+                if (pTVItemInfo->dwFlags & TVIF_FOLD)
                     newItem->dwFlags = TVIF_FOLD;
 
                 newItem->dwAddData = pTVItemInfo->dwAddData;
@@ -1175,7 +1180,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 tvSetVScrollInfo (hwnd, pData, TRUE);
                 tvSetHScrollInfo (hwnd, pData, TRUE);
                 InvalidateRect (hwnd, NULL, TRUE);
-                return (LRESULT)newItem;    
+                return (LRESULT)newItem;
             }
 
         case MSG_KEYDOWN:
@@ -1229,7 +1234,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                                 rc.top += TV_BORDER;
                             rc.bottom = rc.top + pData->nItemHeight;
                             InvalidateRect (hwnd, &rc, TRUE);
-                        }            
+                        }
                         break;
 
                     case SCANCODE_CURSORBLOCKLEFT:
@@ -1431,7 +1436,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     break;
 
                 p = getItemFromCount(pData, count);
-                if (p == NULL) 
+                if (p == NULL)
                     break;
 
                 h = pData->nItemHeight;
@@ -1518,7 +1523,7 @@ static LRESULT TreeViewCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                     break;
 
                 p = getItemFromCount(pData, count);
-                if (p == NULL) 
+                if (p == NULL)
                     break;
 
                 h = pData->nItemHeight;

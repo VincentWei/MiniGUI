@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -94,12 +94,12 @@
                              }
 /* Initialization/Query functions */
 static int MLSHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat);
-static GAL_Rect **MLSHADOW_ListModes (_THIS, GAL_PixelFormat *format, 
+static GAL_Rect **MLSHADOW_ListModes (_THIS, GAL_PixelFormat *format,
                 Uint32 flags);
-static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current, 
+static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags);
 static GAL_VideoDevice *MLSHADOW_CreateDevice(int devindex);
-static int MLSHADOW_SetColors (_THIS, int firstcolor, int ncolors, 
+static int MLSHADOW_SetColors (_THIS, int firstcolor, int ncolors,
                 GAL_Color *colors);
 static void MLSHADOW_VideoQuit (_THIS);
 static void MLSHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects);
@@ -112,14 +112,14 @@ static void MLSHADOW_DeleteDevice(GAL_VideoDevice *device);
 static int MLSHADOW_AllocHWSurface (_THIS, GAL_Surface *surface);
 static void MLSHADOW_FreeHWSurface (_THIS, GAL_Surface *surface);
 
-static int MLSHADOW_SetSurfaceColors(GAL_Surface* surface, 
+static int MLSHADOW_SetSurfaceColors(GAL_Surface* surface,
                 int firstcolor, int ncolors, GAL_Color *colors);
 static int MLSHADOW_Available(void);
 
 
 extern BOOL GAL_ParseVideoMode (const char* mode, int* w, int* h, int* depth);
 extern void Slave_FreeSurface (GAL_Surface *surface);
-extern GAL_VideoDevice *GAL_GetVideo(const char* driver_name);
+extern GAL_VideoDevice *GAL_GetVideo(const char* driver_name, BOOL check_compos);
 
 /* MLSHADOW driver bootstrap functions */
 VideoBootStrap MLSHADOW_bootstrap = {
@@ -128,11 +128,11 @@ VideoBootStrap MLSHADOW_bootstrap = {
 };
 
 /****************************/
-typedef struct  __mlshadow_node 
+typedef struct  __mlshadow_node
 {
     list_t node;
-    int offset_x; 
-    int offset_y; 
+    int offset_x;
+    int offset_y;
     DWORD flags;
     RECT updaterect;
     GAL_Surface* shadow_surface;
@@ -175,7 +175,7 @@ BOOL mlsEnableSlaveScreen (HDC dc_mls, BOOL enable)
     if(enable == TRUE) //bugfix...
         node->flags |= MLSF_ENABLED;
     else if(enable == FALSE)
-        node->flags &= ~MLSF_ENABLED; 
+        node->flags &= ~MLSF_ENABLED;
 
     pthread_mutex_unlock (&this->hidden->update_lock);
 
@@ -198,11 +198,11 @@ void mlshadow_show_list (_THIS)
         node = (mlshadow_node *)pos;
         fprintf(stderr, "\nstruct  __mlshadow_node \n "
                     "node = %p\n "
-                    "offset_x = %d\n " 
+                    "offset_x = %d\n "
                     "offset_y = %d\n "
                     "flags = %d\n "
                     "shadow_surface  = %p\n",
-                    node, node->offset_x, node->offset_y, 
+                    node, node->offset_x, node->offset_y,
                     node->flags, node->shadow_surface);
     }
 
@@ -237,7 +237,7 @@ BOOL GUIAPI mlsGetSlaveScreenInfo (HDC dc_mls, DWORD mask,int* offset_x, int* of
         if (node->shadow_surface == dc_HDC2PDC(dc_mls)->surface) {
             flag = TRUE;
             break;
-        }    
+        }
     }
     if (!flag){
         pthread_mutex_unlock (&this->hidden->update_lock);
@@ -274,8 +274,8 @@ BOOL GUIAPI mlsGetSlaveScreenInfo (HDC dc_mls, DWORD mask,int* offset_x, int* of
     return flag;
 }
 
-BOOL GUIAPI mlsSetSlaveScreenInfo (HDC dc_mls, DWORD mask, 
-                int offset_x, int offset_y, DWORD blend_flags, 
+BOOL GUIAPI mlsSetSlaveScreenInfo (HDC dc_mls, DWORD mask,
+                int offset_x, int offset_y, DWORD blend_flags,
                 gal_pixel color_key, int alpha, int z_order)
 {
     list_t * pos;
@@ -300,7 +300,7 @@ BOOL GUIAPI mlsSetSlaveScreenInfo (HDC dc_mls, DWORD mask,
         if (node->shadow_surface == dc_HDC2PDC(dc_mls)->surface) {
             flag = TRUE;
             break;
-        }    
+        }
     }
 
     if (!flag){
@@ -315,7 +315,7 @@ BOOL GUIAPI mlsSetSlaveScreenInfo (HDC dc_mls, DWORD mask,
             rect.x = node->offset_x; rect.y = node->offset_y;
             rect.w = node->shadow_surface->w + rect.x;
             rect.h = node->shadow_surface->h + rect.y;
-            /* bugfixed houhh 20071116, should update the surface's old rect 
+            /* bugfixed houhh 20071116, should update the surface's old rect
              * by update the master surface. before update surface, should be
              * set current surface's offset.
              */
@@ -333,9 +333,9 @@ BOOL GUIAPI mlsSetSlaveScreenInfo (HDC dc_mls, DWORD mask,
 
     if (mask & MLS_INFOMASK_BLEND) {
         if ((blend_flags & MLS_BLENDMODE_COLORKEY) == MLS_BLENDMODE_COLORKEY) {
-            GAL_SetColorKey (node->shadow_surface, GAL_SRCCOLORKEY, color_key); 
-            //    node->flags |= MLSF_ALPHA; 
-            node->flags |= MLSF_COLORKEY;   //bugfix... 
+            GAL_SetColorKey (node->shadow_surface, GAL_SRCCOLORKEY, color_key);
+            //    node->flags |= MLSF_ALPHA;
+            node->flags |= MLSF_COLORKEY;   //bugfix...
         }
 
         if ((blend_flags & MLS_BLENDMODE_ALPHA) == MLS_BLENDMODE_ALPHA) {
@@ -374,11 +374,11 @@ static mlshadow_node* get_node(_THIS, GAL_Surface* surface)
     }
     return NULL;
 }
-                            
+
 /* houhh 20071115
  * save the updaterect for each surface (master and slave surface).
  * GAL_Rect *rects's coordinate is relative slave surface.
- * the mlshadow_list's node is saved the updaterect that is relatived 
+ * the mlshadow_list's node is saved the updaterect that is relatived
  * the master surface, not himself slave surface.
  */
 static void MLSHADOW_UpdateSurfaceRects (_THIS, GAL_Surface* surface, int numrects, GAL_Rect *rects)
@@ -386,7 +386,7 @@ static void MLSHADOW_UpdateSurfaceRects (_THIS, GAL_Surface* surface, int numrec
     int i;
     RECT bound;
     mlshadow_node* pnode = NULL;
-    if(surface && this){ 
+    if(surface && this){
         pthread_mutex_lock (&this->hidden->update_lock);
     //  bound = this->hidden->update;
         pnode = get_node(surface->video, surface);
@@ -399,7 +399,7 @@ static void MLSHADOW_UpdateSurfaceRects (_THIS, GAL_Surface* surface, int numrec
             RECT rc;
             rects[i].x += pnode->offset_x;
             rects[i].y += pnode->offset_y;
-            SetRect (&rc, rects[i].x, rects[i].y, 
+            SetRect (&rc, rects[i].x, rects[i].y,
                     rects[i].x + rects[i].w, rects[i].y + rects[i].h);
             if (IsRectEmpty (&bound))
                 bound = rc;
@@ -407,10 +407,12 @@ static void MLSHADOW_UpdateSurfaceRects (_THIS, GAL_Surface* surface, int numrec
                 GetBoundRect (&bound, &bound, &rc);
         }
         if (!IsRectEmpty (&bound)) {
-            if (IntersectRect (&bound, &bound, &g_rcScr)) {
+            RECT rcScr = GetScreenRect();
+
+            if (IntersectRect (&bound, &bound, &rcScr)) {
                 /* bugfixed houhh 20071116, the surface's dirty_rect can not beyond it's rect */
                 RECT rect = {0};
-                SetRect(&rect, pnode->offset_x, pnode->offset_y, 
+                SetRect(&rect, pnode->offset_x, pnode->offset_y,
                         surface->w + pnode->offset_x, surface->h + pnode->offset_y);
                 if(IntersectRect (&bound, &bound, &rect)){
                     pnode->updaterect = bound;
@@ -432,7 +434,7 @@ static void MLSHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     bound = this->hidden->update;
     for (i = 0; i < numrects; i++) {
         RECT rc;
-        SetRect (&rc, rects[i].x, rects[i].y, 
+        SetRect (&rc, rects[i].x, rects[i].y,
                 rects[i].x + rects[i].w, rects[i].y + rects[i].h);
         if (IsRectEmpty (&bound))
             bound = rc;
@@ -440,7 +442,9 @@ static void MLSHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
             GetBoundRect (&bound, &bound, &rc);
     }
     if (!IsRectEmpty (&bound)) {
-        if (IntersectRect (&bound, &bound, &g_rcScr)) {
+            RECT rcScr = GetScreenRect();
+
+        if (IntersectRect (&bound, &bound, &rcScr)) {
             this->hidden->update = bound;
             this->hidden->dirty = TRUE;
         }
@@ -502,7 +506,7 @@ static int MLSHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
     char system_engine [LEN_ENGINE_NAME + 1];
     char double_buffer[20];
     GAL_PixelFormat real_vformat;
-    
+
     /* houhh 20071116, if mlshadow is not the gal_engine, but call InitSlaveScreen. */
     if (GetMgEtcValue ("system", "gal_engine", system_engine, LEN_ENGINE_NAME) < 0) {
         return -1;
@@ -511,54 +515,54 @@ static int MLSHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
         return -1;
     }
 
-    if (this->hidden->_real_surface != NULL) 
+    if (this->hidden->_real_surface != NULL)
         return 0;
 
     this->hidden->dirty = FALSE;
     SetRect (&this->hidden->update, 0, 0, 0, 0);
     pthread_mutex_init (&this->hidden->update_lock, NULL);
 
-    if (GetMgEtcValue (MLSHADOW_NAME, "real_engine", 
+    if (GetMgEtcValue (MLSHADOW_NAME, "real_engine",
                real_engine, LEN_ENGINE_NAME) < 0) {
         return -1;
     }
 
     /* init real video engine here and get real_device. */
-    this->hidden->_real_device = GAL_GetVideo (real_engine);
+    this->hidden->_real_device = GAL_GetVideo (real_engine, FALSE);
     if (this->hidden->_real_device == NULL) {
         return (-1);
     }
 
     memset (&real_vformat, 0, sizeof(real_vformat));
-    if (this->hidden->_real_device->VideoInit (this->hidden->_real_device, 
+    if (this->hidden->_real_device->VideoInit (this->hidden->_real_device,
                 &real_vformat) < 0 ) {
         return (-1);
     }
 
-    if (GetMgEtcValue (MLSHADOW_NAME, "def_bgcolor", 
+    if (GetMgEtcValue (MLSHADOW_NAME, "def_bgcolor",
                 real_engine, LEN_ENGINE_NAME) < 0) {
         return -1;
     }
 
     this->hidden->_real_def_bgcolor = strtoul(real_engine, NULL, 0);
-    if(this->hidden->_real_def_bgcolor > 0xffffff 
+    if(this->hidden->_real_def_bgcolor > 0xffffff
                 || this->hidden->_real_def_bgcolor < 0) {
         this->hidden->_real_def_bgcolor = 0;
     }
 
-    GetMgEtcValue (MLSHADOW_NAME, "double_buffer", double_buffer, LEN_ENGINE_NAME);  
+    GetMgEtcValue (MLSHADOW_NAME, "double_buffer", double_buffer, LEN_ENGINE_NAME);
     if(!strncmp(double_buffer, "enable", sizeof("enable"))) {
         this->hidden->swap_surface = malloc(sizeof(GAL_Surface));
     }
 
-    this->hidden->_real_surface = GAL_CreateRGBSurface (GAL_SWSURFACE, 
-                0, 0, real_vformat.BitsPerPixel, real_vformat.Rmask, 
+    this->hidden->_real_surface = GAL_CreateRGBSurface (GAL_SWSURFACE,
+                0, 0, real_vformat.BitsPerPixel, real_vformat.Rmask,
                 real_vformat.Gmask, real_vformat.Bmask, 0);
 
     if (this->hidden->_real_surface == NULL ) {
         this->hidden->_real_device->free (this->hidden->_real_device);
         return (-1);
-    }      
+    }
 
     this->hidden->_real_surface->video = this->hidden->_real_device;
     this->hidden->_real_device->info.vfmt = this->hidden->_real_surface->format;
@@ -589,7 +593,7 @@ static void refresh_surface (_THIS, RECT* updaterect)
     RECT intersect_rect;
     GAL_Rect cache_rect;
     mlshadow_node* pnode = NULL, *pnode2 = NULL, *master_node = NULL;
-    GAL_Rect src = {0}, dst = {0}; 
+    GAL_Rect src = {0}, dst = {0};
     RECT* dirty_rect = NULL;
     RECT updatecache_rect = {0};
 
@@ -597,7 +601,7 @@ static void refresh_surface (_THIS, RECT* updaterect)
     updaterect = updaterect;
 
     list_for_each (me, &this->hidden->_mlshadow_list) {
-        pnode = list_entry (me, mlshadow_node, node); 
+        pnode = list_entry (me, mlshadow_node, node);
         if (pnode && pnode->shadow_surface) {
             dirty_rect  = &pnode->updaterect;
             if(IsRectEmpty(dirty_rect))
@@ -607,35 +611,35 @@ static void refresh_surface (_THIS, RECT* updaterect)
             cache_rect.w = RECTWP(dirty_rect);
             cache_rect.h = RECTHP(dirty_rect);
 
-            if (master_node->shadow_surface && (master_node->flags & MLSF_ALPHA)) {    
-                Uint32 color = this->hidden->_real_def_bgcolor; 
-                GAL_FillRect (this->hidden->_real_surface, &cache_rect, 
+            if (master_node->shadow_surface && (master_node->flags & MLSF_ALPHA)) {
+                Uint32 color = this->hidden->_real_def_bgcolor;
+                GAL_FillRect (this->hidden->_real_surface, &cache_rect,
                         RGB2Pixel(HDC_SCREEN, color & 0xff, (color & 0xff00) >> 8, (color & 0xff0000) >> 16));
             }
             startnode = me->prev;
             if((pnode->flags & MLSF_ALPHA) || (pnode->flags & MLSF_COLORKEY)){
                 startnode = &this->hidden->_mlshadow_list;              // even surface is not enabled, it will affect other surface...
-            }    
-            //   list_for_each (me2, &this->hidden->_mlshadow_list)     // refresh the all list's surface... 
+            }
+            //   list_for_each (me2, &this->hidden->_mlshadow_list)     // refresh the all list's surface...
             list_for_each (me2, startnode){                             // only refresh the surface zorder hight...
-                if(me2 == &this->hidden->_mlshadow_list){               // have reach end... 
+                if(me2 == &this->hidden->_mlshadow_list){               // have reach end...
                     break;
                 }
-                pnode2 = list_entry (me2, mlshadow_node, node); 
+                pnode2 = list_entry (me2, mlshadow_node, node);
                 if(pnode2 && pnode2->shadow_surface){
                     dst.x = pnode2->offset_x;
                     dst.y = pnode2->offset_y;
-                    dst.w = pnode2->shadow_surface->w;       
+                    dst.w = pnode2->shadow_surface->w;
                     dst.h = pnode2->shadow_surface->h;
                     src = dst;
                     if (pnode2->flags & MLSF_ENABLED) {
-                        SetRect(&intersect_rect, dst.x, dst.y, 
+                        SetRect(&intersect_rect, dst.x, dst.y,
                                 dst.x + dst.w, dst.y + dst.h);
 
                         if (IntersectRect (&intersect_rect, &intersect_rect, dirty_rect)) {
-                            dst.x = intersect_rect.left; dst.y = intersect_rect.top;          
-                            dst.w = RECTW(intersect_rect);                                               
-                            dst.h = RECTH(intersect_rect);                                               
+                            dst.x = intersect_rect.left; dst.y = intersect_rect.top;
+                            dst.w = RECTW(intersect_rect);
+                            dst.h = RECTH(intersect_rect);
 
                             src.x = dst.x - src.x;  src.y = dst.y - src.y;
                             src.w = dst.w;          src.h = dst.h;
@@ -648,20 +652,20 @@ static void refresh_surface (_THIS, RECT* updaterect)
                                 else
                                     GetBoundRect (&updatecache_rect, &updatecache_rect, &intersect_rect);
 #if 0
-                                fprintf(stderr, "update_rect:(%d,%d)%d,%d,%d,%d\n", pnode2->offset_x, pnode2->offset_y, 
+                                fprintf(stderr, "update_rect:(%d,%d)%d,%d,%d,%d\n", pnode2->offset_x, pnode2->offset_y,
                                         dirty_rect->left, dirty_rect->top, RECTWP(dirty_rect), RECTHP(dirty_rect));
-                                fprintf(stderr, "clip_rect:%d,%d,%d,%d\n", intersect_rect.left, intersect_rect.top, 
+                                fprintf(stderr, "clip_rect:%d,%d,%d,%d\n", intersect_rect.left, intersect_rect.top,
                                         RECTW(intersect_rect), RECTH(intersect_rect));
 #endif
                             }
                             else{
-                                //fprintf(stderr, "no swap_surface:clip_rect:%d,%d,%d,%d\n", intersect_rect.left, intersect_rect.top, 
+                                //fprintf(stderr, "no swap_surface:clip_rect:%d,%d,%d,%d\n", intersect_rect.left, intersect_rect.top,
                                 //        RECTW(intersect_rect), RECTH(intersect_rect));
                                 GAL_BlitSurface (pnode2->shadow_surface, &src,
                                         this->hidden->_real_surface, &dst);
                             }
                         }
-                    }                       
+                    }
                 }
             }
             // if has enable the double_buffer, do real surface blit now...
@@ -676,7 +680,7 @@ static void refresh_surface (_THIS, RECT* updaterect)
 
     /* houhh 2007116, if has enable the double_buffer, do _real_surface blit here...
      * paint the cache surface to real surface...
-     */ 
+     */
     if(this->hidden->swap_surface && !IsRectEmpty(&updatecache_rect)){
         //static int cc = 0;
         GAL_Rect rect = {0};
@@ -688,7 +692,7 @@ static void refresh_surface (_THIS, RECT* updaterect)
                 this->hidden->_real_surface, &rect);
         //fprintf(stderr, "%d:cacherect:%d,%d,%d,%d\n", cc++, rect.x, rect.y, rect.w, rect.h);
         if(this->hidden->_real_device->UpdateRects){
-            this->hidden->_real_device->UpdateRects (this->hidden->_real_device, 
+            this->hidden->_real_device->UpdateRects (this->hidden->_real_device,
                     1, &rect);
         }
         updatecache_rect.right = updatecache_rect.left;
@@ -700,7 +704,7 @@ static void* task_do_update (void* data)
 {
     _THIS;
     this = data;
-    while (1) {  
+    while (1) {
         __mg_os_time_delay (20);
         if (this->hidden->dirty) {
             pthread_mutex_lock (&this->hidden->update_lock);
@@ -732,13 +736,13 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
 
     if (list_empty (&this->hidden->_mlshadow_list)) {
 
-        /* create real surface. */  
-        if (GetMgEtcValue (MLSHADOW_NAME, "real_engine", 
+        /* create real surface. */
+        if (GetMgEtcValue (MLSHADOW_NAME, "real_engine",
                 real_engine, LEN_ENGINE_NAME) < 0) {
             fprintf (stderr, "NEWGAL>MLShadow: real_engine not defined.\n");
             return NULL;
         }
-        
+
         if (GetMgEtcValue (real_engine, "defaultmode", mode, LEN_MODE) < 0) {
             if (GetMgEtcValue ("system", "defaultmode", mode, LEN_MODE) < 0) {
                 fprintf (stderr, "NEWGAL>MLShadow: default mode not defined.\n");
@@ -750,10 +754,10 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
             fprintf (stderr, "NEWGAL>MLShadow: bad real video mode parameter: %s.\n", mode);
             return NULL;
         }
-        if (!(this->hidden->_real_surface 
+        if (!(this->hidden->_real_surface
                 = this->hidden->_real_device->SetVideoMode (
-                        this->hidden->_real_device, 
-                        this->hidden->_real_surface, 
+                        this->hidden->_real_device,
+                        this->hidden->_real_surface,
                         w, h, depth, GAL_HWPALETTE))) {
             fprintf (stderr, "NEWGAL>MLShadow: can not set video mode for real engine: %s.\n", mode);
             return NULL;
@@ -761,8 +765,8 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
 
         /* houhh 20071116 bugfix, reset the surface w/h/pitch.
          * if the input width/height/bpp is diffirent with the real_device.
-         */ 
-        
+         */
+
         current->w = w;
         current->h = h;
         current->pitch = w * ((depth + 7) / 8);
@@ -776,15 +780,15 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
             int swap_fb_size;
             int swap_fb_pitch;
             GAL_PixelFormat real_vformat = *this->hidden->_real_surface->format;
-            bmp_ComputePitch(depth, (unsigned int)w, (unsigned int* )&swap_fb_pitch, 1);
+            __mg_bmp_compute_pitch(depth, (unsigned int)w, (unsigned int* )&swap_fb_pitch, 1);
             swap_fb_size = swap_fb_pitch * h;
-            
-            /* bugfixed 20071116, This will result GAL_FreeSurface() error. 
+
+            /* bugfixed 20071116, This will result GAL_FreeSurface() error.
              * memcpy(this->hidden->swap_surface, this->hidden->_real_surface.
              * sizeof(GAL_Surface));
              */
-            this->hidden->swap_surface = GAL_CreateRGBSurface (GAL_SWSURFACE, w, h, 
-                    real_vformat.BitsPerPixel, real_vformat.Rmask, 
+            this->hidden->swap_surface = GAL_CreateRGBSurface (GAL_SWSURFACE, w, h,
+                    real_vformat.BitsPerPixel, real_vformat.Rmask,
                     real_vformat.Gmask, real_vformat.Bmask, 0);
             if (this->hidden->swap_surface) {
                 this->hidden->swap_surface->pixels = calloc(1, swap_fb_size);
@@ -816,7 +820,7 @@ static GAL_Surface *MLSHADOW_SetVideoMode (_THIS, GAL_Surface *current,
         pthread_attr_setstacksize (&new_attr, 512);
 #endif
         pthread_attr_setdetachstate (&new_attr, PTHREAD_CREATE_DETACHED);
-        ret = pthread_create (&this->hidden->update_th, 
+        ret = pthread_create (&this->hidden->update_th,
                     &new_attr, task_do_update, this);
         pthread_attr_destroy (&new_attr);
     }
@@ -875,7 +879,7 @@ static void MLSHADOW_DeleteSurface (_THIS, GAL_Surface* surface)
 
     if (!flag) {
         pthread_mutex_unlock (&this->hidden->update_lock);
-        return; 
+        return;
     }
     list_del(pos);
     if (list_empty(&this->hidden->_mlshadow_list)) {
@@ -911,7 +915,7 @@ static void MLSHADOW_VideoQuit (_THIS)
     pthread_mutex_destroy (&this->hidden->update_lock);
 }
 
-static GAL_Rect **MLSHADOW_ListModes (_THIS, GAL_PixelFormat *format, 
+static GAL_Rect **MLSHADOW_ListModes (_THIS, GAL_PixelFormat *format,
                 Uint32 flags)
 {
     return (GAL_Rect **) -1;
@@ -933,8 +937,8 @@ static void MLSHADOW_FreeHWSurface (_THIS, GAL_Surface *surface)
  * SetSurfaceColors() is used to set surface's palette when need.
  * it is distinguish with the SetColors().
  * it will call SetColors() when set the master surface.
- */ 
-static int MLSHADOW_SetSurfaceColors (GAL_Surface* surface, 
+ */
+static int MLSHADOW_SetSurfaceColors (GAL_Surface* surface,
                 int firstcolor, int ncolors, GAL_Color *colors)
 {
     list_t * pos, *back;
@@ -983,10 +987,10 @@ static int MLSHADOW_SetSurfaceColors (GAL_Surface* surface,
 }
 
 /* houhh 20071115.
- * if the surface is master surface, then set the master. 
- * surface's palette and the _real_device's palette. 
+ * if the surface is master surface, then set the master.
+ * surface's palette and the _real_device's palette.
  * set the swap_surface and real_surface and _real_device palette.
- */ 
+ */
 static int MLSHADOW_SetColors (_THIS, int firstcolor, int ncolors,
         GAL_Color *colors)
 {
@@ -1008,7 +1012,7 @@ static int MLSHADOW_SetColors (_THIS, int firstcolor, int ncolors,
             }
         }
     }
-    this->hidden->_real_device->SetColors(this->hidden->_real_device, 
+    this->hidden->_real_device->SetColors(this->hidden->_real_device,
             firstcolor, ncolors, colors);
     return 0;
 }

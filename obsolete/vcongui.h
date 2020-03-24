@@ -14,15 +14,15 @@
  * \file vcongui.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
- * \brief This file includes interfaces for libvcongui, which provides 
+ *
+ * \brief This file includes interfaces for libvcongui, which provides
  *        a virtual console on MiniGUI.
  *
  * \note vcongui had moved to mGUtils.
  *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -60,10 +60,10 @@
 /*
  * $Id: vcongui.h 11349 2009-03-02 05:00:43Z weiym $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  *
- * Some idea and source come from CCE (Console Chinese Environment) 
+ * Some idea and source come from CCE (Console Chinese Environment)
  * Thank He Rui and Takashi MANABE for their great work and good license.
  *
  * The copyright statement of CCE and KON2:
@@ -95,11 +95,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- * 
+ *
  */
 
-#ifndef	_MGUI_VCONGUI_H
-#define	_MGUI_VCONGUI_H
+#ifndef    _MGUI_VCONGUI_H
+#define    _MGUI_VCONGUI_H
 
 
 #ifdef __cplusplus
@@ -116,7 +116,7 @@ extern "C" {
 
 #ifndef __cplusplus
 #ifndef __ECOS__
-typedef	enum {false, true} bool;
+typedef    enum {false, true} bool;
 #endif
 #endif
 
@@ -148,7 +148,7 @@ typedef struct _CHILDINFO
     const char* execProg;
     /** The argument of the startup program if \a execProg is NULL. */
     const char* execArgs;
-    
+
     /**
      * The customized default window procedure of vcongui main window
      * (If it is NULL, MiniGUI will call the default main window procedure).
@@ -169,7 +169,7 @@ typedef CHILDINFO* PCHILDINFO;
  * \brief Creates a vcongui main window.
  *
  * This function creates a vcongui main window, and enter a message loop.
- * 
+ *
  * \param data The pointer to a CHILDINFO structure.
  */
 void* VCOnMiniGUI (void* data);

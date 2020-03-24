@@ -1,4 +1,4 @@
-/* 
+/*
 ** $Id: sample.c,v 1.38 2009-01-15 07:56:45 houhuihua Exp $
 **
 ** sample.c: Sample program for komoxo scripteasy font.
@@ -35,7 +35,7 @@ static void make_welcome_text (void)
     SetRect (&welcome_rc,  10, 20, g_rcScr.right - 10, g_rcScr.bottom / 1.5 - 10);
     SetRect (&msg_rc, 10, welcome_rc.bottom + 10, g_rcScr.right - 10, g_rcScr.bottom - 20);
 
-    if (strcmp (sys_charset, FONT_CHARSET_GB2312_0) == 0 
+    if (strcmp (sys_charset, FONT_CHARSET_GB2312_0) == 0
             || strcmp (sys_charset, FONT_CHARSET_GBK) == 0) {
         format = "昨天,市工商局局长张志宽在市工商局工作会上透露,本市工商系统今年将推出一系列促进经济发展、保护消费者权益的监管措施。其中,将会把B2B交易平台中的网店、专业门户网站和综合门户网站中的经营主体纳入监控,重点监控网上传销、无照经营、售假和网上欺诈等4种行为。张志宽说,2008年网上违法情况主要表现在虚假宣传、网上欺诈、销售假冒产品等。针对这些违法行为,今年本市将把B2B交易平台上的网店、专业门户网站和综合门户网站中的经营主体信息,全部纳入监控。其中,网上传销、无照经营、销售假冒伪劣商品和网上欺诈等4种行为,将成为打击的重点,工商将研究推出新的监管手段。据了解,目前国务院已经将网上交易监管交由国家工重点打击无照经营商总局负责,工商总局正在研究监管意见。本市工商局将根据工商总局的监管意见,相应地完善监管制度。\
             \nA proprietary protocol VOIP system built using Peer-to-peer (P2P) techniques.Free for non commercial use when using softphones (PC to PC).Offers toll access to PSTN via SkypeOut and SkypeIn.\nFrom the company that created KaZaA Licenses the Global IP Sound VoiceEngine suite of codecs and related software including their wideband codecs (double the width of regular pstn.) If you find yourself asking, 'why does Skype sound so good?', the answer is primarily this wideband ability.";
@@ -88,12 +88,12 @@ static int HelloWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
             break;
 
         case MSG_TIMER:
-            sprintf (msg_text, "Timer expired, current tick count: %ul.", 
+            sprintf (msg_text, "Timer expired, current tick count: %ul.",
                             GetTickCount ());
             //InvalidateRect (hWnd, &msg_rc, TRUE);
             InvalidateRect (hWnd, NULL, TRUE);
             break;
-            
+
         case MSG_LBUTTONDOWN:
             strcpy (msg_text, "The left button pressed.");
             InvalidateRect (hWnd, &msg_rc, TRUE);
@@ -119,23 +119,23 @@ static int HelloWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                 PLOGFONT logfont;
                 PLOGFONT bklogfont;
 #ifdef UTF_8
-                logfont = CreateLogFont("sef", 
-                        "fzxhgb_yh", 
-                        "UTF-8", 
+                logfont = CreateLogFont("sef",
+                        "fzxhgb_yh",
+                        "UTF-8",
                         FONT_WEIGHT_BOOK,
-                        FONT_SLANT_ROMAN, 
-                        0, 
+                        FONT_SLANT_ROMAN,
+                        0,
                         0,
                         FONT_UNDERLINE_NONE,
                         FONT_STRUCKOUT_NONE,
                         16, 0);
 #else
-                logfont = CreateLogFont("sef", 
-                        "fzxhgb_yh", 
+                logfont = CreateLogFont("sef",
+                        "fzxhgb_yh",
                         "GB2312",
                         FONT_WEIGHT_BOOK,
-                        FONT_SLANT_ROMAN, 
-                        0, 
+                        FONT_SLANT_ROMAN,
+                        0,
                         0,
                         FONT_UNDERLINE_NONE,
                         FONT_STRUCKOUT_NONE,
@@ -166,7 +166,7 @@ static int HelloWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
                 last_key = wParam;
                 last_key_count = 1;
             }
-            sprintf (msg_text, "The %d %skey pressed %d times", 
+            sprintf (msg_text, "The %d %skey pressed %d times",
                             wParam, syskey, last_key_count);
             InvalidateRect (hWnd, &msg_rc, TRUE);
             return 0;
@@ -210,9 +210,9 @@ int MiniGUIMain (int argc, const char* argv[])
     CreateInfo.iBkColor = COLOR_lightwhite;
     CreateInfo.dwAddData = 0;
     CreateInfo.hHosting = HWND_DESKTOP;
-    
+
     hMainWnd = CreateMainWindow (&CreateInfo);
-    
+
     if (hMainWnd == HWND_INVALID)
         return -1;
 

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -76,15 +76,21 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 BOOL RegisterCoolBarControl (void)
 {
     WNDCLASS WndClass;
-        
+
     WndClass.spClassName = CTRL_COOLBAR;
     WndClass.dwStyle     = WS_NONE;
     WndClass.dwExStyle   = WS_EX_NONE;
     WndClass.hCursor     = GetSystemCursor (IDC_ARROW);
-    WndClass.iBkColor    = GetWindowElementPixel (HWND_DESKTOP, WE_MAINC_THREED_BODY);
+#ifdef _MGSCHEMA_COMPOSITING
+    WndClass.dwBkColor   = GetWindowElementAttr (HWND_NULL,
+            WE_MAINC_THREED_BODY);
+#else
+    WndClass.iBkColor    = GetWindowElementPixelEx (HWND_DESKTOP,
+            HDC_SCREEN, WE_MAINC_THREED_BODY);
+#endif
     WndClass.WinProc     = CoolBarCtrlProc;
 
-    return AddNewControlClass (&WndClass) == ERR_OK;
+    return gui_AddNewControlClass (&WndClass) == ERR_OK;
 }
 
 static COOLBARITEMDATA* GetCurTag (int posx, int posy, PCOOLBARCTRL pdata)
@@ -92,14 +98,14 @@ static COOLBARITEMDATA* GetCurTag (int posx, int posy, PCOOLBARCTRL pdata)
     COOLBARITEMDATA*  tmpdata;
 
     tmpdata = pdata->head;
-    while (tmpdata) { 
+    while (tmpdata) {
         if (PtInRect (&tmpdata->RcTitle, posx, posy)
                 && tmpdata->ItemType != TYPE_BARITEM) {
-            return tmpdata;    
+            return tmpdata;
         }
         tmpdata = tmpdata->next;
     }
-    return NULL;         
+    return NULL;
 }
 
 static COOLBARITEMDATA* GetCurSel (PCOOLBARCTRL pdata)
@@ -107,25 +113,25 @@ static COOLBARITEMDATA* GetCurSel (PCOOLBARCTRL pdata)
     COOLBARITEMDATA*  tmpdata;
 
     tmpdata = pdata->head;
-    while (tmpdata) { 
+    while (tmpdata) {
         if (pdata->iSel == tmpdata->insPos
                 || pdata->iMvOver == tmpdata->insPos)
-            return tmpdata;    
+            return tmpdata;
 
         tmpdata = tmpdata->next;
     }
 
-    return NULL;         
+    return NULL;
 }
 
 static int enable_item (PCOOLBARCTRL TbarData, int id, BOOL flag)
 {
     COOLBARITEMDATA*  tmpdata;
-   
+
     tmpdata = TbarData->head;
-    while (tmpdata) { 
+    while (tmpdata) {
         if (tmpdata->id == id) {
-            tmpdata->Disable = !flag;    
+            tmpdata->Disable = !flag;
             return 0;
         }
         tmpdata = tmpdata->next;
@@ -159,7 +165,7 @@ static void unhilight (HWND hwnd)
 {
     COOLBARITEMDATA* pItemdata;
     PCOOLBARCTRL TbarData;
-    
+
     TbarData = (PCOOLBARCTRL) GetWindowAdditionalData2(hwnd);
 
     if ((pItemdata = GetCurSel(TbarData))) {
@@ -171,7 +177,7 @@ static void unhilight (HWND hwnd)
 
 static void draw_hilight_box (HWND hWnd, HDC hdc, COOLBARITEMDATA* item)
 {
-    int  l,r,t,b; 
+    int  l,r,t,b;
     WINDOWINFO *info = (WINDOWINFO*)GetWindowInfo (hWnd);
     DWORD color;
     DWORD mainc = GetWindowElementAttr (hWnd, WE_MAINC_THREED_BODY);
@@ -183,7 +189,7 @@ static void draw_hilight_box (HWND hWnd, HDC hdc, COOLBARITEMDATA* item)
 
     color = info->we_rdr->calc_3dbox_color (mainc, LFRDR_3DBOX_COLOR_DARKER);
     SetPenColor (hdc,
-            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color), 
+            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color),
                 GetBValue (color), GetAValue (color)));
     MoveTo (hdc, l, t);
     LineTo (hdc, l, b);
@@ -192,7 +198,7 @@ static void draw_hilight_box (HWND hWnd, HDC hdc, COOLBARITEMDATA* item)
 
     color = info->we_rdr->calc_3dbox_color (mainc, LFRDR_3DBOX_COLOR_LIGHTER);
     SetPenColor (hdc,
-            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color), 
+            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color),
                 GetBValue (color), GetAValue (color)));
     MoveTo (hdc, l + 1, t);
     LineTo (hdc, l + 1, b);
@@ -219,7 +225,7 @@ static void DrawCoolBox (HWND hWnd, HDC hdc, PCOOLBARCTRL pdata)
     WINDOWINFO *info = (WINDOWINFO*)GetWindowInfo (hWnd);
     DWORD color;
     DWORD mainc = GetWindowElementAttr (hWnd, WE_MAINC_THREED_BODY);
-  
+
     GetClientRect (hWnd, &rc);
 
     if (pdata->BackBmp) {
@@ -228,7 +234,7 @@ static void DrawCoolBox (HWND hWnd, HDC hdc, PCOOLBARCTRL pdata)
 
     color = info->we_rdr->calc_3dbox_color (mainc, LFRDR_3DBOX_COLOR_DARKEST);
     SetPenColor (hdc,
-            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color), 
+            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color),
                 GetBValue (color), GetAValue (color)));
     MoveTo (hdc, 0, 0);
     LineTo (hdc, rc.right, 0);
@@ -237,7 +243,7 @@ static void DrawCoolBox (HWND hWnd, HDC hdc, PCOOLBARCTRL pdata)
 
     color = info->we_rdr->calc_3dbox_color (mainc, LFRDR_3DBOX_COLOR_LIGHTEST);
     SetPenColor (hdc,
-            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color), 
+            RGBA2Pixel (hdc, GetRValue (color), GetGValue (color),
                 GetBValue (color), GetAValue (color)));
     MoveTo (hdc, 0, 1);
     LineTo (hdc, rc.right, 1);
@@ -248,7 +254,7 @@ static void DrawCoolBox (HWND hWnd, HDC hdc, PCOOLBARCTRL pdata)
     while (tmpdata) {
         l = tmpdata->RcTitle.left;
         t = tmpdata->RcTitle.top;
-      
+
         switch (tmpdata->ItemType) {
         case TYPE_BARITEM:
         {
@@ -259,14 +265,14 @@ static void DrawCoolBox (HWND hWnd, HDC hdc, PCOOLBARCTRL pdata)
             rcTmp.right = l + 4;
             rcTmp.bottom = rc.bottom - 4;
 
-            info->we_rdr->draw_3dbox (hdc, &rcTmp, 
+            info->we_rdr->draw_3dbox (hdc, &rcTmp,
                 GetWindowElementAttr (hWnd, WE_MAINC_THREED_BODY),
                 LFRDR_BTN_STATUS_PRESSED);
         }
             break;
 
         case TYPE_BMPITEM:
-            FillBoxWithBitmap (hdc, l + 2, t + 2, 
+            FillBoxWithBitmap (hdc, l + 2, t + 2,
                             pdata->ItemWidth, pdata->ItemHeight, tmpdata->Bmp);
             break;
 
@@ -320,7 +326,7 @@ static void set_item_rect (HWND hwnd, PCOOLBARCTRL TbarData, COOLBARITEMDATA* pt
     SIZE size;
     int w;
 
-    if (TbarData->tail == NULL) 
+    if (TbarData->tail == NULL)
         ptemp->RcTitle.left = 2;
     else
         ptemp->RcTitle.left = TbarData->tail->RcTitle.right;
@@ -352,7 +358,7 @@ static void set_item_rect (HWND hwnd, PCOOLBARCTRL TbarData, COOLBARITEMDATA* pt
     ptemp->RcTitle.right = ptemp->RcTitle.left + w;
     ptemp->RcTitle.top = 2;
     ptemp->RcTitle.bottom = ptemp->RcTitle.top + TbarData->ItemHeight + 4;
-  
+
     ptemp->hintx = ptemp->RcTitle.left;
     ptemp->hinty = ptemp->RcTitle.bottom;
 }
@@ -362,11 +368,11 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
     HDC              hdc;
     PCOOLBARCTRL     TbarData;
     PCOOLBARITEMDATA pTbid;
-        
+
     switch (message) {
         case MSG_CREATE:
         {
-            DWORD data; 
+            DWORD data;
             DWORD dwStyle;
             const char* caption;
 
@@ -412,7 +418,7 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         break;
 
         case MSG_DESTROY:
-        { 
+        {
             COOLBARITEMDATA* unloaddata, *tmp;
             TbarData = (PCOOLBARCTRL) GetWindowAdditionalData2(hWnd);
             if (TbarData->hToolTip != 0) {
@@ -450,13 +456,13 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
             return 0;
         }
 
-		case MSG_SIZECHANGED:
-		{
-			RECT* rcWin = (RECT*)wParam;
-			RECT* rcClient = (RECT*)lParam;
-			*rcClient = *rcWin;
-			return 1;
-		}
+        case MSG_SIZECHANGED:
+        {
+            RECT* rcWin = (RECT*)wParam;
+            RECT* rcClient = (RECT*)lParam;
+            *rcClient = *rcWin;
+            return 1;
+        }
 
         case MSG_NCPAINT:
             return 0;
@@ -502,16 +508,16 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
             }
             else
                 ptemp->Caption [0] = '\0';
-             
+
             ptemp->Bmp = TbarInfo->Bmp;
 
-            set_item_rect (hWnd, TbarData, ptemp); 
+            set_item_rect (hWnd, TbarData, ptemp);
 
             ptemp->next = NULL;
             if (TbarData->nCount == 0) {
                 TbarData->head = TbarData->tail = ptemp;
             }
-            else if (TbarData->nCount > 0) { 
+            else if (TbarData->nCount > 0) {
                 TbarData->tail->next = ptemp;
                 TbarData->tail = ptemp;
             }
@@ -531,7 +537,7 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
             return 0;
 
         case MSG_LBUTTONDOWN:
-        {         
+        {
              int posx, posy;
              TbarData=(PCOOLBARCTRL) GetWindowAdditionalData2(hWnd);
 
@@ -540,23 +546,23 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 
              if (GetCapture () == hWnd)
                 break;
-             
+
              SetCapture (hWnd);
-                         
+
              if ((pTbid = GetCurTag (posx, posy, TbarData)) == NULL)
-                break; 
-             
+                break;
+
              TbarData->iSel = pTbid->insPos;
              break;
         }
 
         case MSG_LBUTTONUP:
-        { 
+        {
             int x, y;
             TbarData = (PCOOLBARCTRL)GetWindowAdditionalData2(hWnd);
             x = LOSWORD(lParam);
             y = HISWORD(lParam);
-                      
+
             if (GetCapture() != hWnd)
                break;
             ReleaseCapture ();
@@ -566,7 +572,7 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
             if ((pTbid = GetCurTag(x, y, TbarData)) == NULL) {
                 break;
             }
-          
+
             if (TbarData->iSel == pTbid->insPos && !pTbid->Disable)
                 NotifyParent (hWnd, GetDlgCtrlID(hWnd), pTbid->id);
 
@@ -575,7 +581,7 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         }
 
         case MSG_MOUSEMOVE:
-        {  
+        {
             int x, y;
             TbarData = (PCOOLBARCTRL) GetWindowAdditionalData2(hWnd);
             x = LOSWORD(lParam);
@@ -583,7 +589,7 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 
             if (GetCapture() == hWnd)
                 ScreenToClient (hWnd, &x, &y);
-                
+
             if ((pTbid = GetCurTag (x, y, TbarData)) == NULL) {
                 unhilight (hWnd);
                 break;
@@ -597,15 +603,15 @@ static LRESULT CoolBarCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM l
             hilight (hWnd, TbarData, pTbid);
             break;
         }
-        
+
         case MSG_MOUSEMOVEIN:
             if (!wParam)
-                unhilight (hWnd);   
+                unhilight (hWnd);
             break;
 
         case MSG_NCLBUTTONDOWN:
         case MSG_KILLFOCUS:
-            unhilight (hWnd);   
+            unhilight (hWnd);
             break;
     }
 

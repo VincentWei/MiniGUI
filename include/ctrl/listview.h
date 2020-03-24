@@ -14,10 +14,10 @@
  * \file listview.h
  * \author Wei Yongming <vincent@minigui.org>
  * \date 2002/01/06
- * 
+ *
  \verbatim
 
-    This file is part of MiniGUI, a mature cross-platform windowing 
+    This file is part of MiniGUI, a mature cross-platform windowing
     and Graphics User Interface (GUI) support system for embedded systems
     and smart IoT devices.
 
@@ -55,7 +55,7 @@
 /*
  * $Id: listview.h 11677 2009-05-23 08:07:19Z dongjunjie $
  *
- *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, 
+ *      MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks,
  *      pSOS, ThreadX, NuCleus, OSE, and Win32.
  */
 
@@ -77,7 +77,7 @@ extern "C" {
      * @{
      */
 
-/** 
+/**
  * \def CTRL_LISTVIEW
  * \brief The class name of listview control.
  */
@@ -93,18 +93,18 @@ extern "C" {
 /**
  * \var typedef GHANDLE HLVITEM
  * \brief List view item handle
- */ 
+ */
 typedef GHANDLE HLVITEM;
 
-/** 
+/**
  * \def LVIF_FOLD
- * \brief listview item flags, is used inside minigui. 
+ * \brief listview item flags, is used inside minigui.
  */
 #define LVIF_FOLD               0x0001L
 
-/** 
+/**
  * Structure of the listview item info, contains information about an item.
- * This structure is used for creating or retrieving an item. 
+ * This structure is used for creating or retrieving an item.
  */
 typedef struct _LVITEM
 {
@@ -134,14 +134,14 @@ typedef struct _LVITEM
 typedef LVITEM *PLVITEM;
 
 /** Listview bitmap flags */
-#define LVFLAG_BITMAP	0x0001
+#define LVFLAG_BITMAP    0x0001
 /** Listview icon flags */
-#define LVFLAG_ICON	    0x0002
+#define LVFLAG_ICON        0x0002
 
-/** 
+/**
  * Struct of the listview subitem info, contains information about a subitem.
  * This structure is used for creating or retrieving a subitem.
- */ 
+ */
 typedef struct _LVSUBITEM
 {
     /** Flags of the subitem, can be OR'ed by the following values:
@@ -163,7 +163,7 @@ typedef struct _LVSUBITEM
     /** Text color of the subitem */
     int nTextColor;
     /** Image of the subitem, can be bitmap or icon, determined by flags */
-    DWORD image; 
+    DWORD image;
 } LVSUBITEM;
 /** Data type of the pointer to a LVSUBITEM */
 typedef LVSUBITEM *PLVSUBITEM;
@@ -206,9 +206,9 @@ typedef struct _LVCUSTOMDRAWFUNCS
 
 /** Column flags */
 /** Column text left align, default */
-#define LVCF_LEFTALIGN	        0x0000
+#define LVCF_LEFTALIGN            0x0000
 /** Column text right align */
-#define LVCF_RIGHTALIGN	        0x0001
+#define LVCF_RIGHTALIGN            0x0001
 /** Column text center align */
 #define LVCF_CENTERALIGN        0x0002
 /** Column treeview style */
@@ -216,13 +216,13 @@ typedef struct _LVCUSTOMDRAWFUNCS
 
 /** Header flags */
 /** Header text left align, default */
-#define LVHF_LEFTALIGN		0x0000
+#define LVHF_LEFTALIGN        0x0000
 /** Header text right align */
-#define LVHF_RIGHTALIGN		0x0004
+#define LVHF_RIGHTALIGN        0x0004
 /** Header text center align */
-#define LVHF_CENTERALIGN	0x0008
+#define LVHF_CENTERALIGN    0x0008
 
-/** 
+/**
  * Struct of the listview column info, contains information about a column.
  * This structure is used for creating or retrieving a column.
  */
@@ -237,7 +237,7 @@ typedef struct _LVCOLUMN
     /** Max text len */
     int nTextMax;
     /** Image of the column header, can be bitmap or icon */
-    DWORD image; 
+    DWORD image;
     /** Comparision function associated with the column */
     PFNLVCOMPARE pfnCompare;
     /** Column and header flags */
@@ -255,8 +255,8 @@ typedef LVCOLUMN *PLVCOLUMN;
 /** Contains information for finding a certain item info */
 typedef struct _LVFINDINFO
 {
-    /** 
-     * Type of search to perform. 
+    /**
+     * Type of search to perform.
      * This member can be set to one or more of the following values:
      * - LVFF_TEXT
      *   Searches based on the item(subitems) text.
@@ -327,7 +327,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * \def LVS_UPNOTIFY
  * \brief Notifies the parent window when mouse is up (default is down).
  *
- * Causes the listview to notify the listview parent window 
+ * Causes the listview to notify the listview parent window
  * with a notification message when the user make actions, such as clicks, doubleclicks, ...,etc.
  */
 #define LVS_UPNOTIFY            0x0001L             /* must be the same with SVS_UPNOTIFY */
@@ -337,7 +337,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * \def LVS_SORT
  * \brief Sorts strings automatically.
  *
- * Causes the listview to sort strings automatically. 
+ * Causes the listview to sort strings automatically.
  */
 #define LVS_SORT                0x0002L
 
@@ -356,7 +356,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 /**
  * \def LVS_AUTOCHECK
  * \brief If the list view has LVS_CHECKBOX style, this
- *        style tell the list view to auto-switch the check box between 
+ *        style tell the list view to auto-switch the check box between
  *        checked or un-checked when the user click the check mark box of an item.
  */
 #define LVS_AUTOCHECK           0x2000L              /* reserved */
@@ -384,9 +384,9 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  *  \def LVM_ADDITEM
- *  \brief Adds a item to listview, this item is also called a row. 
- *  
- *  \code 
+ *  \brief Adds a item to listview, this item is also called a row.
+ *
+ *  \code
  *  LVM_ADDITEM
  *  PLVITEM p
  *  HLVITEM parent;
@@ -395,8 +395,8 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *  p =(LPARAM)lParam;
  *  \endcode
  *
- *  \param p Pointes to a LVITEM structure that contains the information of 
- *           the new item to be added. nItem member of the LVITEM struct speficied 
+ *  \param p Pointes to a LVITEM structure that contains the information of
+ *           the new item to be added. nItem member of the LVITEM struct speficied
  *           the item position in its parent item, beginning with zero.
  *  \param parent Handle of the parent item into which the new item is about to insert.
  *           If parent equals zero, the parent item will be the root of listview.
@@ -407,8 +407,8 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_FILLSUBITEM
- * \brief Sets the content of a subitem, indentified by rows and columns.
- * 
+ * \brief Set the content of a subitem, indentified by rows and columns.
+ *
  * \code
  * LVM_FILLSUBITEM
  * PLVSUBITEM p;
@@ -418,11 +418,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * wParam = (WPARAM)pi;
  * \endcode
  *
- * \param p  Pointes to a PLVSUBITEM structure that contains the information of 
+ * \param p  Pointes to a PLVSUBITEM structure that contains the information of
  *           the subitem to set. If pi is not zero, nItem member of this struct
  *           has no meaning.
  * \param pi Handle of the target item.
- *           If pi equals zero, the row position of the target item is 
+ *           If pi equals zero, the row position of the target item is
  *           specified by nItem member of p structure.
  *
  * \return Returns LV_OKAY if successful, or LV_ERR otherwise.
@@ -432,7 +432,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 /**
  * \def LVM_ADDCOLUMN
  * \brief Adds a new column to listview, identified by column.
- * 
+ *
  * \code
  *  LVM_ADDCOLUMN
  *  PLVCOLUMN p;
@@ -441,7 +441,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *  lParam =(LPARAM)p;
  * \endcode
  *
- * \param p Pointes to a LVCOLUMN structure that contains the information about the new 
+ * \param p Pointes to a LVCOLUMN structure that contains the information about the new
  *          column to be added.
  */
 #define LVM_ADDCOLUMN          0xF112
@@ -469,7 +469,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 /**
  * \def LVM_CLEARSUBITEM
  * \brief Clears the content of a subitem.
- * 
+ *
  * \code
  * LVM_CLEARSUBITEM
  * PLVSUBITEM p;
@@ -479,11 +479,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * wParam = (WPARAM)pi;
  * \endcode
  *
- * \param p  Pointes to a PLVSUBITEM structure that contains the information of 
+ * \param p  Pointes to a PLVSUBITEM structure that contains the information of
  *           the subitem to clear. If pi is not zero, nItem member of this struct
  *           has no meaning.
  * \param pi Handle of the target item.
- *           If pi equals zero, the row position of the target item is 
+ *           If pi equals zero, the row position of the target item is
  *           specified by nItem member of p structure.
  *
  * \return Returns LV_OKAY if successful, or LV_ERR otherwise.
@@ -492,7 +492,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_DELCOLUMN
- * \brief Deletes a column from listview, all subitem in this column will be removed.  
+ * \brief Deletes a column from listview, all subitem in this column will be removed.
  *
  * \code
  * LVM_DELCOLUMN
@@ -509,7 +509,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_COLSORT
- * \brief Sorts all subitems according to a certain column. 
+ * \brief Sorts all subitems according to a certain column.
  *
  * \code
  * LVM_COLSORT
@@ -526,7 +526,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_SETSUBITEMCOLOR
- * \brief Sets the text color of a subitem.
+ * \brief Set the text color of a subitem.
  *
  * \code
  * LVM_SETSUBITEMCOLOR
@@ -537,11 +537,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * wParam = (WPARAM)pi;
  * \endcode
  *
- * \param p  Pointes to a PLVSUBITEM structure that contains the information of 
+ * \param p  Pointes to a PLVSUBITEM structure that contains the information of
  *           the subitem to set. If pi is not zero, nItem member of this struct
  *           has no meaning.
  * \param pi Handle of the target item.
- *           If pi equals zero, the row position of the target item is 
+ *           If pi equals zero, the row position of the target item is
  *           specified by nItem member of p structure.
  *
  * \return Always returns 0;
@@ -570,9 +570,9 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 /**
  *
  * \def LVM_GETSUBITEMTEXT
- * \brief Retrieves the text of a listview subitem.
+ * \brief Retrieve the text of a listview subitem.
  *
- * \code 
+ * \code
  * LVM_GETSUBITEMTEXT
  * PLVSUBITEM p;
  * HLVITEM pi;
@@ -581,11 +581,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * wParam = (WPARAM)pi;
  * \endcode
  *
- * \param p  Pointes to a PLVSUBITEM structure that contains the information of 
+ * \param p  Pointes to a PLVSUBITEM structure that contains the information of
  *           the subitem to set. If pi is not zero, nItem member of this struct
  *           has no meaning.
  * \param pi Handle of the target item.
- *           If pi equals zero, the row position of the target item is 
+ *           If pi equals zero, the row position of the target item is
  *           specified by nItem member of p structure.
  *
  * \return Returns len of the text if successful, -1 otherwise.
@@ -595,7 +595,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETITEMCOUNT
- * \brief Gets the number of all the items(rows) in a listview.
+ * \brief Get the number of all the items(rows) in a listview.
  *
  * \code
  * LVM_GETITEMCOUNT
@@ -610,7 +610,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETCOLUMNCOUNT
- * \brief Gets the number of all the columns in listview.
+ * \brief Get the number of all the columns in listview.
  *
  * \code
  * LVM_GETCOLUMNCOUNT
@@ -625,7 +625,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_GETSELECTEDITEM
- * \brief Gets the current selected item.
+ * \brief Get the current selected item.
  *
  * \code
  * LVM_GETSELECTEDITEM
@@ -688,7 +688,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Always returns 0.
  */
-#define LVM_SELECTITEM		0xF11F 
+#define LVM_SELECTITEM        0xF11F
 
 
 /**
@@ -709,11 +709,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Always returns 0.
  */
-#define LVM_SHOWITEM		0xF120 
+#define LVM_SHOWITEM        0xF120
 
 /**
  * \def LVM_GETSUBITEMLEN
- * \brief Gets the text length of the subitem.
+ * \brief Get the text length of the subitem.
  *
  * \code
  * LVM_GETSUBITEMLEN
@@ -724,20 +724,20 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * wParam = (WPARAM)pi;
  * \endcode
  *
- * \param p  Pointes to a PLVSUBITEM structure that contains the information of 
+ * \param p  Pointes to a PLVSUBITEM structure that contains the information of
  *           the subitem to set. If pi is not zero, nItem member of this struct
  *           has no meaning.
  * \param pi Handle of the target item.
- *           If pi equals zero, the row position of the target item is 
+ *           If pi equals zero, the row position of the target item is
  *           specified by nItem member of p structure.
  *
  * \return Returns the text length if successful, or LV_ERR otherwise.
  */
-#define LVM_GETSUBITEMLEN   	0xF121
+#define LVM_GETSUBITEMLEN       0xF121
 
 /**
  * \def LVM_SETCOLUMN
- * \brief Sets the attributes of a list view column.
+ * \brief Set the attributes of a list view column.
  *
  * \code
  * LVM_SETCOLUMN
@@ -751,11 +751,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Returns LV_OKAY if successful, or LV_ERR otherwise.
  */
-#define LVM_SETCOLUMN		0xF122
+#define LVM_SETCOLUMN        0xF122
 
 /**
  * \def LVM_SETSUBITEMTEXT
- * \brief Sets the text of a subitem.
+ * \brief Set the text of a subitem.
  *
  * \code
  * LVM_SETSUBITEMTEXT
@@ -766,20 +766,20 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * lParam = (LPARAM)p;
  * \endcode
  *
- * \param p  Pointes to a PLVSUBITEM structure that contains the information of 
+ * \param p  Pointes to a PLVSUBITEM structure that contains the information of
  *           the subitem to set. If pi is not zero, nItem member of this struct
  *           has no meaning.
  * \param pi Handle of the target item.
- *           If pi equals zero, the row position of the target item is 
+ *           If pi equals zero, the row position of the target item is
  *           specified by nItem member of p structure.
  *
  * \return Returns LV_OKAY if successful, or LV_ERR otherwise.
  */
-#define LVM_SETSUBITEMTEXT	0xF123
+#define LVM_SETSUBITEMTEXT    0xF123
 
 /**
  * \def LVM_SETSUBITEM
- * \brief Sets the attributes of a subitem.
+ * \brief Set the attributes of a subitem.
  *
  * \code
  * LVM_SETSUBITEM
@@ -790,20 +790,20 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * wParam = (WPARAM)pi;
  * \endcode
  *
- * \param p  Pointes to a PLVSUBITEM structure that contains the information of 
+ * \param p  Pointes to a PLVSUBITEM structure that contains the information of
  *           the subitem to set. If pi is not zero, nItem member of this struct
  *           has no meaning.
  * \param pi Handle of the target item.
- *           If pi equals zero, the row position of the target item is 
+ *           If pi equals zero, the row position of the target item is
  *           specified by nItem member of p structure.
  *
  * \return Returns LV_OKAY if successful, or LV_ERR otherwise.
  */
-#define LVM_SETSUBITEM		0xF124
+#define LVM_SETSUBITEM        0xF124
 
 /**
  * \def LVM_GETCOLUMN
- * \brief Retrieves the information about a listview column.
+ * \brief Retrieve the information about a listview column.
  *
  * \code
  * LVM_GETCOLUMN
@@ -815,16 +815,16 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * \endcode
  *
  * \param nCol Index of the column.
- * \param pcol Points to a LVCOLUMN structure for retrieving the information 
+ * \param pcol Points to a LVCOLUMN structure for retrieving the information
  *             about the column.
  *
  * \return Returns TRUE if successful, or FALSE otherwise.
  */
-#define LVM_GETCOLUMN		0xF125 
+#define LVM_GETCOLUMN        0xF125
 
 /**
  * \def LVM_GETCOLUMNWIDTH
- * \brief Retrieves the width of a listview column.
+ * \brief Retrieve the width of a listview column.
  *
  * \code
  * LVM_GETCOLUMNWIDTH
@@ -838,11 +838,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Returns the column width if successful, or -1 otherwise.
  */
-#define LVM_GETCOLUMNWIDTH	0xF126 
+#define LVM_GETCOLUMNWIDTH    0xF126
 
 /**
  * \def LVM_GETITEM
- * \brief Retrieves the item's attributes.
+ * \brief Retrieve the item's attributes.
  *
  * \code
  * LVM_GETITEM
@@ -854,17 +854,17 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * \endcode
  *
  * \param pi Handle of the target item.
- * \param item_info Used for storing the target item's attributes. 
-                    If pi is zero, nItem field of item_info specified the row index 
+ * \param item_info Used for storing the target item's attributes.
+                    If pi is zero, nItem field of item_info specified the row index
                     of the target item to get.
  *
  * \return Returns LV_OKAY if successful, or LV_ERR otherwise.
  */
-#define LVM_GETITEM		0xF127 
+#define LVM_GETITEM        0xF127
 
 /**
  * \def LVM_GETITEMSTATE
- * \brief Retrieves the state of a listview item.
+ * \brief Retrieve the state of a listview item.
  *
  * \code
  * LVM_GETITEMSTATE
@@ -881,11 +881,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Returns the current state of the specified item.
  */
-#define LVM_GETITEMSTATE	0xF128 
+#define LVM_GETITEMSTATE    0xF128
 
 /**
  * \def LVM_GETSELECTEDCOLUMN
- * \brief Retrieves the index of the currently selected column of a listview.
+ * \brief Retrieve the index of the currently selected column of a listview.
  *
  * \code
  * LVM_GETSELECTEDCOLUMN
@@ -896,11 +896,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Returns the index of the selected column.
  */
-#define LVM_GETSELECTEDCOLUMN	0xF129 
+#define LVM_GETSELECTEDCOLUMN    0xF129
 
 /**
  * \def LVM_GETSELECTEDCOUNT
- * \brief Retrieves the number of the selected items in a listview.
+ * \brief Retrieve the number of the selected items in a listview.
  *
  * \code
  * LVM_GETSELECTEDCOUNT
@@ -911,11 +911,11 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Returns the number of the selected items.
  */
-#define LVM_GETSELECTEDCOUNT	0xF130 
+#define LVM_GETSELECTEDCOUNT    0xF130
 
 /**
  * \def LVM_GETTOPVISIBLE
- * \brief Retrieves the index of the topmost visible item in a listview.
+ * \brief Retrieve the index of the topmost visible item in a listview.
  *
  * \code
  * LVM_GETTOPVISIBLE
@@ -926,19 +926,19 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Returns the index of the topmost visible item if successful, or zero.
  */
-#define LVM_GETTOPVISIBLE	0xF131 
+#define LVM_GETTOPVISIBLE    0xF131
 
 /**
  * \def LVM_NULL
  * \brief reserved.
  */
-#define LVM_NULL		0xF132 
+#define LVM_NULL        0xF132
 
 /**
  * \def LVM_SETITEMSTATE
  * \brief reserved.
  */
-#define LVM_SETITEMSTATE	0xF133 
+#define LVM_SETITEMSTATE    0xF133
 
 /**
  * \def LVM_SORTITEMS
@@ -956,12 +956,12 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * \param sortData Sorting datas passed to the comparision function.
  * \param pfnCompare Pointer to the application-defined comparision function. The
  *                   comparision function is called during the sort operation
- *                   each time the relative order of the two items needs to be 
+ *                   each time the relative order of the two items needs to be
  *                   compared.
  *
- *                   The comparison function must return a negative value if the 
- *                   first item precedes the second, a positive value if 
- *                   the first item follows the second, or zero if the two 
+ *                   The comparison function must return a negative value if the
+ *                   first item precedes the second, a positive value if
+ *                   the first item follows the second, or zero if the two
  *                   items are equivalent.
  *
  *                   The comparision function has the following form:
@@ -974,7 +974,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Returns TRUE if successful, or FALSE otherwise.
  */
-#define LVM_SORTITEMS		0xF134 
+#define LVM_SORTITEMS        0xF134
 
 /**
  * \def LVM_SETITEMHEIGHT
@@ -994,7 +994,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Returns TRUE if successful, or FALSE otherwise.
  */
-#define LVM_SETITEMHEIGHT	0xF135 
+#define LVM_SETITEMHEIGHT    0xF135
 
 /**
  * \def LVM_SETHEADHEIGHT
@@ -1011,16 +1011,16 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * \param height The new height of the header.
  * \return Returns TRUE if successful, or FALSE otherwise.
  */
-#define LVM_SETHEADHEIGHT	0xF136 
+#define LVM_SETHEADHEIGHT    0xF136
 
 /**
  * \def LVM_GETITEMADDDATA
- * \brief Gets the 32-bit data value associated with an item.
- * 
- * An application sends an LVM_GETITEMADDDATA message to a listview to get the 
- * 32-bit data value stored for the item with index of \a wParam; 
- * By default this is zero. An application must set the 
- * item data value by sending an LVM_SETITEMADDDATA message to the listview for 
+ * \brief Get the 32-bit data value associated with an item.
+ *
+ * An application sends an LVM_GETITEMADDDATA message to a listview to get the
+ * 32-bit data value stored for the item with index of \a wParam;
+ * By default this is zero. An application must set the
+ * item data value by sending an LVM_SETITEMADDDATA message to the listview for
  * this value to have meaning.
  *
  * \code
@@ -1043,8 +1043,8 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 /**
  * \def LVM_SETITEMADDDATA
  * \brief Associates a 32-bit data value with an item.
- * 
- * An application sends an LVM_SETITEMADDDATA message to associate a 32-bit data 
+ *
+ * An application sends an LVM_SETITEMADDDATA message to associate a 32-bit data
  * value specified in the \a lParam parameter with an item in the listview.
  *
  * \code
@@ -1084,16 +1084,16 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  *
  * \return Always returns 0.
  */
-#define LVM_CHOOSEITEM		0xF139
+#define LVM_CHOOSEITEM        0xF139
 
 /**
  * \def LVM_SETSTRCMPFUNC
- * \brief Sets the STRCMP function used to sort items.
+ * \brief Set the STRCMP function used to sort items.
  *
- * An application sends a LVM_SETSTRCMPFUNC message to set a 
+ * An application sends a LVM_SETSTRCMPFUNC message to set a
  * new STRCMP function to sort items in the Listview control.
  *
- * Note that you should send this message before adding 
+ * Note that you should send this message before adding
  * any item to the Listview control.
  *
  * \code
@@ -1135,7 +1135,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * lParam = (LPARAM)item;
  * \endcode
  *
- * \param related A integer which indicates the relationship between 
+ * \param related A integer which indicates the relationship between
  *        the item to retrive and the specified item, can be one of the following values:
  *          - TVIR_PARENT\n
  *              To retrive the parent item of the specified item.
@@ -1174,7 +1174,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVM_SETCUSTOMDRAW
- * \brief Sets the customized drawing functions of listview.
+ * \brief Set the customized drawing functions of listview.
  *
  * \code
  * LVM_SETCUSTOMDRAW
@@ -1201,7 +1201,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
  * wPram = (WPARAM)0
  * lParam = (LPARAM)prcItem
  * \endcode
- * 
+ *
  * \param prcItem Pointer to a RECT which recieve the Item Rectangle
  *
  * \return If got, return TRUE, otherwise return FALSE
@@ -1224,7 +1224,7 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 
 /**
  * \def LVN_SELCHANGE
- * \brief This notification code informs parent window the current selected item 
+ * \brief This notification code informs parent window the current selected item
  *        has changed.
  */
 #define LVN_SELCHANGE          2    /* must be the same as SVN_SELCHANGED */
@@ -1266,21 +1266,21 @@ typedef LVNM_ITEMRUP *PLVNM_ITEMRUP;
 /**
  *
  * \def LVN_ITEMDBCLK
- * \brief This notification code informs parent window the current selected item 
+ * \brief This notification code informs parent window the current selected item
  *        has be double clicked.
  */
 #define LVN_ITEMDBCLK          9
 
 /**
  * \def LVN_ITEMCLK
- * \brief This notification code informs parent window the current selected item 
+ * \brief This notification code informs parent window the current selected item
  *        has been clicked.
  */
 #define LVN_ITEMCLK            10
 
 /**
  * \def LVN_COLCHANGE
- * \brief This notification code informs parent window the current selected column 
+ * \brief This notification code informs parent window the current selected column
  *        has changed.
  */
 #define LVN_COLCHANGE          11

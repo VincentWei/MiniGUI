@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -95,43 +95,43 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
 
     switch (message) {
         case MSG_CREATE:
-            hChildWnd1 = CreateWindow ("progressbar", 
-                              "", 
-                              WS_VISIBLE, 
-                              IDC_CTRL1, 
+            hChildWnd1 = CreateWindow ("progressbar",
+                              "",
+                              WS_VISIBLE,
+                              IDC_CTRL1,
                               10, 20, 100, 20, hWnd, 0);
-            hChildWnd4 = CreateWindow ("progressbar", 
-                              "", 
-                              WS_VISIBLE, 
-                              IDC_CTRL4, 
+            hChildWnd4 = CreateWindow ("progressbar",
+                              "",
+                              WS_VISIBLE,
+                              IDC_CTRL4,
                               120, 20, 150, 20, hWnd, 0);
             SendMessage (hChildWnd4, PBM_SETRANGE, 0, 1000);
             SendMessage (hChildWnd4, PBM_SETSTEP, 10, 0);
 
-            hChildWnd2 = CreateWindow ("progressbar", 
-                              NULL, 
-                              WS_VISIBLE, 
-                              IDC_CTRL2, 
+            hChildWnd2 = CreateWindow ("progressbar",
+                              NULL,
+                              WS_VISIBLE,
+                              IDC_CTRL2,
                               10, 50, 260, 20, hWnd, 0);
 
-            hChildWnd3 = CreateWindow ("progressbar", 
-                              NULL, 
+            hChildWnd3 = CreateWindow ("progressbar",
+                              NULL,
                               WS_VISIBLE | PBS_VERTICAL | PBS_NOTIFY,
                               IDC_CTRL3,
                               10, 80, 20, 120, hWnd, 0);
 
-            hChildWnd5 = CreateWindow ("progressbar", 
-                              NULL, 
+            hChildWnd5 = CreateWindow ("progressbar",
+                              NULL,
                               WS_VISIBLE | PBS_VERTICAL | PBS_NOTIFY,
                               IDC_CTRL3,
                               120, 80, 20, 120, hWnd, 0);
             SendMessage (hChildWnd5, PBM_SETRANGE, 0, 1000);
             SendMessage (hChildWnd5, PBM_SETSTEP, 10, 0);
 
-            CreateWindow (CTRL_BUTTON, 
-                          "Close", 
-                          WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE, 
-                          IDCANCEL, 
+            CreateWindow (CTRL_BUTTON,
+                          "Close",
+                          WS_CHILD | BS_PUSHBUTTON | WS_VISIBLE,
+                          IDCANCEL,
                           200, 170, 70, 30, hWnd, 0);
 
             pos = 0;
@@ -166,12 +166,12 @@ static int ControlTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lPar
             ReleaseDC (hdc);
         }
         break;
-        
-	case MSG_DESTROY:
+
+    case MSG_DESTROY:
             KillTimer (hWnd, 100);
             DestroyAllControls (hWnd);
             hMainWnd = HWND_INVALID;
-	    return 0;
+        return 0;
 
         case MSG_CLOSE:
             DestroyMainWindow (hWnd);
@@ -191,11 +191,12 @@ static void InitCreateInfo(PMAINWINCREATE pCreateInfo)
     pCreateInfo->hCursor = GetSystemCursor(IDC_ARROW);
     pCreateInfo->hIcon = 0;
     pCreateInfo->MainWindowProc = ControlTestWinProc;
-    pCreateInfo->lx = 0; 
+    pCreateInfo->lx = 0;
     pCreateInfo->ty = 0;
     pCreateInfo->rx = 300;
     pCreateInfo->by = 230;
-    pCreateInfo->iBkColor = GetWindowElementColor (WE_MAINC_THREED_BODY);
+    pCreateInfo->iBkColor =
+        GetWindowElementPixelEx (HWND_NULL, HDC_SCREEN, WE_MAINC_THREED_BODY);
     pCreateInfo->dwAddData = 0;
     pCreateInfo->hHosting = HWND_DESKTOP;
 }

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -61,7 +61,7 @@
 /*
  * draw_fold:
  *  This function draw a fold by the color.
- * 
+ *
  * \param hdc : the HDC .
  * \param pRect : the point to the rectangle area to drawing.
  * \param color : the pen color.
@@ -88,15 +88,15 @@ static int draw_fold (HDC hdc, const RECT* pRect, DWORD color, BOOL is_opened)
 
     for(i = 0; i < pen_width; i++)
     {
-        Rectangle(hdc, pRect->left + i, pRect->top + i, 
+        Rectangle(hdc, pRect->left + i, pRect->top + i,
                     pRect->right - i, pRect->bottom - i);
-        MoveTo(hdc, pRect->left + 2 * pen_width , 
+        MoveTo(hdc, pRect->left + 2 * pen_width ,
                 pRect->top + (h>>1) - (pen_width>>1) + i);
-        LineTo(hdc, pRect->right - 2 * pen_width , 
+        LineTo(hdc, pRect->right - 2 * pen_width ,
                 pRect->top + (h>>1) - (pen_width>>1) + i);
         if(!is_opened)
         {
-            MoveTo(hdc, pRect->left + (w>>1) - (pen_width>>1) + i, 
+            MoveTo(hdc, pRect->left + (w>>1) - (pen_width>>1) + i,
                     pRect->top + 2 * pen_width);
             LineTo(hdc, pRect->left + (w>>1) - (pen_width>>1) + i,
                     pRect->bottom - 2 * pen_width);
@@ -106,7 +106,7 @@ static int draw_fold (HDC hdc, const RECT* pRect, DWORD color, BOOL is_opened)
     SetPenColor(hdc, old_pen_color);
     return 0;
 }
- 
+
 static int TestProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
@@ -158,9 +158,9 @@ int MiniGUIMain (int argc, const char* argv[])
     CreateInfo.iBkColor = COLOR_lightwhite;
     CreateInfo.dwAddData = 0;
     CreateInfo.hHosting = HWND_DESKTOP;
-    
+
     hMainWnd = CreateMainWindow (&CreateInfo);
-    
+
     if (hMainWnd == HWND_INVALID)
         return -1;
 

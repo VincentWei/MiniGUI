@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -94,29 +94,29 @@ static int GlyphTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
     switch (message) {
 
         case MSG_CREATE:
-            logfont[0] = CreateLogFont (FONT_TYPE_NAME_BITMAP_RAW, "SansSerif", "ISO8859-1", 
+            logfont[0] = CreateLogFont (FONT_TYPE_NAME_BITMAP_RAW, "SansSerif", "ISO8859-1",
                         FONT_WEIGHT_REGULAR, FONT_SLANT_ITALIC, FONT_SETWIDTH_NORMAL,
-                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE, 
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE,
                         16, 0);
-            logfont[1] = CreateLogFont (FONT_TYPE_NAME_BITMAP_VAR, "SansSerif", "ISO8859-1", 
+            logfont[1] = CreateLogFont (FONT_TYPE_NAME_BITMAP_VAR, "SansSerif", "ISO8859-1",
                         FONT_WEIGHT_REGULAR, FONT_SLANT_ITALIC, FONT_SETWIDTH_NORMAL,
-                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE, 
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE,
                         16, 0);
-            logfont[2] = CreateLogFont (FONT_TYPE_NAME_BITMAP_QPF, "SansSerif", "ISO8859-1", 
+            logfont[2] = CreateLogFont (FONT_TYPE_NAME_BITMAP_QPF, "SansSerif", "ISO8859-1",
                         FONT_WEIGHT_REGULAR, FONT_SLANT_ITALIC, FONT_SETWIDTH_NORMAL,
-                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE, 
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE,
                         16, 0);
-            logfont[3] = CreateLogFont (FONT_TYPE_NAME_BITMAP_UPF, "SansSerif", "ISO8859-1", 
+            logfont[3] = CreateLogFont (FONT_TYPE_NAME_BITMAP_UPF, "SansSerif", "ISO8859-1",
                         FONT_WEIGHT_REGULAR, FONT_SLANT_ITALIC, FONT_SETWIDTH_NORMAL,
-                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE, 
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE,
                         16, 0);
-            logfont[4] = CreateLogFont (FONT_TYPE_NAME_BITMAP_BMP, "SansSerif", "ISO8859-1", 
+            logfont[4] = CreateLogFont (FONT_TYPE_NAME_BITMAP_BMP, "SansSerif", "ISO8859-1",
                         FONT_WEIGHT_REGULAR, FONT_SLANT_ITALIC, FONT_SETWIDTH_NORMAL,
-                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE, 
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE,
                         16, 0);
-            logfont[5] = CreateLogFont (FONT_TYPE_NAME_SCALE_TTF, "SansSerif", "ISO8859-1", 
+            logfont[5] = CreateLogFont (FONT_TYPE_NAME_SCALE_TTF, "SansSerif", "ISO8859-1",
                         FONT_WEIGHT_REGULAR, FONT_SLANT_ITALIC, FONT_SETWIDTH_NORMAL,
-                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE, 
+                        FONT_SPACING_CHARCELL, FONT_UNDERLINE_NONE, FONT_STRUCKOUT_LINE,
                         16, 0);
         break;
 
@@ -131,7 +131,7 @@ static int GlyphTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
             pdc->rc_output.right = 1019;
             pdc->rc_output. top = 25;
             pdc->rc_output.bottom = 763;
-            
+
 #ifdef __USE_POSIX199309
             struct timespec start1, end1;
 #else
@@ -170,7 +170,7 @@ static int GlyphTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
 
             printf ("FONT_TYPE_NAME_BITMAP_RAW, _gdi_draw_one_glyph time = %d\n",timespan);
             //end rbf test
-            
+
             //start vbf test
             SelectFont(hdc, logfont[1]);
 #ifdef __USE_POSIX199309
@@ -234,7 +234,7 @@ static int GlyphTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
 
             printf ("FONT_TYPE_NAME_BITMAP_QPF, _gdi_draw_one_glyph time = %d\n", timespan);
             //end qpf test
-            
+
             //start upf test
             SelectFont(hdc, logfont[3]);
 #ifdef __USE_POSIX199309
@@ -266,7 +266,7 @@ static int GlyphTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
 
             printf ("FONT_TYPE_NAME_BITMAP_UPF, _gdi_draw_one_glyph time = %d\n", timespan);
             //end upf test
-            
+
             //start bmp test
             SelectFont(hdc, logfont[4]);
 #ifdef __USE_POSIX199309
@@ -298,7 +298,7 @@ static int GlyphTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
 
             printf ("FONT_TYPE_NAME_BITMAP_BMP, _gdi_draw_one_glyph time = %d\n", timespan);
             //end bmp test
-            
+
             //start ttf test
             SelectFont(hdc, logfont[5]);
 #ifdef __USE_POSIX199309
@@ -330,7 +330,7 @@ static int GlyphTestWinProc(HWND hWnd, int message, WPARAM wParam, LPARAM lParam
 
             printf ("FONT_TYPE_NAME_SCALE_TTF, _gdi_draw_one_glyph time = %d\n", timespan);
             //end ttf test
-            
+
             EndPaint (hWnd, hdc);
         }
             return 0;
@@ -380,9 +380,9 @@ int MiniGUIMain (int argc, const char* argv[])
     CreateInfo.iBkColor = COLOR_lightwhite;
     CreateInfo.dwAddData = 0;
     CreateInfo.hHosting = HWND_DESKTOP;
-    
+
     hMainWnd = CreateMainWindow (&CreateInfo);
-    
+
     if (hMainWnd == HWND_INVALID)
         return -1;
 

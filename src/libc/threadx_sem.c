@@ -11,40 +11,40 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** threadx_sem.c: This file contains the implementation of the POSIX 
+** threadx_sem.c: This file contains the implementation of the POSIX
 **          semaphore functions for ThreadX.
 **
 ** Author: Yan Xiaowei
@@ -70,10 +70,10 @@
 
 #define SEMA_ENTRY()                        \
 _MACRO_START                                \
-    if (sem == NULL) {						\
-    	errno = EINVAL;        				\
-    	return -1;                          \
-    }										\
+    if (sem == NULL) {                        \
+        errno = EINVAL;                        \
+        return -1;                          \
+    }                                        \
 _MACRO_END
 
 // Do a semaphore package defined return. This requires the error code
@@ -96,18 +96,18 @@ _MACRO_END
 int sem_init (sem_t *sem, int pshared, unsigned int value)
 {
     UINT status;
-   
+
     SEMA_ENTRY ();
-    
+
     if (pshared) {
         fprintf (stderr, "pshared argument is not supported!");
         SEMA_RETURN (ENOSYS);
-    } 
+    }
 
     if (value > SEM_VALUE_MAX)
         SEMA_RETURN (EINVAL);
-    
-    //obtain semaphore name    
+
+    //obtain semaphore name
     __txpth_get_name (sem->name, NAME_TYPE_SEM, 1);
 
     //create semaphore
@@ -116,7 +116,7 @@ int sem_init (sem_t *sem, int pshared, unsigned int value)
     if (status == TX_SUCCESS) {
         SEMA_RETURN (0);
     }
-        
+
     SEMA_RETURN (ENOMEM);
 }
 
@@ -133,10 +133,10 @@ int sem_destroy  (sem_t *sem)
         SEMA_RETURN (EBUSY);
 
     status = tx_semaphore_delete ((TX_SEMAPHORE*)&sem->tx_sem);
-    
+
     if (status == TX_SUCCESS)
         SEMA_RETURN (0);
-        
+
     SEMA_RETURN (EINVAL);
 }
 
@@ -152,7 +152,7 @@ int sem_wait  (sem_t *sem)
 
     // check for cancellation first.
     pthread_testcancel ();
-    
+
     status = tx_semaphore_get ((TX_SEMAPHORE*)&sem->tx_sem, TX_WAIT_FOREVER);
 
     if (status != TX_SUCCESS)
@@ -172,7 +172,7 @@ int sem_trywait  (sem_t *sem)
     int ret;
 
     SEMA_ENTRY ();
-    
+
     switch (tx_semaphore_get ((TX_SEMAPHORE*)&sem->tx_sem, TX_NO_WAIT)) {
     case TX_SUCCESS:
         ret = 0;
@@ -201,13 +201,13 @@ int sem_post  (sem_t *sem)
     SEMA_ENTRY ();
 
     status = tx_semaphore_put ((TX_SEMAPHORE*)&sem->tx_sem);
-    
+
     if (status != TX_SUCCESS)
         ret = EINVAL;
 
     SEMA_RETURN (ret);
 }
-    
+
 
 // -------------------------------------------------------------------------
 // Get current value
@@ -222,8 +222,8 @@ int sem_getvalue  (sem_t *sem, int *sval)
     TX_SEMAPHORE *next_sem;
 
     SEMA_ENTRY ();
-    
-    status = tx_semaphore_info_get ((TX_SEMAPHORE*)&sem->tx_sem, &name, 
+
+    status = tx_semaphore_info_get ((TX_SEMAPHORE*)&sem->tx_sem, &name,
                 &cur_value, &first_susp, &susp_count, &next_sem);
 
     if (status == TX_SUCCESS) {

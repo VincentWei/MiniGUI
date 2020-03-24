@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -51,7 +51,7 @@
 #include "videomem-bucket.h"
 
 /* Hidden "this" pointer for the video functions */
-#define _THIS	GAL_VideoDevice *this
+#define _THIS    GAL_VideoDevice *this
 
 /* Private display data */
 
@@ -83,48 +83,48 @@ extern int s3c6410_size_table[48];
  */
 typedef enum
 {
-	PAL1, PAL2, PAL4, PAL8,
-	RGB8, ARGB8, RGB16, ARGB16, RGB18, RGB24, RGB30, ARGB24,RGBA16,RGBX24,RGBA24,
-	YC420, YC422, // Non-interleave
-	CRYCBY, CBYCRY, YCRYCB, YCBYCR, YUV444 // Interleave
+    PAL1, PAL2, PAL4, PAL8,
+    RGB8, ARGB8, RGB16, ARGB16, RGB18, RGB24, RGB30, ARGB24,RGBA16,RGBX24,RGBA24,
+    YC420, YC422, // Non-interleave
+    CRYCBY, CBYCRY, YCRYCB, YCBYCR, YUV444 // Interleave
 } G2D_COLOR_SPACE;
 
 typedef unsigned int u32;
 typedef struct
 {
-	u32	src_base_addr;			//Base address of the source image
-	u32	src_full_width;			//source image full width
-	u32	src_full_height;		//source image full height
-	u32	src_start_x;			//coordinate start x of source image
-	u32	src_start_y;			//coordinate start y of source image
-	u32	src_work_width;			//source image width for work
-	u32 src_work_height;		//source image height for work
+    u32    src_base_addr;            //Base address of the source image
+    u32    src_full_width;            //source image full width
+    u32    src_full_height;        //source image full height
+    u32    src_start_x;            //coordinate start x of source image
+    u32    src_start_y;            //coordinate start y of source image
+    u32    src_work_width;            //source image width for work
+    u32 src_work_height;        //source image height for work
     u32 src_colormode;
 
-	u32	dst_base_addr;			//Base address of the destination image	
-	u32	dst_full_width;			//destination screen full width
-	u32	dst_full_height;		//destination screen full width
-	u32	dst_start_x;			//coordinate start x of destination screen
-	u32	dst_start_y;			//coordinate start y of destination screen
-	u32	dst_work_width;			//destination screen width for work
-	u32 dst_work_height;		//destination screen height for work
+    u32    dst_base_addr;            //Base address of the destination image
+    u32    dst_full_width;            //destination screen full width
+    u32    dst_full_height;        //destination screen full width
+    u32    dst_start_x;            //coordinate start x of destination screen
+    u32    dst_start_y;            //coordinate start y of destination screen
+    u32    dst_work_width;            //destination screen width for work
+    u32 dst_work_height;        //destination screen height for work
     u32 dst_colormode;
 
-	// Coordinate (X, Y) of clipping window
-	u32 cw_x1, cw_y1;
-	u32 cw_x2, cw_y2;
+    // Coordinate (X, Y) of clipping window
+    u32 cw_x1, cw_y1;
+    u32 cw_x2, cw_y2;
 
-	u32 color_val[8];
+    u32 color_val[8];
 
-	u32	alpha_mode;			//true : enable, false : disable
-	u32	alpha_val;
-	u32	color_key_mode;			//treu : enable, false : disable
-	u32	color_key_val;			//transparent color value
+    u32    alpha_mode;            //true : enable, false : disable
+    u32    alpha_val;
+    u32    color_key_mode;            //treu : enable, false : disable
+    u32    color_key_val;            //transparent color value
 } s3c_g2d_params;
 
 typedef enum
-{   
-    G2D_BLACK = 0, G2D_RED = 1, G2D_GREEN = 2, G2D_BLUE = 3, G2D_WHITE = 4, 
+{
+    G2D_BLACK = 0, G2D_RED = 1, G2D_GREEN = 2, G2D_BLUE = 3, G2D_WHITE = 4,
     G2D_YELLOW = 5, G2D_CYAN = 6, G2D_MAGENTA = 7
 } G2D_COLOR;
 
@@ -144,12 +144,12 @@ typedef enum
 #define S3C_G2D_ROP_REG_ABM_REGISTER            (2<<10)
 #define S3C_G2D_ROP_REG_ABM_FADING          (4<<10)
 
-#define S3C_G2D_ROTATOR_0			_IO(G2D_IOCTL_MAGIC,0)
-#define S3C_G2D_ROTATOR_90			_IO(G2D_IOCTL_MAGIC,1)
-#define S3C_G2D_ROTATOR_180			_IO(G2D_IOCTL_MAGIC,2)
-#define S3C_G2D_ROTATOR_270			_IO(G2D_IOCTL_MAGIC,3)
-#define S3C_G2D_ROTATOR_X_FLIP			_IO(G2D_IOCTL_MAGIC,4)
-#define S3C_G2D_ROTATOR_Y_FLIP			_IO(G2D_IOCTL_MAGIC,5)
+#define S3C_G2D_ROTATOR_0            _IO(G2D_IOCTL_MAGIC,0)
+#define S3C_G2D_ROTATOR_90            _IO(G2D_IOCTL_MAGIC,1)
+#define S3C_G2D_ROTATOR_180            _IO(G2D_IOCTL_MAGIC,2)
+#define S3C_G2D_ROTATOR_270            _IO(G2D_IOCTL_MAGIC,3)
+#define S3C_G2D_ROTATOR_X_FLIP            _IO(G2D_IOCTL_MAGIC,4)
+#define S3C_G2D_ROTATOR_Y_FLIP            _IO(G2D_IOCTL_MAGIC,5)
 
 /* V1 */
 #define S3CFB_OSD_START         _IO  ('F', 201)

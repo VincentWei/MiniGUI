@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -116,8 +116,8 @@ void TDE_WaitForDone(void)
     /* FIXME: maybe it's a bug of Hi3510 TDE IP */
     TDE_Reg_Status  status;
 
-    /* wait for fifo empty, but the command perhaps do not end really */  
-    pTdeReg->colo_min.ul32 = 0;    
+    /* wait for fifo empty, but the command perhaps do not end really */
+    pTdeReg->colo_min.ul32 = 0;
 
     while(1)
     {
@@ -182,7 +182,7 @@ HI_RET TDE_MoveBlit(IN TDE_MoveBlitParam * pMBParam)
 
     /* set color space */
     TDE_SetColorSpace(pMBParam->ColorSpaceMax, pMBParam->ColorSpaceMin);
-    
+
     /* start 2D */
     control.bits.tde_start = 1;
     pTdeReg->control.ul32 = control.ul32;
@@ -230,12 +230,12 @@ HI_RET TDE_PatternFill(IN TDE_PatternFillParam * pPFParam)
     pTdeReg->src_addr = (U32)pPFParam->src_pixels;
     pTdeReg->dst_addr = (U32)pPFParam->dst_pixels;
     pTdeReg->out_addr = (U32)pPFParam->out_pixels;
-    
+
     /* stride */
     SrcDstStride.bits.Src_Stride = pPFParam->src_stride;
     SrcDstStride.bits.Dst_Stride = pPFParam->dst_stride;
     pTdeReg->src_dst_stride.ul32 = SrcDstStride.ul32;
-    
+
     /* Misc */
     Misc.ul32 = pTdeReg->misc.ul32;
     Misc.bits.Gout_Stride = pPFParam->out_stride;
@@ -248,7 +248,7 @@ HI_RET TDE_PatternFill(IN TDE_PatternFillParam * pPFParam)
 
     /* set color space */
     TDE_SetColorSpace(pPFParam->ColorSpaceMax, pPFParam->ColorSpaceMin);
-    
+
     /* start 2D */
     control.bits.tde_start = 1;
     pTdeReg->control.ul32 = control.ul32;
@@ -273,7 +273,7 @@ HI_RET TDE_SolidDraw(IN TDE_SolidDrawParam * pSDParam)
     {
         HI_ERRNO(HI_FAILURE);
     }
-    
+
     control.ul32 = pTdeReg->control.ul32;
 
     /* in and out color RGB format */
@@ -295,7 +295,7 @@ HI_RET TDE_SolidDraw(IN TDE_SolidDrawParam * pSDParam)
     /* addr */
     pTdeReg->dst_addr = (U32)pSDParam->dst_pixels;
     pTdeReg->out_addr = (U32)pSDParam->out_pixels;
-    
+
     /* stride */
     SrcDstStride.bits.Dst_Stride = pSDParam->dst_stride;
     pTdeReg->src_dst_stride.ul32 = SrcDstStride.ul32;
@@ -505,7 +505,7 @@ void printMBParam(TDE_MoveBlitParam *pParam)
 
     printx("dst_pixels = %#x\n", (U32)pParam->dst_pixels);
     printx("dst_stride = %d\n", pParam->dst_stride);
-    
+
     printx("out_pixels = %#x\n", (U32)pParam->out_pixels);
     printx("out_stride = %d\n", pParam->out_stride);
 #endif
@@ -541,12 +541,12 @@ void printPFParam(TDE_PatternFillParam *pParam)
 
     printx("dst_pixels = %#x\n", (U32)pParam->dst_pixels);
     printx("dst_stride = %d\n", pParam->dst_stride);
-    
+
     printx("out_pixels = %#x\n", (U32)pParam->out_pixels);
     printx("out_stride = %d\n", pParam->out_stride);
 
     printx("pattern_width = %d\n", pParam->pattern_width);
-    printx("pattern_height = %d\n", pParam->pattern_height);    
+    printx("pattern_height = %d\n", pParam->pattern_height);
 #endif
 }
 
@@ -576,7 +576,7 @@ void printSDParam(TDE_SolidDrawParam *pParam)
 
     printx("dst_pixels = 0x%x\n", (U32)pParam->dst_pixels);
     printx("dst_stride = %d\n", pParam->dst_stride);
-    
+
     printx("out_stride = 0x%x\n", (U32)pParam->out_pixels);
     printx("out_stride = %d\n", pParam->out_stride);
 #endif
@@ -589,7 +589,7 @@ static int print_register(void)
     {
         HI_ERRNO(HI_FAILURE);
     }
-    
+
     printf("control:%d!\n", pTdeReg->control.ul32);
     printf("size:%d!\n", pTdeReg->size.ul32);
     printf("src_addr:%d!\n", pTdeReg->src_addr);
@@ -654,59 +654,59 @@ void TDE_AntiFlicker(
     U32 img_width,
     U32 img_heigth,
     U32 img_stride,
-    U32 coff, 
+    U32 coff,
     U32 flag,
     U32 offset)
 {
-	TDE_MoveBlitParam    mbParam;
-	U32 src_alpha;
-	if((0 == src1_phy_addr) 
-	   || (0 == src2_phy_addr) 
-	   || (0 == dst_phy_addr)  
-	   || (0 == img_width) 
-	   || (1 > img_heigth) 
-	   || (0 == img_stride))
-	{
-		return;
-	}
+    TDE_MoveBlitParam    mbParam;
+    U32 src_alpha;
+    if((0 == src1_phy_addr)
+       || (0 == src2_phy_addr)
+       || (0 == dst_phy_addr)
+       || (0 == img_width)
+       || (1 > img_heigth)
+       || (0 == img_stride))
+    {
+        return;
+    }
 
-	src_alpha = 0x80*coff/100;
+    src_alpha = 0x80*coff/100;
 
-	mbParam.ColorSpaceOpt = TDE_COLORSPACE_DISABLE;
-	mbParam.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
+    mbParam.ColorSpaceOpt = TDE_COLORSPACE_DISABLE;
+    mbParam.DataOpt = TDE_DATA_OPT_ALPHA_INTERNAL;
 
-	if(mbParam.DataOpt == TDE_DATA_OPT_ALPHA_INTERNAL)
-	{
-	mbParam.OutAlphaFrom = TDE_OUT_ALPHAFROM_INTERNAL;
-	mbParam.InternalAlpha = (U8)src_alpha;
-	}
-	else
-	{
-		mbParam.OutAlphaFrom = TDE_OUT_ALPHAFROM_SRC;
-	}
+    if(mbParam.DataOpt == TDE_DATA_OPT_ALPHA_INTERNAL)
+    {
+    mbParam.OutAlphaFrom = TDE_OUT_ALPHAFROM_INTERNAL;
+    mbParam.InternalAlpha = (U8)src_alpha;
+    }
+    else
+    {
+        mbParam.OutAlphaFrom = TDE_OUT_ALPHAFROM_SRC;
+    }
 
-	mbParam.InColorFormat = TDE_COLOR_FORMAT_RGB1555;
-	mbParam.OutColorFormat = mbParam.InColorFormat;
+    mbParam.InColorFormat = TDE_COLOR_FORMAT_RGB1555;
+    mbParam.OutColorFormat = mbParam.InColorFormat;
 
-	mbParam.opt_width = img_width;
-	mbParam.opt_height = img_heigth;
+    mbParam.opt_width = img_width;
+    mbParam.opt_height = img_heigth;
 
-	/* source1 image */
-	mbParam.src_pixels = (U8 *)src1_phy_addr;
-	mbParam.src_stride = img_stride;
+    /* source1 image */
+    mbParam.src_pixels = (U8 *)src1_phy_addr;
+    mbParam.src_stride = img_stride;
 
-	/*source2 image*/
-	mbParam.dst_pixels = (U8 *)src2_phy_addr;
-	mbParam.dst_stride = img_stride;
+    /*source2 image*/
+    mbParam.dst_pixels = (U8 *)src2_phy_addr;
+    mbParam.dst_stride = img_stride;
 
     /*out image, attention offset*/
     if (flag != 1)
         mbParam.out_pixels = (U8 *)dst_phy_addr;
     else
         mbParam.out_pixels = (U8 *)(dst_phy_addr + offset);
-	mbParam.out_stride = img_stride;
+    mbParam.out_stride = img_stride;
 
-	TDE_MoveBlit(&mbParam);
-    
-	return ;
+    TDE_MoveBlit(&mbParam);
+
+    return ;
 }

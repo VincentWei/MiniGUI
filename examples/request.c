@@ -3,7 +3,7 @@ typedef struct TEST_REQ
    int a, b;
 } TEST_REQ;
 
-/* 
+/*
  * In the server, we define the request handler
  * and register it.
  */
@@ -11,7 +11,7 @@ static int ServerSendReply (int clifd, void* reply, int len)
 {
     MSG reply_msg = {HWND_INVALID, 0};
 
-    /* 
+    /*
      * Sending a null message to client in order to indicate this is
      * a reply of a request.
      */

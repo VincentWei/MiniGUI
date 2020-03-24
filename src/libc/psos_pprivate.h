@@ -11,44 +11,44 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
 /*
-** psos_pprivate.h: The private header for POSIX PThreads implementation 
-**      on pSOS. This is the POSIX PThreads implementation in order to run 
+** psos_pprivate.h: The private header for POSIX PThreads implementation
+**      on pSOS. This is the POSIX PThreads implementation in order to run
 **      MiniGUI on pSOS.
 **
-** MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, pSOS, ThreadX, 
+** MiniGUI for Linux/uClinux, eCos, uC/OS-II, VxWorks, pSOS, ThreadX,
 ** OSE, and Nucleus, version 2.0.x/1.6.x.
 **
 ** Author: Wei Yongming
@@ -81,13 +81,13 @@ extern "C" {
 #define PSOSPTH_POSIX_MAIN_DEF_PRIORITY             100
 #define PSOSPTH_POSIX_MAIN_DEF_TIME_SLICE           10
 
-/* 
- * NOTE: This POSIX thread implementation on pSOS uses the task's 
+/*
+ * NOTE: This POSIX thread implementation on pSOS uses the task's
  * numuber 7 notepad software register to hold the pointer to the
  * pthread_info structure of the task.
  *
- * t_setreg of pSOS+: 
- *  Registers 0 through 7 are for application use, and registers 8 
+ * t_setreg of pSOS+:
+ *  Registers 0 through 7 are for application use, and registers 8
  *  through 15 are reserved for system use.
  */
 #define PSOSPTH_SELFINFO_REGNUM         7
@@ -102,9 +102,9 @@ extern "C" {
 /*============================================================================*/
 /* Thread control data structure */
 
-/* 
+/*
  * Per-thread information needed by POSIX
- * This is pointed to by the tx_thread_name entry of the thread control block 
+ * This is pointed to by the tx_thread_name entry of the thread control block
  * of a TX_THREAD.
  */
 
@@ -139,7 +139,7 @@ typedef struct
 } pthread_info;
 
 
-/* 
+/*
  * Values for the state field. These are solely concerned with the
  * states visible to POSIX. The thread's run state is stored in the
  * pSOS thread object.
@@ -206,12 +206,12 @@ _MACRO_END
 /*--------------------------------------------------------------------------- */
 /* Priority translation. */
 
-/* pSOS priorities run from 255 as the highest to 0 as the lowest. 
- * Priority level 0 is reserved for the pSOS+ daemon task IDLE. 
- * Priority levels 240 - 255 are reserved for a variety of high priority 
- * pSOSystem daemon tasks. 
+/* pSOS priorities run from 255 as the highest to 0 as the lowest.
+ * Priority level 0 is reserved for the pSOS+ daemon task IDLE.
+ * Priority levels 240 - 255 are reserved for a variety of high priority
+ * pSOSystem daemon tasks.
  *
- * The POSIX priorities run in the same direction. The following macros 
+ * The POSIX priorities run in the same direction. The following macros
  * translate between the two priority ranges.
  */
 

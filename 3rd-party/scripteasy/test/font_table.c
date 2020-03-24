@@ -20,7 +20,7 @@
     #define MAX_LOGICAL_FONT_SIZE   16  /* Physical font count per logical font */
 #endif
 
-#define MAX_LOGICAL_TABLE_SIZE  256 
+#define MAX_LOGICAL_TABLE_SIZE  256
 
 /* Script Easy font description data definition */
 
@@ -36,7 +36,7 @@ static void* font_table[] =
 
 #define FONT_TABLE_SIZE ((sizeof(font_table) / sizeof(void*) - 1) / 2)
 
-static unsigned char logical_font_table_config[][MAX_LOGICAL_FONT_SIZE] = 
+static unsigned char logical_font_table_config[][MAX_LOGICAL_FONT_SIZE] =
 {
     {4, 0, 1, 2, 3}
 };
@@ -48,12 +48,12 @@ static unsigned char logical_font_table[MAX_LOGICAL_TABLE_SIZE];
 static unsigned int logical_font_table_index_map[LOGICAL_FONT_TABLE_SIZE];
 
 #ifdef SE_FONT_DYNAMIC_LOADING_SUPPORT
-    static const 
+    static const
     struct {
         const char    *font_name;
         int           logical_font_index;
     }
-    font_name_config[] = 
+    font_name_config[] =
     {
         {0, 0},
         {0, 0},
@@ -83,7 +83,7 @@ const se_font_description se_font_desc = {
 
 /* The following is the scripteasy mem pool definition */
 
-#define SE_MEM_POOL_SIZE	        (64 * 1024)
+#define SE_MEM_POOL_SIZE            (64 * 1024)
 #define SE_CACHE_MEM_POOL_SIZE      (256 * 1024)
 
 int   se_minigui_mem_pool[SE_MEM_POOL_SIZE];
@@ -99,7 +99,7 @@ int   se_minigui_cache_mem_pool_size = SE_CACHE_MEM_POOL_SIZE * sizeof(int);
     {
         /* TO BE CUSTOMIZED */
         static char font_dir[MAX_PATH + 1] = "/usr/minigui/se_new/minigui/src/fonts/";
-        
+
         return font_dir;
     }
 
@@ -133,10 +133,10 @@ int   se_minigui_cache_mem_pool_size = SE_CACHE_MEM_POOL_SIZE * sizeof(int);
         FILE*           handle = (FILE*) name;
         unsigned int    read = 0;
         int             result = 0;
-    
+
         if(!handle)
             return 0;
-    
+
         fseek(handle, offset, SEEK_SET);
         printf("In se_minigui_read_font...\n");
         return fread(buffer, 1, size, handle);
@@ -191,12 +191,12 @@ void se_minigui_init_fonts(void)
 {
     int i = 0;
     int pos = 0;
-    
-    ASSERT (DEFAULT_LOGICAL_FONT_INDEX >= 0 && 
+
+    ASSERT (DEFAULT_LOGICAL_FONT_INDEX >= 0 &&
             DEFAULT_LOGICAL_FONT_INDEX < LOGICAL_FONT_TABLE_SIZE);
 
     se_minigui_destroy_fonts();
-    
+
     init_logical_font_map();
 
 #ifdef SE_FONT_DYNAMIC_LOADING_SUPPORT
@@ -205,9 +205,9 @@ void se_minigui_init_fonts(void)
         if(font_name_config[i].font_name)
         {
             FILE* handle;
-            
+
             handle = se_minigui_open_font_file(font_name_config[i].font_name);
-            
+
             ASSERT (font_table[i * 2 + 1] == 0);
 
             if (handle)
@@ -216,10 +216,10 @@ void se_minigui_init_fonts(void)
             }
             else
             {
-                ASSERT (font_name_config[i].logical_font_index >= 0 && 
+                ASSERT (font_name_config[i].logical_font_index >= 0 &&
                         font_name_config[i].logical_font_index < LOGICAL_FONT_TABLE_SIZE);
                 ASSERT (logical_font_table_index_map[font_name_config[i].logical_font_index] == font_name_config[i].logical_font_index);
-                
+
                 logical_font_table_index_map[font_name_config[i].logical_font_index] = DEFAULT_LOGICAL_FONT_INDEX;
             }
         }

@@ -1,8 +1,16 @@
-Version 4.0.5 (2020/01/10)
+Version 5.0.0 (2019/03/31)
 
-This release needs the following packages:
+This is the second preview version of MiniGUI 5.0.0, an unstable version.
 
+Other packages for MiniGUI resource, tools, components, and samples:
+
+- GVFB: `gvfb-1.2.5.tar.gz`
 - The resource package: `minigui-res-4.0.0.tar.gz`
-- The sample package: `mg-samples-4.0.1.tar.gz`
-- The test cases package: `mg-tests-4.0.4.tar.gz`
+- mGUtils component: `libmgutils-1.5.0.tar.gz`
+- mGPlus component: `libmgplus-1.5.0.tar.gz`
+- mGEff component: `libmgeff-1.5.0.tar.gz`
+- mGNCS component: `libmgncs-1.5.0.tar.gz`
+- mGNCS4Touch component: `libmgncs4touch-1.5.0.tar.gz`
+- The test cases package: `mg-tests-5.0.0.tar.gz`
+- The sample package: `mg-samples-5.0.0.tar.gz`
 

@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -69,24 +69,24 @@ jpeg_start_decompress (j_decompress_ptr cinfo)
     if (cinfo->inputctl->has_multiple_scans) {
 #ifdef D_MULTISCAN_FILES_SUPPORTED
       for (;;) {
-	int retcode;
-	/* Call progress monitor hook if present */
-	if (cinfo->progress != NULL)
-	  (*cinfo->progress->progress_monitor) ((j_common_ptr) cinfo);
-	/* Absorb some more input */
-	retcode = (*cinfo->inputctl->consume_input) (cinfo);
-	if (retcode == JPEG_SUSPENDED)
-	  return FALSE;
-	if (retcode == JPEG_REACHED_EOI)
-	  break;
-	/* Advance progress counter if appropriate */
-	if (cinfo->progress != NULL &&
-	    (retcode == JPEG_ROW_COMPLETED || retcode == JPEG_REACHED_SOS)) {
-	  if (++cinfo->progress->pass_counter >= cinfo->progress->pass_limit) {
-	    /* jdmaster underestimated number of scans; ratchet up one scan */
-	    cinfo->progress->pass_limit += (long) cinfo->total_iMCU_rows;
-	  }
-	}
+    int retcode;
+    /* Call progress monitor hook if present */
+    if (cinfo->progress != NULL)
+      (*cinfo->progress->progress_monitor) ((j_common_ptr) cinfo);
+    /* Absorb some more input */
+    retcode = (*cinfo->inputctl->consume_input) (cinfo);
+    if (retcode == JPEG_SUSPENDED)
+      return FALSE;
+    if (retcode == JPEG_REACHED_EOI)
+      break;
+    /* Advance progress counter if appropriate */
+    if (cinfo->progress != NULL &&
+        (retcode == JPEG_ROW_COMPLETED || retcode == JPEG_REACHED_SOS)) {
+      if (++cinfo->progress->pass_counter >= cinfo->progress->pass_limit) {
+        /* jdmaster underestimated number of scans; ratchet up one scan */
+        cinfo->progress->pass_limit += (long) cinfo->total_iMCU_rows;
+      }
+    }
       }
 #else
       ERREXIT(cinfo, JERR_NOT_COMPILED);
@@ -117,16 +117,16 @@ output_pass_setup (j_decompress_ptr cinfo)
       JDIMENSION last_scanline;
       /* Call progress monitor hook if present */
       if (cinfo->progress != NULL) {
-	cinfo->progress->pass_counter = (long) cinfo->output_scanline;
-	cinfo->progress->pass_limit = (long) cinfo->output_height;
-	(*cinfo->progress->progress_monitor) ((j_common_ptr) cinfo);
+    cinfo->progress->pass_counter = (long) cinfo->output_scanline;
+    cinfo->progress->pass_limit = (long) cinfo->output_height;
+    (*cinfo->progress->progress_monitor) ((j_common_ptr) cinfo);
       }
       /* Process some data */
       last_scanline = cinfo->output_scanline;
       (*cinfo->main->process_data) (cinfo, (JSAMPARRAY) NULL,
-				    &cinfo->output_scanline, (JDIMENSION) 0);
+                    &cinfo->output_scanline, (JDIMENSION) 0);
       if (cinfo->output_scanline == last_scanline)
-	return FALSE;		/* No progress made, must suspend */
+    return FALSE;        /* No progress made, must suspend */
     }
     /* Finish up dummy pass, and set up for another one */
     (*cinfo->master->finish_output_pass) (cinfo);
@@ -146,7 +146,7 @@ output_pass_setup (j_decompress_ptr cinfo)
 
 GLOBAL(JDIMENSION)
 jpeg_read_scanlines (j_decompress_ptr cinfo, JSAMPARRAY scanlines,
-		     JDIMENSION max_lines)
+             JDIMENSION max_lines)
 {
   JDIMENSION row_ctr;
 
@@ -179,7 +179,7 @@ jpeg_read_scanlines (j_decompress_ptr cinfo, JSAMPARRAY scanlines,
 
 GLOBAL(JDIMENSION)
 jpeg_read_raw_data (j_decompress_ptr cinfo, JSAMPIMAGE data,
-		    JDIMENSION max_lines)
+            JDIMENSION max_lines)
 {
   JDIMENSION lines_per_iMCU_row;
 
@@ -204,7 +204,7 @@ jpeg_read_raw_data (j_decompress_ptr cinfo, JSAMPIMAGE data,
 
   /* Decompress directly into user's buffer. */
   if (! (*cinfo->coef->decompress_data) (cinfo, data))
-    return 0;			/* suspension forced, can do nothing more */
+    return 0;            /* suspension forced, can do nothing more */
 
   /* OK, we processed one iMCU row. */
   cinfo->output_scanline += lines_per_iMCU_row;
@@ -260,9 +260,9 @@ jpeg_finish_output (j_decompress_ptr cinfo)
   }
   /* Read markers looking for SOS or EOI */
   while (cinfo->input_scan_number <= cinfo->output_scan_number &&
-	 ! cinfo->inputctl->eoi_reached) {
+     ! cinfo->inputctl->eoi_reached) {
     if ((*cinfo->inputctl->consume_input) (cinfo) == JPEG_SUSPENDED)
-      return FALSE;		/* Suspend, come back later */
+      return FALSE;        /* Suspend, come back later */
   }
   cinfo->global_state = DSTATE_BUFIMAGE;
   return TRUE;

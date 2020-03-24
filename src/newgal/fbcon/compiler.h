@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -132,7 +132,7 @@
 # if defined(QNX4) /* Do this for now to keep Watcom happy */
 #  define outb outp
 #  define outw outpw
-#  define outl outpd 
+#  define outl outpd
 #  define inb inp
 #  define inw inpw
 #  define inl inpd
@@ -289,7 +289,7 @@ struct __una_u32 { unsigned int   x __attribute__((packed)); };
 struct __una_u16 { unsigned short x __attribute__((packed)); };
 
 /*
- * Elemental unaligned loads 
+ * Elemental unaligned loads
  */
 /* let's try making these things static */
 
@@ -351,7 +351,7 @@ static __inline__ unsigned long ldw_u(unsigned short * r11)
 }
 
 /*
- * Elemental unaligned stores 
+ * Elemental unaligned stores
  */
 
 static __inline__ void stq_u(unsigned long r5, unsigned long * r11)
@@ -441,8 +441,8 @@ static __inline__ void stw_u(unsigned long r5, unsigned short * r11)
 #    endif
 
 
-#   elif defined(linux) && defined(__ia64__) 
- 
+#   elif defined(linux) && defined(__ia64__)
+
 #    include <inttypes.h>
 
 #    include <sys/io.h>
@@ -495,12 +495,12 @@ __ustw (unsigned long r5, unsigned short * r11)
 
 #    define ldq_u(p)    __uldq(p)
 #    define ldl_u(p)    __uldl(p)
-#    define ldw_u(p)    __uldw(p) 
+#    define ldw_u(p)    __uldw(p)
 #    define stq_u(v,p)    __ustq(v,p)
 #    define stl_u(v,p)    __ustl(v,p)
 #    define stw_u(v,p)    __ustw(v,p)
 
-#    ifndef __INTEL_COMPILER  
+#    ifndef __INTEL_COMPILER
 #      define mem_barrier()        __asm__ __volatile__ ("mf" ::: "memory")
 #      define write_mem_barrier()  __asm__ __volatile__ ("mf" ::: "memory")
 #    else
@@ -542,9 +542,9 @@ extern void outl(unsigned long port, unsigned int val);
 extern unsigned int inb(unsigned long port);
 extern unsigned int inw(unsigned long port);
 extern unsigned int inl(unsigned long port);
- 
-#   elif defined(linux) && defined(__amd64__) 
- 
+
+#   elif defined(linux) && defined(__amd64__)
+
 #    include <inttypes.h>
 
 #    define ldq_u(p)    (*((unsigned long  *)(p)))
@@ -553,7 +553,7 @@ extern unsigned int inl(unsigned long port);
 #    define stq_u(v,p)    (*(unsigned long  *)(p)) = (v)
 #    define stl_u(v,p)    (*(unsigned int   *)(p)) = (v)
 #    define stw_u(v,p)    (*(unsigned short *)(p)) = (v)
-  
+
 #    define mem_barrier() \
        __asm__ __volatile__ ("lock; addl $0,0(%%rsp)": : :"memory")
 #    define write_mem_barrier() \
@@ -1690,11 +1690,11 @@ extern void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #  define MMIO_MOVE32(base, offset, val) \
     MMIO_OUT32(base, offset, val)
 
-# elif defined(__powerpc__)  
- /* 
+# elif defined(__powerpc__)
+ /*
   * we provide byteswapping and no byteswapping functions here
-  * with byteswapping as default, 
-  * drivers that don't need byteswapping should define PPC_MMIO_IS_BE 
+  * with byteswapping as default,
+  * drivers that don't need byteswapping should define PPC_MMIO_IS_BE
   */
 #  define MMIO_IN8(base, offset) xf86ReadMmio8(base, offset)
 #  define MMIO_OUT8(base, offset, val) \
@@ -1732,11 +1732,11 @@ extern void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 static __inline__ void ppc_flush_icache(char *addr)
 {
     __asm__ volatile (
-        "dcbf 0,%0;" 
-        "sync;" 
-        "icbi 0,%0;" 
-        "sync;" 
-        "isync;" 
+        "dcbf 0,%0;"
+        "sync;"
+        "icbi 0,%0;"
+        "sync;"
+        "isync;"
         : : "r"(addr) : "memory");
 }
 
@@ -1795,9 +1795,9 @@ static __inline__ void ppc_flush_icache(char *addr)
     *(volatile CARD16 *)(void *)(((CARD8*)(base)) + (offset)) = (val)
 #  define MMIO_OUT32(base, offset, val) \
     *(volatile CARD32 *)(void *)(((CARD8*)(base)) + (offset)) = (val)
-#  define MMIO_ONB8(base, offset, val) MMIO_OUT8(base, offset, val) 
-#  define MMIO_ONB16(base, offset, val) MMIO_OUT16(base, offset, val) 
-#  define MMIO_ONB32(base, offset, val) MMIO_OUT32(base, offset, val) 
+#  define MMIO_ONB8(base, offset, val) MMIO_OUT8(base, offset, val)
+#  define MMIO_ONB16(base, offset, val) MMIO_OUT16(base, offset, val)
+#  define MMIO_ONB32(base, offset, val) MMIO_OUT32(base, offset, val)
 
 #  define MMIO_MOVE32(base, offset, val) MMIO_OUT32(base, offset, val)
 

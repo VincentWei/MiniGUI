@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -98,7 +98,7 @@ static int t800_kbd_read (unsigned char *buf, int *modifiers)
 
     *modifiers = 0;            /* no modifiers yet */
     cc = read (kbd_fd, &buf1, 1);
-    
+
     *buf = buf1;
     if (cc > 0) {
         return 1;
@@ -118,7 +118,7 @@ static int keyboard_update (void)
     int is_pressed;
     int retvalue;
 
-    retvalue = t800_kbd_read (&buf, &modifier); 
+    retvalue = t800_kbd_read (&buf, &modifier);
 
     if ((retvalue == -1) || (retvalue == 0))
         return 0;
@@ -128,7 +128,7 @@ static int keyboard_update (void)
         ch         = buf & 0x7f;
         if (is_pressed)
             state[ch] = 1;
-        else 
+        else
             state[ch] = 0;
     }
 
@@ -140,13 +140,8 @@ static const char* keyboard_getstate (void)
     return state;
 }
 
-#ifdef _LITE_VERSION
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
-#else
-static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
-                struct timeval *timeout)
-#endif
 {
     fd_set    rfds;
     int    retvalue = 0;
@@ -158,29 +153,19 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
     }
 
     if (which & IAL_MOUSEEVENT && mouse_fd >= 0) {
-        fd = mouse_fd;          /* FIXME: mouse fd may be changed in vt switch! */
+        fd = mouse_fd;
         FD_SET (fd, in);
-#ifdef _LITE_VERSION
         if (fd > maxfd) maxfd = fd;
-#endif
     }
 
     if (which & IAL_KEYEVENT && kbd_fd >= 0){
-        fd = kbd_fd;          /* FIXME: keyboard fd may be changed in vt switch! */
+        fd = kbd_fd;
         FD_SET (kbd_fd, in);
-#ifdef _LITE_VERSION
         if (fd > maxfd) maxfd = fd;
-#endif
     }
 
-    /* FIXME: pass the real set size */
-#ifdef _LITE_VERSION
     e = select (maxfd + 1, in, out, except, timeout) ;
-#else
-    e = select (FD_SETSIZE, in, out, except, timeout) ;
-#endif
-
-    if (e > 0) { 
+    if (e > 0) {
         fd = mouse_fd;
         /* If data is present on the mouse fd, service it: */
         if (fd >= 0 && FD_ISSET (fd, in)) {
@@ -205,7 +190,7 @@ static int wait_event (int which, fd_set *in, fd_set *out, fd_set *except,
 BOOL InitT800Input (INPUT* input, const char* mdev, const char* mtype)
 {
     kbd_fd = open(KEYBOARD, O_RDONLY | O_NOCTTY);
-    
+
     if (kbd_fd < 0)
         return FALSE;
 

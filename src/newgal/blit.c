@@ -11,35 +11,35 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 /*
- *   This file is part of MiniGUI, a mature cross-platform windowing 
+ *   This file is part of MiniGUI, a mature cross-platform windowing
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
- * 
+ *
  *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
- * 
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
- * 
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- * 
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  *   Or,
- * 
+ *
  *   As this program is a library, any link to this program must follow
  *   GNU General Public License version 3 (GPLv3). If you cannot accept
  *   GPLv3, you need to be licensed from FMSoft.
- * 
+ *
  *   If you have got a commercial license of this program, please use it
  *   under the terms and conditions of the commercial license.
- * 
+ *
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
@@ -77,13 +77,13 @@ static int GAL_SoftBlit(GAL_Surface *src, GAL_Rect *srcrect,
         GAL_loblit RunBlit;
 
         /* Set up the blit information */
-        info.s_pixels = (Uint8 *)src->pixels + src->offset +
+        info.s_pixels = (Uint8 *)src->pixels +
                 (Uint16)srcrect->y*src->pitch +
                 (Uint16)srcrect->x*src->format->BytesPerPixel;
         info.s_width = srcrect->w;
         info.s_height = srcrect->h;
         info.s_skip=src->pitch-info.s_width*src->format->BytesPerPixel;
-        info.d_pixels = (Uint8 *)dst->pixels + dst->offset +
+        info.d_pixels = (Uint8 *)dst->pixels +
                 (Uint16)dstrect->y*dst->pitch +
                 (Uint16)dstrect->x*dst->format->BytesPerPixel;
         info.d_width = dstrect->w;
@@ -244,7 +244,7 @@ int GAL_CalculateBlit(GAL_Surface *surface)
     blit_index |= (!!(surface->flags & GAL_SRCCOLORKEY)) << 0;
     if (((surface->flags & GAL_SRCALPHA) && surface->format->alpha != GAL_ALPHA_OPAQUE)
          ||((surface->flags & GAL_SRCPIXELALPHA) && surface->format->Amask)) {
-        if(surface != surface->map->dst){ 
+        if(surface != surface->map->dst){
             blit_index |= 2;
         }
     }
@@ -290,8 +290,7 @@ int GAL_CalculateBlit(GAL_Surface *surface)
     if(surface->flags & GAL_RLEACCELOK
        && (surface->flags & GAL_HWACCEL) != GAL_HWACCEL) {
 
-            if(surface->map->identity
-           && (blit_index == 1
+            if(surface->map->identity && (blit_index == 1
                || (blit_index == 3 && !surface->format->Amask))) {
                 if ( GAL_RLESurface(surface) == 0 )
                     surface->map->sw_blit = GAL_RLEBlit;
@@ -300,7 +299,7 @@ int GAL_CalculateBlit(GAL_Surface *surface)
                     surface->map->sw_blit = GAL_RLEAlphaBlit;
         }
     }
-    
+
     if ( surface->map->sw_blit == NULL ) {
         surface->map->sw_blit = GAL_SoftBlit;
     }
