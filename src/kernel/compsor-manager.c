@@ -88,8 +88,11 @@ static const CompositorOps* load_default_compositor (void)
 {
     const char* filename = NULL;
     char buff [LEN_SO_NAME + 1];
-    const CompositorOps* (*ex_compsor_get) (const char*, const CompositorOps*);
+    const CompositorOps* (*ex_compsor_get) (const char*,
+            const CompositorOps*, int*);
     char* error;
+    const CompositorOps* ops;
+    int version = 0;
 
     filename = getenv ("MG_DEF_COMPOSITOR_SO");
     if (filename == NULL) {
@@ -117,7 +120,13 @@ static const CompositorOps* load_default_compositor (void)
         return NULL;
     }
 
-    return ex_compsor_get (COMPSOR_NAME_DEFAULT, &__mg_fallback_compositor);
+    ops = ex_compsor_get (COMPSOR_NAME_DEFAULT,
+        &__mg_fallback_compositor, &version);
+
+    if (ops == NULL || version != COMPSOR_OPS_VERSION)
+        return NULL;
+
+    return ops;
 }
 
 static void lock_znode_surface (PDC pdc, ZORDERNODE* node)
@@ -151,6 +160,7 @@ static void unlock_znode_surface (PDC pdc, ZORDERNODE* node)
     }
 }
 
+#if 0   /* not optimized */
 void __mg_composite_dirty_znodes (void)
 {
     MG_Layer* layer;
@@ -244,6 +254,122 @@ void __mg_composite_dirty_znodes (void)
         unlock_znode_surface (pdc, nodes);
     }
 }
+
+#else   /* not optimized */
+
+static void composite_layer (MG_Layer* layer, CompositorCtxt* ctxt,
+        const CompositorOps* ops)
+{
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+    int i, next;
+    unsigned int changes_in_dc;
+    PDC pdc;
+    zi = (ZORDERINFO*)layer->zorder_info;
+
+    if (!ops->reset_dirty_region (ctxt, layer))
+        return;
+
+    /* travel menu znodes on the layer */
+    if (zi->nr_popupmenus > 0) {
+        nodes = GET_MENUNODE(zi);
+        for (i = 0; i < zi->nr_popupmenus; i++) {
+            pdc = dc_HDC2PDC (nodes[i].mem_dc);
+            assert (pdc->surface->dirty_info);
+
+            lock_znode_surface (pdc, nodes + i);
+            changes_in_dc = pdc->surface->dirty_info->dirty_age;
+            if (changes_in_dc != nodes[i].changes) {
+                ops->merge_dirty_ppp (ctxt, layer, i);
+            }
+        }
+    }
+
+    /* travel win znodes on the layer */
+    nodes = GET_ZORDERNODE(zi);
+    next = 0;
+    while ((next = __kernel_get_next_znode (zi, next)) > 0) {
+        if (nodes [next].flags & ZOF_VISIBLE) {
+            pdc = dc_HDC2PDC (nodes[next].mem_dc);
+            assert (pdc->surface->dirty_info);
+
+            lock_znode_surface (pdc, nodes + next);
+            changes_in_dc = pdc->surface->dirty_info->dirty_age;
+            if (changes_in_dc != nodes[next].changes) {
+                ops->merge_dirty_win (ctxt, layer, next);
+            }
+        }
+    }
+
+    /* check wallpaper pattern */
+    pdc = dc_HDC2PDC (HDC_SCREEN);
+    if (pdc->surface->w > 0 && pdc->surface->h > 0) {
+        assert (pdc->surface->dirty_info);
+        lock_znode_surface (pdc, nodes);
+        changes_in_dc = pdc->surface->dirty_info->dirty_age;
+        if (changes_in_dc != nodes[0].changes) {
+            ops->merge_dirty_wpp (ctxt, layer);
+        }
+    }
+
+    ops->refresh_dirty_region (ctxt, layer);
+
+    /* unlock the znode surfaces for popup menus */
+    if (zi->nr_popupmenus > 0) {
+        nodes = GET_MENUNODE(zi);
+        for (i = 0; i < zi->nr_popupmenus; i++) {
+            pdc = dc_HDC2PDC (nodes[i].mem_dc);
+
+            nodes[i].changes = pdc->surface->dirty_info->dirty_age;
+            pdc->surface->dirty_info->nr_dirty_rcs = 0;
+            unlock_znode_surface (pdc, nodes + i);
+        }
+    }
+
+    /* unlock the znode surfaces for windows */
+    nodes = GET_ZORDERNODE(zi);
+    next = 0;
+    while ((next = __kernel_get_next_znode (zi, next)) > 0) {
+        if (nodes [next].flags & ZOF_VISIBLE) {
+            pdc = dc_HDC2PDC (nodes[next].mem_dc);
+            nodes[next].changes = pdc->surface->dirty_info->dirty_age;
+            pdc->surface->dirty_info->nr_dirty_rcs = 0;
+            unlock_znode_surface (pdc, nodes + next);
+        }
+    }
+
+    /* unlock the znode surfaces for wallpaper patter */
+    pdc = dc_HDC2PDC (HDC_SCREEN);
+    if (pdc->surface->w > 0 && pdc->surface->h > 0) {
+        nodes[0].changes = pdc->surface->dirty_info->dirty_age;
+        pdc->surface->dirty_info->nr_dirty_rcs = 0;
+        unlock_znode_surface (pdc, nodes);
+    }
+}
+
+void __mg_composite_dirty_znodes (void)
+{
+    MG_Layer* layer;
+    CompositorCtxt* ctxt;
+    const CompositorOps* ops = ServerSelectCompositor (NULL, &ctxt);
+
+    assert (ops);
+
+    /* first handle the topmost layer */
+    composite_layer (mgTopmostLayer, ctxt, ops);
+
+    /* then handle other layers */
+    layer = mgLayers;
+    while (layer) {
+        if (layer != mgTopmostLayer) {
+            composite_layer (layer, ctxt, ops);
+        }
+
+        layer = layer->next;
+    }
+}
+
+#endif  /* optimized */
 
 static void purge_znodes_private_data_in_layer (const CompositorOps* ops,
         CompositorCtxt* ctxt, MG_Layer* layer)
