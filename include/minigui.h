@@ -1574,23 +1574,44 @@ typedef struct _CompositorOps {
      */
     void (*on_layer_op) (CompositorCtxt* ctxt, int layer_op,
             MG_Layer* layer, MG_Client* client);
+
+    /**
+     * This operation will be called when the server intends to composite
+     * the whole screen for the particular layer.
+     * The compositor can reset the dirty region for the layer.
+     * If it returns FALSE, the compositor will not handle the layer.
+     */
+    BOOL (*reset_dirty_region) (CompositorCtxt* ctxt, MG_Layer* layer);
+
     /**
      * This operation will be called when there are some dirty
      * rectangles in the specific popup menu z-node.
+     * The compositor should merge the dirty rectangles to the
+     * dirty region maintained for the current layer.
      */
-    void (*on_dirty_ppp) (CompositorCtxt* ctxt, int zidx);
+    BOOL (*merge_dirty_ppp) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
      * This operation will be called when there are some dirty rectangles
      * in the specific window z-node on the specific layer.
+     * The compositor should merge the dirty rectangles to the
+     * dirty region maintained for the current layer.
      */
-    void (*on_dirty_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
+    BOOL (*merge_dirty_win) (CompositorCtxt* ctxt, MG_Layer* layer, int zidx);
 
     /**
      * This operation will be called when there are some dirty rectangles
      * in the wallpaper pattern.
+     * The compositor should merge the dirty rectangles of the wallpaper
+     * pattern to the dirty region maintained for the current layer.
      */
-    void (*on_dirty_wpp) (CompositorCtxt* ctxt);
+    BOOL (*merge_dirty_wpp) (CompositorCtxt* ctxt, MG_Layer* layer);
+
+    /**
+     * This operation will be called to composite the dirty region
+     * for the particular layer.
+     */
+    BOOL (*refresh_dirty_region) (CompositorCtxt* ctxt, MG_Layer* layer);
 
     /**
      * This operation will be called when a z-node was out of action, e.g.,
@@ -1771,18 +1792,26 @@ MG_EXPORT BOOL GUIAPI ServerUnregisterCompositor (const char* name);
 MG_EXPORT const CompositorOps* GUIAPI ServerSelectCompositor (
             const char* name, CompositorCtxt** ctxt);
 
+#define COMPSOR_OPS_VERSION  1
+
 /**
   * Implement this stub to return the compositor operations
   * for a specific compositor name if you implement the compositor
   * in a shared library.
   *
   * \param name The name of the compositor desired.
-  * \param fallback The fallback operations for this compositor.
+  * \param fallback_ops The fallback operations.
+  * \param version The version code for the operations of the compositor.
+  *
+  * \note The compositor should return the version code it follows through
+  *     \a version argument. If the version code is not matched, MiniGUI
+  *     will refuse to load the compositor. The current version code
+  *     is defined by \a COMPSOR_OPS_VERSION.
   *
   * \return The compositor operations for specific name, NULL for error.
   */
 const CompositorOps* __ex_compositor_get (const char* name,
-            const CompositorOps* fallback);
+            const CompositorOps* fallback_ops, int* version);
 
 #endif /* defined _MGSCHEMA_COMPOSITING */
 
