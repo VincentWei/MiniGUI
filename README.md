@@ -292,7 +292,7 @@ so that the old applications can smoothly migrate to the new
 version. However, there are still some slight changes you need to take care.
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://github.com/VincentWei/minigui/blob/tree/rel-5-0/RELEASE-NOTES.md>
+<https://github.com/VincentWei/minigui/blob/rel-5-0/RELEASE-NOTES.md>
 
 ## NEW FEATURES IN VERSION 4.0.x
 
@@ -323,7 +323,7 @@ in order to support [HybridOS Foundation Class Library].
 
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://github.com/VincentWei/minigui/blob/tree/rel-4-0/RELEASE-NOTES.md>
+<https://github.com/VincentWei/minigui/blob/rel-4-0/RELEASE-NOTES.md>
 
 Because of the changes of some APIs, we recommended strongly that you
 use this version for new projects.
