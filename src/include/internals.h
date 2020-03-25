@@ -639,14 +639,14 @@ AlertDesktopTimerEvent (void)
 static inline void
 SetMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
-    pMsgQueue->TimerMask |= (0x01 << slot);
+    pMsgQueue->TimerMask |= (0x01UL << slot);
     POST_MSGQ (pMsgQueue);
 }
 
 static inline void
 RemoveMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
 {
-    pMsgQueue->TimerMask &= ~(0x01 << slot);
+    pMsgQueue->TimerMask &= ~(0x01UL << slot);
 }
 
 BOOL mg_InitTimer (void);
