@@ -24,7 +24,6 @@
    + [Backward compatibility issues](#backward-compatibility-issues)
    + [Deprecated features](#deprecated-features)
 
-
 ## Version 4.0.7
 
 The MiniGUI development team announces the availability of MiniGUI 4.0.7.
@@ -48,8 +47,11 @@ In this version, we mainly enhance DRM engine to support MiniGUI-Processes.
    Please use the version having `Ex` postfix.
    - The interface of the external driver for DRM engine changed.
    The changes come from MiniGUI 5.0.0.
+* BUGFIXING
+   - Fix some bugs found when developing MiniGUI 5.0.0.
 
-For more information, please refer to the revised edition of the following document:
+For more information about the external driver of DRM engine, please
+refer to the revised edition of the following document:
 
 <https://github.com/VincentWei/minigui-docs/blob/master/supplementary-docs/Writing-DRM-Engine-Driver-for-Your-GPU.md>
 
