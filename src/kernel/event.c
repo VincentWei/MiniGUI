@@ -458,6 +458,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
 #endif
                  ke->event = KE_KEYUP;
                  ke->scancode = i;
+                 olddownkey = 0;
                  break;
             }
         }
@@ -762,6 +763,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
             if(oldkeystate[i] && !keystate[i]) {
                  ke->event = KE_KEYUP;
                  ke->scancode = i;
+                 olddownkey = 0;
                  break;
             }
         }
