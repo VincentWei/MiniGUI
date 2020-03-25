@@ -1,6 +1,6 @@
-Version 5.0.0 (2019/03/31)
+Version 5.0.0 (2019/03/30)
 
-This is the second preview version of MiniGUI 5.0.0, an unstable version.
+This is the first official release of MiniGUI 5.0.x, the stable version.
 
 Other packages for MiniGUI resource, tools, components, and samples:
 
