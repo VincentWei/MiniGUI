@@ -628,6 +628,13 @@ void GAL_SetVideoModeInfo(GAL_Surface* screen)
 {
     assert(screen);
 
+    if (GAL_VideoSurface) {
+        GAL_Surface *ready_to_go;
+        ready_to_go = GAL_VideoSurface;
+        GAL_VideoSurface = NULL;
+        GAL_FreeSurface (ready_to_go);
+    }
+
     GAL_VideoSurface = screen;
     __mg_current_video->info.vfmt = __gal_screen->format;
     __mg_current_video->offset_x = 0;
