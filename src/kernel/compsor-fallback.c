@@ -77,7 +77,7 @@ struct _CompositorCtxt {
     CLIPRGN     wins_rgn;   // visible region for all windows (subtract popup menus)
     CLIPRGN     dirty_rgn;  // the dirty region
     CLIPRGN     inv_rgn;    // the invalid region for a specific znode
-    //Uint32      dirty_types;// the dirty znode types.
+    Uint32      dirty_types;// the dirty znode types.
 };
 
 static CompositorCtxt* initialize (const char* name)
@@ -614,7 +614,7 @@ static BOOL reset_dirty_region (CompositorCtxt* ctxt, MG_Layer* layer)
     if (layer != mgTopmostLayer)
         return FALSE;
 
-    //ctxt->dirty_types = 0;
+    ctxt->dirty_types = 0;
     EmptyClipRgn (&ctxt->dirty_rgn);
     return TRUE;
 }
@@ -664,12 +664,11 @@ static BOOL merge_dirty_ppp (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
 
     znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, TRUE);
     if (merge_dirty_region (ctxt, znode_hdr, rgn)) {
-        //ctxt->dirty_types |= DIRTY_ZT_PPP;
+        ctxt->dirty_types |= DIRTY_ZT_PPP;
         rc = TRUE;
     }
     ServerReleasePopupMenuZNodeHeader (zidx);
 
-    dump_region(&ctxt->dirty_rgn, __func__);
     return rc;
 }
 
@@ -688,7 +687,7 @@ static BOOL merge_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     /* merge the dirty region */
     znode_hdr = ServerGetWinZNodeHeader (NULL, zidx, (void**)&rgn, TRUE);
     if (merge_dirty_region (ctxt, znode_hdr, rgn)) {
-        //ctxt->dirty_types |= DIRTY_ZT_WIN;
+        ctxt->dirty_types |= DIRTY_ZT_WIN;
         rc = TRUE;
     }
     ServerReleaseWinZNodeHeader (NULL, zidx);
@@ -704,7 +703,7 @@ static BOOL merge_dirty_wpp (CompositorCtxt* ctxt, MG_Layer* layer)
     if (merge_dirty_region (ctxt, znode_hdr, NULL)) {
         tile_dirty_region_for_wallpaper (ctxt);
         //subtract_opaque_win_znodes_above (ctxt, 0);
-        //ctxt->dirty_types |= DIRTY_ZT_WPP;
+        ctxt->dirty_types |= DIRTY_ZT_WPP;
         rc = TRUE;
     }
 
@@ -718,7 +717,8 @@ BOOL refresh_dirty_region (CompositorCtxt* ctxt, MG_Layer* layer)
     if (layer != mgTopmostLayer || IsEmptyClipRgn (&ctxt->dirty_rgn))
         return FALSE;
 
-    composite_ppp_znodes (ctxt);
+    if (ctxt->dirty_types & DIRTY_ZT_PPP)
+        composite_ppp_znodes (ctxt);
     composite_on_dirty_region (ctxt, 0);
 
     EmptyClipRgn (&ctxt->dirty_rgn);
