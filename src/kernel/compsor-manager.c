@@ -270,8 +270,9 @@ static void composite_layer (MG_Layer* layer, CompositorCtxt* ctxt,
     if (!ops->reset_dirty_region (ctxt, layer))
         return;
 
-    /* travel menu znodes on the layer */
-    if (zi->nr_popupmenus > 0) {
+    /* travel menu znodes on the layer;
+       this will only work for topmost layer */
+    if (layer == mgTopmostLayer && zi->nr_popupmenus > 0) {
         nodes = GET_MENUNODE(zi);
         for (i = 0; i < zi->nr_popupmenus; i++) {
             pdc = dc_HDC2PDC (nodes[i].mem_dc);
@@ -301,21 +302,23 @@ static void composite_layer (MG_Layer* layer, CompositorCtxt* ctxt,
         }
     }
 
-    /* check wallpaper pattern */
-    pdc = dc_HDC2PDC (HDC_SCREEN);
-    if (pdc->surface->w > 0 && pdc->surface->h > 0) {
-        assert (pdc->surface->dirty_info);
-        lock_znode_surface (pdc, nodes);
-        changes_in_dc = pdc->surface->dirty_info->dirty_age;
-        if (changes_in_dc != nodes[0].changes) {
-            ops->merge_dirty_wpp (ctxt, layer);
+    /* check wallpaper pattern; only call for topmost layer */
+    if (layer == mgTopmostLayer) {
+        pdc = dc_HDC2PDC (HDC_SCREEN);
+        if (pdc->surface->w > 0 && pdc->surface->h > 0) {
+            assert (pdc->surface->dirty_info);
+            lock_znode_surface (pdc, nodes);
+            changes_in_dc = pdc->surface->dirty_info->dirty_age;
+            if (changes_in_dc != nodes[0].changes) {
+                ops->merge_dirty_wpp (ctxt, layer);
+            }
         }
     }
 
     ops->refresh_dirty_region (ctxt, layer);
 
     /* unlock the znode surfaces for popup menus */
-    if (zi->nr_popupmenus > 0) {
+    if (layer == mgTopmostLayer && zi->nr_popupmenus > 0) {
         nodes = GET_MENUNODE(zi);
         for (i = 0; i < zi->nr_popupmenus; i++) {
             pdc = dc_HDC2PDC (nodes[i].mem_dc);
@@ -338,12 +341,15 @@ static void composite_layer (MG_Layer* layer, CompositorCtxt* ctxt,
         }
     }
 
-    /* unlock the znode surfaces for wallpaper patter */
-    pdc = dc_HDC2PDC (HDC_SCREEN);
-    if (pdc->surface->w > 0 && pdc->surface->h > 0) {
-        nodes[0].changes = pdc->surface->dirty_info->dirty_age;
-        pdc->surface->dirty_info->nr_dirty_rcs = 0;
-        unlock_znode_surface (pdc, nodes);
+    /* unlock the znode surfaces for wallpaper pattern;
+       only for topmost layer */
+    if (layer == mgTopmostLayer) {
+        pdc = dc_HDC2PDC (HDC_SCREEN);
+        if (pdc->surface->w > 0 && pdc->surface->h > 0) {
+            nodes[0].changes = pdc->surface->dirty_info->dirty_age;
+            pdc->surface->dirty_info->nr_dirty_rcs = 0;
+            unlock_znode_surface (pdc, nodes);
+        }
     }
 }
 
