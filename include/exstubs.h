@@ -451,7 +451,7 @@ typedef struct _DrmDriverOps {
             ColorLogicalOp logic_op);
 
     /**
-     * This operation blits pixles from a source buffer with the source alpha
+     * This operation blits pixels from a source buffer with the source alpha
      * value specified to a destination buffer.
      *
      * \note If this operation is set as NULL, the driver does not support
@@ -463,7 +463,7 @@ typedef struct _DrmDriverOps {
             uint8_t alpha);
 
     /**
-     * This operation blits pixles from a source buffer to a destination buffer,
+     * This operation blits pixels from a source buffer to a destination buffer,
      * but skipping the pixel value specified by \a color_key.
      *
      * \note If this operation is set as NULL, the driver does not support
@@ -475,7 +475,7 @@ typedef struct _DrmDriverOps {
             uint32_t color_key);
 
     /**
-     * This operation blits pixles from a source buffer with the source alpha
+     * This operation blits pixels from a source buffer with the source alpha
      * value specified to a destination buffer, but skipping the pixel value
      * specified.
      *
@@ -488,7 +488,7 @@ typedef struct _DrmDriverOps {
             uint8_t alpha, uint32_t color_key);
 
     /**
-     * This operation blits pixles from a source buffer with the source alpha
+     * This operation blits pixels from a source buffer with the source alpha
      * value of pixels to the destination buffer, and with the specified color
      * compositing/blending method (\a ColorBlendMethod).
      *
@@ -525,12 +525,12 @@ typedef struct _DrmDriverOps {
  *  For example, for Intel i915/i965 GPUs, the driver name will be `i915`.
  * \param device_fd This argument gives the file descriptor of the
  *  opened DRI device.
- * \param version A pointer to an integer which will contain the
- *  versionc of the DRM engine driver.
+ * \param version A pointer to an integer which will be used the interface
+ *  version of the DRM engine driver.
  *
  * \return NULL or a valid pointer to DrmDriverOps.
  *
- * \note We use the version control since 4.0.7. It will be intialized
+ * \note We use the version control since 4.0.7. It will be initialized
  *  to zero by MiniGUI before calling this function. Because an old
  *  driver for MiniGUI 4.0.6 or earlier will not change the value,
  *  MiniGUI will deny to load the old driver.
@@ -569,7 +569,7 @@ DrmDriverOps* __drm_ex_driver_get (const char* driver_name, int device_fd,
 #define COMMLCD_UPDATE_ASYNC    2
 
 /**
- * The structue represented the screen information of CommmLCD engine.
+ * The structure represented the screen information of CommmLCD engine.
  */
 struct commlcd_info {
     /** The vertical resolution of the screen. */
