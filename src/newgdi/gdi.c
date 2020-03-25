@@ -175,7 +175,7 @@ static BOOL RestrictControlECRGNEx (RECT* minimal,
             rc.bottom = (maskrect + idx)->bottom + pCtrl->top + off_y;
             AddClipRect (ergn, &rc);
             idx = (maskrect + idx)->next;
-        }while (idx != 0);
+        } while (idx != 0);
 
         IntersectClipRect (ergn, minimal);
     }
@@ -467,7 +467,6 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
     PCLIPRECT pcr;
     PCONTROL pCtrl;
     RECT minimal;
-    CLIPRGN ergn;
 
     /* is global clip region is empty? */
     if ((!fForce) && (!dc_IsVisible (pdc)))
@@ -522,6 +521,7 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
         pCtrl = gui_Control (pdc->hwnd);
 
         if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+            CLIPRGN ergn;
             InitClipRgn (&ergn, &__mg_FreeClipRectList);
             if (RestrictControlECRGNEx (&minimal, pCtrl, &ergn)) {
                 ClipRgnIntersect (&pdc->ecrgn, &pdc->ecrgn, &ergn);
@@ -530,6 +530,7 @@ BOOL dc_GenerateECRgn(PDC pdc, BOOL fForce)
             else {
                 EmptyClipRgn (&pdc->ecrgn);
             }
+            EmptyClipRgn (&ergn);
         }
         else {
             IntersectClipRect (&pdc->ecrgn, &minimal);
@@ -1728,7 +1729,6 @@ static CB_COMP_SETPIXEL draw_pixel_ops [NR_ROPS][NR_PIXEL_LEN] =
 static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 {
     PCONTROL pCtrl;
-    CLIPRGN ergn;
 
     pdc->hwnd = hWnd;
 
@@ -1793,8 +1793,8 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 
         pCtrl = gui_Control (pdc->hwnd);
 
-        if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN))
-        {
+        if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+            CLIPRGN ergn;
             InitClipRgn (&ergn, &__mg_FreeClipRectList);
 
             if (RestrictControlECRGNEx (&minimal, pCtrl, &ergn)) {
@@ -1804,6 +1804,8 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
             else {
                 EmptyClipRgn (&pdc->ecrgn);
             }
+
+            EmptyClipRgn (&ergn);
         }
         else {
             IntersectClipRect (&pdc->ecrgn, &minimal);
@@ -2107,7 +2109,6 @@ void GUIAPI ReleaseDC (HDC hDC)
     if (pWin && pWin->privCDC == hDC) {
         RECT minimal;
         PCONTROL pCtrl;
-        CLIPRGN ergn;
 
         /* for private DC, we reset the clip region info. */
         /* houhh 20090113, for private dc with secondaryDC, pGCRInfo is NULL. */
@@ -2127,6 +2128,7 @@ void GUIAPI ReleaseDC (HDC hDC)
 
             pCtrl = gui_Control (pdc->hwnd);
             if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+                CLIPRGN ergn;
                 InitClipRgn (&ergn, &__mg_FreeClipRectList);
                 if (RestrictControlECRGNEx (&minimal, pCtrl, &ergn)) {
                     ClipRgnIntersect (&pdc->ecrgn, &pdc->ecrgn, &ergn);
@@ -2135,6 +2137,7 @@ void GUIAPI ReleaseDC (HDC hDC)
                 else {
                     EmptyClipRgn (&pdc->ecrgn);
                 }
+                EmptyClipRgn (&ergn);
             }
             else {
                 IntersectClipRect (&pdc->ecrgn, &minimal);
@@ -2574,7 +2577,6 @@ BOOL dc_GenerateMemDCECRgn(PDC pdc, BOOL fForce)
 {
     PCONTROL pCtrl;
     RECT minimal;
-    CLIPRGN ergn;
     PCLIPRECT pcr;
 
     /* is global clip region is empty? */
@@ -2610,6 +2612,7 @@ BOOL dc_GenerateMemDCECRgn(PDC pdc, BOOL fForce)
         /* restrict control's effective region. */
         pCtrl = gui_Control (pdc->hwnd);
         if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+            CLIPRGN ergn;
             InitClipRgn (&ergn, &__mg_FreeClipRectList);
 
             if (RestrictControlMemDCECRGNEx (&minimal, pCtrl, &ergn)) {
@@ -2619,6 +2622,7 @@ BOOL dc_GenerateMemDCECRgn(PDC pdc, BOOL fForce)
             else {
                 EmptyClipRgn (&pdc->ecrgn);
             }
+            EmptyClipRgn (&ergn);
         }
         else {
             IntersectClipRect (&pdc->ecrgn, &minimal);
@@ -2642,7 +2646,6 @@ HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     int off_x, off_y;
     PCONTROL pCtrl;
     RECT minimal;
-    CLIPRGN ergn;
 
     pdc_parent = dc_HDC2PDC (secondary_dc);
 
@@ -2716,6 +2719,7 @@ HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
     pCtrl = gui_Control (pdc->hwnd);
 
     if (pCtrl && !(pCtrl->dwExStyle & WS_EX_CTRLASMAINWIN)) {
+        CLIPRGN ergn;
         InitClipRgn (&ergn, &__mg_FreeClipRectList);
 
         if (RestrictControlMemDCECRGNEx (&minimal, pCtrl, &ergn)) {
@@ -2725,6 +2729,7 @@ HDC GetSecondarySubDC (HDC secondary_dc, HWND hwnd_child, BOOL client)
         else {
             EmptyClipRgn (&pdc->ecrgn);
         }
+        EmptyClipRgn (&ergn);
     }
     else {
         IntersectClipRect (&pdc->ecrgn, &minimal);
