@@ -824,6 +824,7 @@ static inline void add_rects_to_update_region (CLIPRGN* region,
         rc.bottom = rects[i].y + rects[i].h;
         AddClipRect (region, &rc);
     }
+
 }
 
 void GAL_UpdateRects (GAL_Surface *surface, int numrects, GAL_Rect *rects)
@@ -929,8 +930,6 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
         if (this->SyncUpdate) {
             rc = this->SyncUpdate (this);
         }
-
-        _DBG_PRINTF ("%d rects updated\n", numrects);
     }
 
     EmptyClipRgn (&surface->update_region);
