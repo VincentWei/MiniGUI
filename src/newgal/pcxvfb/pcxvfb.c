@@ -269,6 +269,8 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 
 static BOOL PCXVFB_SyncUpdate (_THIS)
 {
+    RECT dirty_rc;
+
     if (IsRectEmpty (&this->hidden->dirty_rc))
         return FALSE;
 
@@ -277,6 +279,16 @@ static BOOL PCXVFB_SyncUpdate (_THIS)
 #else
     shm_lock(semid);
 #endif
+
+    dirty_rc.left = this->hidden->hdr->dirty_rc_l;
+    dirty_rc.top = this->hidden->hdr->dirty_rc_t;
+    dirty_rc.right = this->hidden->hdr->dirty_rc_r;
+    dirty_rc.bottom = this->hidden->hdr->dirty_rc_b;
+    if (dirty_rc.right == -1) dirty_rc.right = 0;
+    if (dirty_rc.bottom == -1) dirty_rc.bottom = 0;
+
+    GetBoundRect (&this->hidden->dirty_rc, &dirty_rc,
+            &this->hidden->dirty_rc);
 
     shadowScreen_BlitToReal (this);
 
