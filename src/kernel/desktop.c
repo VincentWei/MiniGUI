@@ -188,7 +188,7 @@ static BOOL subtract_rgn_by_node (PCLIPRGN region, const ZORDERINFO* zi,
     else
         SubtractClipRect(region, &(node->rc));
 
-    return TRUE;
+    return !IsEmptyClipRgn(region);
 }
 
 #else   /* not defined _MGSCHEMA_COMPOSITING */
@@ -427,15 +427,18 @@ void __mg_update_window (HWND hwnd,
             ((pWin->WinType == TYPE_CONTROL &&
               (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)) ||
              pWin->WinType != TYPE_CONTROL) && pWin->dwStyle & WS_VISIBLE) {
-        RECT invrc;
-        SetRect(&invrc, left, top, right, bottom);
+        RECT rcInv;
+        SetRect(&rcInv, left, top, right, bottom);
 
-        if (IsRectEmpty (&invrc)) {
+        _DBG_PRINTF ("Update window (%s): %d, %d, %d, %d\n",
+                pWin->spCaption, left, top, right, bottom);
+
+        if (IsRectEmpty (&rcInv)) {
             SendAsyncMessage ((HWND)pWin, MSG_NCPAINT, 0, 0);
             InvalidateRect ((HWND)pWin, NULL, TRUE);
         }
         else {
-            RECT rcTemp, rcInv, rcWin;
+            RECT rcTemp, rcWin;
 
             if (pWin->WinType == TYPE_CONTROL &&
                     (pWin->dwExStyle & WS_EX_CTRLASMAINWIN)){
@@ -444,13 +447,18 @@ void __mg_update_window (HWND hwnd,
             else
                 GetWindowRect(hwnd, &rcWin);
 
-            if (IntersectRect (&rcTemp,
-                        &rcWin, &invrc)) {
+            /* XXX: when we move a window fast, there are some dirty rectangles
+               were not updated. We update whole area of the window for a work
+               around. */
+            if (IntersectRect (&rcTemp, &rcWin, &rcInv)) {
                 dskScreenToWindow (pWin, &rcTemp, &rcInv);
                 SendAsyncMessage ((HWND)pWin,
-                                MSG_NCPAINT, 0, (LPARAM)(&rcInv));
+                                MSG_NCPAINT, 0, 0); // (LPARAM)(&rcInv));
                 dskScreenToClient (pWin, &rcTemp, &rcInv);
-                InvalidateRect ((HWND)pWin, &rcInv, TRUE);
+                InvalidateRect ((HWND)pWin, NULL/*&rcInv*/, TRUE);
+            }
+            else {
+                _DBG_PRINTF ("IGNORED update\n");
             }
         }
     }
@@ -465,6 +473,9 @@ static int update_client_window (ZORDERNODE* znode, const RECT* rc)
 
     if (znode->cli != 0) {
         if (rc) {
+            _DBG_PRINTF ("Update window (%s): %d, %d, %d x %d\n",
+                    znode->caption, rc->left, rc->top,
+                    RECTWP(rc), RECTHP(rc));
 
             if (IsRectEmpty (&znode->dirty_rc)) {
                 SetRect (&znode->dirty_rc,
@@ -473,8 +484,8 @@ static int update_client_window (ZORDERNODE* znode, const RECT* rc)
             else {
                 GetBoundRect (&znode->dirty_rc, &znode->dirty_rc, rc);
             }
+            mgClients [znode->cli].has_dirty = TRUE;
         }
-        mgClients [znode->cli].has_dirty = TRUE;
     }
     else
 #endif /* defined _MGRM_PROCESSES */
@@ -494,7 +505,8 @@ static BOOL _cb_update_znode (void* context,
 {
     const RECT* rc = (RECT*)context;
 
-    if (znode->flags & ZOF_VISIBLE && znode->flags & ZOF_IF_REFERENCE) {
+    if (znode->flags & ZOF_VISIBLE &&
+            znode->flags & ZOF_IF_REFERENCE) {
         update_client_window (znode, rc);
         znode->flags &= ~ZOF_IF_REFERENCE;
         return TRUE;
@@ -3235,7 +3247,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         slot = nodes [idx_znode].next;
         for (; slot != 0; slot = nodes [slot].next) {
             if (nodes [slot].flags & ZOF_VISIBLE &&
-                            DoesIntersect (rcWin, &nodes [slot].rc)) {
+                    DoesIntersect (rcWin, &nodes [slot].rc)) {
                 nodes [slot].age++;
             }
         }
@@ -3248,6 +3260,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         //SetClipRgn (&sg_UpdateRgn, rcInv + i);
         SetClipRgn (&sg_UpdateRgn, &(nodes [idx_znode].rc));
 
+        /* znodes below current znode in the same level */
         slot = nodes [idx_znode].next;
         for (; slot > 0; slot = nodes [slot].next) {
             if (nodes [slot].flags & ZOF_VISIBLE &&
@@ -3258,6 +3271,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
             }
         }
 
+        /* znodes below current level */
         for (level = 0; level < NR_ZORDER_LEVELS; level++) {
             if (type > _zof_types_for_level[level]) {
                 slot = zi->first_in_levels[level];
@@ -3372,12 +3386,10 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
                 do_for_all_znodes (NULL, zi, _cb_exclude_rc, ZT_ALL);
             }
 
-            while (slot && slot != idx_znode) {
-#if 0
-                if (nodes [slot].flags & ZOF_VISIBLE) {
-                    ExcludeClipRect (HDC_SCREEN_SYS, &nodes [slot].rc);
-                }
-#endif
+            while (slot) {
+               if (slot == idx_znode)
+                   break;
+
                 /* houhh 20090730, if slot window is no regular.*/
                 if (nodes [slot].flags & ZOF_VISIBLE) {
                     if (nodes[slot].idx_mask_rect == 0) {
@@ -3404,6 +3416,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
                 }
                 slot = nodes [slot].next;
             }
+
             BitBlt (HDC_SCREEN_SYS, rcOld.left, rcOld.top,
                             MIN (RECTWP (rcWin), RECTW (rcOld)),
                             MIN (RECTHP (rcWin), RECTH (rcOld)),
@@ -3417,17 +3430,22 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         }
 #endif
 
-        /* unlock zi for change ... */
-        unlock_zi_for_change (zi);
+        do_for_all_znodes (&rcOld, zi, _cb_update_znode, ZT_ALL);
 
-        /* check the invalid rect of the window */
+        if (nodes [0].flags & ZOF_IF_REFERENCE) {
+            SendMessage (HWND_DESKTOP,
+                            MSG_ERASEDESKTOP, 0, (LPARAM)&rcOld);
+            nodes [0].flags &= ~ZOF_IF_REFERENCE;
+        }
+
+        /* check the invalid rectangles of the being moved window */
         EmptyClipRgn (&sg_UpdateRgn);
         nInvCount = SubtractRect (rcInv, &rcOld, &rcScr);
         for (i = 0; i < nInvCount; i++) {
             AddClipRect (&sg_UpdateRgn, rcInv + i);
         }
 
-        /* Since 5.0.0: handle levels */
+        /* Since 5.0.0: handle levels above the current level */
         for (level = 0; level < NR_ZORDER_LEVELS; level++) {
             if (type < _zof_types_for_level[level]) {
                 slot = zi->first_in_levels[level];
@@ -3439,19 +3457,12 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
             }
         }
 
+        /* handle znodes above the current znode */
         slot = *first;
         for (; slot != idx_znode; slot = nodes [slot].next) {
             if (nodes [slot].flags & ZOF_VISIBLE &&
                         IntersectRect (&rcInter, &rcOld, &nodes [slot].rc))
                 AddClipRect(&sg_UpdateRgn, &rcInter);
-        }
-
-        do_for_all_znodes (&rcOld, zi, _cb_update_znode, ZT_ALL);
-
-        if (nodes [0].flags & ZOF_IF_REFERENCE) {
-            SendMessage (HWND_DESKTOP,
-                            MSG_ERASEDESKTOP, 0, (LPARAM)&rcOld);
-            nodes [0].flags &= ~ZOF_IF_REFERENCE;
         }
 
         OffsetRegion (&sg_UpdateRgn,
@@ -3460,6 +3471,9 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 
         update_client_window_rgn (nodes [idx_znode].cli,
                 nodes [idx_znode].hwnd);
+
+        /* unlock zi for change ... */
+        unlock_zi_for_change (zi);
     }
     else {
         lock_zi_for_change (zi);
