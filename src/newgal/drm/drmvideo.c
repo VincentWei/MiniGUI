@@ -47,7 +47,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG
 #include "common.h"
 
 #ifdef _MGGAL_DRM
