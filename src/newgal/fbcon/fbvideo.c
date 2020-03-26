@@ -257,9 +257,11 @@ static int FB_EnterGraphicsMode (_THIS)
             _WRN_PRINTF ("Can't open %s: %m\n", tty_dev);
             goto fail;
         }
+
         if (ioctl (ttyfd, KDSETMODE, KD_GRAPHICS) == -1) {
-            _WRN_PRINTF ("Error when setting the terminal to graphics mode: %m\n");
-            _WRN_PRINTF ("Maybe is not a console.\n");
+            _WRN_PRINTF ("Error when setting the terminal (%s) "
+                    "to graphics mode: %m\n", tty_dev);
+            _WRN_PRINTF ("It might is not a console.\n");
             goto fail;
         }
 #ifdef _MGRM_PROCESSES
@@ -864,7 +866,8 @@ static void FB_FreeHWSurfaces(_THIS)
     surfaces.next = NULL;
 }
 
-static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURFACE* reply)
+static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request,
+        REP_HWSURFACE* reply)
 {
     if (request->bucket == NULL) {     /* alloc hw surface */
         vidmem_bucket *bucket;
@@ -954,9 +957,9 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSURF
                 break;
             }
         }
+
         if (bucket && bucket->used) {
         /* Add the memory back to the total */
-            _DBG_PRINTF ("Freeing bucket of %d bytes\n", bucket->size);
             surfaces_memleft += bucket->size;
 
             /* Can we merge the space with surrounding buckets? */
@@ -1015,12 +1018,14 @@ static int FB_AllocHWSurface (_THIS, GAL_Surface *surface)
     surface->pitch = reply.pitch;
     surface->pixels = mapped_mem + reply.offset;
     surface->hwdata = (struct private_hwdata *)reply.bucket;
+
     return 0;
 }
 
 static void FB_FreeHWSurface(_THIS, GAL_Surface *surface)
 {
-    REQ_HWSURFACE request = {surface->w, surface->h, surface->pitch, 0, surface->hwdata};
+    REQ_HWSURFACE request = {surface->w, surface->h, surface->pitch, 0,
+        surface->hwdata};
     REP_HWSURFACE reply = {0, 0};
 
     request.offset = (char*)surface->pixels - (char*)mapped_mem;
