@@ -832,7 +832,6 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 
     if (surf) {
         memdc = CreateMemDCFromSurface (surf);
-        _WRN_PRINTF ("surface (%p) refcount: %d\n", surf, surf->refcount);
         if (memdc == HDC_INVALID) {
             if (cli > 0) {
                 GAL_FreeSurface (surf);

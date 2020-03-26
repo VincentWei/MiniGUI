@@ -219,7 +219,7 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
                         screen->format->BitsPerPixel,
                         screen->format->Rmask, screen->format->Gmask,
                         screen->format->Bmask, screen->format->Amask);
-            _WRN_PRINTF ("GAL_CreateSharedRGBSurface: map size: %lu, fd: %d, RGBAmasks: %x, %x, %x, %x\n",
+            _DBG_PRINTF ("GAL_CreateSharedRGBSurface: map size: %lu, fd: %d, RGBAmasks: %x, %x, %x, %x\n",
                     wp_surf->shared_header->map_size, wp_surf->shared_header->fd,
                     wp_surf->format->Rmask, wp_surf->format->Gmask,
                     wp_surf->format->Bmask, wp_surf->format->Amask);
@@ -243,7 +243,7 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
                 &info, sizeof (SHAREDSURFINFO), &fd) < 0) || (fd < 0))
             goto empty;
 
-        _WRN_PRINTF ("REQID_GETSHAREDSURFACE: size (%lu), flags (0x%x), fd: %d\n",
+        _DBG_PRINTF ("REQID_GETSHAREDSURFACE: size (%lu), flags (0x%x), fd: %d\n",
                     info.size, info.flags, fd);
         wp_surf = GAL_AttachSharedRGBSurface (fd, info.size,
             info.flags, TRUE);
