@@ -5393,6 +5393,7 @@ static BOOL _wndInvalidateRect(HWND hWnd, const RECT* prc, BOOL bEraseBkgnd, int
 #endif
     }
     else {
+        _WRN_PRINTF ("The invalid region is forzen\n");
         return FALSE;
     }
 
@@ -5572,7 +5573,6 @@ HDC GUIAPI BeginPaint (HWND hWnd)
 
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), HDC_INVALID);
     pWin = MG_GET_WINDOW_PTR (hWnd);
-
 
     if (pWin->pCaretInfo && pWin->pCaretInfo->fBlink) {
         HideCaretEx (hWnd, FALSE);
