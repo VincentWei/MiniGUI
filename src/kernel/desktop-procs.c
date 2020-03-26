@@ -298,8 +298,10 @@ static int update_client_window_rgn (int cli, HWND hwnd)
             msg.lParam = MAKELONG (crc->rc.right, crc->rc.bottom);
 
             ret = __mg_send2client (&msg, mgClients + cli);
-            if (ret < 0)
+            if (ret < 0) {
+                _WRN_PRINTF ("__mg_send2client failed\n");
                 break;
+            }
 
             crc = crc->next;
         }
@@ -867,16 +869,25 @@ static BOOL _cb_update_cli_znode (void* context,
     if (znode->cli == cli && znode->flags & ZOF_VISIBLE && znode->hwnd) {
        MSG msg = {znode->hwnd, MSG_UPDATECLIWIN, 0, 0, __mg_tick_counter};
 
-        if (!IsRectEmpty(&(znode->dirty_rc))) {
+        if (!IsRectEmpty(&znode->dirty_rc)) {
 
-            IntersectRect(&rcInv, &znode->dirty_rc, &rcScr);
+            if (IntersectRect(&rcScr, &znode->rc, &rcScr) &&
+                    IntersectRect(&rcInv, &znode->dirty_rc, &rcScr)) {
+                rcInv = znode->dirty_rc;
+                msg.wParam = MAKELONG (rcInv.left, rcInv.top);
+                msg.lParam = MAKELONG (rcInv.right, rcInv.bottom);
 
-            msg.wParam = MAKELONG (rcInv.left, rcInv.top);
-            msg.lParam = MAKELONG (rcInv.right, rcInv.bottom);
+                _DBG_PRINTF ("Send MSG_UPDATECLIWIN to client window (%s): "
+                        "%d, %d, %d x %d\n",
+                        znode->caption,
+                        rcInv.left, rcInv.top,
+                        rcInv.right - rcInv.left,
+                        rcInv.bottom - rcInv.top);
 
-            SetRectEmpty (&(znode->dirty_rc));
+                __mg_send2client (&msg, mgClients + znode->cli);
+            }
 
-            __mg_send2client (&msg, mgClients + znode->cli);
+            SetRectEmpty (&znode->dirty_rc);
             return TRUE;
         }
     }
@@ -1201,6 +1212,7 @@ static int do_drag_drop_window (int msg, int x, int y)
 #ifndef _MGSCHEMA_COMPOSITING
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+        SyncUpdateDC (HDC_SCREEN_SYS);
 #else   /* not defined _MGSCHEMA_COMPOSITING */
 
         msg.wParam = MAKELONG (_dd_info.rc.left, _dd_info.rc.top);
@@ -1228,6 +1240,7 @@ static int do_drag_drop_window (int msg, int x, int y)
         SetPenColor (HDC_SCREEN_SYS, PIXEL_lightwhite);
         FocusRect (HDC_SCREEN_SYS, _dd_info.rc.left, _dd_info.rc.top,
                 _dd_info.rc.right, _dd_info.rc.bottom);
+        SyncUpdateDC (HDC_SCREEN_SYS);
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 
         /* post MSG_WINDOWDROPPED to the target window */
