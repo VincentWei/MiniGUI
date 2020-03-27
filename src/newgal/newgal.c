@@ -60,7 +60,10 @@
 #include "newgal.h"
 #include "misc.h"
 #include "license.h"
+
+#ifdef _MGRM_PROCESSES
 #include "sharedres.h"
+#endif
 
 GAL_Surface* __gal_screen;
 
@@ -205,8 +208,10 @@ int mg_InitGAL (char* engine, char* mode)
     if (mgIsServer)
         __gal_screen->dpi = get_dpi_from_etc (engine);
     else
-#endif /* _MGRM_PROCESSES */
-    __gal_screen->dpi = SHAREDRES_VIDEO_DPI;
+        __gal_screen->dpi = SHAREDRES_VIDEO_DPI;
+#else   /* defined _MGRM_PROCESSES */
+    __gal_screen->dpi = get_dpi_from_etc (engine);
+#endif /* not defined _MGRM_PROCESSES */
 
     for (i = 0; i < 17; i++) {
         SysPixelIndex [i] = GAL_MapRGB (__gal_screen->format, 
