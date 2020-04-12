@@ -3813,6 +3813,10 @@ HDC drmCreateDCFromNameEx (GHANDLE video, uint32_t name, uint32_t drm_format,
     return (HDC)pmem_dc;
 }
 
+extern GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
+        unsigned long size, uint32_t drm_format, uint32_t pixels_off,
+        uint32_t width, uint32_t height, uint32_t pitch);
+
 HDC drmCreateDCFromHandleEx (GHANDLE video, uint32_t handle, size_t size,
         uint32_t drm_format, off_t offset,
         uint32_t width, uint32_t height, uint32_t pitch)
@@ -3824,7 +3828,7 @@ HDC drmCreateDCFromHandleEx (GHANDLE video, uint32_t handle, size_t size,
         return HDC_INVALID;
 
     LOCK (&__mg_gdilock);
-    surface = __drm_create_surface_from_handle (video, handle, size,
+    surface = (GAL_Surface *)__drm_create_surface_from_handle (video, handle, size,
                 drm_format, offset, width, height, pitch);
     UNLOCK (&__mg_gdilock);
 
