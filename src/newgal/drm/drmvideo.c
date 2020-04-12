@@ -2005,7 +2005,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
             surface_buffer->handle,
             surface_buffer->width, surface_buffer->height,
             surface_buffer->pitch,
-            surface_buffer->size, surface_buffer->offset);
+            (long unsigned int)surface_buffer->size, (long unsigned int)surface_buffer->offset);
 
     /* prepare buffer for memory mapping */
     memset(&mreq, 0, sizeof(mreq));
@@ -2134,7 +2134,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdat
             return NULL;
         }
 
-        _DBG_PRINTF("size got by calling lseek: %lu\n", size);
+        _DBG_PRINTF("size got by calling lseek: %lu\n", (long unsigned int)size);
     }
 
     ret = drmPrimeFDToHandle (vdata->dev_fd, prime_fd, &handle);
@@ -3493,7 +3493,7 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
 
 /* called by drmCreateDCFromHandle */
 GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
-        unsigned long size, uint32_t drm_format, uint32_t pixels_off,
+        size_t size, uint32_t drm_format, uint32_t pixels_off,
         uint32_t width, uint32_t height, uint32_t pitch)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;

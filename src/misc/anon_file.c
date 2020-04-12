@@ -61,6 +61,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef _MGUSE_SHMOPEN
 #include <sys/mman.h>
