@@ -188,7 +188,7 @@ static BOOL subtract_rgn_by_node (PCLIPRGN region, const ZORDERINFO* zi,
     else
         SubtractClipRect(region, &(node->rc));
 
-    return !IsEmptyClipRgn(region);
+    return TRUE; // !IsEmptyClipRgn(region); We must return TRUE for this callback.
 }
 
 #else   /* not defined _MGSCHEMA_COMPOSITING */
@@ -505,8 +505,13 @@ static BOOL _cb_update_znode (void* context,
 {
     const RECT* rc = (RECT*)context;
 
+    _DBG_PRINTF ("Checking window (%s), visibility: %s, referred: %s\n", znode->caption,
+          (znode->flags & ZOF_VISIBLE)? "TRUE" : "FALSE",
+          (znode->flags & ZOF_IF_REFERENCE)? "TRUE" : "FALSE");
+
     if (znode->flags & ZOF_VISIBLE &&
             znode->flags & ZOF_IF_REFERENCE) {
+        _DBG_PRINTF ("Widnow (%s) will be updated\n", znode->caption);
         update_client_window (znode, rc);
         znode->flags &= ~ZOF_IF_REFERENCE;
         return TRUE;
