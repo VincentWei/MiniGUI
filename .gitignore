@@ -4,6 +4,8 @@
 *.al
 *.a
 *.so
+\#
+am--include-marker
 Makefile
 Makefile.in
 .deps/
@@ -23,7 +25,6 @@ Makefile.in
 /*config.h
 /*config.h.in
 /*config.h.in~
-
 /src/font/utils/emoji/
 /src/font/utils/ucd/
 /src/sysres/font_list
