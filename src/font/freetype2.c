@@ -1217,7 +1217,7 @@ BOOL font_InitFreetypeLibrary (void)
         goto error_library;
     }
 
-#ifdef _MGCOMPLEX_SCRIPTS
+#if 0 // def _MGCOMPLEX_SCRIPTS
     __mg_init_harzbuff_funcs();
 #endif
 
@@ -1229,7 +1229,7 @@ error_ftc_manager:
 
 #endif /* _MGFONT_TTF_CACHE */
 
-#ifdef _MGCOMPLEX_SCRIPTS
+#if 0 // def _MGCOMPLEX_SCRIPTS
     __mg_init_harzbuff_funcs();
 #endif
 
@@ -1258,7 +1258,7 @@ void font_TermFreetypeLibrary (void)
 
     FT_DESTROY_LOCK(&ft_lock);
 
-#ifdef _MGCOMPLEX_SCRIPTS
+#if 0 // def _MGCOMPLEX_SCRIPTS
     __mg_term_harzbuff_funcs();
 #endif
 }

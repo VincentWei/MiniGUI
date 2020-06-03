@@ -121,7 +121,7 @@ hb_minigui_unicode_decompose (hb_unicode_funcs_t *ufuncs,
 }
 
 static hb_unicode_funcs_t *_funcs;
-static hb_unicode_funcs_t *get_unicode_funcs(void)
+hb_unicode_funcs_t *hb_ext_get_unicode_funcs(void)
 {
     if (_funcs)
         return _funcs;
@@ -146,6 +146,7 @@ static hb_unicode_funcs_t *get_unicode_funcs(void)
     return _funcs;
 }
 
+#if 0
 typedef hb_unicode_funcs_t *(*hb_get_unicode_funcs) (void);
 extern hb_get_unicode_funcs __hb_extern_get_unicode_funcs;
 
@@ -167,6 +168,7 @@ void __mg_term_harzbuff_funcs(void)
             __FUNCTION__);
     }
 }
+#endif
 
 #endif /* defined(_MGCHARSET_UNICODE) && defined(_MGCOMPLEX_SCRIPTS) */
 

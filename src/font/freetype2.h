@@ -163,7 +163,7 @@ extern void __mg_ttc_sys_deinit(void);
 extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache, Glyph32 gv, int *size);
 extern void __mg_ttc_refer(HCACHE hCache);
 
-#ifdef _MGCOMPLEX_SCRIPTS
+#if 0 // def _MGCOMPLEX_SCRIPTS
 extern void __mg_init_harzbuff_funcs(void);
 extern void __mg_term_harzbuff_funcs(void);
 #endif
