@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.60)
-AC_INIT(libminigui, 5.0.1)
+AC_INIT(libminigui, 5.0.2)
 AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -16,9 +16,9 @@ dnl Set various version strings - taken gratefully from the SDL sources
 #
 MINIGUI_MAJOR_VERSION=5
 MINIGUI_MINOR_VERSION=0
-MINIGUI_MICRO_VERSION=1
-MINIGUI_INTERFACE_AGE=1
-MINIGUI_BINARY_AGE=1
+MINIGUI_MICRO_VERSION=2
+MINIGUI_INTERFACE_AGE=2
+MINIGUI_BINARY_AGE=2
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
 
 AC_SUBST(MINIGUI_MAJOR_VERSION)
@@ -94,7 +94,7 @@ osname="unspecified"
 runtime_mode="procs"
 compositing_schema="no"
 virtual_window="no"
-use_shmopen="no"
+use_shmopen="yes"
 mgslice_use_fallback="no"
 
 incore_res="no"
@@ -2143,7 +2143,7 @@ if test "x$build_ttf_support" = "xyes"; then
     if test "x$build_complex_scripts" = "xyes"; then
         dnl Check for HarfBuzz library
         AC_CHECK_LIB(harfbuzz, hb_version,
-            DEP_LIBS="$DEP_LIBS -lharfbuzzex -lfreetype",
+            DEP_LIBS="$DEP_LIBS -lharfbuzz -lfreetype",
             build_complex_scripts="no; support for complex scripts requires libharfbuzz")
     else
         DEP_LIBS="$DEP_LIBS -lfreetype",
