@@ -478,8 +478,10 @@ int InitGUI (int argc, const char* agr[])
         /* Since 5.0.0
          * Copy the video engine information to the shared resource segement
          */
-        strncpy (SHAREDRES_VIDEO_ENGINE, engine, LEN_ENGINE_NAME);
-        strncpy (SHAREDRES_VIDEO_MODE, mode, LEN_VIDEO_MODE);
+        //strncpy (SHAREDRES_VIDEO_ENGINE, engine, LEN_ENGINE_NAME);
+        strcpy (SHAREDRES_VIDEO_ENGINE, engine);
+        //strncpy (SHAREDRES_VIDEO_MODE, mode, LEN_VIDEO_MODE);
+        strcpy (SHAREDRES_VIDEO_MODE, mode);
 #if 0   /* deprecated code */
         // these fileds will be initialized by DRM engine.
         if (GetMgEtcValue (engine, "device",

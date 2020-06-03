@@ -812,10 +812,10 @@ static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 
 static int authenticate_client (int cli, int clifd, void* buff, size_t len)
 {
-    uint32_t magic;
     int auth_result = 1;
 
 #ifdef _MGGAL_DRM
+    uint32_t magic;
     extern int __drm_auth_client(int, uint32_t);
     magic = *(uint32_t*)buff;
     auth_result = __drm_auth_client (cli, magic);
