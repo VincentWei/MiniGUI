@@ -397,29 +397,10 @@ static void free_val_bitmap (void *val)
 map_t* __mg_sys_bmp_map;
 BOOL mg_InitResManager(int hash_table_size)
 {
-    char szpath[MAX_PATH+1];
-    char* p = NULL;
-    pwd_res_path = strdup("./");
-
-    //initialize paths
-#if !defined(__NOUNIX__) || defined(WIN32)
-    if ((p = getenv ("MG_RES_PATH"))) {
-        int len = strlen(p);
-        if (p[len-1] == '/')
-            sprintf(szpath, "%s", p);
-        else
-            sprintf(szpath, "%s/", p);
-        cfg_res_path = strdup(szpath);
-    }
-    else
-#endif
-    {
-        //step 2: get from MiniGUI.cfg
-        if (GetMgEtcValue("resinfo", "respath",
-                    szpath, sizeof(szpath)-1) == ETC_OK) {
-            cfg_res_path = strdup(szpath);
-        }
-    }
+    // initialize paths
+    if (pwd_res_path == NULL)
+        pwd_res_path = strdup ("./");
+    __sysres_get_system_res_path();
 
     //initialize hash table
     init_hash_table (&hash_table, hash_table_size);
@@ -475,6 +456,31 @@ void TerminateResManager()
 
 const char* __sysres_get_system_res_path()
 {
+    char szpath [MAX_PATH+1];
+    char* p = NULL;
+
+    if (cfg_res_path)
+        return cfg_res_path;
+
+#if !defined(__NOUNIX__) || defined(WIN32)
+    if ((p = getenv ("MG_RES_PATH"))) {
+        int len = strlen (p);
+        if (p[len-1] == '/')
+            sprintf (szpath, "%s", p);
+        else
+            sprintf (szpath, "%s/", p);
+        cfg_res_path = strdup (szpath);
+    }
+    else
+#endif
+    {
+        // get from MiniGUI.cfg
+        if (GetMgEtcValue ("resinfo", "respath",
+                    szpath, sizeof (szpath)-1) == ETC_OK) {
+            cfg_res_path = strdup (szpath);
+        }
+    }
+
     return cfg_res_path;
 }
 
@@ -496,7 +502,7 @@ int SetResPath(const char* path)
     //test path is valid directory
 #if  !defined(__NOUNIX__) && !defined(WIN32)
     struct stat buf;
-    if(stat(path, &buf) != 0 || !S_ISDIR(buf.st_mode)) {
+    if (stat(path, &buf) != 0 || !S_ISDIR(buf.st_mode)) {
 #   ifdef _DEBUG
         ERR_RETV (RES_RET_INVALID_PARAM, RES_RET_INVALID_PARAM, "param path (%s) is not a valid directory", path);
 #   else
@@ -505,7 +511,7 @@ int SetResPath(const char* path)
     }
 #endif
 
-    if(usr_res_path != NULL)
+    if (usr_res_path != NULL)
         DELETE(usr_res_path);
 
     usr_res_path = STR_DUP(path);
@@ -632,8 +638,7 @@ static char* get_res_file(const char* res_name, char* filename)
         }
     }
 
-    for(i=0; res_paths[i]; i++)
-    {
+    for (i=0; res_paths[i]; i++) {
 #ifndef __NOUNIX__
         struct stat buf;
         sprintf(filename,"%s/%s", res_paths[i], res_name);
