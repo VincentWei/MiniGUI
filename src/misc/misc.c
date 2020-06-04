@@ -1470,11 +1470,18 @@ int __mg_path_joint (char* dst, int dst_size,
         if (__mg_is_abs_path(abs_path) && (!__mg_is_abs_path(sub_path))) {
             if (dst_size >= strlen(abs_path) + strlen(sub_path)
                         + 2/* size of split '/' and terminator '\0' */) {
-                sprintf(dst, "%s/%s", abs_path, sub_path);
+                strcpy (dst, abs_path);
+                strcat (dst, "/");
+                strcat (dst, sub_path);
+                //sprintf(dst, "%s/%s", abs_path, sub_path);
                 return 0;
+            }
+            else {
+                _WRN_PRINTF ("The buffer space for the full path is too short: %d\n", dst_size);
             }
         }
     }
+
     return -1;
 }
 
