@@ -1,5 +1,8 @@
 # Release Notes
 
+- [Version 5.0.2](#version-502)
+   + [What's new in version 5.0.2](#whats-new-in-version-502)
+
 - [Version 5.0.0](#version-500)
    + [What's new in version 5.0.0](#whats-new-in-version-500)
    + [Compositing schema](#compositing-schema)
@@ -9,6 +12,24 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.2
+
+The MiniGUI development team announces the availability of MiniGUI 5.0.2,
+which is the bug fixing release of MiniGUI 5.0.x.
+
+### What's new in version 5.0.2
+
+In this version, we tuned some code for GCC 9 and fixed some bugs:
+
+* BUGFIXING:
+   - Initialize `cfg_res_path` in function `__sysres_get_system_res_path()`.
+   - Always return TRUE in `subtract_rgn_by_node()`.
+* ADJUSTMENTS:
+   - Use upstream Harfbuzz for glyph shaping of complex scripts instead
+     of the modified version.
+* TUNING:
+  - Tune some code to depress compilation warnings.
 
 ## Version 5.0.0
 
@@ -63,7 +84,7 @@ exciting features for MiniGUI:
 * ADJUSTMENTS:
    - `g_rcScr` now is defined a macro calling function `GetScreenRect()`.
    - `mgIsServer` now is define a macro calling function `IsServer()`.
-* TUNNING
+* TUNING
    - Tune the `drm` (DRM) engine to support MiniGUI-Processes runtime mode
      and compositing schema.
    - Tune the `fbcon` (Linux Frame Buffer) engine to support compositing schema.
