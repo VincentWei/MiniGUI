@@ -1070,25 +1070,22 @@ static BOOL init_or_term_specifical_fonts (char* etc_section, BOOL is_unload)
             added_num ++;
         }
         else {
-            /* [DK] Fix Bug #4801, which introduce a absolute path check error in Windows,
-             * first to load from sytem res path, else load it directly(relative or absolute path).*/
-            if ((add_dev_font (font_name, font_file, TRUE)) == TRUE)
+            /* [DK] Fix Bug #4801, which introduce an absolute path check error in Windows,
+             * first to load from sytem res path, else load it directly (relative or absolute path).*/
+            if (add_dev_font (font_name, font_file, TRUE))
                 added_num++;
             else if ((0 == __mg_path_joint(font_path, MAX_PATH + 1,
-                        __sysres_get_system_res_path(), font_file))
-                    && ((add_dev_font (font_name, font_path, TRUE)) == TRUE))
+                        __sysres_get_system_res_path(), font_file)) &&
+                    add_dev_font (font_name, font_path, TRUE))
                 added_num++;
         }
     }
 
-    if (is_unload || added_num > 0 || added_num == font_num)
-    {
+    if (is_unload || added_num > 0 || added_num == font_num) {
         return TRUE;
     }
-    else
-    {
-        return FALSE;
-    }
+
+    return FALSE;
 }
 
 BOOL font_InitSpecificalFonts (char* etc_section)
