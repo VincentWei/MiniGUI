@@ -409,7 +409,7 @@ int __mg_init_layers ()
         return -1;
 
     /* mark the first semphore is used; it is reserved for wallpaper pattern */
-    assert (__mg_alloc_mutual_sem (_ssm_shared_surf, NULL) == 0);
+    __mg_alloc_mutual_sem (_ssm_shared_surf, NULL);
 
     on_exit (__mg_delete_sem_set_manager, _ssm_shared_surf);
 #endif
@@ -870,6 +870,7 @@ const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
 #ifdef _MGSCHEMA_COMPOSITING
     if (lock && (pdc = dc_HDC2PDC (hdr->mem_dc))) {
         assert (pdc->surface->dirty_info);
+
         if (hdr->lock_count == 0) {
             if (pdc->surface->shared_header) {
                 // XXX: consider timeout.
