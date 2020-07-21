@@ -2223,7 +2223,7 @@ if test "x$build_complex_scripts" = "xyes"; then
 [  --with-hb-includes=DIR       where the HarfBuzz includes are])
 
     if test "x$with_hb_includes" = "x"; then
-        HB_INC_DIR="-I/usr/local/include/harfbuzz"
+        HB_INC_DIR="-I/usr/include/harfbuzz"
     else
         HB_INC_DIR="-I$with_hb_includes"
     fi
