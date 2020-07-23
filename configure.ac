@@ -2088,7 +2088,7 @@ if test "x$build_ttf_support" = "xyes"; then
     if test "x$build_complex_scripts" = "xyes"; then
         dnl Check for HarfBuzz library
         AC_CHECK_LIB(harfbuzz, hb_version,
-            DEP_LIBS="$DEP_LIBS -lharfbuzzex -lfreetype",
+            DEP_LIBS="$DEP_LIBS -lharfbuzz -lfreetype",
             build_complex_scripts="no; support for complex scripts requires libharfbuzz")
     else
         DEP_LIBS="$DEP_LIBS -lfreetype",

@@ -8,6 +8,6 @@ Description: A mature cross-platform windowing and GUI system for embedded syste
 Version: @MINIGUI_VERSION@
 Runmode: @MINIGUI_RUNMODE@
 Requires:
-Libs: -L${libdir} -lminigui_@MGLIB_SUFFIX@
-Libs.private: @DEP_LIBS@
+Libs: -L${libdir} -lminigui_@MGLIB_SUFFIX@ @DEP_LIBS@
+Libs.private:
 Cflags: -I${includedir}
