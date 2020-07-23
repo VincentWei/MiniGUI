@@ -1681,7 +1681,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
             surface_buffer->handle,
             surface_buffer->width, surface_buffer->height,
             surface_buffer->pitch,
-            surface_buffer->size, surface_buffer->offset);
+            (long unsigned int)surface_buffer->size, (long unsigned int)surface_buffer->offset);
 
     /* prepare buffer for memory mapping */
     memset(&mreq, 0, sizeof(mreq));
@@ -1810,7 +1810,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdat
             return NULL;
         }
 
-        _DBG_PRINTF("size got by calling lseek: %lu\n", size);
+        _DBG_PRINTF("size got by calling lseek: %lu\n", (long unsigned int)size);
     }
 
     ret = drmPrimeFDToHandle (vdata->dev_fd, prime_fd, &handle);

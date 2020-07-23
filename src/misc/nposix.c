@@ -63,6 +63,8 @@
 #include <time.h>
 #endif
 
+#include <sys/select.h>
+
 #ifndef HAVE_STRDUP
 char* strdup (const char *string)
 {
