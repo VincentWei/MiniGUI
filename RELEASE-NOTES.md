@@ -42,7 +42,7 @@ Please report any bugs and incompatibilities in
 In this version, we tuned some code for GCC 9 and fixed some bugs:
 
 * ADJUSTMENTS:
-   - Use mainstream Harfbuzz for glyph shaping of complex scripts instead
+   - Use mainstream HarfBuzz for glyph shaping of complex scripts instead
      of the modified version.
 * TUNING:
   - Tune some code to depress compilation warnings.
