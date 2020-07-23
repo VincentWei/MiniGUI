@@ -1010,8 +1010,9 @@ void GUIAPI DestroyDynamicDevFont (DEVFONT** devfont)
 {
     char font_name [LEN_UNIDEVFONT_NAME + 1];
 
-    memset(font_name, 0, LEN_UNIDEVFONT_NAME + 1);
-    strncpy(font_name, (*devfont)->name, LEN_UNIDEVFONT_NAME);
+    //memset(font_name, 0, LEN_UNIDEVFONT_NAME + 1);
+    //strncpy(font_name, (*devfont)->name, LEN_UNIDEVFONT_NAME);
+    strcpy(font_name, (*devfont)->name);
 
     font_DelDevFont (font_name);
     *devfont = NULL;

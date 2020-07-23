@@ -1243,11 +1243,9 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
         break;
     }
 
-#if 0
     default:
         _DBG_PRINTF("IAL>LIBINPUT: got a UNKNOWN event type: %d\n", type);
         break;
-#endif
     }
 
     libinput_event_destroy(event);

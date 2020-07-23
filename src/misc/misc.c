@@ -1432,7 +1432,9 @@ char * strtrimall( char *src)
         return src;
     }
 
-    strcpy (src, src + nIndex1);
+    // VW: use memmove instead of strcpy to avoid overlapping
+    // strcpy (src, src + nIndex1);
+    memmove (src, src + nIndex1, nLen - nIndex1 + 1);
 
     nLen = strlen (src);
     nIndex1 = nLen - 1;

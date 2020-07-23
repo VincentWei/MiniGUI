@@ -1428,10 +1428,12 @@ static LRESULT NewToolbarCtrlProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
                     item_info->add_data = item->add_data;
 
                 if (item_info->which & MTB_WHICH_TEXT)
-                    strncpy (item_info->text, item->text, NTB_TEXT_LEN);
+                    //strncpy (item_info->text, item->text, NTB_TEXT_LEN);
+                    strcpy (item_info->text, item->text);
 
                 if (item_info->which & MTB_WHICH_TIP)
-                    strncpy (item_info->tip, item->tip, NTB_TIP_LEN);
+                    //strncpy (item_info->tip, item->tip, NTB_TIP_LEN);
+                    strcpy (item_info->tip, item->tip);
 
                 return NTB_OKAY;
             }
