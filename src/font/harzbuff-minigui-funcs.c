@@ -120,47 +120,42 @@ hb_minigui_unicode_decompose (hb_unicode_funcs_t *ufuncs,
     return UCharDecompose(ab, a, b);
 }
 
-static hb_unicode_funcs_t *_funcs;
-static hb_unicode_funcs_t *get_unicode_funcs(void)
-{
-    if (_funcs)
-        return _funcs;
-
-    _funcs = hb_unicode_funcs_create (NULL);
-
-    hb_unicode_funcs_set_combining_class_func (_funcs,
-            hb_minigui_unicode_combining_class, NULL, NULL);
-    hb_unicode_funcs_set_general_category_func (_funcs,
-            hb_minigui_unicode_general_category, NULL, NULL);
-    hb_unicode_funcs_set_mirroring_func (_funcs,
-            hb_minigui_unicode_mirroring, NULL, NULL);
-    hb_unicode_funcs_set_script_func (_funcs,
-            hb_minigui_unicode_script, NULL, NULL);
-    hb_unicode_funcs_set_compose_func (_funcs,
-            hb_minigui_unicode_compose, NULL, NULL);
-    hb_unicode_funcs_set_decompose_func (_funcs,
-            hb_minigui_unicode_decompose, NULL, NULL);
-
-    hb_unicode_funcs_make_immutable (_funcs);
-
-    return _funcs;
-}
-
-typedef hb_unicode_funcs_t *(*hb_get_unicode_funcs) (void);
-extern hb_get_unicode_funcs __hb_extern_get_unicode_funcs;
+/* extern hb_unicode_funcs_t *__mg_hb_unifuncs */
+hb_unicode_funcs_t *__mg_hb_unifuncs;
 
 void __mg_init_harzbuff_funcs(void)
 {
     _DBG_PRINTF("%s: called\n", __FUNCTION__);
-    __hb_extern_get_unicode_funcs = get_unicode_funcs;
+
+    if (__mg_hb_unifuncs)
+        return;
+
+    __mg_hb_unifuncs = hb_unicode_funcs_create (NULL);
+
+    hb_unicode_funcs_set_combining_class_func (__mg_hb_unifuncs,
+            hb_minigui_unicode_combining_class, NULL, NULL);
+    hb_unicode_funcs_set_general_category_func (__mg_hb_unifuncs,
+            hb_minigui_unicode_general_category, NULL, NULL);
+    hb_unicode_funcs_set_mirroring_func (__mg_hb_unifuncs,
+            hb_minigui_unicode_mirroring, NULL, NULL);
+    hb_unicode_funcs_set_script_func (__mg_hb_unifuncs,
+            hb_minigui_unicode_script, NULL, NULL);
+    hb_unicode_funcs_set_compose_func (__mg_hb_unifuncs,
+            hb_minigui_unicode_compose, NULL, NULL);
+    hb_unicode_funcs_set_decompose_func (__mg_hb_unifuncs,
+            hb_minigui_unicode_decompose, NULL, NULL);
+
+    hb_unicode_funcs_make_immutable (__mg_hb_unifuncs);
+
+    return;
 }
 
 void __mg_term_harzbuff_funcs(void)
 {
     _DBG_PRINTF("%s: called\n", __FUNCTION__);
 
-    if (_funcs) {
-        hb_unicode_funcs_destroy(_funcs);
+    if (__mg_hb_unifuncs) {
+        hb_unicode_funcs_destroy(__mg_hb_unifuncs);
     }
     else {
         _ERR_PRINTF("%s: hb_unicode_funcs_t object is NULL\n",

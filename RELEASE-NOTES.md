@@ -1,5 +1,7 @@
 # Release Notes For MiniGUI Core 4.0.x
 
+- [Version 4.0.8](#version-408)
+   + [What's new in version 4.0.8](#whats-new-in-version-408)
 - [Version 4.0.7](#version-407)
    + [What's new in version 4.0.7](#whats-new-in-version-407)
 - [Version 4.0.6](#version-406)
@@ -23,6 +25,27 @@
    + [Other enhancements](#other-enhancements)
    + [Backward compatibility issues](#backward-compatibility-issues)
    + [Deprecated features](#deprecated-features)
+
+## Version 4.0.8
+
+The MiniGUI development team announces the availability of MiniGUI 4.0.8.
+We strongly recommend that you use this version for any new MiniGUI
+apps, especially if the new features of MiniGUI 4.0.8 are must for your
+new apps.
+
+Please report any bugs and incompatibilities in
+
+<https://github.com/VincentWei/minigui/tree/rel-4-0>
+
+### What's new in version 4.0.8
+
+In this version, we tuned some code for GCC 9 and fixed some bugs:
+
+* ADJUSTMENTS:
+   - Use mainstream Harfbuzz for glyph shaping of complex scripts instead
+     of the modified version.
+* TUNING:
+  - Tune some code to depress compilation warnings.
 
 ## Version 4.0.7
 

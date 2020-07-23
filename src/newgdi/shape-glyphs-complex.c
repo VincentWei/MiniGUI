@@ -75,6 +75,9 @@
 #include <hb.h>
 #include <hb-ft.h>
 
+/* __mg_hb_unifuncs is implemented in src/font/harzbuff-minigui-funcs.c */
+extern hb_unicode_funcs_t *__mg_hb_unifuncs;
+
 // define _CACHED_HB_FONT if you want use the cached HB fonts
 #define _CACHED_HB_FONT  1
 
@@ -215,6 +218,14 @@ static BOOL shape_layout_run(SEInstance* inst,
     hb_buf = hb_buffer_create();
     if (hb_buf == NULL)
         goto error;
+
+    /* use our own unicode functions */
+    if (__mg_hb_unifuncs) {
+        hb_buffer_set_unicode_funcs(hb_buf, __mg_hb_unifuncs);
+    }
+    else {
+        _DBG_PRINTF("Unicode functions for HarfBuzz does not initialized\n");
+    }
 
     hb_buffer_set_content_type(hb_buf, HB_BUFFER_CONTENT_TYPE_UNICODE);
     for (i = 0; i < run->len; i++) {
