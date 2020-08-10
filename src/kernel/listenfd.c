@@ -213,8 +213,11 @@ BOOL GUIAPI RegisterListenFD (int fd, int type, HWND hwnd, void* context)
             }
         }
 
-        if (ok && msg_queue->maxfd < fd) {
-            msg_queue->maxfd = fd;
+        if (ok) {
+            if (msg_queue->maxfd < fd) {
+                msg_queue->maxfd = fd;
+            }
+
             return TRUE;
         }
     }
