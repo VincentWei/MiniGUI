@@ -645,8 +645,8 @@ static char* get_res_file(const char* res_name, char* filename)
         if(stat(filename, &buf) == 0 && !S_ISDIR(buf.st_mode) && (buf.st_mode&S_IRUSR))
 #else
         sprintf(filename,"%s/%s", res_paths[i], res_name);
-#ifndef __VXWORKS__
-        //in vxworks, don't support _access method.
+#if !(defined(__VXWORKS__) || defined(__FREERTOS__))
+        // no _access function available for VxWorks and FreeRTOS.
         if (_access(filename, 04) != -1)
 #endif
 #endif
