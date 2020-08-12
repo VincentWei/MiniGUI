@@ -140,6 +140,8 @@ static BOOL allocate_more_fd_slots (MSGQUEUE* msg_queue)
             msg_queue->fd_slots[i] = NULL;
         }
         msg_queue->nr_fd_slots += MAX_NR_LISTEN_FD;
+
+        return TRUE;
     }
     
     return FALSE;
