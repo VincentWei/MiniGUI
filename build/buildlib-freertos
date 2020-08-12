@@ -8,6 +8,7 @@ rm config.cache config.status -f
 --with-osname=freertos                     \
 --with-targetname=external                 \
 --with-runmode=sa                          \
+--enable-mgslicefallback                   \
 --disable-videopcxvfb                      \
 --disable-videoqvfb                        \
 --disable-videodrm                         \
