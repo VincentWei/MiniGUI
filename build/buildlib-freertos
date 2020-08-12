@@ -1,3 +1,7 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
 ./configure \
 --disable-shared                           \
 --enable-static                            \
