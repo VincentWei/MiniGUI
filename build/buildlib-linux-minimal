@@ -1,0 +1,41 @@
+#!/bin/sh
+
+rm config.cache config.status -f
+
+./configure \
+--disable-shared                           \
+--enable-static                            \
+--with-osname=linux                        \
+--with-targetname=external                 \
+--with-runmode=sa                          \
+--enable-mgslicefallback                   \
+--disable-videopcxvfb                      \
+--disable-videoqvfb                        \
+--disable-videodrm                         \
+--disable-videofbcon                       \
+--enable-videocommlcd                      \
+--enable-dummyial                          \
+--disable-consoleial                       \
+--disable-libinputial                      \
+--enable-commial                           \
+--disable-consoleimps2                     \
+--disable-mousecalibrate                   \
+--enable-incoreres                         \
+--disable-cursor                           \
+--disable-savebitmap                       \
+--disable-savescreen                       \
+--disable-dblclk                           \
+--disable-splash                           \
+--disable-latin9support                    \
+--disable-fullunicode                      \
+--disable-rbfsupport                       \
+--disable-vbfsupport                       \
+--disable-upfsupport                       \
+--disable-qpfsupport                       \
+--disable-ttfsupport                       \
+--disable-complexscripts                   \
+--disable-ttfcache                         \
+--disable-jpgsupport                       \
+--disable-pngsupport                       \
+--disable-flatlf                           \
+--disable-textmode
