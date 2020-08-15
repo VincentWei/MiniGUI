@@ -13,6 +13,7 @@ MINIGUILIB=libminigui-$(MINIGUI_VER)
 # specific defines
 
 COMM_LDADD=						\
+	standalone/libstandalone.$(LIBA) \
 	libc/liblibc.$(LIBA)				\
 	misc/libmisc.$(LIBA)				\
 	control/libcontrol.$(LIBA)		\

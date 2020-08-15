@@ -70,10 +70,10 @@ static char* _system_keys[]={
 };
 static char* _system_values[]={
 // GAL engine and default options
-    "pc_xvfb",
+    "commlcd",
     "800x600-16bpp",
 // IAL engine
-    "pc_xvfb",
+    "comm",
     "/dev/input/mice",
     "IMPS2"
 };

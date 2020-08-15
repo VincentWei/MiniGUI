@@ -646,8 +646,12 @@ static char* get_res_file(const char* res_name, char* filename)
 #else
         sprintf(filename,"%s/%s", res_paths[i], res_name);
 #ifndef __VXWORKS__
+#ifdef __FREERTOS__
+        if (access(filename, 04) != -1)
+#else
         //in vxworks, don't support _access method.
         if (_access(filename, 04) != -1)
+#endif
 #endif
 #endif
         {

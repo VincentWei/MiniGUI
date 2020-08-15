@@ -362,7 +362,7 @@ static void mg_slice_init_nomessage (void)
         sys_page_size = system_info.dwPageSize;
     }
 #else
-    sys_page_size = sysconf (_SC_PAGESIZE); /* = sysconf (_SC_PAGE_SIZE); = getpagesize(); */
+    sys_page_size =  getpagesize(); /* = sysconf (_SC_PAGE_SIZE); = getpagesize(); */
 #endif
     mem_assert (sys_page_size >= 2 * LARGEALIGNMENT);
     mem_assert ((sys_page_size & (sys_page_size - 1)) == 0);
