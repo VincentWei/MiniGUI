@@ -101,9 +101,9 @@ extern "C" {
 #define ZOF_TYPE_NORMAL         0x30000000
 #define ZOF_TYPE_HIGHER         0x40000000
 #define ZOF_TYPE_DOCKER         0x50000000  // Since 5.0.0
-#define ZOF_TYPE_SCREENLOCK     0x60000000  // Since 5.0.0;
+#define ZOF_TYPE_SCREENLOCK     0x60000000  // Since 5.0.0
 #define ZOF_TYPE_GLOBAL         0x70000000
-#define ZOF_TYPE_TOOLTIP        0x80000000  // Since 5.0.0; fixed and only one.
+#define ZOF_TYPE_TOOLTIP        0x80000000  // Since 5.0.0
 #define ZOF_TYPE_POPUPMENU      0x90000000
 
 #define ZOF_TYPE_BOTTOMMOST     ZOF_TYPE_LAUNCHER
@@ -888,6 +888,39 @@ MG_EXPORT BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer);
  * \sa ServerCreateLayer, JoinLayer, DeleteLayer
  */
 MG_EXPORT BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer);
+
+/**
+ * \fn int GUIAPI ServerGetTopmostZNodeOfType (MG_Layer* layer, DWORD type,
+ *              int* cli)
+ * \brief Get the topmost z-node in the specified layer for the specific
+ *  window type from the server.
+ *
+ * This function gets the topmost z-node of the type specified by
+ * \a type in the specified layer \a layer from the server.
+ *
+ * \param layer The pointer to the layer, NULL for the current topmost layer.
+ * \param type The window type, can be one of the following values:
+ *  - ZOF_TYPE_TOOLTIP
+ *  - ZOF_TYPE_GLOBAL
+ *  - ZOF_TYPE_SCREENLOCK
+ *  - ZOF_TYPE_DOCKER
+ *  - ZOF_TYPE_HIGHER
+ *  - ZOF_TYPE_NORMAL
+ *  - ZOF_TYPE_LAUNCHER
+ * \param cli The client identifier of the topmost z-node will be returned
+ *        through this pointer. NULL is okay.
+ *
+ * \return The index of the topmost z-node of the specified type.
+ *      Zero when there is no z-node in the level; < 0 when error.
+ *
+ * \note Server-only function. Note that this function will not return
+ *       the z-node of the desktop, and the desktop always has the z-node index
+ *       of zero.
+ *
+ * \sa ServerGetZNodeInfo
+ */
+MG_EXPORT int GUIAPI ServerGetTopmostZNodeOfType (MG_Layer* layer, DWORD type,
+                int* cli);
 
 /**
  * \fn int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode,
