@@ -757,8 +757,15 @@ int GUIAPI ServerGetTopmostZNodeOfType (MG_Layer* layer, DWORD type, int* cli)
 
     zi = (ZORDERINFO*)layer->zorder_info;
     topmost = zi->first_in_levels [ZOF_TYPE_TOOLTIP - type];
-    if (topmost <= 0)
+    if (topmost <= 0) {
         return 0;
+    }
+    else if (cli) {
+        ZORDERNODE* nodes;
+
+        nodes = GET_ZORDERNODE(zi);
+        *cli = nodes [topmost].cli;
+    }
 
     return topmost;
 }
