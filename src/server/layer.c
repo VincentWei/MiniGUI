@@ -756,7 +756,7 @@ int GUIAPI ServerGetTopmostZNodeOfType (MG_Layer* layer, DWORD type, int* cli)
         return -1;
 
     zi = (ZORDERINFO*)layer->zorder_info;
-    topmost = zi->first_in_levels [ZOF_TYPE_TOOLTIP - type];
+    topmost = zi->first_in_levels [(ZOF_TYPE_TOOLTIP - type) >> 28];
     if (topmost <= 0) {
         return 0;
     }
