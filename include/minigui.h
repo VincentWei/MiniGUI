@@ -669,21 +669,22 @@ typedef void (* ON_NEW_DEL_CLIENT) (int op, int cli);
 typedef void (* ON_CHANGE_LAYER) (int op, MG_Layer* layer,
                 MG_Client* client);
 
-#define ZNOP_ALLOCATE   1
-#define ZNOP_FREE       2
-#define ZNOP_MOVE2TOP   3
-#define ZNOP_SHOW       4
-#define ZNOP_HIDE       5
-#define ZNOP_MOVEWIN    6
-#define ZNOP_SETACTIVE  7
+#define ZNOP_ALLOCATE           1
+#define ZNOP_FREE               2
+#define ZNOP_MOVE2TOP           3
+#define ZNOP_SHOW               4
+#define ZNOP_HIDE               5
+#define ZNOP_MOVEWIN            6
+#define ZNOP_SETACTIVE          7
 
-#define ZNOP_ENABLEWINDOW        11
-#define ZNOP_DISABLEWINDOW       12
-#define ZNOP_STARTDRAG           13
-#define ZNOP_CANCELDRAG          14
-#define ZNOP_CHANGECAPTION       15
-#define ZNOP_REGIONCHANGED       16
-#define ZNOP_COMPOSITINGCHANGED  17
+#define ZNOP_ENABLEWINDOW       11
+#define ZNOP_DISABLEWINDOW      12
+#define ZNOP_STARTDRAG          13
+#define ZNOP_CANCELDRAG         14
+#define ZNOP_CHANGECAPTION      15
+#define ZNOP_REGIONCHANGED      16
+#define ZNOP_COMPOSITINGCHANGED 17
+#define ZNOP_ICONCHANGED        18  /* reserved for future */
 
 /**
  * \var typedef void (* ON_ZNODE_OPERATION) (int op, int cli, int idx_znode)
