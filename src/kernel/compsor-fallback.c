@@ -711,7 +711,7 @@ static BOOL merge_dirty_wpp (CompositorCtxt* ctxt, MG_Layer* layer)
     return rc;
 }
 
-BOOL refresh_dirty_region (CompositorCtxt* ctxt, MG_Layer* layer)
+static BOOL refresh_dirty_region (CompositorCtxt* ctxt, MG_Layer* layer)
 {
     /* the fallback compositor only manages znodes on the topmost layer. */
     if (layer != mgTopmostLayer || IsEmptyClipRgn (&ctxt->dirty_rgn))
