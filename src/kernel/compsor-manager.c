@@ -377,16 +377,16 @@ void __mg_composite_dirty_znodes (void)
 
 #endif  /* optimized */
 
-static void purge_znodes_private_data_in_layer (const CompositorOps* ops,
-        CompositorCtxt* ctxt, MG_Layer* layer)
+static void purge_all_znodes_private_data (const CompositorOps* ops,
+        CompositorCtxt* ctxt)
 {
     ZORDERINFO* zi;
     ZORDERNODE* nodes;
     int i, next;
+    MG_Layer* layer;
 
-    zi = (ZORDERINFO*)layer->zorder_info;
-
-    // travel popup menu znodes
+    /* travel menu znodes on the topmost layer */
+    zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
     if (zi->nr_popupmenus > 0) {
         nodes = GET_MENUNODE(zi);
         for (i = 0; i < zi->nr_popupmenus; i++) {
@@ -397,25 +397,56 @@ static void purge_znodes_private_data_in_layer (const CompositorOps* ops,
         }
     }
 
-    // travel window znodes
-    nodes = GET_ZORDERNODE(zi);
-    next = 0;
-    while ((next = __kernel_get_next_znode (zi, next)) > 0) {
-        if (nodes[next].priv_data && ops->purge_win_data) {
-            ops->purge_win_data (ctxt, layer, next, nodes[next].priv_data);
-            nodes[next].priv_data = NULL;
+    /* travel all window znodes in all layers */
+    layer = mgLayers;
+    while (layer) {
+        zi = (ZORDERINFO*)layer->zorder_info;
+        nodes = GET_ZORDERNODE(zi);
+
+        next = 0;
+        while ((next = __kernel_get_next_znode (zi, next)) > 0) {
+            if (nodes[next].priv_data && ops->purge_win_data) {
+                ops->purge_win_data (ctxt, layer, next, nodes[next].priv_data);
+                nodes[next].priv_data = NULL;
+            }
         }
+
+        layer = layer->next;
     }
 }
 
-static inline void purge_all_znodes_private_data (const CompositorOps* ops,
+static void rebuild_all_znodes_private_data (const CompositorOps* ops,
         CompositorCtxt* ctxt)
 {
+    ZORDERINFO* zi;
+    ZORDERNODE* nodes;
+    int i, next;
     MG_Layer* layer;
 
+    /* travel menu znodes on the topmost layer */
+    zi = (ZORDERINFO*)mgTopmostLayer->zorder_info;
+    if (zi->nr_popupmenus > 0) {
+        nodes = GET_MENUNODE(zi);
+        for (i = 0; i < zi->nr_popupmenus; i++) {
+            if (nodes[i].flags & ZOF_VISIBLE) {
+                ops->on_showing_ppp (ctxt, i);
+            }
+        }
+    }
+
+    /* travel all window znodes in all layers */
     layer = mgLayers;
     while (layer) {
-        purge_znodes_private_data_in_layer (ops, ctxt, layer);
+        zi = (ZORDERINFO*)layer->zorder_info;
+        nodes = GET_ZORDERNODE(zi);
+
+        next = 0;
+        while ((next = __kernel_get_next_znode (zi, next)) > 0) {
+            if (nodes[next].flags & ZOF_VISIBLE) {
+                ops->on_showing_win (ctxt, layer, next);
+            }
+        }
+
         layer = layer->next;
     }
 }
@@ -539,6 +570,9 @@ const CompositorOps* GUIAPI ServerSelectCompositor (const char* name,
             }
             curr_ops = ops;
             curr_ctxt = ctxt;
+
+            /* Since 5.0.3, to rebuild the private data of visible znodes */
+            rebuild_all_znodes_private_data (curr_ops, curr_ctxt);
             curr_ops->refresh (ctxt);
         }
 
