@@ -4,7 +4,7 @@
 #
 
 # ------> Please changes to your own rules specific to platform. <------
-TARGET_RULES=build/rules-stm32.freertos
+TARGET_RULES=build/rules-pc.linux
 
 # ----------------------------------------------------------------------
 include $(abs_top_srcdir)/$(TARGET_RULES)
