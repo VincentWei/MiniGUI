@@ -71,7 +71,7 @@ static char* _system_keys[]={
 static char* _system_values[]={
 // GAL engine and default options
     "commlcd",
-    "800x600-16bpp",
+    "160x80-16bpp",
 // IAL engine
     "comm",
     "/dev/input/mice",
