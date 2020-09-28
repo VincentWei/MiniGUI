@@ -453,6 +453,7 @@ void __mg_os_time_delay (int ms)
     rt_thread_mdelay(ms);
 #elif defined (__FREERTOS__)
 //#error "Please implement __mg_os_time_delay for your OS"
+vTaskDelay(ms);
 #else
 #error "Please implement __mg_os_time_delay for your OS"
 #endif
