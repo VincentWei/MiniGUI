@@ -1621,6 +1621,7 @@ case "$with_osname" in
   *)
     with_osname="linux"
     osname="Linux"
+    use_shmopen="yes"
     AC_DEFINE(__LINUX__, 1,
             [Define if compile for Linux])
     ;;
