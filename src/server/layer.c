@@ -742,6 +742,34 @@ void GUIAPI UpdateTopmostLayer (const RECT* dirty_rc)
     SendMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
 }
 
+int GUIAPI ServerGetTopmostZNodeOfType (MG_Layer* layer, DWORD type, int* cli)
+{
+    ZORDERINFO* zi;
+    int topmost;
+
+    if (layer == NULL)
+        layer = mgTopmostLayer;
+    else if (!__mg_is_valid_layer (layer))
+        return -1;
+
+    if (type < ZOF_TYPE_LAUNCHER || type > ZOF_TYPE_TOOLTIP)
+        return -1;
+
+    zi = (ZORDERINFO*)layer->zorder_info;
+    topmost = zi->first_in_levels [(ZOF_TYPE_TOOLTIP - type) >> 28];
+    if (topmost <= 0) {
+        return 0;
+    }
+    else if (cli) {
+        ZORDERNODE* nodes;
+
+        nodes = GET_ZORDERNODE(zi);
+        *cli = nodes [topmost].cli;
+    }
+
+    return topmost;
+}
+
 int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
 {
     ZORDERINFO* zi;
