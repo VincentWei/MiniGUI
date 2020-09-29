@@ -94,7 +94,7 @@ osname="unspecified"
 runtime_mode="procs"
 compositing_schema="no"
 virtual_window="no"
-use_shmopen="yes"
+use_shmopen="no"
 mgslice_use_fallback="no"
 
 incore_res="no"
