@@ -414,7 +414,7 @@ unsigned int __mg_os_get_random_seed (void)
     unsigned int rt_tick_get(void);
     return rt_tick_get();
 #elif defined (__FREERTOS__)
-    return 0;
+    return 0;  // Just return zero for now.
 #else
     /*other os use time, for example: linux, OSE, etc.*/
     return time (NULL);
@@ -452,8 +452,8 @@ void __mg_os_time_delay (int ms)
     extern int rt_thread_mdelay(int ms);
     rt_thread_mdelay(ms);
 #elif defined (__FREERTOS__)
-//#error "Please implement __mg_os_time_delay for your OS"
-vTaskDelay(ms);
+    extern void vTaskDelay(int ms);
+    vTaskDelay(ms);
 #else
 #error "Please implement __mg_os_time_delay for your OS"
 #endif

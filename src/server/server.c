@@ -403,8 +403,16 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
 
         /* It is time to check event again. */
         if (errno == EINTR) {
-            if (wait)
+            if (wait) {
                 ParseEvent (msg_queue, 0);
+
+                /* Since 5.0.3: Always check timers */
+                nevts += __mg_check_expired_timers (msg_queue,
+                        SHAREDRES_TIMER_COUNTER - msg_queue->old_tick_count);
+                msg_queue->old_tick_count = SHAREDRES_TIMER_COUNTER;
+                return (nevts > 0);
+            }
+
             return FALSE;
         }
 #ifdef _DEBUG

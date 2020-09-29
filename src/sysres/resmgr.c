@@ -617,42 +617,39 @@ int UnregisterResType(int type)
     return RES_RET_OK;
 }
 
+#ifdef HAVE_ACCESS
 static char* get_res_file(const char* res_name, char* filename)
 {
     int i;
+
     if (res_name == NULL || filename == NULL)
         return NULL;
 
     //test it is a full path or not
-    for(i=0; res_name[i] && res_name[i] == '/'; i++);
-    if(i>0) //is full path
-    {
+    for (i = 0; res_name[i] && res_name[i] == '/'; i++);
+
+    if (i > 0) { // full path
 #ifndef __NOUNIX__
         struct stat buf;
-        if(stat(res_name, &buf) == 0
-            && !S_ISDIR(buf.st_mode)
-            && (buf.st_mode&S_IRUSR))
+        if(stat (res_name, &buf) == 0
+                && !S_ISDIR(buf.st_mode)
+                && (buf.st_mode&S_IRUSR))
 #endif
         {
             return (char*)res_name;
         }
     }
 
-    for (i=0; res_paths[i]; i++) {
+    for (i = 0; res_paths[i]; i++) {
 #ifndef __NOUNIX__
         struct stat buf;
-        sprintf(filename,"%s/%s", res_paths[i], res_name);
-        if(stat(filename, &buf) == 0 && !S_ISDIR(buf.st_mode) && (buf.st_mode&S_IRUSR))
+
+        sprintf (filename,"%s/%s", res_paths[i], res_name);
+        if (stat (filename, &buf) == 0 &&
+                !S_ISDIR (buf.st_mode) && (buf.st_mode & S_IRUSR))
 #else
-        sprintf(filename,"%s/%s", res_paths[i], res_name);
-#ifndef __VXWORKS__
-#ifdef __FREERTOS__
-        if (access(filename, 04) != -1)
-#else
-        //in vxworks, don't support _access method.
-        if (_access(filename, 04) != -1)
-#endif
-#endif
+        sprintf (filename,"%s/%s", res_paths[i], res_name);
+        if (access (filename, 04) != -1)
 #endif
         {
             return filename;
@@ -661,6 +658,15 @@ static char* get_res_file(const char* res_name, char* filename)
 
     return NULL;
 }
+
+#else
+
+static char* get_res_file(const char* res_name, char* filename)
+{
+    return NULL;
+}
+
+#endif  /* !HAVE_ACCESS */
 
 static void* get_res_data (RES_ENTRY *entry, RES_TYPE_OPS *ops, DWORD usr_param)
 {
