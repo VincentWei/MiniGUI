@@ -1,0 +1,36 @@
+
+
+# set your own targaet_os
+TARGET_OS=freertos
+
+##################################################
+# set your compile tool #
+CC=arm-linux-gnueabihf-gcc
+CXX=arm-linux-gnueabihf-g++
+CPP=arm-linux-gnueabihf-g++
+AR=arm-linux-gnueabihf-ar
+AS=arm-linux-gnueabihf-as
+RANLIB=arm-linux-gnueabihf-ranlib
+MAKE=/usr/bin/make
+##################################################
+
+ARFLAGS=-rc
+COFLAG=-c
+
+OBJ=o
+LIBA=a
+
+##################################################
+# if you don't want to create dynamic, delete it # 
+LIBSO=so
+SOFLAGS=-fPIC -shared -o
+##################################################
+
+
+##################################################
+# set your compile flags and install prefix path # 
+PREFIX=/usr/local
+CFLAGS+=-g -Wall -fPIC 
+LDFLAGS+=
+##################################################
+

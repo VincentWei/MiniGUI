@@ -1,0 +1,16 @@
+abs_top_srcdir=../..
+
+INCLUDES = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
+
+noinst_LTLIBRARIES = libstandalone.la
+
+
+libstandalone_la_SOURCES = standalone.c
+
+
+SRC_FILES = $(libstandalone_la_SOURCES)
+LIB_NAME=libstandalone
+
+
+
+include ../../rules.make
