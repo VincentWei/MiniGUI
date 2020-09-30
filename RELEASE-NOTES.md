@@ -13,6 +13,28 @@
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
 
+## Version 5.0.3
+
+The MiniGUI development team announces the availability of MiniGUI 5.0.3,
+which is the bug fixing release of MiniGUI 5.0.x.
+
+### What's new in version 5.0.3
+
+In this version, we fixed some bugs and made some minor enhancements:
+
+* BUGFIXING:
+   - Always check expired timers even got `EINTR`.
+   - Add static modifier to `refresh_dirty_region` method of the fallback compositor.
+   - Fix a bug in `RegisterListenFD`.
+   - Fix a bug in `allocate_more_fd_slots`.
+* TUNING:
+  - Rebuild the private data for all visible z-nodes after selected a new compositor.
+* ENHANCEMENTS:
+  - New configuration option: `--enable-mgslicefallback` to build a fallback
+    implementation of mgslice.
+  - New API: `ServerGetTopmostZNodeOfType`.
+  - Merge some code by @ehello (<https://github.com/ehello>) for FreeRTOS.
+
 ## Version 5.0.2
 
 The MiniGUI development team announces the availability of MiniGUI 5.0.2,
