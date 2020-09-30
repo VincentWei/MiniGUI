@@ -1,8 +1,9 @@
 # Release Notes
 
+- [Version 5.0.3](#version-503)
+   + [What's new in version 5.0.3](#whats-new-in-version-503)
 - [Version 5.0.2](#version-502)
    + [What's new in version 5.0.2](#whats-new-in-version-502)
-
 - [Version 5.0.0](#version-500)
    + [What's new in version 5.0.0](#whats-new-in-version-500)
    + [Compositing schema](#compositing-schema)
