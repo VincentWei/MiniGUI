@@ -1356,6 +1356,10 @@ intptr_t __mg_do_zorder_maskrect_operation (int cli,
                 get_layer_from_client (cli), info->idx_znode, &rc_org_bound);
 #endif
     }
+    else {
+        _ERR_PRINTF("KERNEL: failed in __mg_do_zorder_maskrect_operation\n");
+    }
+
     return ret;
 }
 
@@ -4536,7 +4540,7 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
                 DWORD rgn_ops, CLIPRGN* dst_rgn)
 {
     RECT rc;
-    MASKRECT *maskrect;
+    MASKRECT *firstmaskrect = NULL, *maskrect;
     ZORDERNODE* nodes;
     ZORDERINFO* zi;
     int idx, nr_mask_rects;
@@ -4568,28 +4572,32 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
 
     nr_mask_rects = 0;
     nodes = GET_ZORDERNODE(zi);
-    maskrect = GET_MASKRECT(zi);
+    firstmaskrect = GET_MASKRECT(zi);
     idx = nodes [idx_znode].idx_mask_rect;
+
     while (idx) {
+        maskrect = firstmaskrect + idx;
         rc.left = maskrect->left;
         rc.top = maskrect->top;
-        rc.right = maskrect->left;
+        rc.right = maskrect->right;
         rc.bottom = maskrect->bottom;
 
-        if (rgn_ops & RGN_OP_FLAG_ABS) {
-            OffsetRect (&rc, nodes[idx_znode].rc.left, nodes[idx_znode].rc.top);
-        }
-
-        if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
-            if (!SubtractClipRect (dst_rgn, &rc)) {
-                nr_mask_rects = -1;
-                goto __mg_err_ret;
+        if (!IsRectEmpty (&rc)) {
+            if (rgn_ops & RGN_OP_FLAG_ABS) {
+                OffsetRect (&rc, nodes[idx_znode].rc.left, nodes[idx_znode].rc.top);
             }
-        }
-        else {
-            if (!AddClipRect (dst_rgn, &rc)) {
-                nr_mask_rects = -1;
-                goto __mg_err_ret;
+
+            if ((rgn_ops & RGN_OP_MASK) == RGN_OP_EXCLUDE) {
+                if (!SubtractClipRect (dst_rgn, &rc)) {
+                    nr_mask_rects = -1;
+                    goto __mg_err_ret;
+                }
+            }
+            else {
+                if (!AddClipRect (dst_rgn, &rc)) {
+                    nr_mask_rects = -1;
+                    goto __mg_err_ret;
+                }
             }
         }
 

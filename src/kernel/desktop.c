@@ -2578,6 +2578,8 @@ static DWORD get_znode_flags_from_style (PMAINWIN pWin)
     return zt_type;
 }
 
+/* TODO: this function should be optimized to avoid allocating space for
+   invalid (empty) mask rectangles */
 static int AllocZOrderMaskRect (int cli, int idx_znode,
         int flags, const RECT4MASK *rc, const int nr_rc)
 {
@@ -2599,24 +2601,24 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
     /*get mask rect number*/
     idx = nodes[idx_znode].idx_mask_rect;
 
-    while(idx) {
+    while (idx) {
         old_num++;
-        idx = ((MASKRECT *)(firstmaskrect+idx))->next;
+        idx = ((MASKRECT *)(firstmaskrect + idx))->next;
     }
 
     if (nr_rc > old_num) {
         /* check the number of mask rect if enough */
         int idle =
-            __mg_get_nr_idle_slots((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
+            __mg_get_nr_idle_slots ((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
             zi->size_maskrect_usage_bmp);
-        if (idle < nr_rc-old_num) {
+        if (idle < nr_rc - old_num) {
             unlock_zi_for_change (zi);
             return -1;
         }
 
         /*add new space to Znode*/
         idx = nodes[idx_znode].idx_mask_rect;
-        for(i = 0; i < nr_rc-old_num; i++) {
+        for (i = 0; i < nr_rc - old_num; i++) {
             free_slot = __mg_lookfor_unused_slot (
                             (unsigned char*)GET_MASKRECT_USAGEBMP(zi),
                             zi->size_maskrect_usage_bmp, 1);
