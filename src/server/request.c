@@ -570,9 +570,8 @@ static int sigma8654_client_get_surface(int cli, int clifd, void* buff, size_t l
     REQ_SIGMA8654_GETSURFACE *request;
     REP_SIGMA8654_GETSURFACE reply;
 
-    if (Sigma8654_ServerOnGetSurface(request, &reply) < 0)
-    {
-        fprintf(stderr, "Nexus_ServerOnGetSurface() failed\n");
+    if (Sigma8654_ServerOnGetSurface(request, &reply) < 0) {
+        _ERR_PRINTF ("Nexus_ServerOnGetSurface() failed\n");
         return -1;
     }
     return ServerSendReply (clifd, &reply, sizeof (reply));
@@ -590,7 +589,7 @@ static int nexus_client_get_surface(int cli, int clifd, void* buff, size_t len)
 
     if (Nexus_ServerOnGetSurface(request, &reply) < 0)
     {
-        fprintf(stderr, "Nexus_ServerOnGetSurface() failed\n");
+        _ERR_PRINTF ("Nexus_ServerOnGetSurface() failed\n");
         return -1;
     }
     return ServerSendReply (clifd, &reply, sizeof (reply));
