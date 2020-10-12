@@ -902,6 +902,7 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
     assert (znode_hdr);
 
     if (!(znode_hdr->flags & ZNIF_VISIBLE)) {
+        _DBG_PRINTF("not a visible window\n");
         return;
     }
 
