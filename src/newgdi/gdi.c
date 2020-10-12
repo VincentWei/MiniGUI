@@ -4413,6 +4413,7 @@ static void travel_children_with_priv_cdc (struct _travel_context* ctxt)
 
     child = (PCONTROL)(ctxt->parent->children);
     while (child) {
+        child->surf = ctxt->surface;
 
         if (child->privCDC) {
             ctxt->cb (ctxt, child);
