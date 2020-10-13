@@ -4599,10 +4599,10 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
                     goto __mg_err_ret;
                 }
             }
+            nr_mask_rects ++;
         }
 
         idx = maskrect->next;
-        nr_mask_rects ++;
     }
 
     if (nr_mask_rects == 0) {
