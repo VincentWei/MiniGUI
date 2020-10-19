@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.60)
-AC_INIT(libminigui, 5.0.3)
+AC_INIT(libminigui, 5.0.4)
 AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -16,9 +16,9 @@ dnl Set various version strings - taken gratefully from the SDL sources
 #
 MINIGUI_MAJOR_VERSION=5
 MINIGUI_MINOR_VERSION=0
-MINIGUI_MICRO_VERSION=3
-MINIGUI_INTERFACE_AGE=0
-MINIGUI_BINARY_AGE=3
+MINIGUI_MICRO_VERSION=4
+MINIGUI_INTERFACE_AGE=1
+MINIGUI_BINARY_AGE=4
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
 
 AC_SUBST(MINIGUI_MAJOR_VERSION)
@@ -2237,10 +2237,8 @@ if test "x$build_ttf_support" = "xyes"; then
     AC_DEFINE(_MGFONT_FT2, 1,
          [Define if support TrueType/OpenType fonts based on FreeType2])
 
-    with_ft2_includes=""
     AC_ARG_WITH(ft2_includes,
-[  --with-ft2-includes=DIR      where the FreeType2 includes are],
-        with_ft2_includes=$withval)
+[  --with-ft2-includes=DIR      where the FreeType2 includes are])
 
     if test "x$with_ft2_includes" = "x"; then
         FT2_INC_DIR="-I/usr/include/freetype2"
@@ -2799,6 +2797,8 @@ AC_MSG_NOTICE([
   * CPP flags:          ${CPPFLAGS}
   * CC  flags:          ${CFLAGS}
   * CXX flags:          ${CXXFLAGS}
+  * FreeType2 includes: ${FT2_INC_DIR}
+  * HarfBuzz includes:  ${HB_INC_DIR}
   * Dep. libraries:     ${DEP_LIBS}
 ])
 
