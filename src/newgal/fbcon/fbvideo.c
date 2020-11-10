@@ -59,7 +59,6 @@
 #include <linux/version.h>
 #include <linux/vt.h>
 #include <linux/kd.h>
-#include <linux/keyboard.h>
 
 #include "common.h"
 #include "minigui.h"

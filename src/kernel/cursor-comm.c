@@ -48,7 +48,7 @@ static HCURSOR load_cursor_from_file (const char* filename)
 {
     FILE* fp;
     WORD16 wTemp;
-    int  w, h, xhot, yhot, colornum;
+    int  w=0, h=0, xhot=0, yhot=0, colornum=0;
 #if 0
     DWORD32 size;
 #endif
@@ -152,7 +152,7 @@ static HCURSOR load_cursor_from_mem (const void* area)
     const Uint8* p = (Uint8*)area;
     WORD16 wTemp;
 
-    int  w, h, xhot, yhot, colornum;
+    int  w=0, h=0, xhot=0, yhot=0, colornum=0;
 #if 0
     DWORD32 size;
 #endif

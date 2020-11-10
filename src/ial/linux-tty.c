@@ -65,7 +65,6 @@
 #include <sys/time.h>
 #include <linux/vt.h>
 #include <linux/kd.h>
-#include <linux/keyboard.h>
 
 #include "gdi.h"
 #include "window.h"

@@ -69,6 +69,8 @@
 #include <linux/memfd.h>
 #include <stdlib.h>
 #else
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #endif

@@ -50,6 +50,7 @@ DFB_SRCS = dfb.h dfb.c
 
 USVFB_SRCS = usvfbinput.c usvfbinput.h
 LIBINPUT_SRCS = linux-libinput.c linux-libinput.h
+SINGLETOUCHKEY_SRCS = singletouchkey.c singletouchkey.h
 
 if MGIAL_CONSOLE
 native_libial_la_LIBADD = native/libnative.la
@@ -76,4 +77,5 @@ libial_la_SOURCES = $(COMMON_SRCS) $(DUMMY_SRCS) $(JZ4740_SRCS) \
                     $(COMMINPUT_SRCS) $(QVFB_SRCS) $(WVFB_SRCS) \
 					$(QEMU_SRCS) $(IPAQ_H3600_SRCS) $(IPAQ_H5400_SRCS) \
 					$(TSLIB_SRCS) $(SHANDONG_LIDE_SRCS) $(CISCO_TOUCHPAD_SRCS) \
-					$(MSTAR_SRCS) $(DFB_SRCS) $(USVFB_SRCS) $(LIBINPUT_SRCS)
+					$(MSTAR_SRCS) $(DFB_SRCS) $(USVFB_SRCS) $(LIBINPUT_SRCS) \
+					$(SINGLETOUCHKEY_SRCS)

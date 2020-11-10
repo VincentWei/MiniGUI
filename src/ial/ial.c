@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -133,6 +133,9 @@
 #ifdef _MGIAL_LIBINPUT
     #include "linux-libinput.h"
 #endif
+#ifdef _MGIAL_SINGLETOUCHKEY
+    #include "singletouchkey.h"
+#endif
 
 static INPUT inputs [] =
 {
@@ -211,6 +214,9 @@ static INPUT inputs [] =
 #endif
 #ifdef _MGIAL_LIBINPUT
     {"libinput", ial_InitLibInput, TermLibInput},
+#endif
+#ifdef _MGIAL_SINGLETOUCHKEY
+    {"singletouchkey", ial_InitSingleTouchKey, TermSingleTouchKey},
 #endif
 /* ... end of general IAL engines */
 };
