@@ -72,12 +72,11 @@ static int get_touch_data (short *x, short *y, short *button)
 {
     struct input_event data;
 
-    while (1) {
-        if (read (sg_tp_event_fd, &data, sizeof (data)) < sizeof (data))
-            return -1;
+    while (read (sg_tp_event_fd, &data, sizeof (data)) == sizeof (data)) {
 
         if (data.type == EV_SYN && data.code == SYN_REPORT) {
-            break;
+            /* return for end of touch data sequece. */
+            return 0;
         }
 
         if (data.type == EV_KEY) {
@@ -94,6 +93,7 @@ static int get_touch_data (short *x, short *y, short *button)
                 return -1;
             }
 
+            /* return immediately for EV_KEY */
             return 0;
         }
         else if (data.type == EV_ABS) {
@@ -203,7 +203,7 @@ BOOL ial_InitSingleTouchKey (INPUT* input, const char* mdev, const char* mtype)
         return FALSE;
     }
 
-    sg_tp_event_fd = open (touch_dev, O_RDWR | O_NONBLOCK);
+    sg_tp_event_fd = open (touch_dev, O_RDONLY /*| O_NONBLOCK*/);
     if (sg_tp_event_fd < 0) {
         _WRN_PRINTF ("failed when opening touch event device: %s\n", touch_dev);
         return FALSE;
