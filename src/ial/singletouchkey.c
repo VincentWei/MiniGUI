@@ -92,7 +92,7 @@ static int get_touch_data (short *x, short *y, short *button)
                 break;
 
             default:
-                _WRN_PRINTF ("WARNING > unknow event code for EV_KEY event: %x, %x\n", data.code, data.value);
+                _WRN_PRINTF ("unknow event code for EV_KEY event: %x, %x\n", data.code, data.value);
                 return -1;
             }
         }
@@ -135,7 +135,7 @@ static int get_touch_data (short *x, short *y, short *button)
                 break;
 
             default:
-                _WRN_PRINTF ("WARNING > singletouchkey_getdata: unknow event code for EV_ABS event: %x, %x.\n", data.code, data.value);
+                _WRN_PRINTF ("unknow event code for EV_ABS event: %x, %x.\n", data.code, data.value);
                 return -1;
             }
         }
@@ -217,15 +217,14 @@ BOOL ial_InitSingleTouchKey (INPUT* input, const char* mdev, const char* mtype)
         strcpy (touch_dev, "none");
     }
 
-    if (strcmp(touch_dev, "none") == 0)
-    {
-        _WRN_PRINTF("IAL>SINGLETOUCHKEY: No touch_dev defined.\n");
+    if (strcmp (touch_dev, "none") == 0) {
+        _WRN_PRINTF ("no touch_dev defined.\n");
         return FALSE;
     }
 
     sg_tp_event_fd = open (touch_dev, O_RDWR /*| O_NONBLOCK */);
     if (sg_tp_event_fd < 0) {
-        _WRN_PRINTF("IAL>SINGLETOUCHKEY: Failed when opening touch event device: %s\n", touch_dev);
+        _WRN_PRINTF ("failed when opening touch event device: %s\n", touch_dev);
         return FALSE;
     }
 
