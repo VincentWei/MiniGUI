@@ -93,6 +93,8 @@ static int get_touch_data (short *x, short *y, short *button)
                 _WRN_PRINTF ("unknow event code for EV_KEY event: %x, %x\n", data.code, data.value);
                 return -1;
             }
+
+            return 0;
         }
         else if (data.type == EV_ABS) {
             switch (data.code) {
