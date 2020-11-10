@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.4](#version-504)
+   + [What's new in version 5.0.4](#whats-new-in-version-504)
 - [Version 5.0.3](#version-503)
    + [What's new in version 5.0.3](#whats-new-in-version-503)
 - [Version 5.0.2](#version-502)
@@ -13,6 +15,24 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.4
+
+The MiniGUI development team announces the availability of MiniGUI 5.0.4,
+which is the bug fixing release of MiniGUI 5.0.x.
+
+### What's new in version 5.0.4
+
+In this version, we fixed some bugs and made some minor enhancements:
+
+* BUGFIXING:
+   - Fix bugs in ServerGetWinZNodeRegion: must check for possible empty mask rect
+     and bad assignment of maskrect
+   - Fix a potential bug: only increase `nr_mask_rects` for not empty mask rectangle.
+   - Fix a bug: update surface of controls surface in `travel_children_with_priv_cdc`.
+* ENHANCEMENTS:
+  - New IAL engine: `--enable-singletouchkeyial` to build the IAL engine for
+    single touch screen and key buttons.
 
 ## Version 5.0.3
 
