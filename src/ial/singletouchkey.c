@@ -74,20 +74,19 @@ static int get_touch_data (short *x, short *y, short *button)
 
     while (read (sg_tp_event_fd, &data, sizeof (data)) == sizeof (data)) {
 
-        /* return for end of event data sequece. */
+        /* do nothing for EV_SYN due to non-blocking read.
         if (data.type == EV_SYN) {
-            switch (data.code) {
-            case SYN_REPORT:
-            case SYN_MT_REPORT:
-                break;
-            case SYN_DROPPED:
-            default:
-                _WRN_PRINTF ("unknow event code for EV_SYN event: 0x%x, 0x%x\n", data.code, data.value);
+            if (data.code == SYN_REPORT) {
+                return 0;
+            }
+            else if (data.code == SYN_MT_REPORT) {
+                continue;
+            }
+            else {
                 return -1;
             }
-
-            return 0;
         }
+        */
 
         if (data.type == EV_KEY) {
             switch (data.code) {
@@ -189,7 +188,7 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
         if (FD_ISSET (sg_tp_event_fd, in)) {
             retvalue |= IAL_MOUSEEVENT;
         }
-        else if (sg_key_event_fd >= 0 && FD_ISSET (sg_key_event_fd, in)) {
+        if (sg_key_event_fd >= 0 && FD_ISSET (sg_key_event_fd, in)) {
             retvalue |= IAL_KEYEVENT;
         }
     }
@@ -215,7 +214,7 @@ BOOL ial_InitSingleTouchKey (INPUT* input, const char* mdev, const char* mtype)
         return FALSE;
     }
 
-    sg_tp_event_fd = open (touch_dev, O_RDONLY /*| O_NONBLOCK*/);
+    sg_tp_event_fd = open (touch_dev, O_RDONLY | O_NONBLOCK);
     if (sg_tp_event_fd < 0) {
         _WRN_PRINTF ("failed when opening touch event device: %s\n", touch_dev);
         return FALSE;
