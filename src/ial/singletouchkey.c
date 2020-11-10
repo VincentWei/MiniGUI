@@ -77,13 +77,13 @@ static int get_touch_data (short *x, short *y, short *button)
         /* return for end of touch data sequece. */
         if (data.type == EV_SYN) {
             switch (data.code) {
-                case SYN_REPORT:
-                case SYN_MT_REPORT:
-                    break;
-                case SYN_DROPPED:
-                default:
-                    /* do not update */
-                    return -1;
+            case SYN_REPORT:
+            case SYN_MT_REPORT:
+                break;
+            default:
+                _WRN_PRINTF ("unknow event code for EV_SYN event: 0x%x, 0x%x\n", data.code, data.value);
+                /* do not update */
+                return -1;
             }
 
             return 0;
@@ -99,7 +99,7 @@ static int get_touch_data (short *x, short *y, short *button)
                 break;
 
             default:
-                _WRN_PRINTF ("unknow event code for EV_KEY event: %x, %x\n", data.code, data.value);
+                _WRN_PRINTF ("unknow event code for EV_KEY event: 0x%x, 0x%x\n", data.code, data.value);
                 return -1;
             }
 
@@ -134,7 +134,7 @@ static int get_touch_data (short *x, short *y, short *button)
                 break;
 
             default:
-                _WRN_PRINTF ("unknow event code for EV_ABS event: %x, %x.\n", data.code, data.value);
+                _WRN_PRINTF ("unknow event code for EV_ABS event: 0x%x, 0x%x.\n", data.code, data.value);
                 break;
             }
         }
