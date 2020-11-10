@@ -68,8 +68,6 @@
 
 #include "singletouchkey.h"
 
-#include "exstubs.h"
-
 #define LEN_TOUCH_DEV     127
 
 static int sg_tp_event_fd = 0;
@@ -89,9 +87,9 @@ static void mouse_getxy (int *x, int* y)
 static int mouse_getbutton (void)
 {
     int button = 0;
-    if (MOUSEBUTTON == COMM_MOUSELBUTTON)
+    if (MOUSEBUTTON == IAL_MOUSE_LEFTBUTTON)
         button |= IAL_MOUSE_LEFTBUTTON;
-    else if (MOUSEBUTTON == COMM_MOUSERBUTTON)
+    else if (MOUSEBUTTON == IAL_MOUSE_RIGHTBUTTON)
         button |= IAL_MOUSE_RIGHTBUTTON;
 
     MOUSEBUTTON = 0;
@@ -111,7 +109,7 @@ static int singletouchkey_getdata (short *x, short *y, short *button)
             switch (data.code) {
             case BTN_TOUCH:
                 if (data.value > 0)
-                    *button = COMM_MOUSELBUTTON;
+                    *button = IAL_MOUSE_LEFTBUTTON;
                 else
                     *button = 0;
                 break;
@@ -133,7 +131,7 @@ static int singletouchkey_getdata (short *x, short *y, short *button)
 
             case ABS_MT_TOUCH_MAJOR:
                 if (data.value > 0)
-                    *button = COMM_MOUSELBUTTON;
+                    *button = IAL_MOUSE_LEFTBUTTON;
                 else
                     *button = 0;
                 break;
@@ -154,7 +152,7 @@ static int singletouchkey_getdata (short *x, short *y, short *button)
 
             case ABS_PRESSURE:
                 if (data.value > 0)
-                    *button = COMM_MOUSELBUTTON;
+                    *button = IAL_MOUSE_LEFTBUTTON;
                 else
                     *button = 0;
                 break;
