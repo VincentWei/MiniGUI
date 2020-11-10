@@ -43,11 +43,6 @@
  *   For more information about the commercial license, please refer to
  *   <http://www.minigui.com/blog/minigui-licensing-policy/>.
  */
-/*
-** comminput.c: Common Input Engine for eCos, uC/OS-II, VxWorks, ...
-**
-** Created by Zhong Shuyi, 2004/02/29
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,31 +102,12 @@ static int get_touch_data (short *x, short *y, short *button)
                 break;
 
             case ABS_MT_TOUCH_MAJOR:
-                if (data.value > 0)
-                    *button = IAL_MOUSE_LEFTBUTTON;
-                else
-                    *button = 0;
                 break;
 
             case ABS_MT_WIDTH_MAJOR:
                 break;
 
             case ABS_MT_TRACKING_ID:
-                break;
-
-            case ABS_X:
-                *x = data.value;
-                break;
-
-            case ABS_Y:
-                *y = data.value;
-                break;
-
-            case ABS_PRESSURE:
-                if (data.value > 0)
-                    *button = IAL_MOUSE_LEFTBUTTON;
-                else
-                    *button = 0;
                 break;
 
             default:
