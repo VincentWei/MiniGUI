@@ -4413,7 +4413,9 @@ static void travel_children_with_priv_cdc (struct _travel_context* ctxt)
 
     child = (PCONTROL)(ctxt->parent->children);
     while (child) {
+#ifdef _MGSCHEMA_COMPOSITING
         child->surf = ctxt->surface;
+#endif
 
         if (child->privCDC) {
             ctxt->cb (ctxt, child);
