@@ -67,8 +67,6 @@
 #include "gal.h"
 #include "native.h"
 
-const char* event_dev;
-
 static int  EVENT_Open(const char *);
 static void EVENT_Close(void);
 static void EVENT_GetModifierInfo(int *modifiers);
@@ -85,6 +83,7 @@ KBDDEVICE kbddev_event = {
     EVENT_Resume
 };
 
+static char* kbd_dev;
 static int kbd_fd;        /* file descriptor for keyboard */
 
 /*
@@ -144,6 +143,7 @@ static int EVENT_Open (const char *device)
     if (kbd_fd < 0)
         return -1;
 
+    kbd_dev = strdup (device);
     return kbd_fd;
 }
 
@@ -153,8 +153,11 @@ static int EVENT_Open (const char *device)
  */
 static void EVENT_Close(void)
 {
-    close(kbd_fd);
+    close (kbd_fd);
     kbd_fd = -1;
+
+    free (kbd_dev);
+    kbd_dev = NULL;
 }
 
 /*
@@ -203,7 +206,8 @@ static int EVENT_Read(unsigned char *buf, int *modifiers)
  */
 static void EVENT_Suspend(void)
 {
-    EVENT_Close();
+    close (kbd_fd);
+    kbd_fd = -1;
 }
 
 /* deactivate_keyboard:
@@ -211,10 +215,12 @@ static void EVENT_Suspend(void)
  */
 static int EVENT_Resume(void)
 {
-    kbd_fd = open (event_dev, O_NONBLOCK);
+    kbd_fd = open (kbd_dev, O_NONBLOCK);
     if (kbd_fd < 0) {
         return -1;
-    }else{
+    }
+    else {
         return kbd_fd;
     }
 }
+
