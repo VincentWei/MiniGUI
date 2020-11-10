@@ -102,9 +102,6 @@ static int get_touch_data (short *x, short *y, short *button)
                 _WRN_PRINTF ("unknow event code for EV_KEY event: 0x%x, 0x%x\n", data.code, data.value);
                 return -1;
             }
-
-            /* return immediately for EV_KEY */
-            return 0;
         }
         else if (data.type == EV_ABS) {
             switch (data.code) {
@@ -159,13 +156,10 @@ static void mouse_getxy (int *x, int* y)
 
 static int mouse_getbutton (void)
 {
-    int button = 0;
     if (MOUSEBUTTON == IAL_MOUSE_LEFTBUTTON)
-        button |= IAL_MOUSE_LEFTBUTTON;
-    else if (MOUSEBUTTON == IAL_MOUSE_RIGHTBUTTON)
-        button |= IAL_MOUSE_RIGHTBUTTON;
+        return IAL_MOUSE_LEFTBUTTON;
 
-    return button;
+    return 0;
 }
 
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
