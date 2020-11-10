@@ -132,6 +132,9 @@ build_console_ms3="no"
 build_console_gpm="no"
 build_text_mode="yes"
 
+dnl single touch key engines
+buid_singletouchkey_ial_engine="yes"
+
 dnl the customized ial engine
 build_dlcustom_ial_engine="no"
 build_custom_ial_engine="no"
@@ -476,6 +479,10 @@ build_dfb_ial_engine=$enableval)
 AC_ARG_ENABLE(libinputial,
 [  --enable-libinputial     build the IAL engine based on libinput <default=yes>],
 build_libinput_ial_engine=$enableval)
+
+AC_ARG_ENABLE(singletouchkey,
+[  --enable-singletouchkey  build the IAL engine based on single touch key <default=yes>],
+buid_singletouchkey_ial_engine=$enableval)
 
 AC_ARG_ENABLE(consoleial,
 [  --enable-consoleial      build the console (Linux console) IAL engine <default=yes>],
@@ -2015,6 +2022,11 @@ if test "x$build_libinput_ial_engine" = "xyes"; then
     fi
 fi
 
+if test "x$buid_singletouchkey_ial_engine" = "xyes"; then
+    AC_DEFINE(_MGIAL_SINGLETOUCHKEY, 1,
+            [Define if include single touch key IAL engine])
+fi
+
 if test "x$build_console_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_CONSOLE, 1,
             [Define if include console (Linux console) IAL engine])
@@ -2661,6 +2673,7 @@ AC_SUBST(MINIGUI_RUNMODE)
 AM_CONDITIONAL(MGRM_PROCESSES, test "x$runtime_mode" = "xprocs")
 AM_CONDITIONAL(MGRM_STANDALONE, test "x$runtime_mode" = "xsa")
 AM_CONDITIONAL(MGIAL_LIBINPUT, test "x$build_libinput_ial_engine" = "xyes")
+AM_CONDITIONAL(MGIAL_SINGLETOUCHKEY, test "x$buid_singletouchkey_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_CONSOLE, test "x$build_console_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_NEXUS, test "x$build_nexus_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_DLCUSTOM, test "x$build_dlcustom_ial_engine" = "xyes")
@@ -2777,6 +2790,7 @@ AC_MSG_NOTICE([
   * pc_xvfb:            ${enable_video_pc_xvfb}
   * usvfb:              ${enable_video_usvfb}
   * libinput:           ${build_libinput_ial_engine}
+  * singletouchkey:     ${buid_singletouchkey_ial_engine}
   * console:            ${build_console_ial_engine}
   * comm:               ${build_comm_ial_engine}
 
