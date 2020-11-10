@@ -70,9 +70,12 @@ static short MOUSEX = 0, MOUSEY = 0, MOUSEBUTTON = 0;
 
 static int get_touch_data (short *x, short *y, short *button)
 {
-    static struct input_event data;
+    struct input_event data;
 
-    while (read (sg_tp_event_fd, &data, sizeof (data)) == sizeof (data)) {
+    while (1) {
+        if (read (sg_tp_event_fd, &data, sizeof (data)) < sizeof (data))
+            return -1;
+
         if (data.type == EV_SYN && data.code == SYN_REPORT) {
             break;
         }
@@ -198,7 +201,7 @@ BOOL ial_InitSingleTouchKey (INPUT* input, const char* mdev, const char* mtype)
         return FALSE;
     }
 
-    sg_tp_event_fd = open (touch_dev, O_RDWR /*| O_NONBLOCK */);
+    sg_tp_event_fd = open (touch_dev, O_RDWR | O_NONBLOCK);
     if (sg_tp_event_fd < 0) {
         _WRN_PRINTF ("failed when opening touch event device: %s\n", touch_dev);
         return FALSE;
