@@ -67,7 +67,7 @@
 #include "gal.h"
 #include "native.h"
 
-static const char* event_dev;
+const char* event_dev;
 
 static int  EVENT_Open(const char *);
 static void EVENT_Close(void);

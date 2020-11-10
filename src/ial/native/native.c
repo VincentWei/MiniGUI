@@ -56,7 +56,6 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <linux/kd.h>
-#include <linux/keyboard.h>
 #include <errno.h>
 
 #include "common.h"
