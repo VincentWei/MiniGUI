@@ -1,4 +1,4 @@
-Version 5.0.0 (2019/03/30)
+Version 5.0.4 (2020/12/31)
 
 This is the first official release of MiniGUI 5.0.x, the stable version.
 
