@@ -70,33 +70,10 @@
 
 #define LEN_TOUCH_DEV     127
 
-static int sg_tp_event_fd = 0;
+static int sg_tp_event_fd = -1, sg_key_event_fd = -1;
 static short MOUSEX = 0, MOUSEY = 0, MOUSEBUTTON = 0;
 
-static int mouse_update (void)
-{
-    return 1;
-}
-
-static void mouse_getxy (int *x, int* y)
-{
-    *x = MOUSEX;
-    *y = MOUSEY;
-}
-
-static int mouse_getbutton (void)
-{
-    int button = 0;
-    if (MOUSEBUTTON == IAL_MOUSE_LEFTBUTTON)
-        button |= IAL_MOUSE_LEFTBUTTON;
-    else if (MOUSEBUTTON == IAL_MOUSE_RIGHTBUTTON)
-        button |= IAL_MOUSE_RIGHTBUTTON;
-
-    MOUSEBUTTON = 0;
-    return button;
-}
-
-static int singletouchkey_getdata (short *x, short *y, short *button)
+static int get_touch_data (short *x, short *y, short *button)
 {
     static struct input_event data;
 
@@ -167,11 +144,36 @@ static int singletouchkey_getdata (short *x, short *y, short *button)
     return 0;
 }
 
+static int mouse_update (void)
+{
+    if (get_touch_data (&MOUSEX, &MOUSEY, &MOUSEBUTTON) == 0)
+        return 1;
+
+    return 0;
+}
+
+static void mouse_getxy (int *x, int* y)
+{
+    *x = MOUSEX;
+    *y = MOUSEY;
+}
+
+static int mouse_getbutton (void)
+{
+    int button = 0;
+    if (MOUSEBUTTON == IAL_MOUSE_LEFTBUTTON)
+        button |= IAL_MOUSE_LEFTBUTTON;
+    else if (MOUSEBUTTON == IAL_MOUSE_RIGHTBUTTON)
+        button |= IAL_MOUSE_RIGHTBUTTON;
+
+    return button;
+}
+
 static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *except,
                 struct timeval *timeout)
 {
     fd_set rfds;
-    int retval;
+    int e;
     int retvalue = 0;
 
     if (!in) {
@@ -180,22 +182,29 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
     }
 
     FD_SET (sg_tp_event_fd, &rfds);
-
     if (sg_tp_event_fd > maxfd) 
         maxfd = sg_tp_event_fd;
 
-    retval = select (maxfd + 1, in, out, except, timeout);
-
-    if (retval > 0 && FD_ISSET (sg_tp_event_fd, &rfds))  {
-        if (singletouchkey_getdata (&MOUSEX, &MOUSEY, &MOUSEBUTTON) == 0)
-        {
-            retvalue = IAL_MOUSEEVENT;
-        }
-        else
-            retvalue = -1;
+    if (sg_key_event_fd >= 0) {
+        FD_SET (sg_key_event_fd, &rfds);
+        if (sg_key_event_fd > maxfd) 
+            maxfd = sg_key_event_fd;
     }
-    else if (retval < 0) {
+
+    e = select (maxfd + 1, in, out, except, timeout);
+    if (e > 0) {
+        if (FD_ISSET (sg_tp_event_fd, &rfds)) {
+            retvalue |= IAL_MOUSEEVENT;
+        }
+        else if (sg_key_event_fd >= 0 && FD_ISSET (sg_key_event_fd, &rfds)) {
+            retvalue |= IAL_KEYEVENT;
+        }
+    }
+    else if (e < 0) {
         retvalue = -1;
+    }
+    else {
+        retvalue = 0;
     }
 
     return retvalue;
@@ -205,18 +214,18 @@ BOOL ial_InitSingleTouchKey (INPUT* input, const char* mdev, const char* mtype)
 {
     char touch_dev[LEN_TOUCH_DEV + 1];
     if (GetMgEtcValue ("singletouchkey", "touch_dev", touch_dev, LEN_TOUCH_DEV) < 0) {
-        strcpy(touch_dev, "none");
+        strcpy (touch_dev, "none");
     }
 
     if (strcmp(touch_dev, "none") == 0)
     {
-        _WRN_PRINTF("IAL>No touch_dev defined.\n");
+        _WRN_PRINTF("IAL>SINGLETOUCHKEY: No touch_dev defined.\n");
         return FALSE;
     }
 
     sg_tp_event_fd = open (touch_dev, O_RDWR /*| O_NONBLOCK */);
     if (sg_tp_event_fd < 0) {
-        _WRN_PRINTF("IAL>SINGLETOUCHKEY: Failed when opening singletouchkey event device file\n");
+        _WRN_PRINTF("IAL>SINGLETOUCHKEY: Failed when opening touch event device: %s\n", touch_dev);
         return FALSE;
     }
 
@@ -241,7 +250,11 @@ BOOL ial_InitSingleTouchKey (INPUT* input, const char* mdev, const char* mtype)
 
 void TermSingleTouchKey (void)
 {
-    close (sg_tp_event_fd);
+    if (sg_tp_event_fd >= 0)
+        close (sg_tp_event_fd);
+
+    if (sg_key_event_fd >= 0)
+        close (sg_key_event_fd);
 }
 
 #endif /* _MGIAL_SINGLETOUCHKEY */
