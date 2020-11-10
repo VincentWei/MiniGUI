@@ -74,15 +74,15 @@ static int get_touch_data (short *x, short *y, short *button)
 
     while (read (sg_tp_event_fd, &data, sizeof (data)) == sizeof (data)) {
 
-        /* return for end of touch data sequece. */
+        /* return for end of event data sequece. */
         if (data.type == EV_SYN) {
             switch (data.code) {
             case SYN_REPORT:
             case SYN_MT_REPORT:
                 break;
+            case SYN_DROPPED:
             default:
                 _WRN_PRINTF ("unknow event code for EV_SYN event: 0x%x, 0x%x\n", data.code, data.value);
-                /* do not update */
                 return -1;
             }
 
@@ -174,22 +174,22 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
         FD_ZERO (in);
     }
 
-    FD_SET (sg_tp_event_fd, &rfds);
+    FD_SET (sg_tp_event_fd, in);
     if (sg_tp_event_fd > maxfd) 
         maxfd = sg_tp_event_fd;
 
     if (sg_key_event_fd >= 0) {
-        FD_SET (sg_key_event_fd, &rfds);
+        FD_SET (sg_key_event_fd, in);
         if (sg_key_event_fd > maxfd) 
             maxfd = sg_key_event_fd;
     }
 
     e = select (maxfd + 1, in, out, except, timeout);
     if (e > 0) {
-        if (FD_ISSET (sg_tp_event_fd, &rfds)) {
+        if (FD_ISSET (sg_tp_event_fd, in)) {
             retvalue |= IAL_MOUSEEVENT;
         }
-        else if (sg_key_event_fd >= 0 && FD_ISSET (sg_key_event_fd, &rfds)) {
+        else if (sg_key_event_fd >= 0 && FD_ISSET (sg_key_event_fd, in)) {
             retvalue |= IAL_KEYEVENT;
         }
     }
