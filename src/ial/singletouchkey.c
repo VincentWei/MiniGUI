@@ -74,8 +74,18 @@ static int get_touch_data (short *x, short *y, short *button)
 
     while (read (sg_tp_event_fd, &data, sizeof (data)) == sizeof (data)) {
 
-        if (data.type == EV_SYN && data.code == SYN_REPORT) {
-            /* return for end of touch data sequece. */
+        /* return for end of touch data sequece. */
+        if (data.type == EV_SYN) {
+            switch (data.code) {
+                case SYN_REPORT:
+                case SYN_MT_REPORT:
+                    break;
+                case SYN_DROPPED:
+                default:
+                    /* do not update */
+                    return -1;
+            }
+
             return 0;
         }
 
@@ -98,6 +108,14 @@ static int get_touch_data (short *x, short *y, short *button)
         }
         else if (data.type == EV_ABS) {
             switch (data.code) {
+            case ABS_X:
+                *x = data.value;
+                break;
+
+            case ABS_Y:
+                *y = data.value;
+                break;
+
             case ABS_MT_POSITION_X:
                 *x = data.value;
                 break;
@@ -117,7 +135,7 @@ static int get_touch_data (short *x, short *y, short *button)
 
             default:
                 _WRN_PRINTF ("unknow event code for EV_ABS event: %x, %x.\n", data.code, data.value);
-                return -1;
+                break;
             }
         }
     }
