@@ -3165,8 +3165,8 @@ HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
 
 HWND GUIAPI GetNextMainWindow (HWND hMainWnd)
 {
-    MG_CHECK_RET (hMainWnd == HWND_NULL || MG_IS_NORMAL_MAIN_WINDOW (hMainWnd),
-            HWND_INVALID);
+    MG_CHECK_RET (hMainWnd != HWND_NULL &&
+            !MG_IS_NORMAL_MAIN_WINDOW (hMainWnd), HWND_INVALID);
 
     return (HWND)SendMessage (HWND_DESKTOP,
             MSG_GETNEXTMAINWIN, (WPARAM)hMainWnd, 0L);
