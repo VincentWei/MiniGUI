@@ -4280,39 +4280,62 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  */
 #define WS_DISABLED         0x04000000L
 
-/* Main window states -- reserved for future use. */
-#define WS_MINIMIZE         0x02000000L
-#define WS_MAXIMIZE         0x01000000L
+/**
+ * \def WS_VSCROLL
+ * \brief Creates a window with vertical scroll bar.
+ */
+#define WS_VSCROLL          0x02000000L
 
-/* bits in this mask are reuse for main windows and controls;
-   bits have different meanings for main windows and controls.*/
-#define WS_REUSE_MASK           0x00E00000L
+/**
+ * \def WS_HSCROLL
+ * \brief Creates a window with horizontal scroll bar.
+ */
+#define WS_HSCROLL          0x01000000L
+
+/* bits in this mask are both for main window and controls */
+#define WS_BORDER_MASK      0x00F00000L
 
 /**
  * \def WS_DLGFRAME
  * \brief The main window has a fixed frame, i.e. user can not
  *        drag the border of the window.
  */
-#define WS_DLGFRAME             0x00800000L
+#define WS_DLGFRAME         0x00800000L
 
 /**
  * \def WS_THICKFRAME
  * \brief Creates a main window with thick frame.
  */
-#define WS_THICKFRAME           0x00400000L
+#define WS_THICKFRAME       0x00400000L
 
 /**
  * \def WS_THINFRAME
  * \brief Creates a main window with thin frame.
  */
-#define WS_THINFRAME            0x00200000L
+#define WS_THINFRAME        0x00200000L
+
+/**
+ * \def WS_BORDER
+ * \brief Creates a window with border.
+ */
+#define WS_BORDER           0x00100000L
+
+/* bits in this mask are reuse for main windows and controls;
+   bits have different meanings for main windows and controls.*/
+#define WS_MISC_MASK        0x000F0000L
+
+/**
+ * \def WS_CHILD
+ * \brief Indicates the window is a child.
+ */
+#define WS_CHILD            0x00080000L
 
 /**
  * \def WS_GROUP
  * \brief Indicates the control is the leader of a group.
  * \note This style is valid only for controls.
  */
-#define WS_GROUP                0x00800000L
+#define WS_GROUP            0x00040000L
 
 /**
  * \def WS_TABSTOP
@@ -4320,7 +4343,11 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  *        using Tab key.
  * \note This style is valid only for controls.
  */
-#define WS_TABSTOP              0x00400000L
+#define WS_TABSTOP          0x00020000L
+
+/* Main window states -- reserved for future use. */
+#define WS_MINIMIZE         0x00040000L
+#define WS_MAXIMIZE         0x00020000L
 
 /**
  * \def WS_ALWAYSTOP
@@ -4328,38 +4355,11 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  *
  * Since 5.0.0.
  */
-#define WS_ALWAYSTOP            0x00100000L
-
-/* bits in this mask are both for main windows and controls */
-#define WS_MISC_MASK            0x000F0000L
-
-/**
- * \def WS_CHILD
- * \brief Indicates the window is a child.
- */
-#define WS_CHILD                0x00080000L
-
-/**
- * \def WS_VSCROLL
- * \brief Creates a window with vertical scroll bar.
- */
-#define WS_VSCROLL              0x00040000L
-
-/**
- * \def WS_HSCROLL
- * \brief Creates a window with horizontal scroll bar.
- */
-#define WS_HSCROLL              0x00020000L
-
-/**
- * \def WS_BORDER
- * \brief Creates a window with border.
- */
-#define WS_BORDER               0x00010000L
+#define WS_ALWAYSTOP        0x00010000L
 
 /* Obsolete styles, back-compatibility definitions. */
-#define WS_OVERLAPPED           0x00000000L
-#define WS_ABSSCRPOS            0x00000000L
+#define WS_OVERLAPPED       0x00000000L
+#define WS_ABSSCRPOS        0x00000000L
 
 #define WS_MAINWIN_ONLY_MASK    (WS_CAPTIONBAR_MASK | WS_ALWAYSTOP)
 #define WS_CONTROL_ONLY_MASK    (WS_CTRLMASK)
