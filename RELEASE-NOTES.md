@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.5](#version-505)
+   + [What's new in version 5.0.5](#whats-new-in-version-505)
 - [Version 5.0.4](#version-504)
    + [What's new in version 5.0.4](#whats-new-in-version-504)
 - [Version 5.0.3](#version-503)
@@ -15,6 +17,21 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.5
+
+The MiniGUI development team announces the availability of MiniGUI 5.0.5,
+which is the bug fixing release of MiniGUI 5.0.x.
+
+### What's new in version 5.0.5
+
+In this version, we fixed some bugs and made some minor enhancements:
+
+* BUGFIXING:
+   - Adjust the constants for `WS_XXXX` macros to avoid duplicated values.
+
+Note that the binary backward-compatibility was broken. You should
+rebuild all MiniGUI applications.
 
 ## Version 5.0.4
 
