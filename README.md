@@ -1,6 +1,6 @@
 # MiniGUI
 
-A mature and proven cross-platform GUI system for embedded and smart IoT devices.
+A mature and proven cross-platform windowing system for embedded system and smart IoT devices.
 
 
 ## TABLE OF CONTENTS
@@ -45,7 +45,7 @@ MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
 windowing and GUI support system, which is especially fit for
 embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other
 traditional RTOSes, such as RT-Thread, FreeRTOS, RTEMS, VxWorks, ThreadX,
-Nucleus, pSOS, uC/OS-II, and OSE.
+Nucleus, pSOS, uC/OS-II, OSE, and others.
 
 This is the source tree of MiniGUI Core, which provides the windowing
 and graphics interfaces as well as a lot of standard controls (toolkit).
@@ -108,9 +108,9 @@ for examples:
 
 ### MiniGUI and HybridOS
 
-HybridOS is another large open source project initiated by FMSoft. It is
-a totally new open source operating system designed for smart IoT devices
-and cloud computing environment.
+[HybridOS](https://github.com/FMSoftCN/hybridos) is another large open source project
+initiated by FMSoft. It is a totally new open source operating system designed for
+embedded and smart IoT devices and cloud computing environment.
 
 In practice, MiniGUI and the software which are used to integrated with GPU
 constitute the graphics stack of HybridOS.
