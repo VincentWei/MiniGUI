@@ -635,6 +635,30 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
     if (mgTopmostLayer && mgTopmostLayer->cli_head)
         IsPaint = 1;
 
+    // add by gengyue for swtich layer <<<<<<<<
+    int cur_clientId = 0;
+    int idx_topmost = ServerGetTopmostZNodeOfType(mgTopmostLayer, ZOF_TYPE_NORMAL, &cur_clientId);
+    int znode_index = 0;
+    if(idx_topmost > 0)
+    {
+        // get the number of app in normal level
+        znode_index = ServerGetNextZNode(mgTopmostLayer, 0, &cur_clientId);
+        while(znode_index > 0)
+        {
+            ZNODEINFO znodeinfo;
+
+            if(ServerGetZNodeInfo(NULL, znode_index, &znodeinfo))
+            {
+                if((znodeinfo.type & ZOF_TYPE_MASK) == ZOF_TYPE_NORMAL)     // it the main window in normal level
+                {
+                    DO_COMPSOR_OP_ARGS (on_hiding_win, mgTopmostLayer, znode_index);
+                }
+            }
+            znode_index = ServerGetNextZNode(mgTopmostLayer, znode_index, &cur_clientId);
+        }
+    }
+    // >>>>>>>>> add by gengyue for swtich layer
+
     mgTopmostLayer = layer;
     CHANGE_TOPMOST_LAYER (layer);
 
@@ -648,6 +672,30 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
 
         client = client->next;
     }
+
+    // add by gengyue for swtich layer <<<<<<<<
+    cur_clientId = 0;
+    idx_topmost = ServerGetTopmostZNodeOfType(mgTopmostLayer, ZOF_TYPE_NORMAL, &cur_clientId);
+    znode_index = 0;
+    if(idx_topmost > 0)
+    {
+        // get the number of app in normal level
+        znode_index = ServerGetNextZNode(mgTopmostLayer, 0, &cur_clientId);
+        while(znode_index > 0)
+        {
+            ZNODEINFO znodeinfo;
+
+            if(ServerGetZNodeInfo(NULL, znode_index, &znodeinfo))
+            {
+                if((znodeinfo.type & ZOF_TYPE_MASK) == ZOF_TYPE_NORMAL)     // it the main window in normal level
+                {
+                    DO_COMPSOR_OP_ARGS (on_showing_win, mgTopmostLayer, znode_index);
+                }
+            }
+            znode_index = ServerGetNextZNode(mgTopmostLayer, znode_index, &cur_clientId);
+        }
+    }
+    // >>>>>>>>> add by gengyue for swtich layer
 
     /* Notify that a new topmost layer have been set. */
     if (OnChangeLayer)
