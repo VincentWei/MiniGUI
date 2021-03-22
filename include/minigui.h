@@ -1600,7 +1600,7 @@ typedef struct _CompositorOps {
      * a main window with the extended style WS_EX_AUTOPOSITION.
      */
     void (*calc_mainwin_pos) (CompositorCtxt* ctxt, MG_Layer* layer,
-            DWORD zt_type, int first_for_type, CALCPOSINFO* info);
+            DWORD zt_type, int first_for_type, CALCPOSINFO* info, int cli);
 
     /**
      * This operation will be called when there was a layer operation.

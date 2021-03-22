@@ -4410,7 +4410,7 @@ static int dskCalculateDefaultPosition (int cli, CALCPOSINFO* info)
 
 #ifdef _MGSCHEMA_COMPOSITING   /* not defined _MGSCHEMA_COMPOSITING */
     DO_COMPSOR_OP_ARGS (calc_mainwin_pos,
-            __mg_get_layer_from_zi(zi), zt_type, first, info);
+            __mg_get_layer_from_zi(zi), zt_type, first, info, cli);
 #else   /* defined _MGSCHEMA_COMPOSITING */
     /* give a default size first */
     if (IsRectEmpty (&info->rc)) {
