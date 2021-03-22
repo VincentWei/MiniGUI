@@ -9992,7 +9992,7 @@ typedef Uint16 BreakOppo;
  * allocated by this function if it allocates the buffer.
  *
  * \param lang_code The language code; not used so far, reserved for future.
- * \param ctr The character transformation rule; see \a char_transform_rule.
+ * \param ctr The character transformation rule; see \a char_transform_rules.
  * \param wbr The word breaking rule; see \a word_break_rules.
  * \param lbp The line breaking policy; see \a line_break_policies.
  * \param ucs The Uchar32 string.
@@ -10017,7 +10017,7 @@ typedef Uint16 BreakOppo;
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa DrawGlyphStringEx, word_break_rules, char_transform_rule,
+ * \sa DrawGlyphStringEx, word_break_rules, char_transform_rules,
  *      line_break_policies
  */
 MG_EXPORT int GUIAPI UStrGetBreaks(LanguageCode lang_code,
@@ -13035,7 +13035,7 @@ MG_EXPORT int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
  *
  * \note Only available when support for UNICODE is enabled.
  *
- * \sa DrawGlyphStringEx, white_space_rules, char_transform_rule
+ * \sa DrawGlyphStringEx, white_space_rules, char_transform_rules
  *
  * Since 4.0.0
  */
