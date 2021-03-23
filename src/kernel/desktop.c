@@ -2959,7 +2959,7 @@ static int dskShowWindow (int cli, int idx_znode)
         return -1;
     }
 
-    nodes = GET_ZORDERNODE(__mg_zorder_info);
+    nodes = GET_ZORDERNODE(zi);
     type = nodes [idx_znode].flags & ZOF_TYPE_MASK;
     level = ZOF_TYPE_TO_LEVEL_IDX (type);
     if (MG_UNLIKELY (level < 0 || level > ZLIDX_LAUNCHER)) {
@@ -3539,6 +3539,7 @@ static int dskEnableZOrderNode (int cli, int idx_znode, int flags)
 }
 
 /*======================== customize desktop =========================*/
+#ifndef _MGSCHEMA_COMPOSITING
 static void
 def_paint_desktop (void* context, HDC dc_desktop, const RECT* inv_rc)
 {
@@ -3574,6 +3575,7 @@ def_paint_desktop (void* context, HDC dc_desktop, const RECT* inv_rc)
 
     SyncUpdateDC (dc_desktop);
 }
+#endif /* !_MGSCHEMA_COMPOSITING */
 
 static inline void def_keyboard_handler (void* context,
         int message, WPARAM wParam, LPARAM lParam)
@@ -3783,7 +3785,11 @@ static DESKTOPOPS def_dsk_ops =
 {
     def_init,
     def_deinit,
+#ifdef _MGSCHEMA_COMPOSITING
+    NULL,
+#else
     def_paint_desktop,
+#endif
     def_keyboard_handler,
     def_mouse_handler,
     def_customize_desktop_menu,
@@ -4410,7 +4416,7 @@ static int dskCalculateDefaultPosition (int cli, CALCPOSINFO* info)
 
 #ifdef _MGSCHEMA_COMPOSITING   /* not defined _MGSCHEMA_COMPOSITING */
     DO_COMPSOR_OP_ARGS (calc_mainwin_pos,
-            __mg_get_layer_from_zi(zi), zt_type, first, info);
+            __mg_get_layer_from_zi(zi), zt_type, first, cli, info);
 #else   /* defined _MGSCHEMA_COMPOSITING */
     /* give a default size first */
     if (IsRectEmpty (&info->rc)) {
