@@ -494,25 +494,7 @@ static MG_Layer* alloc_layer (const char* layer_name,
         OnChangeLayer (LCO_NEW_LAYER, new_layer, NULL);
     DO_COMPSOR_OP_ARGS (on_layer_op, LCO_NEW_LAYER, new_layer, NULL);
 
-    mgTopmostLayer = new_layer;
-
-    _DBG_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n",
-            mgTopmostLayer->zorder_info);
-
-    /* Topmost layer changed */
-    CHANGE_TOPMOST_LAYER(mgTopmostLayer);
-
-    __mg_do_change_topmost_layer ();
-    _DBG_PRINTF ("SERVER: alloc_layer, mgTopmostLayer->zi = %p\n",
-            mgTopmostLayer->zorder_info);
-
-    /* Notify that a new topmost layer have been set. */
-    if (OnChangeLayer)
-        OnChangeLayer (LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
-    DO_COMPSOR_OP_ARGS (on_layer_op, LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
-
-    PostMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, 0);
-
+    ServerSetTopmostLayer (new_layer);
     return new_layer;
 }
 
@@ -623,8 +605,7 @@ void __mg_client_join_layer (int cli,
 
 BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
 {
-    MG_Client* client;
-    unsigned int IsPaint = 0;
+    MG_Layer* old_topmost = mgTopmostLayer;
 
     if (!mgIsServer)
         return FALSE;
@@ -632,31 +613,44 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
     if (layer == mgTopmostLayer)
         return TRUE;        // return TRUE for already topmost layer
 
-    if (mgTopmostLayer && mgTopmostLayer->cli_head)
-        IsPaint = 1;
+#ifdef _MGSCHEMA_COMPOSITING
+    __mg_prepare_layer_for_compositing (layer);
+    DO_COMPSOR_OP_ARGS (transit_to_layer, layer);
+#endif
 
     mgTopmostLayer = layer;
     CHANGE_TOPMOST_LAYER (layer);
 
     __mg_do_change_topmost_layer ();
 
-    client = layer->cli_head;
-    while (client) {
-        MSG msg = {0, MSG_PAINT, 0, 0, __mg_tick_counter};
-
-        __mg_send2client (&msg, client);
-
-        client = client->next;
+#ifdef _MGSCHEMA_COMPOSITING
+    if (old_topmost) {
+        __mg_prepare_layer_for_compositing (old_topmost);
     }
+#else
+    {
+        MG_Client* client;
+        client = layer->cli_head;
+        while (client) {
+            MSG msg = {0, MSG_PAINT, 0, 0, __mg_tick_counter};
+
+            __mg_send2client (&msg, client);
+
+            client = client->next;
+        }
+    }
+#endif
 
     /* Notify that a new topmost layer have been set. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
     DO_COMPSOR_OP_ARGS (on_layer_op, LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
 
-    if (IsPaint) {
+#ifndef _MGSCHEMA_COMPOSITING
+    if (old_topmost && old_topmost->cli_head)
         SendMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
     }
+#endif
 
     return TRUE;
 }
