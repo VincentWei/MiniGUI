@@ -532,7 +532,7 @@ static void rebuild_wins_region (CompositorCtxt* ctxt)
 }
 
 static void calc_mainwin_pos (CompositorCtxt* ctxt, MG_Layer* layer,
-            DWORD zt_type, int first_for_type, CALCPOSINFO* info)
+            DWORD zt_type, int first_for_type, int cli, CALCPOSINFO* info)
 {
     /* give a default size first */
     if (IsRectEmpty (&info->rc)) {
@@ -799,17 +799,17 @@ static void on_closed_menu (CompositorCtxt* ctxt, const RECT* rc_bound)
 
 static void on_showing_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
 {
-    CLIPRGN* rgn;
+    CLIPRGN* rgn = NULL;
 
-    // the fallback compositor only manages znodes on the topmost layer.
-    if (layer != mgTopmostLayer)
-        return;
+    _DBG_PRINTF ("called: %d for layer %s\n", zidx, layer->name);
 
-    _DBG_PRINTF ("called: %d\n", zidx);
-    rgn = mg_slice_new (CLIPRGN);
-    InitClipRgn (rgn, &ctxt->cliprc_heap);
-    ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
-    ServerSetWinZNodePrivateData (layer, zidx, rgn);
+    ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
+    if (rgn == NULL) {
+        rgn = mg_slice_new (CLIPRGN);
+        InitClipRgn (rgn, &ctxt->cliprc_heap);
+        ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+        ServerSetWinZNodePrivateData (layer, zidx, rgn);
+    }
 }
 
 static void on_hiding_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
@@ -817,18 +817,16 @@ static void on_hiding_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn = NULL;
 
-    // the fallback compositor only manages znodes on the topmost layer.
-    if (layer != mgTopmostLayer)
-        return;
+    _DBG_PRINTF ("called: %d for layer %s\n", zidx, layer->name);
 
-    _DBG_PRINTF ("called: %d\n", zidx);
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
     assert (znode_hdr);
 
-    assert (rgn);
-    EmptyClipRgn (rgn);
-    mg_slice_delete (CLIPRGN, rgn);
-    ServerSetWinZNodePrivateData (layer, zidx, NULL);
+    if (rgn) {
+        EmptyClipRgn (rgn);
+        mg_slice_delete (CLIPRGN, rgn);
+        ServerSetWinZNodePrivateData (layer, zidx, NULL);
+    }
 }
 
 /* for both on_raised_win and on_changed_ct */
@@ -920,6 +918,14 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
         composite_on_dirty_region (ctxt, zidx);
 }
 
+static void on_layer_op (CompositorCtxt* ctxt, int layer_op,
+            MG_Layer* layer, MG_Client* client)
+{
+    if (layer_op == LCO_TOPMOST_CHANGED) {
+        refresh (ctxt);
+    }
+}
+
 CompositorOps __mg_fallback_compositor = {
     initialize: initialize,
     terminate: terminate,
@@ -942,6 +948,7 @@ CompositorOps __mg_fallback_compositor = {
     on_changed_ct: refresh_win,
     on_changed_rgn: on_changed_rgn,
     on_moved_win: on_moved_win,
+    on_layer_op: on_layer_op,
 };
 
 #endif /* defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING) */
