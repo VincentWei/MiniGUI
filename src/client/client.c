@@ -569,12 +569,23 @@ GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
 
         __mg_layer = layer_handle;
 
-        zi  = (ZORDERINFO*) shmat (joined_info.zo_shmid, 0, SHM_RDONLY);
+        zi  = (ZORDERINFO*) shmat (joined_info.zi_shmid, 0, SHM_RDONLY);
         if (zi == (void*)-1) {
             return INV_LAYER_HANDLE;
         }
 
         __mg_zorder_info = zi;
+        if (joined_info.zi_shmid == joined_info.def_zi_shmid) {
+            __mg_def_zorder_info = zi;
+        }
+        else {
+            zi  = (ZORDERINFO*) shmat (joined_info.def_zi_shmid, 0, SHM_RDONLY);
+            if (zi == (void*)-1) {
+                return INV_LAYER_HANDLE;
+            }
+
+            __mg_def_zorder_info = zi;
+        }
     }
 
     __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
@@ -694,6 +705,8 @@ BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
 {
     if (layer_handle != INV_LAYER_HANDLE) {
         ZORDERINFO* zi;
+        ZORDERNODE* nodes;
+        int slot;
 
         __mg_layer = INV_LAYER_HANDLE;
         __mg_zorder_info = NULL;
@@ -711,6 +724,35 @@ BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
 
         __mg_layer = layer_handle;
         __mg_zorder_info = zi;
+
+        /* Since 5.0.6: change znode index of general window for this client */
+        nodes = GET_ZORDERNODE(zi);
+        slot = zi->first_tooltip;
+        for (; slot > 0; slot = nodes[slot].next) {
+            if (nodes [slot].cli == __mg_client_id) {
+                PMAINWIN win = (PMAINWIN)nodes [slot].hwnd;
+                assert (win);
+                win->idx_znode = slot;
+            }
+        }
+
+        slot = zi->first_topmost;
+        for (; slot > 0; slot = nodes[slot].next) {
+            if (nodes [slot].cli == __mg_client_id) {
+                PMAINWIN win = (PMAINWIN)nodes [slot].hwnd;
+                assert (win);
+                win->idx_znode = slot;
+            }
+        }
+
+        slot = zi->first_normal;
+        for (; slot > 0; slot = nodes[slot].next) {
+            if (nodes [slot].cli == __mg_client_id) {
+                PMAINWIN win = (PMAINWIN)nodes [slot].hwnd;
+                assert (win);
+                win->idx_znode = slot;
+            }
+        }
         return TRUE;
     }
 
