@@ -1743,6 +1743,15 @@ int __mg_do_change_topmost_layer (void)
     __mg_zorder_info->nr_launchers = old_zorder_info->nr_launchers;
     __mg_zorder_info->first_launcher = old_zorder_info->first_launcher;
 
+    old_zorder_info->nr_globals = 0;
+    old_zorder_info->first_global = 0;
+    old_zorder_info->nr_screenlocks = 0;
+    old_zorder_info->first_screenlock = 0;
+    old_zorder_info->nr_dockers = 0;
+    old_zorder_info->first_docker = 0;
+    old_zorder_info->nr_launchers = 0;
+    old_zorder_info->first_launcher = 0;
+
     if (old_zorder_info->active_win <= MAX_NR_SPECIAL_ZNODES (__mg_zorder_info)) {
         __mg_zorder_info->active_win = old_zorder_info->active_win;
     }
@@ -1755,6 +1764,7 @@ int __mg_do_change_topmost_layer (void)
     memcpy (new_use_bmp, old_use_bmp, LEN_USAGE_BMP_SPECIAL (old_zorder_info));
     memcpy (new_nodes, old_nodes,
             sizeof(ZORDERNODE) * MAX_NR_SPECIAL_ZNODES (old_zorder_info));
+    memset (old_use_bmp, 0xFF, LEN_USAGE_BMP_SPECIAL (old_zorder_info));
 
 #ifndef _MGSCHEMA_COMPOSITING
     for (i = 0; i <= MAX_NR_SPECIAL_ZNODES (old_zorder_info); i++) {
@@ -2589,15 +2599,22 @@ BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* dst_layer,
     dst_nodes = GET_ZORDERNODE(dst_zi);
 
     if (copy_special) {
+        unsigned char *src_use_bmp = (unsigned char*)src_zi + sizeof (ZORDERINFO);
+        unsigned char *dst_use_bmp = (unsigned char*)dst_zi + sizeof (ZORDERINFO);
+
         if (src_zi->first_screenlock > 0 &&
                 src_nodes [src_zi->first_screenlock].cli == cli) {
             slot = src_zi->first_screenlock;
             for (; slot > 0; slot = src_nodes [slot].next) {
                 memcpy (dst_nodes + slot, src_nodes + slot, sizeof(ZORDERNODE));
+                __mg_slot_clear_use (src_use_bmp, slot);
+                __mg_slot_set_use (dst_use_bmp, slot);
             }
 
             dst_zi->first_screenlock = src_zi->first_screenlock;
             dst_zi->nr_screenlocks = src_zi->nr_screenlocks;
+            src_zi->first_screenlock = 0;
+            src_zi->nr_screenlocks = 0;
         }
 
         if (src_zi->first_docker > 0 &&
@@ -2605,10 +2622,14 @@ BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* dst_layer,
             slot = src_zi->first_docker;
             for (; slot > 0; slot = src_nodes [slot].next) {
                 memcpy (dst_nodes + slot, src_nodes + slot, sizeof(ZORDERNODE));
+                __mg_slot_clear_use (src_use_bmp, slot);
+                __mg_slot_set_use (dst_use_bmp, slot);
             }
 
             dst_zi->first_docker = src_zi->first_docker;
             dst_zi->nr_dockers = src_zi->nr_dockers;
+            src_zi->first_docker = 0;
+            src_zi->nr_dockers = 0;
         }
 
         if (src_zi->first_launcher > 0 &&
@@ -2616,10 +2637,14 @@ BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* dst_layer,
             slot = src_zi->first_launcher;
             for (; slot > 0; slot = src_nodes [slot].next) {
                 memcpy (dst_nodes + slot, src_nodes + slot, sizeof(ZORDERNODE));
+                __mg_slot_clear_use (src_use_bmp, slot);
+                __mg_slot_set_use (dst_use_bmp, slot);
             }
 
             dst_zi->first_launcher = src_zi->first_launcher;
             dst_zi->nr_launchers = src_zi->nr_launchers;
+            src_zi->first_launcher = 0;
+            src_zi->nr_launchers = 0;
         }
     }
 
