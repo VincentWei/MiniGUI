@@ -1640,6 +1640,61 @@ int __mg_remove_all_znodes_of_client (int cli)
     return 0;
 }
 
+#ifdef _MGSCHEMA_COMPOSITING
+int __mg_prepare_layer_for_compositing (MG_Layer* layer)
+{
+    ZORDERINFO* zi = layer->zorder_info;
+    ZORDERNODE *nodes;
+    int slot, nr_shown = 0;
+
+    nodes = GET_ZORDERNODE(zi);
+    slot = zi->first_topmost;
+    for (; slot > 0; slot = nodes [slot].next) {
+        if (nodes [slot].flags & ZOF_VISIBLE) {
+            DO_COMPSOR_OP_ARGS (on_showing_win, layer, slot);
+            nr_shown++;
+        }
+    }
+
+    slot = zi->first_normal;
+    for (; slot > 0; slot = nodes [slot].next) {
+        if (nodes [slot].flags & ZOF_VISIBLE) {
+            DO_COMPSOR_OP_ARGS (on_showing_win, layer, slot);
+            nr_shown++;
+        }
+    }
+
+    return nr_shown;
+}
+
+int __mg_end_up_layer_for_compositing (MG_Layer* layer)
+{
+    ZORDERINFO* zi = layer->zorder_info;
+    ZORDERNODE *nodes;
+    int slot, nr_hidden = 0;
+
+    nodes = GET_ZORDERNODE(zi);
+    slot = zi->first_topmost;
+    for (; slot > 0; slot = nodes [slot].next) {
+        if (nodes [slot].flags & ZOF_VISIBLE) {
+            DO_COMPSOR_OP_ARGS (on_hiding_win, layer, slot);
+            nr_hidden++;
+        }
+    }
+
+    slot = zi->first_normal;
+    for (; slot > 0; slot = nodes [slot].next) {
+        if (nodes [slot].flags & ZOF_VISIBLE) {
+            DO_COMPSOR_OP_ARGS (on_hiding_win, layer, slot);
+            nr_hidden++;
+        }
+    }
+
+    return nr_hidden;
+}
+
+#endif /* _MGSCHEMA_COMPOSITING */
+
 int __mg_do_change_topmost_layer (void)
 {
     ZORDERINFO* old_zorder_info = __mg_zorder_info;
@@ -1686,7 +1741,7 @@ int __mg_do_change_topmost_layer (void)
     /* Since 5.0.0: check clients which created special znodes */
     {
         int slot;
-        int cli_moving[3] = { 0 }, nr_clients = 0, i;
+        int cli_moving[4] = { 0 }, nr_clients = 0, i;
         MG_Layer* dst_layer = mgTopmostLayer;
         MSG msg = { HWND_DESKTOP,
                 MSG_LAYERCHANGED, (WPARAM)dst_layer,
