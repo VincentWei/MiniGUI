@@ -85,7 +85,7 @@ static int sg_nr_layers = 0;
 static unsigned char sem_usage [(MAX_NR_LAYERS + 7)/8];
 
 static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
-                int nr_topmosts, int nr_normals)
+                int nr_topmosts, int nr_normals, BOOL with_maskrc_heap)
 {
     ZORDERINFO* zi;
     ZORDERNODE* znodes;
@@ -98,7 +98,8 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     size_usage_bmp = SIZE_USAGE_BMP (SHAREDRES_NR_GLOBALS,
             nr_topmosts, nr_normals);
 
-    layer->zorder_shmid = __kernel_alloc_z_order_info (nr_topmosts, nr_normals);
+    layer->zorder_shmid = __kernel_alloc_z_order_info (nr_topmosts,
+            nr_normals, with_maskrc_heap);
 
     if (layer->zorder_shmid == -1)
         return FALSE;
@@ -111,18 +112,17 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     if (shmctl (layer->zorder_shmid, IPC_RMID, NULL) < 0)
         return FALSE;
 
-#if 0
-    zi = __kernel_alloc_z_order_info (nr_topmosts, nr_normals);
-    if (zi == NULL)
-        return FALSE;
-#endif
-
     strcpy (layer->name, name);
 
     layer->zorder_info = zi;
 
     zi->size_usage_bmp = size_usage_bmp;
-    zi->size_maskrect_usage_bmp = SIZE_MASKRECT_USAGE_BMP;
+    if (with_maskrc_heap) {
+        zi->size_maskrect_usage_bmp = SIZE_MASKRECT_USAGE_BMP;
+    }
+    else {
+        zi->size_maskrect_usage_bmp = 0;
+    }
 
     _DBG_PRINTF("size_zi:%lu, size_znode:%lu,"
             " size_usage_bmp:%d, size_maskrect_usage_bmp:%d\n",
@@ -189,10 +189,15 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     }
 #endif  /* deprectated code */
 
+    /* init usage bitmap. */
     memset (zi + 1, 0xFF, size_usage_bmp);
-    /* get a unused mask rect slot. */
-    maskrect_usage_bmp = GET_MASKRECT_USAGEBMP(zi);
-    memset (maskrect_usage_bmp, 0xFF, zi->size_maskrect_usage_bmp);
+    __mg_slot_set_use ((unsigned char*)(zi + 1), 0);
+
+    if (with_maskrc_heap) {
+        maskrect_usage_bmp = GET_MASKRECT_USAGEBMP(zi);
+        memset (maskrect_usage_bmp, 0xFF, zi->size_maskrect_usage_bmp);
+        __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
+    }
 
     /* init z-order node for desktop */
     znodes = GET_ZORDERNODE(zi);
@@ -212,9 +217,6 @@ static BOOL do_alloc_layer (MG_Layer* layer, const char* name,
     /*for mask rect.*/
     znodes [0].idx_mask_rect = 0;
     znodes [0].priv_data = NULL;
-
-    __mg_slot_set_use ((unsigned char*)(zi + 1), 0);
-    __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
 #if 0   /* deprecated code */
     /* Since 5.0.0; allocate znodes for other fixed main windows */
@@ -427,13 +429,15 @@ int __mg_init_layers ()
 
     /* allocate the first layer for the default layer. */
     if (!do_alloc_layer (mgLayers, NAME_DEF_LAYER,
-                    SHAREDRES_DEF_NR_TOPMOSTS, SHAREDRES_DEF_NR_NORMALS)) {
+                    SHAREDRES_DEF_NR_TOPMOSTS, SHAREDRES_DEF_NR_NORMALS,
+                    TRUE)) {
 
         free (mgLayers);
         mgLayers = NULL;
         return -1;
     }
 
+    __mg_def_zorder_info = mgLayers->zorder_info;
     __mg_zorder_info = mgLayers->zorder_info;
 
     return semid;
@@ -456,6 +460,7 @@ void __mg_cleanup_layers (void)
     mgLayers = NULL;
     mgTopmostLayer = NULL;
     __mg_zorder_info = NULL;
+    __mg_def_zorder_info = NULL;
 }
 
 /* allocate a layer slot from the layer pool for the new layer */
@@ -471,7 +476,7 @@ static MG_Layer* alloc_layer (const char* layer_name,
     if (!(new_layer = calloc (1, sizeof (MG_Layer))))
         return NULL;
 
-    if (!do_alloc_layer (new_layer, layer_name, nr_topmosts, nr_normals)) {
+    if (!do_alloc_layer (new_layer, layer_name, nr_topmosts, nr_normals, FALSE)) {
         free (new_layer);
         return NULL;
     }
@@ -556,10 +561,15 @@ static void do_client_join_layer (int cli,
 {
     MG_Layer* layer = (MG_Layer*)(joined_info->layer);
     MG_Client* new_client = mgClients + cli;
+    MG_Layer* def_layer = __mg_find_layer_by_name (NAME_DEF_LAYER);
+
+    assert (def_layer);
+    joined_info->def_zi_shmid = def_layer->zorder_shmid;
 
     if (new_client->layer == layer) {   /* duplicated calling of JoinLayer */
+
         joined_info->cli_id = cli;
-        joined_info->zo_shmid = layer->zorder_shmid;
+        joined_info->zi_shmid = layer->zorder_shmid;
         return;
     }
 
@@ -582,7 +592,7 @@ static void do_client_join_layer (int cli,
     layer->cli_head = new_client;
 
     joined_info->cli_id = cli;
-    joined_info->zo_shmid = layer->zorder_shmid;
+    joined_info->zi_shmid = layer->zorder_shmid;
 }
 
 /* Join a client to a layer, the server side of JoinLayer */
@@ -647,7 +657,7 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
     DO_COMPSOR_OP_ARGS (on_layer_op, LCO_TOPMOST_CHANGED, mgTopmostLayer, NULL);
 
 #ifndef _MGSCHEMA_COMPOSITING
-    if (old_topmost && old_topmost->cli_head)
+    if (old_topmost && old_topmost->cli_head) {
         SendMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
     }
 #endif
@@ -680,7 +690,7 @@ MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
     max_nr_topmosts = (max_nr_topmosts + 7) & ~0x07;
     max_nr_normals = (max_nr_normals + 7) & ~0x07;
 
-    if (!do_alloc_layer (new_layer, layer_name, max_nr_topmosts, max_nr_normals)) {
+    if (!do_alloc_layer (new_layer, layer_name, max_nr_topmosts, max_nr_normals, 0)) {
         free (new_layer);
         return NULL;
     }
@@ -1128,7 +1138,7 @@ BOOL GUIAPI ServerMoveClientToLayer (int cli, MG_Layer* dst_layer)
         return TRUE;
     }
 
-    if (__mg_move_client_to_layer (client, dst_layer)) {
+    if (__mg_move_client_to_layer (client, dst_layer, TRUE)) {
         MSG msg = { HWND_DESKTOP,
                 MSG_LAYERCHANGED, (WPARAM)dst_layer,
                 (LPARAM)dst_layer->zorder_shmid, __mg_tick_counter };

@@ -171,7 +171,7 @@ void __mg_check_dirty_znode (int cli);
 static inline void __mg_check_dirty_znode (int cli) {}
 #endif
 
-BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* layer);
+BOOL __mg_move_client_to_layer (MG_Client* client, MG_Layer* layer, BOOL copy_special);
 
 #ifdef __cplusplus
 }

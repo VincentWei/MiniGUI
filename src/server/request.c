@@ -334,7 +334,7 @@ static int move_to_layer (int cli, int clifd, void* buff, size_t len)
     if (!__mg_is_valid_layer (dst_layer))
         goto ret;
 
-    if (__mg_move_client_to_layer (mgClients + cli, dst_layer)) {
+    if (__mg_move_client_to_layer (mgClients + cli, dst_layer, TRUE)) {
         moved_info.layer = dst_layer;
         moved_info.zo_shmid = dst_layer->zorder_shmid;
     }

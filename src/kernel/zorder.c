@@ -100,7 +100,7 @@ inline static key_t get_layer_shm_key (void)
 }
 #endif  /* defined _MGRM_PROCESSES */
 
-int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
+int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals, BOOL with_maskrc_heap)
 {
 #ifdef _MGRM_PROCESSES
     int size_usage_bmp = SIZE_USAGE_BMP (SHAREDRES_NR_GLOBALS,
@@ -125,8 +125,8 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
                 nr_normals +            /* for the normal windows */
                 DEF_NR_LAUNCHERS +      /* for the launcher ones */
                 NR_FIXED_ZNODES) +      /* for the fixed znodes */
-            SIZE_MASKRECT_USAGE_BMP +
-            sizeof (MASKRECT) * DEF_NR_MASKRECT,
+            with_maskrc_heap ? (SIZE_MASKRECT_USAGE_BMP +
+            sizeof (MASKRECT) * DEF_NR_MASKRECTS) : 0,
             SHM_PARAM | IPC_CREAT | IPC_EXCL);
 
     return zorder_shmid;
@@ -150,7 +150,7 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
                 DEF_NR_LAUNCHERS +      /* for the launcher ones */
                 NR_FIXED_ZNODES) +      /* for the fixed znodes */
             SIZE_MASKRECT_USAGE_BMP +
-            sizeof (MASKRECT) * DEF_NR_MASKRECT);
+            sizeof (MASKRECT) * DEF_NR_MASKRECTS);
 
     if (!__mg_zorder_info) {
         _MG_PRINTF ("KERNEL>ZOrder: calloc zorderinfo failure. \n");
@@ -214,6 +214,8 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
     __mg_slot_set_use ((unsigned char*)(__mg_zorder_info + 1), 0);
     __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
 
+    __mg_def_zorder_info = __mg_zorder_info;
+
 #if 0   /* deprecated code */
     /* Since 5.0.0; allocate znodes for other fixed main windows */
     {
@@ -270,134 +272,7 @@ void __kernel_free_z_order_info (ZORDERINFO* zi)
 #endif
     free (zi);
     __mg_zorder_info = NULL;
+    __mg_def_zorder_info = NULL;
 #endif
 }
-
-#if 0   /* deprecated code */
-#if IS_SHAREDFB_SCHEMA_PROCS
-
-int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
-{
-    key_t shm_key;
-    int zorder_shmid;
-
-    if ((shm_key = get_layer_shm_key ()) == -1) {
-        return -1;
-    }
-
-    zorder_shmid = shmget (shm_key,
-                sizeof (ZORDERINFO) + SIZE_USAGE_BMP +
-                sizeof (ZORDERNODE) *
-                        (DEF_NR_POPUPMENUS + /* for the popup menus */
-                        SHAREDRES_NR_GLOBALS + /* for the global windows */
-                        nr_topmosts +       /* for the topmost windows */
-                        nr_normals)+        /* for the normal windows */
-                        SIZE_MASKRECT_USAGE_BMP +
-                sizeof (MASKRECT) * DEF_NR_MASKRECT,
-                SHM_PARAM | IPC_CREAT | IPC_EXCL);
-
-    return zorder_shmid;
-}
-
-#else /* not IS_SHAREDFB_SCHEMA_PROCS */
-
-ZORDERINFO* __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals)
-{
-    ZORDERINFO* zi;
-    ZORDERNODE* znodes;
-    void* maskrect_usage_bmp;
-
-    zi = (PZORDERINFO) calloc (1,
-                sizeof (ZORDERINFO) + SIZE_USAGE_BMP +
-                    sizeof (ZORDERNODE) *
-                            (DEF_NR_POPUPMENUS +    /* for the popup menus */
-                            SHAREDRES_NR_GLOBALS +  /* for global window: 0 */
-                            nr_topmosts +           /* for the topmost windows */
-                            nr_normals)+            /* for the normal windows */
-                            SIZE_MASKRECT_USAGE_BMP +
-                    sizeof (MASKRECT) * DEF_NR_MASKRECT);
-
-    if (!zi) {
-        _WRN_PRINTF ("KERNEL>ZOrder: calloc zorderinfo failure. \n");
-        return NULL;
-    }
-
-    zi->size_usage_bmp = SIZE_USAGE_BMP;
-    zi->size_maskrect_usage_bmp = SIZE_MASKRECT_USAGE_BMP;
-
-    zi->max_nr_popupmenus = DEF_NR_POPUPMENUS;
-    zi->max_nr_globals = 0;
-    zi->max_nr_topmosts = nr_topmosts;
-    zi->max_nr_normals = nr_normals;
-
-    zi->nr_popupmenus = 0;
-    zi->nr_globals = 0;
-    zi->nr_topmosts = 0;
-    zi->nr_normals = 0;
-
-    zi->first_global = 0;
-    zi->first_topmost = 0;
-    zi->first_normal = 0;
-
-    zi->active_win = 0;
-
-    zi->cli_trackmenu = -1;
-    zi->ptmi_in_cli = (HWND)-1;
-
-    /* Set zorder node usage map. */
-    memset (zi + 1, 0xFF, SIZE_USAGE_BMP);
-
-    /* Set zorder mask rect usage map. */
-    maskrect_usage_bmp = GET_MASKRECT_USAGEBMP(zi);
-    memset (maskrect_usage_bmp, 0xFF,
-            zi->size_maskrect_usage_bmp);
-
-    /* init z-order node for desktop */
-    znodes = GET_ZORDERNODE(zi);
-
-    znodes [0].flags = ZOF_TYPE_DESKTOP | ZOF_VISIBLE;
-    znodes [0].rc = g_rcScr;
-    znodes [0].age = 0;
-    znodes [0].cli = 0;
-    znodes [0].hwnd = HWND_DESKTOP;
-    znodes [0].next = 0;
-    znodes [0].prev = 0;
-    znodes [0].idx_mask_rect = 0;
-
-    __mg_slot_set_use ((unsigned char*)(zi + 1), 0);
-    __mg_slot_set_use ((unsigned char*)(maskrect_usage_bmp), 0);
-
-#ifdef _MGRM_THREADS
-#ifndef __NOUNIX__
-    pthread_rwlock_init(&zi->rwlock, NULL);
-#else
-    pthread_mutex_init(&zi->rwlock, NULL);
-#endif
-#endif /* _MGRM_THREADS */
-
-    return zi;
-}
-
-#endif /* not IS_SHAREDFB_SCHEMA_PROCS */
-
-void __kernel_free_z_order_info (ZORDERINFO* zi)
-{
-#if IS_SHAREDFB_SCHEMA_PROCS
-    if (shmdt (zi) < 0)
-        perror ("Detaches shared zorder nodes");
-#else /* not IS_SHAREDFB_SCHEMA_PROCS */
-
-#ifdef _MGRM_THREADS
-#ifndef __NOUNIX__
-    pthread_rwlock_destroy(&zi->rwlock);
-#else
-    pthread_mutex_destroy(&zi->rwlock);
-#endif
-#endif /* _MGRM_THREADS */
-
-    free (zi);
-#endif /* not IS_SHAREDFB_SCHEMA_PROCS */
-}
-
-#endif  /* deprecated code */
 

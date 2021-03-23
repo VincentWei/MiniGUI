@@ -78,8 +78,8 @@
 
 /* the numbers of znodes in different levels - should be mulitples of 8 */
 #define DEF_NR_POPUPMENUS           16
-#define DEF_NR_TOOLTIPS             8
-#define DEF_NR_GLOBALS              15      // reserve slots for fixed znodes
+#define DEF_NR_TOOLTIPS             16
+#define DEF_NR_GLOBALS              15      // reserve one slot for fixed znode
 #define DEF_NR_SCREENLOCKS          8
 #define DEF_NR_DOCKERS              8
 #define DEF_NR_TOPMOSTS             16
@@ -102,7 +102,11 @@ enum {
 #define ZNIDX_DESKTOP               0
 
 /* The heap size for mask rectangles */
-#define DEF_NR_MASKRECT             1024
+#ifdef _MGRM_PROCESSES
+#   define DEF_NR_MASKRECTS         4096
+#else
+#   define DEF_NR_MASKRECTS         1024
+#endif
 
 #if IS_COMPOSITING_SCHEMA
 /* max number of shared surfaces */

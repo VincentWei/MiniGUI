@@ -527,7 +527,10 @@ int __mg_free_hook_wins (int cli);
 /************************* Initialization/Termination ************************/
 void __mg_init_local_sys_text (void);
 
-/* the zorder information of the server */
+/* the zorder information for the default layer */
+extern ZORDERINFO* __mg_def_zorder_info;
+
+/* the zorder information for the current layer */
 extern ZORDERINFO* __mg_zorder_info;
 
 #ifdef _MGRM_STANDALONE

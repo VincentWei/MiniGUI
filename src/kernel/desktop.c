@@ -55,6 +55,7 @@
 #   include "../sysres/license/c_files/00_minigui.dat.c"
 #endif
 
+ZORDERINFO* __mg_def_zorder_info;
 ZORDERINFO* __mg_zorder_info;
 
 /* pointer to desktop window */
@@ -162,7 +163,7 @@ static BOOL subtract_rgn_by_node (PCLIPRGN region, const ZORDERINFO* zi,
         int idx, x, y;
         RECT tmprc={0};
 
-        firstmaskrect = GET_MASKRECT(zi);
+        firstmaskrect = GET_MASKRECT(__mg_def_zorder_info);
         idx = node->idx_mask_rect;
         /* clip all mask rect */
         while(idx) {
@@ -212,7 +213,7 @@ static int get_znode_mask_bound (int cli, int idx_znode, RECT* rc_bound)
 
         SetRect (rc_bound, 0, 0, 0, 0);
 
-        firstmaskrect = GET_MASKRECT (zi);
+        firstmaskrect = GET_MASKRECT(__mg_def_zorder_info);
         idx = node->idx_mask_rect;
         while (idx) {
             maskrect = firstmaskrect + idx;
@@ -248,7 +249,7 @@ static int pt_in_maskrect (const ZORDERINFO* zi,
         cx = x - nodes->rc.left;
         cy = y - nodes->rc.top;
 
-        firstmaskrect = GET_MASKRECT(zi);
+        firstmaskrect = GET_MASKRECT(__mg_def_zorder_info);
         while(idx != 0) {
             maskrect = firstmaskrect + idx;
             SetRect (&tmprc, maskrect->left, maskrect->top,
@@ -306,11 +307,11 @@ static void clean_znode_maskrect (ZORDERINFO* zi, ZORDERNODE* nodes,
     int idx, tmp;
     MASKRECT *first;
 
-    first = GET_MASKRECT(zi);
+    first = GET_MASKRECT(__mg_def_zorder_info);
     idx = nodes [idx_znode].idx_mask_rect;
 
     while (idx) {
-       __mg_slot_clear_use((unsigned char*)GET_MASKRECT_USAGEBMP(zi), idx);
+       __mg_slot_clear_use(GET_MASKRECT_USAGEBMP(__mg_def_zorder_info), idx);
        (first+idx)->prev = 0;
        tmp = (first+idx)->next;
        (first+idx)->next = 0;
@@ -556,7 +557,7 @@ static BOOL _cb_exclude_rc (void* context,
 
     if (node->idx_mask_rect != 0) {
         int idx = node->idx_mask_rect;
-        MASKRECT *first = GET_MASKRECT(zi);
+        MASKRECT *first = GET_MASKRECT(__mg_def_zorder_info);
         int x, y;
         RECT rc;
 
@@ -1990,20 +1991,20 @@ static int alloc_mask_rects_for_round_corners (ZORDERINFO* zi,
 
     /* if have enough mask rect */
     if (rc_idx >
-            __mg_get_nr_idle_slots ((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
-                zi->size_maskrect_usage_bmp)) {
+            __mg_get_nr_idle_slots (GET_MASKRECT_USAGEBMP(__mg_def_zorder_info),
+                __mg_def_zorder_info->size_maskrect_usage_bmp)) {
         free (roundrc);
         return -1;
     }
 
-    firstmaskrect = GET_MASKRECT(zi);
+    firstmaskrect = GET_MASKRECT(__mg_def_zorder_info);
 
     /* allocate space*/
     idx = 0;
     for (i = 0; i < rc_idx; i++) {
         free_slot = __mg_lookfor_unused_slot (
-                            (unsigned char*)GET_MASKRECT_USAGEBMP(zi),
-                            zi->size_maskrect_usage_bmp, 1);
+                            GET_MASKRECT_USAGEBMP(__mg_def_zorder_info),
+                            __mg_def_zorder_info->size_maskrect_usage_bmp, 1);
         if (free_slot == -1) {
             _WRN_PRINTF ("KERNEL: __mg_lookfor_unused_slot failed\n");
             return -1;
@@ -2057,7 +2058,7 @@ static inline int validate_compositing_type (DWORD flags, int type)
 
 static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption,
-                HDC mem_dc, int ct, DWORD ct_arg)
+                HDC mem_dc, int ct, DWORD ct_arg, int idx_mask_rect, void* priv_data)
 {
     DWORD type = flags & ZOF_TYPE_MASK;
     int *first = NULL, *nr_nodes = NULL;
@@ -2069,6 +2070,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     /* Since 5.0.0: check special znode type first for MiniGUI-Processes */
 #ifdef _MGRM_PROCESSES
     switch (type) {
+    /* Since 5.0.6: tooltips are not special znodes
     case ZOF_TYPE_TOOLTIP:
         if (zi->first_tooltip > 0 &&
                 nodes [zi->first_tooltip].cli != cli) {
@@ -2076,6 +2078,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
             flags |= ZOF_TYPE_HIGHER;
         }
         break;
+    */
 
     case ZOF_TYPE_GLOBAL:
         if (cli != 0) {
@@ -2236,11 +2239,11 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].dirty_rc.right = 0;
     nodes [free_slot].dirty_rc.bottom = 0;
 #endif
-    nodes [free_slot].idx_mask_rect = 0;
-    nodes [free_slot].priv_data = NULL;
+    nodes [free_slot].idx_mask_rect = idx_mask_rect;
+    nodes [free_slot].priv_data = priv_data;
 
 #ifndef _MGSCHEMA_COMPOSITING
-    if (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS) {
+    if (idx_mask_rect == 0 && (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS)) {
         RECT cli_rect;
 
         SetRect (&cli_rect, 0, 0, RECTW(nodes[free_slot].rc),
@@ -2341,10 +2344,10 @@ static inline int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
                 HDC mem_dc, int ct, DWORD ct_arg)
 {
     return AllocZOrderNodeEx (get_zorder_info(cli), cli, hwnd, main_win,
-            flags, rc, caption, mem_dc, ct, ct_arg);
+            flags, rc, caption, mem_dc, ct, ct_arg, 0, NULL);
 }
 
-static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
+static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc, BOOL clean_maskrc)
 {
     DWORD flags, type;
     RECT rc;
@@ -2395,7 +2398,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     }
 
     /* Free round corners mask rect. */
-    if (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS) {
+    if (clean_maskrc && nodes[idx_znode].idx_mask_rect) {
         clean_znode_maskrect (zi, nodes, idx_znode);
     }
 
@@ -2487,7 +2490,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
 
 static inline int FreeZOrderNode (int cli, int idx_znode, HDC* memdc)
 {
-    return FreeZOrderNodeEx (get_zorder_info(cli), idx_znode, memdc);
+    return FreeZOrderNodeEx (get_zorder_info(cli), idx_znode, memdc, TRUE);
 }
 
 static DWORD get_znode_flags_from_style (PMAINWIN pWin)
@@ -2596,7 +2599,7 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
     lock_zi_for_change (zi);
 
     nodes = GET_ZORDERNODE(zi);
-    firstmaskrect = GET_MASKRECT(zi);
+    firstmaskrect = GET_MASKRECT(__mg_def_zorder_info);
 
     /*get mask rect number*/
     idx = nodes[idx_znode].idx_mask_rect;
@@ -2609,8 +2612,8 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
     if (nr_rc > old_num) {
         /* check the number of mask rect if enough */
         int idle =
-            __mg_get_nr_idle_slots ((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
-            zi->size_maskrect_usage_bmp);
+            __mg_get_nr_idle_slots (GET_MASKRECT_USAGEBMP(__mg_def_zorder_info),
+                    __mg_def_zorder_info->size_maskrect_usage_bmp);
         if (idle < nr_rc - old_num) {
             unlock_zi_for_change (zi);
             return -1;
@@ -2620,8 +2623,8 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
         idx = nodes[idx_znode].idx_mask_rect;
         for (i = 0; i < nr_rc - old_num; i++) {
             free_slot = __mg_lookfor_unused_slot (
-                            (unsigned char*)GET_MASKRECT_USAGEBMP(zi),
-                            zi->size_maskrect_usage_bmp, 1);
+                            GET_MASKRECT_USAGEBMP(__mg_def_zorder_info),
+                            __mg_def_zorder_info->size_maskrect_usage_bmp, 1);
             if (free_slot == -1) {
                 unlock_zi_for_change (zi);
                 return -1;
@@ -2641,7 +2644,7 @@ static int AllocZOrderMaskRect (int cli, int idx_znode,
     else {
         for(i =0; i < old_num-nr_rc; i++) {
             idx = nodes[idx_znode].idx_mask_rect;
-            __mg_slot_clear_use((unsigned char*)GET_MASKRECT_USAGEBMP(zi), idx);
+            __mg_slot_clear_use(GET_MASKRECT_USAGEBMP(__mg_def_zorder_info), idx);
             idx = ((MASKRECT *)(firstmaskrect+idx))->next;
         }
     }
@@ -3198,10 +3201,10 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         if (nodes[idx_znode].idx_mask_rect != 0) {
 
             idx = nodes[idx_znode].idx_mask_rect;
-            firstmaskrect = GET_MASKRECT(zi);
+            firstmaskrect = GET_MASKRECT(__mg_def_zorder_info);
 
             while (idx) {
-                __mg_slot_clear_use((unsigned char*)GET_MASKRECT_USAGEBMP(zi),
+                __mg_slot_clear_use(GET_MASKRECT_USAGEBMP(__mg_def_zorder_info),
                         idx);
                 idx = ((MASKRECT *)(firstmaskrect+idx))->next;
             }
@@ -3313,7 +3316,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
                 SelectClipRect (HDC_SCREEN_SYS, rcWin);
             }
             else {
-                firstmaskrect = GET_MASKRECT(zi);
+                firstmaskrect = GET_MASKRECT(__mg_def_zorder_info);
                 idx = nodes [idx_znode].idx_mask_rect;
 
                 while (idx) {
@@ -3405,7 +3408,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
                     else {
                         RECT rc;
                         GetWindowRect(nodes [slot].hwnd, &rc);
-                        firstmaskrect = GET_MASKRECT(zi);
+                        firstmaskrect = GET_MASKRECT(__mg_def_zorder_info);
                         idx = nodes [slot].idx_mask_rect;
                         while (idx) {
                             maskrect = firstmaskrect + idx;
@@ -3979,7 +3982,7 @@ int __kernel_get_window_region (HWND pWin, CLIPRGN* region)
 
     nr_mask_rects = 0;
     nodes = GET_ZORDERNODE(zi);
-    maskrect = GET_MASKRECT(zi);
+    maskrect = GET_MASKRECT(__mg_def_zorder_info);
     idx = nodes[idx_znode].idx_mask_rect;
     while (idx) {
         rc.left = maskrect->left;
@@ -4375,12 +4378,14 @@ static int dskCalculateDefaultPosition (int cli, CALCPOSINFO* info)
 #ifdef _MGRM_PROCESSES
     /* check the special types */
     switch (zt_type) {
+    /* Since 5.0.6: tooltips are not special znodes
     case ZOF_TYPE_TOOLTIP:
         if (zi->first_tooltip > 0 &&
                 nodes [zi->first_tooltip].cli != cli) {
             zt_type = ZOF_TYPE_HIGHER;
         }
         break;
+    */
 
     case ZOF_TYPE_GLOBAL:
         if (cli != 0) {

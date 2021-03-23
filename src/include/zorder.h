@@ -87,7 +87,7 @@ typedef struct _ZORDERNODE {
     int             nr_dirty_rcs;   /* the number of dirty rects */
     const RECT*     dirty_rcs;      /* the pointer to the dirty rectangles */
 #else   /* defined _MGSCHEMA_COMPOSITING */
-    unsigned int    age;            /* znode age */
+    DWORD           age;            /* znode age */
     RECT            dirty_rc;       /* dirty rectangle */
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 
@@ -156,12 +156,13 @@ typedef struct _ZORDERINFO {
 typedef ZORDERINFO* PZORDERINFO;
 
 #define MAX_NR_SPECIAL_ZNODES(zi)                           \
-    (zi->max_nr_tooltips + zi->max_nr_globals +             \
+    (zi->max_nr_globals +                                   \
      zi->max_nr_screenlocks + zi->max_nr_dockers +          \
      zi->max_nr_launchers + NR_FIXED_ZNODES)
 
 #define MAX_NR_GENERAL_ZNODES(zi)                           \
-    (zi->max_nr_topmosts + zi->max_nr_normals)
+    (zi->max_nr_tooltips + zi->max_nr_topmosts +            \
+     zi->max_nr_normals)
 
 #define MAX_NR_ZNODES(zi)                                   \
     MAX_NR_SPECIAL_ZNODES(zi) + MAX_NR_GENERAL_ZNODES(zi)
@@ -178,7 +179,7 @@ typedef ZORDERINFO* PZORDERINFO;
     (ZORDERNODE*)((char*)((zi)+1)+ (zi)->size_usage_bmp)
 
 #define GET_MASKRECT_USAGEBMP(zi)                           \
-    ((char *)((zi) + 1) + (zi)->size_usage_bmp +            \
+    ((unsigned char *)((zi) + 1) + (zi)->size_usage_bmp +   \
      sizeof (ZORDERNODE) * (MAX_NR_ZNODES_WITH_PPP(zi)))
 
 #define GET_MASKRECT(zi)                                    \
@@ -187,25 +188,25 @@ typedef ZORDERINFO* PZORDERINFO;
 
 /* round to multiple of 8 to aoivd alignment issue */
 #define SIZE_MASKRECT_USAGE_BMP                             \
-    ROUND_TO_MULTIPLE((DEF_NR_MASKRECT >> 3), 8)
+    ROUND_TO_MULTIPLE((DEF_NR_MASKRECTS >> 3), 8)
 
 #define NR_SPECIAL_ZNODES(zi)                               \
-    (zi->nr_tooltips + zi->nr_globals +                     \
+    (zi->nr_globals +                                       \
      zi->nr_screenlocks + zi->nr_dockers +                  \
      zi->nr_launchers + NR_FIXED_ZNODES)
 
 #define NR_GENERAL_ZNODES(zi)                               \
-    (zi->nr_topmosts + zi->nr_normals)
+    (zi->nr_tooltips + zi->nr_topmosts + zi->nr_normals)
 
 #define NR_ZNODES(zi)                                       \
     NR_SPECIAL_ZNODES(zi) + NR_GENERAL_ZNODES(zi)
 
 /* Since 5.0.0: more levels  */
 #define SIZE_USAGE_BMP_GENERAL(max_nr_t, max_nr_n)          \
-    ((7 + (max_nr_t) + (max_nr_n)) >> 3)
+    ((7 + DEF_NR_TOOLTIPS + (max_nr_t) + (max_nr_n)) >> 3)
 
 #define SIZE_USAGE_BMP_SPECIAL(max_nr_g)                    \
-    ((7 + DEF_NR_TOOLTIPS + max_nr_g +                      \
+    ((7 + max_nr_g +                      \
       DEF_NR_SCREENLOCKS + DEF_NR_DOCKERS +                 \
       DEF_NR_LAUNCHERS + NR_FIXED_ZNODES) >> 3)
 
@@ -234,12 +235,12 @@ typedef ZORDERINFO* PZORDERINFO;
     MG_UNLIKELY ((idx) > MAX_NR_ZNODES(zi))
 
 #define IS_TYPE_GENERAL(type)                               \
-    (type == ZOF_TYPE_HIGHER ||                             \
+    (type == ZOF_TYPE_TOOLTIP ||                            \
+     type == ZOF_TYPE_HIGHER ||                             \
      type == ZOF_TYPE_NORMAL)
 
 #define IS_TYPE_SPECIAL(type)                               \
-    (type == ZOF_TYPE_TOOLTIP ||                            \
-     type == ZOF_TYPE_GLOBAL ||                             \
+    (type == ZOF_TYPE_GLOBAL ||                             \
      type == ZOF_TYPE_SCREENLOCK ||                         \
      type == ZOF_TYPE_DOCKER ||                             \
      type == ZOF_TYPE_LAUNCHER)
@@ -250,7 +251,7 @@ typedef ZORDERINFO* PZORDERINFO;
 extern "C" {
 #endif  /* __cplusplus */
 
-int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals);
+int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals, BOOL with_maskrc_heap);
 void __kernel_free_z_order_info (ZORDERINFO* zi);
 int __kernel_get_window_region (HWND pWin, CLIPRGN* region);
 int __kernel_get_next_znode (const ZORDERINFO* zi, int from);

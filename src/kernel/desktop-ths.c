@@ -112,7 +112,8 @@ BOOL mg_InitDesktop (void)
     /*
      * Init ZOrderInfo here.
      */
-    ret = __kernel_alloc_z_order_info (DEF_NR_TOPMOSTS, DEF_NR_NORMALS);
+    ret = __kernel_alloc_z_order_info (DEF_NR_TOPMOSTS, DEF_NR_NORMALS,
+            TRUE);
     if (ret < 0) {
         _WRN_PRINTF ("KERNEL>Desktop: Can not initialize ZOrderInfo!\n");
         return FALSE;
