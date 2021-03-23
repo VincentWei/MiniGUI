@@ -164,7 +164,8 @@ typedef struct JoinLayerInfo {
 typedef struct JoinedClientInfo {
     GHANDLE layer;
     int cli_id;
-    int zo_shmid;
+    int def_zi_shmid;
+    int zi_shmid;
 } JOINEDCLIENTINFO;
 
 typedef struct LayerInfo {
