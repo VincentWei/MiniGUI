@@ -1600,7 +1600,7 @@ typedef struct _CompositorOps {
      * a main window with the extended style WS_EX_AUTOPOSITION.
      */
     void (*calc_mainwin_pos) (CompositorCtxt* ctxt, MG_Layer* layer,
-            DWORD zt_type, int first_for_type, CALCPOSINFO* info);
+            DWORD zt_type, int first_for_type, int cli, CALCPOSINFO* info);
 
     /**
      * This operation will be called when there was a layer operation.
@@ -1728,6 +1728,20 @@ typedef struct _CompositorOps {
      */
     void (*on_moved_win) (CompositorCtxt* ctxt, MG_Layer* layer,
             int zidx, const RECT* rc_org);
+
+    /**
+     * This operation will be called to composite the current tompost layer
+     * with another layer at the same time on the screen.
+     */
+    void (*composite_with_layer) (CompositorCtxt* ctxt,
+            MG_Layer* another, void* composite_arg);
+
+    /**
+     * This operation will be called when transitting to a new topmost layer.
+     * The compositor can play an animation to transit from the current
+     * topmost layer to the new topmost layer.
+     */
+    void (*transit_to_layer) (CompositorCtxt* ctxt, MG_Layer* to_layer);
 
     /**
      * This operation will be called when the system is maximizing a window.
