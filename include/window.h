@@ -4433,16 +4433,12 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
 
 /**
  * \def WS_EX_WINTYPE_TOOLTIP
- * \brief The type for a system/global main window.
+ * \brief The type for a tooltip main window.
  *
  * Use this style when you want to create a tooltip main window.
  * A tooltip main window will be shown above other types of main windows.
  *
- * \note Under MiniGUI-Processes runtime mode, only the client which creates
- *      the first main window in the tooltip level can create other main
- *      windows in this level. For other clients, a main window in the higher
- *      level will be created.
- * \note The maximal number of all main windows in the tooltip level is 8.
+ * \note The maximal number of all main windows in the tooltip level is 16.
  *      MiniGUI will create a main windows in higher level if there is no room
  *      in the tooltip level.
  *
