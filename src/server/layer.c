@@ -383,6 +383,8 @@ error:
     _ERR_PRINTF ("KERNEL: failed to remove semaphore set for layers: %m\n");
 }
 
+static MG_Layer* mg_def_layer;
+
 int __mg_init_layers ()
 {
     int semid = 0;
@@ -437,6 +439,7 @@ int __mg_init_layers ()
         return -1;
     }
 
+    mg_def_layer = mgLayers;
     __mg_def_zorder_info = mgLayers->zorder_info;
     __mg_zorder_info = mgLayers->zorder_info;
 
@@ -561,10 +564,8 @@ static void do_client_join_layer (int cli,
 {
     MG_Layer* layer = (MG_Layer*)(joined_info->layer);
     MG_Client* new_client = mgClients + cli;
-    MG_Layer* def_layer = __mg_find_layer_by_name (NAME_DEF_LAYER);
 
-    assert (def_layer);
-    joined_info->def_zi_shmid = def_layer->zorder_shmid;
+    joined_info->def_zi_shmid = mg_def_layer->zorder_shmid;
 
     if (new_client->layer == layer) {   /* duplicated calling of JoinLayer */
 
