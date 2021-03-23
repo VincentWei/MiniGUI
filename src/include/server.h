@@ -154,6 +154,11 @@ int __mg_get_znode_at_point (const ZORDERINFO* zi, int x, int y, HWND* hwnd);
 int __mg_do_reghook_operation (int cli, const REGHOOKINFO* info);
 int __mg_handle_mouse_hook (int message, WPARAM wParam, LPARAM lParam);
 
+#ifdef _MGSCHEMA_COMPOSITING
+int __mg_prepare_layer_for_compositing (MG_Layer* layer);
+int __mg_end_up_layer_for_compositing (MG_Layer* layer);
+#endif
+
 int __mg_do_change_topmost_layer (void);
 
 MG_Layer* __mg_find_layer_by_name (const char* name);
