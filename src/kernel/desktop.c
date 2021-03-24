@@ -2084,6 +2084,8 @@ static void sync_special_nodes (ZORDERINFO* from, ZORDERINFO* to)
     from_use_bmp = (unsigned char*)from + sizeof (ZORDERINFO);
     to_use_bmp = (unsigned char*)to + sizeof (ZORDERINFO);
     memcpy (to_use_bmp, from_use_bmp, LEN_USAGE_BMP_SPECIAL (from));
+
+    unlock_zi_for_change (to);
 }
 #else   /* defined _MGRM_PROCESSES */
 static inline void sync_special_nodes (ZORDERINFO* from, ZORDERINFO* to)
