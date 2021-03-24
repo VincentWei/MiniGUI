@@ -56,8 +56,6 @@
 #include <string.h>
 #include <math.h>
 
-#define _DEBUG
-
 #include "common.h"
 
 #ifdef _MGRM_PROCESSES
@@ -909,7 +907,7 @@ void __mg_check_dirty_znode (int cli)
 
 static intptr_t srvSetActiveWindow (int cli, int idx_znode)
 {
-    HWND hRet = dskSetActiveZOrderNode (cli, idx_znode);
+    HWND hRet = dskSetActiveZOrderNode (get_zi_from_client (cli), cli, idx_znode);
 
     if ((hRet != HWND_INVALID) && OnZNodeOperation)
         OnZNodeOperation (ZNOP_SETACTIVE, cli, idx_znode);
@@ -1629,7 +1627,7 @@ int __mg_remove_all_znodes_of_client (int cli)
     unlock_zi_for_change (zi);
 
     if (has_special && zi != __mg_def_zorder_info) {
-        sync_special_nodes (zi, __mg_def_zorder_info);
+        __mg_sync_special_nodes (zi, __mg_def_zorder_info);
     }
 
 #ifndef _MGSCHEMA_COMPOSITING
@@ -1740,21 +1738,23 @@ int __mg_do_change_topmost_layer (MG_Layer* new_topmost)
     if (old_zi->active_win > 0 &&
             old_zi->active_win >= MAX_NR_SPECIAL_ZNODES (__mg_def_zorder_info)) {
         /* reset active window */
-        dskSetActiveZOrderNode (nodes[old_zi->active_win].cli, 0);
+        dskSetActiveZOrderNode (old_zi, nodes[old_zi->active_win].cli, 0);
         // old_zi->active_win is zero now
     }
 
     mgTopmostLayer = new_topmost;
     __mg_zorder_info = mgTopmostLayer->zorder_info;
 
-    sync_special_nodes (old_zi, __mg_zorder_info);
+    __mg_sync_special_nodes (old_zi, __mg_zorder_info);
 
     if (old_zi->active_win > 0) {
         __mg_zorder_info->active_win = old_zi->active_win;
-        dskSetActiveZOrderNode (nodes[old_zi->active_win].cli, old_zi->active_win);
+        dskSetActiveZOrderNode (__mg_zorder_info,
+                nodes[old_zi->active_win].cli, old_zi->active_win);
     }
     else {
-        dskSetActiveZOrderNode (nodes[old_zi->active_win].cli, 0);
+        int next_active = get_next_activable_mainwin (__mg_zorder_info, 0);
+        dskSetActiveZOrderNode (__mg_zorder_info, 0, next_active);
     }
 
 #ifndef _MGSCHEMA_COMPOSITING
