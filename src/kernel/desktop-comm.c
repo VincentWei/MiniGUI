@@ -104,7 +104,7 @@ static PMAINWIN dskSetActiveWindow (PMAINWIN pWin)
     if (pWin == pOldActive)
         return pOldActive;
 
-    pOldActive = (PMAINWIN) dskSetActiveZOrderNode (0, pWin?pWin->idx_znode:0);
+    pOldActive = (PMAINWIN) dskSetActiveZOrderNode (__mg_zorder_info, 0, pWin?pWin->idx_znode:0);
 
 #ifndef _MGRM_PROCESSES /*for MiniGUI-Threads, not for MiniGUI-StandAlone*/
     if (pOldActive != (PMAINWIN)HWND_INVALID && __mg_ime_wnd)
@@ -667,7 +667,7 @@ static LRESULT KeyMessageHandler (UINT message, int scancode, DWORD status)
 
                 if (next_node) {
                     dskMove2Top (0, next_node);
-                    dskSetActiveZOrderNode (0, next_node);
+                    dskSetActiveZOrderNode (__mg_zorder_info, 0, next_node);
                 }
                 return 0;
             }
