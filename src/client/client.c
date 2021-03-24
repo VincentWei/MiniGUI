@@ -705,8 +705,6 @@ BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
 {
     if (layer_handle != INV_LAYER_HANDLE) {
         ZORDERINFO* zi;
-        ZORDERNODE* nodes;
-        int slot;
 
         __mg_layer = INV_LAYER_HANDLE;
         __mg_zorder_info = NULL;
@@ -725,7 +723,10 @@ BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
         __mg_layer = layer_handle;
         __mg_zorder_info = zi;
 
-        /* Since 5.0.6: change znode index of general window for this client */
+#if 0 /* obsolete */
+        ZORDERNODE* nodes;
+        int slot;
+
         nodes = GET_ZORDERNODE(zi);
         slot = zi->first_tooltip;
         for (; slot > 0; slot = nodes[slot].next) {
@@ -753,6 +754,7 @@ BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid)
                 win->idx_znode = slot;
             }
         }
+#endif /* obsolete */
         return TRUE;
     }
 
