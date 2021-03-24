@@ -1790,10 +1790,9 @@ post_msg_by_znode_p (const ZORDERINFO* zi, const ZORDERNODE* znode,
     return ret;
 }
 
-static HWND dskSetActiveZOrderNode (int cli, int idx_znode)
+static HWND dskSetActiveZOrderNode (ZORDERINFO* zi, int cli, int idx_znode)
 {
     int old_active = 0;
-    ZORDERINFO* zi = get_zorder_info(cli);
     ZORDERNODE* nodes;
     HWND old_hwnd = HWND_NULL, new_hwnd = HWND_NULL;
 
@@ -2057,7 +2056,7 @@ static inline int validate_compositing_type (DWORD flags, int type)
 
 #ifdef _MGRM_PROCESSES
 /* copy special znodes to another layer */
-static void sync_special_nodes (ZORDERINFO* from, ZORDERINFO* to)
+void __mg_sync_special_nodes (ZORDERINFO* from, ZORDERINFO* to)
 {
     unsigned char *from_use_bmp, *to_use_bmp;
     ZORDERNODE *from_nodes, *to_nodes;
@@ -2088,13 +2087,51 @@ static void sync_special_nodes (ZORDERINFO* from, ZORDERINFO* to)
     unlock_zi_for_change (to);
 }
 #else   /* defined _MGRM_PROCESSES */
-static inline void sync_special_nodes (ZORDERINFO* from, ZORDERINFO* to)
+void __mg_sync_special_nodes (ZORDERINFO* from, ZORDERINFO* to)
 {
     assert (from == to);
     // do nothing
     return;
 }
 #endif  /* not defined _MGRM_PROCESSES */
+
+static void update_on_new_visible_znode (void* layer, ZORDERINFO* zi,
+        int idx_znode, DWORD type)
+{
+#ifndef _MGSCHEMA_COMPOSITING
+    ZORDERNODE *nodes;
+    int level, slot;
+
+    nodes = GET_ZORDERNODE(zi);
+    RECT rc_screen = GetScreenRect();
+
+    lock_zi_for_change (zi);
+
+    /* check influenced zorder nodes */
+    for (level = 0; level < NR_ZORDER_LEVELS; level++) {
+
+        if (type >= _zof_types_for_level[level]) {
+            slot = zi->first_in_levels[level];
+            for (; slot > 0; slot = nodes [slot].next) {
+                if (nodes [slot].flags & ZOF_VISIBLE &&
+                        DoesIntersect (&nodes [idx_znode].rc,
+                            &nodes [slot].rc)) {
+                    nodes [slot].age++;
+                }
+            }
+        }
+    }
+
+    /* for destkop */
+    if (DoesIntersect (&nodes [idx_znode].rc, &rc_screen)) {
+        nodes [0].age++;
+    }
+
+    unlock_zi_for_change (zi);
+#else   /* not defined _MGSCHEMA_COMPOSITING */
+    DO_COMPSOR_OP_ARGS (on_showing_win, layer, idx_znode);
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+}
 
 static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption,
@@ -2103,7 +2140,6 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     DWORD type = flags & ZOF_TYPE_MASK;
     int *first = NULL, *nr_nodes = NULL;
     int free_slot = -1, old_first;
-    ZORDERINFO* alloc_zi;
     ZORDERNODE* nodes;
 
     nodes = GET_ZORDERNODE(zi);
@@ -2157,61 +2193,55 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 
     /* reacquire type */
     type = flags & ZOF_TYPE_MASK;
-    if (IS_TYPE_SPECIAL (type)) {
-        alloc_zi = __mg_def_zorder_info;
-    }
-    else {
-        alloc_zi = zi;
-    }
-    nodes = GET_ZORDERNODE(alloc_zi);
+    nodes = GET_ZORDERNODE(zi);
 
     switch (type) {
     case ZOF_TYPE_TOOLTIP:
-        if (alloc_zi->nr_tooltips < alloc_zi->max_nr_tooltips) {
-            first = &alloc_zi->first_tooltip;
-            nr_nodes = &alloc_zi->nr_tooltips;
+        if (zi->nr_tooltips < zi->max_nr_tooltips) {
+            first = &zi->first_tooltip;
+            nr_nodes = &zi->nr_tooltips;
         }
         break;
 
     case ZOF_TYPE_GLOBAL:
-        if (alloc_zi->nr_globals < alloc_zi->max_nr_globals) {
-            first = &alloc_zi->first_global;
-            nr_nodes = &alloc_zi->nr_globals;
+        if (zi->nr_globals < zi->max_nr_globals) {
+            first = &zi->first_global;
+            nr_nodes = &zi->nr_globals;
         }
         break;
 
     case ZOF_TYPE_SCREENLOCK:
-        if (alloc_zi->nr_screenlocks < alloc_zi->max_nr_screenlocks) {
-            first = &alloc_zi->first_screenlock;
-            nr_nodes = &alloc_zi->nr_screenlocks;
+        if (zi->nr_screenlocks < zi->max_nr_screenlocks) {
+            first = &zi->first_screenlock;
+            nr_nodes = &zi->nr_screenlocks;
         }
         break;
 
     case ZOF_TYPE_DOCKER:
-        if (alloc_zi->nr_dockers < alloc_zi->max_nr_dockers) {
-            first = &alloc_zi->first_docker;
-            nr_nodes = &alloc_zi->nr_dockers;
+        if (zi->nr_dockers < zi->max_nr_dockers) {
+            first = &zi->first_docker;
+            nr_nodes = &zi->nr_dockers;
         }
         break;
 
     case ZOF_TYPE_HIGHER:
-        if (alloc_zi->nr_topmosts < alloc_zi->max_nr_topmosts) {
-            first = &alloc_zi->first_topmost;
-            nr_nodes = &alloc_zi->nr_topmosts;
+        if (zi->nr_topmosts < zi->max_nr_topmosts) {
+            first = &zi->first_topmost;
+            nr_nodes = &zi->nr_topmosts;
         }
         break;
 
     case ZOF_TYPE_NORMAL:
-        if (alloc_zi->nr_normals < alloc_zi->max_nr_normals) {
-            first = &alloc_zi->first_normal;
-            nr_nodes = &alloc_zi->nr_normals;
+        if (zi->nr_normals < zi->max_nr_normals) {
+            first = &zi->first_normal;
+            nr_nodes = &zi->nr_normals;
         }
         break;
 
     case ZOF_TYPE_LAUNCHER:
-        if (alloc_zi->nr_launchers < alloc_zi->max_nr_launchers) {
-            first = &alloc_zi->first_launcher;
-            nr_nodes = &alloc_zi->nr_launchers;
+        if (zi->nr_launchers < zi->max_nr_launchers) {
+            first = &zi->first_launcher;
+            nr_nodes = &zi->nr_launchers;
         }
         break;
 
@@ -2223,8 +2253,8 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         int level = ZOF_TYPE_TO_LEVEL_IDX (type);
         _WRN_PRINTF ("no free slot for the new znode: "
                 "level (%d), max_nr (%d), nr (%d)\n",
-                level, alloc_zi->nr_nodes_in_levels[level],
-                alloc_zi->max_nr_nodes_in_levels[level]);
+                level, zi->nr_nodes_in_levels[level],
+                zi->max_nr_nodes_in_levels[level]);
         return -1;
     }
 
@@ -2233,39 +2263,39 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
         srvForceCloseMenu (0);
 #endif
 
-    /* lock alloc_zi for change */
-    lock_zi_for_change (alloc_zi);
+    /* lock zi for change */
+    lock_zi_for_change (zi);
 
     /* Since 5.0.0: tune code to avoid potential errors */
     {
-        int len_bmp_specials = LEN_USAGE_BMP_SPECIAL(alloc_zi);
+        int len_bmp_specials = LEN_USAGE_BMP_SPECIAL(zi);
 
         if (IS_TYPE_SPECIAL (type)) {
             free_slot = __mg_lookfor_unused_slot (
-                    (BYTE*)(alloc_zi + 1), len_bmp_specials, 1);
+                    (BYTE*)(zi + 1), len_bmp_specials, 1);
 
-            if (free_slot >= MAX_NR_SPECIAL_ZNODES(alloc_zi))
+            if (free_slot >= MAX_NR_SPECIAL_ZNODES(zi))
                 free_slot = -1;
         }
         else {
             free_slot = __mg_lookfor_unused_slot (
-                    (BYTE*)(alloc_zi + 1) + len_bmp_specials,
-                    LEN_USAGE_BMP_GENERAL(alloc_zi), 1);
+                    (BYTE*)(zi + 1) + len_bmp_specials,
+                    LEN_USAGE_BMP_GENERAL(zi), 1);
 
             if (free_slot >= 0) {
                 free_slot += len_bmp_specials << 3;
             }
 
-            assert (free_slot >= MAX_NR_SPECIAL_ZNODES(alloc_zi));
+            assert (free_slot >= MAX_NR_SPECIAL_ZNODES(zi));
 
-            if (free_slot >= MAX_NR_ZNODES(alloc_zi))
+            if (free_slot >= MAX_NR_ZNODES(zi))
                 free_slot = -1;
         }
     }
 
     if (-1 == free_slot) {
         /* unlock zorderinfo for change. */
-        unlock_zi_for_change (alloc_zi);
+        unlock_zi_for_change (zi);
         _WRN_PRINTF ("cannot allocate slot for new znode\n");
         return -1;
     }
@@ -2341,48 +2371,31 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     }
 
     /* unlock zi for change ... */
-    unlock_zi_for_change (alloc_zi);
-
-    if (alloc_zi != zi) {
-        sync_special_nodes (alloc_zi, zi);
-    }
-
-    lock_zi_for_change (zi);
-
-    /* check influenced zorder nodes */
-    nodes = GET_ZORDERNODE(zi);
-    if (flags & ZOF_VISIBLE) {
-        /* Since 5.0.0 */
-#ifndef _MGSCHEMA_COMPOSITING
-        int level, slot;
-        RECT rc_screen = GetScreenRect();
-
-        for (level = 0; level < NR_ZORDER_LEVELS; level++) {
-
-            if (type >= _zof_types_for_level[level]) {
-                slot = zi->first_in_levels[level];
-                for (; slot > 0; slot = nodes [slot].next) {
-                    if (nodes [slot].flags & ZOF_VISIBLE &&
-                            DoesIntersect (&nodes [free_slot].rc,
-                                &nodes [slot].rc)) {
-                        nodes [slot].age++;
-                    }
-                }
-            }
-        }
-
-        /* for destkop */
-        if (DoesIntersect (&nodes [free_slot].rc, &rc_screen)) {
-            nodes [0].age++;
-        }
-#else   /* not defined _MGSCHEMA_COMPOSITING */
-        DO_COMPSOR_OP_ARGS (on_showing_win,
-                __mg_get_layer_from_zi(zi), free_slot);
-#endif  /* defined _MGSCHEMA_COMPOSITING */
-    }
-
-    /* unlock zi for change ... */
     unlock_zi_for_change (zi);
+
+#ifdef _MGRM_PROCESSES
+    if (IS_TYPE_SPECIAL (type)) {
+        MG_Layer* layer = mgLayers;
+        while (layer) {
+            if (layer->zorder_info != zi) {
+                __mg_sync_special_nodes (zi, layer->zorder_info);
+            }
+
+            if (flags & ZOF_VISIBLE) {
+                update_on_new_visible_znode (layer, layer->zorder_info, free_slot, type);
+            }
+
+            layer = layer->next;
+        }
+    }
+    else if (flags & ZOF_VISIBLE) {
+        update_on_new_visible_znode (get_layer_from_client (cli), zi, free_slot, type);
+    }
+#else
+    if (flags & ZOF_VISIBLE) {
+        update_on_new_visible_znode (NULL, zi, free_slot, type);
+    }
+#endif
 
     return free_slot;
 }
@@ -2395,54 +2408,10 @@ static inline int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
             flags, rc, caption, mem_dc, ct, ct_arg);
 }
 
-static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
+static void prepare_to_delete_visible_znode (void* layer, ZORDERINFO* zi,
+        int idx_znode, DWORD type)
 {
-    DWORD flags, type;
-    RECT rc;
-    int level, *first = NULL, *nr_nodes = NULL;
-    ZORDERINFO* alloc_zi;
-    ZORDERNODE* nodes;
-    int old_active, next_active;
-#ifdef _MGSCHEMA_COMPOSITING
-    MG_Layer* layer = __mg_get_layer_from_zi(zi);
-#endif
-
-    if (IS_INVALID_ZIDX (zi, idx_znode)) {
-        return -1;
-    }
-
-    nodes = GET_ZORDERNODE(zi);
-
-#ifdef _MGHAVE_MENU
-    if (zi->cli_trackmenu >= 0 && nodes [idx_znode].flags & ZOF_VISIBLE)
-        srvForceCloseMenu (0);
-#endif
-
-    flags = nodes [idx_znode].flags;
-    type = flags & ZOF_TYPE_MASK;
-    rc = nodes [idx_znode].rc;
-
-    /* Since 5.0.0 */
-    level = ZOF_TYPE_TO_LEVEL_IDX(type);
-    if (MG_UNLIKELY (level < 0 || level > ZLIDX_LAUNCHER)) {
-        assert (0);
-        return -1;
-    }
-
-#ifdef _MGSCHEMA_COMPOSITING
-    if (memdc)
-        *memdc = nodes[idx_znode].mem_dc;
-#endif
-
-    if (IS_TYPE_SPECIAL (type)) {
-        alloc_zi = __mg_def_zorder_info;
-    }
-    else {
-        alloc_zi = zi;
-    }
-
-    first = alloc_zi->first_in_levels + level;
-    nr_nodes = alloc_zi->nr_nodes_in_levels + level;
+    ZORDERNODE* nodes = GET_ZORDERNODE(zi);
 
     /* please lock zi for change*/
     lock_zi_for_change (zi);
@@ -2452,7 +2421,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
 
     /* check influenced zorder nodes */
     if (nodes [idx_znode].flags & ZOF_VISIBLE) {
-        int slot;
+        int slot, level;
         RECT rc_screen = GetScreenRect ();
 
         slot = nodes [idx_znode].next;
@@ -2491,17 +2460,90 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
     /* XXX: get next activable window znode before freeing the current znode */
-    next_active = get_next_activable_mainwin (zi, idx_znode);
-    old_active = zi->active_win;
+    zi->next_active = get_next_activable_mainwin (zi, idx_znode);
+    zi->old_active = zi->active_win;
     if (idx_znode == zi->active_win)
         zi->active_win = 0;
 
     /* unlock zi for change  */
     unlock_zi_for_change (zi);
+}
 
-    nodes = GET_ZORDERNODE(alloc_zi);
+static void update_after_delete_visible_znode (void* layer, ZORDERINFO* zi, int idx_znode,
+        RECT *rc, DWORD flags)
+{
+    ZORDERNODE* nodes = GET_ZORDERNODE(zi);
+
+#ifndef _MGSCHEMA_COMPOSITING
+    /* update all znode if it's dirty */
+    do_for_all_znodes (rc, zi, _cb_update_znode, ZT_ALL);
+#else   /* not defined _MGSCHEMA_COMPOSITING */
+    DO_COMPSOR_OP_ARGS (on_dirty_screen, layer, flags & ZOF_TYPE_FLAG_MASK, rc);
+#endif  /* defined _MGSCHEMA_COMPOSITING */
+
+    /* if active_win is this window, change it */
+    if (idx_znode == zi->old_active) {
+        dskSetActiveZOrderNode (zi, nodes [zi->next_active].cli, zi->next_active);
+    }
+}
+
+static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
+{
+    DWORD flags, type;
+    RECT rc;
+    int level, *first = NULL, *nr_nodes = NULL;
+    ZORDERNODE* nodes;
+
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
+        return -1;
+    }
+
+    nodes = GET_ZORDERNODE(zi);
+    flags = nodes [idx_znode].flags;
+    type = flags & ZOF_TYPE_MASK;
+    rc = nodes [idx_znode].rc;
+
+#ifdef _MGHAVE_MENU
+    if (zi->cli_trackmenu >= 0 && flags & ZOF_VISIBLE)
+        srvForceCloseMenu (0);
+#endif
+
+    /* Since 5.0.0 */
+    level = ZOF_TYPE_TO_LEVEL_IDX(type);
+    if (MG_UNLIKELY (level < 0 || level > ZLIDX_LAUNCHER)) {
+        assert (0);
+        return -1;
+    }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (memdc)
+        *memdc = nodes[idx_znode].mem_dc;
+#endif
+
+    if (flags & ZOF_VISIBLE) {
+#ifdef _MGRM_PROCESSES
+        if (IS_TYPE_SPECIAL (type)) {
+            MG_Layer* layer = mgLayers;
+            while (layer) {
+                prepare_to_delete_visible_znode (layer, layer->zorder_info,
+                        idx_znode, type);
+                layer = layer->next;
+            }
+        }
+        else {
+            prepare_to_delete_visible_znode (get_layer_from_client (nodes[idx_znode].cli),
+                    zi, idx_znode, type);
+        }
+#else
+        prepare_to_delete_visible_znode (NULL, zi, idx_znode, type);
+#endif
+    }
+
+    nodes = GET_ZORDERNODE(zi);
 
     /* release and unchain the znode */
+    lock_zi_for_change (zi);
+
     nodes [idx_znode].hwnd = HWND_NULL;
     nodes [idx_znode].cli = -1;
     /* Since 5.0.0, use strdup to duplicate the caption */
@@ -2514,37 +2556,54 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     if (nodes[idx_znode].idx_mask_rect) {
         release_znode_maskrect (nodes, idx_znode);
     }
-    unchain_znode ((unsigned char*)(alloc_zi+1), nodes, idx_znode);
+    unchain_znode ((unsigned char*)(zi+1), nodes, idx_znode);
+
+    first = zi->first_in_levels + level;
+    nr_nodes = zi->nr_nodes_in_levels + level;
 
     if (*first == idx_znode) {
         *first = nodes [idx_znode].next;
     }
     *nr_nodes -= 1;
 
-    if (alloc_zi != zi) {
-        sync_special_nodes (alloc_zi, zi);
+    unlock_zi_for_change (zi);
+
+#ifdef _MGRM_PROCESSES
+    if (IS_TYPE_SPECIAL (type)) {
+        MG_Layer* layer = mgLayers;
+        while (layer) {
+            if (layer->zorder_info != zi) {
+                __mg_sync_special_nodes (zi, layer->zorder_info);
+            }
+
+            if (flags & ZOF_VISIBLE) {
+                update_after_delete_visible_znode (layer, layer->zorder_info,
+                        idx_znode, &rc, flags);
+            }
+
+            layer = layer->next;
+        }
     }
+    else if (flags & ZOF_VISIBLE) {
+        update_after_delete_visible_znode (get_layer_from_client (nodes[idx_znode].cli),
+                zi, idx_znode, &rc, flags);
+    }
+#else
+    if (flags & ZOF_VISIBLE) {
+        update_after_delete_visible_znode (NULL, zi,
+                idx_znode, &rc, flags);
+    }
+#endif
 
 #ifndef _MGSCHEMA_COMPOSITING
-    /* update all znode if it's dirty */
-    do_for_all_znodes (&rc, zi, _cb_update_znode, ZT_ALL);
-
-    if (nodes [0].flags & ZOF_IF_REFERENCE) {
-        SendMessage (HWND_DESKTOP,
-                        MSG_ERASEDESKTOP, 0, (WPARAM)&rc);
-        nodes [0].flags &= ~ZOF_IF_REFERENCE;
-    }
-#else  /* not defined _MGSCHEMA_COMPOSITING */
     if (flags & ZOF_VISIBLE) {
-        DO_COMPSOR_OP_ARGS (on_dirty_screen,
-                layer, flags & ZOF_TYPE_FLAG_MASK, &rc);
+        nodes = GET_ZORDERNODE(__mg_zorder_info);
+        if (nodes [0].flags & ZOF_IF_REFERENCE) {
+            SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0, (WPARAM)&rc);
+            nodes [0].flags &= ~ZOF_IF_REFERENCE;
+        }
     }
-#endif  /* defined _MGSCHEMA_COMPOSITING */
-
-    /* if active_win is this window, change it */
-    if (idx_znode == old_active) {
-        dskSetActiveZOrderNode (nodes [next_active].cli, next_active);
-    }
+#endif
 
     return 0;
 }
@@ -2944,7 +3003,6 @@ static int dskMove2Top (int cli, int idx_znode)
             }
         }
     }
-
 #endif /* not defined _MGSCHEMA_COMPOSITING */
 
     /* unchain it and move to top */
@@ -2979,21 +3037,36 @@ static int dskMove2Top (int cli, int idx_znode)
         nodes [pre_idx].next = idx_znode;
     }
 
-#if 0   /* old code without ZOF_IF_ALWAYSTOP */
-    nodes [idx_znode].prev = 0;
-    nodes [idx_znode].next = *first;
-    nodes [*first].prev = idx_znode;
-    *first = idx_znode;
-#endif  /* old code without ZOF_IF_ALWAYSTOP */
-
-#ifdef _MGSCHEMA_COMPOSITING
-    DO_COMPSOR_OP_ARGS (on_raised_win, get_layer_from_client (cli), idx_znode);
-#else
+#ifndef _MGSCHEMA_COMPOSITING
     nodes [idx_znode].age++;
 #endif
 
     /* unlock zi for change */
     unlock_zi_for_change (zi);
+
+#ifdef _MGRM_PROCESSES
+    if (IS_TYPE_SPECIAL (type)) {
+        MG_Layer* layer = mgLayers;
+        while (layer) {
+            if (layer->zorder_info != zi) {
+                __mg_sync_special_nodes (zi, layer->zorder_info);
+            }
+
+#ifdef _MGSCHEMA_COMPOSITING
+            if (nodes [idx_znode].flags & ZOF_VISIBLE) {
+                DO_COMPSOR_OP_ARGS (on_raised_win, layer, idx_znode);
+            }
+#endif
+
+            layer = layer->next;
+        }
+    }
+#ifdef _MGSCHEMA_COMPOSITING
+    else if (nodes [idx_znode].flags & ZOF_VISIBLE) {
+        DO_COMPSOR_OP_ARGS (on_raised_win, get_layer_from_client (cli), idx_znode);
+    }
+#endif
+#endif  /* defined _MGRM_PROCESSES */
 
 #ifndef _MGSCHEMA_COMPOSITING
     if ((nodes [idx_znode].flags & ZOF_VISIBLE) && nodes [idx_znode].hwnd) {
@@ -3085,13 +3158,33 @@ static int dskShowWindow (int cli, int idx_znode)
         nodes [idx_znode].age++;
         nodes [idx_znode].flags |= ZOF_VISIBLE;
     }
-#else   /* defined _MGSCHEMA_COMPOSITING */
+#endif   /* not defined _MGSCHEMA_COMPOSITING */
+
     nodes [idx_znode].flags |= ZOF_VISIBLE;
-    DO_COMPSOR_OP_ARGS (on_showing_win, get_layer_from_client (cli), idx_znode);
-#endif  /* defined _MGSCHEMA_COMPOSITING */
 
     /* unlock zi for change ... */
     unlock_zi_for_change (zi);
+
+#ifdef _MGRM_PROCESSES
+    if (IS_TYPE_SPECIAL (type)) {
+        MG_Layer* layer = mgLayers;
+        while (layer) {
+            if (layer->zorder_info != zi) {
+                __mg_sync_special_nodes (zi, layer->zorder_info);
+            }
+
+#ifdef _MGSCHEMA_COMPOSITING
+            DO_COMPSOR_OP_ARGS (on_showing_win, layer, idx_znode);
+#endif
+            layer = layer->next;
+        }
+    }
+#ifdef _MGSCHEMA_COMPOSITING
+    else {
+        DO_COMPSOR_OP_ARGS (on_showing_win, get_layer_from_client (cli), idx_znode);
+    }
+#endif
+#endif  /* defined _MGRM_PROCESSES */
 
     return 0;
 }
@@ -3199,12 +3292,34 @@ static int dskHideWindow (int cli, int idx_znode)
                         MSG_ERASEDESKTOP, 0, (WPARAM)&nodes [idx_znode].rc);
         nodes [0].flags &= ~ZOF_IF_REFERENCE;
     }
-#else   /* not defined _MGSCHEMA_COMPOSITING */
-    DO_COMPSOR_OP_ARGS (on_dirty_screen,
-            get_layer_from_client (cli),
-            nodes [idx_znode].flags & ZOF_TYPE_FLAG_MASK,
-            &nodes [idx_znode].rc);
-#endif  /* defined _MGSCHEMA_COMPOSITING */
+#endif   /* not defined _MGSCHEMA_COMPOSITING */
+
+#ifdef _MGRM_PROCESSES
+    if (IS_TYPE_SPECIAL (type)) {
+        MG_Layer* layer = mgLayers;
+        while (layer) {
+            if (layer->zorder_info != zi) {
+                __mg_sync_special_nodes (zi, layer->zorder_info);
+            }
+
+#ifdef _MGSCHEMA_COMPOSITING
+            DO_COMPSOR_OP_ARGS (on_dirty_screen,
+                    layer,
+                    nodes [idx_znode].flags & ZOF_TYPE_FLAG_MASK,
+                    &nodes [idx_znode].rc);
+#endif
+            layer = layer->next;
+        }
+    }
+#ifdef _MGSCHEMA_COMPOSITING
+    else {
+        DO_COMPSOR_OP_ARGS (on_dirty_screen,
+                get_layer_from_client (cli),
+                nodes [idx_znode].flags & ZOF_TYPE_FLAG_MASK,
+                &nodes [idx_znode].rc);
+    }
+#endif
+#endif  /* defined _MGRM_PROCESSES */
 
     return 0;
 }
@@ -3221,6 +3336,8 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
     RECT rcInv[4], rcOld, rcInter, tmprc;
     CLIPRGN bblt_rgn;
     MASKRECT *maskrect;
+#else
+    RECT org_rc;
 #endif
     ZORDERINFO* zi = get_zorder_info(cli);
 
@@ -3547,10 +3664,8 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 
         unlock_zi_for_change (zi);
     }
-#else   /* defined _MGSCHEMA_COMPOSITING */
+#else   /* not defined _MGSCHEMA_COMPOSITING */
     {
-        RECT org_rc;
-
         lock_zi_for_change (zi);
 
         org_rc = nodes [idx_znode].rc;
@@ -3560,12 +3675,32 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
             nodes [idx_znode].mem_dc = memdc;
         }
 
-        DO_COMPSOR_OP_ARGS (on_moved_win,
-                get_layer_from_client (cli), idx_znode, &org_rc);
-
         unlock_zi_for_change (zi);
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
+
+#ifdef _MGRM_PROCESSES
+    if (IS_TYPE_SPECIAL (type)) {
+        MG_Layer* layer = mgLayers;
+        while (layer) {
+            if (layer->zorder_info != zi) {
+                __mg_sync_special_nodes (zi, layer->zorder_info);
+            }
+
+#ifdef _MGSCHEMA_COMPOSITING
+            DO_COMPSOR_OP_ARGS (on_moved_win, layer, idx_znode, &org_rc);
+
+#endif
+            layer = layer->next;
+        }
+    }
+#ifdef _MGSCHEMA_COMPOSITING
+    else {
+        DO_COMPSOR_OP_ARGS (on_moved_win,
+                get_layer_from_client (cli), idx_znode, &org_rc);
+    }
+#endif
+#endif  /* defined _MGRM_PROCESSES */
 
     return 0;
 }
@@ -4475,7 +4610,7 @@ static int dskCalculateDefaultPosition (int cli, CALCPOSINFO* info)
 
 #ifdef _MGSCHEMA_COMPOSITING   /* not defined _MGSCHEMA_COMPOSITING */
     DO_COMPSOR_OP_ARGS (calc_mainwin_pos,
-            __mg_get_layer_from_zi(zi), zt_type, first, cli, info);
+            get_layer_from_client (cli), zt_type, first, cli, info);
 #else   /* defined _MGSCHEMA_COMPOSITING */
     /* give a default size first */
     if (IsRectEmpty (&info->rc)) {

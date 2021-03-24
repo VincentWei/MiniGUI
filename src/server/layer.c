@@ -705,6 +705,8 @@ MG_Layer* GUIAPI ServerCreateLayer (const char* layer_name,
     new_layer->next = mgLayers;
     mgLayers = new_layer;
 
+    __mg_sync_special_nodes (__mg_def_zorder_info, new_layer->zorder_info);
+
     /* Notify that a new layer created. */
     if (OnChangeLayer)
         OnChangeLayer (LCO_NEW_LAYER, new_layer, NULL);
