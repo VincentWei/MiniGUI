@@ -73,6 +73,7 @@
 #define SEM_PARAM 0666
 MG_Layer* mgLayers = NULL;
 MG_Layer* mgTopmostLayer = NULL;
+MG_Layer* mgDefaultLayer = NULL;
 
 ON_CHANGE_LAYER OnChangeLayer = NULL;
 
@@ -383,8 +384,6 @@ error:
     _ERR_PRINTF ("KERNEL: failed to remove semaphore set for layers: %m\n");
 }
 
-static MG_Layer* mg_def_layer;
-
 int __mg_init_layers ()
 {
     int semid = 0;
@@ -439,7 +438,7 @@ int __mg_init_layers ()
         return -1;
     }
 
-    mg_def_layer = mgLayers;
+    mgDefaultLayer = mgLayers;
     __mg_def_zorder_info = mgLayers->zorder_info;
     __mg_zorder_info = mgLayers->zorder_info;
 
@@ -565,7 +564,7 @@ static void do_client_join_layer (int cli,
     MG_Layer* layer = (MG_Layer*)(joined_info->layer);
     MG_Client* new_client = mgClients + cli;
 
-    joined_info->def_zi_shmid = mg_def_layer->zorder_shmid;
+    joined_info->def_zi_shmid = mgDefaultLayer->zorder_shmid;
 
     if (new_client->layer == layer) {   /* duplicated calling of JoinLayer */
 
@@ -1139,13 +1138,12 @@ BOOL GUIAPI ServerMoveClientToLayer (int cli, MG_Layer* dst_layer)
         return TRUE;
     }
 
-    if (__mg_move_client_to_layer (client, dst_layer, TRUE)) {
+    if (__mg_move_client_to_layer (client, dst_layer)) {
         MSG msg = { HWND_DESKTOP,
                 MSG_LAYERCHANGED, (WPARAM)dst_layer,
                 (LPARAM)dst_layer->zorder_shmid, __mg_tick_counter };
 
         __mg_send2client (&msg, client);
-
         return TRUE;
     }
 
