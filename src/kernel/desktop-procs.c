@@ -56,6 +56,8 @@
 #include <string.h>
 #include <math.h>
 
+#define _DEBUG
+
 #include "common.h"
 
 #ifdef _MGRM_PROCESSES
@@ -1722,7 +1724,7 @@ int __mg_end_up_layer_for_compositing (MG_Layer* layer)
 }
 #endif /* _MGSCHEMA_COMPOSITING */
 
-int __mg_do_change_topmost_layer (void)
+int __mg_do_change_topmost_layer (MG_Layer* new_topmost)
 {
     ZORDERINFO* old_zi = __mg_zorder_info;
     ZORDERNODE *nodes;
@@ -1734,25 +1736,25 @@ int __mg_do_change_topmost_layer (void)
     srvForceCloseMenu (0);
 #endif
 
+    nodes = GET_ZORDERNODE(old_zi);
+    if (old_zi->active_win > 0 &&
+            old_zi->active_win >= MAX_NR_SPECIAL_ZNODES (__mg_def_zorder_info)) {
+        /* reset active window */
+        dskSetActiveZOrderNode (nodes[old_zi->active_win].cli, 0);
+        // old_zi->active_win is zero now
+    }
+
+    mgTopmostLayer = new_topmost;
     __mg_zorder_info = mgTopmostLayer->zorder_info;
 
-    if (old_zi->active_win <= MAX_NR_SPECIAL_ZNODES (__mg_zorder_info)) {
-        /* if the old active window znode is a speical znode, keep it */
+    sync_special_nodes (old_zi, __mg_zorder_info);
+
+    if (old_zi->active_win > 0) {
         __mg_zorder_info->active_win = old_zi->active_win;
+        dskSetActiveZOrderNode (nodes[old_zi->active_win].cli, old_zi->active_win);
     }
     else {
-        /* reset and notify the old active window */
-        __mg_zorder_info->active_win = 0;
-
-        nodes = GET_ZORDERNODE(old_zi);
-        if (old_zi->active_win && (nodes [old_zi->active_win].flags & ZOF_VISIBLE)) {
-            post_msg_by_znode_p (old_zi, nodes + old_zi->active_win,
-                            MSG_NCACTIVATE, FALSE, 0);
-            post_msg_by_znode_p (old_zi, nodes + old_zi->active_win,
-                            MSG_ACTIVE, FALSE, 0);
-            post_msg_by_znode_p (old_zi, nodes + old_zi->active_win,
-                            MSG_KILLFOCUS, (WPARAM)HWND_NULL, 0);
-        }
+        dskSetActiveZOrderNode (nodes[old_zi->active_win].cli, 0);
     }
 
 #ifndef _MGSCHEMA_COMPOSITING
