@@ -4454,8 +4454,12 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  * A system/global main window will be shown above other types of main windows.
  *
  * \note Under MiniGUI-Processes runtime mode, only the server (`mginit`) can
- *      create main windows in the system level, and any main windows created
- *      by the server is a system main window.
+ *  create main windows in the system level, and any main windows created
+ *  by the server is a system main window.
+ *
+ *
+ * \note Under MiniGUI-Processes runtime mode, the windows in this level will be kept
+ *  visible on all layers.
  *
  * Since 5.0.0.
  */
@@ -4469,13 +4473,18 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  * screen lock level. A main window in the screen lock level will
  * be shown below the system main windows and above the other main windows.
  *
- * \note Under MiniGUI-Processes runtime mode, only the client which creates
- *      the first main window in the screen lock level can create other
- *      main windows in the this level. For other clients, a main window in
- *      the higher level will be created.
+ * \note Under MiniGUI-Processes runtime mode, only clients on the default (`mginit`)
+ *  layer can create a main window in this level, and only the client which creates
+ *  the first main window in the screen lock level can create other
+ *  main windows in the this level. For other clients, a main window in
+ *  the higher level will be created.
+ *
+ * \note Under MiniGUI-Processes runtime mode, the windows in this level will be kept
+ *  visible on all layers.
+ *
  * \note The maximal number of all main windows in the screen lock level is 8.
- *      MiniGUI will create a main windows in higher level if there is no room
- *      in the screen lock level.
+ *  MiniGUI will create a main windows in higher level if there is no room
+ *  in the screen lock level.
  * 
  * Since 5.0.0.
  */
@@ -4490,13 +4499,18 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  * be shown below the main windows in the screen lock level and
  * above the main windows in the higher level.
  *
- * \note Under MiniGUI-Processes runtime mode, only the client which creates
- *      the first main window in the docker level can create other main windows
- *      in the docker level. For other clients, a main window in the higher
- *      level will be created.
+ * \note Under MiniGUI-Processes runtime mode, only clients on the default (`mginit`)
+ *  layer can create a main window in this levele, and only the client which creates
+ *  the first main window in the docker level can create other main windows
+ *  in the docker level. For other clients, a main window in the higher
+ *  level will be created.
+ *
+ * \note Under MiniGUI-Processes runtime mode, the windows in this level will be kept
+ *  visible on all layers.
+ *
  * \note The maximal number of all main windows in the docker level is 8.
- *      MiniGUI will create a main windows in higher level if there is no room
- *      in the docker level.
+ *  MiniGUI will create a main windows in higher level if there is no room
+ *  in the docker level.
  *
  * Since 5.0.0.
  */
@@ -4545,13 +4559,18 @@ MG_EXPORT SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook);
  * be shown below the main windows in the normal level and
  * above the wallpaper.
  *
- * \note Under MiniGUI-Processes runtime mode, only the client which creates
- *      the first main window in the launcher level can create other
- *      main windows in the launcher level. For other clients, a main window
- *      in the normal level will be created.
+ * \note Under MiniGUI-Processes runtime mode, only clients on the default (`mginit`)
+ *  layer can create a main window in this levele, and only the client which creates
+ *  the first main window in the launcher level can create other
+ *  main windows in the launcher level. For other clients, a main window
+ *  in the normal level will be created.
+ *
+ * \note Under MiniGUI-Processes runtime mode, the windows in this level will be kept
+ *  visible on all layers.
+ *
  * \note The maximal number of all main windows in the launcher level is 8.
- *      MiniGUI will create a main windows in normal level if there is no room
- *      in the launcher level.
+ *  MiniGUI will create a main windows in normal level if there is no room
+ *  in the launcher level.
  *
  * Since 5.0.0.
  */
