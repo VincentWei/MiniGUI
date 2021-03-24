@@ -1742,14 +1742,14 @@ typedef struct _CompositorOps {
             int zidx, const RECT* rc_org);
 
     /**
-     * This operation will be called to composite the current tompost layer
-     * with another layer at the same time on the screen.
+     * This operation will composite multiple layers on the screen at the same
+     * time by using the combining paramemters.
      */
-    void (*composite_with_layer) (CompositorCtxt* ctxt,
-            MG_Layer* another, void* composite_arg);
+    unsigned int (*composite_layers) (CompositorCtxt* ctxt, MG_Layer* layers[],
+            int nr_layers, void* combine_param);
 
     /**
-     * This operation will be called when transitting to a new topmost layer.
+     * This operation will be called when transiting to a new topmost layer.
      * The compositor can play an animation to transit from the current
      * topmost layer to the new topmost layer.
      */
@@ -1769,12 +1769,20 @@ typedef struct _CompositorOps {
 
 } CompositorOps;
 
+#define FCM_MOVE_HORIZONTAL     0
+#define FCM_MOVE_VERTICAL       1
+
+typedef struct _COMBPARAMS_FALLBACK {
+    int method;
+    int percent;
+} COMBPARAMS_FALLBACK;
+
 /**
  * \brief Get the operations of a specific compositor.
  *
  * This function gets the operations of a specific compositor.
  *
- * \param name The name of the compositor. MiniGUI reserved `default`
+ * \param name The name of the compositor. MiniGUI reserved `fallback`
  *      as the default compositor which is implemented in MiniGUI Core.
  *      You can use some operations of the default compositor as the
  *      corresponding operations for your own compositor.
