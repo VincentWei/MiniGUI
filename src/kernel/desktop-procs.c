@@ -1762,8 +1762,8 @@ int __mg_do_change_topmost_layer (void)
     nodes = GET_ZORDERNODE(__mg_zorder_info);
     nodes [0].age++;
 
-    while (next = __kernel_get_next_znode (__mg_zorder_info, from) > 0) {
-        nodes [i].age++;
+    while ((next = __kernel_get_next_znode (__mg_zorder_info, from)) > 0) {
+        nodes [next].age++;
         from = next;
     }
 

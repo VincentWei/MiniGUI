@@ -2321,7 +2321,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].priv_data = NULL;
 
 #ifndef _MGSCHEMA_COMPOSITING
-    if (idx_mask_rect == 0 && (flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS)) {
+    if ((flags & ZOF_TW_TROUNDCNS || flags & ZOF_TW_BROUNDCNS)) {
         RECT cli_rect;
 
         SetRect (&cli_rect, 0, 0, RECTW(nodes[free_slot].rc),
