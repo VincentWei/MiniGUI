@@ -352,8 +352,16 @@ extern MG_EXPORT MG_Client* mgClients;
 extern MG_EXPORT MG_Layer* mgTopmostLayer;
 
 /**
+ * \var MG_Layer* mgDefaultLayer
+ * \brief The pointer to the default layer.
+ *
+ * \sa MG_Layer
+ */
+extern MG_EXPORT MG_Layer* mgDefaultLayer;
+
+/**
  * \var MG_Layer* mgLayers
- * \brief The pointer to the array of layers.
+ * \brief The pointer to the layer list.
  *
  * \sa MG_Layer
  */
@@ -561,6 +569,8 @@ MG_EXPORT BOOL GUIAPI DeleteLayer (BOOL handle_name,
  * \param layer_name The name of the layer.
  *
  * \return TRUE on success, otherwise FALSE.
+ *
+ * \note Only one client which has no any window can be moved.
  *
  * \note The client which created a fixed main window
  * (a main window acts as the screen lock, the docker, or the launcher) will
@@ -1491,7 +1501,9 @@ MG_EXPORT BOOL GUIAPI ServerDoZNodeOperation (MG_Layer* layer, int idx_znode,
  *
  * \return TRUE on success, otherwise FALSE.
  *
- * \note Server-only function. The client which created a fixed main window
+ * \note Server-only function. Only one client which has no any window can be moved.
+ *
+ * \note The client which created a fixed main window
  * (a main window acts as the screen lock, the docker, or the launcher) will
  * be moved to the topmost layer automatically.
  *
