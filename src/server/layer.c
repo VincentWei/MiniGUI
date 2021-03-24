@@ -628,10 +628,9 @@ BOOL GUIAPI ServerSetTopmostLayer (MG_Layer* layer)
     DO_COMPSOR_OP_ARGS (transit_to_layer, layer);
 #endif
 
-    mgTopmostLayer = layer;
     CHANGE_TOPMOST_LAYER (layer);
 
-    __mg_do_change_topmost_layer ();
+    __mg_do_change_topmost_layer (layer);
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (old_topmost) {

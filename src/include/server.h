@@ -159,7 +159,7 @@ int __mg_prepare_layer_for_compositing (MG_Layer* layer);
 int __mg_end_up_layer_for_compositing (MG_Layer* layer);
 #endif
 
-int __mg_do_change_topmost_layer (void);
+int __mg_do_change_topmost_layer (MG_Layer* new_topmost);
 
 MG_Layer* __mg_find_layer_by_name (const char* name);
 
