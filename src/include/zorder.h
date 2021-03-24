@@ -235,15 +235,15 @@ typedef ZORDERINFO* PZORDERINFO;
     MG_UNLIKELY ((idx) > MAX_NR_ZNODES(zi))
 
 #define IS_TYPE_GENERAL(type)                               \
-    (type == ZOF_TYPE_TOOLTIP ||                            \
-     type == ZOF_TYPE_HIGHER ||                             \
-     type == ZOF_TYPE_NORMAL)
+    ((type) == ZOF_TYPE_TOOLTIP ||                          \
+     (type) == ZOF_TYPE_HIGHER ||                           \
+     (type) == ZOF_TYPE_NORMAL)
 
 #define IS_TYPE_SPECIAL(type)                               \
-    (type == ZOF_TYPE_GLOBAL ||                             \
-     type == ZOF_TYPE_SCREENLOCK ||                         \
-     type == ZOF_TYPE_DOCKER ||                             \
-     type == ZOF_TYPE_LAUNCHER)
+    ((type) == ZOF_TYPE_GLOBAL ||                           \
+     (type) == ZOF_TYPE_SCREENLOCK ||                       \
+     (type) == ZOF_TYPE_DOCKER ||                           \
+     (type) == ZOF_TYPE_LAUNCHER)
 
 #define ZOF_TYPE_TO_LEVEL_IDX(type)     ((int)(8 - ((type) >> 28)))
 
