@@ -133,6 +133,8 @@ typedef struct _ZORDERINFO {
     int             first_launcher;
 
     int             active_win;
+    int             old_active;
+    int             next_active;
 
     int             cli_trackmenu;
 
@@ -256,6 +258,8 @@ void __kernel_free_z_order_info (ZORDERINFO* zi);
 int __kernel_get_window_region (HWND pWin, CLIPRGN* region);
 int __kernel_get_next_znode (const ZORDERINFO* zi, int from);
 int __kernel_get_prev_znode (const ZORDERINFO* zi, int from);
+
+void __mg_sync_special_nodes (ZORDERINFO* from, ZORDERINFO* to);
 
 #ifdef __cplusplus
 }
