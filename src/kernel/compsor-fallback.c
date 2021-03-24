@@ -926,6 +926,34 @@ static void on_layer_op (CompositorCtxt* ctxt, int layer_op,
     }
 }
 
+static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
+            int nr_layers, void* combine_param)
+{
+    COMBPARAMS_FALLBACK *cp = (COMBPARAMS_FALLBACK *)combine_param;
+
+    _MG_PRINTF ("composite %d layers (%s and %s) at percent %d\n",
+            nr_layers, layers[0]->name, layers[1]->name, cp->percent);
+    return 0;
+}
+
+/*
+ * The fallback implementation is very simple.
+ * You can override this operation in your mginit to use mGEff for
+ * a better animation timing.
+ */
+static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
+{
+    MG_Layer* layers[2] = { mgTopmostLayer, to_layer };
+
+    COMBPARAMS_FALLBACK cp = { FCM_MOVE_HORIZONTAL, 20 };
+
+    while (cp.percent < 80) {
+        composite_layers (ctxt, layers, 2, &cp);
+        cp.percent += 20;
+        usleep (10 * 1000);
+    }
+}
+
 CompositorOps __mg_fallback_compositor = {
     initialize: initialize,
     terminate: terminate,
@@ -949,6 +977,8 @@ CompositorOps __mg_fallback_compositor = {
     on_changed_rgn: on_changed_rgn,
     on_moved_win: on_moved_win,
     on_layer_op: on_layer_op,
+    composite_layers: composite_layers,
+    transit_to_layer: transit_to_layer,
 };
 
 #endif /* defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING) */
