@@ -148,8 +148,8 @@ enum {
   #define SIZE_QMSG_HEAP      32
 #else
   #define DEF_MSGQUEUE_LEN    NR_BITS_DWORD
-  #define SIZE_CLIPRECTHEAP   NR_BITS_DWORD
-  #define SIZE_INVRECTHEAP    NR_BITS_DWORD
+  #define SIZE_CLIPRECTHEAP   256
+  #define SIZE_INVRECTHEAP    128
   #define SIZE_QMSG_HEAP      NR_BITS_DWORD
 #endif
 
