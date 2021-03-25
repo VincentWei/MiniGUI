@@ -3692,7 +3692,6 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 
 #ifdef _MGSCHEMA_COMPOSITING
             DO_COMPSOR_OP_ARGS (on_moved_win, layer, idx_znode, &org_rc);
-
 #endif
             layer = layer->next;
         }
