@@ -602,11 +602,13 @@ typedef struct _BLOCKHEAP
     /**
      * The first free element in the heap.
      */
-    int             free;
+    size_t          free;
     /**
      * Pointer to the pre-allocated heap.
      */
     void*           heap;
+
+    size_t          nr_alloc;
 } BLOCKHEAP;
 
 /**
