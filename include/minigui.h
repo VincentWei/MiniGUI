@@ -86,6 +86,7 @@ extern "C" {
 #define ZOF_INTERNAL_FLAGS_MASK 0X000F0000
 #define ZOF_IF_REFERENCE        0x00010000
 #define ZOF_IF_ALWAYSTOP        0x00020000
+#define ZOF_IF_SPECIAL          0x00040000  // Since 5.0.6
 
 #define ZOF_TW_FLAG_MASK        0x00F00000
 #define ZOF_TW_TROUNDCNS        0x00100000
@@ -1769,11 +1770,19 @@ typedef struct _CompositorOps {
 
 } CompositorOps;
 
-#define FCM_MOVE_HORIZONTAL     0
-#define FCM_MOVE_VERTICAL       1
+#define FCM_HORIZONTAL      0
+#define FCM_VERTICAL        1
 
-typedef struct _COMBPARAMS_FALLBACK {
+/** The combining parameters for the callback compositor. */
+typedef struct _CombParamsFallback {
+    /**
+     * The combining method, can be one of the following values:
+     *  - FCM_HORIZONTAL
+     *  - FCM_VERTICAL
+     */
     int method;
+
+    /** The percentage of the screen occupied by the first layer. */
     int percent;
 } COMBPARAMS_FALLBACK;
 
