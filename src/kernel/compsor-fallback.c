@@ -148,91 +148,6 @@ static int subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
     return nr_subtracted;
 }
 
-#if 0   /* deprecated code */
-/*
- * This helper is useful for transparent or blur popup menus
- * The fallback compositor only supports opaque popup menus.
- */
-static void subtract_opaque_ppp_znodes (CompositorCtxt* ctxt)
-{
-    int i, nr_ppp;
-
-    // subtract opaque menu znodes
-    nr_ppp = ServerGetPopupMenusCount();
-    for (i = 0; i < nr_ppp; i++) {
-        const ZNODEHEADER* znode_hdr;
-        CLIPRGN* rgn;
-
-        znode_hdr = ServerGetPopupMenuZNodeHeader (i, (void**)rgn, FALSE);
-        if (znode_hdr && znode_hdr->ct == CT_OPAQUE) {
-            SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
-        }
-    }
-}
-
-static inline int get_lucent_win_znodes_above (CompositorCtxt* ctxt, int from)
-{
-    int nr_lucent = 0;
-    int prev;
-
-    /* subtract opaque window znodes */
-    if (from > 0)
-        prev = from;
-    else
-        prev = ServerGetPrevZNode (NULL, 0, NULL);
-
-    while (prev > 0) {
-        const ZNODEHEADER* znode_hdr;
-        CLIPRGN* rgn;
-
-        znode_hdr = ServerGetWinZNodeHeader (NULL, prev, (void**)&rgn, FALSE);
-        assert (znode_hdr);
-
-        if ((znode_hdr->flags & ZNIF_VISIBLE) &&
-                (znode_hdr->ct & CT_SYSTEM_MASK) != CT_OPAQUE &&
-                AreRegionsIntersected (&ctxt->dirty_rgn, rgn)) {
-            nr_lucent++;
-        }
-
-        prev = ServerGetPrevZNode (NULL, prev, NULL);
-    }
-
-    return nr_lucent;
-}
-
-static inline void subtract_all_opaque_win_znodes (CompositorCtxt* ctxt,
-        CLIPRGN* dirty_rgn)
-{
-    int next;
-
-    if (IsEmptyClipRgn (dirty_rgn)) {
-        return;
-    }
-
-    next = ServerGetNextZNode (NULL, 0, NULL);
-    while (next > 0) {
-        const ZNODEHEADER* znode_hdr;
-        CLIPRGN* rgn;
-
-        znode_hdr = ServerGetWinZNodeHeader (NULL, next, (void**)&rgn, FALSE);
-        assert (znode_hdr);
-
-        if ((znode_hdr->flags & ZNIF_VISIBLE) &&
-               (znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE) {
-
-            SubtractRegion (dirty_rgn, dirty_rgn, rgn);
-
-            if (IsEmptyClipRgn (dirty_rgn)) {
-                return;
-            }
-        }
-
-        next = ServerGetNextZNode (NULL, next, NULL);
-    }
-}
-
-#endif  /* deprecated code */
-
 static inline void tile_dirty_region_for_wallpaper (CompositorCtxt* ctxt)
 {
     int wp_w = GetGDCapability (HDC_SCREEN, GDCAP_HPIXEL);
@@ -353,6 +268,7 @@ static void composite_ppp_znodes (CompositorCtxt* ctxt)
             BitBlt (znode_hdr->mem_dc, 0, 0,
                     RECTW (znode_hdr->rc), RECTH (znode_hdr->rc),
                     HDC_SCREEN_SYS, znode_hdr->rc.left, znode_hdr->rc.top, 0);
+            SelectClipRect (HDC_SCREEN_SYS, NULL);
 
             // subtract the clipping region of the popup menu znode
             // from the dirty region, because this compositor
@@ -399,10 +315,11 @@ static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
                 0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
                 HDC_SCREEN_SYS,
                 znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
+        SelectClipRect (HDC_SCREEN_SYS, NULL);
 
         SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->inv_rgn);
-        EmptyClipRgn (&ctxt->inv_rgn);
     }
+    EmptyClipRgn (&ctxt->inv_rgn);
 
     ServerReleaseWinZNodeHeader (ctxt->layer, from);
 }
@@ -468,13 +385,14 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
             }
 
             SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
-            //SelectClipRect (HDC_SCREEN_SYS, &znode_hdr->rc);
             BitBlt (znode_hdr->mem_dc,
                     0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
                     HDC_SCREEN_SYS,
                     znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
-            EmptyClipRgn (&ctxt->inv_rgn);
+            SelectClipRect (HDC_SCREEN_SYS, NULL);
         }
+
+        EmptyClipRgn (&ctxt->inv_rgn);
 
         ServerReleaseWinZNodeHeader (ctxt->layer, prev);
 
@@ -495,7 +413,7 @@ static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
        the dirty region. */
     if (from > 0 && subtract_opaque_win_znodes_above (ctxt, from) > 0) {
         if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
-            return;
+            goto done;
         }
     }
 
@@ -503,7 +421,7 @@ static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
        the region of visible popup menus. */
     IntersectRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->wins_rgn);
     if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
-        return;
+        goto done;
     }
 
     /* compositing the current window znode and the znodes below it */
@@ -537,6 +455,7 @@ static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
         composite_all_lucent_win_znodes_above (ctxt, &tmp_rgn, 0);
     }
 
+done:
     EmptyClipRgn (&tmp_rgn);
 }
 
@@ -747,7 +666,6 @@ static BOOL refresh_dirty_region (CompositorCtxt* ctxt, MG_Layer* layer)
     if (ctxt->dirty_types & DIRTY_ZT_PPP)
         composite_ppp_znodes (ctxt);
     composite_on_dirty_region (ctxt, 0);
-
     EmptyClipRgn (&ctxt->dirty_rgn);
 
     SyncUpdateDC (HDC_SCREEN_SYS);
@@ -805,6 +723,8 @@ static void on_dirty_screen (CompositorCtxt* ctxt,
     }
 
     composite_on_dirty_region (ctxt, 0);
+    EmptyClipRgn (&ctxt->dirty_rgn);
+
     SyncUpdateDC (HDC_SCREEN_SYS);
 }
 
@@ -881,6 +801,7 @@ static void refresh_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
         composite_on_dirty_region (ctxt, zidx);
         SyncUpdateDC (HDC_SCREEN_SYS);
     }
+    EmptyClipRgn (&ctxt->dirty_rgn);
 }
 
 static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
@@ -914,6 +835,8 @@ static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
         composite_on_dirty_region (ctxt, zidx);
         SyncUpdateDC (HDC_SCREEN_SYS);
     }
+
+    EmptyClipRgn (&ctxt->dirty_rgn);
 }
 
 static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
@@ -950,6 +873,8 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
         composite_on_dirty_region (ctxt, zidx);
         SyncUpdateDC (HDC_SCREEN_SYS);
     }
+
+    EmptyClipRgn (&ctxt->dirty_rgn);
 }
 
 static void on_layer_op (CompositorCtxt* ctxt, int layer_op,
@@ -1102,7 +1027,12 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
         cp.percent = 95;
         while (cp.percent > 5) {
-            composite_layers (ctxt, layers, 2, &cp);
+            unsigned int t_ms;
+
+            t_ms = composite_layers (ctxt, layers, 2, &cp);
+            _MG_PRINTF ("time cosumed of composite_layers: %u\n", t_ms);
+
+            usleep (10 * 1000);
             cp.percent -= 9;
         }
     }
@@ -1113,7 +1043,11 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
         cp.percent = 5;
         while (cp.percent < 95) {
-            composite_layers (ctxt, layers, 2, &cp);
+            unsigned int t_ms;
+
+            t_ms = composite_layers (ctxt, layers, 2, &cp);
+            _MG_PRINTF ("time cosumed of composite_layers: %u\n", t_ms);
+
             usleep (10 * 1000);
             cp.percent += 9;
         }
@@ -1148,4 +1082,89 @@ CompositorOps __mg_fallback_compositor = {
 };
 
 #endif /* defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING) */
+
+#if 0   /* deprecated code */
+/*
+ * This helper is useful for transparent or blur popup menus
+ * The fallback compositor only supports opaque popup menus.
+ */
+static void subtract_opaque_ppp_znodes (CompositorCtxt* ctxt)
+{
+    int i, nr_ppp;
+
+    // subtract opaque menu znodes
+    nr_ppp = ServerGetPopupMenusCount();
+    for (i = 0; i < nr_ppp; i++) {
+        const ZNODEHEADER* znode_hdr;
+        CLIPRGN* rgn;
+
+        znode_hdr = ServerGetPopupMenuZNodeHeader (i, (void**)rgn, FALSE);
+        if (znode_hdr && znode_hdr->ct == CT_OPAQUE) {
+            SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
+        }
+    }
+}
+
+static inline int get_lucent_win_znodes_above (CompositorCtxt* ctxt, int from)
+{
+    int nr_lucent = 0;
+    int prev;
+
+    /* subtract opaque window znodes */
+    if (from > 0)
+        prev = from;
+    else
+        prev = ServerGetPrevZNode (NULL, 0, NULL);
+
+    while (prev > 0) {
+        const ZNODEHEADER* znode_hdr;
+        CLIPRGN* rgn;
+
+        znode_hdr = ServerGetWinZNodeHeader (NULL, prev, (void**)&rgn, FALSE);
+        assert (znode_hdr);
+
+        if ((znode_hdr->flags & ZNIF_VISIBLE) &&
+                (znode_hdr->ct & CT_SYSTEM_MASK) != CT_OPAQUE &&
+                AreRegionsIntersected (&ctxt->dirty_rgn, rgn)) {
+            nr_lucent++;
+        }
+
+        prev = ServerGetPrevZNode (NULL, prev, NULL);
+    }
+
+    return nr_lucent;
+}
+
+static inline void subtract_all_opaque_win_znodes (CompositorCtxt* ctxt,
+        CLIPRGN* dirty_rgn)
+{
+    int next;
+
+    if (IsEmptyClipRgn (dirty_rgn)) {
+        return;
+    }
+
+    next = ServerGetNextZNode (NULL, 0, NULL);
+    while (next > 0) {
+        const ZNODEHEADER* znode_hdr;
+        CLIPRGN* rgn;
+
+        znode_hdr = ServerGetWinZNodeHeader (NULL, next, (void**)&rgn, FALSE);
+        assert (znode_hdr);
+
+        if ((znode_hdr->flags & ZNIF_VISIBLE) &&
+               (znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE) {
+
+            SubtractRegion (dirty_rgn, dirty_rgn, rgn);
+
+            if (IsEmptyClipRgn (dirty_rgn)) {
+                return;
+            }
+        }
+
+        next = ServerGetNextZNode (NULL, next, NULL);
+    }
+}
+
+#endif  /* deprecated code */
 
