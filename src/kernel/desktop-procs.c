@@ -1562,7 +1562,7 @@ int __mg_remove_all_znodes_of_client (int cli)
             if (nodes [slot].cli == cli) {
                 DWORD flags = nodes [slot].flags;
 
-                if (!has_special && IS_TYPE_SPECIAL (flags & ZOF_TYPE_MASK)) {
+                if (!has_special && (flags & ZOF_IF_SPECIAL)) {
                     has_special = TRUE;
                 }
 
@@ -1611,8 +1611,18 @@ int __mg_remove_all_znodes_of_client (int cli)
 
 #ifdef _MGSCHEMA_COMPOSITING
                 if (flags & ZOF_VISIBLE) {
-                    DO_COMPSOR_OP_ARGS (on_dirty_screen, layer,
-                            flags & ZOF_TYPE_FLAG_MASK, &nodes [slot].rc);
+                    if (flags & ZOF_IF_SPECIAL) {
+                        MG_Layer* layer = mgLayers;
+                        while (layer) {
+                            DO_COMPSOR_OP_ARGS (on_dirty_screen, layer,
+                                    flags & ZOF_TYPE_FLAG_MASK, &nodes [slot].rc);
+                            layer = layer->next;
+                        }
+                    }
+                    else {
+                        DO_COMPSOR_OP_ARGS (on_dirty_screen, layer,
+                                flags & ZOF_TYPE_FLAG_MASK, &nodes [slot].rc);
+                    }
                 }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
             }
@@ -1626,8 +1636,15 @@ int __mg_remove_all_znodes_of_client (int cli)
     /* unlock zi for change  */
     unlock_zi_for_change (zi);
 
-    if (has_special && zi != __mg_def_zorder_info) {
-        __mg_sync_special_nodes (zi, __mg_def_zorder_info);
+    if (has_special) {
+        MG_Layer* layer = mgLayers;
+        while (layer) {
+            if (layer->zorder_info != zi) {
+                __mg_sync_special_nodes (zi, layer->zorder_info);
+            }
+
+            layer = layer->next;
+        }
     }
 
 #ifndef _MGSCHEMA_COMPOSITING
