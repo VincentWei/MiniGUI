@@ -2276,6 +2276,9 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 
             if (free_slot >= MAX_NR_SPECIAL_ZNODES(zi))
                 free_slot = -1;
+
+            /* Since 5.0.6 */
+            flags |= ZOF_IF_SPECIAL;
         }
         else {
             free_slot = __mg_lookfor_unused_slot (
@@ -2374,7 +2377,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     unlock_zi_for_change (zi);
 
 #ifdef _MGRM_PROCESSES
-    if (IS_TYPE_SPECIAL (type)) {
+    if (flags & ZOF_IF_SPECIAL) {
         MG_Layer* layer = mgLayers;
         while (layer) {
             if (layer->zorder_info != zi) {
@@ -2522,7 +2525,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
 
     if (flags & ZOF_VISIBLE) {
 #ifdef _MGRM_PROCESSES
-        if (IS_TYPE_SPECIAL (type)) {
+        if (flags & ZOF_IF_SPECIAL) {
             MG_Layer* layer = mgLayers;
             while (layer) {
                 prepare_to_delete_visible_znode (layer, layer->zorder_info,
@@ -2569,7 +2572,7 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
     unlock_zi_for_change (zi);
 
 #ifdef _MGRM_PROCESSES
-    if (IS_TYPE_SPECIAL (type)) {
+    if (flags & ZOF_IF_SPECIAL) {
         MG_Layer* layer = mgLayers;
         while (layer) {
             if (layer->zorder_info != zi) {
@@ -3045,7 +3048,7 @@ static int dskMove2Top (int cli, int idx_znode)
     unlock_zi_for_change (zi);
 
 #ifdef _MGRM_PROCESSES
-    if (IS_TYPE_SPECIAL (type)) {
+    if (nodes[idx_znode].flags & ZOF_IF_SPECIAL) {
         MG_Layer* layer = mgLayers;
         while (layer) {
             if (layer->zorder_info != zi) {
@@ -3166,7 +3169,7 @@ static int dskShowWindow (int cli, int idx_znode)
     unlock_zi_for_change (zi);
 
 #ifdef _MGRM_PROCESSES
-    if (IS_TYPE_SPECIAL (type)) {
+    if (nodes[idx_znode].flags & ZOF_IF_SPECIAL) {
         MG_Layer* layer = mgLayers;
         while (layer) {
             if (layer->zorder_info != zi) {
@@ -3295,7 +3298,7 @@ static int dskHideWindow (int cli, int idx_znode)
 #endif   /* not defined _MGSCHEMA_COMPOSITING */
 
 #ifdef _MGRM_PROCESSES
-    if (IS_TYPE_SPECIAL (type)) {
+    if (nodes[idx_znode].flags & ZOF_IF_SPECIAL) {
         MG_Layer* layer = mgLayers;
         while (layer) {
             if (layer->zorder_info != zi) {
@@ -3680,7 +3683,7 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
 #ifdef _MGRM_PROCESSES
-    if (IS_TYPE_SPECIAL (type)) {
+    if (nodes[idx_znode].flags & ZOF_IF_SPECIAL) {
         MG_Layer* layer = mgLayers;
         while (layer) {
             if (layer->zorder_info != zi) {
