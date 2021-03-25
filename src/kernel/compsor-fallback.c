@@ -136,21 +136,9 @@ static int subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
 
         if ((znode_hdr->flags & ZNIF_VISIBLE) &&
                 (znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE) {
-            BOOL offseted = FALSE;
-
-            assert (rgn);
-
-            if ((ctxt->offx || ctxt->offy) && !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
-                OffsetRegion (rgn, ctxt->offx, ctxt->offy);
-                offseted = TRUE;
-            }
 
             if (SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn)) {
                 nr_subtracted++;
-            }
-
-            if (offseted) {
-                OffsetRegion (rgn, -ctxt->offx, -ctxt->offy);
             }
         }
 
@@ -391,39 +379,29 @@ static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
     assert (znode_hdr);
 
     if ((znode_hdr->flags & ZNIF_VISIBLE) &&
-            ((znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE)) {
-       
+            ((znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE) &&
+            IntersectRegion (&ctxt->inv_rgn, &ctxt->dirty_rgn, rgn)) {
         BOOL offx, offy;
-
-        assert (rgn);
 
         if ((ctxt->offx || ctxt->offy) && !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
             offx = ctxt->offx;
             offy = ctxt->offy;
-            OffsetRegion (rgn, offx, offy);
         }
         else {
             offx = 0;
             offy = 0;
         }
 
-        if (IntersectRegion (&ctxt->inv_rgn, &ctxt->dirty_rgn, rgn)) {
+        SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
+        SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
+        SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
+        BitBlt (znode_hdr->mem_dc,
+                0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
+                HDC_SCREEN_SYS,
+                znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
 
-            SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
-            SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
-            SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
-            BitBlt (znode_hdr->mem_dc,
-                    0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
-                    HDC_SCREEN_SYS,
-                    znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
-
-            SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->inv_rgn);
-            EmptyClipRgn (&ctxt->inv_rgn);
-        }
-
-        if (offx || offy) {
-            OffsetRegion (rgn, -offx, -offy);
-        }
+        SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->inv_rgn);
+        EmptyClipRgn (&ctxt->inv_rgn);
     }
 
     ServerReleaseWinZNodeHeader (ctxt->layer, from);
@@ -443,69 +421,59 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
         assert (znode_hdr);
 
         if ((znode_hdr->flags & ZNIF_VISIBLE) &&
-               (znode_hdr->ct & CT_SYSTEM_MASK) != CT_OPAQUE) {
-           
+               (znode_hdr->ct & CT_SYSTEM_MASK) != CT_OPAQUE &&
+               IntersectRegion (&ctxt->inv_rgn, dirty_rgn, rgn)) {
             int offx, offy;
-
-            assert (rgn);
 
             if ((ctxt->offx || ctxt->offy) && !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
                 offx = ctxt->offx;
                 offy = ctxt->offy;
-                OffsetRegion (rgn, offx, offy);
             }
             else {
                 offx = 0;
                 offy = 0;
             }
 
-            if (IntersectRegion (&ctxt->inv_rgn, dirty_rgn, rgn)) {
+            switch (znode_hdr->ct & CT_SYSTEM_MASK) {
+            case CT_COLORKEY:
+                SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
+                SetMemDCColorKey (znode_hdr->mem_dc,
+                        MEMDC_FLAG_SRCCOLORKEY,
+                        DWORD2Pixel (znode_hdr->mem_dc, znode_hdr->ct_arg));
+                break;
 
-                switch (znode_hdr->ct & CT_SYSTEM_MASK) {
-                case CT_COLORKEY:
-                    SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
-                    SetMemDCColorKey (znode_hdr->mem_dc,
-                            MEMDC_FLAG_SRCCOLORKEY,
-                            DWORD2Pixel (znode_hdr->mem_dc, znode_hdr->ct_arg));
-                    break;
+            case CT_LOGICALPIXEL:
+                _WRN_PRINTF("CT_LOGICALPIXEL is not implemented\n");
+                break;
 
-                case CT_LOGICALPIXEL:
-                    _WRN_PRINTF("CT_LOGICALPIXEL is not implemented\n");
-                    break;
+            case CT_ALPHACHANNEL:
+                SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
+                SetMemDCAlpha (znode_hdr->mem_dc,
+                        MEMDC_FLAG_SRCALPHA, (BYTE)znode_hdr->ct_arg);
+                break;
 
-                case CT_ALPHACHANNEL:
-                    SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
-                    SetMemDCAlpha (znode_hdr->mem_dc,
-                            MEMDC_FLAG_SRCALPHA, (BYTE)znode_hdr->ct_arg);
-                    break;
+            case CT_ALPHAPIXEL:
+                SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
+                SetMemDCAlpha (znode_hdr->mem_dc,
+                        MEMDC_FLAG_SRCPIXELALPHA, 0);
+                break;
 
-                case CT_ALPHAPIXEL:
-                    SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
-                    SetMemDCAlpha (znode_hdr->mem_dc,
-                            MEMDC_FLAG_SRCPIXELALPHA, 0);
-                    break;
+            case CT_BLURRED:
+                _WRN_PRINTF("CT_BLURRED is not implemented\n");
+                break;
 
-                case CT_BLURRED:
-                    _WRN_PRINTF("CT_BLURRED is not implemented\n");
-                    break;
-
-                default:
-                    assert (0); // never touch here.
-                    break;
-                }
-
-                SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
-                //SelectClipRect (HDC_SCREEN_SYS, &znode_hdr->rc);
-                BitBlt (znode_hdr->mem_dc,
-                        0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
-                        HDC_SCREEN_SYS,
-                        znode_hdr->rc.left + offx, znode_hdr->rc.top + offx, 0);
-                EmptyClipRgn (&ctxt->inv_rgn);
+            default:
+                assert (0); // never touch here.
+                break;
             }
 
-            if (offx || offy) {
-                OffsetRegion (rgn, -offx, -offy);
-            }
+            SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
+            //SelectClipRect (HDC_SCREEN_SYS, &znode_hdr->rc);
+            BitBlt (znode_hdr->mem_dc,
+                    0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
+                    HDC_SCREEN_SYS,
+                    znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
+            EmptyClipRgn (&ctxt->inv_rgn);
         }
 
         ServerReleaseWinZNodeHeader (ctxt->layer, prev);
@@ -570,7 +538,6 @@ static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
     }
 
     EmptyClipRgn (&tmp_rgn);
-    SyncUpdateDC (HDC_SCREEN_SYS);
 }
 
 static void rebuild_wins_region (CompositorCtxt* ctxt)
@@ -838,6 +805,7 @@ static void on_dirty_screen (CompositorCtxt* ctxt,
     }
 
     composite_on_dirty_region (ctxt, 0);
+    SyncUpdateDC (HDC_SCREEN_SYS);
 }
 
 static void refresh (CompositorCtxt* ctxt)
@@ -909,8 +877,10 @@ static void refresh_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
 
     assert (rgn);
     CopyRegion (&ctxt->dirty_rgn, rgn);
-    if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen))
+    if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen)) {
         composite_on_dirty_region (ctxt, zidx);
+        SyncUpdateDC (HDC_SCREEN_SYS);
+    }
 }
 
 static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
@@ -940,8 +910,10 @@ static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
     UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
 
     /* calculate the dirty region */
-    if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen))
+    if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen)) {
         composite_on_dirty_region (ctxt, zidx);
+        SyncUpdateDC (HDC_SCREEN_SYS);
+    }
 }
 
 static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
@@ -974,8 +946,10 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
 
     /* calculate the dirty region */
     UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
-    if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen))
+    if (IntersectClipRect (&ctxt->dirty_rgn, &ctxt->rc_screen)) {
         composite_on_dirty_region (ctxt, zidx);
+        SyncUpdateDC (HDC_SCREEN_SYS);
+    }
 }
 
 static void on_layer_op (CompositorCtxt* ctxt, int layer_op,
@@ -984,6 +958,31 @@ static void on_layer_op (CompositorCtxt* ctxt, int layer_op,
     if (layer_op == LCO_TOPMOST_CHANGED) {
         refresh (ctxt);
     }
+}
+
+static int offset_regions_of_general_znodes (MG_Layer* layer, int offx, int offy)
+{
+    int nr = 0;
+    int next;
+
+    next = ServerGetNextZNode (layer, 0, NULL);
+    while (next > 0) {
+        const ZNODEHEADER* znode_hdr;
+        CLIPRGN* rgn;
+
+        znode_hdr = ServerGetWinZNodeHeader (layer, next, (void**)&rgn, FALSE);
+        assert (znode_hdr);
+
+        if ((znode_hdr->flags & ZNIF_VISIBLE) &&
+               !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
+            OffsetRegion (rgn, offx, offy);
+            nr++;
+        }
+
+        next = ServerGetNextZNode (layer, next, NULL);
+    }
+
+    return nr;
 }
 
 static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
@@ -1017,27 +1016,44 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
     }
 
     // composite the first layer
-    SetClipRgn (&ctxt->wins_rgn, &rc0);
     ctxt->layer = layers[0];
     ctxt->offx = rc0.right - ctxt->rc_screen.right;
     ctxt->offy = rc0.bottom - ctxt->rc_screen.bottom;
-    SetClipRgn (&ctxt->dirty_rgn, &rc0);
-    composite_on_dirty_region (ctxt, 0);
 
-    // composite the first layer
-    SetClipRgn (&ctxt->wins_rgn, &rc1);
+    SetClipRgn (&ctxt->wins_rgn, &rc0);
+    SetClipRgn (&ctxt->dirty_rgn, &rc0);
+
+    if (ctxt->offx || ctxt->offy)
+        offset_regions_of_general_znodes (ctxt->layer, ctxt->offx, ctxt->offy);
+    composite_on_dirty_region (ctxt, 0);
+    if (ctxt->offx || ctxt->offy)
+        offset_regions_of_general_znodes (ctxt->layer, -ctxt->offx, -ctxt->offy);
+
+    // composite the second layer
     ctxt->layer = layers[1];
     ctxt->offx = rc1.left;
     ctxt->offy = rc1.top;
+
+    SetClipRgn (&ctxt->wins_rgn, &rc1);
     SetClipRgn (&ctxt->dirty_rgn, &rc1);
+
+    if (ctxt->offx || ctxt->offy)
+        offset_regions_of_general_znodes (ctxt->layer, ctxt->offx, ctxt->offy);
     composite_on_dirty_region (ctxt, 0);
+    if (ctxt->offx || ctxt->offy)
+        offset_regions_of_general_znodes (ctxt->layer, -ctxt->offx, -ctxt->offy);
+
+    SyncUpdateDC (HDC_SCREEN_SYS);
+
+    clock_gettime (CLOCK_MONOTONIC, &ts_end);
 
     // reset fields for normal compositing
+    EmptyClipRgn (&ctxt->wins_rgn);
+    EmptyClipRgn (&ctxt->dirty_rgn);
+
     ctxt->layer = NULL;
     ctxt->offx = 0;
     ctxt->offy = 0;
-
-    clock_gettime (CLOCK_MONOTONIC, &ts_end);
 
     return (ts_end.tv_sec - ts_start.tv_sec) * 1000 +
         (ts_end.tv_nsec - ts_start.tv_nsec) / 1000000;
