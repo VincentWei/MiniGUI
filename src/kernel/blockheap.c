@@ -70,11 +70,13 @@ void InitBlockDataHeap (PBLOCKHEAP heap, size_t bd_size, size_t heap_size)
     heap->heap = NULL;
     heap->bd_size = bd_size + sizeof (DWORD);
     heap->heap_size = heap_size;
+    heap->free = 0;
+    heap->nr_alloc = 0;
 }
 
 void* BlockDataAlloc (PBLOCKHEAP heap)
 {
-    int i;
+    size_t i;
     char* block_data = NULL;
 
 #ifdef _MGRM_THREADS
@@ -94,25 +96,21 @@ void* BlockDataAlloc (PBLOCKHEAP heap)
 
             heap->free = i + 1;
             *((DWORD*)block_data) = BDS_USED;
-
-#if 0
-            fprintf (stderr, "heap: %p, Allocated: %d, free: %d.\n", heap, i, heap->free);
-            fprintf (stderr, "Heap: (bd_size: %d, heap_size: %d, heap: %p).\n",
-                    heap->bd_size, heap->heap_size, heap->heap);
-#endif
             goto ret;
         }
 
         block_data += heap->bd_size;
     }
 
-#if 0
+#if 1
     if (!(block_data = calloc (1, heap->bd_size)))
         goto ret;
 #else
     if (!(block_data = mg_slice_alloc0 (heap->bd_size)))
         goto ret;
 #endif
+
+    heap->nr_alloc++;
 
     *((DWORD*)block_data) = BDS_SPECIAL;
 
@@ -129,7 +127,7 @@ ret:
 
 void BlockDataFree (PBLOCKHEAP heap, void* data)
 {
-    int i;
+    size_t i;
     char* block_data;
 
 #ifdef _MGRM_THREADS
@@ -138,10 +136,11 @@ void BlockDataFree (PBLOCKHEAP heap, void* data)
 
     block_data = (char*) data - sizeof (DWORD);
     if (*((DWORD*)block_data) == BDS_SPECIAL) {
-#if 0
+#if 1
         free (block_data);
 #else
         mg_slice_free (heap->bd_size, block_data);
+        heap->nr_alloc--;
 #endif
     }
     else if (*((DWORD*)block_data) == BDS_USED) {
@@ -150,12 +149,6 @@ void BlockDataFree (PBLOCKHEAP heap, void* data)
         i = (block_data - (char*)heap->heap)/heap->bd_size;
         if (heap->free > i)
             heap->free = i;
-
-#if 0
-        fprintf (stderr, "Heap: %p: Freed: %d, free: %d.\n", heap, i, heap->free);
-        fprintf (stderr, "Heap: (bd_size: %d, heap_size: %d, heap: %p).\n",
-                    heap->bd_size, heap->heap_size, heap->heap);
-#endif
     }
 
 #ifdef _MGRM_THREADS
@@ -165,10 +158,6 @@ void BlockDataFree (PBLOCKHEAP heap, void* data)
 
 void DestroyBlockDataHeap (PBLOCKHEAP heap)
 {
-#if 0
-    fprintf (stderr, "Heap: (bd_size: %d, heap_size: %d, heap: %p).\n",
-                    heap->bd_size, heap->heap_size, heap->heap);
-#endif
 #ifdef _MGRM_THREADS
     pthread_mutex_destroy (&heap->lock);
 #endif
