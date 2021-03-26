@@ -63,21 +63,17 @@
 #include "ctrlmisc.h"
 
 #define _ID_TIMER   100
+#define _MARGIN     10
 
 static LRESULT ToolTipWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    static int iBorder;
     switch (message) {
         case MSG_CREATE:
         {
-            const WINDOWINFO *info;
             int timeout = (int)GetWindowAdditionalData (hWnd);
             if (timeout >= 10)
                 SetTimer (hWnd, _ID_TIMER, timeout / 10);
 
-            info = GetWindowInfo (hWnd);
-            iBorder =
-                info->we_rdr->calc_we_area (hWnd, LFRDR_METRICS_BORDER, NULL);
             SetWindowFont (hWnd,
                 (PLOGFONT)GetWindowElementAttr(hWnd, WE_FONT_TOOLTIP));
             break;
@@ -102,7 +98,7 @@ static LRESULT ToolTipWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 
             SetTextColor (hdc,
                     GetWindowElementPixelEx(hWnd, hdc, WE_FGC_TOOLTIP));
-            TabbedTextOut (hdc, iBorder, iBorder, text);
+            TabbedTextOut (hdc, _MARGIN, _MARGIN, text);
 
             EndPaint (hWnd, hdc);
             return 0;
@@ -164,6 +160,7 @@ HWND CreateToolTipWin (HWND hParentWnd, int x, int y, int timeout_ms,
 
     CreateInfo.dwStyle = WS_VISIBLE;
     CreateInfo.dwExStyle = WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_USEPARENTRDR;
+    CreateInfo.dwExStyle |= WS_EX_WINTYPE_TOOLTIP | WS_EX_TROUNDCNS | WS_EX_BROUNDCNS;
     CreateInfo.spCaption = buf ? buf : text;
     CreateInfo.hMenu = 0;
     CreateInfo.hCursor = GetSystemCursor (IDC_ARROW);
@@ -171,8 +168,8 @@ HWND CreateToolTipWin (HWND hParentWnd, int x, int y, int timeout_ms,
     CreateInfo.MainWindowProc = ToolTipWinProc;
     CreateInfo.lx = x;
     CreateInfo.ty = y;
-    CreateInfo.rx = CreateInfo.lx + text_size.cx;
-    CreateInfo.by = CreateInfo.ty + text_size.cy;
+    CreateInfo.rx = CreateInfo.lx + text_size.cx + _MARGIN * 2;
+    CreateInfo.by = CreateInfo.ty + text_size.cy + _MARGIN * 2;
     CreateInfo.iBkColor =
         GetWindowElementPixelEx (hParentWnd, HDC_SCREEN, WE_BGC_TOOLTIP);
     CreateInfo.dwAddData = (DWORD) timeout_ms;
@@ -218,7 +215,8 @@ void ResetToolTipWin (HWND hwnd, int x, int y, const char* text, ...)
     if (y + text_size.cy > g_rcScr.bottom)
         y = g_rcScr.bottom - text_size.cy;
 
-    MoveWindow (hwnd, x, y, text_size.cx, text_size.cy, TRUE);
+    MoveWindow (hwnd, x, y,
+            text_size.cx + _MARGIN * 2, text_size.cy  + _MARGIN * 2, TRUE);
     ShowWindow (hwnd, SW_SHOWNORMAL);
 }
 
