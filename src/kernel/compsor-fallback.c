@@ -926,7 +926,7 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
 
     clock_gettime (CLOCK_MONOTONIC, &ts_start);
 
-    _MG_PRINTF ("composite %d layers (%s and %s) at percent %d\n",
+    _DBG_PRINTF ("composite %d layers (%s and %s) at percent %d\n",
             nr_layers, layers[0]->name, layers[1]->name, cp->percent);
 
     rc0 = ctxt->rc_screen;
@@ -1030,9 +1030,10 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
             unsigned int t_ms;
 
             t_ms = composite_layers (ctxt, layers, 2, &cp);
-            _MG_PRINTF ("time cosumed of composite_layers: %u\n", t_ms);
+            if (t_ms > 100)
+                _WRN_PRINTF ("Two slow to composite layers: %u\n", t_ms);
 
-            usleep (10 * 1000);
+            usleep (20 * 1000);
             cp.percent -= 9;
         }
     }
@@ -1046,9 +1047,10 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
             unsigned int t_ms;
 
             t_ms = composite_layers (ctxt, layers, 2, &cp);
-            _MG_PRINTF ("time cosumed of composite_layers: %u\n", t_ms);
+            if (t_ms > 100)
+                _WRN_PRINTF ("Two slow to composite layers: %u\n", t_ms);
 
-            usleep (10 * 1000);
+            usleep (20 * 1000);
             cp.percent += 9;
         }
     }
