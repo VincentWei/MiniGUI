@@ -4555,12 +4555,13 @@ BOOL GUIAPI ServerGetWinZNodeRegion (MG_Layer* layer, int idx_znode,
     if (!mgIsServer || idx_znode <= 0)
         return FALSE;
 
-    if (layer) {
+    if (layer == NULL) {
         zi = mgTopmostLayer->zorder_info;
     }
     else {
-        if (!__mg_is_valid_layer (layer))
+        if (!__mg_is_valid_layer (layer)) {
             return FALSE;
+        }
         zi = layer->zorder_info;
     }
 
