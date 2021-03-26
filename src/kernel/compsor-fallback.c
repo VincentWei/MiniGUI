@@ -810,11 +810,6 @@ static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn = NULL;
 
-    _DBG_PRINTF("called: %d\n", zidx);
-    // the fallback compositor only manages znodes on the topmost layer.
-    if (layer != mgTopmostLayer)
-        return;
-
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
     assert (znode_hdr);
 
@@ -824,10 +819,15 @@ static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
 
     assert (rgn);
     CopyRegion (&ctxt->dirty_rgn, rgn);
+
     // re-generate the region
-    ServerGetWinZNodeRegion (layer, zidx,
-            RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+    ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
     ServerSetWinZNodePrivateData (layer, zidx, rgn);
+
+    // the fallback compositor only manages znodes on the topmost layer.
+    if (layer != mgTopmostLayer)
+        goto done;
+
     UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
 
     /* calculate the dirty region */
@@ -836,6 +836,7 @@ static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
         SyncUpdateDC (HDC_SCREEN_SYS);
     }
 
+done:
     EmptyClipRgn (&ctxt->dirty_rgn);
 }
 
@@ -844,11 +845,6 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
 {
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn = NULL;
-
-    _DBG_PRINTF("called: %d\n", zidx);
-    /* the fallback compositor only manages znodes on the topmost layer. */
-    if (layer != mgTopmostLayer)
-        return;
 
     /* update the region of the current window znode. */
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
@@ -863,9 +859,12 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
     CopyRegion (&ctxt->dirty_rgn, rgn);
 
     // re-generate the region
-    ServerGetWinZNodeRegion (layer, zidx,
-            RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
+    ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
     ServerSetWinZNodePrivateData (layer, zidx, rgn);
+
+    /* the fallback compositor only manages znodes on the topmost layer. */
+    if (layer != mgTopmostLayer)
+        goto done;
 
     /* calculate the dirty region */
     UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
@@ -874,6 +873,7 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
         SyncUpdateDC (HDC_SCREEN_SYS);
     }
 
+done:
     EmptyClipRgn (&ctxt->dirty_rgn);
 }
 
