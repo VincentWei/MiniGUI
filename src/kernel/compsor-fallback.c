@@ -954,6 +954,9 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
     }
     else {
         // only composite the wallpaper
+        ctxt->layer = NULL;
+        ctxt->offx = 0;
+        ctxt->offy = 0;
         composite_wallpaper (ctxt);
     }
 
@@ -974,6 +977,9 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
     }
     else {
         // only composite the wallpaper
+        ctxt->layer = NULL;
+        ctxt->offx = 0;
+        ctxt->offy = 0;
         composite_wallpaper (ctxt);
     }
 
