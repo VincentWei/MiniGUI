@@ -1851,7 +1851,7 @@ MG_EXPORT BOOL GUIAPI ServerUnregisterCompositor (const char* name);
  * \brief Select a compositor as the current compositor.
  *
  * This function selects a compositor as the current compositor
- * and returns the compositor object.
+ * and returns the compositor operations.
  * It also destroies the old compositor object if there is old one.
  *
  * \param name The name of the compositor. If the argument is NULL,
@@ -1869,7 +1869,25 @@ MG_EXPORT BOOL GUIAPI ServerUnregisterCompositor (const char* name);
 MG_EXPORT const CompositorOps* GUIAPI ServerSelectCompositor (
             const char* name, CompositorCtxt** ctxt);
 
-#define COMPSOR_OPS_VERSION  1
+/**
+ * \brief Get the name and the context of the current compositor.
+ *
+ * This function gets the name and the context of the current
+ * compositor.
+ *
+ * \param ops The buffer used to return the compositor operations.
+ * \param ctxt The buffer used to return the compositor context.
+ *
+ * \return The name of the current compositor; NULL for error.
+ *
+ * \note Only called by the server.
+ *
+ * Since 5.0.6.
+ */
+MG_EXPORT const char* GUIAPI ServerGetCurrentCompositor (
+        const CompositorOps** ops, CompositorCtxt** ctxt);
+
+#define COMPSOR_OPS_VERSION  2
 
 /**
   * Implement this stub to return the compositor operations
