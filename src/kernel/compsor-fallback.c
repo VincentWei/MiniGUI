@@ -926,9 +926,6 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
 
     clock_gettime (CLOCK_MONOTONIC, &ts_start);
 
-    _DBG_PRINTF ("composite %d layers (%s and %s) at percent %d\n",
-            nr_layers, layers[0]->name, layers[1]->name, cp->percent);
-
     rc0 = ctxt->rc_screen;
     rc1 = ctxt->rc_screen;
     if (cp->method == FCM_VERTICAL) {
@@ -940,33 +937,45 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
         rc1.left = rc0.right;
     }
 
-    // composite the first layer
-    ctxt->layer = layers[0];
-    ctxt->offx = rc0.right - ctxt->rc_screen.right;
-    ctxt->offy = rc0.bottom - ctxt->rc_screen.bottom;
-
     SetClipRgn (&ctxt->wins_rgn, &rc0);
     SetClipRgn (&ctxt->dirty_rgn, &rc0);
 
-    if (ctxt->offx || ctxt->offy)
-        offset_regions_of_general_znodes (ctxt->layer, ctxt->offx, ctxt->offy);
-    composite_on_dirty_region (ctxt, 0);
-    if (ctxt->offx || ctxt->offy)
-        offset_regions_of_general_znodes (ctxt->layer, -ctxt->offx, -ctxt->offy);
+    if (layers[0]) {
+        // composite the first layer
+        ctxt->layer = layers[0];
+        ctxt->offx = rc0.right - ctxt->rc_screen.right;
+        ctxt->offy = rc0.bottom - ctxt->rc_screen.bottom;
 
-    // composite the second layer
-    ctxt->layer = layers[1];
-    ctxt->offx = rc1.left;
-    ctxt->offy = rc1.top;
+        if (ctxt->offx || ctxt->offy)
+            offset_regions_of_general_znodes (ctxt->layer, ctxt->offx, ctxt->offy);
+        composite_on_dirty_region (ctxt, 0);
+        if (ctxt->offx || ctxt->offy)
+            offset_regions_of_general_znodes (ctxt->layer, -ctxt->offx, -ctxt->offy);
+    }
+    else {
+        // only composite the wallpaper
+        composite_wallpaper (ctxt);
+    }
 
     SetClipRgn (&ctxt->wins_rgn, &rc1);
     SetClipRgn (&ctxt->dirty_rgn, &rc1);
 
-    if (ctxt->offx || ctxt->offy)
-        offset_regions_of_general_znodes (ctxt->layer, ctxt->offx, ctxt->offy);
-    composite_on_dirty_region (ctxt, 0);
-    if (ctxt->offx || ctxt->offy)
-        offset_regions_of_general_znodes (ctxt->layer, -ctxt->offx, -ctxt->offy);
+    if (layers[1]) {
+        // composite the second layer
+        ctxt->layer = layers[1];
+        ctxt->offx = rc1.left;
+        ctxt->offy = rc1.top;
+
+        if (ctxt->offx || ctxt->offy)
+            offset_regions_of_general_znodes (ctxt->layer, ctxt->offx, ctxt->offy);
+        composite_on_dirty_region (ctxt, 0);
+        if (ctxt->offx || ctxt->offy)
+            offset_regions_of_general_znodes (ctxt->layer, -ctxt->offx, -ctxt->offy);
+    }
+    else {
+        // only composite the wallpaper
+        composite_wallpaper (ctxt);
+    }
 
     SyncUpdateDC (HDC_SCREEN_SYS);
 
