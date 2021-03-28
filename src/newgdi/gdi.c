@@ -260,7 +260,12 @@ static BOOL RestrictControlMemDCECRGNEx (RECT* minimal,
 /******************* Initialization and termination of GDI *******************/
 BOOL mg_InitScreenDC (void)
 {
+#ifdef _MGSCHEMA_COMPOSITING
+    InitFreeClipRectList (&__mg_FreeClipRectList,
+            mgIsServer ? SIZE_CLIPRECTHEAP * 8 : SIZE_CLIPRECTHEAP);
+#else
     InitFreeClipRectList (&__mg_FreeClipRectList, SIZE_CLIPRECTHEAP);
+#endif
 
     INIT_LOCK (&__mg_gdilock, NULL);
     INIT_LOCK (&dcslot, NULL);
