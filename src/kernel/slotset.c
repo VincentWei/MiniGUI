@@ -51,17 +51,40 @@
 ** Create date: 2005/08/16
 */
 
-int __mg_lookfor_unused_slot (unsigned char* bitmap, int len_bmp, int set)
+#include <stdlib.h>
+
+size_t __mg_lookfor_unused_slot (unsigned char* bitmap, size_t len_bmp, int set)
 {
-    int unused = 0;
-    int i, j;
+    size_t unused = 0;
+    size_t i, j;
 
     for (i = 0; i < len_bmp; i++) {
-        for (j = 0; j < 8; j++) {
-            if (*bitmap & (0x80 >> j)) {
-                if (set)
-                    *bitmap &= (~(0x80 >> j));
-                return unused + j;
+        if (*bitmap) {
+            unsigned char half_byte = *bitmap & 0xF0;
+            unsigned char test_byte = 0x80;
+
+            if (half_byte) {
+                for (j = 0; j < 4; j++) {
+                    if (half_byte & test_byte) {
+                        if (set)
+                            *bitmap ^= test_byte;
+                        return unused + j;
+                    }
+
+                    test_byte = test_byte >> 1;
+                }
+            }
+
+            half_byte = *bitmap & 0x0F;
+            test_byte = 0x08;
+            for (j = 4; j < 8; j++) {
+                if (half_byte & test_byte) {
+                    if (set)
+                        *bitmap ^= test_byte;
+                    return unused + j;
+                }
+
+                test_byte = test_byte >> 1;
             }
         }
 

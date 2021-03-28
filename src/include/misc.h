@@ -120,29 +120,35 @@ int __mg_alloc_sem_for_shared_surf (void);
 int __mg_free_sem_for_shared_surf (int sem_num);
 #endif /* _MGSCHEMA_COMPOSITING */
 
-int __mg_lookfor_unused_slot (unsigned char* bitmap, int len_bmp, int set);
+size_t __mg_lookfor_unused_slot (unsigned char* bitmap, size_t len_bmp, int set);
+
 static inline
-void __mg_slot_set_use (unsigned char* bitmap, int index) {
+void __mg_slot_set_use (unsigned char* bitmap, size_t index) {
     bitmap += index >> 3;
     *bitmap &= (~(0x80 >> (index % 8)));
 }
 
 static inline
-int __mg_slot_clear_use (unsigned char* bitmap, int index) {
+int __mg_slot_clear_use (unsigned char* bitmap, size_t index) {
+    bitmap += index >> 3;
+    *bitmap |= (0x80 >> (index % 8));
+    return 1;
+}
+
+static inline
+int __mg_slot_is_used (unsigned char* bitmap, size_t index) {
     bitmap += index >> 3;
     if (*bitmap & (0x80 >> (index % 8)))
         return 0;
-
-    *bitmap |= (0x80 >> (index % 8));
     return 1;
 }
 
 /* get the number of idle mask rectangles */
 static inline
-int __mg_get_nr_idle_slots (unsigned char* bitmap, int len_bmp)
+size_t __mg_get_nr_idle_slots (unsigned char* bitmap, size_t len_bmp)
 {
-    int idle = 0;
-    int i, j;
+    size_t idle = 0;
+    size_t i, j;
 
     for (i = 0; i < len_bmp; i++) {
         for (j = 0; j < 8; j++) {
