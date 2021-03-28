@@ -713,6 +713,8 @@ void __mg_update_secondary_dc (PMAINWIN pWin, HDC secondary_dc,
 HDC __mg_get_common_rgba8888_dc (void);
 BOOL __mg_reset_common_rgba8888_dc (int width, int height, int pitch,
         void* pixels);
+/* Since 5.0.6 */
+void __mg_destroy_common_rgba8888_dc (void);
 
 /* Since 5.0.0.
    helpers to update the private client DC of window and it's descendants */

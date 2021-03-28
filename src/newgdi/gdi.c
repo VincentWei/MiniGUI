@@ -116,8 +116,15 @@ static pthread_mutex_t dcslot;
 BLOCKHEAP __mg_FreeClipRectList;
 
 /************************* static functions declaration **********************/
-static void dc_InitClipRgnInfo (void);
-static void dc_DeinitClipRgnInfo(void);
+static inline void dc_InitClipRgnInfo (void)
+{
+    return;
+}
+static inline void dc_DeinitClipRgnInfo(void)
+{
+    return;
+}
+
 static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient);
 static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref);
 static void dc_InitScreenDC (PDC pdc, GAL_Surface* surface);
@@ -322,6 +329,9 @@ void mg_TerminateScreenDC (void)
 
     dc_DeinitClipRgnInfo();
 
+    /* Since 5.0.6 */
+    __mg_destroy_common_rgba8888_dc ();
+
     DESTROY_LOCK (&__mg_gdilock);
     DESTROY_LOCK (&dcslot);
 
@@ -522,6 +532,7 @@ Uint32 GUIAPI GetGDCapability (HDC hdc, int iItem)
     return iret;
 }
 
+#if 0 /* Since 5.0.6: deprecated */
 /* This function init clip region in all DC slots. */
 static void dc_InitClipRgnInfo(void)
 {
@@ -552,7 +563,7 @@ static void dc_DeinitClipRgnInfo(void)
         EmptyClipRgn (&DCSlot[i].ecrgn);
     }
 }
-
+#endif /* Since 5.0.6: deprecated */
 
 static inline void dc_CalculateDevRC4GenDC (PDC pdc);
 
@@ -4253,9 +4264,9 @@ HDC drmCreateDCFromPrimeFdEx (GHANDLE video, int prime_fd, size_t size,
 #endif /* defined _MGGAL_DRM */
 
 /* Since 5.0.0 */
+static HDC _dc_common_rgba8888 = HDC_INVALID;
 HDC __mg_get_common_rgba8888_dc (void)
 {
-    static HDC _dc_common_rgba8888 = HDC_INVALID;
     static char fake_bits [4];
 
     if (_dc_common_rgba8888 == HDC_INVALID) {
@@ -4307,6 +4318,14 @@ BOOL __mg_reset_common_rgba8888_dc (int width, int height, int pitch,
             + pdc->surface->format->BytesPerPixel * pdc->DevRC.left;
 
     return TRUE;
+}
+
+void __mg_destroy_common_rgba8888_dc (void)
+{
+    if (_dc_common_rgba8888 != HDC_INVALID) {
+        DeleteMemDC (_dc_common_rgba8888);
+        _dc_common_rgba8888 = HDC_INVALID;
+    }
 }
 
 struct _travel_context;
