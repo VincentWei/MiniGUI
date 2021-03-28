@@ -57,6 +57,7 @@
 
 #include "gdi.h"
 #include "constants.h"
+#include "blockheap.h"
 
 #if IS_COMPOSITING_SCHEMA
 #include <sys/types.h>
