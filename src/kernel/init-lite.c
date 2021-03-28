@@ -611,6 +611,10 @@ void TerminateGUI (int rcByGUI)
     if (_is_server) {
         mg_TerminateDesktop ();
 
+#ifdef _MGSCHEMA_COMPOSITING
+        mg_TerminateCompositor ();
+#endif
+
         /* Cleanup UNIX domain socket and other IPC objects. */
         server_ServerCleanup ();
     }
