@@ -581,35 +581,14 @@ enum {
      * @{
      */
 
+struct _BLOCKHEAP;
+
 /**
  * MiniGUI's private block data heap.
  *
  * \sa InitBlockDataHeap, DestroyBlockDataHeap
  */
-typedef struct _BLOCKHEAP
-{
-#ifdef _MGRM_THREADS
-    pthread_mutex_t lock;
-#endif
-    /**
-     * Size of one block element.
-     */
-    size_t          bd_size;
-    /**
-     * Size of the heap in blocks.
-     */
-    size_t          heap_size;
-    /**
-     * The first free element in the heap.
-     */
-    size_t          free;
-    /**
-     * Pointer to the pre-allocated heap.
-     */
-    void*           heap;
-
-    size_t          nr_alloc;
-} BLOCKHEAP;
+typedef struct _BLOCKHEAP BLOCKHEAP;
 
 /**
  * \var typedef BLOCKHEAP* PBLOCKHEAP
@@ -620,7 +599,7 @@ typedef struct _BLOCKHEAP
 typedef BLOCKHEAP* PBLOCKHEAP;
 
 /**
- * \fn void InitBlockDataHeap (PBLOCKHEAP heap, \
+ * \fn BOOL InitBlockDataHeap (PBLOCKHEAP heap,
                 size_t bd_size, size_t heap_size)
  * \brief Initializes a private block data heap.
  *
@@ -633,15 +612,14 @@ typedef BLOCKHEAP* PBLOCKHEAP;
  * \param bd_size The size of one block in bytes.
  * \param heap_size The size of the heap in blocks.
  *
- * \return \a heap->heap will contains a valid pointer on success,
- *         NULL on error.
+ * \return TRUE on success, FALSE on error.
  *
  * \note This function does not return anything. You should check the \a heap
  *       field of the \a heap structure.
  *
  * \sa BLOCKHEAP
  */
-MG_EXPORT extern void InitBlockDataHeap (PBLOCKHEAP heap,
+MG_EXPORT BOOL InitBlockDataHeap (PBLOCKHEAP heap,
                 size_t bd_size, size_t heap_size);
 
 /**
@@ -659,7 +637,7 @@ MG_EXPORT extern void InitBlockDataHeap (PBLOCKHEAP heap,
  * \sa InitBlockDataHeap, BlockDataFree
  */
 
-MG_EXPORT extern void* BlockDataAlloc (PBLOCKHEAP heap);
+MG_EXPORT void* BlockDataAlloc (PBLOCKHEAP heap);
 
 /**
  * \fn void BlockDataFree (PBLOCKHEAP heap, void* data)
@@ -674,7 +652,7 @@ MG_EXPORT extern void* BlockDataAlloc (PBLOCKHEAP heap);
  *
  * \sa InitBlockDataHeap, BlockDataAlloc
  */
-MG_EXPORT extern void BlockDataFree (PBLOCKHEAP heap, void* data);
+MG_EXPORT void BlockDataFree (PBLOCKHEAP heap, void* data);
 
 /**
  * \fn void DestroyBlockDataHeap (PBLOCKHEAP heap)
@@ -684,7 +662,7 @@ MG_EXPORT extern void BlockDataFree (PBLOCKHEAP heap, void* data);
  *
  * \sa InitBlockDataHeap, BLOCKHEAP
  */
-MG_EXPORT extern void DestroyBlockDataHeap (PBLOCKHEAP heap);
+MG_EXPORT void DestroyBlockDataHeap (PBLOCKHEAP heap);
 
     /** @} end of block_heap_fns */
 

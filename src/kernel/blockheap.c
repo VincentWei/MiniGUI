@@ -59,96 +59,93 @@
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
+#include "constants.h"
 #include "blockheap.h"
+#include "misc.h"
 
-void InitBlockDataHeap (PBLOCKHEAP heap, size_t bd_size, size_t heap_size)
+BOOL InitBlockDataHeap (PBLOCKHEAP heap, size_t sz_block, size_t sz_heap)
 {
 #ifdef _MGRM_THREADS
     pthread_mutex_init (&heap->lock, NULL);
 #endif
 
-    heap->heap = NULL;
-    heap->bd_size = bd_size + sizeof (DWORD);
-    heap->heap_size = heap_size;
-    heap->free = 0;
+    heap->sz_usage_bmp = (sz_heap + 7) >> 3;
+    heap->sz_block = ROUND_TO_MULTIPLE (sz_block, SIZEOF_PTR);
+    heap->sz_heap = heap->sz_usage_bmp << 3;
+
+    if (heap->sz_heap == 0 || heap->sz_block == 0)
+        return FALSE;
+
+    if ((heap->heap = calloc (heap->sz_heap, heap->sz_block)) == NULL)
+        return FALSE;
+
+    if ((heap->usage_bmp = calloc (heap->sz_usage_bmp, sizeof (char))) == NULL) {
+        free (heap->heap);
+        return FALSE;
+    }
+
     heap->nr_alloc = 0;
+    memset (heap->usage_bmp, 0xFF, heap->sz_usage_bmp);
+    return TRUE;
 }
+
+extern BLOCKHEAP __mg_FreeClipRectList;
 
 void* BlockDataAlloc (PBLOCKHEAP heap)
 {
-    size_t i;
-    char* block_data = NULL;
+    int free_slot;
+    unsigned char* block_data = NULL;
 
 #ifdef _MGRM_THREADS
     pthread_mutex_lock (&heap->lock);
 #endif
 
-    if (heap->heap == NULL) {
-        if (!(heap->heap = calloc (heap->heap_size, heap->bd_size)))
-            goto ret;
-        heap->free = 0;
-    }
+    free_slot = __mg_lookfor_unused_slot (heap->usage_bmp, heap->sz_usage_bmp, 1);
+    if (free_slot >= 0) {
+        block_data = heap->heap + heap->sz_block * free_slot;
+        _DBG_PRINTF ("Allocated one block in the block heap: %p (%d)\n",
+                heap, free_slot);
 
-    block_data = (char*) heap->heap + heap->bd_size*heap->free;
-    for (i = heap->free; i < heap->heap_size; i++) {
-
-        if (*((DWORD*)block_data) == BDS_FREE) {
-
-            heap->free = i + 1;
-            *((DWORD*)block_data) = BDS_USED;
-            goto ret;
-        }
-
-        block_data += heap->bd_size;
-    }
-
-#if 1
-    if (!(block_data = calloc (1, heap->bd_size)))
-        goto ret;
-#else
-    if (!(block_data = mg_slice_alloc0 (heap->bd_size)))
-        goto ret;
+#if 0
+        if (!mgIsServer && heap == &__mg_FreeClipRectList && free_slot == 5)
+            assert (0);
 #endif
 
+        goto ret;
+    }
+
+    if ((block_data = calloc (1, heap->sz_block)) == NULL)
+        goto ret;
     heap->nr_alloc++;
 
-    *((DWORD*)block_data) = BDS_SPECIAL;
-
 ret:
-
 #ifdef _MGRM_THREADS
     pthread_mutex_unlock (&heap->lock);
 #endif
 
-    if (block_data)
-        return block_data + sizeof (DWORD);
-    return NULL;
+    return block_data;
 }
 
 void BlockDataFree (PBLOCKHEAP heap, void* data)
 {
-    size_t i;
-    char* block_data;
+    unsigned char* block_data = data;
 
 #ifdef _MGRM_THREADS
     pthread_mutex_lock (&heap->lock);
 #endif
 
-    block_data = (char*) data - sizeof (DWORD);
-    if (*((DWORD*)block_data) == BDS_SPECIAL) {
-#if 1
+    if (block_data < heap->heap ||
+            block_data > (heap->heap + heap->sz_block * heap->sz_heap)) {
         free (block_data);
-#else
-        mg_slice_free (heap->bd_size, block_data);
         heap->nr_alloc--;
-#endif
     }
-    else if (*((DWORD*)block_data) == BDS_USED) {
-        *((DWORD*)block_data) = BDS_FREE;
+    else {
+        int slot;
+        slot = (block_data - heap->heap) / heap->sz_block;
+        __mg_slot_clear_use (heap->usage_bmp, slot);
 
-        i = (block_data - (char*)heap->heap)/heap->bd_size;
-        if (heap->free > i)
-            heap->free = i;
+        _DBG_PRINTF ("Freed one block in the block heap: %p (%d)\n",
+                heap, slot);
     }
 
 #ifdef _MGRM_THREADS
@@ -158,9 +155,45 @@ void BlockDataFree (PBLOCKHEAP heap, void* data)
 
 void DestroyBlockDataHeap (PBLOCKHEAP heap)
 {
+    int nr_free_slots;
+
+    if (heap->nr_alloc > 0) {
+        _WRN_PRINTF ("There are still not freed extra blocks in the block heap: %p (%zu)\n",
+                heap, heap->nr_alloc);
+    }
+
+    nr_free_slots = __mg_get_nr_idle_slots (heap->usage_bmp, heap->sz_usage_bmp);
+    if (nr_free_slots != heap->sz_heap) {
+        _WRN_PRINTF ("There are still not freed blocks in the block heap: %p (%zu)\n",
+                heap, heap->sz_heap - nr_free_slots);
+
+#ifdef _DEBUG
+        {
+            unsigned char* bitmap = heap->usage_bmp;
+            int slot = 0;
+            int i, j;
+
+            for (i = 0; i < heap->sz_usage_bmp; i++) {
+                for (j = 0; j < 8; j++) {
+                    if (!(*bitmap & (0x80 >> j))) {
+                        _WRN_PRINTF ("Still used slot in the block heap: %p (%d)\n",
+                                heap, slot);
+                    }
+                    slot++;
+                }
+                bitmap++;
+            }
+        }
+
+        assert (0);
+#endif
+    }
+
+    free (heap->heap);
+    free (heap->usage_bmp);
+
 #ifdef _MGRM_THREADS
     pthread_mutex_destroy (&heap->lock);
 #endif
-    free (heap->heap);
 }
 

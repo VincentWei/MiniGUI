@@ -52,21 +52,28 @@
 #ifndef GUI_BLOCKHEAP_H
     #define GUI_BLOCKHEAP_H
 
-#define BDS_FREE        0x0000
-#define BDS_SPECIAL     0x0001
-#define BDS_USED        0x0002
-
-#ifndef _MGUI_GDI_H /* included in include/gdi.h */
-
-typedef struct tagBLOCKHEAP {
+struct _BLOCKHEAP {
 #ifdef _MGRM_THREADS
     pthread_mutex_t lock;
 #endif
-    size_t          bd_size;
-    size_t          heap_size;
-    int             free;
-    void*           heap;
-} BLOCKHEAP;
+    /* Size of one block element. */
+    size_t          sz_block;
+    /* Size of the heap in blocks. */
+    size_t          sz_heap;
+    /* The first free element in the heap. */
+    size_t          sz_usage_bmp;
+    /* The number of blocks extra allocated. */
+    size_t          nr_alloc;
+
+    /* Pointer to the pre-allocated heap. */
+    unsigned char*  heap;
+    /* Pointer to the usage bitmap. */
+    unsigned char*  usage_bmp;
+};
+
+#ifndef _MGUI_GDI_H /* included in include/gdi.h */
+
+typedef struct _BLOCKHEAP BLOCKHEAP;
 typedef BLOCKHEAP* PBLOCKHEAP;
 
 #ifdef __cplusplus
