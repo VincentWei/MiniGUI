@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.6](#version-505)
+   + [What's new in version 5.0.6](#whats-new-in-version-505)
 - [Version 5.0.5](#version-505)
    + [What's new in version 5.0.5](#whats-new-in-version-505)
 - [Version 5.0.4](#version-504)
@@ -17,6 +19,31 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.6
+
+The MiniGUI development team announces the availability of MiniGUI 5.0.6,
+which is the bug fixing release of MiniGUI 5.0.x.
+
+### What's new in version 5.0.6
+
+In this version, we fixed some bugs and made some minor enhancements:
+
+* BUGFIXING:
+   - Fix bugs of switching layers under MiniGUI-Processes.
+   - Fix bugs of `FBCon` and `PC_XVFB` engines: the dirty rectangles are
+     not set empty after calling `SyncUpdate`.
+   - Fix memory leaks when using block heap.
+   - Fix a bug in ServerGetWinZNodeRegion.
+* ENHANCEMENTS:
+   - Enhance fallback compositor to support animation when switching layers.
+   - Tune implementation of Tooltip window.
+* OPTIMIZATIONS:
+   - Optimize the management of BLOCKHEAP.
+   - Optimize the `__mg_lookfor_unused_slot`.
+
+Note that the binary backward-compatibility was broken, two operations added to
+`CompositorOps`. You should rebuild all MiniGUI applications.
 
 ## Version 5.0.5
 
