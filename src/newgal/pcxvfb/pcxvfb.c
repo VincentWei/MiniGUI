@@ -298,6 +298,8 @@ static BOOL PCXVFB_SyncUpdate (_THIS)
     this->hidden->hdr->dirty_rc_b = this->hidden->dirty_rc.bottom;
     this->hidden->hdr->dirty = TRUE;
 
+    SetRectEmpty (&this->hidden->dirty_rc);
+
 #ifdef WIN32
     win_PCXVFbUnlock ();
 #else

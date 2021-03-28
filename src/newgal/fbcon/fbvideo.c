@@ -110,8 +110,10 @@ static BOOL FB_SyncUpdate (_THIS)
     if (IsRectEmpty (&this->hidden->dirty_rc))
         return FALSE;
 
-    if (shadowScreen_BlitToReal (this) == 0)
+    if (shadowScreen_BlitToReal (this) == 0) {
+        SetRectEmpty (&this->hidden->dirty_rc);
         return TRUE;
+    }
 
     return FALSE;
 }
