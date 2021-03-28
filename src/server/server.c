@@ -334,7 +334,6 @@ BOOL GUIAPI ServerStartup (int nr_globals,
         _ERR_PRINTF ("mginit: failed to initialize compositor!\n");
         goto fail;
     }
-    atexit (mg_TerminateCompositor);
 #endif
 
     return TRUE;
