@@ -151,12 +151,29 @@ size_t __mg_get_nr_idle_slots (unsigned char* bitmap, size_t len_bmp)
     size_t i, j;
 
     for (i = 0; i < len_bmp; i++) {
-        for (j = 0; j < 8; j++) {
-            if (*bitmap & (0x80 >> j))
-                idle++;
+        if (*bitmap) {
+            if (*bitmap == 0xFF) {
+                idle += 8;
+            }
+            else {
+                if (*bitmap & 0xF0) {
+                    for (j = 0; j < 4; j++) {
+                        if (*bitmap & (0x80 >> j))
+                            idle++;
+                    }
+                }
+                if (*bitmap & 0x0F) {
+                    for (j = 0; j < 4; j++) {
+                        if (*bitmap & (0x08 >> j))
+                            idle++;
+                    }
+                }
+            }
         }
+
         bitmap++;
     }
+
     return idle;
 }
 
