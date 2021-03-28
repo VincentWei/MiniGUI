@@ -52,6 +52,8 @@
 #ifndef GUI_BLOCKHEAP_H
     #define GUI_BLOCKHEAP_H
 
+#ifndef _MGUI_GDI_H /* included in include/gdi.h */
+
 struct _BLOCKHEAP {
 #ifdef _MGRM_THREADS
     pthread_mutex_t lock;
@@ -70,8 +72,6 @@ struct _BLOCKHEAP {
     /* Pointer to the usage bitmap. */
     unsigned char*  usage_bmp;
 };
-
-#ifndef _MGUI_GDI_H /* included in include/gdi.h */
 
 typedef struct _BLOCKHEAP BLOCKHEAP;
 typedef BLOCKHEAP* PBLOCKHEAP;

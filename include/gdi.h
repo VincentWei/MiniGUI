@@ -581,14 +581,29 @@ enum {
      * @{
      */
 
-struct _BLOCKHEAP;
-
 /**
  * MiniGUI's private block data heap.
  *
  * \sa InitBlockDataHeap, DestroyBlockDataHeap
  */
-typedef struct _BLOCKHEAP BLOCKHEAP;
+typedef struct _BLOCKHEAP {
+#ifdef _MGRM_THREADS
+    pthread_mutex_t lock;
+#endif
+    /** Size of one block element in bytes. */
+    size_t          sz_block;
+    /** Size of the heap in blocks. */
+    size_t          sz_heap;
+    /** The number of blocks extra allocated. */
+    size_t          nr_alloc;
+    /** The size of usage bitmap in bytes. */
+    size_t          sz_usage_bmp;
+
+    /** The pointer to the pre-allocated heap. */
+    unsigned char*  heap;
+    /** The pointer to the usage bitmap. */
+    unsigned char*  usage_bmp;
+} BLOCKHEAP;
 
 /**
  * \var typedef BLOCKHEAP* PBLOCKHEAP
@@ -613,9 +628,6 @@ typedef BLOCKHEAP* PBLOCKHEAP;
  * \param heap_size The size of the heap in blocks.
  *
  * \return TRUE on success, FALSE on error.
- *
- * \note This function does not return anything. You should check the \a heap
- *       field of the \a heap structure.
  *
  * \sa BLOCKHEAP
  */
