@@ -72,24 +72,27 @@ BOOL InitBlockDataHeap (PBLOCKHEAP heap, size_t sz_block, size_t sz_heap)
     heap->sz_usage_bmp = (sz_heap + 7) >> 3;
     heap->sz_block = ROUND_TO_MULTIPLE (sz_block, SIZEOF_PTR);
     heap->sz_heap = heap->sz_usage_bmp << 3;
+    heap->nr_alloc = 0;
 
     if (heap->sz_heap == 0 || heap->sz_block == 0)
-        return FALSE;
+        goto failed;
 
     if ((heap->heap = calloc (heap->sz_heap, heap->sz_block)) == NULL)
-        return FALSE;
+        goto failed;
 
     if ((heap->usage_bmp = calloc (heap->sz_usage_bmp, sizeof (char))) == NULL) {
         free (heap->heap);
-        return FALSE;
+        goto failed;
     }
 
-    heap->nr_alloc = 0;
     memset (heap->usage_bmp, 0xFF, heap->sz_usage_bmp);
     return TRUE;
-}
 
-extern BLOCKHEAP __mg_FreeClipRectList;
+failed:
+    heap->heap = NULL;
+    heap->usage_bmp = NULL;
+    return FALSE;
+}
 
 void* BlockDataAlloc (PBLOCKHEAP heap)
 {
@@ -105,24 +108,19 @@ void* BlockDataAlloc (PBLOCKHEAP heap)
         block_data = heap->heap + heap->sz_block * free_slot;
         _DBG_PRINTF ("Allocated one block in the block heap: %p (%d)\n",
                 heap, free_slot);
-
-#if 0
-        if (!mgIsServer && heap == &__mg_FreeClipRectList && free_slot == 5)
-            assert (0);
-#endif
-
         goto ret;
     }
 
     if ((block_data = calloc (1, heap->sz_block)) == NULL)
         goto ret;
+
     heap->nr_alloc++;
 
 ret:
+
 #ifdef _MGRM_THREADS
     pthread_mutex_unlock (&heap->lock);
 #endif
-
     return block_data;
 }
 
@@ -190,7 +188,10 @@ void DestroyBlockDataHeap (PBLOCKHEAP heap)
     }
 
     free (heap->heap);
+    heap->heap = NULL;
+
     free (heap->usage_bmp);
+    heap->usage_bmp = NULL;
 
 #ifdef _MGRM_THREADS
     pthread_mutex_destroy (&heap->lock);
