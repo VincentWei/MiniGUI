@@ -1448,6 +1448,17 @@ extern DWORD __mg_interval_time;
  */
 #define MSG_HELP            0x006A
 
+/**
+ * \def MSG_GESTURETEST
+ * \brief This message will be sent to a main window for gesture test.
+ *
+ * The client should call \a SetMainWindowGestureFlags to set the gesture flags
+ * for a main window after got this message.
+ *
+ * Since 5.0.6.
+ */
+#define MSG_GESTURETEST     0x006B
+
 #define MSG_LASTCREATEMSG   0x006F
 
     /** @} end of creation_msgs */
@@ -2462,6 +2473,9 @@ typedef struct _COMPOSITINGINFO {
 
 /* Since 5.0.0 */
 #define MSG_SETAUTOREPEAT   0x0107
+
+/* Since 5.0.6 */
+#define MSG_SETGESTUREFLAGS 0x0108
 
 #define MSG_SHOWGLOBALCTRL  0x010A
 #define MSG_HIDEGLOBALCTRL  0x010B
@@ -7173,13 +7187,46 @@ MG_EXPORT BOOL GUIAPI SetWindowMaskEx (HWND hWnd, HDC hdc, const BITMAP* mask);
  * \param hWnd The handle to the window.
  * \param fSet Set or cancel the always top style; TRUE to set, FALSE to cancel.
  *
- * \return return TRUE on success, otherwise FALSE.
+ * \return TRUE on success, otherwise FALSE.
  *
  * \sa GetWindowStyle, WS_ALWAYSTOP
  *
  * Since 5.0.0
  */
 MG_EXPORT BOOL GUIAPI SetMainWindowAlwaysTop (HWND hWnd, BOOL fSet);
+
+#define GF_SWIPE_HORZ   ZOF_GF_SWIPE_HORZ
+#define GF_SWIPE_VERT   ZOF_GF_SWIPE_VERT
+
+/**
+ * \fn BOOL GUIAPI SetMainWindowGestureFlags (HWND hWnd, DWORD dwFlags)
+ * \brief Set the gesture flags of a main window.
+ *
+ * This function sets the gesture flags of a specific main window.
+ *
+ * Generally, a main window which needs a specific gesture should handle
+ * \a MSG_GESTURETEST and call this function to set the correct gesture flags for
+ * the main window.
+ *
+ * The MiniGUI Core will send the MSG_GESTURETEST message as a notification
+ * to a main window when it tries to handle a gesture globally. If the main window
+ * sets the flag of the gesture in a specific time, e.g. 100ms, MiniGUI Core will
+ * pass the gesture events to the main window other than handle the gesture by itself.
+ *
+ * \param hWnd The handle to the main window.
+ * \param dwFlags The new gesture flags, can be OR'd with the following values:
+ *  - GF_SWIPE_HORZ\n
+ *      The main window handles horizontal swipe gesture.
+ *  - GF_SWIPE_VERT\n
+ *      The main window handles vertical swipe gesture.
+ *
+ * \return TRUE on success, otherwise FALSE.
+ *
+ * \sa MSG_GESTURETEST
+ *
+ * Since 5.0.6
+ */
+MG_EXPORT BOOL GUIAPI SetMainWindowGestureFlags (HWND hWnd, DWORD dwFlags);
 
 #ifdef _MGSCHEMA_COMPOSITING
 

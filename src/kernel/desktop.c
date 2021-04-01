@@ -2921,6 +2921,27 @@ static int dskSetZNodeAlwaysTop (int cli, int idx_znode, BOOL fSet)
     return 0;
 }
 
+/* Since 5.0.6 */
+static int dskSetZNodeGestureFlags (int cli, int idx_znode, DWORD flags)
+{
+    ZORDERINFO* zi = get_zorder_info (cli);
+    ZORDERNODE* nodes;
+
+    if (IS_INVALID_ZIDX (zi, idx_znode)) {
+        return -1;
+    }
+
+    nodes = GET_ZORDERNODE(zi);
+    flags &= ZOF_GESTURE_FLAGS_MASK;
+
+    lock_zi_for_change (zi);
+    nodes[idx_znode].flags &= ~ZOF_GESTURE_FLAGS_MASK;
+    nodes[idx_znode].flags |= flags;
+    unlock_zi_for_change (zi);
+
+    return 0;
+}
+
 #ifdef _MGSCHEMA_COMPOSITING
 /* Since 5.0.0 */
 static int dskSetZNodeCompositing (int cli, int idx_znode, int ct, DWORD ct_arg)

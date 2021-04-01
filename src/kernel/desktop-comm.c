@@ -368,6 +368,15 @@ static BOOL dskSetMainWindowAlwaysTop (PMAINWIN pWin, BOOL fSet)
     return TRUE;
 }
 
+/* Since 5.0.6 */
+static inline int dskSetMainWindowGestureFlags (PMAINWIN pWin, DWORD dwFlags)
+{
+    if (dskSetZNodeGestureFlags (0, pWin->idx_znode, dwFlags))
+        return FALSE;
+
+    return TRUE;
+}
+
 /* Since 5.0.0 */
 static int dskSetWindowMask (HWND pWin, const WINMASKINFO* mask_info)
 {
@@ -1424,7 +1433,11 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
 
     /* Since 5.0.0 */
     case MSG_SETALWAYSTOP:
-        return dskSetMainWindowAlwaysTop(pWin, (BOOL)lParam);
+        return dskSetMainWindowAlwaysTop (pWin, (BOOL)lParam);
+
+    /* Since 5.0.6 */
+    case MSG_SETGESTUREFLAGS:
+        return dskSetMainWindowGestureFlags (pWin, (DWORD)lParam);
 
     /* Since 5.0.0 */
     case MSG_SETWINDOWMASK:

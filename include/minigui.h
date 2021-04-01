@@ -82,6 +82,11 @@ extern "C" {
 #define ZOF_MAXIMIZED           0x00000004  // Since 5.0.0
 #define ZOF_MINIMIZED           0x00000008  // Since 5.0.0
 
+/* Since 5.0.6 */
+#define ZOF_GESTURE_FLAGS_MASK  0X000000F0
+#define ZOF_GF_SWIPE_HORZ       0x00000010
+#define ZOF_GF_SWIPE_VERT       0x00000020
+
 /* Since 5.0.0 */
 #define ZOF_INTERNAL_FLAGS_MASK 0X000F0000
 #define ZOF_IF_REFERENCE        0x00010000

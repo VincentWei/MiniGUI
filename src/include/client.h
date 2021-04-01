@@ -223,6 +223,8 @@ typedef struct _MovedClientInfo {
 #define ID_ZOOP_MASKRECT_SET        17
 #define ID_ZOOP_MASKRECT_FREE       18
 
+#define ID_ZOOP_SETGESTUREFLAGS     19  /* since 5.0.6 */
+
 #ifndef MAX_CAPTION_LEN
  #define MAX_CAPTION_LEN            39 //40
 #endif

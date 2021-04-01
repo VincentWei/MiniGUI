@@ -700,6 +700,27 @@ static intptr_t cliSetMainWinAlwaysTop (PMAINWIN pWin, BOOL fSet)
     return ret;
 }
 
+/* Since 5.0.6 */
+static intptr_t cliSetMainWinGestureFlags (PMAINWIN pWin, DWORD dwFlags)
+{
+    intptr_t ret;
+    REQUEST req;
+    ZORDEROPINFO info;
+
+    info.id_op = ID_ZOOP_SETGESTUREFLAGS;
+    info.idx_znode = pWin->idx_znode;
+    info.flags = dwFlags;
+
+    req.id = REQID_ZORDEROP;
+    req.data = &info;
+    req.len_data = sizeof (ZORDEROPINFO);
+
+    if (ClientRequest (&req, &ret, sizeof (intptr_t)) < 0)
+        return -1;
+
+    return ret;
+}
+
 #ifdef _MGSCHEMA_COMPOSITING
 static intptr_t cliSetMainWinCompositing (PMAINWIN pWin,
         const COMPOSITINGINFO* my_info)
@@ -1311,6 +1332,12 @@ static inline int srvSetZNodeAlwaysTop (int cli, int idx_znode, BOOL fSet)
     return dskSetZNodeAlwaysTop (cli, idx_znode, fSet);
 }
 
+/* Since 5.0.6 */
+static inline int srvSetZNodeGestureFlags (int cli, int idx_znode, DWORD dwFlags)
+{
+    return dskSetZNodeGestureFlags (cli, idx_znode, dwFlags);
+}
+
 #ifdef _MGSCHEMA_COMPOSITING
 static inline int srvSetZNodeCompositing (int cli, int idx_znode,
         int type, DWORD arg)
@@ -1437,6 +1464,9 @@ intptr_t __mg_do_zorder_operation (int cli, const ZORDEROPINFO* info,
             break;
         case ID_ZOOP_SETALWAYSTOP:
             srvSetZNodeAlwaysTop (cli, info->idx_znode, info->flags);
+            break;
+        case ID_ZOOP_SETGESTUREFLAGS:
+            srvSetZNodeGestureFlags (cli, info->idx_znode, info->flags);
             break;
 #ifdef _MGSCHEMA_COMPOSITING
         case ID_ZOOP_SETCOMPOSITING:
@@ -2513,6 +2543,21 @@ static BOOL dskSetMainWinAlwaysTop (PMAINWIN pWin, BOOL fSet)
     return TRUE;
 }
 
+/* Since 5.0.6 */
+static inline BOOL dskSetMainWindowGestureFlags (PMAINWIN pWin, DWORD dwFlags)
+{
+    if (mgIsServer) {
+        if (srvSetZNodeGestureFlags (0, pWin->idx_znode, dwFlags))
+            return FALSE;
+    }
+    else {
+        if (cliSetMainWinGestureFlags (pWin, dwFlags))
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
 /* Since 5.0.0 */
 static int dskSetWindowMask (HWND pWin, const WINMASKINFO* mask_info)
 {
@@ -2688,6 +2733,10 @@ static LRESULT dskWindowMessageHandler (UINT message,
     /* Since 5.0.0 */
     case MSG_SETALWAYSTOP:
         return dskSetMainWinAlwaysTop (pWin, (BOOL)lParam);
+
+    /* Since 5.0.6 */
+    case MSG_SETGESTUREFLAGS:
+        return dskSetMainWindowGestureFlags (pWin, (DWORD)lParam);
 
     /* Since 5.0.0 */
     case MSG_SETWINDOWMASK:

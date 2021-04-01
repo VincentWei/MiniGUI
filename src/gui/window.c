@@ -7026,6 +7026,19 @@ BOOL GUIAPI SetMainWindowAlwaysTop (HWND hMainWnd, BOOL fSet)
             MSG_SETALWAYSTOP, (WPARAM)pMainWin, (LPARAM)fSet);
 }
 
+/* Since 5.0.6 */
+BOOL GUIAPI SetMainWindowGestureFlags (HWND hMainWnd, DWORD dwFlags)
+{
+    PMAINWIN pMainWin;
+
+    if (!(pMainWin = checkAndGetMainWinIfMainWin (hMainWnd))) {
+        return FALSE;
+    }
+
+    return (BOOL)SendMessage (HWND_DESKTOP,
+            MSG_SETGESTUREFLAGS, (WPARAM)pMainWin, (LPARAM)dwFlags);
+}
+
 #ifdef _MGSCHEMA_COMPOSITING
 BOOL GUIAPI SetMainWindowCompositing (HWND hMainWnd, int type, DWORD arg)
 {
