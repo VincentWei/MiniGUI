@@ -37,6 +37,8 @@ In this version, we fixed some bugs and made some minor enhancements:
    - Fix a bug in ServerGetWinZNodeRegion.
 * ENHANCEMENTS:
    - Enhance fallback compositor to support animation when switching layers.
+   - New API `SetMainWindowGestureFlags` and `MSG_GESTURETEST` message for
+     gesture test and setting the gesture flags of a specific main window.
    - Tune implementation of Tooltip window.
 * OPTIMIZATIONS:
    - Optimize the management of BLOCKHEAP.
