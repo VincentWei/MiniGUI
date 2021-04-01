@@ -71,7 +71,7 @@
 #define NR_DIRTY_RECTS              16
 
 /* constants for layers and z-order nodes */
-#define MAX_NR_LAYERS               8
+#define MAX_NR_LAYERS               16
 
 /* Since 5.0.0: the number of the fixed znodes  - DONOT adjust */
 #define NR_FIXED_ZNODES             1
@@ -79,11 +79,16 @@
 /* the numbers of znodes in different levels - should be mulitples of 8 */
 #define DEF_NR_POPUPMENUS           16
 #define DEF_NR_TOOLTIPS             16
-#define DEF_NR_GLOBALS              15      // reserve one slot for fixed znode
+#define DEF_NR_GLOBALS              15  // reserve one slot for fixed znode
 #define DEF_NR_SCREENLOCKS          8
 #define DEF_NR_DOCKERS              8
-#define DEF_NR_TOPMOSTS             16
-#define DEF_NR_NORMALS              128
+#ifdef _MGRM_PROCESSES                  // per layer basis
+#   define DEF_NR_TOPMOSTS          8
+#   define DEF_NR_NORMALS           32
+#else
+#   define DEF_NR_TOPMOSTS          16
+#   define DEF_NR_NORMALS           128
+#endif
 #define DEF_NR_LAUNCHERS            8
 
 /* Since 5.0.0: the number of the zorder levels - DONOT adjust */
