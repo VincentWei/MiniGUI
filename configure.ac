@@ -927,7 +927,7 @@ CheckDRM()
                 [Define if include Linux DRM NEWGAL engine])
             VIDEO_SUBDIRS="$VIDEO_SUBDIRS drm"
             VIDEO_DRIVERS="$VIDEO_DRIVERS drm/libvideo_drm.la"
-            DEP_LIBS="$DEP_LIBS -ldrm -ldl"
+            DEP_LIBS="$DEP_LIBS -ldrm"
             DRM_INC_DIR="`$PKG_CONFIG --variable includedir libdrm`/libdrm"
             AC_SUBST(DRM_INC_DIR)
         else
@@ -1465,7 +1465,6 @@ fi
 
 if test "x$build_dlcustom_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_DLCUSTOM, 1, [Define if include dlcustom IAL engine])
-    DEP_LIBS="$DEP_LIBS -ldl"
 fi
 
 if test "x$build_sef_support" = "xyes"; then
@@ -1631,6 +1630,7 @@ case "$with_osname" in
     use_shmopen="yes"
     AC_DEFINE(__LINUX__, 1,
             [Define if compile for Linux])
+    DEP_LIBS="$DEP_LIBS -ldl"
     ;;
 esac
 
