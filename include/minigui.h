@@ -1775,8 +1775,10 @@ typedef struct _CompositorOps {
 
 } CompositorOps;
 
-#define FCM_HORIZONTAL      0
-#define FCM_VERTICAL        1
+#define FCM_HORIZONTAL      0x0000
+#define FCM_VERTICAL        0x0001
+#define FCM_METHOD_MASK     0x00FF
+#define FCM_SCALE           0x0100
 
 /** The combining parameters for the callback compositor. */
 typedef struct _CombParamsFallback {
@@ -1784,11 +1786,16 @@ typedef struct _CombParamsFallback {
      * The combining method, can be one of the following values:
      *  - FCM_HORIZONTAL
      *  - FCM_VERTICAL
+     * and/or OR'd with the following value:
+     *  - FCM_SCALE
      */
-    int method;
+    unsigned int method;
 
     /** The percentage of the screen occupied by the first layer. */
-    int percent;
+    float percent;
+
+    /** The scale factor of non-global z-nodes. */
+    float scale;
 } COMBPARAMS_FALLBACK;
 
 /**

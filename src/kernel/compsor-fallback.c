@@ -84,6 +84,7 @@ struct _CompositorCtxt {
 
     int         offx;       // the offset for the general znodes.
     int         offy;
+    BOOL        scaled;     // is scaled?
 };
 
 static CompositorCtxt* initialize (const char* name)
@@ -103,6 +104,7 @@ static CompositorCtxt* initialize (const char* name)
         ctxt->layer = NULL;
         ctxt->offx = 0;
         ctxt->offy = 0;
+        ctxt->scaled = FALSE;
     }
 
     return ctxt;
@@ -297,24 +299,39 @@ static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
     if ((znode_hdr->flags & ZNIF_VISIBLE) &&
             ((znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE) &&
             IntersectRegion (&ctxt->inv_rgn, &ctxt->dirty_rgn, rgn)) {
-        BOOL offx, offy;
+        int offx, offy;
+        BOOL scaled;
 
-        if ((ctxt->offx || ctxt->offy) && !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
+        if ((ctxt->offx || ctxt->offy || ctxt->scaled) &&
+                !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
             offx = ctxt->offx;
             offy = ctxt->offy;
+            scaled = ctxt->scaled;
         }
         else {
             offx = 0;
             offy = 0;
+            scaled = FALSE;
         }
 
         SetMemDCColorKey (znode_hdr->mem_dc, 0, 0);
         SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
         SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
-        BitBlt (znode_hdr->mem_dc,
-                0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
-                HDC_SCREEN_SYS,
-                znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
+        if (scaled) {
+            StretchBlt (znode_hdr->mem_dc,
+                    0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
+                    HDC_SCREEN_SYS,
+                    rgn->rcBound.left, rgn->rcBound.top,
+                    RECTW (rgn->rcBound), RECTH (rgn->rcBound),
+                    0);
+        }
+        else {
+            BitBlt (znode_hdr->mem_dc,
+                    0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
+                    HDC_SCREEN_SYS,
+                    znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
+        }
+
         SelectClipRect (HDC_SCREEN_SYS, NULL);
 
         SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->inv_rgn);
@@ -341,14 +358,18 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
                (znode_hdr->ct & CT_SYSTEM_MASK) != CT_OPAQUE &&
                IntersectRegion (&ctxt->inv_rgn, dirty_rgn, rgn)) {
             int offx, offy;
+            BOOL scaled;
 
-            if ((ctxt->offx || ctxt->offy) && !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
+            if ((ctxt->offx || ctxt->offy || ctxt->scaled) &&
+                    !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
                 offx = ctxt->offx;
                 offy = ctxt->offy;
+                scaled = ctxt->scaled;
             }
             else {
                 offx = 0;
                 offy = 0;
+                scaled = FALSE;
             }
 
             switch (znode_hdr->ct & CT_SYSTEM_MASK) {
@@ -385,10 +406,20 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
             }
 
             SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
-            BitBlt (znode_hdr->mem_dc,
-                    0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
-                    HDC_SCREEN_SYS,
-                    znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
+            if (scaled) {
+                StretchBlt (znode_hdr->mem_dc,
+                        0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
+                        HDC_SCREEN_SYS,
+                        rgn->rcBound.left, rgn->rcBound.top,
+                        RECTW (rgn->rcBound), RECTH (rgn->rcBound),
+                        0);
+            }
+            else {
+                BitBlt (znode_hdr->mem_dc,
+                        0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
+                        HDC_SCREEN_SYS,
+                        znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
+            }
             SelectClipRect (HDC_SCREEN_SYS, NULL);
         }
 
@@ -885,7 +916,8 @@ static void on_layer_op (CompositorCtxt* ctxt, int layer_op,
     }
 }
 
-static int offset_regions_of_general_znodes (MG_Layer* layer, int offx, int offy)
+static int offset_regions_of_general_znodes (MG_Layer* layer,
+        int offx, int offy, float scale)
 {
     int nr = 0;
     int next;
@@ -900,7 +932,57 @@ static int offset_regions_of_general_znodes (MG_Layer* layer, int offx, int offy
 
         if ((znode_hdr->flags & ZNIF_VISIBLE) &&
                !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
+
             OffsetRegion (rgn, offx, offy);
+            if (scale != 1.0f) {
+                RECT new_bound = rgn->rcBound;
+                int old_width = RECTW (rgn->rcBound);
+                int old_height = RECTH (rgn->rcBound);
+                int new_width = (int)(old_width * scale + 0.5f);
+                int new_height = (int)(old_height * scale + 0.5f);
+                int cx = (new_width - old_width) / 2;
+                int cy = (new_height - old_height) / 2;
+                InflateRect (&new_bound, cx, cy);
+
+                if (!EqualRect (&rgn->rcBound, &new_bound)) {
+                    if (scale > 1.0f) {
+                        assert (IsCovered (&rgn->rcBound, &new_bound));
+                        AddClipRect (rgn, &new_bound);
+                    }
+                    else {
+                        assert (IsCovered ( &new_bound, &rgn->rcBound));
+                        IntersectClipRect (rgn, &new_bound);
+                    }
+                }
+            }
+
+            nr++;
+        }
+
+        next = ServerGetNextZNode (layer, next, NULL);
+    }
+
+    return nr;
+}
+
+static int restore_regions_of_general_znodes (MG_Layer* layer)
+{
+    int nr = 0;
+    int next;
+
+    next = ServerGetNextZNode (layer, 0, NULL);
+    while (next > 0) {
+        const ZNODEHEADER* znode_hdr;
+        CLIPRGN* rgn;
+
+        znode_hdr = ServerGetWinZNodeHeader (layer, next, (void**)&rgn, FALSE);
+        assert (znode_hdr);
+
+        if ((znode_hdr->flags & ZNIF_VISIBLE) &&
+               !(znode_hdr->flags & ZOF_IF_SPECIAL)) {
+
+            EmptyClipRgn (rgn);
+            ServerGetWinZNodeRegion (layer, next, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
             nr++;
         }
 
@@ -919,21 +1001,24 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
 
     assert (nr_layers == 2);
 
-    if (cp->percent < 0 || cp->percent > 100) {
-        _WRN_PRINTF("Bad percent (%d).\n", cp->percent);
+    if (cp->percent < 0.0f || cp->percent > 100.0f) {
+        _WRN_PRINTF("Bad percent (%f).\n", cp->percent);
         return 0;
     }
 
     clock_gettime (CLOCK_MONOTONIC, &ts_start);
 
+    if (!(cp->method & FCM_SCALE))
+        cp->scale = 1.0f;
+
     rc0 = ctxt->rc_screen;
     rc1 = ctxt->rc_screen;
-    if (cp->method == FCM_VERTICAL) {
-        rc0.bottom = cp->percent * RECTH (rc0) / 100;
+    if ((cp->method & FCM_METHOD_MASK) == FCM_VERTICAL) {
+        rc0.bottom = (int)(cp->percent * RECTH (rc0) / 100.0f + 0.5f);
         rc1.top = rc0.bottom;
     }
     else {
-        rc0.right = cp->percent * RECTW (rc0) / 100;
+        rc0.right = (int)(cp->percent * RECTW (rc0) / 100.0f + 0.5f);
         rc1.left = rc0.right;
     }
 
@@ -945,18 +1030,21 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
         ctxt->layer = layers[0];
         ctxt->offx = rc0.right - ctxt->rc_screen.right;
         ctxt->offy = rc0.bottom - ctxt->rc_screen.bottom;
+        ctxt->scaled = (cp->scale != 1.0f);
 
-        if (ctxt->offx || ctxt->offy)
-            offset_regions_of_general_znodes (ctxt->layer, ctxt->offx, ctxt->offy);
+        if (ctxt->offx || ctxt->offy || ctxt->scaled)
+            offset_regions_of_general_znodes (ctxt->layer,
+                    ctxt->offx, ctxt->offy, cp->scale);
         composite_on_dirty_region (ctxt, 0);
-        if (ctxt->offx || ctxt->offy)
-            offset_regions_of_general_znodes (ctxt->layer, -ctxt->offx, -ctxt->offy);
+        if (ctxt->offx || ctxt->offy || ctxt->scaled)
+            restore_regions_of_general_znodes (ctxt->layer);
     }
     else {
         // only composite the wallpaper
         ctxt->layer = NULL;
         ctxt->offx = 0;
         ctxt->offy = 0;
+        ctxt->scaled = FALSE;
         composite_wallpaper (ctxt);
     }
 
@@ -968,18 +1056,21 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
         ctxt->layer = layers[1];
         ctxt->offx = rc1.left;
         ctxt->offy = rc1.top;
+        ctxt->scaled = (cp->scale != 1.0f);
 
-        if (ctxt->offx || ctxt->offy)
-            offset_regions_of_general_znodes (ctxt->layer, ctxt->offx, ctxt->offy);
+        if (ctxt->offx || ctxt->offy || ctxt->scaled)
+            offset_regions_of_general_znodes (ctxt->layer,
+                    ctxt->offx, ctxt->offy, cp->scale);
         composite_on_dirty_region (ctxt, 0);
-        if (ctxt->offx || ctxt->offy)
-            offset_regions_of_general_znodes (ctxt->layer, -ctxt->offx, -ctxt->offy);
+        if (ctxt->offx || ctxt->offy || ctxt->scaled)
+            restore_regions_of_general_znodes (ctxt->layer);
     }
     else {
         // only composite the wallpaper
         ctxt->layer = NULL;
         ctxt->offx = 0;
         ctxt->offy = 0;
+        ctxt->scaled = FALSE;
         composite_wallpaper (ctxt);
     }
 
@@ -994,6 +1085,7 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
     ctxt->layer = NULL;
     ctxt->offx = 0;
     ctxt->offy = 0;
+    ctxt->scaled = FALSE;
 
     return (ts_end.tv_sec - ts_start.tv_sec) * 1000 +
         (ts_end.tv_nsec - ts_start.tv_nsec) / 1000000;
@@ -1013,7 +1105,7 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
     MG_Layer* layers[2];
 
-    COMBPARAMS_FALLBACK cp = { FCM_HORIZONTAL, 5 };
+    COMBPARAMS_FALLBACK cp = { FCM_HORIZONTAL | FCM_SCALE, 5.0f, 1.0f };
 
     while (layer) {
         if (layer == mgTopmostLayer)
@@ -1037,36 +1129,103 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
     if (idx_layer_1 > idx_layer_0) {
         /* to_layer is to the right of the topmost layer */
-        layers[0] = mgTopmostLayer;
-        layers[1] = to_layer;
 
-        cp.percent = 95;
-        while (cp.percent > 5) {
+        // Step 1) Zoom out the current topmost layer
+        layers[0] = mgTopmostLayer;
+        layers[1] = NULL;
+        cp.percent = 100.0f;
+        cp.scale = 0.98f;
+        while (cp.scale > 0.60f) {
             unsigned int t_ms;
 
             t_ms = composite_layers (ctxt, layers, 2, &cp);
             if (t_ms > 100)
-                _WRN_PRINTF ("Two slow to composite layers: %u\n", t_ms);
+                _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
 
             usleep (20 * 1000);
-            cp.percent -= 9;
+            cp.scale -= 0.02f;
+        }
+
+        // Step 2) Move to the new topmost layer
+        layers[0] = mgTopmostLayer;
+        layers[1] = to_layer;
+        cp.percent = 95.0f;
+        cp.scale = 0.60f;
+        while (cp.percent > 5.0f) {
+            unsigned int t_ms;
+
+            t_ms = composite_layers (ctxt, layers, 2, &cp);
+            if (t_ms > 100)
+                _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
+
+            usleep (20 * 1000);
+            cp.percent -= 4.5f;
+        }
+
+        // Step 3) Zoom in the new topmost layer
+        layers[0] = to_layer;
+        layers[1] = NULL;
+        cp.percent = 100.0f;
+        cp.scale = 0.60f;
+        while (cp.scale < 1.00f) {
+            unsigned int t_ms;
+
+            t_ms = composite_layers (ctxt, layers, 2, &cp);
+            if (t_ms > 100)
+                _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
+
+            usleep (20 * 1000);
+            cp.scale += 0.02f;
         }
     }
     else {
         /* to_layer is to the left of the topmost layer */
-        layers[0] = to_layer;
-        layers[1] = mgTopmostLayer;
 
-        cp.percent = 5;
-        while (cp.percent < 95) {
+        // Step 1) Zoom out the current topmost layer
+        layers[0] = mgTopmostLayer;
+        layers[1] = NULL;
+        cp.percent = 100.0f;
+        cp.scale = 0.98f;
+        while (cp.scale > 0.60f) {
             unsigned int t_ms;
 
             t_ms = composite_layers (ctxt, layers, 2, &cp);
             if (t_ms > 100)
-                _WRN_PRINTF ("Two slow to composite layers: %u\n", t_ms);
+                _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
 
             usleep (20 * 1000);
-            cp.percent += 9;
+            cp.scale -= 0.02f;
+        }
+
+        // Step 2) Move the current topmost layer
+        layers[0] = to_layer;
+        layers[1] = mgTopmostLayer;
+        cp.percent = 5.0f;
+        while (cp.percent < 95.0f) {
+            unsigned int t_ms;
+
+            t_ms = composite_layers (ctxt, layers, 2, &cp);
+            if (t_ms > 100)
+                _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
+
+            usleep (20 * 1000);
+            cp.percent += 4.5f;
+        }
+
+        // Step 3) Zoom in the new topmost layer
+        layers[0] = to_layer;
+        layers[1] = NULL;
+        cp.percent = 100.0f;
+        cp.scale = 0.60f;
+        while (cp.scale > 1.00f) {
+            unsigned int t_ms;
+
+            t_ms = composite_layers (ctxt, layers, 2, &cp);
+            if (t_ms > 100)
+                _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
+
+            usleep (20 * 1000);
+            cp.scale += 0.02f;
         }
     }
 }
