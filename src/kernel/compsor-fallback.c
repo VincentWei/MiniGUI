@@ -633,8 +633,6 @@ static BOOL merge_dirty_ppp (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn;
 
-    _DBG_PRINTF("called: %d\n", zidx);
-
     /* the fallback compositor only manages znodes on the topmost layer. */
     if (layer != mgTopmostLayer)
         return rc;
@@ -658,8 +656,6 @@ static BOOL merge_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     /* the fallback compositor only manages znodes on the topmost layer. */
     if (layer != mgTopmostLayer)
         return rc;
-
-    _DBG_PRINTF("called: %d\n", zidx);
 
     /* merge the dirty region */
     znode_hdr = ServerGetWinZNodeHeader (NULL, zidx, (void**)&rgn, TRUE);
@@ -726,7 +722,6 @@ static void on_dirty_screen (CompositorCtxt* ctxt,
     else if (layer != mgTopmostLayer)
         return;
 
-    _DBG_PRINTF ("called\n");
     /* generate the dirty region */
     if (rc_dirty) {
         SetClipRgn (&ctxt->dirty_rgn, &ctxt->rc_screen);
@@ -767,7 +762,6 @@ static void refresh (CompositorCtxt* ctxt)
 
 static void on_closed_menu (CompositorCtxt* ctxt, const RECT* rc_bound)
 {
-    _DBG_PRINTF ("called\n");
     /* reset the wins_rgn with screen rectangle, because the menu closed */
     SetClipRgn (&ctxt->wins_rgn, &ctxt->rc_screen);
 
@@ -814,17 +808,13 @@ static void refresh_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn = NULL;
 
-    // the fallback compositor only manages znodes on the topmost layer.
-    if (layer != mgTopmostLayer)
-        return;
-
-    _DBG_PRINTF ("called\n");
     znode_hdr = ServerGetWinZNodeHeader (layer, zidx, (void**)&rgn, FALSE);
     assert(znode_hdr);
 
-    if (!(znode_hdr->flags & ZNIF_VISIBLE)) {
+    // the fallback compositor only manages znodes on the topmost layer.
+    if (!(znode_hdr->flags & ZNIF_VISIBLE) ||
+            (!(znode_hdr->flags & ZOF_IF_SPECIAL) && layer != mgTopmostLayer))
         return;
-    }
 
     assert (rgn);
     CopyRegion (&ctxt->dirty_rgn, rgn);
@@ -855,8 +845,8 @@ static void on_moved_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx,
     ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
     ServerSetWinZNodePrivateData (layer, zidx, rgn);
 
-    // the fallback compositor only manages znodes on the topmost layer.
-    if (layer != mgTopmostLayer)
+    // the fallback compositor only manages general znodes on the topmost layer.
+    if (!(znode_hdr->flags & ZOF_IF_SPECIAL) && layer != mgTopmostLayer)
         goto done;
 
     UnionRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn);
@@ -893,8 +883,8 @@ static void on_changed_rgn (CompositorCtxt* ctxt, MG_Layer* layer,
     ServerGetWinZNodeRegion (layer, zidx, RGN_OP_SET | RGN_OP_FLAG_ABS, rgn);
     ServerSetWinZNodePrivateData (layer, zidx, rgn);
 
-    /* the fallback compositor only manages znodes on the topmost layer. */
-    if (layer != mgTopmostLayer)
+    /* the fallback compositor only manages general znodes on the topmost layer. */
+    if (!(znode_hdr->flags & ZOF_IF_SPECIAL) && layer != mgTopmostLayer)
         goto done;
 
     /* calculate the dirty region */
@@ -912,6 +902,7 @@ static void on_layer_op (CompositorCtxt* ctxt, int layer_op,
             MG_Layer* layer, MG_Client* client)
 {
     if (layer_op == LCO_TOPMOST_CHANGED) {
+        _DBG_PRINTF ("Topmost layer changed to %s\n", mgTopmostLayer->name);
         refresh (ctxt);
     }
 }
@@ -1039,7 +1030,7 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
         if (ctxt->offx || ctxt->offy || ctxt->scaled)
             restore_regions_of_general_znodes (ctxt->layer);
     }
-    else {
+    else if (cp->percent < 100.f) {
         // only composite the wallpaper
         ctxt->layer = NULL;
         ctxt->offx = 0;
@@ -1065,7 +1056,7 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
         if (ctxt->offx || ctxt->offy || ctxt->scaled)
             restore_regions_of_general_znodes (ctxt->layer);
     }
-    else {
+    else if (cp->percent < 100.0f) {
         // only composite the wallpaper
         ctxt->layer = NULL;
         ctxt->offx = 0;
@@ -1138,6 +1129,7 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
         while (cp.scale > 0.60f) {
             unsigned int t_ms;
 
+            _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
             if (t_ms > 100)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
@@ -1154,6 +1146,7 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
         while (cp.percent > 5.0f) {
             unsigned int t_ms;
 
+            _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
             if (t_ms > 100)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
@@ -1170,6 +1163,7 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
         while (cp.scale < 1.00f) {
             unsigned int t_ms;
 
+            _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
             if (t_ms > 100)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
@@ -1189,6 +1183,7 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
         while (cp.scale > 0.60f) {
             unsigned int t_ms;
 
+            _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
             if (t_ms > 100)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
@@ -1204,6 +1199,7 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
         while (cp.percent < 95.0f) {
             unsigned int t_ms;
 
+            _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
             if (t_ms > 100)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
@@ -1217,9 +1213,10 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
         layers[1] = NULL;
         cp.percent = 100.0f;
         cp.scale = 0.60f;
-        while (cp.scale > 1.00f) {
+        while (cp.scale < 1.00f) {
             unsigned int t_ms;
 
+            _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
             if (t_ms > 100)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
