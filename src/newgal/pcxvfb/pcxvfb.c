@@ -138,17 +138,24 @@ static int shm_init_lock (key_t key)
     }
     sem.val = 1;
     semctl (semid, 0, SETVAL, sem);
+
     return 0;
 }
 
-static int shm_lock (int semid) {
+static void shm_lock (int semid)
+{
     struct sembuf sops = {0, -1, SEM_UNDO};
-    return (semop (semid, &sops, 1));
+
+    if (semop (semid, &sops, 1) < 0)
+        _WRN_PRINTF ("NEWGAL>PCXVFB: failed to lock sempahore id: %d\n", semid);
 }
 
-static int shm_unlock (int semid) {
+static void shm_unlock (int semid)
+{
     struct sembuf sops = {0, +1, SEM_UNDO};
-    return (semop (semid, &sops, 1));
+
+    if (semop (semid, &sops, 1))
+        _WRN_PRINTF ("NEWGAL>PCXVFB: failed to unlock sempahore id: %d\n", semid);
 }
 
 static int execl_pcxvfb (void)
