@@ -50,7 +50,7 @@ MGLIBADD =  $(COMMON_LADD)      \
 MGLDFLAGS = -release $(LT_RELEASE) -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 
 lib_LTLIBRARIES=libminigui_@MGLIB_SUFFIX@.la
-libminigui_@MGLIB_SUFFIX@_la_LIBADD=$(MGLIBADD)
+libminigui_@MGLIB_SUFFIX@_la_LIBADD=$(MGLIBADD) @DEP_LIBS@
 libminigui_@MGLIB_SUFFIX@_la_SOURCES=$(MGSOURCES) 
 libminigui_@MGLIB_SUFFIX@_la_LDFLAGS=$(MGLDFLAGS) 
 

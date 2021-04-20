@@ -81,6 +81,8 @@ AC_CHECK_FUNCS(posix_memalign memalign valloc memfd_create access poll select)
 
 PKG_CHECK_MODULES(UDEV, [libudev >= 200], have_udev="yes", have_udev="no; need libudev 200+")
 
+DEP_LIBS=""
+
 dnl ========================================================================
 dnl User selectable options
 
@@ -906,8 +908,6 @@ CheckFBCON()
             if test "x$have_pciaccess" = "xyes"; then
                 AC_DEFINE(_MGHAVE_PCIACCESS, 1,
                 [Define if PCIAccess lib is available])
-                LDFLAGS="$LDFLAGS -lpciaccess"
-
             fi
         fi
     fi
@@ -1969,7 +1969,7 @@ fi
 
 if test "x$build_net_ial_engine" = "xyes"; then
     AC_DEFINE(_MGIAL_NET, 1,
-            [Define if include IAL engine for net's board])
+            [Define if include IAL engine for network input])
 fi
 
 if test "x$build_comm_ial_engine" = "xyes"; then
