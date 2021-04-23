@@ -1343,6 +1343,66 @@ static void _line_scaled_stretchblt (void* context, const void* line, int y)
     }
 }
 
+#if 0
+static void StretchBltOld (PDC psdc, const RECT *srcOutput,
+        PDC pddc, const RECT *dstOutput, DWORD dwRop)
+{
+    PCLIPRECT cliprect;
+    GAL_Rect src, dst;
+    RECT eff_rc;
+
+    pddc->rc_output = *dstOutput;
+    if (pddc->surface !=  psdc->surface && (psdc->surface == __gal_screen))
+        psdc->rc_output = *srcOutput;
+
+    ENTER_DRAWING (pddc);
+
+    if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE (psdc))
+        kernel_ShowCursorForGDI (FALSE, psdc);
+
+    cliprect = pddc->ecrgn.head;
+    while(cliprect) {
+        if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
+            SET_GAL_CLIPRECT (pddc, eff_rc);
+
+            src.x = srcOutput->left; src.y = srcOutput->top;
+            src.w = RECTWP (srcOutput); src.h = RECTHP (srcOutput);
+            dst.x = dstOutput->left; dst.y = dstOutput->top;
+            dst.w = RECTWP (dstOutput); dst.h = RECTHP (dstOutput);
+            GAL_SoftStretch (psdc->surface, &src, pddc->surface, &dst);
+        }
+
+        cliprect = cliprect->next;
+    }
+
+    if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE (psdc))
+        kernel_ShowCursorForGDI (TRUE, psdc);
+
+    LEAVE_DRAWING (pddc);
+
+error_ret:
+    UNLOCK_GCRINFO (pddc);
+}
+#endif
+
+static void StretchBltSlow (HDC hsdc, int sx, int sy, int sw, int sh,
+                       HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
+{
+    HDC newdc;
+    POINT pt = { dw, dh };
+
+    LPtoDP (hddc, &pt);
+    newdc = CreateCompatibleDCEx (hsdc, pt.x, pt.y);
+    if (newdc == HDC_INVALID) {
+        _WRN_PRINTF ("Failed to create a compatible memory DC\n");
+        return;
+    }
+
+    StretchBlt (hsdc, sx, sy, sw, sh, newdc, 0, 0, pt.x, pt.y, dwRop);
+    BitBlt (newdc, 0, 0, pt.x, pt.y, hddc, dx, dy, dwRop);
+    DeleteMemDC (newdc);
+}
+
 void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                        HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
 {
@@ -1352,35 +1412,18 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     struct _SCALER_INFO_STRETCHBLT info;
 
     psdc = dc_HDC2PDC (hsdc);
+    pddc = dc_HDC2PDC (hddc);
+    if (GAL_RMask (psdc->surface) != GAL_RMask (pddc->surface)
+            || GAL_GMask (psdc->surface) != GAL_GMask (pddc->surface)
+            || GAL_BMask (psdc->surface) != GAL_BMask (pddc->surface)
+            || GAL_AMask (psdc->surface) != GAL_AMask (pddc->surface)) {
+        StretchBltSlow (hsdc, sx, sy, sw, sh, hddc, dx, dy, dw, dh, dwRop);
+        return;
+    }
+
     if (!(pddc = __mg_check_ecrgn (hddc)))
         return;
 
-    if (GAL_BitsPerPixel (psdc->surface) != GAL_BitsPerPixel (pddc->surface)) {
-        goto error_ret;
-    }
-
-    if (sx < 0) sx = 0;
-    if (sy < 0) sy = 0;
-    if (dx < 0) dx = 0;
-    if (dy < 0) dy = 0;
-
-    if (sx >= RECTW(psdc->DevRC))
-        goto error_ret;
-    if (sy >= RECTH(psdc->DevRC))
-        goto error_ret;
-    if (dx >= RECTW(pddc->DevRC))
-        goto error_ret;
-    if (dy >= RECTH(pddc->DevRC))
-        goto error_ret;
-
-    if (sw <= 0 || sw > RECTW (psdc->DevRC) - sx) sw = RECTW (psdc->DevRC) - sx;
-    if (sh <= 0 || sh > RECTH (psdc->DevRC) - sy) sh = RECTH (psdc->DevRC) - sy;
-    if (dw <= 0 || dw > RECTW (pddc->DevRC) - dx) dw = RECTW (pddc->DevRC) - dx;
-    if (dh <= 0 || dh > RECTH (pddc->DevRC) - dy) dh = RECTH (pddc->DevRC) - dy;
-
-
-    /* The coordinates should be in device space. */
-#if 0
     // Transfer logical to device to screen here.
     sw += sx; sh += sy;
     coor_LP2SP(psdc, &sx, &sy);
@@ -1395,17 +1438,64 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     SetRect (&dstOutput, dx, dy, dw, dh);
     NormalizeRect (&dstOutput);
     dw = RECTW (dstOutput); dh = RECTH (dstOutput);
-#else
-    coor_DP2SP (psdc, &sx, &sy);
-    SetRect (&srcOutput, sx, sy, sx + sw, sy + sh);
-/*
-    if (!IsCovered (&srcOutput, &psdc->DevRC))
-        goto error_ret;
-*/
 
-    coor_DP2SP (pddc, &dx, &dy);
-    SetRect (&dstOutput, dx, dy, dx + dw, dy + dh);
-#endif
+
+    if (sx < 0) sx = 0;
+    if (sy < 0) sy = 0;
+    if (sw <= 0) sw = RECTW (psdc->DevRC);
+    if (sh <= 0) sh = RECTH (psdc->DevRC);
+    if (dw <= 0) dw = RECTW (pddc->DevRC);
+    if (dh <= 0) dh = RECTH (pddc->DevRC);
+
+    if (sx >= RECTW(psdc->DevRC) || (sx + sw) > RECTW(psdc->DevRC))
+        goto error_ret;
+    if (sy >= RECTH(psdc->DevRC) || (sy + sh) > RECTH(psdc->DevRC))
+        goto error_ret;
+    if (dx >= RECTW(pddc->DevRC))
+        goto error_ret;
+    if (dy >= RECTH(pddc->DevRC))
+        goto error_ret;
+
+    // shrink source and destination rectangles if dx < 0
+    if (dx < 0) {
+        // dx and overflow is negative
+        int overflow = (int)(dx * sw * 1.0f / dw + 0.5f);
+        sx -= overflow;
+        sw += overflow;
+
+        dw += dx;
+        dx = 0;
+    }
+
+    // shrink source and destination rectangles if dy < 0
+    if (dy < 0) {
+        // dy and overflow is negative
+        int overflow = (int)(dy * sh * 1.0f / dh + 0.5f);
+        sy -= overflow;
+        sh += overflow;
+
+        dh += dy;
+        dy = 0;
+    }
+
+    // shrink source and destination rectangles if dx + dw is overflow
+    if ((dx + dw) > RECTW (pddc->DevRC)) {
+        int overflow = dx + dw - RECTW (pddc->DevRC);
+
+        sw -= (int)(sw * overflow * 1.0f / dw + 0.5f);
+        dw -= overflow;
+    }
+
+    // shrink source and destination rectangles if dy + dh is overflow
+    if ((dy + dh) > RECTH (pddc->DevRC)) {
+        int overflow = dy + dh - RECTH (pddc->DevRC);
+
+        sh -= (int)(sh * overflow * 1.0f / dh + 0.5f);
+        dh -= overflow;
+    }
+
+    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
+        goto error_ret;
 
     info.pdc = pddc;
     info.dst_x = dx; info.dst_y = dy;
@@ -1413,6 +1503,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     info.line_buff = malloc (GAL_BytesPerPixel (pddc->surface) * dw);
 
     if (info.line_buff == NULL) {
+        _WRN_PRINTF ("Failed to allocate line buffer\n");
         goto error_ret;
     }
 
@@ -1440,30 +1531,6 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     if (pddc->surface !=  psdc->surface && IS_SCREEN_SURFACE (psdc))
         kernel_ShowCursorForGDI (FALSE, psdc);
 
-#if 0
-    PCLIPRECT cliprect;
-    GAL_Rect src, dst;
-    RECT eff_rc;
-
-    if (pddc->surface == psdc->surface && dy > sy)
-        cliprect = pddc->ecrgn.tail;
-    else
-        cliprect = pddc->ecrgn.head;
-    while(cliprect) {
-        if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
-            SET_GAL_CLIPRECT (pddc, eff_rc);
-
-            src.x = sx; src.y = sy; src.w = sw; src.h = sh;
-            dst.x = dx; dst.y = dy; dst.w = dw; dst.h = dh;
-            GAL_SoftStretch (psdc->surface, &src, pddc->surface, &dst);
-        }
-
-        if (pddc->surface == psdc->surface && dy > sy)
-            cliprect = cliprect->prev;
-        else
-            cliprect = cliprect->next;
-    }
-#else
     pddc->step = 1;
     pddc->cur_ban = NULL;
     if (pddc->surface == psdc->surface
@@ -1474,25 +1541,18 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     }
     else {
         info.bottom2top = FALSE;
-        /*
-        BitmapDDAScaler (&info, &bmp, dw, dh,
-                _get_line_buff_stretchblt, _line_scaled_stretchblt);
-                */
-        if ( pddc->bitmap_scaler )
-        {
+        if (pddc->bitmap_scaler) {
             pddc->bitmap_scaler(&info, &bmp, dw, dh,
                     _get_line_buff_stretchblt,
                     _line_scaled_stretchblt,
                     pddc->surface->format);
         }
-        else
-        {
+        else {
             BitmapDDAScaler (&info, &bmp, dw, dh,
                     _get_line_buff_stretchblt, _line_scaled_stretchblt);
         }
 
     }
-#endif
 
     if (pddc->surface !=  psdc->surface && IS_SCREEN_SURFACE (psdc))
         kernel_ShowCursorForGDI (TRUE, psdc);
