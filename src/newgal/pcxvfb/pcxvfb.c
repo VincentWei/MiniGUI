@@ -146,16 +146,28 @@ static void shm_lock (int semid)
 {
     struct sembuf sops = {0, -1, SEM_UNDO};
 
-    if (semop (semid, &sops, 1) < 0)
-        _WRN_PRINTF ("NEWGAL>PCXVFB: failed to lock sempahore id: %d\n", semid);
+try_again:
+    if (semop (semid, &sops, 1) < 0) {
+        if (errno == EINTR)
+            goto try_again;
+        else
+            _DBG_PRINTF ("NEWGAL>PCXVFB: failed to lock sempahore id: %d; pid (%d): %s\n",
+                    semid, getpid(), strerror (errno));
+    }
 }
 
 static void shm_unlock (int semid)
 {
     struct sembuf sops = {0, +1, SEM_UNDO};
 
-    if (semop (semid, &sops, 1))
-        _WRN_PRINTF ("NEWGAL>PCXVFB: failed to unlock sempahore id: %d\n", semid);
+try_again:
+    if (semop (semid, &sops, 1)) {
+        if (errno == EINTR)
+            goto try_again;
+        else
+            _DBG_PRINTF ("NEWGAL>PCXVFB: failed to unlock sempahore id: %d; pid (%d): %s\n",
+                    semid, getpid(), strerror (errno));
+    }
 }
 
 static int execl_pcxvfb (void)
@@ -346,8 +358,19 @@ static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
     this->AllocHWSurface = PCXVFB_AllocHWSurface;
     this->FreeHWSurface = PCXVFB_FreeHWSurface;
 
+#if IS_COMPOSITING_SCHEMA
+    if (mgIsServer) {
+        this->UpdateRects = shadowScreen_UpdateRects;
+        this->SyncUpdate = PCXVFB_SyncUpdate;
+    }
+    else {
+        this->UpdateRects = NULL;
+        this->SyncUpdate = NULL;
+    }
+#else
     this->UpdateRects = shadowScreen_UpdateRects;
     this->SyncUpdate = PCXVFB_SyncUpdate;
+#endif
 
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
