@@ -310,6 +310,7 @@ void __mg_splash_draw_framework (void)
 
     SetBrushColor(HDC_SCREEN_SYS, old_brush);
     SetTextColor(HDC_SCREEN_SYS, old_text);
+    SetBkMode(HDC_SCREEN_SYS, BM_OPAQUE);
     SyncUpdateDC(HDC_SCREEN_SYS);
 }
 
