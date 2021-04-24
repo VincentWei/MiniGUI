@@ -318,6 +318,7 @@ static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
         SetMemDCAlpha (znode_hdr->mem_dc, 0, 0);
         SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
         if (scaled) {
+            SetBkMode (HDC_SCREEN_SYS, BM_OPAQUE);
             StretchBlt (znode_hdr->mem_dc,
                     0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
                     HDC_SCREEN_SYS,
@@ -407,6 +408,7 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
 
             SelectClipRegion (HDC_SCREEN_SYS, &ctxt->inv_rgn);
             if (scaled) {
+                SetBkMode (HDC_SCREEN_SYS, BM_OPAQUE);
                 StretchBlt (znode_hdr->mem_dc,
                         0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
                         HDC_SCREEN_SYS,
