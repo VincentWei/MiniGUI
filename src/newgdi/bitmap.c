@@ -1569,7 +1569,7 @@ void GUIAPI StretchBltHW (HDC hsdc, int sx, int sy, int sw, int sh,
             || GAL_GMask (psdc->surface) != GAL_GMask (pddc->surface)
             || GAL_BMask (psdc->surface) != GAL_BMask (pddc->surface)
             || GAL_AMask (psdc->surface) != GAL_AMask (pddc->surface)) {
-        StretchBltSlow (hsdc, sx, sy, sw, sh, hddc, dx, dy, dw, dh, dwRop);
+        StretchBltSlowHW (hsdc, sx, sy, sw, sh, hddc, dx, dy, dw, dh, dwRop);
         return;
     }
 
