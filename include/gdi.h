@@ -5392,6 +5392,10 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  */
 MG_EXPORT void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop);
+ 
+// Test API: The implementation which uses hardware stretch function.
+MG_EXPORT void GUIAPI StretchBltHW (HDC hsdc, int sx, int sy, int sw, int sh,
+                       HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop);
 
 /**
  * \fn BOOL GUIAPI ScaleBitmapEx (BITMAP* dst, const BITMAP* src, \
