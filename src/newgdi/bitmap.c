@@ -70,21 +70,19 @@
 #include "bitmap.h"
 #include "fixedmath.h"
 
-BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
+static BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
         int dst_w, int dst_h,
         CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled,
         GAL_PixelFormat *format);
 
-BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp, int dst_w, int dst_h,
-            CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled);
+static BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp,
+        int dst_w, int dst_h,
+        CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled);
 
 #define BitmapDDAScaler(context, src_bmp, dst_w, \
                     dst_h, cb_get_line_buff, cb_line_scaled) \
         BitmapDDAScalerEx(context, src_bmp, dst_w,  \
                     dst_h, cb_get_line_buff, cb_line_scaled, NULL)
-
-BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp, int dst_w, int dst_h,
-            CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled);
 
 /****************************** Bitmap Support *******************************/
 void _dc_fillbox_clip (PDC pdc, const GAL_Rect* rect)
@@ -1343,63 +1341,29 @@ static void _line_scaled_stretchblt (void* context, const void* line, int y)
     }
 }
 
-#if 0
-static void StretchBltOld (PDC psdc, const RECT *srcOutput,
-        PDC pddc, const RECT *dstOutput, DWORD dwRop)
-{
-    PCLIPRECT cliprect;
-    GAL_Rect src, dst;
-    RECT eff_rc;
-
-    pddc->rc_output = *dstOutput;
-    if (pddc->surface !=  psdc->surface && (psdc->surface == __gal_screen))
-        psdc->rc_output = *srcOutput;
-
-    ENTER_DRAWING (pddc);
-
-    if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE (psdc))
-        kernel_ShowCursorForGDI (FALSE, psdc);
-
-    cliprect = pddc->ecrgn.head;
-    while(cliprect) {
-        if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
-            SET_GAL_CLIPRECT (pddc, eff_rc);
-
-            src.x = srcOutput->left; src.y = srcOutput->top;
-            src.w = RECTWP (srcOutput); src.h = RECTHP (srcOutput);
-            dst.x = dstOutput->left; dst.y = dstOutput->top;
-            dst.w = RECTWP (dstOutput); dst.h = RECTHP (dstOutput);
-            GAL_SoftStretch (psdc->surface, &src, pddc->surface, &dst);
-        }
-
-        cliprect = cliprect->next;
-    }
-
-    if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE (psdc))
-        kernel_ShowCursorForGDI (TRUE, psdc);
-
-    LEAVE_DRAWING (pddc);
-
-error_ret:
-    UNLOCK_GCRINFO (pddc);
-}
-#endif
-
 static void StretchBltSlow (HDC hsdc, int sx, int sy, int sw, int sh,
                        HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
 {
     HDC newdc;
-    POINT pt = { dw, dh };
+    POINT pt1 = { dx, dy };
+    POINT pt2 = { dx + dw, dy + dh };
 
-    LPtoDP (hddc, &pt);
-    newdc = CreateCompatibleDCEx (hsdc, pt.x, pt.y);
+    LPtoDP (hddc, &pt1);
+    LPtoDP (hddc, &pt2);
+    dw = (pt2.x >= pt1.x) ? (pt2.x - pt1.x) : (pt1.x - pt2.x);
+    dh = (pt2.y >= pt1.y) ? (pt2.y - pt1.y) : (pt1.y - pt2.y);
+
+    if (dw == 0 && dh == 0)
+        return;
+
+    newdc = CreateCompatibleDCEx (hsdc, dw, dh);
     if (newdc == HDC_INVALID) {
         _WRN_PRINTF ("Failed to create a compatible memory DC\n");
         return;
     }
 
-    StretchBlt (hsdc, sx, sy, sw, sh, newdc, 0, 0, pt.x, pt.y, dwRop);
-    BitBlt (newdc, 0, 0, pt.x, pt.y, hddc, dx, dy, dwRop);
+    StretchBlt (hsdc, sx, sy, sw, sh, newdc, 0, 0, dw, dh, dwRop);
+    BitBlt (newdc, 0, 0, dw, dh, hddc, dx, dy, dwRop);
     DeleteMemDC (newdc);
 }
 
@@ -1438,7 +1402,6 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     SetRect (&dstOutput, dx, dy, dw, dh);
     NormalizeRect (&dstOutput);
     dw = RECTW (dstOutput); dh = RECTH (dstOutput);
-
 
     if (sx < 0) sx = 0;
     if (sy < 0) sy = 0;
@@ -1560,6 +1523,164 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     LEAVE_DRAWING (pddc);
 
     free (info.line_buff);
+
+error_ret:
+    UNLOCK_GCRINFO (pddc);
+}
+
+static void StretchBltSlowHW (HDC hsdc, int sx, int sy, int sw, int sh,
+                       HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
+{
+    HDC newdc;
+    POINT pt1 = { dx, dy };
+    POINT pt2 = { dx + dw, dy + dh };
+
+    LPtoDP (hddc, &pt1);
+    LPtoDP (hddc, &pt2);
+    dw = (pt2.x >= pt1.x) ? (pt2.x - pt1.x) : (pt1.x - pt2.x);
+    dh = (pt2.y >= pt1.y) ? (pt2.y - pt1.y) : (pt1.y - pt2.y);
+
+    if (dw == 0 && dh == 0)
+        return;
+
+    newdc = CreateCompatibleDCEx (hsdc, dw, dh);
+    if (newdc == HDC_INVALID) {
+        _WRN_PRINTF ("Failed to create a compatible memory DC\n");
+        return;
+    }
+
+    StretchBltHW (hsdc, sx, sy, sw, sh, newdc, 0, 0, dw, dh, dwRop);
+    BitBlt (newdc, 0, 0, dw, dh, hddc, dx, dy, dwRop);
+    DeleteMemDC (newdc);
+}
+
+void GUIAPI StretchBltHW (HDC hsdc, int sx, int sy, int sw, int sh,
+                       HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
+{
+    PDC psdc, pddc;
+    RECT srcOutput, dstOutput;
+    PCLIPRECT cliprect;
+    GAL_Rect src, dst;
+    RECT eff_rc;
+
+    psdc = dc_HDC2PDC (hsdc);
+    pddc = dc_HDC2PDC (hddc);
+    if (GAL_RMask (psdc->surface) != GAL_RMask (pddc->surface)
+            || GAL_GMask (psdc->surface) != GAL_GMask (pddc->surface)
+            || GAL_BMask (psdc->surface) != GAL_BMask (pddc->surface)
+            || GAL_AMask (psdc->surface) != GAL_AMask (pddc->surface)) {
+        StretchBltSlow (hsdc, sx, sy, sw, sh, hddc, dx, dy, dw, dh, dwRop);
+        return;
+    }
+
+    if (!(pddc = __mg_check_ecrgn (hddc)))
+        return;
+
+    // Transfer logical to device to screen here.
+    sw += sx; sh += sy;
+    coor_LP2SP(psdc, &sx, &sy);
+    coor_LP2SP(psdc, &sw, &sh);
+    SetRect (&srcOutput, sx, sy, sw, sh);
+    NormalizeRect (&srcOutput);
+    sw = RECTW (srcOutput); sh = RECTH (srcOutput);
+
+    dw += dx; dh += dy;
+    coor_LP2SP (pddc, &dx, &dy);
+    coor_LP2SP (pddc, &dw, &dh);
+    SetRect (&dstOutput, dx, dy, dw, dh);
+    NormalizeRect (&dstOutput);
+    dw = RECTW (dstOutput); dh = RECTH (dstOutput);
+
+    if (sx < 0) sx = 0;
+    if (sy < 0) sy = 0;
+    if (sw <= 0) sw = RECTW (psdc->DevRC);
+    if (sh <= 0) sh = RECTH (psdc->DevRC);
+    if (dw <= 0) dw = RECTW (pddc->DevRC);
+    if (dh <= 0) dh = RECTH (pddc->DevRC);
+
+    if (sx >= RECTW(psdc->DevRC) || (sx + sw) > RECTW(psdc->DevRC))
+        goto error_ret;
+    if (sy >= RECTH(psdc->DevRC) || (sy + sh) > RECTH(psdc->DevRC))
+        goto error_ret;
+    if (dx >= RECTW(pddc->DevRC))
+        goto error_ret;
+    if (dy >= RECTH(pddc->DevRC))
+        goto error_ret;
+
+    // shrink source and destination rectangles if dx < 0
+    if (dx < 0) {
+        // dx and overflow is negative
+        int overflow = (int)(dx * sw * 1.0f / dw + 0.5f);
+        sx -= overflow;
+        sw += overflow;
+
+        dw += dx;
+        dx = 0;
+    }
+
+    // shrink source and destination rectangles if dy < 0
+    if (dy < 0) {
+        // dy and overflow is negative
+        int overflow = (int)(dy * sh * 1.0f / dh + 0.5f);
+        sy -= overflow;
+        sh += overflow;
+
+        dh += dy;
+        dy = 0;
+    }
+
+    // shrink source and destination rectangles if dx + dw is overflow
+    if ((dx + dw) > RECTW (pddc->DevRC)) {
+        int overflow = dx + dw - RECTW (pddc->DevRC);
+
+        sw -= (int)(sw * overflow * 1.0f / dw + 0.5f);
+        dw -= overflow;
+    }
+
+    // shrink source and destination rectangles if dy + dh is overflow
+    if ((dy + dh) > RECTH (pddc->DevRC)) {
+        int overflow = dy + dh - RECTH (pddc->DevRC);
+
+        sh -= (int)(sh * overflow * 1.0f / dh + 0.5f);
+        dh -= overflow;
+    }
+
+    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
+        goto error_ret;
+
+    SetRect (&srcOutput, sx, sy, sx + sw, sy + sh);
+    SetRect (&dstOutput, dx, dy, dx + dw, dy + dh);
+
+    if (pddc->surface ==  psdc->surface)
+        GetBoundRect (&pddc->rc_output, &srcOutput, &dstOutput);
+    else
+        pddc->rc_output = dstOutput;
+
+    if (pddc->surface !=  psdc->surface && (psdc->surface == __gal_screen))
+        psdc->rc_output = srcOutput;
+
+    ENTER_DRAWING (pddc);
+
+    if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE (psdc))
+        kernel_ShowCursorForGDI (FALSE, psdc);
+
+    cliprect = pddc->ecrgn.head;
+    while(cliprect) {
+        if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
+            SET_GAL_CLIPRECT (pddc, eff_rc);
+
+            src.x = sx; src.y = sy; src.w = sw; src.h = sh;
+            dst.x = dx; dst.y = dy; dst.w = dw; dst.h = dh;
+            GAL_SoftStretch (psdc->surface, &src, pddc->surface, &dst);
+        }
+
+        cliprect = cliprect->next;
+    }
+
+    if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE (psdc))
+        kernel_ShowCursorForGDI (TRUE, psdc);
+
+    LEAVE_DRAWING (pddc);
 
 error_ret:
     UNLOCK_GCRINFO (pddc);
@@ -1860,12 +1981,9 @@ static inline void get_linear_pt(BYTE *dst, int dst_off, BYTE *src, int sx, int 
     return;
 }
 
-BOOL BitmapBilinerScaler(
-    void* context,
-    const BITMAP* src_bmp,
-    int dst_w, int dst_h,
-    CB_GET_LINE_BUFF cb_line_buff,
-    CB_LINE_SCALED cb_line_scaled,
+static BOOL BitmapBilinerScaler(void* context,
+    const BITMAP* src_bmp, int dst_w, int dst_h,
+    CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled,
     GAL_PixelFormat *format)
 {
     BYTE *dp1 = src_bmp->bmBits;
@@ -1925,7 +2043,7 @@ BOOL BitmapBilinerScaler(
  *
  * \sa ScaleBitmap, StretchBlt, BitmapDDAScaler2
  */
-BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
+static BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
         int dst_w, int dst_h,
         CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled,
         GAL_PixelFormat *format)
@@ -2123,7 +2241,7 @@ BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
                 CB_LINE_SCALED cb_line_scaled)
  * \brief A bitmap scaler using DDA algorithm.
  *
- * This function is a general bitmap scaler using DDA algorithm.
+ * This function is a general bitmap scaler using DDA algorithm. 
  * This function scales the bitmap from bottom to top.
  *
  * MiniGUI implements StretchBlt functions by using this scaler.
@@ -2132,14 +2250,15 @@ BOOL BitmapDDAScalerEx (void* context, const BITMAP* src_bmp,
  * \param src_bmp The source BITMAP object.
  * \param dst_w The width of the destination BITMAP object.
  * \param dst_h The height of the destination BITMAP object.
- * \param cb_get_line_buff The callback to get the line buffer of
+ * \param cb_get_line_buff The callback to get the line buffer of 
  *        the destination BITMAP object.
  * \param cb_line_scaled The callback to tell the line is scaled.
  *
  * \sa ScaleBitmap, StretchBlt, BitmapDDAScaler
  */
-BOOL BitmapDDAScaler2 (void* context, const BITMAP* src_bmp, int dst_w, int dst_h,
-            CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled)
+static BOOL BitmapDDAScaler2 (void* context,
+        const BITMAP* src_bmp, int dst_w, int dst_h,
+        CB_GET_LINE_BUFF cb_line_buff, CB_LINE_SCALED cb_line_scaled)
 {
     BYTE *src_bits = src_bmp->bmBits + src_bmp->bmPitch * (src_bmp->bmHeight - 1);
     BYTE *dp1 = src_bits;
@@ -2362,27 +2481,6 @@ static void _line_scaled_scalebitmap (void* context, const void* line, int y)
     }
 }
 
-/*
-BOOL ScaleBitmap (BITMAP *dst, const BITMAP *src)
-{
-    struct _SCALER_INFO info;
-
-    info.dst = dst;
-    info.last_y = 0;
-
-    if (dst->bmWidth == 0 || dst->bmHeight == 0)
-        return TRUE;
-
-    if (dst->bmBytesPerPixel != src->bmBytesPerPixel)
-        return FALSE;
-
-    BitmapDDAScaler (&info, src, dst->bmWidth, dst->bmHeight,
-            _get_line_buff_scalebitmap, _line_scaled_scalebitmap);
-
-    return TRUE;
-}
-*/
-
 BOOL ScaleBitmapEx(BITMAP *dst, const BITMAP *src, HDC ref_dc)
 {
     struct _SCALER_INFO info;
@@ -2511,7 +2609,7 @@ void GUIAPI ExpandPartMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
     }
 }
 
-#endif
+#endif /* _FILL_MYBITMAP */
 
 /* This function expand monochorate bitmap. */
 void GUIAPI ExpandMonoBitmap (HDC hdc, BYTE* bits, Uint32 pitch,
