@@ -3039,17 +3039,17 @@ static PMAINWIN search_win_tree_dfs (struct _search_context *ctxt)
     while (hosted) {
         PMAINWIN found;
 
-        ctxt->hosting = hosted;
-        if ((found = search_win_tree_dfs (ctxt))) {
-            return found;
-        }
-
         if (hosted->id == ctxt->id &&
                 (((ctxt->flags & WIN_SEARCH_FILTER_MAIN) &&
                 hosted->WinType == TYPE_MAINWIN) ||
                 ((ctxt->flags & WIN_SEARCH_FILTER_VIRT) &&
                 hosted->WinType == TYPE_VIRTWIN))) {
             return hosted;
+        }
+
+        ctxt->hosting = hosted;
+        if ((found = search_win_tree_dfs (ctxt))) {
+            return found;
         }
 
         hosted = GetNextHosted (hosting, hosted);
@@ -3074,12 +3074,13 @@ static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
             return hosted;
         }
 
-        ctxt->hosting = hosted;
-        if ((found = search_win_tree_bfs (ctxt))) {
-            return found;
+        if ((ctxt->hosting = GetNextHosted (hosting, hosted))) {
+            if ((found = search_win_tree_bfs (ctxt))) {
+                return found;
+            }
         }
 
-        hosted = GetNextHosted (hosting, hosted);
+        hosted = GetFirstHosted (hosted);
     }
 
     return NULL;
