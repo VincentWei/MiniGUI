@@ -409,7 +409,7 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
     int retv = -1;
     
     if (!GAL_CheckPixmanFormat (src, dst) || (src->flags & GAL_SRCCOLORKEY))
-        return GAL_StretchBltLegacy (src, srcrect, dst, dstrect, op);
+        return GAL_StretchBltLegacy (src, srcrect, dst, dstrect, cop);
 
     assert (src->tmp_data);
     assert (dst->tmp_data);
