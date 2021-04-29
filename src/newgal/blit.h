@@ -77,16 +77,17 @@ struct private_swaccel {
 /* Blit mapping definition */
 typedef struct GAL_BlitMap {
     GAL_Surface *dst;
-    int identity;
     Uint8 *table;
     GAL_blit hw_blit;
     GAL_blit sw_blit;
     struct private_hwaccel *hw_data;
     struct private_swaccel *sw_data;
 
+    DWORD cop;
+    int identity;
     /* the version count matches the destination; mismatch indicates
        an invalid mapping */
-        unsigned int format_version;
+    unsigned int format_version;
 } GAL_BlitMap;
 
 

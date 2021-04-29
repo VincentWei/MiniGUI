@@ -5165,131 +5165,139 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
  * The color blend mothed.
  *
  * See [Compositing and Blending Level 1](https://www.w3.org/TR/compositing-1/)
+ * Note: we define the same values with Pixman.
  */
 typedef enum {
-    /** Porter Duff rule: source over destination */
-    COLOR_BLEND_PD_SRC_OVER = 0,
-    /** Porter Duff rule: destination over source */
-    COLOR_BLEND_PD_DST_OVER,
-    /** Porter Duff rule: clear */
-    COLOR_BLEND_PD_CLEAR,
-    /** Porter Duff rule: source */
-    COLOR_BLEND_PD_SRC,
-    /** Porter Duff rule: destination */
-    COLOR_BLEND_PD_DST,
-    /** Porter Duff rule: souorce in destination */
-    COLOR_BLEND_PD_SRC_IN,
-    /** Porter Duff rule: destination in souorce */
-    COLOR_BLEND_PD_DST_IN,
-    /** Porter Duff rule: source held out by destination */
-    COLOR_BLEND_PD_SRC_OUT,
-    /** Porter Duff rule: destination held out by source */
-    COLOR_BLEND_PD_DST_OUT,
-    /** Porter Duff rule: source atop destination */
-    COLOR_BLEND_PD_SRC_ATOP,
-    /** Porter Duff rule: destination atop source */
-    COLOR_BLEND_PD_DST_ATOP,
-    /** Porter Duff rule: source xor destination */
-    COLOR_BLEND_PD_XOR,
-    /** Porter Duff rule: plus */
-    COLOR_BLEND_PD_PLUS,
-    /** Porter Duff rule: modulate */
-    COLOR_BLEND_PD_MODULATE,
+    COLOR_BLEND_LEGACY      = 0,
+    COLOR_BLEND_FLAGS_MASK  = 0xFF00,
 
-    COLOR_BLEND_PD_FIRST = COLOR_BLEND_PD_SRC_OVER,
-    COLOR_BLEND_PD_LAST = COLOR_BLEND_PD_MODULATE,
+    /** Porter Duff rule: clear */
+    COLOR_BLEND_PD_CLEAR    = 0x0100,   // PIXMAN_OP_CLEAR          = 0x00
+    /** Porter Duff rule: source */
+    COLOR_BLEND_PD_SRC      = 0x0101,   // PIXMAN_OP_SRC            = 0x01
+    /** Porter Duff rule: destination */
+    COLOR_BLEND_PD_DST      = 0x0102,   // PIXMAN_OP_DST            = 0x02
+    /** Porter Duff rule: source over destination */
+    COLOR_BLEND_PD_SRC_OVER = 0x0103,   // PIXMAN_OP_OVER           = 0x03
+    /** Porter Duff rule: destination over source */
+    COLOR_BLEND_PD_DST_OVER = 0x0104,   // PIXMAN_OP_OVER_REVERSE   = 0x04
+    /** Porter Duff rule: souorce in destination */
+    COLOR_BLEND_PD_SRC_IN   = 0x0105,   // PIXMAN_OP_IN             = 0x05
+    /** Porter Duff rule: destination in souorce */
+    COLOR_BLEND_PD_DST_IN   = 0x0106,   // PIXMAN_OP_IN_REVERSE     = 0x06
+    /** Porter Duff rule: source held out by destination */
+    COLOR_BLEND_PD_SRC_OUT  = 0x0107,   // PIXMAN_OP_OUT            = 0x07
+    /** Porter Duff rule: destination held out by source */
+    COLOR_BLEND_PD_DST_OUT  = 0x0108,   // PIXMAN_OP_OUT_REVERSE    = 0x08
+    /** Porter Duff rule: source atop destination */
+    COLOR_BLEND_PD_SRC_ATOP = 0x0109,   // PIXMAN_OP_ATOP           = 0x09
+    /** Porter Duff rule: destination atop source */
+    COLOR_BLEND_PD_DST_ATOP = 0x010a,   // PIXMAN_OP_ATOP_REVERSE   = 0x0a
+    /** Porter Duff rule: source xor destination */
+    COLOR_BLEND_PD_XOR      = 0x010b,   // PIXMAN_OP_XOR            = 0x0b
+    /** Porter Duff rule: plus */
+    COLOR_BLEND_PD_PLUS     = 0x010c,   // PIXMAN_OP_ADD            = 0x0c
+    /** Porter Duff rule: modulate */
+    COLOR_BLEND_PD_MODULATE = 0x010d,   // PIXMAN_OP_SATURATE       = 0x0d
+
+    COLOR_BLEND_PD_FLAG     = 0x0100,
+    COLOR_BLEND_PD_FIRST    = COLOR_BLEND_PD_CLEAR,
+    COLOR_BLEND_PD_LAST     = COLOR_BLEND_PD_MODULATE,
 
     /**
      * Separable blend mode: normal
      * The blending formula simply selects the source color.
      */
-    COLOR_BLEND_SP_NORMAL,
+    COLOR_BLEND_SP_NORMAL       = 0x0801,
     /**
      * Separable blend mode: multiply
      * Darkens by multiplying colors: Sc·Dc.
      */
-    COLOR_BLEND_SP_MULTIPLY,
+    COLOR_BLEND_SP_MULTIPLY     = 0x0830,   // PIXMAN_OP_MULTIPLY       = 0x30
     /**
      * Separable blend mode: screen
      * Complements product of complements: Sc + Dc - Sc·Dc.
      */
-    COLOR_BLEND_SP_SCREEN,
+    COLOR_BLEND_SP_SCREEN       = 0x0831,   // PIXMAN_OP_SCREEN         = 0x31
     /**
      * Separable blend mode: overlay
      * Inverse of hard-light.
      */
-    COLOR_BLEND_SP_OVERLAY,
+    COLOR_BLEND_SP_OVERLAY      = 0x0832,   // PIXMAN_OP_OVERLAY        = 0x32
     /**
      * Separable blend mode: darken
      * Minimum of colors: min(Sc, Dc).
      */
-    COLOR_BLEND_SP_DARKEN,
+    COLOR_BLEND_SP_DARKEN       = 0x0833,   // PIXMAN_OP_DARKEN         = 0x33
     /**
      * Separable blend mode: lighten
      * Maximum of colors: max(Sc, Dc).
      */
-    COLOR_BLEND_SP_LIGHTEN,
+    COLOR_BLEND_SP_LIGHTEN      = 0x0834,   // PIXMAN_OP_LIGHTEN        = 0x34
     /**
      * Separable blend mode: color-dodge
      * Brightens destination based on source.
      */
-    COLOR_BLEND_SP_COLOR_DODGE,
+    COLOR_BLEND_SP_COLOR_DODGE  = 0x0835,    // PIXMAN_OP_COLOR_DODGE   = 0x35,
     /**
      * Separable blend mode: color-burn
      * Darkens destination based on source.
      */
-    COLOR_BLEND_SP_COLOR_BURN,
+    COLOR_BLEND_SP_COLOR_BURN   = 0x0836,   // PIXMAN_OP_COLOR_BURN     = 0x36,
     /**
      * Separable blend mode: hard-light
      * Similar to effect of harsh spotlight.
      */
-    COLOR_BLEND_SP_HARD_LIGHT,
+    COLOR_BLEND_SP_HARD_LIGHT   = 0x0837,   // PIXMAN_OP_HARD_LIGHT     = 0x37,
     /**
      * Separable blend mode: soft-light
      * Similar to effect of soft spotlight.
      */
-    COLOR_BLEND_SP_SOFT_LIGHT,
+    COLOR_BLEND_SP_SOFT_LIGHT   = 0x0838,   // PIXMAN_OP_SOFT_LIGHT     = 0x38
     /**
      * Separable blend mode: difference
      * Subtracts the darker from the lighter: Abs(Dc - Sc).
      */
-    COLOR_BLEND_SP_DIFFERENCE,
+    COLOR_BLEND_SP_DIFFERENCE   = 0x0839,   // PIXMAN_OP_DIFFERENCE     = 0x39
     /**
      * Separable blend mode: exclusion
      * Similar to Difference but lower contrast.
      */
-    COLOR_BLEND_SP_EXCLUSION,
+    COLOR_BLEND_SP_EXCLUSION    = 0x083a,   // PIXMAN_OP_EXCLUSION      = 0x3a
 
-    COLOR_BLEND_SP_FIRST = COLOR_BLEND_SP_NORMAL,
-    COLOR_BLEND_SP_LAST = COLOR_BLEND_SP_EXCLUSION,
+    COLOR_BLEND_SP_FLAG         = 0x0800,
+    COLOR_BLEND_SP_FIRST        = COLOR_BLEND_SP_NORMAL,
+    COLOR_BLEND_SP_LAST         = COLOR_BLEND_SP_EXCLUSION,
 
     /**
      * Non-Separable blend mode: hue
      * Creates a color with the hue of the source color and
      * the saturation and luminosity of the backdrop color.
      */
-    COLOR_BLEND_NS_HUE,
+    COLOR_BLEND_NS_HUE          = 0x103b,   // PIXMAN_OP_HSL_HUE        = 0x3b
     /**
      * Non-Separable blend mode: saturation
      * Creates a color with the saturation of the source color and
      * the hue and luminosity of the backdrop color.
      */
-    COLOR_BLEND_NS_SATURATION,
+    COLOR_BLEND_NS_SATURATION   = 0x103c,   // PIXMAN_OP_HSL_SATURATION = 0x3c
     /**
      * Non-Separable blend mode: color
      * Creates a color with the hue and saturation of the source color
      * and the luminosity of the backdrop color.
      */
-    COLOR_BLEND_NS_COLOR,
+    COLOR_BLEND_NS_COLOR        = 0x103d,   // PIXMAN_OP_HSL_COLOR      = 0x3d
+
     /**
      * Non-Separable blend mode: luminosity
      * Creates a color with the luminosity of the source color and
      * the hue and saturation of the backdrop color.
      */
-    COLOR_BLEND_NS_LUMINOSITY,
+    COLOR_BLEND_NS_LUMINOSITY   = 0x103e,  // PIXMAN_OP_HSL_LUMINOSITY  = 0x3e
 
-    COLOR_BLEND_NS_FIRST = COLOR_BLEND_NS_HUE,
-    COLOR_BLEND_NS_LAST = COLOR_BLEND_NS_LUMINOSITY,
+    COLOR_BLEND_NS_FLAG         = 0x1000,
+    COLOR_BLEND_NS_FIRST        = COLOR_BLEND_NS_HUE,
+    COLOR_BLEND_NS_LAST         = COLOR_BLEND_NS_LUMINOSITY,
 } ColorBlendMethod;
 
 /**
@@ -5341,10 +5349,10 @@ typedef enum {
  *        in the destination DC.
  * \param dy The y coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
- * \param dwRop The raster logical operation, see \a ColorLogicalOp.
- *        this argument is reserved for future use, currently ignored.
- *
- * \note The alpha and color key settings of the source DC will come into play.
+ * \param dwRop The color blending method, see \a ColorBlendMethod.
+ *        this argument is only valid when Pixman is used, and
+ *        the alpha and the color key settings of the source DC will be
+ *        ignored if it is not \a COLOR_BLEND_LEGACY.
  *
  * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorLogicalOp
  */
@@ -5377,24 +5385,19 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  *        in the destination DC.
  * \param dw The width of the destination rectangle.
  * \param dh The height of the destination rectangle.
- * \param dwRop The raster logical operation, see \a ColorLogicalOp.
- *        this argument is reserved for future use, currently ignored.
- *
- * \note The source rect should be contained in the device space entirely,
- *       and all coordinates should be in the device space.
- *
- * \note The source DC and dest DC must compatible, else will do nothing.
- *
- * \note The alpha and color key settings of the source DC will not come
- *       into play.
+ * \param dwRop The color blending method, see \a ColorBlendMethod.
+ *        this argument is only valid when Pixman is used, and
+ *        the alpha and the color key settings of the source DC will be
+ *        ignored if it is not \a COLOR_BLEND_LEGACY.
  *
  * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey
  */
 MG_EXPORT void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop);
  
-// Test API: The implementation which uses hardware stretch function.
-MG_EXPORT void GUIAPI StretchBltHW (HDC hsdc, int sx, int sy, int sw, int sh,
+
+/* Use this if you want to have the legacy manner of StretchBlt */
+MG_EXPORT void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
                        HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop);
 
 /**

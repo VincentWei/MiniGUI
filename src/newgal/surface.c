@@ -501,10 +501,12 @@ static int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, G
  * by calling the one(s) you need.
  */
 int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
-                GAL_Surface *dst, GAL_Rect *dstrect)
+        GAL_Surface *dst, GAL_Rect *dstrect, DWORD op)
 {
     GAL_blit do_blit;
     int ret;
+
+    src->map->cop = op;
 
     /* Check to make sure the blit mapping is valid */
     if ((src->map->dst != dst) ||
@@ -567,7 +569,7 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
 
 
 int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
-           GAL_Surface *dst, GAL_Rect *dstrect)
+           GAL_Surface *dst, GAL_Rect *dstrect, DWORD op)
 {
     GAL_Rect fulldst;
     int srcx, srcy, w, h;
@@ -647,7 +649,7 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
         sr.y = srcy;
         sr.w = dstrect->w = w;
         sr.h = dstrect->h = h;
-        return GAL_LowerBlit(src, &sr, dst, dstrect);
+        return GAL_LowerBlit(src, &sr, dst, dstrect, op);
     }
     dstrect->w = dstrect->h = 0;
     return 0;
@@ -1665,7 +1667,7 @@ GAL_Surface * GAL_ConvertSurface (GAL_Surface *surface,
     bounds.y = 0;
     bounds.w = surface->w;
     bounds.h = surface->h;
-    GAL_LowerBlit(surface, &bounds, convert, &bounds);
+    GAL_LowerBlit(surface, &bounds, convert, &bounds, 0);
 
     /* Clean up the original surface, and update converted surface */
     if (convert != NULL) {

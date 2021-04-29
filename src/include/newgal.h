@@ -207,7 +207,10 @@ typedef struct GAL_Surface {
     unsigned int format_version;        /* Private */
 
     /* reference count -- used when freeing surface */
-    int refcount;                       /* Read-mostly */
+    unsigned int refcount;              /* Read-mostly */
+
+    /* temp. data */
+    uintptr_t tmp_data;                 /* Private */
 
 #if IS_COMPOSITING_SCHEMA
     /* The pointer to GAL_SharedSurfaceHeader if the surface
@@ -774,6 +777,10 @@ void GAL_GetClipRect (GAL_Surface *surface, GAL_Rect *rect);
 GAL_Surface *GAL_ConvertSurface
                         (GAL_Surface *src, GAL_PixelFormat *fmt, Uint32 flags);
 
+#ifdef _MGUSE_PIXMAN
+int GAL_CheckPixmanFormat (struct GAL_Surface *src, struct GAL_Surface *dst);
+#endif
+
 /*
  * This performs a fast blit from the source surface to the destination
  * surface.  It assumes that the source and destination rectangles are
@@ -840,21 +847,26 @@ GAL_Surface *GAL_ConvertSurface
  * fullscreen application.  The lock will also fail until you have access
  * to the video memory again.
  */
-/* You should call GAL_BlitSurface() unless you know exactly how GAL
-   blitting works internally and how to use the other blit functions.
-*/
-#define GAL_BlitSurface GAL_UpperBlit
-
 /* This is the public blit function, GAL_BlitSurface(), and it performs
    rectangle validation and clipping before passing it to GAL_LowerBlit()
 */
 int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
-                         GAL_Surface *dst, GAL_Rect *dstrect);
+                         GAL_Surface *dst, GAL_Rect *dstrect, DWORD op);
+
 /* This is a semi-private blit function and it performs low-level surface
    blitting only.
 */
 int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
-                         GAL_Surface *dst, GAL_Rect *dstrect);
+                         GAL_Surface *dst, GAL_Rect *dstrect, DWORD op);
+
+/* You should call GAL_BlitSurface() unless you know exactly how GAL
+   blitting works internally and how to use the other blit functions.
+*/
+static inline int GAL_BlitSurface (GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect)
+{
+    return GAL_UpperBlit (src, srcrect, dst, dstrect, 0);
+}
 
 /*
  * This function performs a fast fill of the given rectangle with 'color'
@@ -920,8 +932,8 @@ GAL_Surface * GAL_DisplayFormat (GAL_Surface *surface);
  */
 GAL_Surface * GAL_DisplayFormatAlpha (GAL_Surface *surface);
 
-int GAL_SoftStretch (GAL_Surface *src, GAL_Rect *srcrect,
-                                    GAL_Surface *dst, GAL_Rect *dstrect);
+int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect, DWORD op);
 
 #ifdef _MGSCHEMA_COMPOSITING
 extern GAL_Surface* __gal_screen;

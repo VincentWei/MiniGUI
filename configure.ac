@@ -109,6 +109,7 @@ use_own_stdio="no"
 use_own_malloc="no"
 use_own_pthread="no"
 build_adv2dapi="yes"
+use_pixman="yes"
 build_updateregion="yes"
 
 build_minimalgdi="no"
@@ -365,6 +366,10 @@ use_own_pthread=$enableval)
 AC_ARG_ENABLE(adv2dapi,
 [  --enable-adv2dapi        include advanced 2D graphics APIs <default=yes>],
 build_adv2dapi=$enableval)
+
+AC_ARG_ENABLE(pixman,
+[  --enable-pixman          use pixman to optimmize pixle operations <default=yes>],
+use_pixman=$enableval)
 
 AC_ARG_ENABLE(updateregion,
 [  --enable-updateregion    Use update region for cumulative updating surfaces <default=yes>],
@@ -2261,6 +2266,26 @@ if test "x$build_ttf_support" = "xyes"; then
     AC_SUBST(FT2_INC_DIR)
 fi
 
+dnl Check Pixman lib
+if test "x$use_pixman" = "xyes"; then
+    PKG_CHECK_MODULES([PIXMAN], [pixman-1 >= 0.34.0], [foo=bar],
+        [use_pixman="no; not found pixman."])
+fi
+
+if test "x$use_pixman" = "xyes"; then
+    AC_DEFINE(_MGUSE_PIXMAN, 1,
+         [Define if use libpixman for optimized pixel operations])
+    AC_ARG_WITH(pixman_includes,
+[  --with-pixman-includes=DIR      where the libpixman includes are])
+
+    if test "x$with_pixman_includes" != "x"; then
+        PIXMAN_CFLAGS="-I$with_pixman_includes"
+    fi
+
+    DEP_LIBS="$DEP_LIBS $PIXMAN_LIBS"
+    AC_SUBST(PIXMAN_CFLAGS)
+fi
+
 if test "x$build_bmpf_support" = "xyes"; then
     AC_DEFINE(_MGFONT_BMPF, 1,
             [Define if support Bitmap fonts])
@@ -2776,6 +2801,7 @@ AC_MSG_NOTICE([
   * Target name:        ${with_targetname}
   * Cursor:             ${build_cursor_support}
   * Update Region:      ${build_updateregion}
+  * Pixman:             ${use_pixman}
 
 ## NEWGAL Engines:
   * dummy:              ${enable_video_dummy}
@@ -2811,6 +2837,7 @@ AC_MSG_NOTICE([
   * CPP flags:          ${CPPFLAGS}
   * CC  flags:          ${CFLAGS}
   * CXX flags:          ${CXXFLAGS}
+  * Pixman includes:    ${PIXMAN_CFLAGS}
   * FreeType2 includes: ${FT2_INC_DIR}
   * HarfBuzz includes:  ${HB_INC_DIR}
   * Dep. libraries:     ${DEP_LIBS}

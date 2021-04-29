@@ -1095,6 +1095,8 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
     int idx_layer_0 = -1;
     int idx_layer_1 = -1;
     int i = 0, nr_layers = 0;
+    unsigned int total_time_ms = 0;
+    unsigned int total_times = 0;
 
     MG_Layer* layers[2];
 
@@ -1133,10 +1135,13 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
             _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
-            if (t_ms > 100)
+            if (t_ms > 50)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
 
-            usleep (20 * 1000);
+            total_time_ms += t_ms;
+            total_times++;
+
+            usleep (10 * 1000);
             cp.scale -= 0.02f;
         }
 
@@ -1150,8 +1155,11 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
             _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
-            if (t_ms > 100)
+            if (t_ms > 50)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
+
+            total_time_ms += t_ms;
+            total_times++;
 
             usleep (20 * 1000);
             cp.percent -= 4.5f;
@@ -1167,10 +1175,13 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
             _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
-            if (t_ms > 100)
+            if (t_ms > 50)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
 
-            usleep (20 * 1000);
+            total_time_ms += t_ms;
+            total_times++;
+
+            usleep (10 * 1000);
             cp.scale += 0.02f;
         }
     }
@@ -1187,10 +1198,13 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
             _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
-            if (t_ms > 100)
+            if (t_ms > 50)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
 
-            usleep (20 * 1000);
+            total_time_ms += t_ms;
+            total_times++;
+
+            usleep (10 * 1000);
             cp.scale -= 0.02f;
         }
 
@@ -1203,8 +1217,11 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
             _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
-            if (t_ms > 100)
+            if (t_ms > 50)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
+
+            total_time_ms += t_ms;
+            total_times++;
 
             usleep (20 * 1000);
             cp.percent += 4.5f;
@@ -1220,13 +1237,18 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
 
             _DBG_PRINTF ("cp.percent: %f, cp.scale: %f\n", cp.percent, cp.scale);
             t_ms = composite_layers (ctxt, layers, 2, &cp);
-            if (t_ms > 100)
+            if (t_ms > 50)
                 _WRN_PRINTF ("Too slow to composite layers: %u\n", t_ms);
 
-            usleep (20 * 1000);
+            total_time_ms += t_ms;
+            total_times++;
+
+            usleep (10 * 1000);
             cp.scale += 0.02f;
         }
     }
+
+    _DBG_PRINTF ("Average time to composite the layers: %u (times: %u)\n", total_time_ms / total_times, total_times);
 }
 
 CompositorOps __mg_fallback_compositor = {

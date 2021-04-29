@@ -1362,12 +1362,12 @@ static void StretchBltSlow (HDC hsdc, int sx, int sy, int sw, int sh,
         return;
     }
 
-    StretchBlt (hsdc, sx, sy, sw, sh, newdc, 0, 0, dw, dh, dwRop);
+    StretchBltLegacy (hsdc, sx, sy, sw, sh, newdc, 0, 0, dw, dh, dwRop);
     BitBlt (newdc, 0, 0, dw, dh, hddc, dx, dy, dwRop);
     DeleteMemDC (newdc);
 }
 
-void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
+void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
                        HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
 {
     PDC psdc, pddc;
@@ -1528,33 +1528,7 @@ error_ret:
     UNLOCK_GCRINFO (pddc);
 }
 
-static void StretchBltSlowHW (HDC hsdc, int sx, int sy, int sw, int sh,
-                       HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
-{
-    HDC newdc;
-    POINT pt1 = { dx, dy };
-    POINT pt2 = { dx + dw, dy + dh };
-
-    LPtoDP (hddc, &pt1);
-    LPtoDP (hddc, &pt2);
-    dw = (pt2.x >= pt1.x) ? (pt2.x - pt1.x) : (pt1.x - pt2.x);
-    dh = (pt2.y >= pt1.y) ? (pt2.y - pt1.y) : (pt1.y - pt2.y);
-
-    if (dw == 0 && dh == 0)
-        return;
-
-    newdc = CreateCompatibleDCEx (hsdc, dw, dh);
-    if (newdc == HDC_INVALID) {
-        _WRN_PRINTF ("Failed to create a compatible memory DC\n");
-        return;
-    }
-
-    StretchBltHW (hsdc, sx, sy, sw, sh, newdc, 0, 0, dw, dh, dwRop);
-    BitBlt (newdc, 0, 0, dw, dh, hddc, dx, dy, dwRop);
-    DeleteMemDC (newdc);
-}
-
-void GUIAPI StretchBltHW (HDC hsdc, int sx, int sy, int sw, int sh,
+void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                        HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
 {
     PDC psdc, pddc;
@@ -1564,15 +1538,6 @@ void GUIAPI StretchBltHW (HDC hsdc, int sx, int sy, int sw, int sh,
     RECT eff_rc;
 
     psdc = dc_HDC2PDC (hsdc);
-    pddc = dc_HDC2PDC (hddc);
-    if (GAL_RMask (psdc->surface) != GAL_RMask (pddc->surface)
-            || GAL_GMask (psdc->surface) != GAL_GMask (pddc->surface)
-            || GAL_BMask (psdc->surface) != GAL_BMask (pddc->surface)
-            || GAL_AMask (psdc->surface) != GAL_AMask (pddc->surface)) {
-        StretchBltSlowHW (hsdc, sx, sy, sw, sh, hddc, dx, dy, dw, dh, dwRop);
-        return;
-    }
-
     if (!(pddc = __mg_check_ecrgn (hddc)))
         return;
 
@@ -1671,7 +1636,7 @@ void GUIAPI StretchBltHW (HDC hsdc, int sx, int sy, int sw, int sh,
 
             src.x = sx; src.y = sy; src.w = sw; src.h = sh;
             dst.x = dx; dst.y = dy; dst.w = dw; dst.h = dh;
-            GAL_SoftStretch (psdc->surface, &src, pddc->surface, &dst);
+            GAL_StretchBlt (psdc->surface, &src, pddc->surface, &dst, dwRop);
         }
 
         cliprect = cliprect->next;
