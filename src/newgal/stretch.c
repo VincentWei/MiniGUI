@@ -360,14 +360,6 @@ static int GAL_StretchBltLegacy (GAL_Surface *src, GAL_Rect *srcrect,
 {
     GAL_Rect clipped_srcrect, clipped_dstrect;
 
-    if (GAL_RMask (src) != GAL_RMask (dst)
-            || GAL_GMask (src) != GAL_GMask (dst)
-            || GAL_BMask (src) != GAL_BMask (dst)
-            || GAL_AMask (src) != GAL_AMask (dst)) {
-        GAL_SoftStretchHelper (src, srcrect, dst, dstrect, op);
-        return 0;
-    }
-
     if (dstrect->x >= dst->clip_rect.x &&
             dstrect->y >= dst->clip_rect.y &&
             dstrect->x + dstrect->w <= dst->clip_rect.x + dst->clip_rect.w &&
@@ -393,6 +385,14 @@ static int GAL_StretchBltLegacy (GAL_Surface *src, GAL_Rect *srcrect,
     }
     else {
         return -1;
+    }
+
+    if (GAL_RMask (src) != GAL_RMask (dst)
+            || GAL_GMask (src) != GAL_GMask (dst)
+            || GAL_BMask (src) != GAL_BMask (dst)
+            || GAL_AMask (src) != GAL_AMask (dst)) {
+        GAL_SoftStretchHelper (src, &clipped_srcrect, dst, &clipped_dstrect, op);
+        return 0;
     }
 
     GAL_SoftStretch (src, &clipped_srcrect, dst, &clipped_dstrect);
