@@ -655,6 +655,77 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
     return 0;
 }
 
+static int GAL_SoftFillRect (GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
+{
+    int x, y;
+    Uint8 *row;
+
+    row = (Uint8 *)dst->pixels + dst->pixels_off + dstrect->y * dst->pitch +
+            dstrect->x * dst->format->BytesPerPixel;
+
+    if (dst->format->palette || (color == 0)) {
+        x = dstrect->w*dst->format->BytesPerPixel;
+        if (!color && !((long)row&3) && !(x&3) && !(dst->pitch&3)) {
+            int n = x >> 2;
+            for (y=dstrect->h; y; --y) {
+                GAL_memset4(row, 0, n);
+                row += dst->pitch;
+            }
+        } else {
+            {
+                for(y = dstrect->h; y; y--) {
+                    memset(row, color, x);
+                    row += dst->pitch;
+                }
+            }
+        }
+    } else {
+        switch (dst->format->BytesPerPixel) {
+            case 2:
+            for (y=dstrect->h; y; --y) {
+                Uint16 *pixels = (Uint16 *)row;
+                Uint16 c = color;
+                Uint32 cc = (Uint32)c << 16 | c;
+                int n = dstrect->w;
+                if((unsigned long)pixels & 3) {
+                    *pixels++ = c;
+                    n--;
+                }
+                if(n >> 1)
+                    GAL_memset4(pixels, cc, n >> 1);
+                if(n & 1)
+                    pixels[n - 1] = c;
+                row += dst->pitch;
+            }
+            break;
+
+            case 3:
+            if(GAL_BYTEORDER == GAL_BIG_ENDIAN)
+                color <<= 8;
+            for (y=dstrect->h; y; --y) {
+                Uint8 *pixels = row;
+                for (x=dstrect->w; x; --x) {
+                    memcpy(pixels, &color, 3);
+                    pixels += 3;
+                }
+                row += dst->pitch;
+            }
+            break;
+
+            case 4:
+            for(y = dstrect->h; y; --y) {
+                GAL_memset4(row, color, dstrect->w);
+                row += dst->pitch;
+            }
+            break;
+        }
+    }
+}
+
+#ifdef _MGUSE_PIXMAN
+#include <pixman.h>
+#endif
+
 /*
  * This function performs a fast fill of the given rectangle with 'color'
  */
@@ -662,12 +733,9 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
 {
     GAL_VideoDevice *video = dst->video;
     GAL_VideoDevice *this  = dst->video;
-    int x, y;
-    Uint8 *row;
     GAL_Rect my_dstrect;
 
-    if (!video)
-    {
+    if (!video) {
         video = __mg_current_video;
         this = __mg_current_video;
     }
@@ -688,129 +756,47 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
         return(video->FillHWRect(this, dst, &my_dstrect, color));
     }
 
-    row = (Uint8 *)dst->pixels+my_dstrect.y*dst->pitch+
-            my_dstrect.x*dst->format->BytesPerPixel;
-    if (dst->format->palette || (color == 0)) {
-        x = my_dstrect.w*dst->format->BytesPerPixel;
-        if (!color && !((long)row&3) && !(x&3) && !(dst->pitch&3)) {
-            int n = x >> 2;
-            for (y=my_dstrect.h; y; --y) {
-                GAL_memset4(row, 0, n);
-                row += dst->pitch;
-            }
-        } else {
-#if 0
-            /*
-             * memset() on PPC (both glibc and codewarrior) uses
-             * the dcbz (Data Cache Block Zero) instruction, which
-             * causes an alignment exception if the destination is
-             * uncachable, so only use it on software surfaces
-             */
-            if((dst->flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
-                if(my_dstrect.w >= 8) {
-                    /*
-                     * 64-bit stores are probably most
-                     * efficient to uncached video memory
-                     */
-                    double fill;
-                    memset(&fill, color, (sizeof fill));
-                    for(y = my_dstrect.h; y; y--) {
-                        Uint8 *d = row;
-                        unsigned n = x;
-                        unsigned nn;
-                        Uint8 c = color;
-                        double f = fill;
-                        while((unsigned long)d
-                              & (sizeof(double) - 1)) {
-                            *d++ = c;
-                            n--;
-                        }
-                        nn = n / (sizeof(double) * 4);
-                        while(nn) {
-                            ((double *)d)[0] = f;
-                            ((double *)d)[1] = f;
-                            ((double *)d)[2] = f;
-                            ((double *)d)[3] = f;
-                            d += 4*sizeof(double);
-                            nn--;
-                        }
-                        n &= ~(sizeof(double) * 4 - 1);
-                        nn = n / sizeof(double);
-                        while(nn) {
-                            *(double *)d = f;
-                            d += sizeof(double);
-                            nn--;
-                        }
-                        n &= ~(sizeof(double) - 1);
-                        while(n) {
-                            *d++ = c;
-                            n--;
-                        }
-                        row += dst->pitch;
-                    }
-                } else {
-                    /* narrow boxes */
-                    for(y = my_dstrect.h; y; y--) {
-                        Uint8 *d = row;
-                        Uint8 c = color;
-                        int n = x;
-                        while(n) {
-                            *d++ = c;
-                            n--;
-                        }
-                        row += dst->pitch;
-                    }
-                }
-            } else
-#endif /* __powerpc__ */
-            {
-                for(y = my_dstrect.h; y; y--) {
-                    memset(row, color, x);
-                    row += dst->pitch;
-                }
-            }
-        }
-    } else {
-        switch (dst->format->BytesPerPixel) {
-            case 2:
-            for (y=my_dstrect.h; y; --y) {
-                Uint16 *pixels = (Uint16 *)row;
-                Uint16 c = color;
-                Uint32 cc = (Uint32)c << 16 | c;
-                int n = my_dstrect.w;
-                if((unsigned long)pixels & 3) {
-                    *pixels++ = c;
-                    n--;
-                }
-                if(n >> 1)
-                    GAL_memset4(pixels, cc, n >> 1);
-                if(n & 1)
-                    pixels[n - 1] = c;
-                row += dst->pitch;
-            }
-            break;
+#ifdef _MGUSE_PIXMAN
+    if (GAL_CheckPixmanFormat (dst, NULL)) {
+        Uint8 r, g, b, a;
+        pixman_color_t pixman_color;
+        pixman_box32_t pixman_box;
+        pixman_image_t *dst_img;
+        int retv = -1;
 
-            case 3:
-            if(GAL_BYTEORDER == GAL_BIG_ENDIAN)
-                color <<= 8;
-            for (y=my_dstrect.h; y; --y) {
-                Uint8 *pixels = row;
-                for (x=my_dstrect.w; x; --x) {
-                    memcpy(pixels, &color, 3);
-                    pixels += 3;
-                }
-                row += dst->pitch;
-            }
-            break;
+        GAL_GetRGBA (color, dst->format, &r, &g, &b, &a);
+        pixman_color.red = (uint16_t)r << 8;
+        pixman_color.green = (uint16_t)g << 8;
+        pixman_color.blue = (uint16_t)b << 8;
+        pixman_color.alpha = (uint16_t)a << 8;
 
-            case 4:
-            for(y = my_dstrect.h; y; --y) {
-                GAL_memset4(row, color, my_dstrect.w);
-                row += dst->pitch;
-            }
-            break;
-        }
+        pixman_box.x1 = my_dstrect.x;
+        pixman_box.y1 = my_dstrect.y;
+        pixman_box.x2 = my_dstrect.x + my_dstrect.w;
+        pixman_box.y2 = my_dstrect.y + my_dstrect.h;
+
+        dst_img = pixman_image_create_bits_no_clear ((pixman_format_code_t)dst->tmp_data,
+                dst->w, dst->h,
+                (uint32_t *)((char*)dst->pixels + dst->pixels_off),
+                dst->pitch);
+        if (dst_img == NULL)
+            goto out;
+
+        pixman_image_fill_boxes (PIXMAN_OP_SRC, dst_img, &pixman_color, 1, &pixman_box);
+        retv = 0;
+
+out:
+        if (dst_img)
+            pixman_image_unref (dst_img);
+
+        return retv;
     }
+    else {
+        GAL_SoftFillRect (dst, &my_dstrect, color);
+    }
+#else
+    GAL_SoftFillRect (dst, &my_dstrect, color);
+#endif /* _MGUSE_PIXMAN */
 
     /* We're done! */
     return(0);

@@ -41,6 +41,7 @@ In this version, we fixed some bugs and made some minor enhancements:
      gesture test and setting the gesture flags of a specific main window.
    - Tune implementation of Tooltip window.
 * OPTIMIZATIONS:
+   - Use libpixman to optimize FillBox, BitBlt, and StretchBlt.
    - Optimize the management of BLOCKHEAP.
    - Optimize the `__mg_lookfor_unused_slot`.
 
