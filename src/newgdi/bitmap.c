@@ -1419,6 +1419,7 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
     if (dy >= RECTH(pddc->DevRC))
         goto error_ret;
 
+#if 0
     // shrink source and destination rectangles if dx < 0
     if (dx < 0) {
         // dx and overflow is negative
@@ -1456,6 +1457,7 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
         sh -= (int)(sh * overflow * 1.0f / dh + 0.5f);
         dh -= overflow;
     }
+#endif
 
     if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
         goto error_ret;
@@ -1572,6 +1574,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     if (dy >= RECTH(pddc->DevRC))
         goto error_ret;
 
+#if 0
     // shrink source and destination rectangles if dx < 0
     if (dx < 0) {
         // dx and overflow is negative
@@ -1609,6 +1612,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
         sh -= (int)(sh * overflow * 1.0f / dh + 0.5f);
         dh -= overflow;
     }
+#endif
 
     if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
         goto error_ret;
@@ -1616,12 +1620,12 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     SetRect (&srcOutput, sx, sy, sx + sw, sy + sh);
     SetRect (&dstOutput, dx, dy, dx + dw, dy + dh);
 
-    if (pddc->surface ==  psdc->surface)
+    if (pddc->surface == psdc->surface)
         GetBoundRect (&pddc->rc_output, &srcOutput, &dstOutput);
     else
         pddc->rc_output = dstOutput;
 
-    if (pddc->surface !=  psdc->surface && (psdc->surface == __gal_screen))
+    if (pddc->surface != psdc->surface && (psdc->surface == __gal_screen))
         psdc->rc_output = srcOutput;
 
     ENTER_DRAWING (pddc);
@@ -1629,13 +1633,12 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE (psdc))
         kernel_ShowCursorForGDI (FALSE, psdc);
 
+    src.x = sx; src.y = sy; src.w = sw; src.h = sh;
+    dst.x = dx; dst.y = dy; dst.w = dw; dst.h = dh;
     cliprect = pddc->ecrgn.head;
     while(cliprect) {
         if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
             SET_GAL_CLIPRECT (pddc, eff_rc);
-
-            src.x = sx; src.y = sy; src.w = sw; src.h = sh;
-            dst.x = dx; dst.y = dy; dst.w = dw; dst.h = dh;
             GAL_StretchBlt (psdc->surface, &src, pddc->surface, &dst, dwRop);
         }
 

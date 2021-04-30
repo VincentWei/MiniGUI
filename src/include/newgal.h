@@ -70,6 +70,7 @@
 #endif
 
 #define DISABLE_THREADS
+
 #define GAL_mutex       int
 
 #define GAL_bool        BOOL

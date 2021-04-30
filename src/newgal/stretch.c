@@ -376,13 +376,16 @@ static int GAL_StretchBltLegacy (GAL_Surface *src, GAL_Rect *srcrect,
         clipped_dstrect = *dstrect;
     }
     else if (GAL_IntersectRect (dstrect, &dst->clip_rect, &clipped_dstrect)) {
-        float ratio_x = clipped_dstrect.w * 1.0f / dstrect->w;
-        float ratio_y = clipped_dstrect.h * 1.0f / dstrect->h;
+        float ratio_x = (dstrect->x + dstrect->w - clipped_dstrect.x) * 1.0f / dstrect->w;
+        float ratio_y = (dstrect->y + dstrect->h - clipped_dstrect.y) * 1.0f / dstrect->h;
 
+        clipped_srcrect.x = srcrect->x + srcrect->w * (1.0f - ratio_x);
+        clipped_srcrect.y = srcrect->y + srcrect->h * (1.0f - ratio_y);
+
+        ratio_x = (clipped_dstrect.w) * 1.0f / dstrect->w;
+        ratio_y = (clipped_dstrect.h) * 1.0f / dstrect->h;
         clipped_srcrect.w = (srcrect->w * ratio_x);
         clipped_srcrect.h = (srcrect->h * ratio_y);
-        clipped_srcrect.x = srcrect->x + (clipped_dstrect.x - dstrect->x) * ratio_x;
-        clipped_srcrect.y = srcrect->y + (clipped_dstrect.y - dstrect->y) * ratio_y;
 
         if (clipped_srcrect.w <= 0 || clipped_srcrect.h <= 0 ||
                 clipped_dstrect.w <= 0 || clipped_dstrect.h <= 0)

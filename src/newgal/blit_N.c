@@ -69,8 +69,8 @@
 #define STACKCALL
 typedef Uint32 int32;
 
-#include "HeadMMX.h"
-#include "HeadX86.h"
+#include "hermes/HeadMMX.h"
+#include "hermes/HeadX86.h"
 
 #else
 
