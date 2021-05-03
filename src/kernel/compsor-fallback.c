@@ -67,17 +67,17 @@
 
 #define SIZE_CLIPRC_HEAP        64
 
-#define DIRTY_ZT_PPP            0x01
-#define DIRTY_ZT_WIN            0x02
-#define DIRTY_ZT_WPP            0x04
-
 struct _CompositorCtxt {
     RECT        rc_screen;  // screen rect - avoid duplicated GetScreenRect calls
     BLOCKHEAP   cliprc_heap;// heap for clipping rects
     CLIPRGN     wins_rgn;   // visible region for all windows (subtract popup menus)
     CLIPRGN     dirty_rgn;  // the dirty region
     CLIPRGN     inv_rgn;    // the invalid region for a specific znode
-    Uint32      dirty_types;// the dirty znode types.
+
+    int         lowest_dirty_ppp;   // the lowest dirty ppp znode.
+    int         highest_dirty_ppp;  // the highest dirty ppp znode.
+    int         lowest_dirty_win;   // the lowest dirty win znode.
+    int         highest_dirty_win;  // the highest dirty win znode.
 
     /* Since 5.0.6: fields for combining two layers */
     MG_Layer*   layer;      // the current layer; NULL for topmost layer.
@@ -122,7 +122,7 @@ static void terminate (CompositorCtxt* ctxt)
 }
 
 /* return the number of subtracted windows above */
-static int subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
+static int subtract_opaque_win_znodes_above_ex (CompositorCtxt* ctxt, CLIPRGN* dirty_rgn, int from)
 {
     const ZNODEHEADER* znode_hdr;
     int nr_subtracted = 0;
@@ -139,7 +139,7 @@ static int subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
         if ((znode_hdr->flags & ZNIF_VISIBLE) &&
                 (znode_hdr->ct & CT_SYSTEM_MASK) == CT_OPAQUE) {
 
-            if (SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, rgn)) {
+            if (SubtractRegion (dirty_rgn, dirty_rgn, rgn)) {
                 nr_subtracted++;
             }
         }
@@ -148,6 +148,12 @@ static int subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
     }
 
     return nr_subtracted;
+}
+
+/* return the number of subtracted windows above */
+static inline int subtract_opaque_win_znodes_above (CompositorCtxt* ctxt, int from)
+{
+    return subtract_opaque_win_znodes_above_ex (ctxt, &ctxt->dirty_rgn, from);
 }
 
 static inline void tile_dirty_region_for_wallpaper (CompositorCtxt* ctxt)
@@ -225,7 +231,6 @@ static void composite_wallpaper_rect (CompositorCtxt* ctxt,
         SetBrushColor (HDC_SCREEN_SYS,
             GetWindowElementPixelEx (HWND_DESKTOP, HDC_SCREEN_SYS,
                 WE_BGC_DESKTOP));
-        SelectClipRect (HDC_SCREEN_SYS, &ctxt->rc_screen);
         FillBox (HDC_SCREEN_SYS, dirty_rc->left, dirty_rc->top,
                 RECTWP(dirty_rc), RECTHP(dirty_rc));
     }
@@ -270,7 +275,6 @@ static void composite_ppp_znodes (CompositorCtxt* ctxt)
             BitBlt (znode_hdr->mem_dc, 0, 0,
                     RECTW (znode_hdr->rc), RECTH (znode_hdr->rc),
                     HDC_SCREEN_SYS, znode_hdr->rc.left, znode_hdr->rc.top, 0);
-            SelectClipRect (HDC_SCREEN_SYS, NULL);
 
             // subtract the clipping region of the popup menu znode
             // from the dirty region, because this compositor
@@ -284,16 +288,12 @@ static void composite_ppp_znodes (CompositorCtxt* ctxt)
     EmptyClipRgn (&ctxt->inv_rgn);
 }
 
-static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
+static void composite_opaque_win_znode (CompositorCtxt* ctxt, int zidx)
 {
     const ZNODEHEADER* znode_hdr;
     CLIPRGN* rgn;
 
-    if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
-        return;
-    }
-
-    znode_hdr = ServerGetWinZNodeHeader (ctxt->layer, from, (void**)&rgn, TRUE);
+    znode_hdr = ServerGetWinZNodeHeader (ctxt->layer, zidx, (void**)&rgn, TRUE);
     assert (znode_hdr);
 
     if ((znode_hdr->flags & ZNIF_VISIBLE) &&
@@ -330,24 +330,32 @@ static void composite_opaque_win_znode (CompositorCtxt* ctxt, int from)
             BitBlt (znode_hdr->mem_dc,
                     0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
                     HDC_SCREEN_SYS,
-                    znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
+                    znode_hdr->rc.left + offx, znode_hdr->rc.top + offy,
+                    0);
         }
 
-        SelectClipRect (HDC_SCREEN_SYS, NULL);
+        _DBG_PRINTF ("win %d composited: %s\n", zidx, znode_hdr->caption);
 
         SubtractRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->inv_rgn);
     }
     EmptyClipRgn (&ctxt->inv_rgn);
 
-    ServerReleaseWinZNodeHeader (ctxt->layer, from);
+    ServerReleaseWinZNodeHeader (ctxt->layer, zidx);
 }
 
 static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
-        const CLIPRGN* dirty_rgn, int zidx)
+        const CLIPRGN* dirty_rgn, int from)
 {
     int prev;
+    CLIPRGN my_dirty_rgn;
 
-    prev = ServerGetPrevZNode (ctxt->layer, zidx, NULL);
+    InitClipRgn (&my_dirty_rgn, &ctxt->cliprc_heap);
+
+    if (from <= 0)
+        prev = ServerGetPrevZNode (ctxt->layer, 0, NULL);
+    else
+        prev = from;
+
     while (prev > 0) {
         const ZNODEHEADER* znode_hdr;
         CLIPRGN* rgn;
@@ -355,9 +363,13 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
         znode_hdr = ServerGetWinZNodeHeader (ctxt->layer, prev, (void**)&rgn, TRUE);
         assert (znode_hdr);
 
+        CopyRegion (&my_dirty_rgn, dirty_rgn);
+        subtract_opaque_win_znodes_above_ex (ctxt, &my_dirty_rgn, prev);
+
         if ((znode_hdr->flags & ZNIF_VISIBLE) &&
                (znode_hdr->ct & CT_SYSTEM_MASK) != CT_OPAQUE &&
-               IntersectRegion (&ctxt->inv_rgn, dirty_rgn, rgn)) {
+               !IsEmptyClipRgn (&my_dirty_rgn) &&
+               IntersectRegion (&ctxt->inv_rgn, &my_dirty_rgn, rgn)) {
             int offx, offy;
             BOOL scaled;
 
@@ -414,82 +426,96 @@ static void composite_all_lucent_win_znodes_above (CompositorCtxt* ctxt,
                         HDC_SCREEN_SYS,
                         rgn->rcBound.left, rgn->rcBound.top,
                         RECTW (rgn->rcBound), RECTH (rgn->rcBound),
-                        0);
+                        ((znode_hdr->ct & CT_SYSTEM_MASK) == CT_ALPHAPIXEL) ?
+                            znode_hdr->ct_arg : 0);
             }
             else {
                 BitBlt (znode_hdr->mem_dc,
                         0, 0, RECTW(znode_hdr->rc), RECTH(znode_hdr->rc),
                         HDC_SCREEN_SYS,
-                        znode_hdr->rc.left + offx, znode_hdr->rc.top + offy, 0);
+                        znode_hdr->rc.left + offx, znode_hdr->rc.top + offy,
+                        ((znode_hdr->ct & CT_SYSTEM_MASK) == CT_ALPHAPIXEL) ?
+                            znode_hdr->ct_arg : 0);
             }
-            SelectClipRect (HDC_SCREEN_SYS, NULL);
-        }
 
-        EmptyClipRgn (&ctxt->inv_rgn);
+            _DBG_PRINTF ("win %d composited: %s\n", prev, znode_hdr->caption);
+
+            EmptyClipRgn (&ctxt->inv_rgn);
+        }
 
         ServerReleaseWinZNodeHeader (ctxt->layer, prev);
-
         prev = ServerGetPrevZNode (ctxt->layer, prev, NULL);
     }
+
+    EmptyClipRgn (&my_dirty_rgn);
 }
 
+/* from:
+ *   -1: all window znodes;
+ *  > 0: the window znode and all window znodes below it.
+ *    0: only the wallpaper.
+ */
 static void composite_on_dirty_region (CompositorCtxt* ctxt, int from)
 {
-    CLIPRGN tmp_rgn;
+    /* lucent_dirty_rgn will be used to save the dirty region for
+       visible lucent window znodes */
+    CLIPRGN lucent_dirty_rgn;
     int next;
 
-    /* tmp_rgn will be used to save the dirty region for lucent window znodes
-       above the current znode. */
-    InitClipRgn (&tmp_rgn, &ctxt->cliprc_heap);
+    InitClipRgn (&lucent_dirty_rgn, &ctxt->cliprc_heap);
 
-    /* subtract the opaque window znodes above the current znode from
-       the dirty region. */
-    if (from > 0 && subtract_opaque_win_znodes_above (ctxt, from) > 0) {
-        if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
-            goto done;
-        }
-    }
-
-    /* generate the effective dirty region for windows by substracting
+    /* Step 1: generate the effective dirty region for windows by substracting
        the region of visible popup menus. */
     IntersectRegion (&ctxt->dirty_rgn, &ctxt->dirty_rgn, &ctxt->wins_rgn);
     if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
         goto done;
     }
 
-    /* compositing the current window znode and the znodes below it */
-    if (from <= 0)
+    /* Step 2: subtract the opaque window znodes above the highest znode from
+       the dirty region. */
+    if (from >= 0 &&
+            subtract_opaque_win_znodes_above (ctxt, from) > 0) {
+        if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
+            goto done;
+        }
+    }
+
+    // save the dirty region temporarily
+    CopyRegion (&lucent_dirty_rgn, &ctxt->dirty_rgn);
+
+    /* Step 3: compositing all opaque window znodes below
+       the highest znode (included) */
+    if (from < 0)
         next = ServerGetNextZNode (ctxt->layer, 0, NULL);
     else
         next = from;
 
     while (next > 0) {
 
-        if (!IsEmptyClipRgn (&ctxt->dirty_rgn)) {
-            // save dirty region for compositing the lucent znodes above
-            // the current znode.
-            CopyRegion (&tmp_rgn, &ctxt->dirty_rgn);
-        }
-        else
+        if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
             break;
-
-        composite_opaque_win_znode (ctxt, next);
-        composite_all_lucent_win_znodes_above (ctxt, &tmp_rgn, next);
+        }
+        else {
+            composite_opaque_win_znode (ctxt, next);
+        }
 
         next = ServerGetNextZNode (ctxt->layer, next, NULL);
     }
 
-    /* compositing the wallpaper */
+    /* Step 4: compositing the wallpaper */
     if (!IsEmptyClipRgn (&ctxt->dirty_rgn)) {
         composite_wallpaper (ctxt);
-
-        /* composite all lucent znodes intersected with dirty region. */
-        CopyRegion (&tmp_rgn, &ctxt->dirty_rgn);
-        composite_all_lucent_win_znodes_above (ctxt, &tmp_rgn, 0);
+        _DBG_PRINTF ("composited: wallpaper\n");
     }
+    EmptyClipRgn (&ctxt->dirty_rgn);
+
+    /* Step 5: compositing all lucent window znodes above
+       the lowest znode (included) */
+    composite_all_lucent_win_znodes_above (ctxt,
+            &lucent_dirty_rgn, 0);
 
 done:
-    EmptyClipRgn (&tmp_rgn);
+    EmptyClipRgn (&lucent_dirty_rgn);
 }
 
 static void rebuild_wins_region (CompositorCtxt* ctxt)
@@ -593,7 +619,10 @@ static BOOL reset_dirty_region (CompositorCtxt* ctxt, MG_Layer* layer)
     if (layer != mgTopmostLayer)
         return FALSE;
 
-    ctxt->dirty_types = 0;
+    ctxt->lowest_dirty_ppp = -1;
+    ctxt->highest_dirty_ppp = -1;
+    ctxt->lowest_dirty_win = -1;
+    ctxt->highest_dirty_win = -1;
     EmptyClipRgn (&ctxt->dirty_rgn);
     return TRUE;
 }
@@ -615,9 +644,7 @@ static BOOL merge_dirty_region (CompositorCtxt* ctxt,
 
         if (znode_rgn)
             IntersectRegion (&ctxt->inv_rgn, &ctxt->inv_rgn, znode_rgn);
-        else
-            IntersectClipRect (&ctxt->inv_rgn, &ctxt->rc_screen);
-
+        IntersectClipRect (&ctxt->inv_rgn, &ctxt->rc_screen);
     }
 
     if (IsEmptyClipRgn (&ctxt->inv_rgn)) {
@@ -641,7 +668,9 @@ static BOOL merge_dirty_ppp (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
 
     znode_hdr = ServerGetPopupMenuZNodeHeader (zidx, (void**)&rgn, TRUE);
     if (merge_dirty_region (ctxt, znode_hdr, rgn)) {
-        ctxt->dirty_types |= DIRTY_ZT_PPP;
+        if (ctxt->highest_dirty_ppp == -1)
+            ctxt->highest_dirty_ppp = zidx;
+        ctxt->lowest_dirty_ppp = zidx;
         rc = TRUE;
     }
     ServerReleasePopupMenuZNodeHeader (zidx);
@@ -662,7 +691,9 @@ static BOOL merge_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     /* merge the dirty region */
     znode_hdr = ServerGetWinZNodeHeader (NULL, zidx, (void**)&rgn, TRUE);
     if (merge_dirty_region (ctxt, znode_hdr, rgn)) {
-        ctxt->dirty_types |= DIRTY_ZT_WIN;
+        if (ctxt->highest_dirty_win == -1)
+            ctxt->highest_dirty_win = zidx;
+        ctxt->lowest_dirty_win = zidx;
         rc = TRUE;
     }
     ServerReleaseWinZNodeHeader (NULL, zidx);
@@ -677,8 +708,9 @@ static BOOL merge_dirty_wpp (CompositorCtxt* ctxt, MG_Layer* layer)
     znode_hdr = ServerGetWinZNodeHeader (NULL, 0, NULL, TRUE);
     if (merge_dirty_region (ctxt, znode_hdr, NULL)) {
         tile_dirty_region_for_wallpaper (ctxt);
-        //subtract_opaque_win_znodes_above (ctxt, 0);
-        ctxt->dirty_types |= DIRTY_ZT_WPP;
+        if (ctxt->highest_dirty_win == -1)
+            ctxt->highest_dirty_win = 0;
+        ctxt->lowest_dirty_win = 0;
         rc = TRUE;
     }
 
@@ -692,9 +724,14 @@ static BOOL refresh_dirty_region (CompositorCtxt* ctxt, MG_Layer* layer)
     if (layer != mgTopmostLayer || IsEmptyClipRgn (&ctxt->dirty_rgn))
         return FALSE;
 
-    if (ctxt->dirty_types & DIRTY_ZT_PPP)
+    if (ctxt->highest_dirty_ppp >= 0) {
         composite_ppp_znodes (ctxt);
-    composite_on_dirty_region (ctxt, 0);
+    }
+
+    if (ctxt->highest_dirty_win >= 0) {
+        composite_on_dirty_region (ctxt, ctxt->highest_dirty_win);
+    }
+
     EmptyClipRgn (&ctxt->dirty_rgn);
 
     SyncUpdateDC (HDC_SCREEN_SYS);
@@ -750,7 +787,7 @@ static void on_dirty_screen (CompositorCtxt* ctxt,
         composite_ppp_znodes (ctxt);
     }
 
-    composite_on_dirty_region (ctxt, 0);
+    composite_on_dirty_region (ctxt, -1);
     EmptyClipRgn (&ctxt->dirty_rgn);
 
     SyncUpdateDC (HDC_SCREEN_SYS);
@@ -1028,7 +1065,7 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
         if (ctxt->offx || ctxt->offy || ctxt->scaled)
             offset_regions_of_general_znodes (ctxt->layer,
                     ctxt->offx, ctxt->offy, cp->scale);
-        composite_on_dirty_region (ctxt, 0);
+        composite_on_dirty_region (ctxt, -1);
         if (ctxt->offx || ctxt->offy || ctxt->scaled)
             restore_regions_of_general_znodes (ctxt->layer);
     }
@@ -1054,7 +1091,7 @@ static unsigned int composite_layers (CompositorCtxt* ctxt, MG_Layer* layers[],
         if (ctxt->offx || ctxt->offy || ctxt->scaled)
             offset_regions_of_general_znodes (ctxt->layer,
                     ctxt->offx, ctxt->offy, cp->scale);
-        composite_on_dirty_region (ctxt, 0);
+        composite_on_dirty_region (ctxt, -1);
         if (ctxt->offx || ctxt->offy || ctxt->scaled)
             restore_regions_of_general_znodes (ctxt->layer);
     }
@@ -1266,7 +1303,7 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
         }
     }
 
-    _DBG_PRINTF ("Average time to composite the layers: %u (times: %u)\n", total_time_ms / total_times, total_times);
+    _WRN_PRINTF ("Average time to composite the layers: %u (times: %u)\n", total_time_ms / total_times, total_times);
 }
 
 CompositorOps __mg_fallback_compositor = {
