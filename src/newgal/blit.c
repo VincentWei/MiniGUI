@@ -382,6 +382,10 @@ static uint32_t translate_gal_format(const GAL_PixelFormat *gal_format)
     struct rgbamasks_pixman_format_map* map;
     size_t i, n;
 
+    // XXX: ignore format with palette
+    if (gal_format->BitsPerPixel <= 8 && gal_format->palette)
+        return 0;
+
     switch (gal_format->BitsPerPixel) {
     case 8:
         map = _format_map_8bpp;
@@ -422,7 +426,7 @@ static uint32_t translate_gal_format(const GAL_PixelFormat *gal_format)
 BOOL GAL_CheckPixmanFormat (struct GAL_Surface *src, struct GAL_Surface *dst)
 {
     src->tmp_data = translate_gal_format (src->format);
-    if (dst) {
+    if (dst != src && dst != NULL) {
         dst->tmp_data = translate_gal_format (dst->format);
         return src->tmp_data && dst->tmp_data;
     }
@@ -478,6 +482,8 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
     else {
         dst_img = src_img;
     }
+
+    _DBG_PRINTF ("w: %d, h: %d\n", srcrect->w, srcrect->h);
 
     retv = 0;
     pixman_image_composite32 (op, src_img, msk_img, dst_img,
