@@ -1108,28 +1108,19 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     if (!(pddc = __mg_check_ecrgn (hddc)))
         return;
 
-    /* The coordinates should be in device space. */
-#if 0
+    // Transfer logical to device to screen here.
     sw += sx; sh += sy;
     coor_LP2SP (psdc, &sx, &sy);
     coor_LP2SP (psdc, &sw, &sh);
     SetRect (&srcOutput, sx, sy, sw, sh);
     NormalizeRect (&srcOutput);
-    (sw > sx) ? (sw -= sx) : (sw = sx - sw);
-    (sh > sy) ? (sh -= sy) : (sh = sy - sh);
+    sx = srcOutput.left; sy = srcOutput.top;
+    sw = RECTW (srcOutput); sh = RECTH (srcOutput);
+    if (sw == 0 || sh == 0)
+        goto empty_ret;
+
     coor_LP2SP (pddc, &dx, &dy);
     SetRect (&dstOutput, dx, dy, dx + sw, dy + sh);
-    NormalizeRect (&dstOutput);
-#else
-    if (sw <= 0) sw = RECTW (psdc->DevRC);
-    if (sh <= 0) sh = RECTH (psdc->DevRC);
-
-    coor_DP2SP (psdc, &sx, &sy);
-    SetRect (&srcOutput, sx, sy, sx + sw, sy + sh);
-
-    coor_DP2SP (pddc, &dx, &dy);
-    SetRect (&dstOutput, dx, dy, dx + sw, dy + sh);
-#endif
 
     if (pddc->surface == psdc->surface) {
         if (sx == dx && sy == dy)
@@ -1140,7 +1131,7 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
         pddc->rc_output = dstOutput;
     }
 
-    ENTER_DRAWING_NOCHECK (pddc);
+    ENTER_DRAWING (pddc);
 
     if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE(psdc)) {
         psdc->rc_output = srcOutput;
@@ -1282,7 +1273,7 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE(psdc))
         kernel_ShowCursorForGDI (TRUE, psdc);
 
-    LEAVE_DRAWING_NOCHECK (pddc);
+    LEAVE_DRAWING (pddc);
 
 empty_ret:
     UNLOCK_GCRINFO (pddc);
@@ -1394,6 +1385,7 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
     coor_LP2SP(psdc, &sw, &sh);
     SetRect (&srcOutput, sx, sy, sw, sh);
     NormalizeRect (&srcOutput);
+    sx = srcOutput.left; sy = srcOutput.top;
     sw = RECTW (srcOutput); sh = RECTH (srcOutput);
 
     dw += dx; dh += dy;
@@ -1401,65 +1393,18 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
     coor_LP2SP (pddc, &dw, &dh);
     SetRect (&dstOutput, dx, dy, dw, dh);
     NormalizeRect (&dstOutput);
+    dx = dstOutput.left; dy = dstOutput.top;
     dw = RECTW (dstOutput); dh = RECTH (dstOutput);
 
-    if (sx < 0) sx = 0;
-    if (sy < 0) sy = 0;
-    if (sw <= 0) sw = RECTW (psdc->DevRC);
-    if (sh <= 0) sh = RECTH (psdc->DevRC);
-    if (dw <= 0) dw = RECTW (pddc->DevRC);
-    if (dh <= 0) dh = RECTH (pddc->DevRC);
-
-    if (sx >= RECTW(psdc->DevRC) || (sx + sw) > RECTW(psdc->DevRC))
+    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
         goto error_ret;
-    if (sy >= RECTH(psdc->DevRC) || (sy + sh) > RECTH(psdc->DevRC))
+    if (sx < 0 || sx >= RECTW(psdc->DevRC) || (sx + sw) > RECTW(psdc->DevRC))
+        goto error_ret;
+    if (sy < 0 || sy >= RECTH(psdc->DevRC) || (sy + sh) > RECTH(psdc->DevRC))
         goto error_ret;
     if (dx >= RECTW(pddc->DevRC))
         goto error_ret;
     if (dy >= RECTH(pddc->DevRC))
-        goto error_ret;
-
-#if 0
-    // shrink source and destination rectangles if dx < 0
-    if (dx < 0) {
-        // dx and overflow is negative
-        int overflow = (int)(dx * sw * 1.0f / dw + 0.5f);
-        sx -= overflow;
-        sw += overflow;
-
-        dw += dx;
-        dx = 0;
-    }
-
-    // shrink source and destination rectangles if dy < 0
-    if (dy < 0) {
-        // dy and overflow is negative
-        int overflow = (int)(dy * sh * 1.0f / dh + 0.5f);
-        sy -= overflow;
-        sh += overflow;
-
-        dh += dy;
-        dy = 0;
-    }
-
-    // shrink source and destination rectangles if dx + dw is overflow
-    if ((dx + dw) > RECTW (pddc->DevRC)) {
-        int overflow = dx + dw - RECTW (pddc->DevRC);
-
-        sw -= (int)(sw * overflow * 1.0f / dw + 0.5f);
-        dw -= overflow;
-    }
-
-    // shrink source and destination rectangles if dy + dh is overflow
-    if ((dy + dh) > RECTH (pddc->DevRC)) {
-        int overflow = dy + dh - RECTH (pddc->DevRC);
-
-        sh -= (int)(sh * overflow * 1.0f / dh + 0.5f);
-        dh -= overflow;
-    }
-#endif
-
-    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
         goto error_ret;
 
     info.pdc = pddc;
@@ -1516,7 +1461,6 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
             BitmapDDAScaler (&info, &bmp, dw, dh,
                     _get_line_buff_stretchblt, _line_scaled_stretchblt);
         }
-
     }
 
     if (pddc->surface !=  psdc->surface && IS_SCREEN_SURFACE (psdc))
@@ -1549,6 +1493,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     coor_LP2SP(psdc, &sw, &sh);
     SetRect (&srcOutput, sx, sy, sw, sh);
     NormalizeRect (&srcOutput);
+    sx = srcOutput.left; sy = srcOutput.top;
     sw = RECTW (srcOutput); sh = RECTH (srcOutput);
 
     dw += dx; dh += dy;
@@ -1556,69 +1501,19 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     coor_LP2SP (pddc, &dw, &dh);
     SetRect (&dstOutput, dx, dy, dw, dh);
     NormalizeRect (&dstOutput);
+    dx = dstOutput.left; dy = dstOutput.top;
     dw = RECTW (dstOutput); dh = RECTH (dstOutput);
 
-    if (sx < 0) sx = 0;
-    if (sy < 0) sy = 0;
-    if (sw <= 0) sw = RECTW (psdc->DevRC);
-    if (sh <= 0) sh = RECTH (psdc->DevRC);
-    if (dw <= 0) dw = RECTW (pddc->DevRC);
-    if (dh <= 0) dh = RECTH (pddc->DevRC);
-
-    if (sx >= RECTW(psdc->DevRC) || (sx + sw) > RECTW(psdc->DevRC))
+    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
         goto error_ret;
-    if (sy >= RECTH(psdc->DevRC) || (sy + sh) > RECTH(psdc->DevRC))
+    if (sx < 0 || sx >= RECTW(psdc->DevRC) || (sx + sw) > RECTW(psdc->DevRC))
+        goto error_ret;
+    if (sy < 0 || sy >= RECTH(psdc->DevRC) || (sy + sh) > RECTH(psdc->DevRC))
         goto error_ret;
     if (dx >= RECTW(pddc->DevRC))
         goto error_ret;
     if (dy >= RECTH(pddc->DevRC))
         goto error_ret;
-
-#if 0
-    // shrink source and destination rectangles if dx < 0
-    if (dx < 0) {
-        // dx and overflow is negative
-        int overflow = (int)(dx * sw * 1.0f / dw + 0.5f);
-        sx -= overflow;
-        sw += overflow;
-
-        dw += dx;
-        dx = 0;
-    }
-
-    // shrink source and destination rectangles if dy < 0
-    if (dy < 0) {
-        // dy and overflow is negative
-        int overflow = (int)(dy * sh * 1.0f / dh + 0.5f);
-        sy -= overflow;
-        sh += overflow;
-
-        dh += dy;
-        dy = 0;
-    }
-
-    // shrink source and destination rectangles if dx + dw is overflow
-    if ((dx + dw) > RECTW (pddc->DevRC)) {
-        int overflow = dx + dw - RECTW (pddc->DevRC);
-
-        sw -= (int)(sw * overflow * 1.0f / dw + 0.5f);
-        dw -= overflow;
-    }
-
-    // shrink source and destination rectangles if dy + dh is overflow
-    if ((dy + dh) > RECTH (pddc->DevRC)) {
-        int overflow = dy + dh - RECTH (pddc->DevRC);
-
-        sh -= (int)(sh * overflow * 1.0f / dh + 0.5f);
-        dh -= overflow;
-    }
-#endif
-
-    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
-        goto error_ret;
-
-    SetRect (&srcOutput, sx, sy, sx + sw, sy + sh);
-    SetRect (&dstOutput, dx, dy, dx + dw, dy + dh);
 
     if (pddc->surface == psdc->surface)
         GetBoundRect (&pddc->rc_output, &srcOutput, &dstOutput);
