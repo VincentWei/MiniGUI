@@ -1266,7 +1266,7 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
 
                 src.x = sx; src.y = sy; src.w = sw; src.h = sh;
                 dst.x = dx; dst.y = dy; dst.w = sw; dst.h = sh;
-                GAL_BlitSurface (psdc->surface, &src, pddc->surface, &dst);
+                GAL_UpperBlit (psdc->surface, &src, pddc->surface, &dst, dwRop);
             }
             cliprect = cliprect->next;
         }

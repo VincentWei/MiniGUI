@@ -368,23 +368,19 @@ sock_error:
 
 static void check_live (void)
 {
+    static DWORD last_ticks;
     REQUEST req;
-
-#if 0   /* deprecated code */
-    /* Since 5.0.0, call __mg_update_tick_count instead */
-    if (__mg_tick_counter != SHAREDRES_TIMER_COUNTER) {
-        AlertDesktopTimerEvent ();
-        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
-    }
-#endif  /* deprecated code */
 
     __mg_update_tick_count (NULL);
 
-    /* Tell server that I am live */
-    req.id = REQID_IAMLIVE;
-    req.data = &__mg_tick_counter;
-    req.len_data = sizeof (unsigned int);
-    ClientRequest (&req, NULL, 0);
+    // Since 5.0.6, only send IAMLIVE if the current ticks > (last_ticks + 100)
+    if (__mg_tick_counter > last_ticks + 100) {
+        /* Tell server that I am live */
+        req.id = REQID_IAMLIVE;
+        req.data = &__mg_tick_counter;
+        req.len_data = sizeof (unsigned int);
+        ClientRequest (&req, NULL, 0);
+    }
 }
 
 BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
@@ -440,7 +436,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
             Msg.wParam = (WPARAM)__mg_tick_counter;
             Msg.lParam = 0;
             Msg.time = __mg_tick_counter;
-            // Since 5.0.0, we do not genenrate MSG_TIMEOUT message any more.
+            // Since 5.0.0, we do not genenrate MSG_TIMEOUT message here.
             // kernel_QueueMessage (msg_queue, &Msg);
 
             old_timer = __mg_tick_counter;

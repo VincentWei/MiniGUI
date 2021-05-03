@@ -125,7 +125,7 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
         Msg.wParam = (WPARAM)lwe.count;
         Msg.lParam = 0;
 
-        // Since 5.0.0, we do not genenrate MSG_TIMEOUT message any more.
+        // Since 5.0.0, we do not genenrate MSG_TIMEOUT message here.
         // kernel_QueueMessage (msg_que, &Msg);
     }
     else if (lwe.type == LWETYPE_KEY) {

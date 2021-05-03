@@ -94,7 +94,7 @@ void __mg_update_tick_count (void *data)
     __mg_tick_counter = __mg_os_get_time_ticks ();
 #endif  /* not defined _MGRM_PROCESSES */
 
-    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
+    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMEOUT
        message, and the interval for the timer of desktop changes to 0.05s. */
     if (__mg_tick_counter >
             __mg_dsk_msg_queue->last_ticks_desktop + DESKTOP_TIMER_INERTVAL) {
@@ -129,7 +129,7 @@ void __mg_update_tick_count (void *data)
     __mg_tick_counter += elapsed_ticks;
 #endif  /* not defined _MGRM_PROCESSES */
 
-    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMER
+    /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMEOUT
        message, and the interval for the timer of desktop changes to 0.05s. */
     if (__mg_tick_counter >
             __mg_dsk_msg_queue->last_ticks_desktop + DESKTOP_TIMER_INERTVAL) {

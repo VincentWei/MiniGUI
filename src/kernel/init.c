@@ -112,7 +112,7 @@ static void ParseEvent (PLWEVENT lwe)
         Msg.message = MSG_TIMEOUT;
         Msg.wParam = (WPARAM)lwe->count;
         Msg.lParam = 0;
-        // Since 5.0.0, we do not genenrate MSG_TIMEOUT message any more.
+        // Since 5.0.0, we do not genenrate MSG_TIMEOUT message here.
         // QueueDeskMessage (&Msg);
     }
     else if (lwe->type == LWETYPE_KEY) {

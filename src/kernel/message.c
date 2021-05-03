@@ -860,7 +860,7 @@ checkagain:
     /* handle desktop timer here */
     if (pMsgQueue == __mg_dsk_msg_queue && pMsgQueue->dwState & QS_DESKTIMER) {
         pMsg->hwnd = HWND_DESKTOP;
-        pMsg->message = MSG_TIMER;
+        pMsg->message = MSG_TIMEOUT;
         pMsg->wParam = 0;
         pMsg->lParam = 0;
 
