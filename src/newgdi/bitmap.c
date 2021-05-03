@@ -1165,10 +1165,9 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 while (cliprect) {
                     if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
                         SET_GAL_CLIPRECT (pddc, eff_rc);
-
                         src.x = sx; src.y = sy; src.w = sw; src.h = sh;
                         dst.x = dx; dst.y = dy; dst.w = sw; dst.h = sh;
-                        GAL_BlitSurface (psdc->surface, &src, pddc->surface, &dst);
+                        GAL_UpperBlit (psdc->surface, &src, pddc->surface, &dst, dwRop);
                     }
                     cliprect = cliprect->prev;
                 }
@@ -1198,10 +1197,9 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                     while (ban_first && ban_top == ban_first->rc.top) {
                         if (IntersectRect (&eff_rc, &pddc->rc_output, &ban_first->rc)) {
                             SET_GAL_CLIPRECT (pddc, eff_rc);
-
                             src.x = sx; src.y = sy; src.w = sw; src.h = sh;
                             dst.x = dx; dst.y = dy; dst.w = sw; dst.h = sh;
-                            GAL_BlitSurface (psdc->surface, &src, pddc->surface, &dst);
+                            GAL_UpperBlit (psdc->surface, &src, pddc->surface, &dst, dwRop);
                         }
                         ban_first = ban_first->next;
                     }
@@ -1235,10 +1233,9 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                     while (ban_last && ban_top == ban_last->rc.top) {
                         if (IntersectRect (&eff_rc, &pddc->rc_output, &ban_last->rc)) {
                             SET_GAL_CLIPRECT (pddc, eff_rc);
-
                             src.x = sx; src.y = sy; src.w = sw; src.h = sh;
                             dst.x = dx; dst.y = dy; dst.w = sw; dst.h = sh;
-                            GAL_BlitSurface (psdc->surface, &src, pddc->surface, &dst);
+                            GAL_UpperBlit (psdc->surface, &src, pddc->surface, &dst, dwRop);
                         }
                         ban_last = ban_last->prev;
                     }
@@ -1248,10 +1245,9 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 while (cliprect) {
                     if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
                         SET_GAL_CLIPRECT (pddc, eff_rc);
-
                         src.x = sx; src.y = sy; src.w = sw; src.h = sh;
                         dst.x = dx; dst.y = dy; dst.w = sw; dst.h = sh;
-                        GAL_BlitSurface (psdc->surface, &src, pddc->surface, &dst);
+                        GAL_UpperBlit (psdc->surface, &src, pddc->surface, &dst, dwRop);
                     }
                     cliprect = cliprect->next;
                 }
@@ -1263,7 +1259,6 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
         while (cliprect) {
             if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
                 SET_GAL_CLIPRECT (pddc, eff_rc);
-
                 src.x = sx; src.y = sy; src.w = sw; src.h = sh;
                 dst.x = dx; dst.y = dy; dst.w = sw; dst.h = sh;
                 GAL_UpperBlit (psdc->surface, &src, pddc->surface, &dst, dwRop);
