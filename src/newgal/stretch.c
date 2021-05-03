@@ -456,8 +456,8 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
     }
 
     {
-        double fscale_x = dstrect->w * 1.0 / srcrect->w;
-        double fscale_y = dstrect->h * 1.0 / srcrect->h;
+        double fscale_x = srcrect->w * 1.0 / dstrect->w;
+        double fscale_y = srcrect->h * 1.0 / dstrect->h;
         pixman_f_transform_t ftransform;
         pixman_transform_t transform;
         pixman_fixed_t *params;
@@ -471,20 +471,16 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
                 dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
 
         pixman_f_transform_init_identity (&ftransform);
-        pixman_f_transform_scale (&ftransform, NULL, 1.0/fscale_x, 1.0/fscale_y);
+        pixman_f_transform_scale (&ftransform, NULL, fscale_x, fscale_y);
         pixman_transform_from_pixman_f_transform (&transform, &ftransform);
         pixman_image_set_transform (src_img, &transform);
 
-        fscale_x = hypot (ftransform.m[0][0], ftransform.m[0][1]) / ftransform.m[2][2];
-        fscale_y = hypot (ftransform.m[1][0], ftransform.m[1][1]) / ftransform.m[2][2];
         params = pixman_filter_create_separable_convolution (
             &n_params,
-            pixman_double_to_fixed(fscale_x),
-            pixman_double_to_fixed(fscale_y),
-            PIXMAN_KERNEL_IMPULSE,
-            PIXMAN_KERNEL_IMPULSE,
-            PIXMAN_KERNEL_BOX,
-            PIXMAN_KERNEL_BOX,
+            pixman_double_to_fixed (fscale_x),
+            pixman_double_to_fixed (fscale_y),
+            PIXMAN_KERNEL_IMPULSE, PIXMAN_KERNEL_IMPULSE,
+            PIXMAN_KERNEL_BOX, PIXMAN_KERNEL_BOX,
             4, 4);
         pixman_image_set_filter (src_img, PIXMAN_FILTER_SEPARABLE_CONVOLUTION, params, n_params);
         free (params);
@@ -498,7 +494,7 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
                 srcrect->x, srcrect->y,
                 0, 0,
                 dstrect->x, dstrect->y, 
-                srcrect->w, srcrect->h);
+                dstrect->w, dstrect->h);
 
         pixman_region32_fini (&clip_region);
     }
