@@ -655,7 +655,7 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
     return 0;
 }
 
-static int GAL_SoftFillRect (GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
+static void GAL_SoftFillRect (GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
 {
     int x, y;
     Uint8 *row;
