@@ -1112,6 +1112,8 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     sw += sx; sh += sy;
     coor_LP2SP (psdc, &sx, &sy);
     coor_LP2SP (psdc, &sw, &sh);
+    if (sw == sx) sw = sx + RECTW (psdc->DevRC);
+    if (sh == sy) sh = sy + RECTH (psdc->DevRC);
     SetRect (&srcOutput, sx, sy, sw, sh);
     NormalizeRect (&srcOutput);
     sx = srcOutput.left; sy = srcOutput.top;
@@ -1383,6 +1385,8 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
     sw += sx; sh += sy;
     coor_LP2SP(psdc, &sx, &sy);
     coor_LP2SP(psdc, &sw, &sh);
+    if (sw == sx) sw = sx + RECTW (psdc->DevRC);
+    if (sh == sy) sh = sy + RECTH (psdc->DevRC);
     SetRect (&srcOutput, sx, sy, sw, sh);
     NormalizeRect (&srcOutput);
     sx = srcOutput.left; sy = srcOutput.top;
@@ -1391,6 +1395,8 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
     dw += dx; dh += dy;
     coor_LP2SP (pddc, &dx, &dy);
     coor_LP2SP (pddc, &dw, &dh);
+    if (dw == dx) dw = dx + RECTW (pddc->DevRC);
+    if (dh == dy) dh = dy + RECTH (pddc->DevRC);
     SetRect (&dstOutput, dx, dy, dw, dh);
     NormalizeRect (&dstOutput);
     dx = dstOutput.left; dy = dstOutput.top;
@@ -1491,6 +1497,8 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     sw += sx; sh += sy;
     coor_LP2SP(psdc, &sx, &sy);
     coor_LP2SP(psdc, &sw, &sh);
+    if (sw == sx) sw = sx + RECTW (psdc->DevRC);
+    if (sh == sy) sh = sy + RECTH (psdc->DevRC);
     SetRect (&srcOutput, sx, sy, sw, sh);
     NormalizeRect (&srcOutput);
     sx = srcOutput.left; sy = srcOutput.top;
@@ -1499,6 +1507,8 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     dw += dx; dh += dy;
     coor_LP2SP (pddc, &dx, &dy);
     coor_LP2SP (pddc, &dw, &dh);
+    if (dw == dx) dw = dx + RECTW (pddc->DevRC);
+    if (dh == dy) dh = dy + RECTH (pddc->DevRC);
     SetRect (&dstOutput, dx, dy, dw, dh);
     NormalizeRect (&dstOutput);
     dx = dstOutput.left; dy = dstOutput.top;
