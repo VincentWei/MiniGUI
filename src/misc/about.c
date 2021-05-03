@@ -228,7 +228,7 @@ HWND GUIAPI OpenAboutDialog (HWND hHosting)
                 SysPixelColor[IDX_COLOR_darkgray].g,
                 SysPixelColor[IDX_COLOR_darkgray].b,
                 0xA0),
-            CT_ALPHAPIXEL, 0x80);
+            CT_ALPHAPIXEL, COLOR_BLEND_LEGACY);
 
     if (hMainWnd == HWND_INVALID)
         return HWND_INVALID;
