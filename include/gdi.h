@@ -5354,7 +5354,7 @@ typedef enum {
  *        the alpha and the color key settings of the source DC will be
  *        ignored if it is not \a COLOR_BLEND_LEGACY.
  *
- * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorLogicalOp
+ * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod
  */
 MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, DWORD dwRop);
@@ -5390,7 +5390,7 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  *        the alpha and the color key settings of the source DC will be
  *        ignored if it is not \a COLOR_BLEND_LEGACY.
  *
- * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey
+ * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod
  */
 MG_EXPORT void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop);

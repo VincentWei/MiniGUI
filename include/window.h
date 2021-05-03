@@ -7251,14 +7251,14 @@ MG_EXPORT BOOL GUIAPI SetMainWindowGestureFlags (HWND hWnd, DWORD dwFlags);
  *      the alpha channel value (0~255) along with the parameter \a arg.
  *  - CT_LOGICALPIXEL\n
  *      Do the given color logical operation. You should specify the color
- *      logical raster operation along with the pararmeter \a arg. See \a BitBlt.
+ *      logical raster operation along with the pararmeter \a arg. See \a ColorLogicalOp.
  *  - CT_ALPHAPIXEL\n
  *      The alpha component value of the source and/or the destination pixel go
  *      into effect. You can specify the color blend method along
  *      with the pararmeter \a arg. See \a ColorBlendMethod. Note that a specific
  *      compositor may not support this compositing type. The built-in `fallback`
- *      compositor ignores the blend mode argument and only always uses the
- *      Porter Duff blend mode: source over destination (COLOR_BLEND_PD_SRC_OVER).
+ *      compositor uses the blend mode argument when using Pixman, otherwise,
+ *      uses the Porter Duff blend mode: source over destination (COLOR_BLEND_PD_SRC_OVER).
  *  - CT_BLURRED\n
  *      Apply a Gaussian blur to the background of the main window. You should
  *      also specify the radius of the blur (0 ~ 255) in pixles along with the
