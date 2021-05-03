@@ -441,7 +441,8 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
     pixman_op_t op;
     uint32_t alpha_bits;
     int retv = -1;
-    
+    pixman_region32_t clip_region;
+ 
     assert (src->tmp_data);
     assert (dst->tmp_data);
 
@@ -483,7 +484,13 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
         dst_img = src_img;
     }
 
-    _DBG_PRINTF ("w: %d, h: %d\n", srcrect->w, srcrect->h);
+    _DBG_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d\n",
+            srcrect->x, srcrect->y, srcrect->w, srcrect->h,
+            dstrect->x, dstrect->y, dstrect->w, dstrect->h);
+
+    pixman_region32_init_rect (&clip_region,
+            dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
+    pixman_image_set_clip_region32 (dst_img, &clip_region);
 
     retv = 0;
     pixman_image_composite32 (op, src_img, msk_img, dst_img,
@@ -491,6 +498,8 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
             0, 0,
             dstrect->x, dstrect->y, 
             srcrect->w, srcrect->h);
+
+    pixman_region32_fini (&clip_region);
 
 out:
     if (msk_img)
