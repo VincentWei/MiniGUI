@@ -36,13 +36,15 @@ In this version, we fixed some bugs and made some minor enhancements:
    - Fix memory leaks when using block heap.
    - Fix a bug in ServerGetWinZNodeRegion.
 * ENHANCEMENTS:
+   - NEW API StretchBltEx to support different Scaling Filter and rotation.
+   - Use Pixman to support color blending methods for BitBlt and StretchBlt.
    - Enhance fallback compositor to support animation when switching layers.
    - New API `SetMainWindowGestureFlags` and `MSG_GESTURETEST` message for
      gesture test and setting the gesture flags of a specific main window.
    - Tune implementation of Tooltip window.
 * OPTIMIZATIONS:
    - Optimize the fallback compositor for lucent windows.
-   - Use libpixman to optimize FillBox, BitBlt, and StretchBlt.
+   - Use Pixman to optimize FillBox, BitBlt, and StretchBlt.
    - Optimize the management of BLOCKHEAP.
    - Optimize the `__mg_lookfor_unused_slot`.
 
