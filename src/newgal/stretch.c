@@ -469,7 +469,7 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
         pixman_transform_t transform;
         pixman_region32_t clip_region;
 
-        _WRN_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d; scale: %f x %f; cliprect: %d, %d, %dx%d\n",
+        _DBG_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d; scale: %f x %f; cliprect: %d, %d, %dx%d\n",
                 srcrect->x, srcrect->y, srcrect->w, srcrect->h,
                 dstrect->x, dstrect->y, dstrect->w, dstrect->h,
                 1.0/fscale_x, 1.0/fscale_y,
