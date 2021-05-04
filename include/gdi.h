@@ -5169,7 +5169,7 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
  */
 typedef enum {
     COLOR_BLEND_LEGACY      = 0,
-    COLOR_BLEND_FLAGS_MASK  = 0xFF00,
+    COLOR_BLEND_FLAGS_MASK  = 0xFFFFFF00,
 
     /** Porter Duff rule: clear */
     COLOR_BLEND_PD_CLEAR    = 0x0100,   // PIXMAN_OP_CLEAR          = 0x00
@@ -5350,15 +5350,77 @@ typedef enum {
  * \param dy The y coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
  * \param dwRop The color blending method, see \a ColorBlendMethod.
- *        this argument is only valid when Pixman is used, and
- *        the alpha and the color key settings of the source DC will be
- *        ignored if it is not \a COLOR_BLEND_LEGACY.
+ *        This argument is only valid when Pixman is used.
+ *
+ * \note When the source color key is specified for the blitting operation,
+ *      or the formats of the device contexts are not supported by Pixman,
+ *      this function will use the legacy implementation. In this situation,
+ *      the color blending method will be ignored.
  *
  * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod
  */
 MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, DWORD dwRop);
 
+/**
+ * The scaling filter for StretchBlt.
+ */
+typedef enum {
+    SCALING_FILTER_FAST     = 0x00000000,
+    SCALING_FILTER_GOOD     = 0x00010000,
+    SCALING_FILTER_BEST     = 0x00020000,
+    SCALING_FILTER_NEAREST  = 0x00020000,
+    SCALING_FILTER_BILINEAR = 0x00040000,
+    SCALING_FILTER_CONVOLUTION = 0x00050000,
+    SCALING_FILTER_SHIFT    = 16,
+} ScalingFilter;
+
+/**
+ * \fn BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
+ *      HDC hddc, int dx, int dy, int dw, int dh, int rotation, DWORD dwRop)
+ * \brief Copies a bitmap from a source rectangle into a destination
+ *        rectangle, streches and rotates the bitmap if necessary.
+ *
+ * This function copies a bitmap from a source rectangle into a destination
+ * rectangle, streching or compressing the bitmap to fit the dimension of
+ * the destination rectangle, if necessary. This function is similar with
+ * \sa BitBlt function except the former scaling the bitmap. \a (dw,dh)
+ * specifies the size of the destination rectangle.
+ *
+ * \param hsdc The source device context.
+ * \param sx The x coordinate of the upper-left corner of the rectangle
+ *        in the source DC.
+ * \param sy The y coordinate of the upper-left corner of the rectangle
+ *        in the source DC.
+ * \param sw The width of the source rectangle.
+ * \param sh The height of the source rectangle.
+ * \param hddc The destination device context \a hddc.
+ * \param dx The x coordinate of the upper-left corner of the rectangle
+ *        in the destination DC.
+ * \param dy The y coordinate of the upper-left corner of the rectangle
+ *        in the destination DC.
+ * \param dw The width of the destination rectangle.
+ * \param dh The height of the destination rectangle.
+ * \param rotation The rotation of the source bitmap, it is in units of
+ *        tenth degrees. Note this only works when Pixman is used.
+ * \param dwRop The color blending method, see \a ColorBlendMethod, OR'd
+ *        with a fiter of the scaling, see \a ScalingFilter.
+ *        This argument only works when Pixman is used.
+ *
+ * \return TRUE for success, FALSE for bad arguments and there is no any
+ *      drawing occurred.
+ *
+ * \note When the source color key is specified for the blitting operation,
+ *      or the formats of the device contexts are not supported by Pixman,
+ *      this function will use the legacy implementation. In this situation,
+ *      the color blending method, the scaling filter, and the rotation
+ *      will be ignored.
+ *
+ * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod, ScalingFilter
+ */
+MG_EXPORT BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
+        HDC hddc, int dx, int dy, int dw, int dh, int rotation, DWORD dwRop);
+ 
 /**
  * \fn void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh, \
                 HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
@@ -5368,7 +5430,7 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  * This function copies a bitmap from a source rectangle into a destination
  * rectangle, streching or compressing the bitmap to fit the dimension of
  * the destination rectangle, if necessary. This function is similar with
- * \sa BitBlt function except the former scaling the bitmap.  \a (dw,dh)
+ * \sa BitBlt function except the former scaling the bitmap. \a (dw,dh)
  * specifies the size of the destination rectangle.
  *
  * \param hsdc The source device context.
@@ -5386,15 +5448,20 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  * \param dw The width of the destination rectangle.
  * \param dh The height of the destination rectangle.
  * \param dwRop The color blending method, see \a ColorBlendMethod.
- *        this argument is only valid when Pixman is used, and
- *        the alpha and the color key settings of the source DC will be
- *        ignored if it is not \a COLOR_BLEND_LEGACY.
+ *        This argument is only valid when Pixman is used.
+ *
+ * \note When color key is specified for the blitting operation, or the
+ *      formats of the device contexts are not supported by Pixman,
+ *      this function will use the legacy implementation. In this situation,
+ *      the color blending method and the scaling filter will be ignored.
  *
  * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod
  */
-MG_EXPORT void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
-                HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop);
- 
+static inline void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
+        HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
+{
+    StretchBltEx (hsdc, sx, sy, sw, sh, hddc, dx, dy, dw, dh, 0, dwRop);
+}
 
 /* Use this if you want to have the legacy manner of StretchBlt */
 MG_EXPORT void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
