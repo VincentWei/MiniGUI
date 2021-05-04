@@ -934,7 +934,8 @@ GAL_Surface * GAL_DisplayFormat (GAL_Surface *surface);
 GAL_Surface * GAL_DisplayFormatAlpha (GAL_Surface *surface);
 
 int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
-        GAL_Surface *dst, GAL_Rect *dstrect, int rotation, DWORD op);
+        GAL_Surface *dst, GAL_Rect *dstrect,
+        const STRETCH_EXTRA_INFO *sei, DWORD ops);
 
 #ifdef _MGSCHEMA_COMPOSITING
 extern GAL_Surface* __gal_screen;

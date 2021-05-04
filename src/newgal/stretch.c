@@ -404,7 +404,8 @@ static int GAL_StretchBltLegacy (GAL_Surface *src, GAL_Rect *srcrect,
 #include <math.h>
 
 int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
-        GAL_Surface *dst, GAL_Rect *dstrect, int rotation, DWORD ops)
+        GAL_Surface *dst, GAL_Rect *dstrect,
+        const STRETCH_EXTRA_INFO* sei, DWORD ops)
 {
     pixman_image_t *src_img = NULL, *dst_img = NULL, *msk_img = NULL;
     pixman_op_t op;
@@ -464,7 +465,7 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
     {
         double fscale_x = srcrect->w * 1.0 / dstrect->w;
         double fscale_y = srcrect->h * 1.0 / dstrect->h;
-        double frotation;
+        double rotation;
         pixman_f_transform_t ftransform;
         pixman_transform_t transform;
         pixman_region32_t clip_region;
@@ -476,10 +477,17 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
                 dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
 
         pixman_f_transform_init_identity (&ftransform);
-        pixman_f_transform_translate (&ftransform, NULL, -dstrect->x, -dstrect->y);
+        if (sei && sei->rotation) {
+            pixman_f_transform_translate (&ftransform, NULL,
+                    -dstrect->x - sei->cx, -dstrect->y - sei->cy);
+            rotation = (sei->rotation / 360.0 / 64.0) * 2 * M_PI;
+            pixman_f_transform_rotate (&ftransform, NULL, cos (rotation), sin (rotation));
+            pixman_f_transform_translate (&ftransform, NULL, sei->cx, sei->cy);
+        }
+        else {
+            pixman_f_transform_translate (&ftransform, NULL, -dstrect->x, -dstrect->y);
+        }
         pixman_f_transform_scale (&ftransform, NULL, fscale_x, fscale_y);
-        frotation = (rotation / 3600.0) * 2 * M_PI;
-        pixman_f_transform_rotate (&ftransform, NULL, cos (frotation), sin (frotation));
         pixman_f_transform_translate (&ftransform, NULL, srcrect->x, srcrect->y);
         //pixman_f_transform_invert (&ftransform, &ftransform);
         pixman_transform_from_pixman_f_transform (&transform, &ftransform);
@@ -534,7 +542,8 @@ out:
 #else   /* defined _MGUSE_PIXMAN */
 
 int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
-        GAL_Surface *dst, GAL_Rect *dstrect, int rotation, DWORD ops)
+        GAL_Surface *dst, GAL_Rect *dstrect,
+        const STRETCH_EXTRA_INFO *sei, DWORD ops)
 {
     return GAL_StretchBltLegacy (src, srcrect, dst, dstrect, ops);
 }

@@ -1476,7 +1476,8 @@ error_ret:
 }
 
 BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
-        HDC hddc, int dx, int dy, int dw, int dh, int rotation, DWORD dwRop)
+        HDC hddc, int dx, int dy, int dw, int dh,
+        const STRETCH_EXTRA_INFO *sei, DWORD dwRop)
 {
     PDC psdc, pddc;
     RECT srcOutput, dstOutput;
@@ -1542,7 +1543,7 @@ BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
         if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
             SET_GAL_CLIPRECT (pddc, eff_rc);
             GAL_StretchBlt (psdc->surface, &src, pddc->surface, &dst,
-                    rotation, dwRop);
+                    sei, dwRop);
         }
 
         cliprect = cliprect->next;
