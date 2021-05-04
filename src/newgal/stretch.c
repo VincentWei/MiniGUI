@@ -467,14 +467,19 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
         _DBG_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d; scale: %f x %f; cliprect: %d, %d, %dx%d\n",
                 srcrect->x, srcrect->y, srcrect->w, srcrect->h,
                 dstrect->x, dstrect->y, dstrect->w, dstrect->h,
-                fscale_x, fscale_y,
+                1.0/fscale_x, 1.0/fscale_y,
                 dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
 
         pixman_f_transform_init_identity (&ftransform);
+        pixman_f_transform_translate (&ftransform, NULL, -dstrect->x, -dstrect->y);
         pixman_f_transform_scale (&ftransform, NULL, fscale_x, fscale_y);
+        pixman_f_transform_translate (&ftransform, NULL, srcrect->x, srcrect->y);
+        //pixman_f_transform_invert (&ftransform, &ftransform);
         pixman_transform_from_pixman_f_transform (&transform, &ftransform);
         pixman_image_set_transform (src_img, &transform);
 
+        //fscale_x = hypot (ftransform.m[0][0], ftransform.m[0][1]) / ftransform.m[2][2];
+        //fscale_y = hypot (ftransform.m[1][0], ftransform.m[1][1]) / ftransform.m[2][2];
         params = pixman_filter_create_separable_convolution (
             &n_params,
             pixman_double_to_fixed (fscale_x),
@@ -491,7 +496,7 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
 
         retv = 0;
         pixman_image_composite32 (op, src_img, msk_img, dst_img,
-                srcrect->x, srcrect->y,
+                dstrect->x, dstrect->y,
                 0, 0,
                 dstrect->x, dstrect->y, 
                 dstrect->w, dstrect->h);
