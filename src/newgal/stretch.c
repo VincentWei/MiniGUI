@@ -534,7 +534,7 @@ out:
 #else   /* defined _MGUSE_PIXMAN */
 
 int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
-        GAL_Surface *dst, GAL_Rect *dstrect, int /*rotation*/, DWORD ops)
+        GAL_Surface *dst, GAL_Rect *dstrect, int rotation, DWORD ops)
 {
     return GAL_StretchBltLegacy (src, srcrect, dst, dstrect, ops);
 }
