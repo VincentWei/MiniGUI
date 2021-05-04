@@ -404,12 +404,14 @@ static int GAL_StretchBltLegacy (GAL_Surface *src, GAL_Rect *srcrect,
 #include <math.h>
 
 int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
-        GAL_Surface *dst, GAL_Rect *dstrect, DWORD cop)
+        GAL_Surface *dst, GAL_Rect *dstrect, int rotation, DWORD ops)
 {
     pixman_image_t *src_img = NULL, *dst_img = NULL, *msk_img = NULL;
     pixman_op_t op;
     uint32_t alpha_bits;
     int retv = -1;
+    DWORD cop = ops & ~COLOR_BLEND_FLAGS_MASK;
+    DWORD filter = ops >> SCALING_FILTER_SHIFT;
     
     if (!GAL_CheckPixmanFormat (src, dst) || (src->flags & GAL_SRCCOLORKEY))
         return GAL_StretchBltLegacy (src, srcrect, dst, dstrect, cop);
@@ -436,6 +438,10 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
         op = cop & ~COLOR_BLEND_FLAGS_MASK;
     }
 
+    if (op > PIXMAN_OP_HSL_LUMINOSITY || op < PIXMAN_OP_CLEAR) {
+        op = PIXMAN_OP_SRC;
+    }
+
     src_img = pixman_image_create_bits_no_clear ((pixman_format_code_t)src->tmp_data,
             src->w, src->h,
             (uint32_t *)((char*)src->pixels + src->pixels_off),
@@ -458,13 +464,12 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
     {
         double fscale_x = srcrect->w * 1.0 / dstrect->w;
         double fscale_y = srcrect->h * 1.0 / dstrect->h;
+        double frotation;
         pixman_f_transform_t ftransform;
         pixman_transform_t transform;
-        pixman_fixed_t *params;
-        int n_params;
         pixman_region32_t clip_region;
 
-        _DBG_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d; scale: %f x %f; cliprect: %d, %d, %dx%d\n",
+        _WRN_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d; scale: %f x %f; cliprect: %d, %d, %dx%d\n",
                 srcrect->x, srcrect->y, srcrect->w, srcrect->h,
                 dstrect->x, dstrect->y, dstrect->w, dstrect->h,
                 1.0/fscale_x, 1.0/fscale_y,
@@ -473,22 +478,31 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
         pixman_f_transform_init_identity (&ftransform);
         pixman_f_transform_translate (&ftransform, NULL, -dstrect->x, -dstrect->y);
         pixman_f_transform_scale (&ftransform, NULL, fscale_x, fscale_y);
+        frotation = (rotation / 3600.0) * 2 * M_PI;
+        pixman_f_transform_rotate (&ftransform, NULL, cos (frotation), sin (frotation));
         pixman_f_transform_translate (&ftransform, NULL, srcrect->x, srcrect->y);
         //pixman_f_transform_invert (&ftransform, &ftransform);
         pixman_transform_from_pixman_f_transform (&transform, &ftransform);
         pixman_image_set_transform (src_img, &transform);
 
-        //fscale_x = hypot (ftransform.m[0][0], ftransform.m[0][1]) / ftransform.m[2][2];
-        //fscale_y = hypot (ftransform.m[1][0], ftransform.m[1][1]) / ftransform.m[2][2];
-        params = pixman_filter_create_separable_convolution (
-            &n_params,
-            pixman_double_to_fixed (fscale_x),
-            pixman_double_to_fixed (fscale_y),
-            PIXMAN_KERNEL_IMPULSE, PIXMAN_KERNEL_IMPULSE,
-            PIXMAN_KERNEL_BOX, PIXMAN_KERNEL_BOX,
-            4, 4);
-        pixman_image_set_filter (src_img, PIXMAN_FILTER_SEPARABLE_CONVOLUTION, params, n_params);
-        free (params);
+        fscale_x = hypot (ftransform.m[0][0], ftransform.m[0][1]) / ftransform.m[2][2];
+        fscale_y = hypot (ftransform.m[1][0], ftransform.m[1][1]) / ftransform.m[2][2];
+        if (filter > PIXMAN_FILTER_CONVOLUTION) {
+            pixman_fixed_t *params;
+            int n_params;
+            params = pixman_filter_create_separable_convolution (
+                &n_params,
+                pixman_double_to_fixed (fscale_x),
+                pixman_double_to_fixed (fscale_y),
+                PIXMAN_KERNEL_IMPULSE, PIXMAN_KERNEL_IMPULSE,
+                PIXMAN_KERNEL_BOX, PIXMAN_KERNEL_BOX,
+                4, 4);
+            pixman_image_set_filter (src_img, PIXMAN_FILTER_SEPARABLE_CONVOLUTION, params, n_params);
+            free (params);
+        }
+        else {
+            pixman_image_set_filter (src_img, (pixman_filter_t)filter, NULL, 0);
+        }
 
         pixman_region32_init_rect (&clip_region,
                 dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
@@ -520,9 +534,9 @@ out:
 #else   /* defined _MGUSE_PIXMAN */
 
 int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
-        GAL_Surface *dst, GAL_Rect *dstrect, DWORD op)
+        GAL_Surface *dst, GAL_Rect *dstrect, int /*rotation*/, DWORD ops)
 {
-    return GAL_StretchBltLegacy (src, srcrect, dst, dstrect, op);
+    return GAL_StretchBltLegacy (src, srcrect, dst, dstrect, ops);
 }
 
 #endif   /* not defined  _MGUSE_PIXMAN */

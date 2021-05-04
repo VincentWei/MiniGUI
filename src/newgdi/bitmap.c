@@ -1475,18 +1475,19 @@ error_ret:
     UNLOCK_GCRINFO (pddc);
 }
 
-void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
-                       HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
+BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
+        HDC hddc, int dx, int dy, int dw, int dh, int rotation, DWORD dwRop)
 {
     PDC psdc, pddc;
     RECT srcOutput, dstOutput;
     PCLIPRECT cliprect;
     GAL_Rect src, dst;
     RECT eff_rc;
+    BOOL retv = FALSE;
 
     psdc = dc_HDC2PDC (hsdc);
     if (!(pddc = __mg_check_ecrgn (hddc)))
-        return;
+        return retv;
 
     // Transfer logical to device to screen here.
     sw += sx; sh += sy;
@@ -1520,6 +1521,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     if (dy >= RECTH(pddc->DevRC))
         goto error_ret;
 
+    retv = TRUE;
     if (pddc->surface == psdc->surface)
         GetBoundRect (&pddc->rc_output, &srcOutput, &dstOutput);
     else
@@ -1539,7 +1541,8 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     while(cliprect) {
         if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
             SET_GAL_CLIPRECT (pddc, eff_rc);
-            GAL_StretchBlt (psdc->surface, &src, pddc->surface, &dst, dwRop);
+            GAL_StretchBlt (psdc->surface, &src, pddc->surface, &dst,
+                    rotation, dwRop);
         }
 
         cliprect = cliprect->next;
@@ -1552,6 +1555,7 @@ void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
 
 error_ret:
     UNLOCK_GCRINFO (pddc);
+    return retv;
 }
 
 /*

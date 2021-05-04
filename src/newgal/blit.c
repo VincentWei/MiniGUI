@@ -465,6 +465,10 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
         op = src->map->cop & ~COLOR_BLEND_FLAGS_MASK;
     }
 
+    if (op > PIXMAN_OP_HSL_LUMINOSITY || op < PIXMAN_OP_CLEAR) {
+        op = PIXMAN_OP_SRC;
+    }
+
     src_img = pixman_image_create_bits_no_clear ((pixman_format_code_t)src->tmp_data,
             src->w, src->h,
             (uint32_t *)((char*)src->pixels + src->pixels_off),
