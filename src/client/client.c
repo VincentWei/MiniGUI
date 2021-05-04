@@ -375,6 +375,8 @@ static void check_live (void)
 
     // Since 5.0.6, only send IAMLIVE if the current ticks > (last_ticks + 100)
     if (__mg_tick_counter > last_ticks + 100) {
+        last_ticks = __mg_tick_counter;
+
         /* Tell server that I am live */
         req.id = REQID_IAMLIVE;
         req.data = &__mg_tick_counter;
