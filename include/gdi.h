@@ -3713,7 +3713,8 @@ MG_EXPORT BOOL GUIAPI FloodFillGenerator (void* context,
  * \brief Set bitmap scaler algorithm callback of DC according by scaler_type.
  *
  * This function sets the bitmap scaler with DDA or bilinear interpolation
- * algorithm. MiniGUI implements StretchBlt functions by using this scaler.
+ * algorithm. MiniGUI implements \a StretchBlt functions by using this scaler
+ * (when not using Pixman).
  *
  * \param hdc The device context.
  * \param scaler_type The type of scaler algorithm, use BITMAP_SCALER_DDA
@@ -5366,14 +5367,41 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  * The scaling filter for StretchBlt.
  */
 typedef enum {
+    /** The fast filter (DDA scaler) */
     SCALING_FILTER_FAST     = 0x00000000,
+    /** The good filter */
     SCALING_FILTER_GOOD     = 0x00010000,
+    /** The best filter */
     SCALING_FILTER_BEST     = 0x00020000,
+    /** The filter using nearest algorithm */
     SCALING_FILTER_NEAREST  = 0x00020000,
+    /** The filter using bi-linear algorithm */
     SCALING_FILTER_BILINEAR = 0x00040000,
+    /** The filter using convolution algorithm */
     SCALING_FILTER_CONVOLUTION = 0x00050000,
     SCALING_FILTER_SHIFT    = 16,
 } ScalingFilter;
+
+/**
+ * The stretch extra information for \a StretchBltEx.
+ *
+ * \sa StretchBltEx
+ */
+typedef struct _STRETCH_EXTRA_INFO {
+    /** The version code; reserved for future, must set zero */
+    int version;
+
+    /** The rotation of the source bitmap in 1/64ths of a degree. */
+    int rotation;
+
+    /** The x-coordinate of the rotation center in the destination rectangle,
+      * relative to the uppper-left corner of the rectangle. */
+
+    int cx;
+    /** The y-coordinate of the rotation center in the destination rectangle,
+      * relative to the uppper-left corner of the rectangle. */
+    int cy;
+} STRETCH_EXTRA_INFO;
 
 /**
  * \fn BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
@@ -5401,8 +5429,8 @@ typedef enum {
  *        in the destination DC.
  * \param dw The width of the destination rectangle.
  * \param dh The height of the destination rectangle.
- * \param rotation The rotation of the source bitmap, it is in units of
- *        tenth degrees. Note this only works when Pixman is used.
+ * \param sei The pointer to a stretch extra information strucure;
+ *        can be NULL. Note this only works when Pixman is used.
  * \param dwRop The color blending method, see \a ColorBlendMethod, OR'd
  *        with a fiter of the scaling, see \a ScalingFilter.
  *        This argument only works when Pixman is used.
@@ -5416,10 +5444,12 @@ typedef enum {
  *      the color blending method, the scaling filter, and the rotation
  *      will be ignored.
  *
- * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod, ScalingFilter
+ * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey, STRETCH_EXTRA_INFO,
+ *     ColorBlendMethod, ScalingFilter
  */
 MG_EXPORT BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
-        HDC hddc, int dx, int dy, int dw, int dh, int rotation, DWORD dwRop);
+        HDC hddc, int dx, int dy, int dw, int dh,
+        const STRETCH_EXTRA_INFO *sei, DWORD dwRop);
  
 /**
  * \fn void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh, \
@@ -5460,7 +5490,7 @@ MG_EXPORT BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
 static inline void GUIAPI StretchBlt (HDC hsdc, int sx, int sy, int sw, int sh,
         HDC hddc, int dx, int dy, int dw, int dh, DWORD dwRop)
 {
-    StretchBltEx (hsdc, sx, sy, sw, sh, hddc, dx, dy, dw, dh, 0, dwRop);
+    StretchBltEx (hsdc, sx, sy, sw, sh, hddc, dx, dy, dw, dh, NULL, dwRop);
 }
 
 /* Use this if you want to have the legacy manner of StretchBlt */
