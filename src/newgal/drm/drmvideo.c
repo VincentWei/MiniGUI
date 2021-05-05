@@ -1249,7 +1249,8 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             device->hidden->dbl_buff = 1;
         }
 
-#if IS_SHAREDFB_SCHEMA_PROCS
+#ifndef _MGSCHEMA_COMPOSITING 
+#ifndef _MGRM_STANDALONE
         if (device->hidden->dbl_buff) {
             mode_t old_mask = umask (0000);
             sem_unlink (SEM_UPDATE_LOCK);
@@ -1261,7 +1262,10 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
                 device->hidden->dbl_buff = 0;
             }
         }
-#endif
+#else   /* not defined _MGRM_STANDALONE */
+        device->hidden->update_lock = SEM_FAILED;
+#endif  /* defined _MGRM_STANDALONE */
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
     }
 #ifdef _MGRM_PROCESSES
     else {
@@ -1673,14 +1677,17 @@ static void DRM_VideoQuit(_THIS)
         this->screen->pixels = NULL;
     }
 
-#if defined (_MGRM_PROCESSES) && defined (_MGSCHEMA_SHAREDFB)
-    if (mgIsServer && this->hidden->dbl_buff) {
-        if (sem_unlink (SEM_UPDATE_LOCK)) {
-            _ERR_PRINTF ("Failed to unlink the update lock semaphore: %s\n",
-                    strerror (errno));
-        }
-    }
+#if IS_SHAREDFB_SCHEMA_PROCS
+    if (mgIsServer)
 #endif
+#ifndef _MGSCHEMA_COMPOSITING
+        if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
+            if (sem_unlink (SEM_UPDATE_LOCK)) {
+                _ERR_PRINTF ("Failed to unlink the update lock semaphore: %s\n",
+                        strerror (errno));
+            }
+        }
+#endif  /* not defined _MGSCHEMA_COMPOSITING */
 
 #if 0   /* test code */
 #ifdef _MBSCHEMA_COMPOSITING
@@ -3233,11 +3240,13 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     RECT* dirty_rc;
     RECT bound;
 
-#if IS_SHAREDFB_SCHEMA_PROCS
-    if (this->hidden->dbl_buff) {
+#ifndef _MGSCHEMA_COMPOSITING
+    if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_wait (this->hidden->update_lock);
     }
+#endif
 
+#if IS_SHAREDFB_SCHEMA_PROCS
     GAL_ShadowSurfaceHeader* hdr;
     if (this->hidden->shadow_screen->flags & GAL_HWSURFACE) {
         hdr = (GAL_ShadowSurfaceHeader*)
@@ -3270,8 +3279,8 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     if (!IntersectRect (dirty_rc, dirty_rc, &bound))
         SetRectEmpty (dirty_rc);
 
-#if IS_SHAREDFB_SCHEMA_PROCS
-    if (this->hidden->dbl_buff) {
+#ifndef _MGSCHEMA_COMPOSITING
+    if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_post (this->hidden->update_lock);
     }
 #endif
@@ -3283,11 +3292,13 @@ static BOOL DRM_SyncUpdate (_THIS)
     RECT* dirty_rc;
     RECT bound;
 
-#if IS_SHAREDFB_SCHEMA_PROCS
-    if (this->hidden->dbl_buff) {
+#ifndef _MGSCHEMA_COMPOSITING
+    if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_wait (this->hidden->update_lock);
     }
+#endif
 
+#if IS_SHAREDFB_SCHEMA_PROCS
     GAL_ShadowSurfaceHeader* hdr;
     if (this->hidden->shadow_screen->flags & GAL_HWSURFACE) {
         hdr = (GAL_ShadowSurfaceHeader*)
@@ -3392,8 +3403,8 @@ static BOOL DRM_SyncUpdate (_THIS)
     SetRectEmpty (dirty_rc);
 
 ret:
-#if IS_SHAREDFB_SCHEMA_PROCS
-    if (this->hidden->dbl_buff) {
+#ifndef _MGSCHEMA_COMPOSITING
+    if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_post (this->hidden->update_lock);
     }
 #endif
