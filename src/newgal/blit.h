@@ -83,7 +83,6 @@ typedef struct GAL_BlitMap {
     struct private_hwaccel *hw_data;
     struct private_swaccel *sw_data;
 
-    DWORD cop;
     int identity;
     /* the version count matches the destination; mismatch indicates
        an invalid mapping */

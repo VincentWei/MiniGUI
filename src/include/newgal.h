@@ -173,6 +173,10 @@ typedef struct _ShadowSurfaceHeader {
     RECT    dirty_rc;
 } GAL_ShadowSurfaceHeader;
 
+#ifdef _MGUSE_PIXMAN
+typedef union  pixman_image     pixman_image_t;
+#endif
+
 /*
  * This structure should be treated as read-only, except for 'pixels',
  * which, if not NULL, contains the raw pixel data for the surface.
@@ -210,8 +214,10 @@ typedef struct GAL_Surface {
     /* reference count -- used when freeing surface */
     unsigned int refcount;              /* Read-mostly */
 
-    /* temp. data */
-    uintptr_t tmp_data;                 /* Private */
+#ifdef _MGUSE_PIXMAN
+    pixman_image_t *pix_img;            /* The pixman image object for this surface */
+    void           *blit_ctxt;          /* blitting context */
+#endif
 
 #if IS_COMPOSITING_SCHEMA
     /* The pointer to GAL_SharedSurfaceHeader if the surface
@@ -224,22 +230,42 @@ typedef struct GAL_Surface {
 
 /* These are the currently supported flags for the GAL_surface */
 /* Available for GAL_CreateRGBSurface() or GAL_SetVideoMode() */
-#define GAL_SWSURFACE        MEMDC_FLAG_SWSURFACE   /* Surface is in system memory */
-#define GAL_HWSURFACE        MEMDC_FLAG_HWSURFACE   /* Surface is in video memory */
-#define GAL_ASYNCBLIT        0x00000004             /* Use asynchronous blits if possible */
-/* Available for GAL_SetVideoMode() */
-#define GAL_ANYFORMAT        0x10000000             /* Allow any video depth/pixel-format */
-#define GAL_HWPALETTE        0x20000000             /* Surface has exclusive palette */
-#define GAL_DOUBLEBUF        0x40000000             /* Set up double-buffered video mode */
-#define GAL_FULLSCREEN       0x80000000             /* Surface is a full screen display */
+
+#define GAL_SWSURFACE        0x00000000     /* Surface is in system memory */
+#define GAL_HWSURFACE        0x00000001     /* Surface is in video memory */
+#define GAL_ASYNCBLIT        0x00000004     /* Use asynchronous blits if possible */
+
+#define GAL_SRCCOLORKEY      0x00001000     /* Blit uses a source color key */
+#define GAL_RLEACCELOK       0x00002000     /* Private flag */
+#define GAL_RLEACCEL         0x00004000     /* Surface is RLE encoded */
+
+#define GAL_SRCALPHA         0x00010000     /* Blit uses source alpha blending */
+#define GAL_SRCPIXELALPHA    0x00020000     /* Blit uses source per-pixel alpha blending */
+
 /* Used internally (read-only) */
-#define GAL_HWACCEL          0x00000100                 /* Blit uses hardware acceleration */
-#define GAL_SRCCOLORKEY      MEMDC_FLAG_SRCCOLORKEY     /* Blit uses a source color key */
-#define GAL_RLEACCELOK       0x00002000                 /* Private flag */
-#define GAL_RLEACCEL         MEMDC_FLAG_RLEACCEL        /* Surface is RLE encoded */
-#define GAL_SRCALPHA         MEMDC_FLAG_SRCALPHA        /* Blit uses source alpha blending */
-#define GAL_SRCPIXELALPHA    MEMDC_FLAG_SRCPIXELALPHA   /* Blit uses source per-pixel alpha blending */
-#define GAL_PREALLOC         0x01000000                 /* Surface uses preallocated memory */
+#define GAL_HWACCEL          0x00000100     /* Blit uses hardware acceleration */
+
+#define GAL_PREALLOC         0x01000000    /* Surface uses preallocated memory */
+#define GAL_FORMAT_CHECKED   0x02000000    /* Pixman format checked */
+
+/* Available for GAL_SetVideoMode() */
+#define GAL_ANYFORMAT        0x10000000     /* Allow any video depth/pixel-format */
+#define GAL_HWPALETTE        0x20000000     /* Surface has exclusive palette */
+#define GAL_DOUBLEBUF        0x40000000     /* Set up double-buffered video mode */
+#define GAL_FULLSCREEN       0x80000000     /* Surface is a full screen display */
+
+/* Make sure the macros are ok */
+#define MGUI_COMPILE_TIME_ASSERT(name, x)               \
+       typedef int MGUI_dummy_ ## name[((x)?1:0) * 2 - 1]
+
+MGUI_COMPILE_TIME_ASSERT(swsurface, GAL_SWSURFACE == MEMDC_FLAG_SWSURFACE);
+MGUI_COMPILE_TIME_ASSERT(hwsurface, GAL_HWSURFACE == MEMDC_FLAG_HWSURFACE);
+MGUI_COMPILE_TIME_ASSERT(colorkey,  GAL_SRCCOLORKEY == MEMDC_FLAG_SRCCOLORKEY);
+MGUI_COMPILE_TIME_ASSERT(rleaccel,  GAL_RLEACCEL == MEMDC_FLAG_RLEACCEL);
+MGUI_COMPILE_TIME_ASSERT(srcalpha,  GAL_SRCALPHA == MEMDC_FLAG_SRCALPHA);
+MGUI_COMPILE_TIME_ASSERT(srcpixelapha, GAL_SRCPIXELALPHA == MEMDC_FLAG_SRCPIXELALPHA);
+
+#undef MGUI_COMPILE_TIME_ASSERT
 
 /* Evaluates to true if the surface needs to be locked before access */
 #define GAL_MUSTLOCK(surface)   \
@@ -779,8 +805,56 @@ GAL_Surface *GAL_ConvertSurface
                         (GAL_Surface *src, GAL_PixelFormat *fmt, Uint32 flags);
 
 #ifdef _MGUSE_PIXMAN
-int GAL_CheckPixmanFormat (struct GAL_Surface *src, struct GAL_Surface *dst);
-#endif
+BOOL GAL_CreatePixmanImage (GAL_Surface *surface);
+static inline BOOL GAL_CheckPixmanFormats (GAL_Surface *src, GAL_Surface *dst)
+{
+    if (GAL_CreatePixmanImage (src)) {
+        if (dst != NULL && dst != src)
+            return GAL_CreatePixmanImage (dst);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+typedef struct GAL_BlittingContext {
+    uint16_t op;
+    uint16_t filter;
+    uint32_t alpha_bits;
+    pixman_image_t *msk_img;
+} GAL_BlittingContext;
+
+int GAL_SetupBlitting (GAL_Surface *src, GAL_Surface *dst, DWORD ops);
+
+int GAL_CleanupBlitting (GAL_Surface *src, GAL_Surface *dst);
+
+int GAL_SetupStretchBlit (GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect,
+        const STRETCH_EXTRA_INFO *sei, DWORD ops);
+
+int GAL_CleanupStretchBlit (GAL_Surface *src, GAL_Surface *dst);
+
+#else   /* defined _MGUSE_PIXMAN */
+
+static inline int GAL_SetupBlitting (GAL_Surface *src, GAL_Surface *dst, DWORD ops) {
+    return 0;
+}
+
+static inline int GAL_CleanupBlitting (GAL_Surface *src, GAL_Surface *dst) {
+    return 0;
+}
+
+static inline int GAL_SetupStretchBlit (GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect,
+        const STRETCH_EXTRA_INFO *sei, DWORD ops) {
+    return 0;
+}
+
+static inline int GAL_CleanupStretchBlit (GAL_Surface *src, GAL_Surface *dst) {
+    return 0;
+}
+
+#endif  /* not defined _MGUSE_PIXMAN */
 
 /*
  * This performs a fast blit from the source surface to the destination
@@ -878,14 +952,12 @@ static inline int GAL_BlitSurface (GAL_Surface *src, GAL_Rect *srcrect,
  * can be generated by the GAL_MapRGB() function.
  * This function returns 0 on success, or -1 on error.
  */
-int GAL_FillRect
-                (GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color);
+int GAL_FillRect (GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color);
 
 /*
  * This function returns the size of pad-aligned box bitmap.
  */
-Uint32 GAL_GetBoxSize
-                (GAL_Surface *src, Uint32 w, Uint32 h, Uint32* pitch_p);
+Uint32 GAL_GetBoxSize (GAL_Surface *src, Uint32 w, Uint32 h, Uint32* pitch_p);
 
 /*
  * This function copies pixels in a rect from the surface to a box.

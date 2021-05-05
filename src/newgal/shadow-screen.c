@@ -247,8 +247,12 @@ int shadowScreen_BlitToReal (_THIS)
         src_rect.h = RECTH (bound);
         dst_rect = src_rect;
 
+        GAL_SetupBlitting (this->hidden->shadow_screen,
+                this->hidden->real_screen, 0);
         GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
                 this->hidden->real_screen, &dst_rect);
+        GAL_CleanupBlitting (this->hidden->shadow_screen,
+                this->hidden->real_screen);
 #ifdef _MGSCHEMA_COMPOSITING
         if (this->hidden->cursor) {
             RECT csr_rc, eff_rc;
@@ -267,8 +271,12 @@ int shadowScreen_BlitToReal (_THIS)
                 dst_rect.y = eff_rc.top;
                 dst_rect.w = src_rect.w;
                 dst_rect.h = src_rect.h;
+                GAL_SetupBlitting (this->hidden->cursor,
+                        this->hidden->real_screen, 0);
                 GAL_BlitSurface (this->hidden->cursor, &src_rect,
                         this->hidden->real_screen, &dst_rect);
+                GAL_CleanupBlitting (this->hidden->cursor,
+                        this->hidden->real_screen);
             }
         }
 #endif  /* _MGSCHEMA_COMPOSITING */

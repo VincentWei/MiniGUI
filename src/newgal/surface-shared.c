@@ -136,6 +136,10 @@ GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
     surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;
+#ifdef _MGUSE_PIXMAN
+    surface->pix_img = NULL;
+    surface->blit_ctxt = NULL;
+#endif
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
     GAL_SetClipRect (surface, NULL);
@@ -272,6 +276,10 @@ error:
                     surface->shared_header->map_size);
             }
 
+#ifdef _MGUSE_PIXMAN
+            surface->pix_img = NULL;
+            surface->blit_ctxt = NULL;
+#endif
             surface->shared_header = NULL;
             surface->dirty_info = NULL;
         }
@@ -318,6 +326,10 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
     }
 
     surface->pixels = NULL;
+#ifdef _MGUSE_PIXMAN
+    surface->pix_img = NULL;
+    surface->blit_ctxt = NULL;
+#endif
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
 }
@@ -358,7 +370,7 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
     }
 
     surface->video = video;
-    surface->flags = flags;
+    surface->flags = flags & ~GAL_FORMAT_CHECKED;
 
     surface->shared_header = NULL;
     surface->hwdata = NULL;
@@ -410,6 +422,10 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
     surface->dpi = GDCAP_DPI_DEFAULT;
     surface->map = NULL;
     surface->format_version = 0;
+#ifdef _MGUSE_PIXMAN
+    surface->pix_img = NULL;
+    surface->blit_ctxt = NULL;
+#endif
     GAL_SetClipRect (surface, NULL);
 
 #ifdef _MGUSE_UPDATE_REGION
@@ -463,6 +479,10 @@ void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
     }
 
     surface->pixels = NULL;
+#ifdef _MGUSE_PIXMAN
+    surface->pix_img = NULL;
+    surface->blit_ctxt = NULL;
+#endif
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
 }

@@ -142,6 +142,10 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;
+#ifdef _MGUSE_PIXMAN
+    surface->pix_img = NULL;
+    surface->blit_ctxt = NULL;
+#endif
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
@@ -506,8 +510,6 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
     GAL_blit do_blit;
     int ret;
 
-    src->map->cop = op;
-
     /* Check to make sure the blit mapping is valid */
     if ((src->map->dst != dst) ||
              (src->map->dst->format_version != src->map->format_version)) {
@@ -724,7 +726,128 @@ static void GAL_SoftFillRect (GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 
 
 #ifdef _MGUSE_PIXMAN
 #include <pixman.h>
-#endif
+
+struct rgbamasks_pixman_format_map {
+    uint32_t pixman_format;
+    Uint32 Rmask, Gmask, Bmask, Amask;
+};
+
+static struct rgbamasks_pixman_format_map _format_map_8bpp [] = {
+    { PIXMAN_r3g3b2,    0xE0, 0x1C, 0x03, 0x00 },
+    { PIXMAN_b2g3r3,    0x0E, 0x38, 0xC0, 0x00 },
+    { PIXMAN_a2r2g2b2,  0x30, 0x0C, 0x03, 0xC0 },
+    { PIXMAN_a2b2g2r2,  0x03, 0x0C, 0x03, 0xC0 },
+};
+
+static struct rgbamasks_pixman_format_map _format_map_16bpp [] = {
+    { PIXMAN_x4r4g4b4,  0x0F00, 0x00F0, 0x000F, 0x0000 },
+    { PIXMAN_x4b4g4r4,  0x000F, 0x00F0, 0x0F00, 0x0000 },
+    // { PIXMAN_r4g4b4x4,  0xF000, 0x0F00, 0x00F0, 0x0000 },
+    // { PIXMAN_b4g4r4x4,  0x00F0, 0x0F00, 0xF000, 0x0000 },
+    { PIXMAN_a4r4g4b4,  0x0F00, 0x00F0, 0x000F, 0xF000 },
+    { PIXMAN_a4b4g4r4,  0x000F, 0x00F0, 0x0F00, 0xF000 },
+    // { PIXMAN_r4g4b4a4,  0xF000, 0x0F00, 0x00F0, 0x000F },
+    // { PIXMAN_b4g4r4a4,  0x00F0, 0x0F00, 0xF000, 0x000F },
+    { PIXMAN_x1r5g5b5,  0x7C00, 0x03E0, 0x001F, 0x0000 },
+    { PIXMAN_x1b5g5r5,  0x001F, 0x03E0, 0x7C00, 0x0000 },
+    // { PIXMAN_r5g5b5x1,  0xF800, 0x07C0, 0x003E, 0x0000 },
+    // { PIXMAN_b5g5r5x1,  0x003E, 0x07C0, 0xF800, 0x0000 },
+    { PIXMAN_a1r5g5b5,  0x7C00, 0x03E0, 0x001F, 0x8000 },
+    { PIXMAN_a1b5g5r5,  0x001F, 0x03E0, 0x7C00, 0x8000 },
+    // { PIXMAN_r5g5b5a1,  0xF800, 0x07C0, 0x003E, 0x0001 },
+    // { PIXMAN_b5g5r5a1,  0x003E, 0x07C0, 0xF800, 0x0001 },
+    { PIXMAN_r5g6b5,    0xF800, 0x07E0, 0x001F, 0x0000 },
+    { PIXMAN_b5g6r5,    0x001F, 0x07E0, 0xF800, 0x0000 },
+};
+
+static struct rgbamasks_pixman_format_map _format_map_24bpp [] = {
+    { PIXMAN_r8g8b8,    0xFF0000, 0x00FF00, 0x0000FF, 0x000000 },
+    { PIXMAN_b8g8r8,    0x0000FF, 0x00FF00, 0xFF0000, 0x000000 },
+};
+
+static struct rgbamasks_pixman_format_map _format_map_32bpp [] = {
+    { PIXMAN_x8r8g8b8,  0x00FF0000, 0x0000FF00, 0x000000FF, 0x00000000 },
+    { PIXMAN_x8b8g8r8,  0x000000FF, 0x0000FF00, 0x00FF0000, 0x00000000 },
+    { PIXMAN_r8g8b8x8,  0xFF000000, 0x00FF0000, 0x0000FF00, 0x00000000 },
+    { PIXMAN_b8g8r8x8,  0x0000FF00, 0x00FF0000, 0xFF000000, 0x00000000 },
+    { PIXMAN_a8r8g8b8,  0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000 },
+    { PIXMAN_a8b8g8r8,  0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000 },
+    { PIXMAN_r8g8b8a8,  0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF },
+    { PIXMAN_b8g8r8a8,  0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF },
+};
+
+static uint32_t translate_gal_format(const GAL_PixelFormat *gal_format)
+{
+    struct rgbamasks_pixman_format_map* map;
+    size_t i, n;
+
+    // XXX: ignore format with palette
+    if (gal_format->BitsPerPixel <= 8 && gal_format->palette)
+        return 0;
+
+    switch (gal_format->BitsPerPixel) {
+    case 8:
+        map = _format_map_8bpp;
+        n = TABLESIZE(_format_map_8bpp);
+        break;
+
+    case 16:
+        map = _format_map_16bpp;
+        n = TABLESIZE(_format_map_16bpp);
+        break;
+
+    case 24:
+        map = _format_map_24bpp;
+        n = TABLESIZE(_format_map_24bpp);
+        break;
+
+    case 32:
+        map = _format_map_32bpp;
+        n = TABLESIZE(_format_map_32bpp);
+        break;
+
+    default:
+        return 0;
+    }
+
+    for (i = 0; i < n; i++) {
+        if (gal_format->Rmask == map[i].Rmask &&
+                gal_format->Gmask == map[i].Gmask &&
+                gal_format->Bmask == map[i].Bmask &&
+                gal_format->Amask == map[i].Amask) {
+            return map[i].pixman_format;
+        }
+    }
+
+    return 0;
+}
+
+BOOL GAL_CreatePixmanImage (GAL_Surface *surface)
+{
+    if (!(surface->flags & GAL_FORMAT_CHECKED)) {
+        uint32_t pixman_format;
+
+        assert (surface->pix_img == NULL);
+
+        pixman_format = translate_gal_format (surface->format);
+
+        if (pixman_format) {
+            surface->pix_img = pixman_image_create_bits_no_clear (
+                    (pixman_format_code_t)pixman_format,
+                    surface->w, surface->h,
+                    (uint32_t *)((char*)surface->pixels + surface->pixels_off),
+                    surface->pitch);
+        }
+        else
+            surface->pix_img = NULL;
+
+        surface->flags |= GAL_FORMAT_CHECKED;
+    }
+
+    return surface->pix_img != NULL;
+}
+
+#endif /* defined _MGUSE_PIXMAN */
 
 /*
  * This function performs a fast fill of the given rectangle with 'color'
@@ -757,12 +880,10 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
     }
 
 #ifdef _MGUSE_PIXMAN
-    if (GAL_CheckPixmanFormat (dst, NULL)) {
-        Uint8 r, g, b, a;
-        pixman_color_t pixman_color;
+    if (GAL_CreatePixmanImage (dst)) {
         pixman_box32_t pixman_box;
-        pixman_image_t *dst_img;
-        int retv = -1;
+        pixman_color_t pixman_color;
+        Uint8 r, g, b, a;
 
         GAL_GetRGBA (color, dst->format, &r, &g, &b, &a);
         pixman_color.red = (uint16_t)r << 8;
@@ -775,21 +896,9 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
         pixman_box.x2 = my_dstrect.x + my_dstrect.w;
         pixman_box.y2 = my_dstrect.y + my_dstrect.h;
 
-        dst_img = pixman_image_create_bits_no_clear ((pixman_format_code_t)dst->tmp_data,
-                dst->w, dst->h,
-                (uint32_t *)((char*)dst->pixels + dst->pixels_off),
-                dst->pitch);
-        if (dst_img == NULL)
-            goto out;
-
-        pixman_image_fill_boxes (PIXMAN_OP_SRC, dst_img, &pixman_color, 1, &pixman_box);
-        retv = 0;
-
-out:
-        if (dst_img)
-            pixman_image_unref (dst_img);
-
-        return retv;
+        pixman_image_fill_boxes (PIXMAN_OP_SRC, dst->pix_img,
+                &pixman_color, 1, &pixman_box);
+        return 0;
     }
     else {
         GAL_SoftFillRect (dst, &my_dstrect, color);
@@ -1758,6 +1867,18 @@ void GAL_FreeSurface (GAL_Surface *surface)
             ((surface->flags & GAL_PREALLOC) != GAL_PREALLOC)) {
         free (surface->pixels);
     }
+
+#ifdef _MGUSE_PIXMAN
+    if (surface->pix_img) {
+        pixman_image_unref (surface->pix_img);
+        surface->pix_img = NULL;
+
+    }
+
+    if (surface->blit_ctxt) {
+        _WRN_PRINTF ("There is not cleaned up blitting context: %p\n", surface->blit_ctxt);
+    }
+#endif
 
     free (surface);
 

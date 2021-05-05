@@ -50,98 +50,6 @@
 #include "newgal.h"
 #include "blit.h"
 
-/* This isn't ready for general consumption yet - it should be folded
-   into the general blitting mechanism.
-*/
-
-#if (defined(WIN32) && !defined(_M_ALPHA) && !defined(_WIN32_WCE)) || \
-    defined(i386) && defined(__GNUC__) && defined(USE_ASMBLIT)
-#define USE_ASM_STRETCH
-#endif
-
-#ifdef USE_ASM_STRETCH
-
-#if defined(WIN32) || defined(i386)
-#define PREFIX16    0x66
-#define STORE_BYTE    0xAA
-#define STORE_WORD    0xAB
-#define LOAD_BYTE    0xAC
-#define LOAD_WORD    0xAD
-#define RETURN        0xC3
-#else
-#error Need assembly opcodes for this architecture
-#endif
-
-#if defined(__ELF__) && defined(__GNUC__)
-extern unsigned char _copy_row[4096] __attribute__ ((alias ("copy_row")));
-#endif
-static unsigned char copy_row[4096];
-
-static int generate_rowbytes(int src_w, int dst_w, int bpp)
-{
-    static struct {
-        int bpp;
-        int src_w;
-        int dst_w;
-    } last;
-
-    int i;
-    int pos, inc;
-    unsigned char *eip;
-    unsigned char load, store;
-
-    /* See if we need to regenerate the copy buffer */
-    if ( (src_w == last.src_w) &&
-         (dst_w == last.src_w) && (bpp == last.bpp) ) {
-        return(0);
-    }
-    last.bpp = bpp;
-    last.src_w = src_w;
-    last.dst_w = dst_w;
-
-    switch (bpp) {
-        case 1:
-        load = LOAD_BYTE;
-        store = STORE_BYTE;
-        break;
-        case 2:
-        case 4:
-        load = LOAD_WORD;
-        store = STORE_WORD;
-        break;
-        default:
-        GAL_SetError("NEWGAL: ASM stretch of %d bytes isn't supported.\n", bpp);
-        return(-1);
-    }
-    pos = 0x10000;
-    inc = (src_w << 16) / dst_w;
-    eip = copy_row;
-    for ( i=0; i<dst_w; ++i ) {
-        while ( pos >= 0x10000L ) {
-            if ( bpp == 2 ) {
-                *eip++ = PREFIX16;
-            }
-            *eip++ = load;
-            pos -= 0x10000L;
-        }
-        if ( bpp == 2 ) {
-            *eip++ = PREFIX16;
-        }
-        *eip++ = store;
-        pos += inc;
-    }
-    *eip++ = RETURN;
-
-    /* Verify that we didn't overflow (too late) */
-    if ( eip > (copy_row+sizeof(copy_row)) ) {
-        GAL_SetError("NEWGAL: Copy buffer overflow.\n");
-        return(-1);
-    }
-    return(0);
-}
-
-#else
-
 #define DEFINE_COPY_ROW(name, type)                             \
 static void name(type *src, int src_w, type *dst, int dst_w)    \
 {                                                               \
@@ -164,8 +72,6 @@ static void name(type *src, int src_w, type *dst, int dst_w)    \
 DEFINE_COPY_ROW(copy_row1, Uint8)
 DEFINE_COPY_ROW(copy_row2, Uint16)
 DEFINE_COPY_ROW(copy_row4, Uint32)
-
-#endif /* USE_ASM_STRETCH */
 
 /* The ASM code doesn't handle 24-bpp stretch blits */
 static void copy_row3(Uint8 *src, int src_w, Uint8 *dst, int dst_w)
@@ -203,9 +109,6 @@ static int GAL_SoftStretch(GAL_Surface *src, GAL_Rect *srcrect,
     Uint8 *dstp;
     GAL_Rect full_src;
     GAL_Rect full_dst;
-#if defined(USE_ASM_STRETCH) && defined(__GNUC__)
-    int u1, u2;
-#endif
     const int bpp = dst->format->BytesPerPixel;
 
     if ( src->format->BitsPerPixel != dst->format->BitsPerPixel ) {
@@ -250,14 +153,6 @@ static int GAL_SoftStretch(GAL_Surface *src, GAL_Rect *srcrect,
     src_row = srcrect->y;
     dst_row = dstrect->y;
 
-#ifdef USE_ASM_STRETCH
-    /* Write the opcodes for this stretch */
-    if ( (bpp != 3) &&
-         (generate_rowbytes(srcrect->w, dstrect->w, bpp) < 0) ) {
-        return(-1);
-    }
-#endif
-
     /* Perform the stretch blit */
     for ( dst_maxrow = dst_row+dstrect->h; dst_row<dst_maxrow; ++dst_row ) {
         dstp = (Uint8 *)dst->pixels + (dst_row*dst->pitch)
@@ -268,40 +163,6 @@ static int GAL_SoftStretch(GAL_Surface *src, GAL_Rect *srcrect,
             ++src_row;
             pos -= 0x10000L;
         }
-#ifdef USE_ASM_STRETCH
-        switch (bpp) {
-            case 3:
-            copy_row3(srcp, srcrect->w, dstp, dstrect->w);
-            break;
-            default:
-#ifdef __GNUC__
-            __asm__ __volatile__ (
-                        " call _copy_row "
-            : "=&D" (u1), "=&S" (u2)
-            : "0" (dstp), "1" (srcp)
-            : "memory" );
-#else
-#ifdef WIN32
-        { void *code = &copy_row;
-            __asm {
-                push edi
-                push esi
-
-                mov edi, dstp
-                mov esi, srcp
-                call dword ptr code
-
-                pop esi
-                pop edi
-            }
-        }
-#else
-#error Need inline assembly for this compiler
-#endif
-#endif /* __GNUC__ */
-            break;
-        }
-#else
         switch (bpp) {
             case 1:
             copy_row1(srcp, srcrect->w, dstp, dstrect->w);
@@ -318,7 +179,6 @@ static int GAL_SoftStretch(GAL_Surface *src, GAL_Rect *srcrect,
                       (Uint32 *)dstp, dstrect->w);
             break;
         }
-#endif
         pos += inc;
     }
     return(0);
@@ -403,78 +263,55 @@ static int GAL_StretchBltLegacy (GAL_Surface *src, GAL_Rect *srcrect,
 #include <pixman.h>
 #include <math.h>
 
-int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
+int GAL_SetupStretchBlit (GAL_Surface *src, GAL_Rect *srcrect,
         GAL_Surface *dst, GAL_Rect *dstrect,
-        const STRETCH_EXTRA_INFO* sei, DWORD ops)
+        const STRETCH_EXTRA_INFO *sei, DWORD ops)
 {
-    pixman_image_t *src_img = NULL, *dst_img = NULL, *msk_img = NULL;
-    pixman_op_t op;
-    uint32_t alpha_bits;
-    int retv = -1;
-    DWORD cop = ops & ~COLOR_BLEND_FLAGS_MASK;
-    DWORD filter = ops >> SCALING_FILTER_SHIFT;
-    
-    if (!GAL_CheckPixmanFormat (src, dst) || (src->flags & GAL_SRCCOLORKEY))
-        return GAL_StretchBltLegacy (src, srcrect, dst, dstrect, cop);
-
-    assert (src->tmp_data);
-    assert (dst->tmp_data);
-
-    if ((src->flags & GAL_SRCALPHA) && src->format->alpha != GAL_ALPHA_OPAQUE) {
-        memset (&alpha_bits, src->format->alpha, sizeof(alpha_bits));
-        msk_img = pixman_image_create_bits_no_clear (PIXMAN_a8, 1, 1, &alpha_bits, 4);
-        if (msk_img)
-            pixman_image_set_repeat (msk_img, PIXMAN_REPEAT_NORMAL);
-    }
-
-    if (cop == COLOR_BLEND_LEGACY) {
-        if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
-            op = PIXMAN_OP_OVER;
-        }
-        else {
-            op = PIXMAN_OP_SRC;
-        }
-    }
-    else {
-        op = cop & ~COLOR_BLEND_FLAGS_MASK;
-    }
-
-    if (op > PIXMAN_OP_HSL_LUMINOSITY || op < PIXMAN_OP_CLEAR) {
-        op = PIXMAN_OP_SRC;
-    }
-
-    src_img = pixman_image_create_bits_no_clear ((pixman_format_code_t)src->tmp_data,
-            src->w, src->h,
-            (uint32_t *)((char*)src->pixels + src->pixels_off),
-            src->pitch);
-    if (src_img == NULL)
-        goto out;
-
-    if (dst != src) {
-        dst_img = pixman_image_create_bits_no_clear ((pixman_format_code_t)dst->tmp_data,
-                dst->w, dst->h,
-                (uint32_t *)((char*)dst->pixels + dst->pixels_off),
-                dst->pitch);
-        if (dst_img == NULL)
-            goto out;
-    }
-    else {
-        dst_img = src_img;
-    }
-
-    {
+    if (GAL_CheckPixmanFormats (src, dst)) {
         double fscale_x = srcrect->w * 1.0 / dstrect->w;
         double fscale_y = srcrect->h * 1.0 / dstrect->h;
         double rotation;
         pixman_f_transform_t ftransform;
         pixman_transform_t transform;
-        pixman_region32_t clip_region;
+        GAL_BlittingContext* ctxt;
 
-        _DBG_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d; scale: %f x %f; cliprect: %d, %d, %dx%d\n",
-                srcrect->x, srcrect->y, srcrect->w, srcrect->h,
-                dstrect->x, dstrect->y, dstrect->w, dstrect->h,
-                1.0/fscale_x, 1.0/fscale_y,
-                dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
+        src->blit_ctxt = malloc (sizeof (GAL_BlittingContext));
+        if (src->blit_ctxt == NULL)
+            return -1;
+
+        ctxt = src->blit_ctxt;
+        if ((src->flags & GAL_SRCALPHA) && src->format->alpha != GAL_ALPHA_OPAQUE) {
+            memset (&ctxt->alpha_bits, src->format->alpha, sizeof(uint32_t));
+            ctxt->msk_img = pixman_image_create_bits_no_clear (PIXMAN_a8, 1, 1,
+                    &ctxt->alpha_bits, 4);
+            if (ctxt->msk_img)
+                pixman_image_set_repeat (ctxt->msk_img, PIXMAN_REPEAT_NORMAL);
+        }
+        else
+            ctxt->msk_img = NULL;
+
+        ctxt->filter = ops >> SCALING_FILTER_SHIFT;
+        if (ctxt->filter > PIXMAN_FILTER_CONVOLUTION) {
+            ctxt->filter = PIXMAN_FILTER_FAST;
+        }
+
+        ops &= ~COLOR_BLEND_FLAGS_MASK;
+        if (ops == COLOR_BLEND_LEGACY) {
+            if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
+                ctxt->op = PIXMAN_OP_OVER;
+            }
+            else {
+                ctxt->op = PIXMAN_OP_SRC;
+            }
+        }
+        else {
+            ctxt->op = ops;
+        }
+
+        if (ctxt->op > PIXMAN_OP_HSL_LUMINOSITY ||
+                ctxt->op < PIXMAN_OP_CLEAR) {
+            ctxt->op = PIXMAN_OP_SRC;
+        }
 
         pixman_f_transform_init_identity (&ftransform);
         if (sei && sei->rotation) {
@@ -491,8 +328,9 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
         pixman_f_transform_translate (&ftransform, NULL, srcrect->x, srcrect->y);
         //pixman_f_transform_invert (&ftransform, &ftransform);
         pixman_transform_from_pixman_f_transform (&transform, &ftransform);
-        pixman_image_set_transform (src_img, &transform);
+        pixman_image_set_transform (src->pix_img, &transform);
 
+#if 0
         fscale_x = hypot (ftransform.m[0][0], ftransform.m[0][1]) / ftransform.m[2][2];
         fscale_y = hypot (ftransform.m[1][0], ftransform.m[1][1]) / ftransform.m[2][2];
         if (filter > PIXMAN_FILTER_CONVOLUTION) {
@@ -511,32 +349,74 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
         else {
             pixman_image_set_filter (src_img, (pixman_filter_t)filter, NULL, 0);
         }
-
-        pixman_region32_init_rect (&clip_region,
-                dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
-        pixman_image_set_clip_region32 (dst_img, &clip_region);
-
-        retv = 0;
-        pixman_image_composite32 (op, src_img, msk_img, dst_img,
-                dstrect->x, dstrect->y,
-                0, 0,
-                dstrect->x, dstrect->y, 
-                dstrect->w, dstrect->h);
-
-        pixman_region32_fini (&clip_region);
+#else
+        pixman_image_set_filter (src->pix_img, (pixman_filter_t)ctxt->filter, NULL, 0);
+#endif
     }
 
-out:
-    if (msk_img)
-        pixman_image_unref (msk_img);
+    return 0;
+}
 
-    if (src_img)
-        pixman_image_unref (src_img);
+int GAL_CleanupStretchBlit (GAL_Surface *src, GAL_Surface *dst)
+{
+    if (src->blit_ctxt) {
+        pixman_transform_t transform;
 
-    if (dst_img != src_img && dst_img)
-        pixman_image_unref (dst_img);
+        GAL_BlittingContext* ctxt = src->blit_ctxt;
+        if (ctxt->msk_img)
+            pixman_image_unref (ctxt->msk_img);
+        free (src->blit_ctxt);
+        src->blit_ctxt = NULL;
 
-    return retv;
+        pixman_transform_init_identity (&transform);
+        pixman_image_set_transform (src->pix_img, &transform);
+        pixman_image_set_filter (src->pix_img, PIXMAN_FILTER_FAST, NULL, 0);
+        pixman_image_set_clip_region32 (dst->pix_img, NULL);
+    }
+
+    return 0;
+}
+
+int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect,
+        const STRETCH_EXTRA_INFO* sei, DWORD ops)
+{
+    pixman_image_t *src_img = src->pix_img, *dst_img = dst->pix_img;
+    pixman_image_t *msk_img;
+    pixman_op_t op;
+    pixman_region32_t clip_region;
+
+    if (src_img == NULL || dst_img == NULL || (src->flags & GAL_SRCCOLORKEY))
+        return GAL_StretchBltLegacy (src, srcrect, dst, dstrect,
+                ops & ~COLOR_BLEND_FLAGS_MASK);
+
+    if (src->blit_ctxt) {
+        GAL_BlittingContext* ctxt = src->blit_ctxt;
+        msk_img = ctxt->msk_img;
+        op = (pixman_op_t)ctxt->op;
+    }
+    else {
+        msk_img = NULL;
+        op = PIXMAN_OP_SRC;
+    }
+
+    _DBG_PRINTF ("srcrect: %d,%d, %dx%d; dstrect: %d,%d, %dx%d; cliprect: %d,%d, %dx%d\n",
+            srcrect->x, srcrect->y, srcrect->w, srcrect->h,
+            dstrect->x, dstrect->y, dstrect->w, dstrect->h,
+            dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
+
+    pixman_region32_init_rect (&clip_region,
+            dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
+    pixman_image_set_clip_region32 (dst_img, &clip_region);
+
+    pixman_image_composite32 (op, src_img, msk_img, dst_img,
+            dstrect->x, dstrect->y,
+            0, 0,
+            dstrect->x, dstrect->y, 
+            dstrect->w, dstrect->h);
+
+    pixman_region32_fini (&clip_region);
+    return 0;
 }
 
 #else   /* defined _MGUSE_PIXMAN */

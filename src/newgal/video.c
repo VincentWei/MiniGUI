@@ -1255,6 +1255,10 @@ static GAL_Surface *Slave_CreateSurface (GAL_VideoDevice *this,
     surface->hwdata = NULL;
     surface->map = NULL;
     surface->format_version = 0;
+#ifdef _MGUSE_PIXMAN
+    surface->pix_img = NULL;
+    surface->blit_ctxt = NULL;
+#endif
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;
     surface->dirty_info = NULL;

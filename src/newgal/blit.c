@@ -163,7 +163,8 @@ static void GAL_BlitCopyOverlap(GAL_BlitInfo *info)
 }
 
 #ifdef _MGUSE_PIXMAN
-BOOL GAL_CheckPixmanFormat (struct GAL_Surface *src, struct GAL_Surface *dst);
+#include <pixman.h>
+
 static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
         struct GAL_Surface *dst, GAL_Rect *dstrect);
 #endif
@@ -312,7 +313,7 @@ int GAL_CalculateBlit(GAL_Surface *surface)
             // have colorkey
             surface->map->sw_blit = GAL_SoftBlit;
         }
-        else if (GAL_CheckPixmanFormat (surface, surface->map->dst)) {
+        else if (surface->pix_img && surface->map->dst->pix_img) {
             surface->map->sw_blit = GAL_PixmanBlit;
         }
         else {
@@ -326,166 +327,76 @@ int GAL_CalculateBlit(GAL_Surface *surface)
 }
 
 #ifdef _MGUSE_PIXMAN
-#include <pixman.h>
 
-struct rgbamasks_pixman_format_map {
-    uint32_t pixman_format;
-    Uint32 Rmask, Gmask, Bmask, Amask;
-};
-
-static struct rgbamasks_pixman_format_map _format_map_8bpp [] = {
-    { PIXMAN_r3g3b2,    0xE0, 0x1C, 0x03, 0x00 },
-    { PIXMAN_b2g3r3,    0x0E, 0x38, 0xC0, 0x00 },
-    { PIXMAN_a2r2g2b2,  0x30, 0x0C, 0x03, 0xC0 },
-    { PIXMAN_a2b2g2r2,  0x03, 0x0C, 0x03, 0xC0 },
-};
-
-static struct rgbamasks_pixman_format_map _format_map_16bpp [] = {
-    { PIXMAN_x4r4g4b4,  0x0F00, 0x00F0, 0x000F, 0x0000 },
-    { PIXMAN_x4b4g4r4,  0x000F, 0x00F0, 0x0F00, 0x0000 },
-    // { PIXMAN_r4g4b4x4,  0xF000, 0x0F00, 0x00F0, 0x0000 },
-    // { PIXMAN_b4g4r4x4,  0x00F0, 0x0F00, 0xF000, 0x0000 },
-    { PIXMAN_a4r4g4b4,  0x0F00, 0x00F0, 0x000F, 0xF000 },
-    { PIXMAN_a4b4g4r4,  0x000F, 0x00F0, 0x0F00, 0xF000 },
-    // { PIXMAN_r4g4b4a4,  0xF000, 0x0F00, 0x00F0, 0x000F },
-    // { PIXMAN_b4g4r4a4,  0x00F0, 0x0F00, 0xF000, 0x000F },
-    { PIXMAN_x1r5g5b5,  0x7C00, 0x03E0, 0x001F, 0x0000 },
-    { PIXMAN_x1b5g5r5,  0x001F, 0x03E0, 0x7C00, 0x0000 },
-    // { PIXMAN_r5g5b5x1,  0xF800, 0x07C0, 0x003E, 0x0000 },
-    // { PIXMAN_b5g5r5x1,  0x003E, 0x07C0, 0xF800, 0x0000 },
-    { PIXMAN_a1r5g5b5,  0x7C00, 0x03E0, 0x001F, 0x8000 },
-    { PIXMAN_a1b5g5r5,  0x001F, 0x03E0, 0x7C00, 0x8000 },
-    // { PIXMAN_r5g5b5a1,  0xF800, 0x07C0, 0x003E, 0x0001 },
-    // { PIXMAN_b5g5r5a1,  0x003E, 0x07C0, 0xF800, 0x0001 },
-    { PIXMAN_r5g6b5,    0xF800, 0x07E0, 0x001F, 0x0000 },
-    { PIXMAN_b5g6r5,    0x001F, 0x07E0, 0xF800, 0x0000 },
-};
-
-static struct rgbamasks_pixman_format_map _format_map_24bpp [] = {
-    { PIXMAN_r8g8b8,    0xFF0000, 0x00FF00, 0x0000FF, 0x000000 },
-    { PIXMAN_b8g8r8,    0x0000FF, 0x00FF00, 0xFF0000, 0x000000 },
-};
-
-static struct rgbamasks_pixman_format_map _format_map_32bpp [] = {
-    { PIXMAN_x8r8g8b8,  0x00FF0000, 0x0000FF00, 0x000000FF, 0x00000000 },
-    { PIXMAN_x8b8g8r8,  0x000000FF, 0x0000FF00, 0x00FF0000, 0x00000000 },
-    { PIXMAN_r8g8b8x8,  0xFF000000, 0x00FF0000, 0x0000FF00, 0x00000000 },
-    { PIXMAN_b8g8r8x8,  0x0000FF00, 0x00FF0000, 0xFF000000, 0x00000000 },
-    { PIXMAN_a8r8g8b8,  0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000 },
-    { PIXMAN_a8b8g8r8,  0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000 },
-    { PIXMAN_r8g8b8a8,  0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF },
-    { PIXMAN_b8g8r8a8,  0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF },
-};
-
-static uint32_t translate_gal_format(const GAL_PixelFormat *gal_format)
+int GAL_SetupBlitting (GAL_Surface *src, GAL_Surface *dst, DWORD ops)
 {
-    struct rgbamasks_pixman_format_map* map;
-    size_t i, n;
+    if (GAL_CheckPixmanFormats (src, dst)) {
+        GAL_BlittingContext* ctxt;
+        src->blit_ctxt = malloc (sizeof (GAL_BlittingContext));
+        if (src->blit_ctxt == NULL)
+            return -1;
 
-    // XXX: ignore format with palette
-    if (gal_format->BitsPerPixel <= 8 && gal_format->palette)
-        return 0;
+        ctxt = src->blit_ctxt;
+        if ((src->flags & GAL_SRCALPHA) && src->format->alpha != GAL_ALPHA_OPAQUE) {
+            memset (&ctxt->alpha_bits, src->format->alpha, sizeof(uint32_t));
+            ctxt->msk_img = pixman_image_create_bits_no_clear (PIXMAN_a8, 1, 1,
+                    &ctxt->alpha_bits, 4);
+            if (ctxt->msk_img)
+                pixman_image_set_repeat (ctxt->msk_img, PIXMAN_REPEAT_NORMAL);
+        }
+        else
+            ctxt->msk_img = NULL;
 
-    switch (gal_format->BitsPerPixel) {
-    case 8:
-        map = _format_map_8bpp;
-        n = TABLESIZE(_format_map_8bpp);
-        break;
+        ops &= ~COLOR_BLEND_FLAGS_MASK;
+        if (ops == COLOR_BLEND_LEGACY) {
+            if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
+                ctxt->op = PIXMAN_OP_OVER;
+            }
+            else {
+                ctxt->op = PIXMAN_OP_SRC;
+            }
+        }
+        else {
+            ctxt->op = ops;
+        }
 
-    case 16:
-        map = _format_map_16bpp;
-        n = TABLESIZE(_format_map_16bpp);
-        break;
-
-    case 24:
-        map = _format_map_24bpp;
-        n = TABLESIZE(_format_map_24bpp);
-        break;
-
-    case 32:
-        map = _format_map_32bpp;
-        n = TABLESIZE(_format_map_32bpp);
-        break;
-
-    default:
-        return 0;
-    }
-
-    for (i = 0; i < n; i++) {
-        if (gal_format->Rmask == map[i].Rmask &&
-                gal_format->Gmask == map[i].Gmask &&
-                gal_format->Bmask == map[i].Bmask &&
-                gal_format->Amask == map[i].Amask) {
-            return map[i].pixman_format;
+        if (ctxt->op > PIXMAN_OP_HSL_LUMINOSITY ||
+                ctxt->op < PIXMAN_OP_CLEAR) {
+            ctxt->op = PIXMAN_OP_SRC;
         }
     }
 
     return 0;
 }
 
-BOOL GAL_CheckPixmanFormat (struct GAL_Surface *src, struct GAL_Surface *dst)
+int GAL_CleanupBlitting (GAL_Surface *src, GAL_Surface *dst)
 {
-    src->tmp_data = translate_gal_format (src->format);
-    if (dst != src && dst != NULL) {
-        dst->tmp_data = translate_gal_format (dst->format);
-        return src->tmp_data && dst->tmp_data;
+    if (src->blit_ctxt) {
+        GAL_BlittingContext* ctxt = src->blit_ctxt;
+        if (ctxt->msk_img)
+            pixman_image_unref (ctxt->msk_img);
+        free (src->blit_ctxt);
+        src->blit_ctxt = NULL;
     }
 
-    return src->tmp_data != 0;
+    return 0;
 }
 
 static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
         struct GAL_Surface *dst, GAL_Rect *dstrect)
 {
-    pixman_image_t *src_img = NULL, *dst_img = NULL, *msk_img = NULL;
+    pixman_image_t *src_img = src->pix_img, *dst_img = dst->pix_img;
+    pixman_image_t *msk_img;
     pixman_op_t op;
-    uint32_t alpha_bits;
-    int retv = -1;
-    //pixman_region32_t clip_region;
  
-    assert (src->tmp_data);
-    assert (dst->tmp_data);
-
-    if ((src->flags & GAL_SRCALPHA) && src->format->alpha != GAL_ALPHA_OPAQUE) {
-        memset (&alpha_bits, src->format->alpha, sizeof(alpha_bits));
-        msk_img = pixman_image_create_bits_no_clear (PIXMAN_a8, 1, 1, &alpha_bits, 4);
-        if (msk_img)
-            pixman_image_set_repeat (msk_img, PIXMAN_REPEAT_NORMAL);
-    }
-    
-    if (src->map->cop == COLOR_BLEND_LEGACY) {
-        if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
-            op = PIXMAN_OP_OVER;
-        }
-        else {
-            op = PIXMAN_OP_SRC;
-        }
+    if (src->blit_ctxt) {
+        GAL_BlittingContext* ctxt = src->blit_ctxt;
+        msk_img = ctxt->msk_img;
+        op = (pixman_op_t)ctxt->op;
     }
     else {
-        op = src->map->cop & ~COLOR_BLEND_FLAGS_MASK;
-    }
-
-    if (op > PIXMAN_OP_HSL_LUMINOSITY || op < PIXMAN_OP_CLEAR) {
+        msk_img = NULL;
         op = PIXMAN_OP_SRC;
-    }
-
-    src_img = pixman_image_create_bits_no_clear ((pixman_format_code_t)src->tmp_data,
-            src->w, src->h,
-            (uint32_t *)((char*)src->pixels + src->pixels_off),
-            src->pitch);
-    if (src_img == NULL)
-        goto out;
-
-    if (dst != src) {
-        dst_img = pixman_image_create_bits_no_clear ((pixman_format_code_t)dst->tmp_data,
-                dst->w, dst->h,
-                (uint32_t *)((char*)dst->pixels + dst->pixels_off),
-                dst->pitch);
-        if (dst_img == NULL)
-            goto out;
-    }
-    else {
-        dst_img = src_img;
     }
 
     _DBG_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d\n",
@@ -493,12 +404,12 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
             dstrect->x, dstrect->y, dstrect->w, dstrect->h);
 
 #if 0
+    pixman_region32_t clip_region;
     pixman_region32_init_rect (&clip_region,
             dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
     pixman_image_set_clip_region32 (dst_img, &clip_region);
 #endif
 
-    retv = 0;
     pixman_image_composite32 (op, src_img, msk_img, dst_img,
             srcrect->x, srcrect->y,
             0, 0,
@@ -507,17 +418,7 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
 
     //pixman_region32_fini (&clip_region);
 
-out:
-    if (msk_img)
-        pixman_image_unref (msk_img);
-
-    if (src_img)
-        pixman_image_unref (src_img);
-
-    if (dst_img != src_img && dst_img)
-        pixman_image_unref (dst_img);
-
-    return retv;
+    return 0;
 }
 #endif // _MGUSE_PIXMAN
 

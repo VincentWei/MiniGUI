@@ -794,6 +794,10 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     surface->h = surface_buffer->height;
     surface->pitch = surface_buffer->pitch;
     surface->pixels_off = 0;
+#ifdef _MGUSE_PIXMAN
+    surface->pix_img = NULL;
+    surface->blit_ctxt = NULL;
+#endif
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
@@ -3289,8 +3293,12 @@ static BOOL DRM_SyncUpdate (_THIS)
         src_rect.h = RECTH (bound);
         dst_rect = src_rect;
 
+        GAL_SetupBlitting (this->hidden->shadow_screen,
+                this->hidden->real_screen, 0);
         GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
                 this->hidden->real_screen, &dst_rect);
+        GAL_CleanupBlitting (this->hidden->shadow_screen,
+                this->hidden->real_screen);
 #endif  /* use blitting */
     }
 
@@ -3313,8 +3321,12 @@ static BOOL DRM_SyncUpdate (_THIS)
             dst_rect.y = eff_rc.top;
             dst_rect.w = src_rect.w;
             dst_rect.h = src_rect.h;
+            GAL_SetupBlitting (this->hidden->cursor,
+                    this->hidden->real_screen, 0);
             GAL_BlitSurface (this->hidden->cursor, &src_rect,
                     this->hidden->real_screen, &dst_rect);
+            GAL_CleanupBlitting (this->hidden->cursor,
+                    this->hidden->real_screen);
         }
     }
 #endif  /* _MGSCHEMA_COMPOSITING */

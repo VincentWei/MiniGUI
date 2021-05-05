@@ -17,6 +17,9 @@ DRIVERS = @VIDEO_DRIVERS@
 
 # Include the architecture-independent sources
 COMMON_SRCS =       \
+    video.c         \
+    newgal.c        \
+    surface.c       \
     RLEaccel.c      \
     RLEaccel_c.h    \
     blit.c          \
@@ -29,12 +32,9 @@ COMMON_SRCS =       \
     leaks.h         \
     pixels.c        \
     pixels_c.h      \
-    surface.c       \
     stretch.c       \
     stretch_c.h     \
     sysvideo.h      \
-    video.c         \
-    newgal.c        \
     videomem-bucket.h   \
     videomem-bucket.c   \
     surface-shared.c    \

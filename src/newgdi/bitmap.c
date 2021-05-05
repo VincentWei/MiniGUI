@@ -1158,6 +1158,7 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
      *      else should     rc1 rc2 rc3 ..., rc4 rc5 rc6 ...
      *
      */
+    GAL_SetupBlitting (psdc->surface, pddc->surface, dwRop);
     if (pddc->surface == psdc->surface) {
         if (dy > sy) {
             cliprect = pddc->ecrgn.tail;
@@ -1266,6 +1267,7 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
             cliprect = cliprect->next;
         }
     }
+    GAL_CleanupBlitting (psdc->surface, pddc->surface);
 
     if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE(psdc))
         kernel_ShowCursorForGDI (TRUE, psdc);
@@ -1538,6 +1540,8 @@ BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
 
     src.x = sx; src.y = sy; src.w = sw; src.h = sh;
     dst.x = dx; dst.y = dy; dst.w = dw; dst.h = dh;
+
+    GAL_SetupStretchBlit (psdc->surface, &src, pddc->surface, &dst, sei, dwRop);
     cliprect = pddc->ecrgn.head;
     while(cliprect) {
         if (IntersectRect (&eff_rc, &pddc->rc_output, &cliprect->rc)) {
@@ -1548,6 +1552,7 @@ BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
 
         cliprect = cliprect->next;
     }
+    GAL_CleanupStretchBlit (psdc->surface, pddc->surface);
 
     if (pddc->surface != psdc->surface && IS_SCREEN_SURFACE (psdc))
         kernel_ShowCursorForGDI (TRUE, psdc);
