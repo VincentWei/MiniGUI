@@ -50,6 +50,14 @@
 
 #include "sysvideo.h"
 
+#if IS_SHAREDFB_SCHEMA_PROCS
+#include <fcntl.h>           /* For O_* constants */
+#include <sys/stat.h>        /* For mode constants */
+#include <semaphore.h>
+
+#define SEM_UPDATE_LOCK     "mginit-drm-update"
+#endif
+
 /* Hidden "this" pointer for the video functions */
 #define _THIS   GAL_VideoDevice *this
 
@@ -86,7 +94,9 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        real_name, shadow_name;
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 
-#if !IS_SHAREDFB_SCHEMA_PROCS
+#if IS_SHAREDFB_SCHEMA_PROCS
+    sem_t *update_lock;
+#else
     RECT dirty_rc;
 #endif
 

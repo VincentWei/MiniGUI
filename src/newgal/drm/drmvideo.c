@@ -1251,8 +1251,11 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 
 #ifdef _MGSCHEMA_SHAREDFB
         if (device->hidden->dbl_buff) {
-            if (sem_init (SHAREDRES_VIDEO_UPDATE_LOCK, 1, 0)) {
-                _WRN_PRINTF ("Failed to create update lock\n");
+            sem_unlink (SEM_UPDATE_LOCK);
+            device->hidden->update_lock = sem_open (SEM_UPDATE_LOCK,
+                    O_CREAT | O_RDWR | O_EXCL, 0666, 1);
+            if (device->hidden->update_lock == NULL) {
+                _WRN_PRINTF ("Failed to create update lock: %s\n", strerror (errno));
                 device->hidden->dbl_buff = 0;
             }
         }
@@ -1261,6 +1264,15 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 #ifdef _MGRM_PROCESSES
     else {
         device->hidden->dbl_buff = SHAREDRES_VIDEO_DBL_BUFF;
+#ifdef _MGSCHEMA_SHAREDFB
+        if (device->hidden->dbl_buff) {
+            device->hidden->update_lock = sem_open (SEM_UPDATE_LOCK, O_RDWR);
+            if (device->hidden->update_lock == NULL) {
+                _WRN_PRINTF ("Failed to open update lock: %s\n", strerror (errno));
+                return NULL;
+            }
+        }
+#endif
     }
 #endif /* defined _MGRM_PROCESSES */
 
@@ -1661,8 +1673,9 @@ static void DRM_VideoQuit(_THIS)
 
 #if defined (_MGRM_PROCESSES) && defined (_MGSCHEMA_SHAREDFB)
     if (mgIsServer && this->hidden->dbl_buff) {
-        if (sem_destroy (SHAREDRES_VIDEO_UPDATE_LOCK)) {
-            _ERR_PRINTF ("Failed to destroy the update lock\n");
+        if (sem_unlink (SEM_UPDATE_LOCK)) {
+            _ERR_PRINTF ("Failed to unlink the update lock semaphore: %s\n",
+                    strerror (errno));
         }
     }
 #endif
@@ -3220,7 +3233,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 
 #if IS_SHAREDFB_SCHEMA_PROCS
     if (this->hidden->dbl_buff) {
-        sem_wait (SHAREDRES_VIDEO_UPDATE_LOCK);
+        sem_wait (this->hidden->update_lock);
     }
 
     GAL_ShadowSurfaceHeader* hdr;
@@ -3257,7 +3270,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 
 #if IS_SHAREDFB_SCHEMA_PROCS
     if (this->hidden->dbl_buff) {
-        sem_post (SHAREDRES_VIDEO_UPDATE_LOCK);
+        sem_post (this->hidden->update_lock);
     }
 #endif
 }
@@ -3270,7 +3283,7 @@ static BOOL DRM_SyncUpdate (_THIS)
 
 #if IS_SHAREDFB_SCHEMA_PROCS
     if (this->hidden->dbl_buff) {
-        sem_wait (SHAREDRES_VIDEO_UPDATE_LOCK);
+        sem_wait (this->hidden->update_lock);
     }
 
     GAL_ShadowSurfaceHeader* hdr;
@@ -3379,7 +3392,7 @@ static BOOL DRM_SyncUpdate (_THIS)
 ret:
 #if IS_SHAREDFB_SCHEMA_PROCS
     if (this->hidden->dbl_buff) {
-        sem_post (SHAREDRES_VIDEO_UPDATE_LOCK);
+        sem_post (this->hidden->update_lock);
     }
 #endif
 

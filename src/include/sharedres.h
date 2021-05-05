@@ -59,10 +59,6 @@
 #include <sys/time.h>
 #include <sys/termios.h>
 
-#ifdef _MGSCHEMA_SHAREDFB
-#include <semaphore.h>
-#endif
-
 #include "constants.h"
 
 enum {
@@ -112,9 +108,6 @@ typedef struct tagG_RES {
     char video_exdriver [LEN_EXDRIVER_NAME + 1];
     Uint32 video_drm_format;
     Uint32 video_dbl_buff:1;
-#ifdef _MGSCHEMA_SHAREDFB
-    sem_t video_update_lock;    /* the semaphore used for sync update */
-#endif
 #endif
 
     int nr_layers;
@@ -191,9 +184,6 @@ typedef G_RES* PG_RES;
 #define SHAREDRES_VIDEO_EXDRIVER    (((PG_RES)mgSharedRes)->video_exdriver)
 #define SHAREDRES_VIDEO_DRM_FORMAT  (((PG_RES)mgSharedRes)->video_drm_format)
 #define SHAREDRES_VIDEO_DBL_BUFF    (((PG_RES)mgSharedRes)->video_dbl_buff)
-#ifdef _MGSCHEMA_SHAREDFB
-#define SHAREDRES_VIDEO_UPDATE_LOCK (&((PG_RES)mgSharedRes)->video_update_lock)
-#endif
 #endif
 
 #define SHAREDRES_TIMER_COUNTER (((PG_RES)mgSharedRes)->timer_counter)
