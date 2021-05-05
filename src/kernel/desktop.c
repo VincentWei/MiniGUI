@@ -473,6 +473,8 @@ static int update_client_window (ZORDERNODE* znode, const RECT* rc)
 
     if (znode->cli != 0) {
         if (rc) {
+            MSG msg = {0, MSG_WAKEUP_CLIENT, 0, 0, __mg_tick_counter};
+
             _DBG_PRINTF ("Update window (%s): %d, %d, %d x %d\n",
                     znode->caption, rc->left, rc->top,
                     RECTWP(rc), RECTHP(rc));
@@ -484,7 +486,9 @@ static int update_client_window (ZORDERNODE* znode, const RECT* rc)
             else {
                 GetBoundRect (&znode->dirty_rc, &znode->dirty_rc, rc);
             }
+
             mgClients [znode->cli].has_dirty = TRUE;
+            __mg_send2client (&msg, mgClients + znode->cli);
         }
     }
     else

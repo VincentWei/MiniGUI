@@ -2997,6 +2997,9 @@ typedef struct _WINMASKINFO {
 /* Since 5.0.0: for calculating the default position */
 #define MSG_CALC_POSITION       0x014B
 
+/* Since 5.0.6: for waking up the client */
+#define MSG_WAKEUP_CLIENT       0x014C
+
 /**
  * \def MSG_DOESNEEDIME
  * \brief Send to a window to query whether the window needs to open

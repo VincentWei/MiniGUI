@@ -154,9 +154,31 @@ int GUIAPI GetSockFD2Server (void)
 
 #include "debug.h"
 
+static void check_live (BOOL woken)
+{
+    static DWORD last_ticks;
+    REQUEST req;
+
+    __mg_update_tick_count (NULL);
+
+    // Since 5.0.6, only send IAMLIVE if the current ticks > (last_ticks + 100)
+    if (woken || __mg_tick_counter > last_ticks + 100) {
+        last_ticks = __mg_tick_counter;
+
+        /* Tell server that I am live */
+        req.id = REQID_IAMLIVE;
+        req.data = &__mg_tick_counter;
+        req.len_data = sizeof (unsigned int);
+        ClientRequest (&req, NULL, 0);
+    }
+}
+
 static void process_socket_message (MSG *msg)
 {
-    if (msg->message == MSG_UPDATECLIWIN &&
+    if (msg->message == MSG_WAKEUP_CLIENT) {
+        check_live (TRUE);
+    }
+    else if (msg->message == MSG_UPDATECLIWIN &&
             __mg_client_check_hwnd (msg->hwnd, __mg_client_id)) {
         __mg_update_window (msg->hwnd,
                 LOSWORD(msg->wParam), HISWORD(msg->wParam),
@@ -366,25 +388,6 @@ sock_error:
     return -1;
 }
 
-static void check_live (void)
-{
-    static DWORD last_ticks;
-    REQUEST req;
-
-    __mg_update_tick_count (NULL);
-
-    // Since 5.0.6, only send IAMLIVE if the current ticks > (last_ticks + 100)
-    if (__mg_tick_counter > last_ticks + 100) {
-        last_ticks = __mg_tick_counter;
-
-        /* Tell server that I am live */
-        req.id = REQID_IAMLIVE;
-        req.data = &__mg_tick_counter;
-        req.len_data = sizeof (unsigned int);
-        ClientRequest (&req, NULL, 0);
-    }
-}
-
 BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
 {
     static DWORD old_timer;
@@ -396,7 +399,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
     struct timeval sel_timeout;
     MSG Msg;
 
-    check_live ();
+    check_live (FALSE);
 
     /* rset gets modified each time around */
     rset = msg_queue->rfdset;
@@ -431,7 +434,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
         static unsigned int old_mouse_move_serial = 0xdeadbeef;
         int flag = 0, mouse_x = -1, mouse_y = -1, buttons = -1;
 
-        check_live ();
+        check_live (FALSE);
         if (wait && (__mg_tick_counter - old_timer) >= repeat_timeout) {
             Msg.hwnd = HWND_DESKTOP;
             Msg.message = MSG_TIMEOUT;
@@ -505,7 +508,7 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
     /* go through registered listen fds */
     n += __mg_kernel_check_listen_fds (msg_queue, &rset, wsetptr, esetptr);
 
-    check_live ();
+    check_live (FALSE);
 
     if (n > 0) {
         old_timer = __mg_tick_counter;
