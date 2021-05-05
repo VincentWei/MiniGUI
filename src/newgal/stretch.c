@@ -295,7 +295,7 @@ int GAL_SetupStretchBlit (GAL_Surface *src, GAL_Rect *srcrect,
             ctxt->filter = PIXMAN_FILTER_FAST;
         }
 
-        ops &= ~COLOR_BLEND_FLAGS_MASK;
+        ops &= COLOR_BLEND_FLAGS_MASK;
         if (ops == COLOR_BLEND_LEGACY) {
             if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
                 ctxt->op = PIXMAN_OP_OVER;
@@ -388,7 +388,7 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
 
     if (src_img == NULL || dst_img == NULL || (src->flags & GAL_SRCCOLORKEY))
         return GAL_StretchBltLegacy (src, srcrect, dst, dstrect,
-                ops & ~COLOR_BLEND_FLAGS_MASK);
+                ops & COLOR_BLEND_FLAGS_MASK);
 
     if (src->blit_ctxt) {
         GAL_BlittingContext* ctxt = src->blit_ctxt;

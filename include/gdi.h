@@ -5170,7 +5170,7 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
  */
 typedef enum {
     COLOR_BLEND_LEGACY      = 0,
-    COLOR_BLEND_FLAGS_MASK  = 0xFFFFFF00,
+    COLOR_BLEND_FLAGS_MASK  = 0x00FF,
 
     /** Porter Duff rule: clear */
     COLOR_BLEND_PD_CLEAR    = 0x0100,   // PIXMAN_OP_CLEAR          = 0x00

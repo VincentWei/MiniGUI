@@ -348,7 +348,7 @@ int GAL_SetupBlitting (GAL_Surface *src, GAL_Surface *dst, DWORD ops)
         else
             ctxt->msk_img = NULL;
 
-        ops &= ~COLOR_BLEND_FLAGS_MASK;
+        ops &= COLOR_BLEND_FLAGS_MASK;
         if (ops == COLOR_BLEND_LEGACY) {
             if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
                 ctxt->op = PIXMAN_OP_OVER;
