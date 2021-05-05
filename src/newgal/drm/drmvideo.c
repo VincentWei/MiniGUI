@@ -1248,6 +1248,15 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
                 strcasecmp (tmp, "yes") == 0) {
             device->hidden->dbl_buff = 1;
         }
+
+#ifdef _MGSCHEMA_SHAREDFB
+        if (device->hidden->dbl_buff) {
+            if (sem_init (SHAREDRES_VIDEO_UPDATE_LOCK, 1, 0)) {
+                _WRN_PRINTF ("Failed to create update lock\n");
+                device->hidden->dbl_buff = 0;
+            }
+        }
+#endif
     }
 #ifdef _MGRM_PROCESSES
     else {
@@ -1257,7 +1266,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 
     /* override double buffering */
 #if IS_COMPOSITING_SCHEMA
-    /* force to use double buffering to compositing schema */
+    /* force to use double buffering for compositing schema */
     if (mgIsServer) {
         device->hidden->dbl_buff = 1;
 #if 0   /* test code */
@@ -1649,6 +1658,14 @@ static void DRM_VideoQuit(_THIS)
     if (this->screen->pixels != NULL) {
         this->screen->pixels = NULL;
     }
+
+#if defined (_MGRM_PROCESSES) && defined (_MGSCHEMA_SHAREDFB)
+    if (mgIsServer && this->hidden->dbl_buff) {
+        if (sem_destroy (SHAREDRES_VIDEO_UPDATE_LOCK)) {
+            _ERR_PRINTF ("Failed to destroy the update lock\n");
+        }
+    }
+#endif
 
 #if 0   /* test code */
 #ifdef _MBSCHEMA_COMPOSITING
@@ -3202,6 +3219,10 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     RECT bound;
 
 #if IS_SHAREDFB_SCHEMA_PROCS
+    if (this->hidden->dbl_buff) {
+        sem_wait (SHAREDRES_VIDEO_UPDATE_LOCK);
+    }
+
     GAL_ShadowSurfaceHeader* hdr;
     if (this->hidden->shadow_screen->flags & GAL_HWSURFACE) {
         hdr = (GAL_ShadowSurfaceHeader*)
@@ -3233,6 +3254,12 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     bound = GetScreenRect();
     if (!IntersectRect (dirty_rc, dirty_rc, &bound))
         SetRectEmpty (dirty_rc);
+
+#if IS_SHAREDFB_SCHEMA_PROCS
+    if (this->hidden->dbl_buff) {
+        sem_post (SHAREDRES_VIDEO_UPDATE_LOCK);
+    }
+#endif
 }
 
 static BOOL DRM_SyncUpdate (_THIS)
@@ -3242,6 +3269,10 @@ static BOOL DRM_SyncUpdate (_THIS)
     RECT bound;
 
 #if IS_SHAREDFB_SCHEMA_PROCS
+    if (this->hidden->dbl_buff) {
+        sem_wait (SHAREDRES_VIDEO_UPDATE_LOCK);
+    }
+
     GAL_ShadowSurfaceHeader* hdr;
     if (this->hidden->shadow_screen->flags & GAL_HWSURFACE) {
         hdr = (GAL_ShadowSurfaceHeader*)
@@ -3344,7 +3375,14 @@ static BOOL DRM_SyncUpdate (_THIS)
     }
 
     SetRectEmpty (dirty_rc);
+
 ret:
+#if IS_SHAREDFB_SCHEMA_PROCS
+    if (this->hidden->dbl_buff) {
+        sem_post (SHAREDRES_VIDEO_UPDATE_LOCK);
+    }
+#endif
+
     return retval;
 }
 
