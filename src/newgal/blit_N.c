@@ -52,27 +52,9 @@
 
 /* Function to check the CPU flags */
 #define MMX_CPU        0x800000
-#ifdef USE_ASMBLIT
-#define CPU_Flags()    Hermes_X86_CPU()
-#else
 #define CPU_Flags()    0L
-#endif
 
 /* Functions to blit from N-bit surfaces to other surfaces */
-
-#ifdef USE_ASMBLIT
-
-/* Heheheh, we coerce Hermes into using GAL blit information */
-#define X86_ASSEMBLER
-#define HermesConverterInterface    GAL_BlitInfo
-#define HermesClearInterface        void
-#define STACKCALL
-typedef Uint32 int32;
-
-#include "hermes/HeadMMX.h"
-#include "hermes/HeadX86.h"
-
-#else
 
 /* This is now endian dependent */
 #if ( GAL_BYTEORDER == GAL_LIL_ENDIAN )
@@ -427,9 +409,6 @@ static void Blit_RGB888_RGB565(GAL_BlitInfo *info)
     }
 #endif /* USE_DUFFS_LOOP */
 }
-
-#endif /* USE_ASMBLIT */
-
 
 /* Special optimized blit for RGB 5-6-5 --> 32-bit RGB surfaces */
 #if ( GAL_BYTEORDER == GAL_LIL_ENDIAN )
@@ -1458,14 +1437,6 @@ static const struct blit_table normal_blit_1[] = {
     { 0,0,0, 0, 0,0,0, 0, NULL, NULL },
 };
 static const struct blit_table normal_blit_2[] = {
-#ifdef USE_ASMBLIT
-    { 0x0000F800,0x000007E0,0x0000001F, 2, 0x0000001F,0x000007E0,0x0000F800,
-      0, ConvertX86p16_16BGR565, ConvertX86, NO_ALPHA },
-    { 0x0000F800,0x000007E0,0x0000001F, 2, 0x00007C00,0x000003E0,0x0000001F,
-      0, ConvertX86p16_16RGB555, ConvertX86, NO_ALPHA },
-    { 0x0000F800,0x000007E0,0x0000001F, 2, 0x0000001F,0x000003E0,0x00007C00,
-      0, ConvertX86p16_16BGR555, ConvertX86, NO_ALPHA },
-#endif
     { 0x0000F800,0x000007E0,0x0000001F, 4, 0x00FF0000,0x0000FF00,0x000000FF,
       0, NULL, Blit_RGB565_ARGB8888, SET_ALPHA },
     { 0x0000F800,0x000007E0,0x0000001F, 4, 0x000000FF,0x0000FF00,0x00FF0000,
@@ -1483,39 +1454,10 @@ static const struct blit_table normal_blit_3[] = {
     { 0,0,0, 0, 0,0,0, 0, NULL, BlitNtoN, 0 }
 };
 static const struct blit_table normal_blit_4[] = {
-#ifdef USE_ASMBLIT
-    { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x0000F800,0x000007E0,0x0000001F,
-      MMX_CPU, ConvertMMXpII32_16RGB565, ConvertMMX, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x0000F800,0x000007E0,0x0000001F,
-      0, ConvertX86p32_16RGB565, ConvertX86, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x0000001F,0x000007E0,0x0000F800,
-      MMX_CPU, ConvertMMXpII32_16BGR565, ConvertMMX, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x0000001F,0x000007E0,0x0000F800,
-      0, ConvertX86p32_16BGR565, ConvertX86, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x00007C00,0x000003E0,0x0000001F,
-      MMX_CPU, ConvertMMXpII32_16RGB555, ConvertMMX, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x00007C00,0x000003E0,0x0000001F,
-      0, ConvertX86p32_16RGB555, ConvertX86, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x0000001F,0x000003E0,0x00007C00,
-      MMX_CPU, ConvertMMXpII32_16BGR555, ConvertMMX, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x0000001F,0x000003E0,0x00007C00,
-      0, ConvertX86p32_16BGR555, ConvertX86, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 3, 0x00FF0000,0x0000FF00,0x000000FF,
-      0, ConvertX86p32_24RGB888, ConvertX86, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 3, 0x000000FF,0x0000FF00,0x00FF0000,
-      0, ConvertX86p32_24BGR888, ConvertX86, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 4, 0x000000FF,0x0000FF00,0x00FF0000,
-      0, ConvertX86p32_32BGR888, ConvertX86, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 4, 0xFF000000,0x00FF0000,0x0000FF00,
-      0, ConvertX86p32_32RGBA888, ConvertX86, NO_ALPHA },
-    { 0x00FF0000,0x0000FF00,0x000000FF, 4, 0x0000FF00,0x00FF0000,0xFF000000,
-      0, ConvertX86p32_32BGRA888, ConvertX86, NO_ALPHA },
-#else
     { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x0000F800,0x000007E0,0x0000001F,
       0, NULL, Blit_RGB888_RGB565, NO_ALPHA },
     { 0x00FF0000,0x0000FF00,0x000000FF, 2, 0x00007C00,0x000003E0,0x0000001F,
       0, NULL, Blit_RGB888_RGB555, NO_ALPHA },
-#endif
     /* Default for 32-bit RGB source, used if no other blitter matches */
     { 0,0,0, 0, 0,0,0, 0, NULL, BlitNtoN, 0 }
 };
@@ -1575,12 +1517,7 @@ GAL_loblit GAL_CalculateBlitN(GAL_Surface *surface, int blit_index)
             if ( surface->map->table ) {
                 blitfun = Blit_RGB888_index8_map;
             } else {
-#ifdef USE_ASMBLIT
-                sdata->aux_data = ConvertX86p32_8RGB332;
-                blitfun = ConvertX86;
-#else
                 blitfun = Blit_RGB888_index8;
-#endif
             }
         } else {
             blitfun = BlitNto1;
@@ -1611,14 +1548,6 @@ GAL_loblit GAL_CalculateBlitN(GAL_Surface *surface, int blit_index)
     }
 
 #ifdef DEBUG_ASM
-#ifdef USE_ASMBLIT
-    if ( blitfun == ConvertMMX )
-        fprintf(stderr, "Using mmx blit\n");
-    else
-    if ( blitfun == ConvertX86 )
-        fprintf(stderr, "Using asm blit\n");
-    else
-#endif
     if ( (blitfun == GAL_BlitNtoN) || (blitfun == GAL_BlitNto1) )
         fprintf(stderr, "Using C blit\n");
     else
