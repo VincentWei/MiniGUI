@@ -313,7 +313,8 @@ int GAL_CalculateBlit(GAL_Surface *surface)
             // have colorkey
             surface->map->sw_blit = GAL_SoftBlit;
         }
-        else if (surface->pix_img && surface->map->dst->pix_img) {
+        else if (surface->pix_img && surface->map->dst->pix_img &&
+                surface != surface->map->dst) {
             surface->map->sw_blit = GAL_PixmanBlit;
         }
         else {
