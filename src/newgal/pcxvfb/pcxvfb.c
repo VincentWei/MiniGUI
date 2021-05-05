@@ -151,7 +151,7 @@ try_again:
         if (errno == EINTR)
             goto try_again;
         else
-            _DBG_PRINTF ("NEWGAL>PCXVFB: failed to lock sempahore id: %d; pid (%d): %s\n",
+            _WRN_PRINTF ("NEWGAL>PCXVFB: failed to lock sempahore id: %d; pid (%d): %s\n",
                     semid, getpid(), strerror (errno));
     }
 }
@@ -165,7 +165,7 @@ try_again:
         if (errno == EINTR)
             goto try_again;
         else
-            _DBG_PRINTF ("NEWGAL>PCXVFB: failed to unlock sempahore id: %d; pid (%d): %s\n",
+            _WRN_PRINTF ("NEWGAL>PCXVFB: failed to unlock sempahore id: %d; pid (%d): %s\n",
                     semid, getpid(), strerror (errno));
     }
 }
@@ -243,40 +243,16 @@ static void PCXVFB_DeleteDevice (GAL_VideoDevice *device)
     free (device);
 }
 
-#if 0   /* deprecated code: call common helpers for shadow screen */
+#if 0   // deprecated code
 static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
-    int i;
-    RECT bound;
-
 #ifdef WIN32
     win_PCXVFbLock ();
 #else
     shm_lock(semid);
 #endif
 
-    bound.left   = this->hidden->hdr->dirty_rc_l;
-    bound.top    = this->hidden->hdr->dirty_rc_t;
-    bound.right  = this->hidden->hdr->dirty_rc_r;
-    bound.bottom = this->hidden->hdr->dirty_rc_b;
-
-    if (bound.right == -1) bound.right = 0;
-    if (bound.bottom == -1) bound.bottom = 0;
-
-    bound = this->hidden->dirty_rc;
-
-    for (i = 0; i < numrects; i++) {
-        RECT rc;
-
-        SetRect (&rc, rects[i].x, rects[i].y,
-                rects[i].x + rects[i].w, rects[i].y + rects[i].h);
-        if (IsRectEmpty (&bound))
-            bound = rc;
-        else
-            GetBoundRect (&bound, &bound, &rc);
-    }
-
-    this->hidden->dirty_rc = bound;
+    shadowScreen_UpdateRects (this, numrects, rects);
 
 #ifdef WIN32
     win_PCXVFbUnlock ();
@@ -284,7 +260,7 @@ static void PCXVFB_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     shm_unlock(semid);
 #endif
 }
-#endif  /* deprecated code */
+#endif  // deprecated code
 
 static BOOL PCXVFB_SyncUpdate (_THIS)
 {
@@ -519,8 +495,6 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
 
     listen (__mg_pcxvfb_server_sockfd, 3);
 
-    //shm_init_lock(getpid());
-
     if ((pid = fork()) < 0) {
         _ERR_PRINTF ("NEWGAL>PCXVFB: fork() error.\n");
     }
@@ -650,8 +624,8 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
                 GAL_SetError ("NEWGAL>PCXVFB: failed to open tmp file\n");
                 return -1;
             }
-
             fwrite (&shmid, sizeof(int), 1, fp);
+            fwrite (&semid, sizeof(int), 1, fp);
             fclose (fp);
 #endif /* _MGRM_PROCESSES */
         }
@@ -666,11 +640,16 @@ static int PCXVFB_VideoInit (_THIS, GAL_PixelFormat *vformat)
         }
 
         if (fread (&shmid, sizeof(int), 1, fp) < 1) {
-            GAL_SetError ("NEWGAL>PCXVFB: can't read from tmp file\n");
+            GAL_SetError ("NEWGAL>PCXVFB: can't read shmid from tmp file\n");
             fclose (fp);
             return -1;
         }
 
+        if (fread (&semid, sizeof(int), 1, fp) < 1) {
+            GAL_SetError ("NEWGAL>PCXVFB: can't read semid from tmp file\n");
+            fclose (fp);
+            return -1;
+        }
         fclose(fp);
 
         if (shmid != -1) {
@@ -864,11 +843,14 @@ static void PCXVFB_VideoQuit (_THIS)
     munmap (this->hidden->shmrgn, size);
     close (fd);
     remove (mapFile);
-    semctl (semid, 0, IPC_RMID);
 #else        // linux
     shmdt (this->hidden->shmrgn);
-    semctl (semid, 0, IPC_RMID);
 #endif
+
+#if defined(_MGRM_PROCESSES)
+    if (mgIsServer)
+#endif
+        semctl (semid, 0, IPC_RMID);
 }
 
 #endif /* _MGGAL_PCXVFB*/

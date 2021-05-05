@@ -2401,8 +2401,9 @@ static void wndDrawNCFrame(MAINWIN* pWin, HDC hdc, const RECT* prcInvalid)
     }
 #endif
 
-    if (fGetDC)
+    if (fGetDC) {
         release_effective_dc (pWin, hdc);
+    }
 }
 
 /* this function is CONTROL safe. */

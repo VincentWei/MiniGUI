@@ -1843,7 +1843,7 @@ static HWND dskSetActiveZOrderNode (ZORDERINFO* zi, int cli, int idx_znode)
             new_hwnd = HWND_OTHERPROC;
     }
 
-    if (old_active && (nodes [zi->active_win].flags & ZOF_VISIBLE)) {
+    if (old_active && (nodes [old_active].flags & ZOF_VISIBLE)) {
         post_msg_by_znode_p (zi, nodes + old_active,
                         MSG_NCACTIVATE, FALSE, 0);
         post_msg_by_znode_p (zi, nodes + old_active,
