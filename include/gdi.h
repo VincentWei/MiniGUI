@@ -5299,6 +5299,9 @@ typedef enum {
     COLOR_BLEND_NS_FLAG         = 0x1000,
     COLOR_BLEND_NS_FIRST        = COLOR_BLEND_NS_HUE,
     COLOR_BLEND_NS_LAST         = COLOR_BLEND_NS_LUMINOSITY,
+
+    COLOR_BLEND_FIRST        = COLOR_BLEND_PD_CLEAR,
+    COLOR_BLEND_LAST         = COLOR_BLEND_NS_LAST,
 } ColorBlendMethod;
 
 /**
