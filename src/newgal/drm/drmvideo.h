@@ -50,7 +50,7 @@
 
 #include "sysvideo.h"
 
-#if IS_SHAREDFB_SCHEMA_PROCS
+#ifndef _MGSCHEMA_COMPOSITING
 #include <fcntl.h>           /* For O_* constants */
 #include <sys/stat.h>        /* For mode constants */
 #include <semaphore.h>
