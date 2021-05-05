@@ -1303,7 +1303,7 @@ static void transit_to_layer (CompositorCtxt* ctxt, MG_Layer* to_layer)
         }
     }
 
-    _WRN_PRINTF ("Average time to composite the layers: %u (times: %u)\n", total_time_ms / total_times, total_times);
+    _DBG_PRINTF ("Average time to composite the layers: %u (times: %u)\n", total_time_ms / total_times, total_times);
 }
 
 CompositorOps __mg_fallback_compositor = {
