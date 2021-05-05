@@ -262,7 +262,7 @@ int GAL_CalculateBlit(GAL_Surface *surface)
 
         /* Handle overlapping blits on the same surface */
         if ( surface == surface->map->dst ) {
-                surface->map->sw_data->blit = GAL_BlitCopyOverlap;
+            surface->map->sw_data->blit = GAL_BlitCopyOverlap;
         }
     } else {
         if ( surface->format->BitsPerPixel < 8 ) {
@@ -411,11 +411,28 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
     pixman_image_set_clip_region32 (dst_img, &clip_region);
 #endif
 
-    pixman_image_composite32 (op, src_img, msk_img, dst_img,
-            srcrect->x, srcrect->y,
-            0, 0,
-            dstrect->x, dstrect->y, 
-            srcrect->w, srcrect->h);
+#if 0
+    // pixman_blt does not work
+    if (pixman_image_get_format (src_img) == pixman_image_get_format (dst_img) &&
+            op == PIXMAN_OP_SRC && msk_img == NULL) {
+        pixman_blt ((uint32_t *)((char*)src->pixels + src->pixels_off),
+                    (uint32_t *)((char*)dst->pixels + dst->pixels_off),
+					src->pitch, dst->pitch,
+                    GAL_BytesPerPixel (src),
+                    GAL_BytesPerPixel (dst),
+                    srcrect->x, srcrect->y,
+                    dstrect->x, dstrect->y,
+                    srcrect->w, srcrect->h);
+    }
+    else
+#endif
+    {
+        pixman_image_composite32 (op, src_img, msk_img, dst_img,
+                srcrect->x, srcrect->y,
+                0, 0,
+                dstrect->x, dstrect->y,
+                srcrect->w, srcrect->h);
+    }
 
     //pixman_region32_fini (&clip_region);
 
