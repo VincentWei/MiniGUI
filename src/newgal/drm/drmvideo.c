@@ -1249,12 +1249,14 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             device->hidden->dbl_buff = 1;
         }
 
-#ifdef _MGSCHEMA_SHAREDFB
+#if IS_SHAREDFB_SCHEMA_PROCS
         if (device->hidden->dbl_buff) {
+            mode_t old_mask = umask (0000);
             sem_unlink (SEM_UPDATE_LOCK);
             device->hidden->update_lock = sem_open (SEM_UPDATE_LOCK,
                     O_CREAT | O_RDWR | O_EXCL, 0666, 1);
-            if (device->hidden->update_lock == NULL) {
+            umask (old_mask);
+            if (device->hidden->update_lock == SEM_FAILED) {
                 _WRN_PRINTF ("Failed to create update lock: %s\n", strerror (errno));
                 device->hidden->dbl_buff = 0;
             }
@@ -1267,7 +1269,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 #ifdef _MGSCHEMA_SHAREDFB
         if (device->hidden->dbl_buff) {
             device->hidden->update_lock = sem_open (SEM_UPDATE_LOCK, O_RDWR);
-            if (device->hidden->update_lock == NULL) {
+            if (device->hidden->update_lock == SEM_FAILED) {
                 _WRN_PRINTF ("Failed to open update lock: %s\n", strerror (errno));
                 return NULL;
             }
