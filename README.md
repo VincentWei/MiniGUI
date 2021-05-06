@@ -71,18 +71,18 @@ help your develop GUI apps in C/C++ programming language. However,
 alternatively, you can choose the one of the following app frameworks to
 develop your apps in a simpler programming language than C/C++.
 
-* [HybridOS](//FMSoftCN/hybridos) provides a complete software stack to
+* [HybridOS](https://gitlab.fmsoft.cn/HybridOS/hybridos) provides a complete software stack to
   develop an app which have rich functions and excellent expressive in
   HTML5, CSS3, and JavaScript.
-* [hiACEJS](//FMSoftCN/hiACEJS) provides a light-weight app framework in
+* [hiACEJS](https://gitlab.fmsoft.cn/HybridOS/hiACEJS) provides a light-weight app framework in
   JavaScript.
 
-You can also choose [HybridOS Lite](//HybridOS/hybridos-lite) to develop
+You can also choose [HybridOS Lite](https://gitlab.fmsoft.cn/HybridOS/hybridos-lite) to develop
 apps with excellent expressive for cost-sensitive devices.
 
 ### MiniGUI and HybridOS
 
-[HybridOS](https://github.com/FMSoftCN/hybridos) is another large open source project
+[HybridOS](https://gitlab.fmsoft.cn/HybridOS/hybridos) is another large open source project
 initiated by FMSoft. It is a totally new open source operating system designed for
 embedded and smart IoT devices and cloud computing environment.
 
@@ -139,11 +139,11 @@ FMSoft had created the public repositories for MiniGUI Core, MiniGUI
 components, HybridOS, and other open source apps on GitHub. You can visit
 them on:
 
-[VincentWei](/VincentWei)
+<https://gitlabt.fmsoft.cn/VincentWei>
 
 We now maintain all documents about MiniGUI on the following public repo:
 
-[MiniGUI Docs](/VincentWei/minigui-docs)
+[MiniGUI Docs](https://gitlabt.fmsoft.cn/VincentWei/minigui-docs)
 
 ## NEW FEATURES IN VERSION 5.0.x
 
@@ -262,7 +262,7 @@ so that the old applications can smoothly migrate to the new
 version. However, there are still some slight changes you need to take care.
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://github.com/VincentWei/minigui/blob/rel-5-0/RELEASE-NOTES.md>
+<https://gitlab.fmsoft.cn/VincentWei/minigui/blob/rel-5-0/RELEASE-NOTES.md>
 
 ## NEW FEATURES IN VERSION 4.0.x
 
@@ -293,7 +293,7 @@ in order to support [HybridOS Foundation Class Library].
 
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://github.com/VincentWei/minigui/blob/rel-4-0/RELEASE-NOTES.md>
+<https://gitlab.fmsoft.cn/VincentWei/minigui/blob/rel-4-0/RELEASE-NOTES.md>
 
 Because of the changes of some APIs, we recommended strongly that you
 use this version for new projects.
@@ -308,7 +308,7 @@ We introduce some new features in MiniGUI Version 3.2.x:
 
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://github.com/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md>
+<https://gitlab.fmsoft.cn/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md>
 
 ## THE RUNTIME MODES OF MINIGUI
 
@@ -411,7 +411,7 @@ For more information, please run
 Since MiniGUI 4.0.0, we organize the unit test code of MiniGUI APIs in the
 following repository:
 
-<https://github.com/VincentWei/mg-tests>
+<https://gitlab.fmsoft.cn/VincentWei/mg-tests>
 
 If you are interested in hacking the MiniGUI code, please visit this repository.
 
