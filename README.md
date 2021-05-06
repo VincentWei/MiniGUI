@@ -1,6 +1,6 @@
 # MiniGUI
 
-A mature and proven cross-platform window system for embedded systems or smart IoT devices.
+A modern and proven cross-platform window system for embedded systems or smart IoT devices.
 
 
 _TABLE OF CONTENTS_
@@ -37,12 +37,6 @@ _TABLE OF CONTENTS_
 
 ### What's MiniGUI
 
-MiniGUI is a modern and mature cross-platform window system for embedded systems
-or smart IoT devices. This is the version 5.0.x of MiniGUI maintained by FMSoft.
-
-MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
-use.
-
 MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
 windowing and GUI support system, which is especially fit for
 embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other
@@ -52,12 +46,12 @@ Nucleus, pSOS, uC/OS-II, OSE, and others.
 This is the source tree of MiniGUI Core, which provides the windowing
 and graphics interfaces as well as a lot of standard controls (toolkit).
 
-MiniGUI is a free software project. In December 1998, the initiator of
-FMSoft, Wei Yongming, began to develop MiniGUI under the GNU General Public
-License (GPL). In September 2002, the core developers of
-MiniGUI founded FMSoft and started the commercial marketing with
-the free software. By now, FMSoft still continues to release MiniGUI
-as a free software project.
+MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
+use. In December 1998, the initiator of FMSoft, Wei Yongming, began to develop
+MiniGUI under the GNU General Public License (GPL). In September 2002, the core
+developers of MiniGUI founded [FMSoft](https://www.fmsoft.cn) and started the
+commercial marketing with the free software. By now, FMSoft still continues to
+release MiniGUI as a free software project.
 
 For the live demos, source tarballs, and cases of MiniGUI, you can refer
 to the following website:
@@ -66,10 +60,10 @@ to the following website:
 
 ### App Frameworks on MiniGUI
 
-MiniGUI and its components provides more than twenty controls/widgets to
+MiniGUI and its components provides a lot of controls/widgets to
 help your develop GUI apps in C/C++ programming language. However,
-alternatively, you can choose the one of the following app frameworks to
-develop your apps in a simpler programming language than C/C++.
+alternatively, you can choose one of the following frameworks to
+develop your apps in a easy-to-use programming language other than C/C++.
 
 * [HybridOS](https://gitlab.fmsoft.cn/HybridOS/hybridos) provides
   a complete software stack to develop an app which have rich functions
