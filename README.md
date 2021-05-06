@@ -59,6 +59,11 @@ MiniGUI founded FMSoft and started the commercial marketing with
 the free software. By now, FMSoft still continues to release MiniGUI
 as a free software project.
 
+For the live demos, source tarballs, and cases of MiniGUI, you can refer
+to the following website:
+
+<http://www.minigui.com>
+
 ### App Frameworks on MiniGUI
 
 MiniGUI and its components provides more than twenty controls/widgets to
@@ -143,7 +148,7 @@ We now maintain all documents about MiniGUI on the following public repo:
 You can download the source code tarballs of MiniGUI Core, MiniGUI
 components, and the dependent libraries from the download zone of the site:
 
-<http://www.minigui.com>
+<http://www.minigui.com/download>
 
 ## NEW FEATURES IN VERSION 5.0.x
 
