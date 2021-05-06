@@ -36,7 +36,7 @@ In this version, we fixed some bugs and made some minor enhancements:
    - Fix memory leaks when using block heap.
    - Fix a bug in ServerGetWinZNodeRegion.
 * ENHANCEMENTS:
-   - NEW API StretchBltEx to support different Scaling Filter and rotation.
+   - NEW API StretchBltEx to support different scaling filters and rotation.
    - Use Pixman to support color blending methods for BitBlt and StretchBlt.
    - Enhance fallback compositor to support animation when switching layers.
    - New API `SetMainWindowGestureFlags` and `MSG_GESTURETEST` message for
