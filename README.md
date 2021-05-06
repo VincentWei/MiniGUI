@@ -71,13 +71,13 @@ help your develop GUI apps in C/C++ programming language. However,
 alternatively, you can choose the one of the following app frameworks to
 develop your apps in a simpler programming language than C/C++.
 
-* [HybridOS](/FMSoftCN/hybridos) provides a complete software stack to
+* [HybridOS](//FMSoftCN/hybridos) provides a complete software stack to
   develop an app which have rich functions and excellent expressive in
   HTML5, CSS3, and JavaScript.
-* [hiACEJS](/FMSoftCN/hiACEJS) provides a light-weight app framework in
+* [hiACEJS](//FMSoftCN/hiACEJS) provides a light-weight app framework in
   JavaScript.
 
-You can also choose [HybridOS Lite](/HybridOS/hybridos-lite) to develop
+You can also choose [HybridOS Lite](//HybridOS/hybridos-lite) to develop
 apps with excellent expressive for cost-sensitive devices.
 
 ### MiniGUI and HybridOS
