@@ -59,11 +59,6 @@ MiniGUI founded FMSoft and started the commercial marketing with
 the free software. By now, FMSoft still continues to release MiniGUI
 as a free software project.
 
-You can download the source code tarballs of MiniGUI Core, MiniGUI
-components, and the dependent libraries from the download zone of the site:
-
-<http://www.minigui.com>
-
 ### App Frameworks on MiniGUI
 
 MiniGUI and its components provides more than twenty controls/widgets to
@@ -71,14 +66,14 @@ help your develop GUI apps in C/C++ programming language. However,
 alternatively, you can choose the one of the following app frameworks to
 develop your apps in a simpler programming language than C/C++.
 
-* [HybridOS](https://gitlab.fmsoft.cn/HybridOS/hybridos) provides a complete software stack to
-  develop an app which have rich functions and excellent expressive in
-  HTML5, CSS3, and JavaScript.
-* [hiACEJS](https://gitlab.fmsoft.cn/HybridOS/hiACEJS) provides a light-weight app framework in
-  JavaScript.
+* [HybridOS](https://gitlab.fmsoft.cn/HybridOS/hybridos) provides
+  a complete software stack to develop an app which have rich functions
+  and excellent expressive in HTML5, CSS3, and JavaScript.
+* [hiACEJS](https://gitlab.fmsoft.cn/HybridOS/hiACEJS) provides
+  a light-weight app framework in JavaScript.
 
-You can also choose [HybridOS Lite](https://gitlab.fmsoft.cn/HybridOS/hybridos-lite) to develop
-apps with excellent expressive for cost-sensitive devices.
+You can also choose [HybridOS Lite](https://gitlab.fmsoft.cn/HybridOS/hybridos-lite)
+to develop apps with excellent expressive for cost-sensitive devices in C/C++ language.
 
 ### MiniGUI and HybridOS
 
@@ -139,11 +134,16 @@ FMSoft had created the public repositories for MiniGUI Core, MiniGUI
 components, HybridOS, and other open source apps on GitHub. You can visit
 them on:
 
-<https://gitlabt.fmsoft.cn/VincentWei>
+<https://gitlab.fmsoft.cn/VincentWei>
 
 We now maintain all documents about MiniGUI on the following public repo:
 
-[MiniGUI Docs](https://gitlabt.fmsoft.cn/VincentWei/minigui-docs)
+<https://gitlab.fmsoft.cn/VincentWei/minigui-docs>
+
+You can download the source code tarballs of MiniGUI Core, MiniGUI
+components, and the dependent libraries from the download zone of the site:
+
+<http://www.minigui.com>
 
 ## NEW FEATURES IN VERSION 5.0.x
 
@@ -362,15 +362,15 @@ and MiniGUI components, please fetch one of the following repositories
 from GitHub and follow the instructions to build MiniGUI Core,
 MiniGUI components, the samples, and the demonstration programs:
 
-[Build MiniGUI 5.0](/VincentWei/build-minigui-5.0)
+[Build MiniGUI 5.0](https://gitlab.fmsoft.cn/VincentWei/build-minigui-5.0)
 
 or
 
-[Build MiniGUI 4.0](/VincentWei/build-minigui-4.0)
+[Build MiniGUI 4.0](https://gitlab.fmsoft.cn/VincentWei/build-minigui-4.0)
 
 or
 
-[Build MiniGUI 3.2](/VincentWei/build-minigui-3.2)
+[Build MiniGUI 3.2](https://gitlab.fmsoft.cn/VincentWei/build-minigui-3.2)
 
 
 ### Building MiniGUI Core
