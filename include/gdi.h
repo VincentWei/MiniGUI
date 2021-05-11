@@ -12951,6 +12951,7 @@ MG_EXPORT int GUIAPI GetGlyphsExtentPoint (HDC hdc, Glyph32* glyphs,
 
 #define GLYPH_INFO_METRICS      0x01
 #define GLYPH_INFO_BMP          0x02
+#define GLYPH_INFO_FACE         0x04
 
 /** The type of glyph bitmap: monochrome */
 #define GLYPHBMP_TYPE_MONO      0x00
@@ -12973,6 +12974,7 @@ typedef struct _GLYPHINFO {
      * or bitmap infomation. Or'ed with the following values:
      * - GLYPH_INFO_METRICS
      * - GLYPH_INFO_BMP
+     * - GLYPH_INFO_FACE
      */
     Uint32 mask;
 
@@ -13005,6 +13007,16 @@ typedef struct _GLYPHINFO {
      * It is only valid if bmp_type is GLYPHBMP_TYPE_PRERENDER
      */
     BITMAP prbitmap;
+
+    /**
+     * The FreeType face, font file path, and the glyph index
+     * (when mask has GLYPH_INFO_FACE set).
+     * You can use these information to render the glyph by yourself.
+     * Only available if the device font is a TrueType/OpenType font.
+     */
+    void* ft_face;
+    const char* file_path;
+    Uint32 index;
 } GLYPHINFO;
 
 /**

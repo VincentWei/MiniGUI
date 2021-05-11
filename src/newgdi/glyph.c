@@ -198,6 +198,30 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         }
     }
 
+    /* get FreeType face and glyph index */
+    if (glyph_info->mask & GLYPH_INFO_FACE) {
+        glyph_info->index = glyph_value;
+        if (devfont->font_ops->get_ft_face) {
+
+            /* keep sync with tagFTFACEINFO in freetype2.h */
+            struct _FTFACEINFO {
+                char*       path;
+                void*       face;
+            };
+
+            struct _FTFACEINFO* face_info = (struct _FTFACEINFO*)
+                devfont->font_ops->get_ft_face (logfont, devfont);
+            assert (face_info);
+
+            glyph_info->ft_face = face_info->face;
+            glyph_info->file_path = face_info->path;
+        }
+        else {
+            glyph_info->ft_face = NULL;
+            glyph_info->file_path = NULL;
+        }
+    }
+
     glyph_info->bmp_width = sz.cx;
     glyph_info->bmp_height = sz.cy;
     return 0;

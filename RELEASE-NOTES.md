@@ -36,6 +36,8 @@ In this version, we fixed some bugs and made some optimizations and enhancements
    - Fix memory leaks when using block heap.
    - Fix a bug in ServerGetWinZNodeRegion.
 * ENHANCEMENTS:
+   - Enhance `GetGlyphInfo` to return the FreeType face, font file path, and glyph
+     index.
    - NEW API `StretchBltEx` to support different scaling filters and rotation.
    - Use Pixman to support color blending methods for `BitBlt` and `StretchBlt`.
    - Enhance fallback compositor to support animation when switching among layers.
