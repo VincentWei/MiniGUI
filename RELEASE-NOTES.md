@@ -27,7 +27,7 @@ which is the bug fixing release of MiniGUI 5.0.x.
 
 ### What's new in version 5.0.6
 
-In this version, we fixed some bugs and made some minor enhancements:
+In this version, we fixed some bugs and made some optimizations and enhancements:
 
 * BUGFIXING:
    - Fix bugs of switching layers under MiniGUI-Processes.
@@ -50,6 +50,8 @@ In this version, we fixed some bugs and made some minor enhancements:
 
 Note that the binary backward-compatibility was broken, two operations added to
 `CompositorOps`. You should rebuild all MiniGUI applications.
+
+Also note that the compositing schema is now enabled by default.
 
 ## Version 5.0.5
 
