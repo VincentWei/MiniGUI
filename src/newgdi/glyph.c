@@ -149,9 +149,12 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
 {
     /* get the relative device font */
     DEVFONT* devfont = SELECT_DEVFONT_BY_GLYPH(logfont, glyph_value);
-    glyph_value = REAL_GLYPH (glyph_value);
     SIZE sz;
 
+    if (glyph_value == INV_GLYPH_VALUE)
+        return -1;
+
+    glyph_value = REAL_GLYPH (glyph_value);
     /* get metrics of the glyph */
     if ((glyph_info->mask & GLYPH_INFO_METRICS) ||
             (glyph_info->mask & GLYPH_INFO_BMP)) {
