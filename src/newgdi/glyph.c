@@ -164,7 +164,7 @@ int GUIAPI GetGlyphInfo (LOGFONT* logfont, Glyph32 glyph_value,
         glyph_info->bbox_y = 0;
 
         _font_get_glyph_advance (logfont, devfont, glyph_value, TRUE,
-            0, 0, 0, &glyph_info->advance_x, &glyph_info->advance_x,
+            0, 0, 0, &glyph_info->advance_x, &glyph_info->advance_y,
             (BBOX*)(&glyph_info->bbox_x));
 
         sz.cx = glyph_info->bbox_w;
