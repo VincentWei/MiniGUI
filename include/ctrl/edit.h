@@ -698,7 +698,6 @@ extern "C" {
 #define EM_SETREADONLY          0xF0CF
 
 /**
- * \var typedef int (*ED_DRAWSEL_FUNC) (HWND hWnd, HDC hdc, int startx, int starty, const char* content, int len, int selout)
  * \brief Type of the edit control callback function on drawing selected strings.
  *
  * \param hWnd Handle of the edit control.

@@ -237,7 +237,6 @@ MG_EXPORT void GUIAPI NotifyParentEx (HWND hwnd, LINT id, int code,
                 NotifyParentEx(hwnd, id, code, 0)
 
 /**
- * \var typedef int (*STRCMP) (const char* s1, const char* s2, size_t n)
  * \brief Type of general strncmp function.
  *
  * The function compares the two strings \a s1 and \a s2. It returns
