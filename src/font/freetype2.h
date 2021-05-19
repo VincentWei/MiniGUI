@@ -162,11 +162,11 @@ extern void __mg_ttc_sys_deinit(void);
 extern TTFCACHEINFO *__mg_ttc_search(HCACHE hCache, Glyph32 gv, int *size);
 extern void __mg_ttc_refer(HCACHE hCache);
 
+#endif /* _MGFONT_TTF_CACHE */
+
 #ifdef _MGCOMPLEX_SCRIPTS
 extern void __mg_init_harzbuff_funcs(void);
 extern void __mg_term_harzbuff_funcs(void);
-#endif
-
 #endif
 
 #ifdef __cplusplus

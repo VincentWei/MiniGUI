@@ -735,9 +735,9 @@ get_glyph_advance (LOGFONT* logfont, DEVFONT* devfont,
             pcache->valid_advance = 1;
         }
     }
+done:
 #endif
 
-done:
     FT_UNLOCK(&ft_lock);
 
     if (px) {
