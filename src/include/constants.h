@@ -159,20 +159,14 @@ enum {
 #endif
 
 /* constants for fix string module */
-#if defined (__NOUNIX__) || defined (__uClinux__)
-  #define MAX_LEN_FIXSTR      64
-  #define NR_HEAP             5
-  #define LEN_BITMAP          (1+2+4+8+16)
-#else
- #ifdef _MGRM_THREADS
-  #define MAX_LEN_FIXSTR      2048
-  #define NR_HEAP             10
-  #define LEN_BITMAP          (1+2+4+8+16+32+64+128+256+512)
- #else
+#ifdef _MGRM_THREADS
   #define MAX_LEN_FIXSTR      1024
   #define NR_HEAP             9
   #define LEN_BITMAP          (1+2+4+8+16+32+64+128+256)
- #endif
+#else
+  #define MAX_LEN_FIXSTR      64
+  #define NR_HEAP             5
+  #define LEN_BITMAP          (1+2+4+8+16)
 #endif
 
 /* constants for engine name and video mode */
