@@ -438,7 +438,7 @@ void GAL_UpdateRect
                 (GAL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h);
 
 #ifdef _MGUSE_UPDATE_REGION
-BLOCKHEAP __mg_free_update_region_list;
+extern BLOCKHEAP __mg_free_update_region_list;
 #endif
 
 BOOL GAL_SyncUpdate (GAL_Surface *screen);
