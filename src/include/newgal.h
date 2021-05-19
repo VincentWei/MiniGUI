@@ -631,6 +631,7 @@ GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice* video,
 #define ST_PIXEL_ARGB4444       0x0001
 #define ST_PIXEL_ARGB1555       0x0002
 #define ST_PIXEL_ARGB8888       0x0003
+#define ST_PIXEL_XRGB565        0x0004
 #endif /* not define ST_PIXEL_MASK */
 
 /* Allocate a shared RGB surface from the current video device. */

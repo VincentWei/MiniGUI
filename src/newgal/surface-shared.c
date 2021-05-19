@@ -558,6 +558,14 @@ GAL_Surface *GAL_CreateSurfaceForZNode (unsigned surf_flag, int width, int heigh
         Bmask = 0x000000FF;
         break;
 
+    case ST_PIXEL_XRGB565:
+        bpp = 16;
+        Amask = 0x0000;
+        Rmask = 0xF800;
+        Gmask = 0x07E0;
+        Bmask = 0x001F;
+        break;
+
     default:
         bpp = __gal_screen->format->BitsPerPixel;
         Amask = __gal_screen->format->Amask;

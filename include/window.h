@@ -6916,13 +6916,14 @@ static inline BOOL MainWindowThreadCleanup (HWND hMainWnd)
 #define ST_PIXEL_ARGB4444       0x0001
 #define ST_PIXEL_ARGB1555       0x0002
 #define ST_PIXEL_ARGB8888       0x0003
+#define ST_PIXEL_XRGB565        0x0004
 
 /* other flags for future use */
 
 /* for default surface flags */
 #define ST_DEFAULT              (ST_PIXEL_DEFAULT)
 
-#define CT_SYSTEM_MASK          0X0000FF
+#define CT_SYSTEM_MASK          0x0000FF
 #define CT_OPAQUE               0x000000
 #define CT_COLORKEY             0x000001
 #define CT_ALPHACHANNEL         0x000002
