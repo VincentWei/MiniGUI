@@ -107,11 +107,7 @@ enum {
 #define ZNIDX_DESKTOP               0
 
 /* The heap size for mask rectangles */
-#ifdef _MGRM_PROCESSES
-#   define DEF_NR_MASKRECTS         4096
-#else
-#   define DEF_NR_MASKRECTS         1024
-#endif
+#define DEF_NR_MASKRECTS         1024
 
 #if IS_COMPOSITING_SCHEMA
 /* max number of shared surfaces (512) */
@@ -159,15 +155,9 @@ enum {
 #endif
 
 /* constants for fix string module */
-#ifdef _MGRM_THREADS
-  #define MAX_LEN_FIXSTR      1024
-  #define NR_HEAP             9
-  #define LEN_BITMAP          (1+2+4+8+16+32+64+128+256)
-#else
-  #define MAX_LEN_FIXSTR      64
-  #define NR_HEAP             5
-  #define LEN_BITMAP          (1+2+4+8+16)
-#endif
+#define MAX_LEN_FIXSTR      64
+#define NR_HEAP             5
+#define LEN_BITMAP          (1+2+4+8+16)
 
 /* constants for engine name and video mode */
 #define LEN_SO_NAME         127 // name length of a shared object (library)
