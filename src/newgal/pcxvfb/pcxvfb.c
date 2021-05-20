@@ -765,6 +765,10 @@ static GAL_Surface *PCXVFB_SetVideoMode (_THIS, GAL_Surface *current,
         this->hidden->shadow_screen = NULL;
     }
 
+    if (this->hidden->real_screen) {
+        shadowScreen_InitUpdateThreads(this);
+    }
+
     /* We're done */
     return current;
 }
@@ -828,6 +832,7 @@ static void PCXVFB_VideoQuit (_THIS)
     /* Since 5.0.0 */
     if (this->hidden->real_screen) {
         GAL_FreeSurface (this->hidden->real_screen);
+        shadowScreen_TermUpdateThreads(this);
     }
 
 #ifdef WIN32 // windows

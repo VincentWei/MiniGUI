@@ -95,6 +95,7 @@ message_string="no"
 osname="unspecified"
 runtime_mode="procs"
 compositing_schema="yes"
+nr_update_threads=0
 virtual_window="no"
 use_shmopen="no"
 mgslice_use_fallback="no"
@@ -853,12 +854,16 @@ build_ctrl_animation=$enableval)
 
 if test "x$runtime_mode" == "xprocs"; then
     AC_ARG_ENABLE(compositing,
-[  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=yes>],
-    compositing_schema=$enableval)
+            [  --enable-compositing     enable compositing schema (MiniGUI-Processes runmode only) <default=yes>],
+            compositing_schema=$enableval)
 
     AC_ARG_ENABLE(shmopen,
-[  --enable-shmopen         use shm_open <default=no>],
-    use_shmopen=$enableval)
+            [  --enable-shmopen         use shm_open <default=no>],
+            use_shmopen=$enableval)
+
+    AC_ARG_WITH(update_threads,
+            [  --with-update-threads=[0/1/2/4/8]],
+            nr_update_threads=$withval)
 fi
 
 if test "x$runtime_mode" != "xths"; then
@@ -1755,7 +1760,7 @@ case "$runtime_mode" in
             [Define if build MiniGUI-Processes])
         MINIGUI_RUNMODE="procs"
         if test "x$compositing_schema" = "xyes"; then
-          surface_schema="compositing"
+            surface_schema="compositing"
         fi
 
         if test "x$use_shmopen" = "xyes"; then
@@ -1777,9 +1782,34 @@ esac
 if test "x$surface_schema" = "xcompositing"; then
     AC_DEFINE(_MGSCHEMA_COMPOSITING, 1,
             [Define if use compositing schema for the current runmode])
+
+    case "$nr_update_threads" in
+        1)
+            AC_DEFINE(_MGNR_UPDATE_THREADS, 1,
+                      [The number of concurrent update threads.])
+        ;;
+        2)
+            AC_DEFINE(_MGNR_UPDATE_THREADS, 2,
+                      [The number of concurrent update threads.])
+        ;;
+        4)
+            AC_DEFINE(_MGNR_UPDATE_THREADS, 4,
+                      [The number of concurrent update threads.])
+        ;;
+        8)
+            AC_DEFINE(_MGNR_UPDATE_THREADS, 8,
+                      [The number of concurrent update threads.])
+        ;;
+        *)
+            AC_DEFINE(_MGNR_UPDATE_THREADS, 0,
+                      [The number of concurrent update threads.])
+        ;;
+    esac
 else
     AC_DEFINE(_MGSCHEMA_SHAREDFB, 1,
             [Define if use legacy schema (shared frame buffer) for the current runmode])
+    AC_DEFINE(_MGNR_UPDATE_THREADS, 0,
+            [The number of asynchronous update threads.])
 fi
 
 if test "x$virtual_window" = "xyes"; then
@@ -2794,6 +2824,7 @@ AC_MSG_NOTICE([
   * Runtime mode:       ${runtime_mode}
   * Virtual Window:     ${virtual_window}
   * Surface schema:     ${surface_schema}
+  * Update Threads:     ${nr_update_threads}
   * Use shm_open:       ${use_shmopen}
   * Incore resource:    ${incore_res}
   * Fallback mgslice:   ${mgslice_use_fallback}
