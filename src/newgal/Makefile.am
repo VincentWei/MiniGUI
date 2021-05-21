@@ -42,6 +42,8 @@ COMMON_SRCS =       \
     surface-shm.c       \
     shadow-screen.h     \
     shadow-screen.c     \
+    concurrent-tasks.h  \
+    concurrent-tasks.c  \
     $(NULL_FILE)
 
 libnewgal_la_SOURCES = $(COMMON_SRCS)

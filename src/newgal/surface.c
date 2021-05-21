@@ -59,6 +59,7 @@
 
 #ifdef _MGRM_PROCESSES
 #include <sys/mman.h>   /* for munmap */
+#include "concurrent-tasks.h"
 #endif  /* _MGRM_PROCESSES */
 
 /* Public routines */
@@ -538,37 +539,19 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
     }
 #endif
 
-#ifdef MG_CONFIG_USE_OWN_OVERLAPPED_BITBLIT
-    ret = own_overlapped_bitblit(do_blit, src, srcrect, dst, dstrect);
+#ifdef _MGRM_PROCESSES
+    // we use concurrent tasks only under MiniGUI-Processes.
+    concurrentTasks_Blit (do_blit, src, srcrect, dst, dstrect);
 #else
+#   ifdef MG_CONFIG_USE_OWN_OVERLAPPED_BITBLIT
+    ret = own_overlapped_bitblit(do_blit, src, srcrect, dst, dstrect);
+#   else
     ret = do_blit(src, srcrect, dst, dstrect);
-#endif
-
-#if 0
-    {
-        static int n_sw=0, n_hw=0;
-        if ((src->flags & GAL_HWACCEL) == GAL_HWACCEL)
-        {
-            n_hw ++;
-        }
-        else
-        {
-            n_sw ++;
-        }
-        printf("[%06u] hw/blit=%d/%d %c size=%dX%d src=(%d %d),%p dst=(%d %d),%p\n",
-                times(NULL) % 1000000,
-                n_hw, n_hw+n_sw,
-                do_blit == src->map->sw_blit ? 'S':'H',
-                srcrect->w, srcrect->h,
-                srcrect->x, srcrect->y, src,
-                dstrect->x, dstrect->y, dst
-             );
-    }
+#   endif
 #endif
 
     return ret;
 }
-
 
 int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
            GAL_Surface *dst, GAL_Rect *dstrect, DWORD op)

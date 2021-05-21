@@ -304,10 +304,12 @@ int shadowScreen_BlitToReal (_THIS)
 
 static struct UpdateThreadsInfo {
     GAL_VideoDevice *device;
-    sem_t sem_tasks[_MGNR_UPDATE_THREADS];
+    sem_t sem_loop;
+    sem_t sem_lock;
     sem_t sem_sync;
     pthread_t pths[_MGNR_UPDATE_THREADS];
 
+    int nr_loops;
     RECT bound;
 } cuth_info;
 
@@ -353,25 +355,31 @@ try_again:
 
 static void* task_do_update (void* data)
 {
-    int idx = (int)(intptr_t)data;
+    int task_idx = (int)(intptr_t)data;
 
     if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
         return NULL;
 
     do {
-        if (my_sem_wait (cuth_info.sem_tasks + idx - 1)) {
-            _ERR_PRINTF ("Update thread %d failed on sem_wait\n", idx);
+        int loop_idx;
+
+        if (my_sem_wait (&cuth_info.sem_loop)) {
+            _ERR_PRINTF ("Update thread %d failed on sem_wait\n", task_idx);
             return NULL;
         }
+
+        my_sem_wait (&cuth_info.sem_lock);
+        loop_idx = cuth_info.nr_loops++;
+        sem_post (&cuth_info.sem_lock);
 
         pthread_testcancel ();
 
         copy_lines (cuth_info.device->hidden->shadow_screen,
                 cuth_info.device->hidden->real_screen,
-                &cuth_info.bound, idx);
+                &cuth_info.bound, loop_idx);
 
         if (sem_post (&cuth_info.sem_sync)) {
-            _ERR_PRINTF ("Update thread %d failed on sem_post\n", idx);
+            _ERR_PRINTF ("Update thread %d failed on sem_post\n", task_idx);
             return NULL;
         }
 
@@ -390,18 +398,22 @@ int shadowScreen_InitUpdateThreads (_THIS)
 
     assert (this->real_screen && this->shadow_screen);
 
-    for (i = 0; i < _MGNR_UPDATE_THREADS; i++) {
-        if (sem_init (cuth_info.sem_tasks + i, 0, 0)) {
-            _ERR_PRINTF ("NEWGAL>DBLBUFF: failed to create task semaphore: %s\n",
-                    strerror (errno));
-            goto failed_sem_update;
-        }
+    if (sem_init (&cuth_info.sem_loop, 0, 0)) {
+        _ERR_PRINTF ("NEWGAL>DBLBUFF: failed to create loop semaphore: %s\n",
+                strerror (errno));
+        goto failed_sem_update;
     }
 
     if (sem_init (&cuth_info.sem_sync, 0, 0)) {
         _ERR_PRINTF ("NEWGAL>DBLBUFF: failed to create sync semaphore: %s\n",
                 strerror (errno));
         goto failed_sem_sync;
+    }
+
+    if (sem_init (&cuth_info.sem_lock, 0, 1)) {
+        _ERR_PRINTF ("NEWGAL>DBLBUFF: failed to create lock semaphore: %s\n",
+                strerror (errno));
+        goto failed_sem_lock;
     }
 
     for (i = 0; i < _MGNR_UPDATE_THREADS; i++) {
@@ -417,12 +429,13 @@ int shadowScreen_InitUpdateThreads (_THIS)
     return 0;
 
 failed_threads:
+    sem_destroy (&cuth_info.sem_lock);
+
+failed_sem_lock:
     sem_destroy (&cuth_info.sem_sync);
 
 failed_sem_sync:
-    for (i = 0; i < _MGNR_UPDATE_THREADS; i++) {
-        sem_destroy (cuth_info.sem_tasks + i);
-    }
+    sem_destroy (&cuth_info.sem_loop);
 
 failed_sem_update:
     return -1;
@@ -440,9 +453,8 @@ int shadowScreen_TermUpdateThreads (_THIS)
     }
 
     sem_destroy (&cuth_info.sem_sync);
-    for (i = 0; i < _MGNR_UPDATE_THREADS; i++) {
-        sem_destroy (cuth_info.sem_tasks + i);
-    }
+    sem_destroy (&cuth_info.sem_loop);
+    sem_destroy (&cuth_info.sem_lock);
     return 0;
 }
 
@@ -491,11 +503,12 @@ int shadowScreen_BlitToReal (_THIS)
 
     CHECK_VERSION_RETVAL (this, -1);
 
+    cuth_info.nr_loops = 1; // reserve 0 for the current thread
     cuth_info.bound = this->hidden->dirty_rc;
 
     // wake up the concurrent update threads
     for (i = 0; i < _MGNR_UPDATE_THREADS; i++) {
-        sem_post (cuth_info.sem_tasks + i);
+        sem_post (&cuth_info.sem_loop);
     }
 
     copy_lines (cuth_info.device->hidden->shadow_screen,

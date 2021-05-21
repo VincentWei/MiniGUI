@@ -6455,7 +6455,7 @@ MG_EXPORT RES_KEY Str2Key (const char* str);
  * \fn int GUIAPI GetWindowZOrder(HWND hWnd);
  * \brief Get The Control ZOrder in the parent window
  *
- * \param hWnd Handler of a control
+ * \param hWnd Handle of a control
  *
  * \return return index of ZOrder or 0 if hWnd is a MainWindow or -1 if error
  *
