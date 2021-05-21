@@ -49,6 +49,7 @@
 #include "common.h"
 #include "newgal.h"
 #include "blit.h"
+#include "concurrent-tasks.h"
 
 #define DEFINE_COPY_ROW(name, type)                             \
 static void name(type *src, int src_w, type *dst, int dst_w)    \
@@ -377,6 +378,31 @@ int GAL_CleanupStretchBlit (GAL_Surface *src, GAL_Surface *dst)
     return 0;
 }
 
+#ifdef _MGRM_PROCESSES
+typedef struct _ContextStretch {
+    pixman_op_t op;
+    pixman_image_t *src_img;
+    pixman_image_t *msk_img;
+    pixman_image_t *dst_img;
+
+    GAL_Rect dst_rects [_MGNR_CONCURRENT_TASKS + 1];
+} ContextStretch;
+
+static void stretch_proc (void* context, int loop_idx)
+{
+    ContextStretch *ctxt = context;
+
+    if (ctxt->dst_rects[loop_idx].h > 0) {
+        GAL_Rect* dstrect = ctxt->dst_rects + loop_idx;
+        pixman_image_composite32 (ctxt->op, ctxt->src_img, ctxt->msk_img, ctxt->dst_img,
+                dstrect->x, dstrect->y,
+                0, 0,
+                dstrect->x, dstrect->y, 
+                dstrect->w, dstrect->h);
+    }
+}
+#endif
+
 int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
         GAL_Surface *dst, GAL_Rect *dstrect,
         const STRETCH_EXTRA_INFO* sei, DWORD ops)
@@ -409,11 +435,27 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
             dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
     pixman_image_set_clip_region32 (dst_img, &clip_region);
 
+#ifdef _MGRM_PROCESSES
+    // we use concurrent tasks only under MiniGUI-Processes.
+    {
+        ContextStretch ctxt;
+
+        ctxt.op = op;
+        ctxt.src_img = src_img;
+        ctxt.msk_img = msk_img;
+        ctxt.dst_img = dst_img;
+
+        concurrentTasks_SplitRect (ctxt.dst_rects, dstrect, _MGNR_CONCURRENT_TASKS + 1);
+
+        concurrentTasks_Do (&ctxt, stretch_proc);
+    }
+#else
     pixman_image_composite32 (op, src_img, msk_img, dst_img,
             dstrect->x, dstrect->y,
             0, 0,
             dstrect->x, dstrect->y, 
             dstrect->w, dstrect->h);
+#endif
 
     pixman_region32_fini (&clip_region);
     return 0;

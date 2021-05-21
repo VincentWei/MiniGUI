@@ -56,10 +56,10 @@
 #include "pixels_c.h"
 #include "memops.h"
 #include "leaks.h"
+#include "concurrent-tasks.h"
 
 #ifdef _MGRM_PROCESSES
 #include <sys/mman.h>   /* for munmap */
-#include "concurrent-tasks.h"
 #endif  /* _MGRM_PROCESSES */
 
 /* Public routines */
@@ -494,6 +494,28 @@ static int own_overlapped_bitblit(GAL_blit real_blit, struct GAL_Surface *src, G
 }
 #endif
 
+#ifdef _MGRM_PROCESSES
+typedef struct _ContextBlit {
+    GAL_Surface *src;
+    GAL_Surface *dst;
+
+    GAL_blit real_blit;
+
+    GAL_Rect src_rects [_MGNR_CONCURRENT_TASKS + 1];
+    GAL_Rect dst_rects [_MGNR_CONCURRENT_TASKS + 1];
+} ContextBlit;
+
+static void blit_proc (void* context, int loop_idx)
+{
+    ContextBlit *ctxt = context;
+
+    if (ctxt->src_rects[loop_idx].h > 0) {
+        ctxt->real_blit (ctxt->src, ctxt->src_rects + loop_idx,
+                ctxt->dst, ctxt->dst_rects + loop_idx);
+    }
+}
+#endif
+
 /*
  * Set up a blit between two surfaces -- split into three parts:
  * The upper part, GAL_UpperBlit(), performs clipping and rectangle
@@ -541,7 +563,18 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
 
 #ifdef _MGRM_PROCESSES
     // we use concurrent tasks only under MiniGUI-Processes.
-    concurrentTasks_Blit (do_blit, src, srcrect, dst, dstrect);
+    {
+        ContextBlit ctxt;
+
+        ctxt.src = src;
+        ctxt.dst = dst;
+        ctxt.real_blit = do_blit;
+
+        concurrentTasks_SplitRect (ctxt.src_rects, srcrect, _MGNR_CONCURRENT_TASKS + 1);
+        concurrentTasks_SplitRect (ctxt.dst_rects, dstrect, _MGNR_CONCURRENT_TASKS + 1);
+
+        concurrentTasks_Do (&ctxt, blit_proc);
+    }
 #else
 #   ifdef MG_CONFIG_USE_OWN_OVERLAPPED_BITBLIT
     ret = own_overlapped_bitblit(do_blit, src, srcrect, dst, dstrect);

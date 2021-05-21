@@ -56,12 +56,17 @@
 #include <assert.h>
 
 #include "common.h"
+
+#ifdef _MGRM_PROCESSES
+
 #include "minigui.h"
 #include "constants.h"
 #include "newgal.h"
 
 #include <pthread.h>
 #include <semaphore.h>
+
+#include "concurrent-tasks.h"
 
 typedef void (*task_proc)(void* context, int loop_idx);
 
@@ -71,9 +76,9 @@ typedef struct _ConcurrentTasksInfo {
     sem_t sem_lock;
     sem_t sem_sync;
 
-    int nr_loops;
-    task_proc proc;
-    void* ctxt;
+    int         nr_loops;
+    CCTaskProc  proc;
+    void*       ctxt;
 } ConcurrentTasksInfo;
 
 static ConcurrentTasksInfo *cctasks_info;
@@ -128,7 +133,7 @@ static void* cc_task_entry (void* data)
     return NULL;
 }
 
-static void split_rect (GAL_Rect* rcs, const GAL_Rect* rc, int count)
+int concurrentTasks_SplitRect (GAL_Rect* rcs, const GAL_Rect* rc, int count)
 {
     if (count == 1) {
         rcs[0] = *rc;
@@ -151,63 +156,76 @@ static void split_rect (GAL_Rect* rcs, const GAL_Rect* rc, int count)
         rcs[0].h = rc->h >> 2;
 
         rcs[1].x = rc->x;
-        rcs[1].y = rcs[0].y+ rcs[0].h;
+        rcs[1].y = rcs[0].y + rcs[0].h;
         rcs[1].w = rc->w;
         rcs[1].h = rc->h >> 2;
 
         rcs[2].x = rc->x;
-        rcs[2].y = rcs[1].y+ rcs[1].h;
+        rcs[2].y = rcs[1].y + rcs[1].h;
         rcs[2].w = rc->w;
         rcs[2].h = rc->h >> 2;
 
         rcs[3].x = rc->x;
-        rcs[3].y = rcs[2].y+ rcs[2].h;
+        rcs[3].y = rcs[2].y + rcs[2].h;
         rcs[3].w = rc->w;
-        rcs[3].h = rc->h - rcs[0].h - rcs[1].h - rcs[2].h;
+        rcs[3].h = rc->h - rcs[0].h * 3;
+    }
+    else if (count == 8) {
+        rcs[0].x = rc->x;
+        rcs[0].y = rc->y;
+        rcs[0].w = rc->w;
+        rcs[0].h = rc->h >> 3;
+
+        rcs[1].x = rc->x;
+        rcs[1].y = rcs[0].y + rcs[0].h;
+        rcs[1].w = rc->w;
+        rcs[1].h = rc->h >> 3;
+
+        rcs[2].x = rc->x;
+        rcs[2].y = rcs[1].y + rcs[1].h;
+        rcs[2].w = rc->w;
+        rcs[2].h = rc->h >> 3;
+
+        rcs[3].x = rc->x;
+        rcs[3].y = rcs[2].y + rcs[2].h;
+        rcs[3].w = rc->w;
+        rcs[3].h = rc->h >> 3;
+
+        rcs[4].x = rc->x;
+        rcs[4].y = rcs[3].y + rcs[3].h;
+        rcs[4].w = rc->w;
+        rcs[4].h = rc->h >> 3;
+
+        rcs[5].x = rc->x;
+        rcs[5].y = rcs[4].y + rcs[4].h;
+        rcs[5].w = rc->w;
+        rcs[5].h = rc->h >> 3;
+
+        rcs[6].x = rc->x;
+        rcs[6].y = rcs[5].y + rcs[5].h;
+        rcs[6].w = rc->w;
+        rcs[6].h = rc->h >> 3;
+
+        rcs[7].x = rc->x;
+        rcs[7].y = rcs[6].y + rcs[6].h;
+        rcs[7].w = rc->w;
+        rcs[7].h = rc->h - rcs[0].h * 7;
     }
     else {
-        assert (0);
+        return -1;
     }
+
+    return 0;
 }
 
-typedef struct _ContextBlit {
-    GAL_Surface *src;
-    GAL_Surface *dst;
-
-    GAL_blit real_blit;
-
-    GAL_Rect src_rects [_MGNR_CONCURRENT_TASKS + 1];
-    GAL_Rect dst_rects [_MGNR_CONCURRENT_TASKS + 1];
-} ContextBlit;
-
-static void blit_proc (void* context, int loop_idx)
-{
-    ContextBlit *ctxt = context;
-
-    if (ctxt->src_rects[loop_idx].h > 0) {
-        ctxt->real_blit (ctxt->src, ctxt->src_rects + loop_idx,
-                ctxt->dst, ctxt->dst_rects + loop_idx);
-    }
-}
-
-int concurrentTasks_Blit (GAL_blit real_blit,
-        struct GAL_Surface *src, GAL_Rect *srcrect,
-        struct GAL_Surface *dst, GAL_Rect *dstrect)
+int concurrentTasks_Do (void* context, CCTaskProc proc)
 {
     int i;
-    ContextBlit ctxt;
-
-    ctxt.src = src;
-    ctxt.dst = dst;
-    ctxt.real_blit = real_blit;
-
-    split_rect (ctxt.src_rects, srcrect, _MGNR_CONCURRENT_TASKS + 1);
-    split_rect (ctxt.dst_rects, dstrect, _MGNR_CONCURRENT_TASKS + 1);
 
     if (_MGNR_CONCURRENT_TASKS > 0) {
         cctasks_info->nr_loops = 1; // reserve 0 for the current thread
-        cctasks_info->proc = blit_proc;
-        cctasks_info->ctxt = &ctxt;
+        cctasks_info->proc = proc;
+        cctasks_info->ctxt = context;
     }
 
     // wake up the concurrent task threads
@@ -215,7 +233,7 @@ int concurrentTasks_Blit (GAL_blit real_blit,
         sem_post (&cctasks_info->sem_loop);
     }
 
-    blit_proc (&ctxt, 0);
+    proc (context, 0);
 
     // wait for finish of concurrent task threads
     for (i = 0; i < _MGNR_CONCURRENT_TASKS; i++) {
@@ -284,7 +302,7 @@ int concurrentTasks_Term (void)
 {
     int i;
 
-    if (_MGNR_CONCURRENT_TASKS <= 0)
+    if (_MGNR_CONCURRENT_TASKS <= 0 && cctasks_info == NULL)
         return 0;
 
     for (i = 0; i < _MGNR_CONCURRENT_TASKS; i++) {
@@ -301,4 +319,6 @@ int concurrentTasks_Term (void)
     free (cctasks_info);
     return 0;
 }
+
+#endif  /* _MGRM_PROCESSES */
 

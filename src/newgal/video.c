@@ -58,6 +58,7 @@
 #include "pixels_c.h"
 #include "license.h"
 #include "debug.h"
+#include "concurrent-tasks.h"
 
 /* Available video drivers */
 static VideoBootStrap *bootstrap[] = {
@@ -287,6 +288,12 @@ int GAL_VideoInit (const char *driver_name, Uint32 flags)
     GAL_VideoSurface->video = __mg_current_video;
 
     video->info.vfmt = GAL_VideoSurface->format;
+
+#ifdef _MGRM_PROCESSES
+    // we use concurrent tasks only under MiniGUI-Processes.
+    if (concurrentTasks_Init ())
+        return -1;
+#endif
 
     return(0);
 }
@@ -1154,6 +1161,12 @@ void GAL_VideoQuit (void)
         DestroyFreeClipRectList (&__mg_free_update_region_list);
 #endif
     }
+
+#ifdef _MGRM_PROCESSES
+    // we use concurrent tasks only under MiniGUI-Processes.
+    concurrentTasks_Term ();
+#endif
+
     return;
 }
 

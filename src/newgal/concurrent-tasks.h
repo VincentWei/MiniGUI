@@ -58,11 +58,12 @@
 extern "C" {
 #endif  /* __cplusplus */
 
+typedef void (*CCTaskProc)(void* context, int loop_idx);
+
 int concurrentTasks_Init (void);
 int concurrentTasks_Term (void);
-int concurrentTasks_Blit (GAL_blit real_blit,
-        struct GAL_Surface *src, GAL_Rect *srcrect,
-        struct GAL_Surface *dst, GAL_Rect *dstrect);
+int concurrentTasks_SplitRect (GAL_Rect* rcs, const GAL_Rect* rc, int count);
+int concurrentTasks_Do (void* context, CCTaskProc proc);
 
 #ifdef __cplusplus
 }
