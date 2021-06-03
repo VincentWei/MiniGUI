@@ -273,44 +273,38 @@ int GAL_SetupStretchBlit (GAL_Surface *src, GAL_Rect *srcrect,
         double rotation;
         pixman_f_transform_t ftransform;
         pixman_transform_t transform;
-        GAL_BlittingContext* ctxt;
 
-        src->blit_ctxt = malloc (sizeof (GAL_BlittingContext));
-        if (src->blit_ctxt == NULL)
-            return -1;
-
-        ctxt = src->blit_ctxt;
         if ((src->flags & GAL_SRCALPHA) && src->format->alpha != GAL_ALPHA_OPAQUE) {
-            memset (&ctxt->alpha_bits, src->format->alpha, sizeof(uint32_t));
-            ctxt->msk_img = pixman_image_create_bits_no_clear (PIXMAN_a8, 1, 1,
-                    &ctxt->alpha_bits, 4);
-            if (ctxt->msk_img)
-                pixman_image_set_repeat (ctxt->msk_img, PIXMAN_REPEAT_NORMAL);
+            memset (&src->pix_alpha_bits, src->format->alpha, sizeof(uint32_t));
+            src->msk_img = pixman_image_create_bits_no_clear (PIXMAN_a8, 1, 1,
+                    &src->pix_alpha_bits, 4);
+            if (src->msk_img)
+                pixman_image_set_repeat (src->msk_img, PIXMAN_REPEAT_NORMAL);
         }
         else
-            ctxt->msk_img = NULL;
+            src->msk_img = NULL;
 
-        ctxt->filter = ops >> SCALING_FILTER_SHIFT;
-        if (ctxt->filter > PIXMAN_FILTER_CONVOLUTION) {
-            ctxt->filter = PIXMAN_FILTER_FAST;
+        src->pix_filter = ops >> SCALING_FILTER_SHIFT;
+        if (src->pix_filter > PIXMAN_FILTER_CONVOLUTION) {
+            src->pix_filter = PIXMAN_FILTER_FAST;
         }
 
         ops &= COLOR_BLEND_FLAGS_MASK;
         if (ops == COLOR_BLEND_LEGACY) {
             if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
-                ctxt->op = PIXMAN_OP_OVER;
+                src->pix_op = PIXMAN_OP_OVER;
             }
             else {
-                ctxt->op = PIXMAN_OP_SRC;
+                src->pix_op = PIXMAN_OP_SRC;
             }
         }
         else {
-            ctxt->op = ops;
+            src->pix_op = ops;
         }
 
-        if (ctxt->op > PIXMAN_OP_HSL_LUMINOSITY ||
-                ctxt->op < PIXMAN_OP_CLEAR) {
-            ctxt->op = PIXMAN_OP_SRC;
+        if (src->pix_op > PIXMAN_OP_HSL_LUMINOSITY ||
+                src->pix_op < PIXMAN_OP_CLEAR) {
+            src->pix_op = PIXMAN_OP_SRC;
         }
 
         pixman_f_transform_init_identity (&ftransform);
@@ -350,7 +344,7 @@ int GAL_SetupStretchBlit (GAL_Surface *src, GAL_Rect *srcrect,
             pixman_image_set_filter (src_img, (pixman_filter_t)filter, NULL, 0);
         }
 #else
-        pixman_image_set_filter (src->pix_img, (pixman_filter_t)ctxt->filter, NULL, 0);
+        pixman_image_set_filter (src->pix_img, (pixman_filter_t)src->pix_filter, NULL, 0);
 #endif
     }
 
@@ -359,20 +353,14 @@ int GAL_SetupStretchBlit (GAL_Surface *src, GAL_Rect *srcrect,
 
 int GAL_CleanupStretchBlit (GAL_Surface *src, GAL_Surface *dst)
 {
-    if (src->blit_ctxt) {
-        pixman_transform_t transform;
-
-        GAL_BlittingContext* ctxt = src->blit_ctxt;
-        if (ctxt->msk_img)
-            pixman_image_unref (ctxt->msk_img);
-        free (src->blit_ctxt);
-        src->blit_ctxt = NULL;
-
-        pixman_transform_init_identity (&transform);
-        pixman_image_set_transform (src->pix_img, &transform);
-        pixman_image_set_filter (src->pix_img, PIXMAN_FILTER_FAST, NULL, 0);
-        pixman_image_set_clip_region32 (dst->pix_img, NULL);
+    if (src->msk_img) {
+        pixman_image_unref (src->msk_img);
+        src->msk_img = NULL;
     }
+
+    pixman_image_set_transform (src->pix_img, NULL);
+    pixman_image_set_filter (src->pix_img, PIXMAN_FILTER_NEAREST, NULL, 0);
+    pixman_image_set_clip_region32 (dst->pix_img, NULL);
 
     return 0;
 }
@@ -390,15 +378,8 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
         return GAL_StretchBltLegacy (src, srcrect, dst, dstrect,
                 ops & COLOR_BLEND_FLAGS_MASK);
 
-    if (src->blit_ctxt) {
-        GAL_BlittingContext* ctxt = src->blit_ctxt;
-        msk_img = ctxt->msk_img;
-        op = (pixman_op_t)ctxt->op;
-    }
-    else {
-        msk_img = NULL;
-        op = PIXMAN_OP_SRC;
-    }
+    msk_img = src->msk_img;
+    op = (pixman_op_t)src->pix_op;
 
     _DBG_PRINTF ("srcrect: %d,%d, %dx%d; dstrect: %d,%d, %dx%d; cliprect: %d,%d, %dx%d\n",
             srcrect->x, srcrect->y, srcrect->w, srcrect->h,

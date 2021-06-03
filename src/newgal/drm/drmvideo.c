@@ -796,7 +796,7 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     surface->pixels_off = 0;
 #ifdef _MGUSE_PIXMAN
     surface->pix_img = NULL;
-    surface->blit_ctxt = NULL;
+    surface->msk_img = NULL;
 #endif
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;

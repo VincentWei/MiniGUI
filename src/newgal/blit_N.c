@@ -1524,12 +1524,12 @@ GAL_loblit GAL_CalculateBlitN(GAL_Surface *surface, int blit_index)
         }
     } else {
         /* Now the meat, choose the blitter we want */
-            int a_need = 0;
-        if(dstfmt->Amask)
+        int a_need = 0;
+        if (dstfmt->Amask)
             a_need = srcfmt->Amask ? COPY_ALPHA : SET_ALPHA;
         table = normal_blit[srcfmt->BytesPerPixel-1];
-        for ( which=0; table[which].srcR; ++which ) {
-            if ( srcfmt->Rmask == table[which].srcR &&
+        for (which=0; table[which].srcR; ++which) {
+            if (srcfmt->Rmask == table[which].srcR &&
                  srcfmt->Gmask == table[which].srcG &&
                  srcfmt->Bmask == table[which].srcB &&
                  dstfmt->BytesPerPixel == table[which].dstbpp &&
@@ -1538,7 +1538,7 @@ GAL_loblit GAL_CalculateBlitN(GAL_Surface *surface, int blit_index)
                  dstfmt->Bmask == table[which].dstB &&
                  (a_need & table[which].alpha) == a_need &&
                  (CPU_Flags()&table[which].cpu_flags) ==
-                 table[which].cpu_flags )
+                 table[which].cpu_flags)
                 break;
         }
         sdata->aux_data = table[which].aux_data;
@@ -1546,13 +1546,6 @@ GAL_loblit GAL_CalculateBlitN(GAL_Surface *surface, int blit_index)
         if(a_need == COPY_ALPHA && blitfun == BlitNtoN)
             blitfun = BlitNtoNCopyAlpha;
     }
-
-#ifdef DEBUG_ASM
-    if ( (blitfun == GAL_BlitNtoN) || (blitfun == GAL_BlitNto1) )
-        fprintf(stderr, "Using C blit\n");
-    else
-        fprintf(stderr, "Using optimized C blit\n");
-#endif /* DEBUG_ASM */
 
     return(blitfun);
 }

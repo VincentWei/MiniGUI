@@ -216,7 +216,10 @@ typedef struct GAL_Surface {
 
 #ifdef _MGUSE_PIXMAN
     pixman_image_t *pix_img;            /* The pixman image object for this surface */
-    void           *blit_ctxt;          /* blitting context */
+    pixman_image_t *msk_img;
+    uint16_t        pix_op;
+    uint16_t        pix_filter;
+    uint32_t        pix_alpha_bits;
 #endif
 
 #if IS_COMPOSITING_SCHEMA
@@ -817,13 +820,6 @@ static inline BOOL GAL_CheckPixmanFormats (GAL_Surface *src, GAL_Surface *dst)
 
     return FALSE;
 }
-
-typedef struct GAL_BlittingContext {
-    uint16_t op;
-    uint16_t filter;
-    uint32_t alpha_bits;
-    pixman_image_t *msk_img;
-} GAL_BlittingContext;
 
 int GAL_SetupBlitting (GAL_Surface *src, GAL_Surface *dst, DWORD ops);
 

@@ -144,7 +144,7 @@ GAL_Surface * GAL_CreateRGBSurface (Uint32 flags,
     surface->format_version = 0;
 #ifdef _MGUSE_PIXMAN
     surface->pix_img = NULL;
-    surface->blit_ctxt = NULL;
+    surface->msk_img = NULL;
 #endif
 #if IS_COMPOSITING_SCHEMA
     surface->shared_header = NULL;
@@ -1870,13 +1870,15 @@ void GAL_FreeSurface (GAL_Surface *surface)
 
 #ifdef _MGUSE_PIXMAN
     if (surface->pix_img) {
+        _WRN_PRINTF ("There is not cleaned up blitting pixel image: %p\n", surface->pix_img);
         pixman_image_unref (surface->pix_img);
         surface->pix_img = NULL;
-
     }
 
-    if (surface->blit_ctxt) {
-        _WRN_PRINTF ("There is not cleaned up blitting context: %p\n", surface->blit_ctxt);
+    if (surface->msk_img) {
+        _WRN_PRINTF ("There is not cleaned up blitting mask image: %p\n", surface->msk_img);
+        pixman_image_unref (surface->msk_img);
+        surface->msk_img = NULL;
     }
 #endif
 

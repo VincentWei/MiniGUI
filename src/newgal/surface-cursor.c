@@ -105,7 +105,7 @@ GAL_Surface * GAL_CreateCursorSurface (GAL_VideoDevice *video,
     surface->format_version = 0;
 #ifdef _MGUSE_PIXMAN
     surface->pix_img = NULL;
-    surface->blit_ctxt = NULL;
+    surface->msk_img = NULL;
 #endif
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
