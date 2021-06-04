@@ -360,6 +360,10 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
 
 #if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
     if (!mgIsServer) {
+        vformat->Amask = 0xFF000000;
+        vformat->Rmask = 0x00FF0000;
+        vformat->Gmask = 0x0000FF00;
+        vformat->Bmask = 0x000000FF;
         vformat->BitsPerPixel = 32;
         vformat->BytesPerPixel = 4;
         return 0;
@@ -1061,6 +1065,11 @@ static int FB_AllocHWSurface (_THIS, GAL_Surface *surface)
 
 static void FB_FreeHWSurface(_THIS, GAL_Surface *surface)
 {
+#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
+    surface->pixels = NULL;
+    surface->hwdata = NULL;
+    return;
+#else
     REQ_HWSURFACE request = {surface->w, surface->h, surface->pitch, 0,
         surface->hwdata};
     REP_HWSURFACE reply = {0, 0};
@@ -1092,6 +1101,7 @@ static void FB_FreeHWSurface(_THIS, GAL_Surface *surface)
 
     surface->pixels = NULL;
     surface->hwdata = NULL;
+#endif
 }
 
 static void FB_WaitVBL(_THIS)
