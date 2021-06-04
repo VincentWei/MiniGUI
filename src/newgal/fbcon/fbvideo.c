@@ -358,8 +358,7 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     int i;
     const char *GAL_fbdev;
 
-#if 0
-    defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
+#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
     if (!mgIsServer) {
         vformat->BitsPerPixel = 32;
         vformat->BytesPerPixel = 4;
@@ -1026,8 +1025,7 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request,
 
 static int FB_AllocHWSurface (_THIS, GAL_Surface *surface)
 {
-#if 0
-    defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
+#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
     return -1;
 #else
     REQ_HWSURFACE request = {surface->w, surface->h, surface->pitch, 0, NULL};
@@ -1256,8 +1254,7 @@ static int FB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
 */
 static void FB_VideoQuit(_THIS)
 {
-#if 0
-    defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
+#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
     if (!mgIsServer) {
         return;
     }
