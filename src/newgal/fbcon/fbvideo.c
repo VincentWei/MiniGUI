@@ -62,9 +62,6 @@
 
 #include "common.h"
 #include "minigui.h"
-#ifdef _MGRM_PROCESSES
-#include "client.h"
-#endif
 #include "newgal.h"
 #include "sysvideo.h"
 #include "pixels_c.h"
@@ -72,6 +69,11 @@
 #include "fb3dfx.h"
 #include "fbmatrox.h"
 #include "fbneomagic.h"
+
+#ifdef _MGRM_PROCESSES
+#include "client.h"
+#include "sharedres.h"
+#endif
 
 // #define FBCON_DEBUG     1
 // #define FBACCEL_DEBUG   1
@@ -358,14 +360,14 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     int i;
     const char *GAL_fbdev;
 
-#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
+#ifdef _MGSCHEMA_COMPOSITING
     if (!mgIsServer) {
-        vformat->Amask = 0xFF000000;
-        vformat->Rmask = 0x00FF0000;
-        vformat->Gmask = 0x0000FF00;
-        vformat->Bmask = 0x000000FF;
-        vformat->BitsPerPixel = 32;
-        vformat->BytesPerPixel = 4;
+        vformat->Amask = SHAREDRES_VIDEO_AMASK;
+        vformat->Rmask = SHAREDRES_VIDEO_RMASK;
+        vformat->Gmask = SHAREDRES_VIDEO_GMASK;
+        vformat->Bmask = SHAREDRES_VIDEO_BMASK;
+        vformat->BitsPerPixel = SHAREDRES_VIDEO_DEPTH;
+        vformat->BytesPerPixel = (SHAREDRES_VIDEO_DEPTH + 7) >> 3;
         return 0;
     }
 #endif
@@ -1029,18 +1031,20 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request,
 
 static int FB_AllocHWSurface (_THIS, GAL_Surface *surface)
 {
-#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
-    return -1;
-#else
     REQ_HWSURFACE request = {surface->w, surface->h, surface->pitch, 0, NULL};
     REP_HWSURFACE reply = {0, 0, NULL};
 
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer)
+    if (mgIsServer) {
         FB_RequestHWSurface (this, &request, &reply);
+    }
     else {
         REQUEST req;
 
+#ifdef _MGSCHEMA_COMPOSITING
+    if (!mgIsServer)
+        return -1;
+#endif
         req.id = REQID_HWSURFACE;
         req.data = &request;
         req.len_data = sizeof (REQ_HWSURFACE);
@@ -1060,16 +1064,10 @@ static int FB_AllocHWSurface (_THIS, GAL_Surface *surface)
     surface->hwdata = (struct private_hwdata *)reply.bucket;
 
     return 0;
-#endif
 }
 
 static void FB_FreeHWSurface(_THIS, GAL_Surface *surface)
 {
-#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
-    surface->pixels = NULL;
-    surface->hwdata = NULL;
-    return;
-#else
     REQ_HWSURFACE request = {surface->w, surface->h, surface->pitch, 0,
         surface->hwdata};
     REP_HWSURFACE reply = {0, 0};
@@ -1077,10 +1075,17 @@ static void FB_FreeHWSurface(_THIS, GAL_Surface *surface)
     request.offset = (char*)surface->pixels - (char*)mapped_mem;
 
 #ifdef _MGRM_PROCESSES
-    if (mgIsServer)
+    if (mgIsServer) {
         FB_RequestHWSurface (this, &request, &reply);
+    }
     else {
         REQUEST req;
+
+#ifdef _MGSCHEMA_COMPOSITING
+        surface->pixels = NULL;
+        surface->hwdata = NULL;
+        return;
+#endif
 
         if (surface->hwdata == NULL) {
             surface->pixels = NULL;
@@ -1101,7 +1106,6 @@ static void FB_FreeHWSurface(_THIS, GAL_Surface *surface)
 
     surface->pixels = NULL;
     surface->hwdata = NULL;
-#endif
 }
 
 static void FB_WaitVBL(_THIS)
@@ -1264,7 +1268,7 @@ static int FB_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
 */
 static void FB_VideoQuit(_THIS)
 {
-#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
+#ifdef _MGSCHEMA_COMPOSITING
     if (!mgIsServer) {
         return;
     }
