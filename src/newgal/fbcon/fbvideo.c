@@ -100,6 +100,8 @@ static void FB_FreeHWSurface(_THIS, GAL_Surface *surface);
 static void FB_WaitVBL(_THIS);
 static void FB_WaitIdle(_THIS);
 
+#define __TARGET_R818__ 1
+
 #ifdef _MGSCHEMA_COMPOSITING
 
 #include "../shadow-screen.h"
@@ -116,11 +118,12 @@ static BOOL FB_SyncUpdate (_THIS)
         return FALSE;
 
     if (shadowScreen_BlitToReal (this) == 0) {
-        SetRectEmpty (&this->hidden->dirty_rc);
 #if defined(__TARGET_R818__)
         uintptr_t args[2];
         args[0] = (uintptr_t)this->hidden->real_screen->pixels;
-        args[1] = this->hidden->real_screen->pitch * this->hidden->real_screen->h;
+        args[0] += this->hidden->real_screen->pitch * this->hidden->dirty_rc.top;
+        args[1] = this->hidden->real_screen->pitch * RECTH(this->hidden->dirty_rc);
+        SetRectEmpty (&this->hidden->dirty_rc);
         if (ioctl (console_fd, FBIO_CACHE_SYNC, args) < 0) {
             return FALSE;
         }
@@ -407,8 +410,8 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     mapped_memlen = finfo.smem_len+mapped_offset;
 
 #if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
-    {
-        uintptr_t args[2] = { 1};
+    if (mgIsServer) {
+        uintptr_t args[2] = { 1, 0 };
         if (ioctl(console_fd, FBIO_ENABLE_CACHE, args) < 0) {
             GAL_SetError("FBIO_ENABLE_CACHE failed\n");
             return -1;
