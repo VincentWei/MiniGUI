@@ -100,8 +100,6 @@ static void FB_FreeHWSurface(_THIS, GAL_Surface *surface);
 static void FB_WaitVBL(_THIS);
 static void FB_WaitIdle(_THIS);
 
-#define __TARGET_R818__ 1
-
 #ifdef _MGSCHEMA_COMPOSITING
 
 #include "../shadow-screen.h"
@@ -123,11 +121,11 @@ static BOOL FB_SyncUpdate (_THIS)
         args[0] = (uintptr_t)this->hidden->real_screen->pixels;
         args[0] += this->hidden->real_screen->pitch * this->hidden->dirty_rc.top;
         args[1] = this->hidden->real_screen->pitch * RECTH(this->hidden->dirty_rc);
-        SetRectEmpty (&this->hidden->dirty_rc);
         if (ioctl (console_fd, FBIO_CACHE_SYNC, args) < 0) {
-            return FALSE;
+            _WRN_PRINTF ("failed to sync cache\n");
         }
 #endif
+        SetRectEmpty (&this->hidden->dirty_rc);
         return TRUE;
     }
 
