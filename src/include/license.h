@@ -54,8 +54,6 @@
 #   define MG_LOCAL /* NULL */
 #endif
 
-#define _MG_ENABLE_LICENSE _MG_ENABLE_SPLASH
-
 enum {
     SPLASH_MINIGUI,
     SPLASH_FMSOFT,
@@ -73,8 +71,14 @@ extern MG_LOCAL BITMAP g_license_bitmaps[];
 #define g_bitmap_progressbar    g_license_bitmaps[SPLASH_PROGRESSBAR]
 #define g_bitmap_progressbar_bk g_license_bitmaps[SPLASH_PROGRESSBAR_BK]
 
+#if defined(_MG_ENABLE_SPLASH) || defined(_MG_ENABLE_SCREENSAVER)
+#   define _MG_ENABLE_LICENSE      1
 MG_LOCAL void __mg_license_create(void);
 MG_LOCAL void __mg_license_destroy(void);
+#else
+#   define __mg_license_create() /* NULL */
+#   define __mg_license_destroy() /* NULL */
+#endif
 
 #ifdef _MG_ENABLE_SCREENSAVER
 MG_LOCAL void __mg_screensaver_create(void);
@@ -84,9 +88,6 @@ MG_LOCAL void __mg_screensaver_destroy(void);
 #   define __mg_screensaver_destroy() /* NULL */
 #endif
 
-/*
- * Splash
- */
 #ifdef _MG_ENABLE_SPLASH
 MG_LOCAL void __mg_splash_draw_framework(void);
 MG_LOCAL void __mg_splash_progress(void);
