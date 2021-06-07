@@ -572,7 +572,7 @@ AC_ARG_ENABLE(ttfsupport,
 build_ttf_support=$enableval)
 
 AC_ARG_ENABLE(ttfcache,
-[  --enable-ttfcache        build ttf cache support <default=no>],
+[  --enable-ttfcache        build support for TTF cache support <default=no>],
 build_ttfcache_support=$enableval)
 
 AC_ARG_ENABLE(complexscripts,
@@ -2172,7 +2172,7 @@ if test "x$build_ttf_support" = "xyes"; then
 
     if test "x$build_ttfcache_support" = "xyes"; then
         AC_DEFINE(_MGFONT_TTF_CACHE, 1,
-                  [Define if include ttf cache])
+                  [Define if support TTF cache])
 
         AC_ARG_WITH(ttfcachesize,
                     [  --with-ttfcachesize=[64/128/256/512/1024/2048]])
@@ -2180,31 +2180,31 @@ if test "x$build_ttf_support" = "xyes"; then
         case "$with_ttfcachesize" in
             64)
                 AC_DEFINE(_MGTTF_CACHE_SIZE, 64,
-                          [Define if compile max ttf cahce size for 64k])
+                          [Define if the size of one TTF cache bucket is 64kB])
             ;;
             128)
                 AC_DEFINE(_MGTTF_CACHE_SIZE, 128,
-                          [Define if compile max ttf cahce size for 128k])
+                          [Define if the size of one TTF cache bucket is 128kB])
             ;;
             256)
                 AC_DEFINE(_MGTTF_CACHE_SIZE, 256,
-                          [Define if compile max ttf cahce size for 256k])
+                          [Define if the size of one TTF cache bucket is 256kB])
             ;;
             512)
                 AC_DEFINE(_MGTTF_CACHE_SIZE, 512,
-                          [Define if compile max ttf cahce size for 512k])
+                          [Define if the size of one TTF cache bucket is 512kB])
             ;;
             1024)
                 AC_DEFINE(_MGTTF_CACHE_SIZE, 1024,
-                          [Define if compile max ttf cahce size for 1024k])
+                          [Define if the size of one TTF cache bucket is 1024kB])
             ;;
             2048)
                 AC_DEFINE(_MGTTF_CACHE_SIZE, 2048,
-                          [Define if compile max ttf cahce size for 2048k])
+                          [Define if the size of one TTF cache bucket is 2048kB])
             ;;
             *)
-                AC_DEFINE(_MGTTF_CACHE_SIZE, 1024,
-                          [Define if compile max ttf cahce size for 1024k (default value)])
+                AC_DEFINE(_MGTTF_CACHE_SIZE, 64,
+                          [Define if the size of one TTF cache bucket is 64kB (default value)])
             ;;
         esac
 
@@ -2213,23 +2213,23 @@ if test "x$build_ttf_support" = "xyes"; then
         case "$with_ttfcachenum" in
             16)
                 AC_DEFINE(_MGMAX_TTF_CACHE, 16,
-                          [Define if compile max ttf cahce number for 16])
+                          [Define if the number of TTF cache buckets is 16])
             ;;
             32)
                 AC_DEFINE(_MGMAX_TTF_CACHE, 32,
-                          [Define if compile max ttf cahce number for 32])
+                          [Define if the number of TTF cache buckets is 32])
             ;;
             64)
                 AC_DEFINE(_MGMAX_TTF_CACHE, 64,
-                          [Define if compile max ttf cahce number for 64])
+                          [Define if the number of TTF cache buckets is 64])
             ;;
             128)
                 AC_DEFINE(_MGMAX_TTF_CACHE, 128,
-                          [Define if compile max ttf cahce number for 128])
+                          [Define if the number of TTF cache buckets is 128])
             ;;
             *)
-                AC_DEFINE(_MGMAX_TTF_CACHE, 32,
-                          [Define if compile max ttf cahce number for 32 (default value)])
+                AC_DEFINE(_MGMAX_TTF_CACHE, 16,
+                          [Define if the number of TTF cache buckets is 16 (default value)])
             ;;
         esac
     fi
