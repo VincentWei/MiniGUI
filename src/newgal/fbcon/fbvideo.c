@@ -421,13 +421,11 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
                     (((long)finfo.smem_start)&~(getpagesize () - 1)));
     mapped_memlen = finfo.smem_len+mapped_offset;
 
-#if 0
-    // XXX: DO NOT ENABLE CACHE HERE.
-    defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
+#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
     if (mgIsServer) {
         uintptr_t args[2] = { 1, 0 };
         if (ioctl(console_fd, FBIO_ENABLE_CACHE, args) < 0) {
-            GAL_SetError("FBIO_ENABLE_CACHE failed\n");
+            GAL_SetError("NEWGAL/FBCON: FBIO_ENABLE_CACHE failed\n");
             return -1;
         }
     }
