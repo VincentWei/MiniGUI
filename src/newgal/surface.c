@@ -1870,13 +1870,13 @@ void GAL_FreeSurface (GAL_Surface *surface)
 
 #ifdef _MGUSE_PIXMAN
     if (surface->pix_img) {
-        _WRN_PRINTF ("There is not cleaned up blitting pixel image: %p\n", surface->pix_img);
+        _DBG_PRINTF ("There is not cleaned up blitting pixel image: %p\n", surface->pix_img);
         pixman_image_unref (surface->pix_img);
         surface->pix_img = NULL;
     }
 
     if (surface->msk_img) {
-        _WRN_PRINTF ("There is not cleaned up blitting mask image: %p\n", surface->msk_img);
+        _DBG_PRINTF ("There is not cleaned up blitting mask image: %p\n", surface->msk_img);
         pixman_image_unref (surface->msk_img);
         surface->msk_img = NULL;
     }

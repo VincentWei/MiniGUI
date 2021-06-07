@@ -1472,7 +1472,7 @@ void mg_slice_debug_tree_statistics (void)
                 su / bf, en, ex);
     }
     else
-        _MG_PRINTF("MGSlice: MemChecker: root=NULL\n");
+        _DBG_PRINTF("MGSlice: MemChecker: root=NULL\n");
 
     pthread_mutex_unlock (&smc_tree_mutex);
 
