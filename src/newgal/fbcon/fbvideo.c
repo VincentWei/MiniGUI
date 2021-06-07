@@ -421,7 +421,9 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
                     (((long)finfo.smem_start)&~(getpagesize () - 1)));
     mapped_memlen = finfo.smem_len+mapped_offset;
 
-#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
+#if 0
+    // XXX: DO NOT ENABLE CACHE HERE.
+    defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
     if (mgIsServer) {
         uintptr_t args[2] = { 1, 0 };
         if (ioctl(console_fd, FBIO_ENABLE_CACHE, args) < 0) {
@@ -1182,7 +1184,7 @@ static void FB_SavePalette(_THIS, struct fb_fix_screeninfo *finfo,
 
         /* Allocate new identity colormap */
         for (i=0; i<256; ++i) {
-                  new_entries[(0*256)+i] =
+            new_entries[(0*256)+i] =
             new_entries[(1*256)+i] =
             new_entries[(2*256)+i] = (i<<8)|i;
         }
