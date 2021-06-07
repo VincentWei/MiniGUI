@@ -75,9 +75,6 @@
 #ifdef _MG_ENABLE_LICENSE
 #   include "../sysres/license/c_files/04_progressbar-bk.dat.c"
 #endif
-#ifndef __TARGET_UNKNOWN__
-unsigned int g_license_processor_id;
-#endif
 
 #ifdef _MGHAVE_MENU
 /* function defined in menu module. */

@@ -67,9 +67,6 @@
 #ifdef _MG_ENABLE_LICENSE
 #   include "../sysres/license/c_files/03_progressbar.dat.c"
 #endif
-#ifndef __TARGET_UNKNOWN__
-unsigned int g_license_message_offset;
-#endif
 
 #ifdef _MGRM_PROCESSES
 #   include "ourhdr.h"
