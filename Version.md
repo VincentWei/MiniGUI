@@ -1,6 +1,6 @@
-Version 5.0.6 (2021/05/20)
+Version 5.0.7 (2021/06/30)
 
-This is the first official release of MiniGUI 5.0.x, the stable version.
+This is a bugfix release of MiniGUI 5.0.x, the stable version.
 
 Other packages for MiniGUI resource, tools, components, and samples:
 
