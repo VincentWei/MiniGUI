@@ -112,8 +112,6 @@ build_adv2dapi="yes"
 use_pixman="yes"
 build_updateregion="yes"
 
-build_minimalgdi="no"
-
 dnl Options for look and feel renderer
 with_flat_lf="yes"
 with_skin_lf="yes"
@@ -143,13 +141,11 @@ build_dlcustom_ial_engine="no"
 build_custom_ial_engine="no"
 build_comm_ial_engine="no"
 
-dnl ial engines for simulaters
+dnl IAL engines deprecated
 build_qvfb_ial_engine="no"
 build_wvfb_ial_engine="no"
 build_dfb_ial_engine="no"
 build_qemu_ial_engine="no"
-
-dnl ial engines for real hardware
 build_cisco_touchpad_ial_engine="no"
 build_mstar_ial_engine="no"
 build_ipaq_h3600_ial_engine="no"
@@ -266,20 +262,20 @@ build_ctrl_animation="yes"
 
 enable_video_dummy="yes"
 enable_video_pc_xvfb="yes"
+enable_video_drm="yes"
+enable_video_fbcon="yes"
+enable_video_shadow="no"
+enable_video_usvfb="no"
+enable_video_commlcd="no"
+
+# the following GAL engines are deprecated
 enable_video_rtos_xvfb="no"
 enable_video_qvfb="no"
 enable_video_wvfb="no"
-enable_video_usvfb="no"
 enable_video_dfb="no"
 enable_video_dfb_st7167="no"
 enable_video_stgfb="no"
-
-enable_video_drm="yes"
-enable_video_fbcon="yes"
-enable_video_commlcd="no"
-enable_video_shadow="no"
 enable_video_mlshadow="no"
-
 enable_video_em86gfx="no"
 enable_video_em85xxyuv="no"
 enable_video_em85xxosd="no"
@@ -289,14 +285,14 @@ enable_video_mb93493="no"
 enable_video_utpmc="no"
 enable_video_hi35xx="no"
 enable_video_hi3560a="no"
+enable_video_gdl="no"
 enable_video_nexus="no"
 enable_video_s3c6410="no"
 enable_video_sigma8654="no"
 enable_video_mstar="no"
 enable_video_custom="no"
 
-dnl settings for license management
-build_productid="no"
+dnl settings for splash and screen saver
 build_splash="yes"
 build_screensaver="no"
 
@@ -320,7 +316,7 @@ AC_ARG_ENABLE(msgstr,
 message_string=$enableval)
 
 AC_ARG_WITH(runmode,
-[  --with-runmode=procs/ths/sa  the MiniGUI runtime mode <default=procs>],
+[  --with-runmode=RUNMODE       MiniGUI runtime mode <procs, ths, or sa; procs by default>],
 runtime_mode=$withval)
 
 AC_ARG_ENABLE(incoreres,
@@ -375,20 +371,12 @@ AC_ARG_ENABLE(updateregion,
 [  --enable-updateregion    Use update region for cumulative updating surfaces <default=yes>],
 build_updateregion=$enableval)
 
-AC_ARG_ENABLE(minimalgdi,
-[  --enable-minimalgdi      build a minimal GDI library only <default=no>],
-build_minimalgdi=$enableval)
-
-AC_ARG_ENABLE(productid,
-[  --enable-productid       insert a productid into the library file <default=no>],
-build_productid=$enableval)
-
 AC_ARG_ENABLE(splash,
 [  --enable-splash          enable splash <default=yes>],
 build_splash=$enableval)
 
 AC_ARG_ENABLE(screensaver,
-[  --enable-screensaver     enable screensaver <default=no>],
+[  --enable-screensaver     enable screensaver <default=no>; deprecated],
 build_screensaver=$enableval)
 
 AC_ARG_ENABLE(flatlf,
@@ -412,27 +400,27 @@ AC_ARG_ENABLE(netial,
 build_net_ial_engine=$enableval)
 
 AC_ARG_ENABLE(cisco_touchpad_ial,
-[  --enable-cisco_touchpad_ial    build the IAL engine for Cisco Touchpad <default=no>],
+[  --enable-cisco_touchpad_ial    build the IAL engine for Cisco Touchpad <default=no>; deprecated],
 build_cisco_touchpad_ial_engine=$enableval)
 
 AC_ARG_ENABLE(mstar_ial,
-[  --enable-mstar_ial       build the IAL engine for MStar <default=no>],
+[  --enable-mstar_ial       build the IAL engine for MStar <default=no>; deprecated],
 build_mstar_ial_engine=$enableval)
 
 AC_ARG_ENABLE(ipaqh3600ial,
-[  --enable-ipaqh3600ial    build the IAL engine for iPAQ H3600 <default=no>],
+[  --enable-ipaqh3600ial    build the IAL engine for iPAQ H3600 <default=no>; deprecated],
 build_ipaq_h3600_ial_engine=$enableval)
 
 AC_ARG_ENABLE(nexusial,
-[  --enable-nexusial        build the IAL engine for Nexus <default=no>],
+[  --enable-nexusial        build the IAL engine for Nexus <default=no>; deprecated],
 build_nexus_ial_engine=$enableval)
 
 AC_ARG_ENABLE(ipaqh5400ial,
-[  --enable-ipaqh5400ial    build the IAL engine for iPAQ H5400 <default=no>],
+[  --enable-ipaqh5400ial    build the IAL engine for iPAQ H5400 <default=no>; deprecated],
 build_ipaq_h5400_ial_engine=$enableval)
 
 AC_ARG_ENABLE(tslibial,
-[  --enable-tslibial        build the IAL engine for TSLIB <default=no>],
+[  --enable-tslibial        build the IAL engine for TSLIB <default=no>; deprecated],
 build_tslib_ial_engine=$enableval)
 
 AC_ARG_ENABLE(dummyial,
@@ -452,35 +440,35 @@ AC_ARG_ENABLE(commial,
 build_comm_ial_engine=$enableval)
 
 AC_ARG_ENABLE(qvfbial,
-[  --enable-qvfbial         build the QVFB IAL engine <default=no>],
+[  --enable-qvfbial         build the QVFB IAL engine <default=no>; deprecated],
 build_qvfb_ial_engine=$enableval)
 
 AC_ARG_ENABLE(qemuial,
-[  --enable-qemuial         build the QEMU IAL engine <default=no>],
+[  --enable-qemuial         build the QEMU IAL engine <default=no>; deprecated],
 build_qemu_ial_engine=$enableval)
 
 AC_ARG_ENABLE(wvfbial,
-[  --enable-wvfbial         build the WVFB IAL engine <default=no>],
+[  --enable-wvfbial         build the WVFB IAL engine <default=no>; deprecated],
 build_wvfb_ial_engine=$enableval)
 
 AC_ARG_ENABLE(jz4740ial,
-[  --enable-jz4740ial       build the JZ4740 IAL engine <default=no>],
+[  --enable-jz4740ial       build the JZ4740 IAL engine <default=no>; deprecated],
 build_jz4740_ial_engine=$enableval)
 
 AC_ARG_ENABLE(lide,
-[  --enable-lide            build the lide IAL engine <default=no>],
+[  --enable-lide            build the lide IAL engine <default=no>; deprecated],
 build_lide_ial_engine=$enableval)
 
 AC_ARG_ENABLE(2440ial,
-[  --enable-2440ial         build the 2440 IAL engine <default=no>],
+[  --enable-2440ial         build the 2440 IAL engine <default=no>; deprecated],
 build_2440_ial_engine=$enableval)
 
 AC_ARG_ENABLE(davinci6446ial,
-[  --enable-davinci6446ial  build the DAVINCI6446 IAL engine <default=no>],
+[  --enable-davinci6446ial  build the DAVINCI6446 IAL engine <default=no>; deprecated],
 build_davinci6446_ial_engine=$enableval)
 
 AC_ARG_ENABLE(dfbial,
-[  --enable-dfbial          build the DFB IAL engine <default=no>],
+[  --enable-dfbial          build the DFB IAL engine <default=no>; deprecated],
 build_dfb_ial_engine=$enableval)
 
 AC_ARG_ENABLE(libinputial,
@@ -922,7 +910,7 @@ dnl Find the DRM includes
 CheckDRM()
 {
     AC_ARG_ENABLE(videodrm,
-[  --enable-videodrm      include Linux DRM NEWGAL engine <default=yes>],
+[  --enable-videodrm        include Linux DRM NEWGAL engine <default=yes>],
     enable_video_drm=$enableval)
     if test "x$enable_video_drm" = "xyes"; then
         PKG_CHECK_MODULES(DRM, [libdrm >= 2.4], video_drm="yes",
@@ -945,7 +933,7 @@ dnl Check Qt Virtual FrameBuffer
 CheckQVFB()
 {
     AC_ARG_ENABLE(videoqvfb,
-[  --enable-videoqvfb       include Qt Virtual FrameBuffer NEWGAL engine <default=yes>],
+[  --enable-videoqvfb       include Qt Virtual FrameBuffer NEWGAL engine <default=no>; deprecated],
     enable_video_qvfb=$enableval)
 
     if test "x$enable_video_qvfb" = "xyes"; then
@@ -960,11 +948,11 @@ dnl Check X Virtual FrameBuffer
 CheckXVFB()
 {
     AC_ARG_ENABLE(videopcxvfb,
-[  --enable-videopcxvfb     include PC Virtual FrameBuffer NEWGAL engine, such as qvfb, mvfb, gvfb or wvfb <default=yes>],
+[  --enable-videopcxvfb     include the Universal Virtual FrameBuffer NEWGAL engine for PC <default=yes>],
     enable_video_pc_xvfb=$enableval)
 
     AC_ARG_ENABLE(videortosxvfb,
-[  --enable-videortosxvfb   include RTOS Virtual FrameBuffer NEWGAL engine <default=no>. Please disable pcxvfb to enable rtosxvfb],
+[  --enable-videortosxvfb   include RTOS Virtual FrameBuffer NEWGAL engine <default=no>; deprecated],
     enable_video_rtos_xvfb=$enableval)
 
     if test "x$enable_video_pc_xvfb" = "xyes"; then
@@ -989,7 +977,7 @@ dnl Check Windows Virtual FrameBuffer
 CheckWVFB()
 {
     AC_ARG_ENABLE(videowvfb,
-[  --enable-videowvfb       include Windows Virtual Frame Buffer NEWGAL engine <default=no>],
+[  --enable-videowvfb       include Windows Virtual Frame Buffer NEWGAL engine <default=no>; deprecated],
     enable_video_wvfb=$enableval)
 
     if test "x$enable_video_wvfb" = "xyes"; then
@@ -1005,7 +993,7 @@ dnl Set up the UnixSocket virtual Frame Buffer video driver.
 CheckUSVFB()
 {
     AC_ARG_ENABLE(videousvfb,
-[  --enable-videousvfb    include NEWGAL/IAL engines for UnixSocket Virtual Frame Buffer <default=no>],
+[  --enable-videousvfb      include NEWGAL/IAL engines for UnixSocket Virtual Frame Buffer <default=no>],
     enable_video_usvfb=$enableval)
 
     if test "x$enable_video_usvfb" = "xyes"; then
@@ -1033,22 +1021,6 @@ CheckCOMMLCD()
     fi
 }
 
-dnl Set up the MLShadow video driver.
-CheckMLShadowVideo()
-{
-    AC_ARG_ENABLE(videomlshadow,
-[  --enable-videomlshadow   include MLShadow NEWGAL engine <default=no>],
-    enable_video_mlshadow=$enableval)
-
-    if test "x$enable_video_mlshadow" = "xyes"; then
-      AC_DEFINE(_MGGAL_MLSHADOW, 1,
-                [Define if include MLShadow NEWGAL engine])
-      VIDEO_SUBDIRS="$VIDEO_SUBDIRS mlshadow"
-      VIDEO_DRIVERS="$VIDEO_DRIVERS mlshadow/libvideo_mlshadow.la"
-dnl      DEP_LIBS="$DEP_LIBS -lpthread"
-    fi
-}
-
 dnl Set up the Shadow video driver.
 CheckShadowVideo()
 {
@@ -1065,10 +1037,26 @@ dnl      DEP_LIBS="$DEP_LIBS -lpthread"
     fi
 }
 
+dnl Set up the MLShadow video driver.
+CheckMLShadowVideo()
+{
+    AC_ARG_ENABLE(videomlshadow,
+[  --enable-videomlshadow   include MLShadow NEWGAL engine <default=no>; deprecated],
+    enable_video_mlshadow=$enableval)
+
+    if test "x$enable_video_mlshadow" = "xyes"; then
+      AC_DEFINE(_MGGAL_MLSHADOW, 1,
+                [Define if include MLShadow NEWGAL engine])
+      VIDEO_SUBDIRS="$VIDEO_SUBDIRS mlshadow"
+      VIDEO_DRIVERS="$VIDEO_DRIVERS mlshadow/libvideo_mlshadow.la"
+dnl      DEP_LIBS="$DEP_LIBS -lpthread"
+    fi
+}
+
 dnl Set up the EM85xx YUV video driver.
 CheckEM86GFX()
 { AC_ARG_ENABLE(videoem86gfx,
-[  --enable-videoem86gfx    include NEWGAL engine for EM86xx GFX <default=no>],
+[  --enable-videoem86gfx    include NEWGAL engine for EM86xx GFX <default=no>; deprecated],
     enable_video_em86gfx=$enableval)
 
     if test "x$enable_video_em86gfx" = "xyes"; then
@@ -1082,7 +1070,7 @@ CheckEM86GFX()
 dnl Set up the EM85xx YUV video driver.
 CheckEM85xxYUV()
 { AC_ARG_ENABLE(videoem85xxyuv,
-[  --enable-videoem85xxyuv  include NEWGAL engine for EM85xx YUV <default=no>],
+[  --enable-videoem85xxyuv  include NEWGAL engine for EM85xx YUV <default=no>; deprecated],
     enable_video_em85xxyuv=$enableval)
 
     if test "x$enable_video_em85xxyuv" = "xyes"; then
@@ -1096,7 +1084,7 @@ CheckEM85xxYUV()
 dnl Set up the EM85xx OSD video driver.
 CheckEM85xxOSD()
 { AC_ARG_ENABLE(videoem85xxosd,
-[  --enable-videoem85xxosd  include NEWGAL engine for EM85xx OSD <default=no>],
+[  --enable-videoem85xxosd  include NEWGAL engine for EM85xx OSD <default=no>; deprecated],
     enable_video_em85xxosd=$enableval)
 
     if test "x$enable_video_em85xxosd" = "xyes"; then
@@ -1111,7 +1099,7 @@ dnl Set up svpxxosd video driver.
 CheckSvpxxosdVideo()
 {
     AC_ARG_ENABLE(videosvpxxosd,
-[  --enable-videosvpxxosd   include SVPXXOSD NEWGAL engine <default=no>],
+[  --enable-videosvpxxosd   include SVPXXOSD NEWGAL engine <default=no>; deprecated],
     enable_video_svpxxosd=$enableval)
 
     if test "x$enable_video_svpxxosd" = "xyes"; then
@@ -1126,7 +1114,7 @@ dnl Set up the video driver for BF533 OSD via SPI
 CheckBF533Video()
 {
     AC_ARG_ENABLE(videobf533,
-[  --enable-videobf533      include NEWGAL engine for BF533 OSD via SPI <default=no>],
+[  --enable-videobf533      include NEWGAL engine for BF533 OSD via SPI <default=no>; deprecated],
     enable_video_bf533=$enableval)
 
     if test "x$enable_video_bf533" = "xyes"; then
@@ -1141,7 +1129,7 @@ dnl Set up the video driver for mb93493 YUV FrameBuffer driver
 CheckMB93493Video()
 {
     AC_ARG_ENABLE(videomb93493,
-[  --enable-videomb93493    include NEWGAL engine for mb93493 YUV FrameBuffer driver <default=no>],
+[  --enable-videomb93493    include NEWGAL engine for mb93493 YUV FrameBuffer driver <default=no>; deprecated],
     enable_video_mb93493=$enableval)
 
     if test "x$enable_video_mb93493" = "xyes"; then
@@ -1156,7 +1144,7 @@ dnl Set up the video driver for UTPMC.
 CheckUTPMCVideo()
 {
     AC_ARG_ENABLE(videoutpmc,
-[  --enable-videoutpmc      include NEWGAL engine for UTPMC <default=no>],
+[  --enable-videoutpmc      include NEWGAL engine for UTPMC <default=no>; deprecated],
     enable_video_utpmc=$enableval)
 
     if test "x$enable_video_utpmc" = "xyes"; then
@@ -1171,7 +1159,7 @@ dnl Set up the video driver for DirectFB.
 CheckDirectFBVideo()
 {
     AC_ARG_ENABLE(videodfb,
-[  --enable-videodfb        include NEWGAL engine for DirectFB <default=no>],
+[  --enable-videodfb        include NEWGAL engine for DirectFB <default=no>; deprecated],
     enable_video_dfb=$enableval)
 
     if test "x$enable_video_dfb" = "xyes"; then
@@ -1193,7 +1181,7 @@ CheckDirectFBVideo()
 
             dnl Set up the video driver for ST7167.
             AC_ARG_ENABLE(videost7167,
-[  --enable-videost7167     include NEWGAL engine for ST7167 on DirectFB <default=no>],
+[  --enable-videost7167     include NEWGAL engine for ST7167 on DirectFB <default=no>; deprecated],
     enable_video_dfb_st7167=$enableval)
 
             if test "x$enable_video_dfb_st7167" = "xyes"; then
@@ -1208,7 +1196,7 @@ dnl Set up the video driver for STGFB(ST7105,ST7109,ST7167 native ioctl).
 CheckSTGFBVideo()
 {
     AC_ARG_ENABLE(videostgfb,
-[  --enable-videostgfb      include NEWGAL engine for STGFB <default=no>],
+[  --enable-videostgfb      include NEWGAL engine for STGFB <default=no>; deprecated],
     enable_video_stgfb=$enableval)
 
     if test "x$enable_video_stgfb" = "xyes"; then
@@ -1224,7 +1212,7 @@ dnl Check HI3510/HI3560 video driver
 CheckHI35XXVideo()
 {
     AC_ARG_ENABLE(videohi35xx,
-[  --enable-videohi35xx     include Hi35xx Video  NEWGAL engine <default=no>],
+[  --enable-videohi35xx     include Hi35xx Video  NEWGAL engine <default=no>; deprecated],
     enable_video_hi35xx=$enableval)
 
     if test "x$enable_video_hi35xx" = "xyes"; then
@@ -1241,7 +1229,7 @@ dnl Check HI3560A video driver
 CheckHI3560AVideo()
 {
     AC_ARG_ENABLE(videohi3560a,
-[  --enable-videohi3560a    include Hi3560A Video  NEWGAL engine <default=no>],
+[  --enable-videohi3560a    include Hi3560A Video  NEWGAL engine <default=no>; deprecated],
     enable_video_hi3560a=$enableval)
 
     if test "x$enable_video_hi3560a" = "xyes"; then
@@ -1256,7 +1244,7 @@ dnl Check Intel GDL video driver
 CheckGDLVideo()
 {
     AC_ARG_ENABLE(videogdl,
-[  --enable-videogdl        include GDL Video NEWGAL engine <default=no>],
+[  --enable-videogdl        include GDL Video NEWGAL engine <default=no>; deprecated],
     enable_video_gdl=$enableval)
 
     if test "x$enable_video_gdl" = "xyes"; then
@@ -1271,7 +1259,7 @@ dnl Set up the sigma video driver.
 CheckSigmaVideo()
 {
     AC_ARG_ENABLE(videosigma8654,
-[  --enable-videosigma8654  include sigma8654 NEWGAL engine <default=no>],
+[  --enable-videosigma8654  include sigma8654 NEWGAL engine <default=no>; deprecated],
                   enable_video_sigma8654=$enableval)
 
     if test "x$enable_video_sigma8654" = "xyes"; then
@@ -1286,7 +1274,7 @@ dnl Set up the mstar video driver.
 CheckMStarVideo()
 {
     AC_ARG_ENABLE(videomstar,
-[  --enable-videomstar      include mstar NEWGAL engine <default=no>],
+[  --enable-videomstar      include mstar NEWGAL engine <default=no>; deprecated],
                   enable_video_mstar=$enableval)
 
     if test "x$enable_video_mstar" = "xyes"; then
@@ -1301,7 +1289,7 @@ dnl Set up the custom video driver.
 CheckCustomVideo()
 {
     AC_ARG_ENABLE(videocustom,
-[  --enable-videocustom     include custom NEWGAL engine <default=no>],
+[  --enable-videocustom     include custom NEWGAL engine <default=no>; deprecated],
                   enable_video_custom=$enableval)
 
     if test "x$enable_video_custom" = "xyes"; then
@@ -1314,7 +1302,7 @@ dnl Set up the Nexus video driver.
 CheckNexusVideo()
 {
     AC_ARG_ENABLE(videonexus,
-[  --enable-videonexus      include nexus NEWGAL engine <default=no>],
+[  --enable-videonexus      include nexus NEWGAL engine <default=no>; deprecated],
     enable_video_nexus=$enableval)
 
     if test "x$enable_video_nexus" = "xyes"; then
@@ -1357,7 +1345,7 @@ dnl Set up the s3c6410 video driver.
 CheckS3C6410Video()
 {
     AC_ARG_ENABLE(videos3c6410,
-[  --enable-videos3c6410    include s3c6410 NEWGAL engine <default=no>],
+[  --enable-videos3c6410    include s3c6410 NEWGAL engine <default=no>; deprecated],
     enable_video_s3c6410=$enableval)
 
     if test "x$enable_video_s3c6410" = "xyes"; then
@@ -1482,7 +1470,7 @@ if test "x$build_net_ial_engine" = "xyes"; then
 fi
 
 AC_ARG_WITH(libsuffix,
-[  --with-libsuffix=ARG     Configure the suffix of MiniGUI library name.])
+[  --with-libsuffix=ARG         the suffix of MiniGUI library name.])
 
 case "$with_libsuffix" in
     mvfb)
@@ -1510,10 +1498,7 @@ case "$with_libsuffix" in
 esac
 
 AC_ARG_WITH(osname,
-   [  --with-osname=linux/uclinux/rtt/rtems/freertos/ecos/ucos2/swlinux/vxworks/win32/darwin/threadx/cygwin/nucleus/ose/psos])
-
-dnl configure.in file is used only for the following OSes: linux/uclinux/swlinux/ecos/darwin/cygwin
-dnl for other OSes, you should use makefile.ng or else.
+   [  --with-osname=OS             the operating system <linux, uclinux, rtt, rtems, freertos, ecos, ucos2, swlinux, vxworks, win32, darwin, threadx, cygwin, nucleus, ose, or psos>])
 
 case "$with_osname" in
   uclinux)
@@ -1651,8 +1636,7 @@ dnl         ;;
 dnl esac
 
 AC_ARG_WITH(targetname,
-  [  --with-targetname=unknown/external/fmsoft/mstudio/r818/stb810/vfanvil/vxi386/qvfb/fbcon/mx21/monaco/c33l05/bfin/vxppc/
-                        S3C6410/S3C2440/S3C2410/hi3560a     Define the target board name])
+  [  --with-targetname=TARGET     the target name <unknown, external, fmsoft, mstudio, r818, or vxi386>])
 
 case "$with_targetname" in
   external)
@@ -1668,42 +1652,9 @@ case "$with_targetname" in
   r818)
     AC_DEFINE(__TARGET_R818__, 1, [Define for Allwinner R818 target])
     ;;
-  stb810)
-    AC_DEFINE(__TARGET_STB810__, 1, [Define for Philips STB810 target])
-    ;;
-  vfanvil)
-    AC_DEFINE(__TARGET_VFANVIL__, 1, [Define for VirualFone ANVIL target])
-    ;;
-  monaco)
-    AC_DEFINE(__TARGET_MONACO__, 1, [Define for Monaco ANVIL target])
-    ;;
-  mx21)
-    AC_DEFINE(__TARGET_MX21__, 1, [Define for OSE on mx21])
-    ;;
   vxi386)
     AC_DEFINE(__TARGET_VXI386__, 1, [Define for VxWorks on i386])
     ;;
-  vxppc)
-    AC_DEFINE(__TARGET_PPC__, 1, [Define for VxWorks on PowerPC])
-    ;;
-  bfin)
-    AC_DEFINE(__TARGET_BLACKFIN__, 1, [Define for Blackfin run uClinux])
-   ;;
-  c33l05)
-    AC_DEFINE(__TARGET_C33L05__, 1, [Define for EPSON C33L05 (axLinux)])
-   ;;
-  S3C6410)
-    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_S3C6410"
-   ;;
-  S3C2440)
-    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_S3C2440"
-   ;;
-  S3C2410)
-    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_S3C2410"
-   ;;
-  hi3560a)
-    CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_HI3560A"
-   ;;
   *)
     with_targetname="unknown"
     CPPFLAGS="$CPPFLAGS -D_WITH_TARGET_NONE"
@@ -1882,8 +1833,7 @@ if test "x$devel_mode" = "xyes"; then
 
     enable_video_fbcon="yes"
     enable_video_shadow="yes"
-    enable_video_mlshadow="yes"
-    enable_video_custom="yes"
+    enable_video_usvfb="yes"
 fi
 
 dnl Depedencies
@@ -2175,7 +2125,7 @@ if test "x$build_ttf_support" = "xyes"; then
                   [Define if support TTF cache])
 
         AC_ARG_WITH(ttfcachesize,
-                    [  --with-ttfcachesize=[64/128/256/512/1024/2048]])
+[  --with-ttfcachesize=ARG      the size of one TTF cache bucekt (kB) <64, 128, 256, 512, 1024, or 2048; 64 by default>])
 
         case "$with_ttfcachesize" in
             64)
@@ -2209,7 +2159,7 @@ if test "x$build_ttf_support" = "xyes"; then
         esac
 
         AC_ARG_WITH(ttfcachenum,
-                    [  --with-ttfcachenum=[16/32/64/128]])
+[  --with-ttfcachenum=ARG       the number of TTF cache buckets <16, 32, 64, or 128; 16 by default>])
         case "$with_ttfcachenum" in
             16)
                 AC_DEFINE(_MGMAX_TTF_CACHE, 16,
@@ -2279,7 +2229,7 @@ if test "x$use_pixman" = "xyes"; then
     AC_DEFINE(_MGUSE_PIXMAN, 1,
          [Define if use libpixman for optimized pixel operations])
     AC_ARG_WITH(pixman_includes,
-[  --with-pixman-includes=DIR      where the libpixman includes are])
+[  --with-pixman-includes=DIR   where the libpixman includes are])
 
     if test "x$with_pixman_includes" != "x"; then
         PIXMAN_CFLAGS="-I$with_pixman_includes"
@@ -2647,16 +2597,6 @@ if test "x$build_screensaver" = "xyes"; then
     CPPFLAGS="$CPPFLAGS -D_MG_ENABLE_SCREENSAVER=1"
 fi
 
-if test "x$build_minimalgdi" = "xyes"; then
-    AC_DEFINE(_MG_MINIMALGDI, 1,
-            [Define if build the mgeff support version])
-fi
-
-if test "x$build_productid" = "xyes"; then
-    AC_DEFINE(_MG_PRODUCTID, 1,
-            [Define if insert a productid into the library file])
-fi
-
 dnl ========================================================================
 dnl Write output
 
@@ -2712,7 +2652,6 @@ AM_CONDITIONAL(MGFONT_SEF, test "x$build_sef_support" = "xyes")
 AM_CONDITIONAL(MGIAL_CUSTOM, test "x$build_custom_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_NET, test "x$build_net_ial_engine" = "xyes")
 AM_CONDITIONAL(MGLIB_MVFB, test "x$with_libsuffix" = "xmvfb")
-AM_CONDITIONAL(MG_MINIMALGDI, test "x$build_minimalgdi" = "xyes")
 AM_CONDITIONAL(MG_ENABLE_SPLASH, test "x$build_splash" = "xyes")
 AM_CONDITIONAL(MG_ENABLE_SCREENSAVER, test "x$build_screensaver" = "xyes")
 

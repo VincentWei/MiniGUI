@@ -1,28 +1,19 @@
-if MG_MINIMALGDI
-COMMON_SUBDIRS = misc kernel sysres include 
-
-COMMON_LADD =               	\
-    kernel/libkernel.la     	\
-	sysres/libsysres.la         \
-    misc/libmisc.la         	
-else
 COMMON_SUBDIRS = libc misc main kernel sysres ial control ex_ctrl font gui mybmp include textedit
 
-COMMON_LADD =               	\
-    libc/liblibc.la         	\
-    misc/libmisc.la         	\
-    control/libcontrol.la   	\
-    ex_ctrl/libexctrl.la   		\
-    font/libfont.la         	\
+COMMON_LADD =                   \
+    libc/liblibc.la             \
+    misc/libmisc.la             \
+    control/libcontrol.la       \
+    ex_ctrl/libexctrl.la           \
+    font/libfont.la             \
     font/in-core/libincore.la   \
-    ial/libial.la           	\
-    gui/libgui.la           	\
-    main/libmain.la         	\
-    mybmp/libmybmp.la       	\
-    kernel/libkernel.la     	\
+    ial/libial.la               \
+    gui/libgui.la               \
+    main/libmain.la             \
+    mybmp/libmybmp.la           \
+    kernel/libkernel.la         \
     sysres/libsysres.la         \
-	textedit/libtextedit.la
-endif
+    textedit/libtextedit.la
 
 if MGRM_STANDALONE
 LITE_LADD = standalone/libstandalone.la
@@ -45,8 +36,8 @@ SUBDIRS = $(COMMON_SUBDIRS) $(NEWGAL_SUBDIRS) $(LITE_SUBDIRS)
 
 MGSOURCES = template.c template.h
 MGLIBADD =  $(COMMON_LADD)      \
-			$(LITE_LADD)        \
-			$(NEWGAL_LADD)
+            $(LITE_LADD)        \
+            $(NEWGAL_LADD)
 MGLDFLAGS = -release $(LT_RELEASE) -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 
 lib_LTLIBRARIES=libminigui_@MGLIB_SUFFIX@.la
