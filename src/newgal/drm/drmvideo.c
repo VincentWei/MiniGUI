@@ -1094,7 +1094,12 @@ static int open_drm_device(GAL_VideoDevice *device)
 
     _DBG_PRINTF("Try to load DRM driver: %s\n", driver_name);
 
+#if defined(__TARGET_PX30__)
+    fd = drmOpen("rockchip", NULL);
+#else
     fd = drmOpen(driver_name, NULL);
+#endif
+
     if (fd < 0) {
         _ERR_PRINTF("NEWGAL>DRM: drmOpen failed\n");
         free(driver_name);
