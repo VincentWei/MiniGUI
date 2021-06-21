@@ -953,8 +953,10 @@ static void DRM_DeleteDevice(GAL_VideoDevice *device)
 }
 
 #ifdef __TARGET_PX30__
-static inline char* find_driver_for_device (const char *dev_name) { return strdup ("rockchip"); }
-#else
+static inline char* find_driver_for_device (const char *dev_name) { 
+    return strdup ("rockchip"); 
+}
+#else   /* __TARGET_PX30__ */
 static char* find_driver_for_device (const char *dev_name)
 {
     char *driver;
@@ -999,7 +1001,7 @@ static char* find_driver_for_device (const char *dev_name)
 
     return strdup (driver + strlen ("/"));
 }
-#endif
+#endif  /* not defined __TARGET_PX30__ */
 
 static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
         const char* driver_name, int device_fd)
