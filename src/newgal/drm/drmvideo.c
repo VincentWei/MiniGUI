@@ -952,6 +952,11 @@ static void DRM_DeleteDevice(GAL_VideoDevice *device)
     free(device);
 }
 
+#ifdef __TARGET_PX30__
+static inline char* find_driver_for_device (const char *dev_name) { 
+    return strdup ("rockchip"); 
+}
+#else   /* __TARGET_PX30__ */
 static char* find_driver_for_device (const char *dev_name)
 {
     char *driver;
@@ -996,6 +1001,7 @@ static char* find_driver_for_device (const char *dev_name)
 
     return strdup (driver + strlen ("/"));
 }
+#endif  /* not defined __TARGET_PX30__ */
 
 static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
         const char* driver_name, int device_fd)
@@ -1095,6 +1101,7 @@ static int open_drm_device(GAL_VideoDevice *device)
     _DBG_PRINTF("Try to load DRM driver: %s\n", driver_name);
 
     fd = drmOpen(driver_name, NULL);
+
     if (fd < 0) {
         _ERR_PRINTF("NEWGAL>DRM: drmOpen failed\n");
         free(driver_name);
