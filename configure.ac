@@ -1636,7 +1636,7 @@ dnl         ;;
 dnl esac
 
 AC_ARG_WITH(targetname,
-  [  --with-targetname=TARGET     the target name <unknown, external, fmsoft, mstudio, r818, or vxi386>])
+  [  --with-targetname=TARGET     the target name <unknown, external, fmsoft, mstudio, r818, px30, or vxi386>])
 
 case "$with_targetname" in
   external)
@@ -1651,6 +1651,9 @@ case "$with_targetname" in
    ;;
   r818)
     AC_DEFINE(__TARGET_R818__, 1, [Define for Allwinner R818 target])
+    ;;
+  px30)
+    AC_DEFINE(__TARGET_PX30__, 1, [Define for Rockchip PX30 target])
     ;;
   vxi386)
     AC_DEFINE(__TARGET_VXI386__, 1, [Define for VxWorks on i386])
