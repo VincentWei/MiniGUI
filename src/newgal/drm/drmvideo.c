@@ -961,6 +961,9 @@ static char* find_driver_for_device (const char *dev_name)
     char device_link_path[PATH_MAX + 1] = "";
     int ret;
 
+#ifdef __TARGET_PX30__
+    return strdup ("rockchip");
+#else
     if (stat (dev_name, &file_attrs) < 0) {
         _ERR_PRINTF("NEWGAL>DRM: failed to call stat on %s\n", dev_name);
         return NULL;
@@ -995,6 +998,7 @@ static char* find_driver_for_device (const char *dev_name)
         return NULL;
 
     return strdup (driver + strlen ("/"));
+#endif
 }
 
 static DrmDriverOps* load_external_driver (DrmVideoData* vdata,
@@ -1094,11 +1098,7 @@ static int open_drm_device(GAL_VideoDevice *device)
 
     _DBG_PRINTF("Try to load DRM driver: %s\n", driver_name);
 
-#if defined(__TARGET_PX30__)
-    fd = drmOpen("rockchip", NULL);
-#else
     fd = drmOpen(driver_name, NULL);
-#endif
 
     if (fd < 0) {
         _ERR_PRINTF("NEWGAL>DRM: drmOpen failed\n");
