@@ -953,10 +953,7 @@ static void DRM_DeleteDevice(GAL_VideoDevice *device)
 }
 
 #ifdef __TARGET_PX30__
-static char* find_driver_for_device (const char *dev_name)
-{
-    return strdup ("rockchip");
-}
+static inline char* find_driver_for_device (const char *dev_name) { return strdup ("rockchip"); }
 #else
 static char* find_driver_for_device (const char *dev_name)
 {
