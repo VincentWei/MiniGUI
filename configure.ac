@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.60)
-AC_INIT(libminigui, 5.0.7)
+AC_INIT(libminigui, 5.0.8)
 AC_CONFIG_SRCDIR(src/main/main.c)
 
 dnl Set various version strings - taken gratefully from the SDL sources
@@ -16,9 +16,9 @@ dnl Set various version strings - taken gratefully from the SDL sources
 #
 MINIGUI_MAJOR_VERSION=5
 MINIGUI_MINOR_VERSION=0
-MINIGUI_MICRO_VERSION=7
-MINIGUI_INTERFACE_AGE=1
-MINIGUI_BINARY_AGE=1
+MINIGUI_MICRO_VERSION=8
+MINIGUI_INTERFACE_AGE=2
+MINIGUI_BINARY_AGE=2
 MINIGUI_VERSION=$MINIGUI_MAJOR_VERSION.$MINIGUI_MINOR_VERSION.$MINIGUI_MICRO_VERSION
 
 AC_SUBST(MINIGUI_MAJOR_VERSION)
@@ -222,6 +222,7 @@ build_save_bitmap="yes"
 build_gif_support="yes"
 build_jpg_support="yes"
 build_png_support="yes"
+build_webp_support="yes"
 build_pcx_support="no"
 build_lbm_support="no"
 build_tga_support="no"
@@ -726,6 +727,10 @@ build_jpg_support=$enableval)
 AC_ARG_ENABLE(pngsupport,
 [  --enable-pngsupport      include PNG file support <default=yes>],
 build_png_support=$enableval)
+
+AC_ARG_ENABLE(webpsupport,
+[  --enable-webpsupport     include WebP file support <default=yes>],
+build_webp_support=$enableval)
 
 AC_ARG_ENABLE(menu,
 [  --enable-menu            include menu support <default=yes>],
@@ -1437,6 +1442,12 @@ case "$libpng_version" in
         build_png_support="no; support PNG file requires libpng12 or libpng16"
     ;;
 esac
+
+dnl Check for WebP library.
+if test "x$build_webp_support" = "xyes"; then
+    PKG_CHECK_MODULES([WEBP], [libwebp >= 0.6.0], [foo=bar],
+        [build_webp_support="no; support WebP file requires libwebp 0.6.0 or later."])
+fi
 
 AC_DEFINE_UNQUOTED(MINIGUI_MAJOR_VERSION, $MINIGUI_MAJOR_VERSION,
             [Major version of MiniGUI])
@@ -2436,14 +2447,28 @@ fi
 
 if test "x$build_jpg_support" = "xyes"; then
     AC_DEFINE(_MGIMAGE_JPG, 1,
-            [Define if support JPEG bmp file format])
+            [Define if support JPEG file format])
 fi
 
 if test "x$build_png_support" = "xyes"; then
     AC_DEFINE(_MGIMAGE_PNG, 1,
-            [Define if support PNG bmp file format])
+            [Define if support PNG file format])
     AC_DEFINE_UNQUOTED(_MGLIBPNG_VER, $libpng_version,
             [Define version of libpng])
+fi
+
+if test "x$build_webp_support" = "xyes"; then
+    AC_DEFINE(_MGIMAGE_WEBP, 1,
+         [Define if support WebP file format])
+    AC_ARG_WITH(webp_includes,
+[  --with-webp-includes=DIR   where the libwebp includes are])
+
+    if test "x$with_webp_includes" != "x"; then
+        WEBP_CFLAGS="-I$with_webp_includes"
+    fi
+
+    DEP_LIBS="$DEP_LIBS $WEBP_LIBS"
+    AC_SUBST(WEBP_CFLAGS)
 fi
 
 if test "x$build_menu" = "xyes"; then
@@ -2774,6 +2799,7 @@ AC_MSG_NOTICE([
 ## Other Features:
   * JPEG:               ${build_jpg_support}
   * PNG:                ${build_png_support}
+  * WebP:               ${build_webp_support}
   * Unicode:            ${build_unicode_support}
   * Complex Scripts:    ${build_complex_scripts}
 
@@ -2782,6 +2808,7 @@ AC_MSG_NOTICE([
   * CPP flags:          ${CPPFLAGS}
   * CC  flags:          ${CFLAGS}
   * CXX flags:          ${CXXFLAGS}
+  * LibWebP includes:   ${WEBP_CFLAGS}
   * Pixman includes:    ${PIXMAN_CFLAGS}
   * FreeType2 includes: ${FT2_INC_DIR}
   * HarfBuzz includes:  ${HB_INC_DIR}

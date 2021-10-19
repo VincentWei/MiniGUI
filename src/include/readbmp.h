@@ -138,6 +138,14 @@ int __mg_save_png (MG_RWops* fp, MYBITMAP* bmp, RGB* pal);
 BOOL __mg_check_png (MG_RWops* fp);
 #endif
 
+#ifdef _MGIMAGE_WEBP
+void* __mg_init_webp (MG_RWops* fp, MYBITMAP *png, RGB *pal);
+int __mg_load_webp (MG_RWops* fp, void* init_info, MYBITMAP *png, CB_ONE_SCANLINE cb, void* context);
+void __mg_cleanup_webp (void* init_info);
+int __mg_save_webp (MG_RWops* fp, MYBITMAP* bmp, RGB* pal);
+BOOL __mg_check_webp (MG_RWops* fp);
+#endif
+
 int __mg_bmp_compute_pitch (int bpp, Uint32 width, Uint32 *pitch, BOOL does_round);
 
 #define fp_getc(fp)     MGUI_RWgetc(fp)

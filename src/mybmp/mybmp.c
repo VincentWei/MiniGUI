@@ -98,6 +98,9 @@ static BITMAP_TYPE_INFO bitmap_types [MAX_BITMAP_TYPES] =
 #ifdef _MGIMAGE_PNG
    { "png", __mg_init_png, __mg_load_png, __mg_cleanup_png, NULL, __mg_check_png },
 #endif
+#ifdef _MGIMAGE_WEBP
+   { "webp", __mg_init_webp, __mg_load_webp, __mg_cleanup_webp, NULL, __mg_check_webp },
+#endif
 };
 
 /*
