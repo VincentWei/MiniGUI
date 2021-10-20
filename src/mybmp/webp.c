@@ -71,7 +71,7 @@
 struct webp_decode_info {
     WebPDecoderConfig   config;
     size_t              sz_data;
-    char                buf[READ_BUFF_SIZE];
+    char                data[READ_BUFF_SIZE];
 };
 
 void* __mg_init_webp(MG_RWops *fp, MYBITMAP *mybmp, RGB *pal)
@@ -99,14 +99,14 @@ void* __mg_init_webp(MG_RWops *fp, MYBITMAP *mybmp, RGB *pal)
             goto error;
         }
 
-        n = MGUI_RWread(fp, info->buf + info->sz_data, 1, HEADER_CHUNK_SIZE);
+        n = MGUI_RWread(fp, info->data + info->sz_data, 1, HEADER_CHUNK_SIZE);
         if (n > 0) {
             info->sz_data += n;
         }
         else
             goto error;
 
-        sc = WebPGetFeatures(info->buf, info->sz_data, &info->config.input);
+        sc = WebPGetFeatures(info->data, info->sz_data, &info->config.input);
         if (sc == VP8_STATUS_OK) {
             break;
         }
@@ -124,6 +124,18 @@ void* __mg_init_webp(MG_RWops *fp, MYBITMAP *mybmp, RGB *pal)
         goto error;
     }
 
+#if SIZEOF_PTR == 8
+    info->config.options.no_fancy_upsampling = 0;
+    /* use default
+    info->config.options.dithering_strength = 100; */
+    /* use default
+    info->config.options.alpha_dithering_strength = 100; */
+#else
+    info->config.options.no_fancy_upsampling = 1;
+    info->config.options.dithering_strength = 67;
+    info->config.options.alpha_dithering_strength = 33;
+#endif
+
     mybmp->w = info->config.input.width;
     mybmp->h = info->config.input.height;
     mybmp->frames = 1;
@@ -140,24 +152,14 @@ void* __mg_init_webp(MG_RWops *fp, MYBITMAP *mybmp, RGB *pal)
         info->config.output.colorspace = MODE_RGB;
 
         mybmp->depth = 24;
-        mybmp->flags |= MYBMP_FLOW_DOWN | MYBMP_ALPHA | MYBMP_TYPE_RGBA;
-        mybmp->flags |= MYBMP_RGBSIZE_4;
+        mybmp->flags |= MYBMP_FLOW_DOWN | MYBMP_TYPE_RGB;
+        mybmp->flags |= MYBMP_RGBSIZE_3;
 
         pitch = (size_t)info->config.input.width * 3;
     }
 
     pitch = ROUND_TO_MULTIPLE(pitch, 8);
-
-    // Have config.output point to an external buffer:
-    info->config.output.u.RGBA.rgba = (uint8_t*)malloc(pitch);
-    info->config.output.u.RGBA.stride = pitch;
-    info->config.output.u.RGBA.size = pitch;
-    info->config.output.is_external_memory = 1;
-
-    if (info->config.output.u.RGBA.rgba == NULL) {
-        _ERR_PRINTF ("__mg_init_webp: failed to allocate memory\n");
-        goto error;
-    }
+    mybmp->pitch = pitch;
 
     return info;
 
@@ -177,19 +179,74 @@ void __mg_cleanup_webp(void *init_info)
     }
 }
 
-int __mg_load_webp(MG_RWops *fp, void *init_info, MYBITMAP *my_bmp,
+int __mg_load_webp(MG_RWops *fp, void *init_info, MYBITMAP *mybmp,
                 CB_ONE_SCANLINE cb, void *context)
 {
-    return ERR_BMP_OK;
+    int rc = ERR_BMP_OK;
+    struct webp_decode_info *info = init_info;
+    WebPIDecoder* idec = NULL;
+
+    // Have config.output point to an external buffer:
+    info->config.output.u.RGBA.rgba = (uint8_t*)mybmp->bits;
+    info->config.output.u.RGBA.stride = mybmp->pitch;
+    info->config.output.u.RGBA.size = mybmp->pitch * mybmp->h;
+    info->config.output.is_external_memory = 1;
+
+    idec = WebPINewDecoder(&info->config.output);
+    if (idec == NULL) {
+        rc = ERR_BMP_MEM;
+        goto ret;
+    }
+
+    while (1) {
+        int last_last_y = -1, last_y;
+        int n;
+
+        VP8StatusCode status = WebPIAppend(idec, info->data, info->sz_data);
+        if (status != VP8_STATUS_OK && status != VP8_STATUS_SUSPENDED) {
+            rc = ERR_BMP_LOAD;
+            break;
+        }
+
+        if (WebPIDecGetRGB(idec, &last_y, NULL, NULL, NULL) && cb &&
+                last_y > last_last_y) {
+
+            int y;
+            for (y = last_last_y + 1; y <= last_y; y++) {
+                cb(context, mybmp, y);
+            }
+
+            last_last_y = last_y;
+        }
+
+        /* read more data */
+        n = MGUI_RWread(fp, info->data, 1, sizeof(info->data));
+        if (n > 0) {
+            info->sz_data = n;
+        }
+        else if (n == 0) {
+            break;
+        }
+        else {
+            rc = ERR_BMP_LOAD;
+            break;
+        }
+    }
+
+ret:
+    if (idec)
+        WebPIDelete(idec);
+    WebPFreeDecBuffer(&info->config.output);
+
+    return rc;
 }
 
 BOOL __mg_check_webp(MG_RWops* fp)
 {
     unsigned char header[RIFF_HEADER_SIZE];
 
-    MGUI_RWread(fp, header, RIFF_HEADER_SIZE, 1);
-    if (!WebPGetInfo(header, RIFF_HEADER_SIZE, NULL, NULL)) {
-    }
+    if (MGUI_RWread(fp, header, 1, RIFF_HEADER_SIZE) != RIFF_HEADER_SIZE)
+        return FALSE;
 
     return WebPGetInfo(header, RIFF_HEADER_SIZE, NULL, NULL);
 }
