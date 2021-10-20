@@ -309,7 +309,7 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     struct my_error_mgr *jerr;
     jpeg_init_info_t* init_info;
 
-    if (!read_be16(fp,&soi_marker) || JMK_SOI != soi_marker)
+    if (!read_be16(fp, &soi_marker) || JMK_SOI != soi_marker)
         goto err; /* not JPEG image*/
 
     MGUI_RWseek (fp, 0, SEEK_SET);
@@ -353,7 +353,8 @@ void* __mg_init_jpg (MG_RWops *fp, MYBITMAP* mybmp, RGB* pal)
     }
 
     /* Step 4: set parameters for decompression */
-    cinfo->out_color_space = (mybmp->flags & MYBMP_LOAD_GRAYSCALE) ? JCS_GRAYSCALE: JCS_RGB;
+    cinfo->out_color_space =
+        (mybmp->flags & MYBMP_LOAD_GRAYSCALE) ? JCS_GRAYSCALE: JCS_RGB;
     cinfo->quantize_colors = FALSE;
 
     if (!(mybmp->flags & MYBMP_LOAD_GRAYSCALE)) {
