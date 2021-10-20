@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.8](#version-508)
+   + [What's new in version 5.0.8](#whats-new-in-version-508)
 - [Version 5.0.6](#version-506)
    + [What's new in version 5.0.6](#whats-new-in-version-506)
 - [Version 5.0.5](#version-505)
@@ -19,6 +21,27 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.8
+
+The MiniGUI development team announces the availability of MiniGUI 5.0.8,
+which is a bug fixing release with minor enhancements of MiniGUI 5.0.x.
+
+### What's new in version 5.0.8
+
+In this version, we fixed some bugs and made some optimizations and enhancements:
+
+* BUGFIXING:
+* ENHANCEMENTS:
+   - Support for WebP image format based on `libwebp`.
+   - Support for two ARM64-based hardware platforms: PX30 and R818.
+   - New surface pixel format for main window: `ST_PIXEL_XRGB565` under compositing schema.
+* OPTIMIZATIONS:
+   - Shrink heap size for fixed string.
+   - Optimize the memory use of blitting context.
+* TUNING:
+   - Tune code of fbcon video engine for compositing schema.
+   - Fix warnings and errors for conditional compilation.
 
 ## Version 5.0.6
 
