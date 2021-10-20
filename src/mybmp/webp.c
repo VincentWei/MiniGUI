@@ -65,7 +65,7 @@
 
 #define RIFF_HEADER_SIZE    12
 
-#define HEADER_CHUNK_SIZE   64
+#define HEADER_CHUNK_SIZE   32
 #define READ_BUFF_SIZE      1024
 
 struct webp_decode_info {
@@ -161,6 +161,8 @@ void* __mg_init_webp(MG_RWops *fp, MYBITMAP *mybmp, RGB *pal)
     pitch = ROUND_TO_MULTIPLE(pitch, 8);
     mybmp->pitch = pitch;
 
+    info->config.output.width = info->config.input.width;
+    info->config.output.height = info->config.input.height;
     return info;
 
 error:
@@ -174,7 +176,6 @@ void __mg_cleanup_webp(void *init_info)
     struct webp_decode_info *info = init_info;
 
     if (info) {
-        free(info->config.output.u.RGBA.rgba);
         free(info);
     }
 }
@@ -185,12 +186,20 @@ int __mg_load_webp(MG_RWops *fp, void *init_info, MYBITMAP *mybmp,
     int rc = ERR_BMP_OK;
     struct webp_decode_info *info = init_info;
     WebPIDecoder* idec = NULL;
+    int last_last_y = -1, last_y;
 
     // Have config.output point to an external buffer:
-    info->config.output.u.RGBA.rgba = (uint8_t*)mybmp->bits;
-    info->config.output.u.RGBA.stride = mybmp->pitch;
-    info->config.output.u.RGBA.size = mybmp->pitch * mybmp->h;
     info->config.output.is_external_memory = 1;
+    if (mybmp->flags & MYBMP_LOAD_ALLOCATE_ONE) {
+        info->config.output.u.RGBA.stride = mybmp->pitch;
+        info->config.output.u.RGBA.size = mybmp->pitch * mybmp->h;
+        mybmp->bits = realloc(mybmp->bits, info->config.output.u.RGBA.size);
+    }
+    else {
+        info->config.output.u.RGBA.stride = mybmp->pitch;
+        info->config.output.u.RGBA.size = mybmp->pitch * mybmp->h;
+    }
+    info->config.output.u.RGBA.rgba = (uint8_t*)mybmp->bits;
 
     idec = WebPINewDecoder(&info->config.output);
     if (idec == NULL) {
@@ -199,21 +208,27 @@ int __mg_load_webp(MG_RWops *fp, void *init_info, MYBITMAP *mybmp,
     }
 
     while (1) {
-        int last_last_y = -1, last_y;
         int n;
 
         VP8StatusCode status = WebPIAppend(idec, info->data, info->sz_data);
         if (status != VP8_STATUS_OK && status != VP8_STATUS_SUSPENDED) {
+            _ERR_PRINTF ("__mg_load_webp: WebPIAppend failed: %d\n", status);
             rc = ERR_BMP_LOAD;
             break;
         }
 
-        if (WebPIDecGetRGB(idec, &last_y, NULL, NULL, NULL) && cb &&
-                last_y > last_last_y) {
+        if (WebPIDecGetRGB(idec, &last_y, NULL, NULL, NULL) &&
+                (--last_y > last_last_y)) {
 
             int y;
             for (y = last_last_y + 1; y <= last_y; y++) {
-                cb(context, mybmp, y);
+                if (mybmp->flags & MYBMP_LOAD_ALLOCATE_ONE) {
+                    mybmp->bits = info->config.output.u.RGBA.rgba;
+                    mybmp->bits += mybmp->pitch * y;
+                }
+
+                if (cb)
+                    cb(context, mybmp, y);
             }
 
             last_last_y = last_y;
@@ -228,10 +243,13 @@ int __mg_load_webp(MG_RWops *fp, void *init_info, MYBITMAP *mybmp,
             break;
         }
         else {
+            _ERR_PRINTF ("__mg_load_webp: MGUI_RWread failed: %d\n", n);
             rc = ERR_BMP_LOAD;
             break;
         }
     }
+
+    mybmp->bits = info->config.output.u.RGBA.rgba;
 
 ret:
     if (idec)
