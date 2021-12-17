@@ -2462,7 +2462,7 @@ void GUIAPI ReleaseDC (HDC hDC)
     }
 }
 
-static BOOL InitSubDC (HDC hdcDest, HDC hdc, int off_x, int off_y,
+static BOOL dc_InitSubDC (HDC hdcDest, HDC hdc, int off_x, int off_y,
         int width, int height)
 {
     int parent_width,parent_height;
@@ -2505,6 +2505,10 @@ static BOOL InitSubDC (HDC hdcDest, HDC hdc, int off_x, int off_y,
     dc_InitMemDCFrom(pdc, pdc_parent);
     /* should set after InitMemDC.*/
     pdc->hwnd         = pdc_parent->hwnd;
+
+    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pdc->lcrgn);
+    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
 
     CopyRegion (&pdc->lcrgn, &pdc_parent->lcrgn);
     CopyRegion (&pdc->ecrgn, &pdc_parent->ecrgn);
@@ -2564,7 +2568,7 @@ HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, int width, int height)
     if (pdc == NULL)
         return HDC_INVALID;
 
-    if (!InitSubDC((HDC)pdc, hdc, off_x, off_y, width, height)) {
+    if (!dc_InitSubDC((HDC)pdc, hdc, off_x, off_y, width, height)) {
         pdc->bInUse = FALSE;
         return HDC_INVALID;
     }
@@ -2663,7 +2667,7 @@ HDC GUIAPI CreatePrivateSubDC (HDC hdc, int off_x, int off_y,
     /* XXX: use the parent's type */
     pdc->DCType   = pdc_parent->DCType;
 
-    if (!InitSubDC ((HDC)pdc, hdc, off_x, off_y, width, height)) {
+    if (!dc_InitSubDC ((HDC)pdc, hdc, off_x, off_y, width, height)) {
         free (pdc);
         return HDC_INVALID;
     }
