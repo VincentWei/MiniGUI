@@ -2506,10 +2506,6 @@ static BOOL dc_InitSubDC (HDC hdcDest, HDC hdc, int off_x, int off_y,
     /* should set after InitMemDC.*/
     pdc->hwnd         = pdc_parent->hwnd;
 
-    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
-    MAKE_REGION_INFINITE(&pdc->lcrgn);
-    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
-
     CopyRegion (&pdc->lcrgn, &pdc_parent->lcrgn);
     CopyRegion (&pdc->ecrgn, &pdc_parent->ecrgn);
     IntersectClipRect (&pdc->ecrgn, &pdc->DevRC);
@@ -2567,6 +2563,10 @@ HDC GUIAPI GetSubDC (HDC hdc, int off_x, int off_y, int width, int height)
 
     if (pdc == NULL)
         return HDC_INVALID;
+
+    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pdc->lcrgn);
+    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
 
     if (!dc_InitSubDC((HDC)pdc, hdc, off_x, off_y, width, height)) {
         pdc->bInUse = FALSE;
@@ -2658,14 +2658,14 @@ HDC GUIAPI CreatePrivateSubDC (HDC hdc, int off_x, int off_y,
     if (!(pdc = malloc(sizeof(DC))))
         return HDC_INVALID;
 
-    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
-    MAKE_REGION_INFINITE(&pdc->lcrgn);
-    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
-
     pdc->bInUse   = TRUE;
     pdc->DataType = TYPE_HDC;
     /* XXX: use the parent's type */
     pdc->DCType   = pdc_parent->DCType;
+
+    InitClipRgn (&pdc->lcrgn, &__mg_FreeClipRectList);
+    MAKE_REGION_INFINITE(&pdc->lcrgn);
+    InitClipRgn (&pdc->ecrgn, &__mg_FreeClipRectList);
 
     if (!dc_InitSubDC ((HDC)pdc, hdc, off_x, off_y, width, height)) {
         free (pdc);
