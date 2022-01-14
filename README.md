@@ -566,6 +566,7 @@ A brief history description of the development progress is listed as follow:
 1. Jul., 2019:     FMSoft released MiniGUI version 4.0.0.
 1. Mar., 2020:     FMSoft released MiniGUI version 5.0.0.
 1. May., 2021:     FMSoft released MiniGUI version 5.0.6.
+1. Jan., 2022:     FMSoft released MiniGUI version 5.0.9.
 
 ## AUTHORS AND COPYING
 
@@ -573,7 +574,7 @@ The original author of MiniGUI is WEI Yongming, and now MiniGUI is
 maintained by FMSoft. For more information, please refer to
 <http://www.fmsoft.cn>.
 
-Copyright (C) 2002 ~ 2021, Beijing FMSoft Technologies Co., Ltd.  
+Copyright (C) 2002 ~ 2022, Beijing FMSoft Technologies Co., Ltd.  
 Copyright (C) 1998 ~ 2002, WEI Yongming
 
 This program is free software: you can redistribute it and/or modify

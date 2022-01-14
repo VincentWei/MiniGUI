@@ -1,4 +1,4 @@
-Version 5.0.8 (2021/10/25)
+Version 5.0.9 (2022/01/14)
 
 This is a minor enhancement and bugfix release of MiniGUI 5.0.x, the stable version.
 

@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.9](#version-508)
+   + [What's new in version 5.0.9](#whats-new-in-version-508)
 - [Version 5.0.8](#version-508)
    + [What's new in version 5.0.8](#whats-new-in-version-508)
 - [Version 5.0.6](#version-506)
@@ -21,6 +23,22 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.9
+
+On Jan. 14 2022, FMSoft announces the availability of MiniGUI 5.0.9,
+which is a bug fixing release with minor enhancements of MiniGUI 5.0.x.
+
+### What's new in version 5.0.9
+
+In this version, we fixed some bugs:
+
+* BUGFIXING:
+   - Fix a crash bug in `InitSubDC()` of `src/newgdi/gdi.c`.
+* ENHANCEMENTS:
+* OPTIMIZATIONS:
+* TUNING:
+   - Change copyright year to 2022.
 
 ## Version 5.0.8
 
