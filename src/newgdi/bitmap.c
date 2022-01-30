@@ -1108,6 +1108,11 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
     if (!(pddc = __mg_check_ecrgn (hddc)))
         return;
 
+    /* The coordinates should be in device space. */
+#if 0
+    if (sw <= 0) sw = RECTW (psdc->DevRC);
+    if (sh <= 0) sh = RECTH (psdc->DevRC);
+
     // Transfer logical to device to screen here.
     sw += sx; sh += sy;
     coor_LP2SP (psdc, &sx, &sy);
@@ -1123,6 +1128,16 @@ void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
 
     coor_LP2SP (pddc, &dx, &dy);
     SetRect (&dstOutput, dx, dy, dx + sw, dy + sh);
+#else
+    if (sw <= 0) sw = RECTW (psdc->DevRC);
+    if (sh <= 0) sh = RECTH (psdc->DevRC);
+
+    coor_DP2SP (psdc, &sx, &sy);
+    SetRect (&srcOutput, sx, sy, sx + sw, sy + sh);
+
+    coor_DP2SP (pddc, &dx, &dy);
+    SetRect (&dstOutput, dx, dy, dx + sw, dy + sh);
+#endif
 
     if (pddc->surface == psdc->surface) {
         if (sx == dx && sy == dy)
@@ -1378,12 +1393,11 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
     if (!(pddc = __mg_check_ecrgn (hddc)))
         return;
 
-    // Transfer logical to device to screen here.
+    /* The coordinates should be in device space. */
+#if 0
     sw += sx; sh += sy;
     coor_LP2SP(psdc, &sx, &sy);
     coor_LP2SP(psdc, &sw, &sh);
-    if (sw == sx) sw = sx + RECTW (psdc->DevRC);
-    if (sh == sy) sh = sy + RECTH (psdc->DevRC);
     SetRect (&srcOutput, sx, sy, sw, sh);
     NormalizeRect (&srcOutput);
     sx = srcOutput.left; sy = srcOutput.top;
@@ -1392,8 +1406,6 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
     dw += dx; dh += dy;
     coor_LP2SP (pddc, &dx, &dy);
     coor_LP2SP (pddc, &dw, &dh);
-    if (dw == dx) dw = dx + RECTW (pddc->DevRC);
-    if (dh == dy) dh = dy + RECTH (pddc->DevRC);
     SetRect (&dstOutput, dx, dy, dw, dh);
     NormalizeRect (&dstOutput);
     dx = dstOutput.left; dy = dstOutput.top;
@@ -1401,14 +1413,40 @@ void GUIAPI StretchBltLegacy (HDC hsdc, int sx, int sy, int sw, int sh,
 
     if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
         goto error_ret;
-    if (sx < 0 || sx >= RECTW(psdc->DevRC) || (sx + sw) > RECTW(psdc->DevRC))
+    if ((sx + sw) < 0 || sx >= psdc->DevRC.right)
         goto error_ret;
-    if (sy < 0 || sy >= RECTH(psdc->DevRC) || (sy + sh) > RECTH(psdc->DevRC))
+    if ((sy +sh) < 0 || sy >= psdc->DevRC.bottom)
+        goto error_ret;
+    if ((dx + dw) < 0 || dx >= pddc->DevRC.right)
+        goto error_ret;
+    if ((dy + dh) <0 || dy >= pddc->DevRC.bottom)
+        goto error_ret;
+#else
+    if (sx < 0) sx = 0;
+    if (sy < 0) sy = 0;
+    if (dx < 0) dx = 0;
+    if (dy < 0) dy = 0;
+
+    if (sx >= RECTW(psdc->DevRC))
+        goto error_ret;
+    if (sy >= RECTH(psdc->DevRC))
         goto error_ret;
     if (dx >= RECTW(pddc->DevRC))
         goto error_ret;
     if (dy >= RECTH(pddc->DevRC))
         goto error_ret;
+
+    if (sw <= 0 || sw > RECTW (psdc->DevRC) - sx) sw = RECTW (psdc->DevRC) - sx;
+    if (sh <= 0 || sh > RECTH (psdc->DevRC) - sy) sh = RECTH (psdc->DevRC) - sy;
+    if (dw <= 0 || dw > RECTW (pddc->DevRC) - dx) dw = RECTW (pddc->DevRC) - dx;
+    if (dh <= 0 || dh > RECTH (pddc->DevRC) - dy) dh = RECTH (pddc->DevRC) - dy;
+
+    coor_DP2SP (psdc, &sx, &sy);
+    SetRect (&srcOutput, sx, sy, sx + sw, sy + sh);
+
+    coor_DP2SP (pddc, &dx, &dy);
+    SetRect (&dstOutput, dx, dy, dx + dw, dy + dh);
+#endif
 
     info.pdc = pddc;
     info.dst_x = dx; info.dst_y = dy;
@@ -1492,12 +1530,11 @@ BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
     if (!(pddc = __mg_check_ecrgn (hddc)))
         return retv;
 
-    // Transfer logical to device to screen here.
+    /* The coordinates should be in device space. */
+#if 0
     sw += sx; sh += sy;
     coor_LP2SP(psdc, &sx, &sy);
     coor_LP2SP(psdc, &sw, &sh);
-    if (sw == sx) sw = sx + RECTW (psdc->DevRC);
-    if (sh == sy) sh = sy + RECTH (psdc->DevRC);
     SetRect (&srcOutput, sx, sy, sw, sh);
     NormalizeRect (&srcOutput);
     sx = srcOutput.left; sy = srcOutput.top;
@@ -1506,8 +1543,6 @@ BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
     dw += dx; dh += dy;
     coor_LP2SP (pddc, &dx, &dy);
     coor_LP2SP (pddc, &dw, &dh);
-    if (dw == dx) dw = dx + RECTW (pddc->DevRC);
-    if (dh == dy) dh = dy + RECTH (pddc->DevRC);
     SetRect (&dstOutput, dx, dy, dw, dh);
     NormalizeRect (&dstOutput);
     dx = dstOutput.left; dy = dstOutput.top;
@@ -1515,14 +1550,40 @@ BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
 
     if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0)
         goto error_ret;
-    if (sx < 0 || sx >= RECTW(psdc->DevRC) || (sx + sw) > RECTW(psdc->DevRC))
+    if ((sx + sw) < 0 || sx >= psdc->DevRC.right)
         goto error_ret;
-    if (sy < 0 || sy >= RECTH(psdc->DevRC) || (sy + sh) > RECTH(psdc->DevRC))
+    if ((sy +sh) < 0 || sy >= psdc->DevRC.bottom)
+        goto error_ret;
+    if ((dx + dw) < 0 || dx >= pddc->DevRC.right)
+        goto error_ret;
+    if ((dy + dh) <0 || dy >= pddc->DevRC.bottom)
+        goto error_ret;
+#else
+    if (sx < 0) sx = 0;
+    if (sy < 0) sy = 0;
+    if (dx < 0) dx = 0;
+    if (dy < 0) dy = 0;
+
+    if (sx >= RECTW(psdc->DevRC))
+        goto error_ret;
+    if (sy >= RECTH(psdc->DevRC))
         goto error_ret;
     if (dx >= RECTW(pddc->DevRC))
         goto error_ret;
     if (dy >= RECTH(pddc->DevRC))
         goto error_ret;
+
+    if (sw <= 0 || sw > RECTW (psdc->DevRC) - sx) sw = RECTW (psdc->DevRC) - sx;
+    if (sh <= 0 || sh > RECTH (psdc->DevRC) - sy) sh = RECTH (psdc->DevRC) - sy;
+    if (dw <= 0 || dw > RECTW (pddc->DevRC) - dx) dw = RECTW (pddc->DevRC) - dx;
+    if (dh <= 0 || dh > RECTH (pddc->DevRC) - dy) dh = RECTH (pddc->DevRC) - dy;
+
+    coor_DP2SP (psdc, &sx, &sy);
+    SetRect (&srcOutput, sx, sy, sx + sw, sy + sh);
+
+    coor_DP2SP (pddc, &dx, &dy);
+    SetRect (&dstOutput, dx, dy, dx + dw, dy + dh);
+#endif
 
     retv = TRUE;
     if (pddc->surface == psdc->surface)
