@@ -375,6 +375,8 @@ int GAL_CleanupBlitting (GAL_Surface *src, GAL_Surface *dst)
         src->msk_img = NULL;
     }
 
+    pixman_image_set_clip_region32 (dst->pix_img, NULL);
+
     return 0;
 }
 
@@ -384,7 +386,7 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
     pixman_image_t *src_img = src->pix_img, *dst_img = dst->pix_img;
     pixman_image_t *msk_img;
     pixman_op_t op;
- 
+
     msk_img = src->msk_img;
     op = (pixman_op_t)src->pix_op;
 
@@ -399,8 +401,8 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
     pixman_image_set_clip_region32 (dst_img, &clip_region);
 #endif
 
-#if 0
     // pixman_blt does not work
+#if 0
     if (pixman_image_get_format (src_img) == pixman_image_get_format (dst_img) &&
             op == PIXMAN_OP_SRC && msk_img == NULL) {
         pixman_blt ((uint32_t *)((char*)src->pixels + src->pixels_off),
