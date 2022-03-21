@@ -611,11 +611,7 @@ static inline void unlock_zi_for_change (const ZORDERINFO* zi)
 
 static inline void lock_zi_for_read (const ZORDERINFO* zi)
 {
-    if (pthread_rwlock_rdlock(&((ZORDERINFO*)zi)->rwlock)) {
-        _ERR_PRINTF("Failed pthread_rwlock_rdlock: %s (%d)\n",
-                strerror(errno), errno);
-        abort();
-    }
+    pthread_rwlock_rdlock(&((ZORDERINFO*)zi)->rwlock);
 }
 
 static inline void unlock_zi_for_read (const ZORDERINFO* zi)
