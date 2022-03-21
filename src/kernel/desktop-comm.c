@@ -1403,7 +1403,7 @@ static LRESULT WindowMessageHandler(UINT message, PMAINWIN pWin, LPARAM lParam)
         else {
             from = 0;
         }
-     
+
         lock_zi_for_read (zi);
 
         from = __kernel_get_next_znode (zi, from);
@@ -1821,7 +1821,7 @@ static void dskRefreshAllWindow (const RECT* invrc)
         info.is_empty_invrc = TRUE;
 
 #ifdef _MGHAVE_MENU
-            dskForceCloseMenu ();
+    dskForceCloseMenu ();
 #endif
 
     SendMessage (HWND_DESKTOP, MSG_ERASEDESKTOP, 0,

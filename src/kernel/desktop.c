@@ -611,7 +611,11 @@ static inline void unlock_zi_for_change (const ZORDERINFO* zi)
 
 static inline void lock_zi_for_read (const ZORDERINFO* zi)
 {
-    pthread_rwlock_rdlock(&((ZORDERINFO*)zi)->rwlock);
+    if (pthread_rwlock_rdlock(&((ZORDERINFO*)zi)->rwlock)) {
+        _ERR_PRINTF("Failed pthread_rwlock_rdlock: %s (%d)\n",
+                strerror(errno), errno);
+        abort();
+    }
 }
 
 static inline void unlock_zi_for_read (const ZORDERINFO* zi)
@@ -3641,6 +3645,9 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 
         do_for_all_znodes (&rcOld, zi, _cb_update_znode, ZT_ALL);
 
+        /* unlock zi for change ... */
+        unlock_zi_for_change (zi);
+
         if (nodes [0].flags & ZOF_IF_REFERENCE) {
             SendMessage (HWND_DESKTOP,
                             MSG_ERASEDESKTOP, 0, (LPARAM)&rcOld);
@@ -3680,9 +3687,6 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 
         update_client_window_rgn (nodes [idx_znode].cli,
                 nodes [idx_znode].hwnd);
-
-        /* unlock zi for change ... */
-        unlock_zi_for_change (zi);
     }
     else {
         lock_zi_for_change (zi);

@@ -4349,8 +4349,6 @@ static void on_surface_changed_for_control (struct _travel_context* ctxt,
     RECT rc_surface, rc_minimal;
     PDC pdc = dc_HDC2PDC (ctrl->privCDC);
 
-    _WRN_PRINTF ("called\n");
-
     pdc->surface = ctxt->surface;
 
     if (pdc->surface != __gal_screen) {

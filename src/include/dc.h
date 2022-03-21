@@ -93,7 +93,7 @@ typedef struct tagDC* PDC;
 # else /* not defined _MGSCHEMA_COMPOSITING */
 void __mg_lock_recalc_gcrinfo (PDC pdc);
 void __mg_unlock_gcrinfo (PDC pdc);
-#define LOCK_GCRINFO(pdc)       __mg_lock_recalc_gcrinfo (pdc)
+#define LOCK_GCRINFO(pdc)       if (dc_IsGeneralDC(pdc)) __mg_lock_recalc_gcrinfo (pdc)
 #define UNLOCK_GCRINFO(pdc)     if (dc_IsGeneralDC(pdc)) __mg_unlock_gcrinfo (pdc)
 # endif /* not defined _MGSCHEMA_COMPOSITING */
 
