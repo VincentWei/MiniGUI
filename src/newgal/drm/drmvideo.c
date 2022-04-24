@@ -3575,7 +3575,7 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
 
 /* called by drmCreateDCFromHandle */
 GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
-        unsigned long size, uint32_t drm_format, uint32_t pixels_off,
+        size_t size, uint32_t drm_format, uint32_t pixels_off,
         uint32_t width, uint32_t height, uint32_t pitch)
 {
     GAL_VideoDevice *this = (GAL_VideoDevice *)video;

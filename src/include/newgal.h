@@ -1067,8 +1067,8 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
         uint32_t name, uint32_t drm_format, uint32_t pixels_off,
         uint32_t width, uint32_t height, uint32_t pitch);
 
-GAL_Surface* __drm_create_surface_from_handle (GHANDLE video,
-        uint32_t handle, size_t size, uint32_t drm_format, uint32_t pixels_off,
+GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
+        size_t size, uint32_t drm_format, uint32_t pixels_off,
         uint32_t width, uint32_t height, uint32_t pitch);
 
 GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
