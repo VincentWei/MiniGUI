@@ -186,11 +186,8 @@ static GAL_VideoDevice *FB_CreateDevice(int devindex)
         return(0);
     }
     memset(this->hidden, 0, (sizeof *this->hidden));
-    /* For compositing schema, we force to use double buffering */
-#ifdef _MGSCHEMA_COMPOSITING
     this->hidden->magic = MAGIC_SHADOW_SCREEN_HEADER;
     this->hidden->version = 0;
-#endif
     wait_vbl = FB_WaitVBL;
     wait_idle = FB_WaitIdle;
 
@@ -409,16 +406,6 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
     mapped_offset = (((long)finfo.smem_start) -
                     (((long)finfo.smem_start)&~(getpagesize () - 1)));
     mapped_memlen = finfo.smem_len+mapped_offset;
-
-#if defined(__TARGET_R818__) && defined(_MGSCHEMA_COMPOSITING)
-    if (mgIsServer) {
-        uintptr_t args[2] = { 1, 0 };
-        if (ioctl(console_fd, FBIO_ENABLE_CACHE, args) < 0) {
-            GAL_SetError("NEWGAL/FBCON: FBIO_ENABLE_CACHE failed\n");
-            return -1;
-        }
-    }
-#endif
 
 #ifdef __uClinux__
 #  if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
@@ -800,6 +787,13 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
 #endif /* !IS_SHAREDFB_SCHEMA_PROC */
 
     if (dblbuff) {
+#if defined(__TARGET_R818__)
+        uintptr_t args[2] = { 1, 0 };
+        if (ioctl(console_fd, FBIO_ENABLE_CACHE, args) < 0) {
+            GAL_SetError("NEWGAL/FBCON: FBIO_ENABLE_CACHE failed\n");
+        }
+#endif
+
         /* create shadow screen */
         this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
                 current->w, current->h,
