@@ -24,6 +24,22 @@
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
 
+## Version 5.0.10
+
+On Oct. 22 2022, FMSoft announces the availability of MiniGUI 5.0.10,
+which is a bug fixing release with minor enhancements of MiniGUI 5.0.x.
+
+### What's new in version 5.0.10
+
+In this version, we made some enhancements
+
+* ENHANCEMENTS:
+   - Enhance `fbcon` engine to support double buffering for Threads and Standalone mode. (Runtime option: `fbcon.double_buffering`).
+   - Enhance `fbcon` engine to support rotation and flipping of screen.(Runtime option: `fbcon.screen_rotation`).
+* BUGFIXING:
+* OPTIMIZATIONS:
+* TUNING:
+
 ## Version 5.0.9
 
 On Jan. 14 2022, FMSoft announces the availability of MiniGUI 5.0.9,
