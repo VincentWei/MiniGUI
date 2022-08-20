@@ -68,19 +68,26 @@ typedef struct vidmem_bucket {
 
 /* Private display data */
 struct GAL_PrivateVideoData {
-    /* For compositing schema, we force to use double buffering */
-#ifdef _MGSCHEMA_COMPOSITING
+    /* When double buffering supported, the real surface represents the ultimate
+     * scan-out frame buffer, and the shadow screen represents the rendering
+     * surface. When double buffering disabled, shadow_screen is NULL.
+     *
+     * For compositing schema, we force to use double buffering.
+     * For threads and standalone mode, controlled by `fbcon.double_buffering`
+     * run-time option. Not supported for processes mode.
+     */
     /* start of header for shadow screen */
     int magic, version;
     GAL_Surface *real_screen, *shadow_screen;
     RECT dirty_rc;
 
+#if IS_COMPOSITING_SCHEMA
     /* Used to simulate the hardware cursor. */
     GAL_Surface *cursor;
     int csr_x, csr_y;
     int hot_x, hot_y;
+#endif
     /* end of header for shadow screen */
-#endif  /* _MGSCHEMA_COMPOSITING */
 
     int console_fd;
     struct fb_var_screeninfo cache_vinfo;
@@ -104,13 +111,6 @@ struct GAL_PrivateVideoData {
 
     void (*wait_vbl)(_THIS);
     void (*wait_idle)(_THIS);
-
-#if 0   /* deprecated code */
-    int flip_page;
-    char *flip_address[2];
-#define flip_page           (this->hidden->flip_page)
-#define flip_address        (this->hidden->flip_address)
-#endif
 };
 
 /* Old variable names */

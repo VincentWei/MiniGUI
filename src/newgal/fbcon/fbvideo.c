@@ -102,8 +102,6 @@ static void FB_FreeHWSurface(_THIS, GAL_Surface *surface);
 static void FB_WaitVBL(_THIS);
 static void FB_WaitIdle(_THIS);
 
-#ifdef _MGSCHEMA_COMPOSITING
-
 #include "../shadow-screen.h"
 #include "debug.h"
 
@@ -133,13 +131,6 @@ static BOOL FB_SyncUpdate (_THIS)
 
     return FALSE;
 }
-#endif /* _MGSCHEMA_COMPOSITING */
-
-#if 0
-static int FB_LockHWSurface(_THIS, GAL_Surface *surface);
-static void FB_UnlockHWSurface(_THIS, GAL_Surface *surface);
-static int FB_FlipHWSurface(_THIS, GAL_Surface *surface);
-#endif
 
 /* Internal palette functions */
 static void FB_SavePalette(_THIS, struct fb_fix_screeninfo *finfo,
@@ -169,11 +160,9 @@ static int FB_Available(void)
 
 static void FB_DeleteDevice(GAL_VideoDevice *device)
 {
-#ifdef _MGSCHEMA_COMPOSITING
     if (device->hidden->shadow_screen) {
         GAL_FreeSurface (device->hidden->real_screen);
     }
-#endif  /* _MGSCHEMA_COMPOSITING */
 
     free(device->hidden);
     free(device);
@@ -609,6 +598,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     Uint32 Amask;
     char *surfaces_mem;
     int surfaces_len;
+    BOOL dblbuff = FALSE;
 
 #ifdef __TARGET_STB810__
     bpp = 32;
@@ -793,6 +783,23 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         // allocate hardware surface first.
         GAL_PublicSurface = current;
 
+        dblbuff = TRUE;
+    }
+    else {
+        // client never call SetVideoMode
+        assert (0);
+    }
+#elif !IS_SHAREDFB_SCHEMA_PROC
+    {
+        char tmp [8];
+        if (GetMgEtcValue ("fbcon", "double_buffering", tmp, 8) >= 0 &&
+            (strcasecmp (tmp, "true") == 0 || strcasecmp (tmp, "yes") == 0)) {
+            dblbuff = TRUE;
+        }
+    }
+#endif /* _MGSCHEMA_COMPOSITING */
+
+    if (dblbuff) {
         /* create shadow screen */
         this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
                 current->w, current->h,
@@ -801,10 +808,12 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
                 current->format->Bmask, current->format->Amask);
 
         if (this->hidden->shadow_screen) {
+#if IS_COMPOSITING_SCHEMA
             this->info.hw_cursor = 1;
             this->hidden->cursor = NULL;
             this->SetCursor = shadowScreen_SetCursor;
             this->MoveCursor = shadowScreen_MoveCursor;
+#endif
             this->UpdateRects = shadowScreen_UpdateRects;
             this->SyncUpdate = FB_SyncUpdate;
 
@@ -821,10 +830,9 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         }
     }
     else {
-        // client never call SetVideoMode
-        assert (0);
+        this->hidden->real_screen = current;
+        this->hidden->shadow_screen = NULL;
     }
-#endif /* _MGSCHEMA_COMPOSITING */
 
     /* We're done */
     return (current);
@@ -1042,8 +1050,8 @@ static int FB_AllocHWSurface (_THIS, GAL_Surface *surface)
         REQUEST req;
 
 #ifdef _MGSCHEMA_COMPOSITING
-    if (!mgIsServer)
-        return -1;
+        if (!mgIsServer)
+            return -1;
 #endif
         req.id = REQID_HWSURFACE;
         req.data = &request;
@@ -1296,11 +1304,9 @@ static void FB_VideoQuit(_THIS)
         }
     }
 
-#ifdef _MGSCHEMA_COMPOSITING
-    if (mgIsServer && this->hidden->shadow_screen) {
+    if (this->hidden->shadow_screen) {
         GAL_FreeSurface (this->hidden->shadow_screen);
     }
-#endif
 
     /* Clean up the memory bucket list */
 #ifdef _MGRM_PROCESSES
