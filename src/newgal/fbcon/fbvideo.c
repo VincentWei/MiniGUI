@@ -267,7 +267,7 @@ static int FB_EnterGraphicsMode (_THIS)
         if (ioctl (ttyfd, KDSETMODE, KD_GRAPHICS) == -1) {
             _WRN_PRINTF ("Error when setting the terminal (%s) "
                     "to graphics mode: %m\n", tty_dev);
-            _WRN_PRINTF ("It might is not a console.\n");
+            _WRN_PRINTF ("It might not be a console.\n");
             goto fail;
         }
 #ifdef _MGRM_PROCESSES
@@ -797,7 +797,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
             dblbuff = TRUE;
         }
     }
-#endif /* _MGSCHEMA_COMPOSITING */
+#endif /* !IS_SHAREDFB_SCHEMA_PROC */
 
     if (dblbuff) {
         /* create shadow screen */
@@ -823,6 +823,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
             GAL_SetClipRect (this->hidden->real_screen, NULL);
             GAL_SetColorKey (this->hidden->shadow_screen, 0, 0);
             GAL_SetAlpha (this->hidden->shadow_screen, 0, 0);
+            SetRectEmpty (&this->hidden->dirty_rc);
         }
         else {
             this->hidden->real_screen = NULL;

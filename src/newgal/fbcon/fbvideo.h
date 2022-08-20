@@ -81,7 +81,7 @@ struct GAL_PrivateVideoData {
     GAL_Surface *real_screen, *shadow_screen;
     RECT dirty_rc;
 
-#if IS_COMPOSITING_SCHEMA
+#ifdef _MGSCHEMA_COMPOSITING
     /* Used to simulate the hardware cursor. */
     GAL_Surface *cursor;
     int csr_x, csr_y;
