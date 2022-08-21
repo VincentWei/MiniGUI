@@ -173,7 +173,7 @@ BLOCKHEAP __mg_free_update_region_list;
 int GAL_VideoInit(const char *driver_name, Uint32 flags);
 void GAL_VideoQuit(void);
 
-static GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
+GAL_VideoDevice *GAL_GetVideo(const char* driver_name)
 {
     GAL_VideoDevice *video;
     int index;

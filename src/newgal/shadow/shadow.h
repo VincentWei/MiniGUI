@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2022, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -57,64 +57,55 @@ extern "C" {
 #define _THIS    GAL_VideoDevice *this
 
 typedef struct _ShadowFBHeader {
-        unsigned int info_size;
-        int width;
-        int height;
-        int depth;
-        int pitch;
-        int dirty;            /* true for dirty, and should reset to false after refreshing the dirty area */
-        RECT dirty_rect;
-        int palette_changed;  /* true for changed, and should reset to false after reflecting the change */
-        int palette_offset;
-        int fb_offset;
-        Uint32 Rmask;
-        Uint32 Gmask;
-        Uint32 Bmask;
-        Uint32 Amask;
-        int firstcolor;
-        int ncolors;
+    unsigned int info_size;
+    int width;
+    int height;
+    int depth;
+    int pitch;
+    int dirty;            /* true for dirty, and should reset to false after refreshing the dirty area */
+    RECT dirty_rect;
+    int palette_changed;  /* true for changed, and should reset to false after reflecting the change */
+    int palette_offset;
+    int fb_offset;
+    Uint32 Rmask;
+    Uint32 Gmask;
+    Uint32 Bmask;
+    Uint32 Amask;
+    int firstcolor;
+    int ncolors;
 } ShadowFBHeader;
 
 #define FLAG_REALFB_PREALLOC  0x01
 
-
 typedef struct _RealFBInfo {
-        DWORD flags;
-        int height, width;
-        int depth;
-        int pitch;
-        void* fb;
-        void * real_device;
+    DWORD flags;
+    int height, width;
+    int depth;
+    int pitch;
+    void* fb;
+    void * real_device;
 } RealFBInfo;
 
 /* Private display data */
 
 struct GAL_PrivateVideoData {
     RealFBInfo * realfb_info;
-    /*GAL_VideoDevice *_real_device ;
-    int w, h, pitch;
-    void *fb;
-    BOOL alloc_fb;
-    BOOL dirty;
-    RECT update;*/
     pthread_t update_th;
 #ifdef _MGRM_PROCESSES
     int semid;
-#else
-    pthread_mutex_t update_lock;
 #endif
 };
 
 typedef struct _ShadowFBOps {
-        int (*init) (void);
-        int (*get_realfb_info) (RealFBInfo* realfb_info);
-        int (*release) (RealFBInfo* realfb_info);
-        int (*set_palette) (RealFBInfo* realfb_info, int firstcolor, int ncolors, void* colors);
-        void (*sleep) (void);
-        void (*refresh) (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update);
+    int (*init) (void);
+    int (*get_realfb_info) (RealFBInfo* realfb_info);
+    int (*release) (RealFBInfo* realfb_info);
+    int (*set_palette) (RealFBInfo* realfb_info, int firstcolor,
+            int ncolors, void* colors);
+    void (*refresh) (ShadowFBHeader* shadowfb_header,
+            RealFBInfo* realfb_info, void* update);
 } ShadowFBOps;
 
-ShadowFBOps * __mg_shadow_fb_ops;
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */

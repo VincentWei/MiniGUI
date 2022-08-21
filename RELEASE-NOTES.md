@@ -35,7 +35,7 @@ In this version, we made some enhancements
 
 * ENHANCEMENTS:
    - Enhance `fbcon` engine to support double buffering for Threads and Standalone mode. (Runtime option: `fbcon.double_buffering`).
-   - Enhance `fbcon` engine to support rotation and flipping of screen.(Runtime option: `fbcon.screen_rotation`).
+   - Cleanup and enhance `shadow` engine to use `SyncUpdate` method.
 * BUGFIXING:
 * OPTIMIZATIONS:
 * TUNING:
