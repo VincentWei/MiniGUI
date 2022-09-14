@@ -602,20 +602,30 @@ static void reset_window (PMAINWIN pWin, RECT* rcWin)
 static inline void lock_zi_for_change (const ZORDERINFO* zi)
 {
     pthread_rwlock_wrlock(&((ZORDERINFO*)zi)->rwlock);
+    ((ZORDERINFO*)zi)->wrlock_owner = pthread_self();
 }
 
 static inline void unlock_zi_for_change (const ZORDERINFO* zi)
 {
     pthread_rwlock_unlock(&((ZORDERINFO*)zi)->rwlock);
+    ((ZORDERINFO*)zi)->wrlock_owner = 0;
 }
 
 static inline void lock_zi_for_read (const ZORDERINFO* zi)
 {
+    if (zi->wrlock_owner == pthread_self()) {
+        return;
+    }
+
     pthread_rwlock_rdlock(&((ZORDERINFO*)zi)->rwlock);
 }
 
 static inline void unlock_zi_for_read (const ZORDERINFO* zi)
 {
+    if (zi->wrlock_owner == pthread_self()) {
+        return;
+    }
+
     pthread_rwlock_unlock(&((ZORDERINFO*)zi)->rwlock);
 }
 #else /* __NOUNIX__ */

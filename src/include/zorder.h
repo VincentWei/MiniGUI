@@ -147,6 +147,7 @@ typedef struct _ZORDERINFO {
 # else
     pthread_mutex_t  rwlock;
 # endif
+    pthread_t        wrlock_owner;
 #elif defined(_MGRM_PROCESSES)
     int             zi_semid;
     int             zi_semnum;
