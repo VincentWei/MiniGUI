@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.10](#version-508)
+   + [What's new in version 5.0.10](#whats-new-in-version-508)
 - [Version 5.0.9](#version-508)
    + [What's new in version 5.0.9](#whats-new-in-version-508)
 - [Version 5.0.8](#version-508)
@@ -37,6 +39,7 @@ In this version, we made some enhancements
    - Enhance `fbcon` engine to support double buffering for Threads and Standalone mode. (Runtime option: `fbcon.double_buffering`).
    - Cleanup and enhance `shadow` engine to use `SyncUpdate` method.
 * BUGFIXING:
+   - Fix a deadlock bug: https://github.com/VincentWei/minigui/issues/83
 * OPTIMIZATIONS:
 * TUNING:
 
