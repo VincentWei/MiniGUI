@@ -54,14 +54,14 @@ For the live demos, source tarballs, and cases of MiniGUI, you can refer to the 
 
 ### HVML App Framework on MiniGUI
 
-MiniGUI and its components provides a lot of controls/widgets to help your develop GUI apps in C/C++ programming language.
+MiniGUI and its components provide a lot of controls/widgets to help your develop GUI apps in C/C++ programming language.
 However, alternatively, you can use the following software to develop your apps in an easy-to-use programming language [HVML].
 
 * [HVML] is a descriptive programming language proposed and designed by [Vincent Wei].
 * [PurC] is the prime interpreter of HVML written in C lauguage.
 * [xGUI Pro] is a full-featured HVML renderer based on the tailored WebKit engine.
 
-In short, the above software provides an Electron-like solution that can help people develop cross-platform applications using web front-end technology.
+In short, the above software suite provides an Electron-like solution that can help people develop cross-platform applications using web front-end technology.
 The difference is that the solution replaces JavaScript with HVML and Node.JS with PurC.
 It provides an entirely new application framework that isolates the interpreter and renderer from running in separate processes, which brings several benefits.
 It greatly reduces the size and resource consumption of the entire solution, improves the overall performance, promotes the interactive responsiveness,
@@ -72,7 +72,7 @@ It greatly reduces the size and resource consumption of the entire solution, imp
 [HybridOS] is another large open source project initiated by FMSoft.
 It is an open source operating system designed for embedded/AIoT devices and cloud computing environment.
 
-[HybridOS] provides the complete software stack and the app framework based on HVML for embedded systems.
+HybridOS provides the complete software stack and the app framework based on HVML for embedded systems.
 You can easily develop your products which has rich functions and excellent expressiveness by using HybridOS.
 
 In practice, MiniGUI and the software which are used to integrated with GPU constitute the graphics stack of HybridOS.

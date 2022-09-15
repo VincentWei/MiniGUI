@@ -42,6 +42,7 @@ In this version, we made some enhancements
    - Fix a deadlock bug (Threads mode only): https://github.com/VincentWei/minigui/issues/83
 * OPTIMIZATIONS:
 * TUNING:
+   - Fix some warnings reported by GCC 12.
 
 ## Version 5.0.9
 
