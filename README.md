@@ -37,51 +37,45 @@ _TABLE OF CONTENTS_
 
 ### What's MiniGUI
 
-MiniGUI aims to provide a fast, stable, full-featured, and cross-platform
-windowing and GUI support system, which is especially fit for
-embedded systems or smart IoT devices based-on Linux/uClinux, eCos, and other
-traditional RTOSes, such as RT-Thread, FreeRTOS, RTEMS, VxWorks, ThreadX,
-Nucleus, pSOS, uC/OS-II, OSE, and others.
+MiniGUI aims to provide a fast, stable, full-featured, and cross-platform windowing and GUI support system,
+        which is especially fit for embedded systems or smart IoT devices based-on Linux/uClinux, eCos,
+        and other traditional RTOSes, such as RT-Thread, FreeRTOS, RTEMS, VxWorks, ThreadX, Nucleus, pSOS, uC/OS-II, OSE, and others.
 
-This is the source tree of MiniGUI Core, which provides the windowing
-and graphics interfaces as well as a lot of standard controls (toolkit).
+This is the source tree of MiniGUI Core, which provides the windowing and graphics interfaces as well as a lot of standard controls (toolkit).
 
-MiniGUI is released under GPLv3 and the dual-licensing applies to commercial
-use. In December 1998, the initiator of FMSoft, Wei Yongming, began to develop
-MiniGUI under the GNU General Public License (GPL). In September 2002, the core
-developers of MiniGUI founded [FMSoft](https://www.fmsoft.cn) and started the
-commercial marketing with the free software. By now, FMSoft still continues to
-release MiniGUI as a free software project.
+MiniGUI is released under GPLv3 and the dual-licensing applies to commercial use.
+In December 1998, the initiator of FMSoft, [Vincent Wei], began to develop MiniGUI under the GNU General Public License (GPL).
+In September 2002, the core developers of MiniGUI founded [FMSoft] and started the commercial marketing with the free software.
+By now, FMSoft still continues to release MiniGUI as a free software project.
 
-For the live demos, source tarballs, and cases of MiniGUI, you can refer
-to the following website:
+For the live demos, source tarballs, and cases of MiniGUI, you can refer to the following website:
 
 <http://www.minigui.com>
 
-### App Frameworks on MiniGUI
+### Modern App Framework on MiniGUI
 
-MiniGUI and its components provides a lot of controls/widgets to
-help your develop GUI apps in C/C++ programming language. However,
-alternatively, you can choose one of the following frameworks to
-develop your apps in a easy-to-use programming language other than C/C++.
+MiniGUI and its components provides a lot of controls/widgets to help your develop GUI apps in C/C++ programming language.
+However, alternatively, you can use the following software to develop your apps in an easy-to-use programming language [HVML].
 
-* [HybridOS](https://gitlab.fmsoft.cn/HybridOS/hybridos) provides
-  a complete software stack to develop an app which have rich functions
-  and excellent expressive in HTML5, CSS3, and JavaScript.
-* [hiACEJS](https://gitlab.fmsoft.cn/HybridOS/hiACEJS) provides
-  a light-weight app framework in JavaScript.
+* [HVML] is a descriptive programming language proposed and designed by [Vincent Wei].
+* [PurC] is the prime interpreter of HVML written in C lauguage.
+* [xGUI Pro] is a full-featured HVML renderer based on the tailored WebKit engine.
 
-You can also choose [HybridOS Lite](https://gitlab.fmsoft.cn/HybridOS/hybridos-lite)
-to develop apps with excellent expressive for cost-sensitive devices in C/C++ language.
+In short, the above software provides an Electron-like solution that can help people develop cross-platform applications using web front-end technology.
+The difference is that the solution replaces JavaScript with HVML and Node.JS with PurC.
+It provides an entirely new application framework that isolates the interpreter and renderer from running in separate processes, which brings several benefits.
+It greatly reduces the size and resource consumption of the entire solution, improves the overall performance, promotes the interactive responsiveness,
+   and provides a simpler mechanism to integrate existing C/C++ code modules.
 
 ### MiniGUI and HybridOS
 
-[HybridOS](https://gitlab.fmsoft.cn/HybridOS/hybridos) is another large open source project
-initiated by FMSoft. It is a totally new open source operating system designed for
-embedded and smart IoT devices and cloud computing environment.
+[HybridOS] is another large open source project initiated by FMSoft.
+It is an open source operating system designed for embedded/AIoT devices and cloud computing environment.
 
-In practice, MiniGUI and the software which are used to integrated with GPU
-constitute the graphics stack of HybridOS.
+[HybridOS] provides the complete software stack and the app framework based on HVML for embedded systems.
+You can easily develop your products which has rich functions and excellent expressiveness by using HybridOS.
+
+In practice, MiniGUI and the software which are used to integrated with GPU constitute the graphics stack of HybridOS.
 
 HybridOS uses MiniGUI as the underlying windowing system, and the members of
 HybridOS project are now maintaining the whole graphics stack.
@@ -89,7 +83,7 @@ The following chart shows the graphics stack of HybridOS:
 
 ```
   -----------------------------------------------
- |           MiniGUI/HybridOS Apps               |
+ |               MiniGUI/HVML Apps               |
  |-----------------------------------------------|
  |           |         (Graphics Stack)          |
  |           |              ---------------------|
@@ -105,8 +99,7 @@ The following chart shows the graphics stack of HybridOS:
   -----------------------------------------------
 ```
 
-As shown in the chart above, the HybridOS graphics stack consists of
-the following software:
+As shown in the chart above, the HybridOS graphics stack consists of the following software:
 
 - `libDRM` provides some user land APIs for Linux Direct Rendering Infrastructure.
 - `hiDRMDrivers` contains the drivers (user land drivers, not kernel drivers) for
@@ -133,11 +126,11 @@ FMSoft had created the public repositories for MiniGUI Core, MiniGUI
 components, HybridOS, and other open source apps on GitHub. You can visit
 them on:
 
-<https://gitlab.fmsoft.cn/VincentWei>
+<https://github.com/VincentWei>
 
 We now maintain all documents about MiniGUI on the following public repo:
 
-<https://gitlab.fmsoft.cn/VincentWei/minigui-docs>
+<https://github.com/VincentWei/minigui-docs>
 
 You can download the source code tarballs of MiniGUI Core, MiniGUI
 components, and the dependent libraries from the download zone of the site:
@@ -261,7 +254,7 @@ so that the old applications can smoothly migrate to the new
 version. However, there are still some slight changes you need to take care.
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://gitlab.fmsoft.cn/VincentWei/minigui/blob/rel-5-0/RELEASE-NOTES.md>
+<https://github.com/VincentWei/minigui/blob/rel-5-0/RELEASE-NOTES.md>
 
 ## NEW FEATURES IN VERSION 4.0.x
 
@@ -292,7 +285,7 @@ in order to support [HybridOS Foundation Class Library].
 
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://gitlab.fmsoft.cn/VincentWei/minigui/blob/rel-4-0/RELEASE-NOTES.md>
+<https://github.com/VincentWei/minigui/blob/rel-4-0/RELEASE-NOTES.md>
 
 Because of the changes of some APIs, we recommended strongly that you
 use this version for new projects.
@@ -307,7 +300,7 @@ We introduce some new features in MiniGUI Version 3.2.x:
 
 For more information, please refer to `RELEASE-NOTES.md` file:
 
-<https://gitlab.fmsoft.cn/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md>
+<https://github.com/VincentWei/minigui/blob/rel-3-2/RELEASE-NOTES.md>
 
 ## THE RUNTIME MODES OF MINIGUI
 
@@ -361,15 +354,15 @@ and MiniGUI components, please fetch one of the following repositories
 from GitHub and follow the instructions to build MiniGUI Core,
 MiniGUI components, the samples, and the demonstration programs:
 
-[Build MiniGUI 5.0](https://gitlab.fmsoft.cn/VincentWei/build-minigui-5.0)
+[Build MiniGUI 5.0](https://github.com/VincentWei/build-minigui-5.0)
 
 or
 
-[Build MiniGUI 4.0](https://gitlab.fmsoft.cn/VincentWei/build-minigui-4.0)
+[Build MiniGUI 4.0](https://github.com/VincentWei/build-minigui-4.0)
 
 or
 
-[Build MiniGUI 3.2](https://gitlab.fmsoft.cn/VincentWei/build-minigui-3.2)
+[Build MiniGUI 3.2](https://github.com/VincentWei/build-minigui-3.2)
 
 
 ### Building MiniGUI Core
@@ -410,7 +403,7 @@ For more information, please run
 Since MiniGUI 4.0.0, we organize the unit test code of MiniGUI APIs in the
 following repository:
 
-<https://gitlab.fmsoft.cn/VincentWei/mg-tests>
+<https://github.com/VincentWei/mg-tests>
 
 If you are interested in hacking the MiniGUI code, please visit this repository.
 
@@ -567,15 +560,15 @@ A brief history description of the development progress is listed as follow:
 1. Mar., 2020:     FMSoft released MiniGUI version 5.0.0.
 1. May., 2021:     FMSoft released MiniGUI version 5.0.6.
 1. Jan., 2022:     FMSoft released MiniGUI version 5.0.9.
+1. Sep., 2022:     FMSoft released MiniGUI version 5.0.10.
 
 ## AUTHORS AND COPYING
 
-The original author of MiniGUI is WEI Yongming, and now MiniGUI is
-maintained by FMSoft. For more information, please refer to
-<http://www.fmsoft.cn>.
+The original author of MiniGUI is Vincent Wei, and now MiniGUI is maintained by FMSoft.
+For more information, please refer to <http://www.fmsoft.cn>.
 
 Copyright (C) 2002 ~ 2022, Beijing FMSoft Technologies Co., Ltd.  
-Copyright (C) 1998 ~ 2002, WEI Yongming
+Copyright (C) 1998 ~ 2002, Vincent Wei
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -646,4 +639,21 @@ A: Yes, it offers. It even offers the support for 1bpp and 2bpp LCD.
 Q: Can I get the tech support from MiniGUI team?  
 A: Yes, FMSoft can provide you with guaranteed commercial technical
    support services. Please send messages to <sales@minigui.com>.
+
+
+[Beijing FMSoft Technologies Co., Ltd.]: https://www.fmsoft.cn
+[FMSoft Technologies]: https://www.fmsoft.cn
+[FMSoft]: https://www.fmsoft.cn
+[HybridOS Official Site]: https://hybridos.fmsoft.cn
+[MiniGUI Official Site]: https://hvml.fmsoft.cn
+[HVML Official Site]: https://hvml.fmsoft.cn
+[Vincent Wei]: https://github.com/VincentWei
+
+[MiniGUI]: https://github.com/VincentWei/MiniGUI
+[HybridOS]: https://github.com/FMSoftCN/HybridOS
+
+[HVML]: https://github.com/HVML
+[PurC]: https://github.com/HVML/PurC
+[xGUI Pro]: https://github.com/HVML/xGUI-Pro
+[WebKit]: https://webkit.org
 
