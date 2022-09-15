@@ -29,3 +29,4 @@ Makefile.in
 /src/font/utils/ucd/
 /src/sysres/font_list
 /src/sysres/license/dat_files/
+/configure~
