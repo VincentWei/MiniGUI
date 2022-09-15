@@ -1,7 +1,7 @@
 # Release Notes
 
-- [Version 5.0.10](#version-508)
-   + [What's new in version 5.0.10](#whats-new-in-version-508)
+- [Version 5.0.10](#version-5010)
+   + [What's new in version 5.0.10](#whats-new-in-version-5010)
 - [Version 5.0.9](#version-508)
    + [What's new in version 5.0.9](#whats-new-in-version-508)
 - [Version 5.0.8](#version-508)
