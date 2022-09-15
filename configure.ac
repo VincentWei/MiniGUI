@@ -1710,6 +1710,8 @@ case "$runtime_mode" in
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
         MINIGUI_RUNMODE="sa"
+        RUNMODE_LADD="standalone/libstandalone.la"
+        RUNMODE_SUBDIRS="standalone"
     ;;
     ths)
         AC_DEFINE(_MGRM_THREADS, 1,
@@ -1722,6 +1724,8 @@ case "$runtime_mode" in
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
         MINIGUI_RUNMODE="procs"
+        RUNMODE_LADD="server/libserver.la client/libclient.la"
+        RUNMODE_SUBDIRS="server client"
         if test "x$compositing_schema" = "xyes"; then
           surface_schema="compositing"
         fi
@@ -2665,9 +2669,9 @@ AC_SUBST(VIDEO_SUBDIRS)
 AC_SUBST(VIDEO_DRIVERS)
 AC_SUBST(DEP_LIBS)
 AC_SUBST(MINIGUI_RUNMODE)
+AC_SUBST(RUNMODE_LADD)
+AC_SUBST(RUNMODE_SUBDIRS)
 
-AM_CONDITIONAL(MGRM_PROCESSES, test "x$runtime_mode" = "xprocs")
-AM_CONDITIONAL(MGRM_STANDALONE, test "x$runtime_mode" = "xsa")
 AM_CONDITIONAL(MGIAL_LIBINPUT, test "x$build_libinput_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_SINGLETOUCHKEY, test "x$buid_singletouchkey_ial_engine" = "xyes")
 AM_CONDITIONAL(MGIAL_CONSOLE, test "x$build_console_ial_engine" = "xyes")
