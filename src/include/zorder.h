@@ -141,13 +141,18 @@ typedef struct _ZORDERINFO {
     /* The size of usage bitmap for mask rect. */
     int             size_maskrect_usage_bmp;
 
+/* use read/write lock for Unix-like OS */
+#ifndef __NOUNIX__
+#define __ZI_USE_RWLOCK 1
+#endif
+
 #ifdef _MGRM_THREADS
-# ifndef __NOUNIX__
+# ifdef __ZI_USE_RWLOCK
     pthread_rwlock_t rwlock;
-# else
-    pthread_mutex_t  rwlock;
-# endif
     pthread_t        wrlock_owner;
+# else
+    pthread_mutex_t mutex;
+# endif
 #elif defined(_MGRM_PROCESSES)
     int             zi_semid;
     int             zi_semnum;

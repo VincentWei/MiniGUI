@@ -243,11 +243,22 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals, BOOL with_mask
 #endif  /* deprecated code */
 
 #ifdef _MGRM_THREADS
-#ifndef __NOUNIX__
+# ifdef __ZI_USE_RWLOCK
     pthread_rwlock_init(&__mg_zorder_info->rwlock, NULL);
-#else
-    pthread_mutex_init(&__mg_zorder_info->rwlock, NULL);
-#endif
+# else
+    do {
+        int ret;
+        pthread_mutexattr_t my_attr;
+        ret = pthread_mutexattr_init(&my_attr);
+        assert(ret == 0);
+        ret = pthread_mutexattr_settype(&my_attr, PTHREAD_MUTEX_RECURSIVE);
+        assert(ret == 0);
+        pthread_mutex_init(&__mg_zorder_info->mutex, &my_attr);
+        ret = pthread_mutexattr_destroy(&my_attr);
+        assert(ret == 0);
+        (void)ret;
+    } while (0);
+#  endif
 #endif
     return 0;
 #endif
@@ -261,11 +272,11 @@ void __kernel_free_z_order_info (ZORDERINFO* zi)
 #else
 
 #ifdef _MGRM_THREADS
-#ifndef __NOUNIX__
+# ifdef __ZI_USE_RWLOCK
     pthread_rwlock_destroy(&zi->rwlock);
-#else
-    pthread_mutex_destroy(&zi->rwlock);
-#endif
+# else
+    pthread_mutex_destroy(&zi->mutex);
+# endif
 #endif
     free (zi);
     __mg_zorder_info = NULL;

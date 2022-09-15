@@ -597,65 +597,63 @@ static void reset_window (PMAINWIN pWin, RECT* rcWin)
 #endif
 
 #ifdef _MGRM_THREADS
-#ifndef __NOUNIX__
-/*for unix system, using read/write lock*/
-static inline void lock_zi_for_change (const ZORDERINFO* zi)
+# ifdef __ZI_USE_RWLOCK
+static inline void lock_zi_for_change (ZORDERINFO* zi)
 {
-    pthread_rwlock_wrlock(&((ZORDERINFO*)zi)->rwlock);
-    ((ZORDERINFO*)zi)->wrlock_owner = pthread_self();
+    pthread_rwlock_wrlock(&zi->rwlock);
+    zi->wrlock_owner = pthread_self();
 }
 
-static inline void unlock_zi_for_change (const ZORDERINFO* zi)
+static inline void unlock_zi_for_change (ZORDERINFO* zi)
 {
-    pthread_rwlock_unlock(&((ZORDERINFO*)zi)->rwlock);
-    ((ZORDERINFO*)zi)->wrlock_owner = 0;
+    pthread_rwlock_unlock(&zi->rwlock);
+    zi->wrlock_owner = 0;
 }
 
-static inline void lock_zi_for_read (const ZORDERINFO* zi)
-{
-    if (zi->wrlock_owner == pthread_self()) {
-        return;
-    }
-
-    pthread_rwlock_rdlock(&((ZORDERINFO*)zi)->rwlock);
-}
-
-static inline void unlock_zi_for_read (const ZORDERINFO* zi)
+static inline void lock_zi_for_read (ZORDERINFO* zi)
 {
     if (zi->wrlock_owner == pthread_self()) {
         return;
     }
 
-    pthread_rwlock_unlock(&((ZORDERINFO*)zi)->rwlock);
-}
-#else /* __NOUNIX__ */
-/*for non-unix system, using mutex*/
-static inline void lock_zi_for_change (const ZORDERINFO* zi)
-{
-    pthread_mutex_lock(&((ZORDERINFO*)zi)->rwlock);
+    pthread_rwlock_rdlock(&zi->rwlock);
 }
 
-static inline void unlock_zi_for_change (const ZORDERINFO* zi)
+static inline void unlock_zi_for_read (ZORDERINFO* zi)
 {
-    pthread_mutex_unlock(&((ZORDERINFO*)zi)->rwlock);
+    if (zi->wrlock_owner == pthread_self()) {
+        return;
+    }
+
+    pthread_rwlock_unlock(&zi->rwlock);
+}
+# else /* __ZI_USE_RWLOCK */
+static inline void lock_zi_for_change (ZORDERINFO* zi)
+{
+    pthread_mutex_lock(&zi->mutex);
 }
 
-static inline void lock_zi_for_read (const ZORDERINFO* zi)
+static inline void unlock_zi_for_change (ZORDERINFO* zi)
 {
-    pthread_mutex_lock(&((ZORDERINFO*)zi)->rwlock);
+    pthread_mutex_unlock(&zi->mutex);
 }
 
-static inline void unlock_zi_for_read (const ZORDERINFO* zi)
+static inline void lock_zi_for_read (ZORDERINFO* zi)
 {
-    pthread_mutex_unlock(&((ZORDERINFO*)zi)->rwlock);
+    pthread_mutex_lock(&zi->mutex);
 }
-#endif /* __NOUNIX__ */
+
+static inline void unlock_zi_for_read (ZORDERINFO* zi)
+{
+    pthread_mutex_unlock(&zi->mutex);
+}
+# endif /* notdef __ZI_USE_RWLOCK */
 
 #elif defined(_MGRM_STANDALONE)
-static inline void lock_zi_for_change (const ZORDERINFO* zi) { }
-static inline void unlock_zi_for_change (const ZORDERINFO* zi) { }
-static inline void lock_zi_for_read (const ZORDERINFO* zi) { }
-static inline void unlock_zi_for_read (const ZORDERINFO* zi) { }
+static inline void lock_zi_for_change (ZORDERINFO* zi) { }
+static inline void unlock_zi_for_change (ZORDERINFO* zi) { }
+static inline void lock_zi_for_read (ZORDERINFO* zi) { }
+static inline void unlock_zi_for_read (ZORDERINFO* zi) { }
 #else /* for procs */
 /* NULL. see desktop-procs.c */
 #endif /* _MGRM_THREADS */
