@@ -8,7 +8,7 @@ _TABLE OF CONTENTS_
 - [TABLE OF CONTENTS](#table-of-contents)
 - [INTRODUCTION](#introduction)
    + [What's MiniGUI](#whats-minigui)
-   + [App Frameworks on MiniGUI](#app-frameworks-on-minigui)
+   + [HVML App Framework on MiniGUI](#hvml-app-framework-on-minigui)
    + [MiniGUI and HybridOS](#minigui-and-hybridos)
    + [Source Code Repositories](#source-code-repositories)
 - [NEW FEATURES IN VERSION 5.0.x](#new-features-in-version-50x)
@@ -52,7 +52,7 @@ For the live demos, source tarballs, and cases of MiniGUI, you can refer to the 
 
 <http://www.minigui.com>
 
-### Modern App Framework on MiniGUI
+### HVML App Framework on MiniGUI
 
 MiniGUI and its components provides a lot of controls/widgets to help your develop GUI apps in C/C++ programming language.
 However, alternatively, you can use the following software to develop your apps in an easy-to-use programming language [HVML].
