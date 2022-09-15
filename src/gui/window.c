@@ -3704,6 +3704,8 @@ BOOL GUIAPI ShowScrollBar (HWND hWnd, int iSBar, BOOL bShow)
     return TRUE;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 /* moved here from desktop.c; can be used on virtual window */
 static void guiAddNewHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
 {
@@ -3755,6 +3757,7 @@ static void guiRemoveHostedMainWindow (PMAINWIN pHosting, PMAINWIN pHosted)
     }
 #endif  /* debug code */
 }
+#pragma GCC diagnostic pop
 
 /************************* Support for virtual window ************************/
 #ifdef _MGHAVE_VIRTUAL_WINDOW

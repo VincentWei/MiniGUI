@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2021, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2022, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -489,7 +489,7 @@ const CompositorOps* GUIAPI ServerGetCompositorOps (const char* name)
         return NULL;
 
     for (i = 0; i < MAX_NR_COMPOSITORS; i++) {
-        if (compositors [i].name && strcmp (compositors [i].name, name) == 0) {
+        if (strcmp (compositors [i].name, name) == 0) {
             return compositors [i].ops;
         }
     }

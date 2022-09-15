@@ -1,5 +1,6 @@
 # also for makefile.ng and makefile.msvc
 AM_CPPFLAGS = -I$(abs_top_srcdir)/src/include -I$(abs_top_srcdir)/include
+AM_CFLAGS = -Wno-zero-length-bounds
 
 noinst_LTLIBRARIES = libkernel.la
 

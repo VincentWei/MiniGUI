@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2021, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2022, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -106,7 +106,8 @@ void* __mg_init_webp(MG_RWops *fp, MYBITMAP *mybmp, RGB *pal)
         else
             goto error;
 
-        sc = WebPGetFeatures(info->data, info->sz_data, &info->config.input);
+        sc = WebPGetFeatures((const uint8_t *)info->data, info->sz_data,
+                &info->config.input);
         if (sc == VP8_STATUS_OK) {
             break;
         }
@@ -210,7 +211,8 @@ int __mg_load_webp(MG_RWops *fp, void *init_info, MYBITMAP *mybmp,
     while (1) {
         int n;
 
-        VP8StatusCode status = WebPIAppend(idec, info->data, info->sz_data);
+        VP8StatusCode status = WebPIAppend(idec,
+                (const uint8_t *)info->data, info->sz_data);
         if (status != VP8_STATUS_OK && status != VP8_STATUS_SUSPENDED) {
             _ERR_PRINTF ("__mg_load_webp: WebPIAppend failed: %d\n", status);
             rc = ERR_BMP_LOAD;

@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2022, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -803,7 +803,7 @@ BOOL GUIAPI InitWindowElementAttrs (PWERENDERER rdr)
     char buff [20];
     DWORD rgba;
 
-    if (!rdr || !rdr->name || rdr->name[0] == '\0')
+    if (!rdr || rdr->name[0] == '\0')
         return FALSE;
 
     _DBG_PRINTF ("GUI>InitWEA: Initialize %s renderer window element attributes.\n",

@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2022, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -493,10 +493,15 @@ LRESULT ScrollViewCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         break;
     }
 
-    case MSG_DESTROY:
-        scrollview_destroy (psvdata);
-        free (psvdata);
+    case MSG_DESTROY: {
+        /* suppress a warning about calling free() before using the pointer */
+        PSVDATA svdata = (PSVDATA) GetWindowAdditionalData2 (hWnd);
+        if (svdata) {
+            scrollview_destroy(svdata);
+            free (svdata);
+        }
         break;
+    }
 
     case MSG_GETDLGCODE:
         return DLGC_WANTARROWS;

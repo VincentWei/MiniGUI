@@ -747,6 +747,8 @@ void GUIAPI UpdateTopmostLayer (const RECT* dirty_rc)
     SendMessage (HWND_DESKTOP, MSG_PAINT, 0, 0);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wzero-length-bounds"
 int GUIAPI ServerGetTopmostZNodeOfType (MG_Layer* layer, DWORD type, int* cli)
 {
     ZORDERINFO* zi;
@@ -774,6 +776,7 @@ int GUIAPI ServerGetTopmostZNodeOfType (MG_Layer* layer, DWORD type, int* cli)
 
     return topmost;
 }
+#pragma GCC diagnostic pop
 
 int GUIAPI ServerGetNextZNode (MG_Layer* layer, int idx_znode, int* cli)
 {

@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2022, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -283,7 +283,7 @@ static void DrawCoolBox (HWND hWnd, HDC hdc, PCOOLBARCTRL pdata)
             WINDOWINFO *info;
             RECT rc;
 
-            if (tmpdata->Caption == NULL || tmpdata->Caption [0] == '\0')
+            if (tmpdata->Caption [0] == '\0')
                 break;
 
             GetTextExtent (hdc, tmpdata->Caption, -1, &size);
