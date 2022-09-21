@@ -823,8 +823,9 @@ checkagain:
                 goto got_ret;
             }
         }
-        else
+        else {
             pMsgQueue->dwState &= ~QS_POSTMSG;
+        }
     }
 
     /*
@@ -1410,6 +1411,9 @@ LRESULT GUIAPI DispatchMessage (PMSG pMsg)
    to the controls of the main window will be thrown away as well. */
 int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
 {
+    /* For a main window, we use pMainWin to check whether we
+       should throw away a message for controls of the main window.
+       Note that checkAndGetMainWindowIfControl returns NULL for non control. */
     PMAINWIN    pMainWin = (PMAINWIN)hWnd;
     PMSG        pMsg;
     PQMSG       pQMsg;
@@ -1420,16 +1424,6 @@ int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd)
     int         slot;
 
     LOCK_MSGQ (pMsgQueue);
-
-    /* for virtual window and main window, use pMainWin to check whether we
-       should throw away a message for controls of a main window.
-       checkAndGetMainWindowIfControl returns NULL for non control. */
-    if (pMainWin != HWND_NULL && pMainWin != HWND_INVALID &&
-            (pMainWin->WinType == TYPE_MAINWIN ||
-             pMainWin->WinType == TYPE_VIRTWIN))
-        pMainWin = (PMAINWIN)hWnd;
-    else
-        pMainWin = NULL;
 
     if (pMsgQueue->pFirstNotifyMsg) {
         PQMSG pPrev = NULL, pNext;

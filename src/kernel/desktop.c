@@ -4507,7 +4507,9 @@ int __mg_join_all_message_threads (void)
 
     list_for_each (l, &msg_queue_list) {
         MSGQUEUE *msg_queue = (MSGQUEUE*)l;
+#ifndef NDEBUG
         dump_message_queue (msg_queue, __func__);
+#endif
         pthread_cancel (msg_queue->th);
     }
 
