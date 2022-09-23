@@ -148,14 +148,15 @@ static BOOL find_color_key (GAL_PixelFormat* format, const MYBITMAP* my_bmp,
         goto free_and_ret;
 
     color_num = 1 << my_bmp->depth;
-    pixels = malloc (color_num * sizeof (Uint32));
-    for (i = 0; i < color_num; i++)
+    pixels = calloc (color_num, sizeof (Uint32));
+    for (i = 0; i < color_num; i++) {
         pixels[i] = GAL_MapRGB (format, pal[i].r, pal[i].g, pal[i].b);
+    }
     pixel_key = pixels [my_bmp->transparent];
 
     for (i = 0; i < color_num; i++) {
         if (pixels[i] == pixel_key && i != my_bmp->transparent)
-                break;
+            break;
     }
 
     if (i == color_num)

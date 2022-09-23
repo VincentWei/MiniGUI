@@ -187,7 +187,8 @@ int __mg_bmp_compute_pitch(int bpp, Uint32 width, Uint32 *pitch, BOOL does_round
     return bytespp;
 }
 
-void* GUIAPI InitMyBitmapSL (MG_RWops* area, const char* ext, MYBITMAP* my_bmp, RGB* pal)
+void* GUIAPI
+InitMyBitmapSL (MG_RWops* area, const char* ext, MYBITMAP* my_bmp, RGB* pal)
 {
     int type;
     LOAD_MYBITMAP_INFO* load_info;
@@ -209,8 +210,11 @@ void* GUIAPI InitMyBitmapSL (MG_RWops* area, const char* ext, MYBITMAP* my_bmp, 
     my_bmp->frames = 1;
     my_bmp->depth = GetGDCapability (HDC_SCREEN, GDCAP_BPP) << 3;
 
+    // initialize the palette with the screen palette.
     if (my_bmp->depth <= 8)
         GetPalette (HDC_SCREEN, 0, 256, (GAL_Color*)pal);
+    else
+        memset (pal, 0, sizeof(RGB) * 256); // reset the palette.
 
     /* This is just for gray screen. If your screen is gray,
      * please define this macro _GRAY_SCREEN.

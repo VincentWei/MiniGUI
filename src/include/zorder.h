@@ -149,7 +149,7 @@ typedef struct _ZORDERINFO {
 #ifdef _MGRM_THREADS
 # ifdef __ZI_USE_RWLOCK
     pthread_rwlock_t rwlock;
-    pthread_t        wrlock_owner;
+    pthread_t        rwlock_owner;
 # else
     pthread_mutex_t mutex;
 # endif

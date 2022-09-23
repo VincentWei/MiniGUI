@@ -1001,7 +1001,7 @@ static inline MYBMP_WITH_PAL* new_mybmp_with_pal (void)
     MYBMP_WITH_PAL* mybmp_pal;
 
     mybmp_pal = NEW(MYBMP_WITH_PAL);
-    mybmp_pal->pal = malloc (sizeof (RGB) * 256);
+    mybmp_pal->pal = calloc (256, sizeof (RGB));
     return mybmp_pal;
 }
 

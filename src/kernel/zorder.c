@@ -245,6 +245,7 @@ int __kernel_alloc_z_order_info (int nr_topmosts, int nr_normals, BOOL with_mask
 #ifdef _MGRM_THREADS
 # ifdef __ZI_USE_RWLOCK
     pthread_rwlock_init(&__mg_zorder_info->rwlock, NULL);
+    __mg_zorder_info->rwlock_owner = 0;
 # else
     do {
         int ret;
