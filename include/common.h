@@ -311,6 +311,7 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
         defined(__amd64) || \
         (defined(__alpha__) || defined(__alpha)) || \
         defined(__arm__) || defined(__aarch64__) || \
+        defined(__loongarch__) || \
         defined(__riscv) || \
         (defined(__CC_ARM) && !defined(__BIG_ENDIAN)) || \
         (defined(__mips__) && defined(__MIPSEL__)) || \
