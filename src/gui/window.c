@@ -4497,7 +4497,7 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
         }
         else
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
-        if (pWin->dwExStyle & WS_EX_DIALOGBOX) {
+        if (hosted->dwExStyle & WS_EX_DIALOGBOX) {
             if (!EndDialog ((HWND)hosted, IDCANCEL))
                 return FALSE;
         }
