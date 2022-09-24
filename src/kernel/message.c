@@ -194,6 +194,10 @@ void mg_FreeMsgQueueForThisThread (void)
             _WRN_PRINTF ("there are still some windows not destroyed\n");
         }
 
+        // unregister this message queue
+        SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+                MSGTHREAD_SIGNOUT, (LPARAM)pMsgQueue);
+
         mg_DestroyMsgQueue (pMsgQueue);
         free (pMsgQueue);
 

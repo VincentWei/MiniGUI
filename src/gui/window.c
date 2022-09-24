@@ -2992,6 +2992,7 @@ HWND GUIAPI GetFirstHosted (HWND hWnd)
     PMAINWIN pMainWin;
 
     if ((pMainWin = getMainWinIfWindowInThisThread (hWnd)) == NULL) {
+        _WRN_PRINTF("hWnd (%p) is not in the current thread\n", hWnd);
         return HWND_INVALID;
     }
 
@@ -3005,6 +3006,7 @@ HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted)
     PMAINWIN pHosted;
 
     if ((pHosting = getMainWinIfWindowInThisThread (hHosting)) == NULL) {
+        _WRN_PRINTF("hHosing (%p) is not in the current thread\n", hHosting);
         return HWND_INVALID;
     }
 
@@ -3013,10 +3015,13 @@ HWND GUIAPI GetNextHosted (HWND hHosting, HWND hHosted)
     }
 
     if ((pHosted = getMainWinIfWindowInThisThread (hHosted)) == NULL) {
+        _WRN_PRINTF("hHosted (%p) is not in the current thread\n", hHosted);
         return HWND_INVALID;
     }
 
     if (MG_UNLIKELY (pHosted->pHosting != pHosting)) {
+        _ERR_PRINTF("Bad hosting relationship between hosting(%p) and hosted(%p)\n",
+                pHosting, pHosted);
         return HWND_INVALID;
     }
 
@@ -3078,6 +3083,7 @@ static PMAINWIN search_win_tree_bfs (struct _search_context *ctxt)
             }
         }
 
+        hosting = hosted;
         hosted = GetFirstHosted (hosted);
     }
 
@@ -3164,8 +3170,8 @@ HWND GUIAPI GetNextChild (HWND hWnd, HWND hChild)
 
 HWND GUIAPI GetNextMainWindow (HWND hMainWnd)
 {
-    MG_CHECK_RET (hMainWnd != HWND_NULL &&
-            !MG_IS_NORMAL_MAIN_WINDOW (hMainWnd), HWND_INVALID);
+    MG_CHECK_RET (hMainWnd == HWND_NULL ||
+            MG_IS_NORMAL_MAIN_WINDOW (hMainWnd), HWND_INVALID);
 
     return (HWND)SendMessage (HWND_DESKTOP,
             MSG_GETNEXTMAINWIN, (WPARAM)hMainWnd, 0L);
@@ -3784,23 +3790,28 @@ static void* _message_thread_entry (void* arg)
     orig_args->msg_queue = entry_args.msg_queue;
     sem_post (entry_args.wait);
 
+    /* handle in mg_AllocMsgQueueForThisThread
     SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
             MSGTHREAD_SIGNIN, (LPARAM)&entry_args.msg_queue);
+    */
 
     if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
-        goto failed;
+        goto cancelled;
 
     /* call start routine of app */
     entry_args.start_routine (entry_args.arg);
 
+    /* handle in mg_FreeMsgQueueForThisThread
     SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
             MSGTHREAD_SIGNOUT, (LPARAM)&entry_args.msg_queue);
+    */
     mg_FreeMsgQueueForThisThread ();
 
     return NULL;
 
 failed:
     sem_post (entry_args.wait);
+cancelled:
     return NULL;
 }
 
@@ -3905,9 +3916,7 @@ HWND GUIAPI CreateVirtualWindow (HWND hHosting, WNDPROC WndProc,
         if (pMsgQueue != getMsgQueueIfWindowInThisThread (hHosting)) {
             goto err;
         }
-        else {
-            pVirtWin->pHosting = (PVIRTWIN)hHosting;
-        }
+        pVirtWin->pHosting = (PVIRTWIN)hHosting;
     }
 
     if (SendMessage ((HWND)pVirtWin, MSG_CREATE,
@@ -4210,10 +4219,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
         if (pWin->pMsgQueue != getMsgQueue (pCreateInfo->hHosting)) {
             goto err;
         }
-    }
-
-    if (pWin->pHosting == NULL)
         pWin->pHosting = getMainWindowPtr (pCreateInfo->hHosting);
+    }
 
 #else   /* defined _MGRM_THREADS */
 
