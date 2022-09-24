@@ -76,6 +76,14 @@ GAL_PixelFormat *GAL_AllocFormat(int bpp,
     //memset(format, 0, sizeof(*format));
     format->alpha = GAL_ALPHA_OPAQUE;
 
+    /* Give defaults for the special case */
+    if (bpp == 32 && Rmask == 0 && Gmask == 0 && Bmask == 0 && Amask == 0) {
+        Amask = 0xFF000000;
+        Rmask = 0x00FF0000;
+        Gmask = 0x0000FF00;
+        Bmask = 0x000000FF;
+    }
+
     /* Set up the format */
     format->BitsPerPixel = bpp;
     format->BytesPerPixel = (bpp+7)/8;
