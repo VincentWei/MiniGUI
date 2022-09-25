@@ -325,7 +325,9 @@ static void DUMMY_VideoQuit(_THIS)
     }
 #else
     if (this->screen->pixels != NULL) {
+#if !defined(_MGRM_PROCESSES)
         free (this->screen->pixels);
+#endif
         this->screen->pixels = NULL;
     }
 #endif  /* not (defined(_MGRM_PROCESSES) && defined (_MGSCHEMA_SHAREDFB)) */
