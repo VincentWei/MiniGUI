@@ -254,7 +254,6 @@ static BOOL shape_layout_run(SEInstance* inst,
             gs->log_clusters[j] = i;
             j++;
         }
-
     }
 
     gs->nr_glyphs = j;

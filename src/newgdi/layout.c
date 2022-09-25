@@ -511,11 +511,11 @@ static void shape_space(const LAYOUT* layout, const LayoutRun* lrun,
 
         gstr->glyphs[i].is_cluster_start = 1;
         gstr->log_clusters[i] = i;
+    }
 
-        if (BIDI_LEVEL_IS_RTL(lrun->el) && gstr->nr_glyphs > 1) {
-            __mg_reverse_shaped_glyphs(gstr->glyphs, gstr->nr_glyphs);
-            __mg_reverse_log_clusters(gstr->log_clusters, gstr->nr_glyphs);
-        }
+    if (BIDI_LEVEL_IS_RTL(lrun->el) && gstr->nr_glyphs > 1) {
+        __mg_reverse_shaped_glyphs(gstr->glyphs, gstr->nr_glyphs);
+        __mg_reverse_log_clusters(gstr->log_clusters, gstr->nr_glyphs);
     }
 }
 
