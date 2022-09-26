@@ -4097,7 +4097,7 @@ static inline int GUIAPI ShowCursor (BOOL fShow) {
 #endif /* !_MGHAVE_CURSOR */
 
 /**
- * \def SetCursor(hcsr)
+ * \fn HCURSOR SetCursor(HCURSOR hcsr)
  * \brief Changes the current cursor.
  *
  * This function changes the current cursor to be \a hcsr.
@@ -4110,10 +4110,12 @@ static inline int GUIAPI ShowCursor (BOOL fShow) {
  *
  * \sa SetCursorEx, SetDefaultCursor
  */
-#define SetCursor(hcsr) SetCursorEx (hcsr, FALSE)
+static inline HCURSOR SetCursor(HCURSOR hcsr) {
+    return SetCursorEx (hcsr, FALSE);
+}
 
 /**
- * \def SetDefaultCursor(hcsr)
+ * \fn HCURSOR SetDefaultCursor(HCURSOR hcsr)
  * \brief Changes the current cursor, and set it as the default cursor.
  *
  * This function changes the current cursor to be \a hcsr, and set it as
@@ -4127,7 +4129,9 @@ static inline int GUIAPI ShowCursor (BOOL fShow) {
  *
  * \sa SetCursorEx, SetCursor
  */
-#define SetDefaultCursor(hcsr) SetCursorEx (hcsr, TRUE)
+static inline HCURSOR SetDefaultCursor(HCURSOR hcsr) {
+    return SetCursorEx (hcsr, TRUE);
+}
 
     /** @} end of cursor_fns */
 
