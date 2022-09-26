@@ -2905,6 +2905,9 @@ typedef struct _WINMASKINFO {
  *
  * This message is sent to the all main windows when the system
  * enters idle loop.
+ *
+ * Since 5.0.10, this messasge will be relayed to the descendant control
+ * if the control captured the mouse event.
  */
 #define MSG_IDLE            0x0142
 

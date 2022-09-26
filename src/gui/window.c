@@ -2607,13 +2607,12 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
      ** MSG_IDLE, MSG_CARETBLINK:
      */
     if (message == MSG_IDLE) {
-#if 0   /* deprecated code */
-        if (pWin == checkAndGetMainWinIfWindow (sg_repeat_msg.hwnd)) {
-            SendNotifyMessage (sg_repeat_msg.hwnd,
-                    sg_repeat_msg.message,
-                    sg_repeat_msg.wParam, sg_repeat_msg.lParam);
+        /* Since 5.0.10, MSG_IDLE will also be relayed to
+           the descendant control if the control captured the mouse event. */
+        HWND captured = GetCapture();
+        if (captured && GetMainWindowHandle(captured) == (HWND)pWin) {
+            PostMessage(captured, MSG_IDLE, wParam, lParam);
         }
-#endif  /* deprecated code */
     }
     else if (message == MSG_CARETBLINK && pWin->dwStyle & WS_VISIBLE) {
         BlinkCaret ((HWND)pWin);
@@ -4537,11 +4536,6 @@ BOOL GUIAPI DestroyMainWindow (HWND hWnd)
 
     SendMessage (HWND_DESKTOP, MSG_REMOVEMAINWIN, (WPARAM)hWnd, 0);
 
-#if 0   /* deprecated code */
-    if (sg_repeat_msg.hwnd == hWnd)
-        sg_repeat_msg.hwnd = 0;
-#endif  /* deprecated code */
-
     /* make the window to be invalid for PeekMessageEx, PostMessage etc */
     pWin->DataType = TYPE_WINTODEL;
 
@@ -6092,11 +6086,6 @@ BOOL GUIAPI DestroyWindow (HWND hWnd)
 #endif
         pCtrl->privCDC = 0;
     }
-
-#if 0   /* deprecated code */
-    if (sg_repeat_msg.hwnd == hWnd)
-        sg_repeat_msg.hwnd = 0;
-#endif  /* deprecated code */
 
     ThrowAwayMessages (hWnd);
 
