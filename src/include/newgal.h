@@ -55,8 +55,8 @@
 #ifndef GUI_NEWGAL_H
     #define GUI_NEWGAL_H
 
+#include "minigui.h"
 #include "gdi.h"
-#include "window.h"
 #include "constants.h"
 
 #if IS_COMPOSITING_SCHEMA

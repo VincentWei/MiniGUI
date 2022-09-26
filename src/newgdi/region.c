@@ -138,7 +138,6 @@ SOFTWARE.
 
 #include "common.h"
 #include "gdi.h"
-#include "window.h"
 #include "cliprect.h"
 #include "gal.h"
 
