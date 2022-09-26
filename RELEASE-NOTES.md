@@ -28,8 +28,9 @@
 
 ## Version 5.0.10
 
-On Sep. 15, 2022, FMSoft announces the availability of MiniGUI 5.0.10,
-which is a bug fixing release with some minor enhancements of MiniGUI 5.0.x.
+On Sep. 30, 2022, FMSoft announces the availability of MiniGUI 5.0.10,
+which is a bug fixing release with bug fixes and some minor enhancements
+of MiniGUI 5.0.x.
 
 ### What's new in version 5.0.10
 
@@ -39,10 +40,14 @@ In this version, we made some enhancements
    - Enhance `fbcon` engine to support double buffering for Threads and Standalone mode. (Runtime option: `fbcon.double_buffering`).
    - Cleanup and enhance `shadow` engine to use `SyncUpdate` method.
 * BUGFIXING:
-   - Fix a deadlock bug (Threads mode only): https://github.com/VincentWei/minigui/issues/83
+   - Fix a bug reported in https://github.com/VincentWei/minigui/issues/83
+   - Fix a bug reported in https://github.com/VincentWei/minigui/issues/87
+   - Fix bugs reported in https://github.com/VincentWei/minigui/issues/89
+   - Fix some bugs when virtual window enabled in Standalone and Processes runtime modes.
 * OPTIMIZATIONS:
 * TUNING:
    - Fix some warnings reported by GCC 12.
+   - Use inline functions for SetCursor and SetDefaultCursor instead of macros.
 
 ## Version 5.0.9
 
