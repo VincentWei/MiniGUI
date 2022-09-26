@@ -47,6 +47,8 @@
 ** blockheap.h: the head file of heap for block data.
 **
 ** Create date: 2001/01/10
+**
+** DEPRECATED, USE window.h INSTEAD.
 */
 
 #ifndef GUI_BLOCKHEAP_H
@@ -55,7 +57,7 @@
 #ifndef _MGUI_GDI_H /* included in include/gdi.h */
 
 struct _BLOCKHEAP {
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_t lock;
 #endif
     /* Size of one block element. */

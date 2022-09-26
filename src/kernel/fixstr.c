@@ -66,7 +66,7 @@ static struct FIXSTR {
     BYTE bitmap[LEN_BITMAP];
     int offset[NR_HEAP];
     char* heap[NR_HEAP + 1];
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_t lock;
 #endif
 } FixStrHeap;
@@ -98,7 +98,7 @@ BOOL mg_InitFixStr (void)
         offset += 1<<i;
     }
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_init (&FixStrHeap.lock, NULL);
 #endif
     return TRUE;
@@ -106,7 +106,7 @@ BOOL mg_InitFixStr (void)
 
 void mg_TerminateFixStr (void)
 {
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_destroy (&FixStrHeap.lock);
 #endif
     free (FixStrHeap.heap[0]);
@@ -154,7 +154,7 @@ char* GUIAPI FixStrAlloc (int len)
     // ..
     // if i == 0; then bufflen = 512
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_lock (&FixStrHeap.lock);
 #endif
 
@@ -166,7 +166,7 @@ char* GUIAPI FixStrAlloc (int len)
         for(j = 0; j < 8; j++) {
             if (*bitmap & (0x80 >> j)) {
                 *bitmap &= (~(0x80 >> j));
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
                 pthread_mutex_unlock (&FixStrHeap.lock);
 #endif
 #if 0
@@ -181,7 +181,7 @@ char* GUIAPI FixStrAlloc (int len)
         bitmap++;
     }
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_unlock (&FixStrHeap.lock);
 #endif
     return (char*)malloc (len + 1);
@@ -216,7 +216,7 @@ void GUIAPI FreeFixStr (char* str)
     // if i == 0; then bufflen = 512
     bufflen = 1 << (NR_HEAP + 1 - i);
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_lock (&FixStrHeap.lock);
 #endif
     heap = FixStrHeap.heap[i];
@@ -236,7 +236,7 @@ void GUIAPI FreeFixStr (char* str)
     bitmap = bitmap + (stroff>>3);
     *bitmap |= (0x80 >> (stroff%8));
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_unlock (&FixStrHeap.lock);
 #endif
 }

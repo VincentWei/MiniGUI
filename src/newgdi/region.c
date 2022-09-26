@@ -138,9 +138,9 @@ SOFTWARE.
 
 #include "common.h"
 #include "gdi.h"
+#include "window.h"
 #include "cliprect.h"
 #include "gal.h"
-#include "blockheap.h"
 
 typedef void (*voidProcp1)(CLIPRGN *region, const CLIPRECT *r1, const CLIPRECT *r1End,
                           const CLIPRECT *r2, const CLIPRECT *r2End, int top, int bottom);

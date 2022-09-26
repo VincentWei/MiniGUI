@@ -59,7 +59,6 @@
 #include "cliprect.h"
 #include "gal.h"
 #include "internals.h"
-#include "blockheap.h"
 #include "accelkey.h"
 
 static BLOCKHEAP ACHeap;

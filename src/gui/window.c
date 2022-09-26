@@ -3784,16 +3784,15 @@ static void* _message_thread_entry (void* arg)
         goto failed;
 
     /* create message queue for this thread */
-    if (!(entry_args.msg_queue = mg_AllocMsgQueueForThisThread ()))
+    if (!(entry_args.msg_queue = mg_AllocMsgQueueForThisThread (FALSE)))
         goto failed;
 
     orig_args->msg_queue = entry_args.msg_queue;
     sem_post (entry_args.wait);
 
-    /* handle in mg_AllocMsgQueueForThisThread
+    /* register the message queue */
     SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
             MSGTHREAD_SIGNIN, (LPARAM)&entry_args.msg_queue);
-    */
 
     if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
         goto cancelled;
@@ -3801,11 +3800,10 @@ static void* _message_thread_entry (void* arg)
     /* call start routine of app */
     entry_args.start_routine (entry_args.arg);
 
-    /* handle in mg_FreeMsgQueueForThisThread
+    /* unregister the message queue */
     SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
             MSGTHREAD_SIGNOUT, (LPARAM)&entry_args.msg_queue);
-    */
-    mg_FreeMsgQueueForThisThread ();
+    mg_FreeMsgQueueForThisThread (FALSE);
 
     return NULL;
 

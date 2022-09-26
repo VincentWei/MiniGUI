@@ -386,7 +386,7 @@ int InitGUI (int argc, const char* agr[])
 
     /* Since 5.0.0
        allocate message queue for desktop thread before starting client. */
-    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
+    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread (TRUE)) ) {
         err_message (step, "Failed to allocate message queue!");
         return step;
     }

@@ -59,13 +59,13 @@
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
+#include "window.h"
 #include "constants.h"
-#include "blockheap.h"
 #include "misc.h"
 
 BOOL InitBlockDataHeap (PBLOCKHEAP heap, size_t sz_block, size_t sz_heap)
 {
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_init (&heap->lock, NULL);
 #endif
 
@@ -99,7 +99,7 @@ void* BlockDataAlloc (PBLOCKHEAP heap)
     int free_slot;
     unsigned char* block_data = NULL;
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_lock (&heap->lock);
 #endif
 
@@ -118,7 +118,7 @@ void* BlockDataAlloc (PBLOCKHEAP heap)
 
 ret:
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_unlock (&heap->lock);
 #endif
     return block_data;
@@ -128,7 +128,7 @@ void BlockDataFree (PBLOCKHEAP heap, void* data)
 {
     unsigned char* block_data = data;
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_lock (&heap->lock);
 #endif
 
@@ -146,7 +146,7 @@ void BlockDataFree (PBLOCKHEAP heap, void* data)
                 heap, slot);
     }
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_unlock (&heap->lock);
 #endif
 }
@@ -193,7 +193,7 @@ void DestroyBlockDataHeap (PBLOCKHEAP heap)
     free (heap->usage_bmp);
     heap->usage_bmp = NULL;
 
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_destroy (&heap->lock);
 #endif
 }

@@ -578,7 +578,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     /* init message queue of main GUI thread */
     step++;
-    if (!(msg_queue = mg_AllocMsgQueueForThisThread ())) {
+    if (!(msg_queue = mg_AllocMsgQueueForThisThread (TRUE))) {
         _ERR_PRINTF ("KERNEL>InitGUI: failed to allocate message queue!\n");
         goto failure;
     }
@@ -655,7 +655,7 @@ void GUIAPI TerminateGUI (int not_used)
     miFreeArcCache ();
 #endif
 
-    mg_FreeMsgQueueForThisThread ();
+    mg_FreeMsgQueueForThisThread (TRUE);
 
     deleteThreadInfoKey ();
 

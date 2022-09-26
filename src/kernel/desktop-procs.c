@@ -231,14 +231,6 @@ static void init_desktop_win (void)
 
 BOOL mg_InitDesktop (void)
 {
-#if 0   /* move to init-lite.c */
-    /* Since 5.0.0: allocate message queue for desktop thread */
-    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
-        _WRN_PRINTF ("failed to allocate message queue\n");
-        return FALSE;
-    }
-#endif  /* moved code */
-
 #ifndef _MGSCHEMA_COMPOSITING
     /* Init heap of clipping rects. */
     InitFreeClipRectList (&sg_FreeClipRectList, SIZE_CLIPRECTHEAP);
@@ -259,7 +251,7 @@ BOOL mg_InitDesktop (void)
 void mg_TerminateDesktop (void)
 {
     /* Since 5.0.0: message queue for desktop thread was dynamically allocated */
-    mg_FreeMsgQueueForThisThread ();
+    mg_FreeMsgQueueForThisThread (TRUE);
     __mg_dsk_msg_queue = NULL;
 
 #ifndef _MGSCHEMA_COMPOSITING

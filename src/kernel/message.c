@@ -60,7 +60,6 @@
 #include "gdi.h"
 #include "window.h"
 
-#include "blockheap.h"
 #include "cliprect.h"
 #include "gal.h"
 #include "internals.h"
@@ -159,7 +158,7 @@ void mg_DestroyFreeQMSGList (void)
 pthread_key_t __mg_threadinfo_key;
 #endif
 
-MSGQUEUE* mg_AllocMsgQueueForThisThread (void)
+MSGQUEUE* mg_AllocMsgQueueForThisThread (BOOL sign_in)
 {
     MSGQUEUE* pMsgQueue;
 
@@ -177,13 +176,14 @@ MSGQUEUE* mg_AllocMsgQueueForThisThread (void)
     pthread_setspecific (__mg_threadinfo_key, pMsgQueue);
 #endif
 
-    // register this new message queue
-    SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
-            MSGTHREAD_SIGNIN, (LPARAM)pMsgQueue);
+    if (sign_in) {
+        SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+                MSGTHREAD_SIGNIN, (LPARAM)pMsgQueue);
+    }
     return pMsgQueue;
 }
 
-void mg_FreeMsgQueueForThisThread (void)
+void mg_FreeMsgQueueForThisThread (BOOL sign_off)
 {
     MSGQUEUE* pMsgQueue;
 
@@ -194,9 +194,10 @@ void mg_FreeMsgQueueForThisThread (void)
             _WRN_PRINTF ("there are still some windows not destroyed\n");
         }
 
-        // unregister this message queue
-        SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
-                MSGTHREAD_SIGNOUT, (LPARAM)pMsgQueue);
+        if (sign_off) {
+            SendMessage (HWND_DESKTOP, MSG_MANAGE_MSGTHREAD,
+                    MSGTHREAD_SIGNOUT, (LPARAM)pMsgQueue);
+        }
 
         mg_DestroyMsgQueue (pMsgQueue);
         free (pMsgQueue);

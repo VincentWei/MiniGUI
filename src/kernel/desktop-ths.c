@@ -145,7 +145,7 @@ void* __kernel_desktop_main (void* data)
     MSG Msg;
 
     /* init message queue of desktop thread */
-    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread ()) ) {
+    if (!(__mg_dsk_msg_queue = mg_AllocMsgQueueForThisThread (TRUE)) ) {
         _ERR_PRINTF ("failed to allocate message queue\n");
         sem_post ((sem_t*)data);
         return NULL;
@@ -191,7 +191,7 @@ void* __kernel_desktop_main (void* data)
 #endif
     }
 
-    mg_FreeMsgQueueForThisThread ();
+    mg_FreeMsgQueueForThisThread (TRUE);
     __mg_dsk_msg_queue = NULL;
     return NULL;
 }

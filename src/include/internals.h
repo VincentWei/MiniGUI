@@ -772,8 +772,8 @@ static inline PMSGQUEUE getMsgQueue (HWND hWnd)
 }
 
 
-MSGQUEUE* mg_AllocMsgQueueForThisThread (void);
-void mg_FreeMsgQueueForThisThread (void);
+MSGQUEUE* mg_AllocMsgQueueForThisThread (BOOL sign_in);
+void mg_FreeMsgQueueForThisThread (BOOL sign_off);
 
 /* Since 5.0.0 */
 int __mg_throw_away_messages (PMSGQUEUE pMsgQueue, HWND hWnd);

@@ -587,7 +587,7 @@ enum {
  * \sa InitBlockDataHeap, DestroyBlockDataHeap
  */
 typedef struct _BLOCKHEAP {
-#ifdef _MGRM_THREADS
+#ifdef _MGHAVE_VIRTUAL_WINDOW
     pthread_mutex_t lock;
 #endif
     /** Size of one block element in bytes. */
