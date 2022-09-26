@@ -157,6 +157,8 @@ static int isInItem (MgList *mglst, int mouseX, int mouseY,
 
     index = row * pivlist->nCol + col;
     pci = (IconviewItem *)mglist_getitem_byindex (mglst, index);
+    if (pci == NULL)
+        return -1;
 
     if (pRet)
         *pRet = (MgItem*)pci;

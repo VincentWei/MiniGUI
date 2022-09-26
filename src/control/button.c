@@ -299,7 +299,15 @@ static void change_status_from_pose (PCONTROL pctrl, int new_pose,
         }
     }
 
-    /*complete a click if the click if valid
+    /* DK: When the radio or check button state changes do not erase the background,
+     * and the prospects for direct rendering */
+    btnGetRects (pctrl, &rcClient, &rcContent, &rcBitmap);
+    if (BUTTON_IS_PUSHBTN(pctrl) || (pctrl->dwStyle & BS_PUSHLIKE))
+        InvalidateRect((HWND)pctrl, NULL, TRUE);
+    else
+        InvalidateRect((HWND)pctrl, &rcBitmap, FALSE);
+
+    /* complete a click if the click if valid
      * (mouse lbutton up in button )*/
     if (old_pose == BST_PUSHED && new_pose != BST_DISABLE
             && change_valid)
@@ -312,14 +320,6 @@ static void change_status_from_pose (PCONTROL pctrl, int new_pose,
 
         NotifyParent ((HWND)pctrl, pctrl->id, BN_CLICKED);
     }
-
-    /* DK: When the radio or check button state changes do not erase the background,
-     * and the prospects for direct rendering */
-    btnGetRects (pctrl, &rcClient, &rcContent, &rcBitmap);
-    if (BUTTON_IS_PUSHBTN(pctrl) || (pctrl->dwStyle & BS_PUSHLIKE))
-        InvalidateRect((HWND)pctrl, NULL, TRUE);
-    else
-        InvalidateRect((HWND)pctrl, &rcBitmap, FALSE);
 }
 
 /*btnGetRects:
@@ -423,8 +423,8 @@ static void draw_bitmap_button (PCONTROL pctrl, HDC hdc, DWORD dwStyle,
 
         GetClientRect ((HWND)pctrl, &prcClient);
         if (dwStyle & BS_REALSIZEIMAGE) {
-            x += (w - bmp->bmWidth) >> 1;
-            y += (h - bmp->bmHeight) >> 1;
+            x += (int)(w - bmp->bmWidth) >> 1;
+            y += (int)(h - bmp->bmHeight) >> 1;
             w = h = 0;
 
             if (bmp->bmWidth > RECTW(prcClient)){
@@ -847,8 +847,6 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             break;
         }
 
-
-
         case BM_SETSTYLE:
             pctrl->dwStyle &= 0xFFFF0000;
             pctrl->dwStyle |= (DWORD)(wParam & 0x0000FFFF);
@@ -1054,7 +1052,7 @@ static LRESULT ButtonCtrlProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         }
 
         default:
-        break;
+            break;
     }
 
     return DefaultControlProc (hWnd, uMsg, wParam, lParam);
