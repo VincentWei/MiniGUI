@@ -2636,7 +2636,7 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
             HWND active = GetFocusChild((HWND)pWin);
             if (active) {
                 static DWORD last_tick_count;
-                if (wParam > last_tick_count + 70) {    /* 0.7s */
+                if (wParam >= last_tick_count + 50) {    /* 0.5s */
                     PostMessage(active, MSG_IDLE, wParam, lParam);
                     last_tick_count = wParam;
                 }
@@ -2701,18 +2701,32 @@ LRESULT PreDefMainWinProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 LRESULT PreDefControlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if (message == MSG_SETTEXT)
+    switch (message) {
+    case MSG_SETTEXT:
         return 0;
-    else if (message == MSG_SETCURSOR) {
+
+    case MSG_IDLE:
+        {
+            HWND active = GetFocusChild(hWnd);
+            if (active) {
+                PostMessage(active, MSG_IDLE, wParam, lParam);
+            }
+        }
+        return 0;
+
+    case MSG_SETCURSOR:
         if (GetWindowExStyle (hWnd) & WS_EX_USEPARENTCURSOR)
             return 0;
 
         SetCursor (GetWindowCursor (hWnd));
         return 0;
-    }
-    else if (message == MSG_NCSETCURSOR) {
+
+    case MSG_NCSETCURSOR:
         SetCursor (GetSystemCursor (IDC_ARROW));
         return 0;
+
+    default:
+        break;
     }
 
     return DefaultMainWinProc (hWnd, message, wParam, lParam);
