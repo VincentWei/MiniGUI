@@ -2611,7 +2611,11 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
            the descendant control if the control captured the mouse event. */
         HWND captured = GetCapture();
         if (captured && GetMainWindowHandle(captured) == (HWND)pWin) {
-            PostMessage(captured, MSG_IDLE, wParam, lParam);
+            static DWORD last_tick_count;
+            if (wParam > last_tick_count + 100) {
+                PostMessage(captured, MSG_IDLE, wParam, lParam);
+                last_tick_count = wParam;
+            }
         }
     }
     else if (message == MSG_CARETBLINK && pWin->dwStyle & WS_VISIBLE) {
