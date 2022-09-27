@@ -2225,6 +2225,13 @@ static LRESULT DefaultPostMsgHandler(PMAINWIN pWin, UINT message,
         OnQueryClientArea(pWin, (PRECT)lParam);
         break;
 
+    case MSG_ACTIVE:
+        if (wParam)
+            pWin->dwExStyle |= WS_EX_ACTIVATED;
+        else
+            pWin->dwExStyle &= ~WS_EX_ACTIVATED;
+        break;
+
     case MSG_SETFOCUS:
     case MSG_KILLFOCUS:
         if (pWin->hActiveChild && !lParam)
@@ -2597,10 +2604,26 @@ static LRESULT DefaultSessionMsgHandler(PMAINWIN pWin, UINT message,
     return 0;
 }
 
+#if 0
+static HWND get_active_descendant(PMAINWIN pWin)
+{
+    HWND hwnd = (HWND)pWin;
+    HWND active;
+
+    while ((active = )) {
+        hwnd = active;
+    }
+
+    if (hwnd == (HWND)pWin)
+        return HWND_NULL;
+
+    return hwnd;
+}
+#endif
+
 static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
         WPARAM wParam, LPARAM lParam)
 {
-
     /*
      ** Should handle following messages:
      **
@@ -2608,13 +2631,15 @@ static LRESULT DefaultSystemMsgHandler(PMAINWIN pWin, UINT message,
      */
     if (message == MSG_IDLE) {
         /* Since 5.0.10, MSG_IDLE will also be relayed to
-           the descendant control if the control captured the mouse event. */
-        HWND captured = GetCapture();
-        if (captured && GetMainWindowHandle(captured) == (HWND)pWin) {
-            static DWORD last_tick_count;
-            if (wParam > last_tick_count + 100) {
-                PostMessage(captured, MSG_IDLE, wParam, lParam);
-                last_tick_count = wParam;
+           the active child control if the main window is active currently */
+        if (pWin->dwExStyle & WS_EX_ACTIVATED) {
+            HWND active = GetFocusChild((HWND)pWin);
+            if (active) {
+                static DWORD last_tick_count;
+                if (wParam > last_tick_count + 70) {    /* 0.7s */
+                    PostMessage(active, MSG_IDLE, wParam, lParam);
+                    last_tick_count = wParam;
+                }
             }
         }
     }
@@ -3242,6 +3267,7 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
     }
 
     SendMessage (HWND_DESKTOP, MSG_SCROLLMAINWIN, (WPARAM)hWnd, (LPARAM)(&swi));
+    UpdateInvalidClient(hWnd, FALSE);
 
     /* show caret */
     if (fCaret) ShowCaretEx (hWnd, FALSE);
