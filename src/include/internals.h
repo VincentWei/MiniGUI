@@ -84,14 +84,17 @@
 #define WS_EX_MODALDISABLED     0x10000000L
 
 /*
- * \def WS_EX_CTRLASMAINWIN
- * \brief The control can be displayed out of the main window
- *        which contains the control.
+ * Internal extended style:
+ *  The control can be displayed out of the main window
+ *  which contains the control.
  */
 #define WS_EX_CTRLASMAINWIN     0x20000000L
 
-/* Internal extended style. */
+/* Internal extended style: dialog box. */
 #define WS_EX_DIALOGBOX         0x40000000L
+
+/* Internal extended style: activated. */
+#define WS_EX_ACTIVATED         0x80000000L
 
 /* Make sure the internal window extended styles above are ok */
 #define MGUI_COMPILE_TIME_ASSERT(name, x)               \
@@ -101,6 +104,10 @@ MGUI_COMPILE_TIME_ASSERT(ws_ex_int_1,
         WS_EX_INTERNAL_MASK & WS_EX_MODALDISABLED);
 MGUI_COMPILE_TIME_ASSERT(ws_ex_int_2,
         WS_EX_INTERNAL_MASK & WS_EX_CTRLASMAINWIN);
+MGUI_COMPILE_TIME_ASSERT(ws_ex_int_3,
+        WS_EX_INTERNAL_MASK & WS_EX_DIALOGBOX);
+MGUI_COMPILE_TIME_ASSERT(ws_ex_int_4,
+        WS_EX_INTERNAL_MASK & WS_EX_ACTIVATED);
 
 #undef MGUI_COMPILE_TIME_ASSERT
 
