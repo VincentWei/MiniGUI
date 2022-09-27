@@ -319,6 +319,19 @@ static void flush_rec (void)
 #endif
 }
 
+static void close_rec (void)
+{
+#ifdef WIN32
+    /* TODO: */
+#else
+    if (record_fd >= 0) {
+        close(record_fd);
+        record_fd = -1;
+    }
+#endif
+}
+
+
 
 static void do_record(AUTO_IAL_INPUT_EVENT *event)
 {
@@ -744,6 +757,7 @@ void TermPCXVFBInput (void)
         remove("/tmp/.pcxvfb_tmp");
     }
 #endif
+    close_rec();
 #endif /* WIN32 */
 }
 
