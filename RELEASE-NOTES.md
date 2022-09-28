@@ -39,11 +39,12 @@ In this version, we made some enhancements
 * ENHANCEMENTS:
    - Enhance `fbcon` engine to support double buffering for Threads and Standalone mode. (Runtime option: `fbcon.double_buffering`).
    - Cleanup and enhance `shadow` engine to use `SyncUpdate` method.
+   - Relaying `MSG_IDLE` messages to the active descendant controls in every 0.5s.
 * BUGFIXING:
    - Fix a bug reported in https://github.com/VincentWei/minigui/issues/83
    - Fix a bug reported in https://github.com/VincentWei/minigui/issues/87
    - Fix bugs reported in https://github.com/VincentWei/minigui/issues/89
-   - Fix some bugs when virtual window enabled in Standalone and Processes runtime modes.
+   - Fix some bugs when virtual window enabled under Standalone and Processes runtime modes.
 * OPTIMIZATIONS:
 * TUNING:
    - Fix some warnings reported by GCC 12.
