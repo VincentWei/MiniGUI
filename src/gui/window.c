@@ -138,7 +138,7 @@ static void RecalcClientArea (HWND hWnd)
 
             if (pWin->secondaryDC == HDC_INVALID) {
                 /* remove the flag of WS_EX_AUTOSECONDARYDC */
-                pWin->dwExStyle = pWin->dwExStyle | WS_EX_AUTOSECONDARYDC;
+                pWin->dwExStyle &= ~WS_EX_AUTOSECONDARYDC;
                 pWin->secondaryDC = 0;
             }
 
