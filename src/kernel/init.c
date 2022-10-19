@@ -617,6 +617,8 @@ void GUIAPI TerminateGUI (int not_used)
 {
     mg_TerminateTimer (FALSE);
 
+    mg_FreeMsgQueueForThisThread (TRUE);
+
     /* Since 5.0.0 */
     SendNotifyMessage (HWND_DESKTOP, MSG_ENDSESSION, 0, 0);
     pthread_join (__mg_dsk_msg_queue->th, NULL);
@@ -654,8 +656,6 @@ void GUIAPI TerminateGUI (int not_used)
     extern void miFreeArcCache (void);
     miFreeArcCache ();
 #endif
-
-    mg_FreeMsgQueueForThisThread (TRUE);
 
     deleteThreadInfoKey ();
 
