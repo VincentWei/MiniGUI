@@ -365,11 +365,6 @@ HWND GUIAPI ChildWindowFromPointEx (HWND hParent, POINT pt, UINT uFlags)
     return pRet;
 }
 
-/* NOTE:
- ** this function is CONTROL mouse messages handler,
- ** can automaticly capture mouse depend on HITTEST code.
- */
-
 static PCONTROL __mgs_captured_ctrl = NULL;
 
 void __mg_reset_mainwin_capture_info (PCONTROL ctrl)
@@ -387,6 +382,11 @@ void __mg_reset_mainwin_capture_info (PCONTROL ctrl)
                 0, MAKELONG (mousePos.x, mousePos.y));
     }
 }
+
+/* NOTE:
+ ** this function is CONTROL mouse messages handler,
+ ** can automaticly capture mouse depend on HITTEST code.
+ */
 
 static LRESULT DefaultDTMouseMsgHandler (PMAINWIN pWin, UINT message,
         WPARAM flags, int x, int y)
