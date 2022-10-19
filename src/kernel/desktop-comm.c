@@ -1743,11 +1743,6 @@ static int dskOnRemoveCtrlInstance (PCONTROL pParent, PCONTROL pCtrl)
         FreeZOrderNode (0, pCtrl->idx_znode, NULL);
     }
 
-    if (fFound) {
-        pCtrl->pcci->nUseCount --;
-        return 0;
-    }
-
     if ((HWND)pCtrl == __mg_captured_wnd) {
         /* force release the capture */
         __mg_captured_wnd = 0;
@@ -1760,6 +1755,11 @@ static int dskOnRemoveCtrlInstance (PCONTROL pParent, PCONTROL pCtrl)
 
     if ((HWND)pCtrl == sg_msgAutoRepeat.hwnd) {
         sg_msgAutoRepeat.hwnd = 0;
+    }
+
+    if (fFound) {
+        pCtrl->pcci->nUseCount--;
+        return 0;
     }
 
     return -1;
