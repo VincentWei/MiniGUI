@@ -377,8 +377,8 @@ static _GBType resolve_gbt(struct break_ctxt* ctxt,
                 uc == 0x8E2 || uc == 0xD4E || uc == 0x110BD ||
                 (uc >= 0x111C2 && uc <= 0x111C3)) {
             gbt = GB_Prepend;
-            break;
         }
+        break;
 
     case UCHAR_CATEGORY_CONTROL:
     case UCHAR_CATEGORY_LINE_SEPARATOR:
@@ -393,8 +393,8 @@ static _GBType resolve_gbt(struct break_ctxt* ctxt,
         if ((uc >= 0xFFF0 && uc <= 0xFFF8) ||
                 (uc >= 0xE0000 && uc <= 0xE0FFF)) {
             gbt = GB_ControlCRLF;
-            break;
         }
+        break;
 
     case UCHAR_CATEGORY_OTHER_LETTER:
         if (ctxt->makes_hangul_syllable)
@@ -434,7 +434,6 @@ static _GBType resolve_gbt(struct break_ctxt* ctxt,
                 gbt = GB_RI_Odd;
             else
                 gbt = GB_RI_Odd;
-            break;
         }
         break;
 
