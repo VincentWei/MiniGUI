@@ -905,8 +905,16 @@ BOOL GAL_SyncUpdate (GAL_Surface *surface)
     numrects = __mg_convert_region_to_rects (&surface->update_region,
             rects, NR_DIRTY_RECTS);
     if (numrects <= 0) {
+        _DBG_PRINTF("empty update region\n");
         return FALSE;
     }
+
+#ifdef _DEBUG
+    for (int i = 0; i < numrects; i++) {
+        _DBG_PRINTF("update rect %d: %d, %d, %d, %d\n",
+                i, rects[i].x, rects[i].y, rects[i].w, rects[i].h);
+    }
+#endif
 
 #ifdef _MGSCHEMA_COMPOSITING
     if (surface->shared_header) {

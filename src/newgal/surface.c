@@ -541,29 +541,10 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
 #ifdef MG_CONFIG_USE_OWN_OVERLAPPED_BITBLIT
     ret = own_overlapped_bitblit(do_blit, src, srcrect, dst, dstrect);
 #else
+    _DBG_PRINTF("calling do_blit: from (%d, %d, %d, %d) to (%d, %d)\n",
+                srcrect->x, srcrect->y, srcrect->w, srcrect->h,
+                dstrect->x, dstrect->y);
     ret = do_blit(src, srcrect, dst, dstrect);
-#endif
-
-#if 0
-    {
-        static int n_sw=0, n_hw=0;
-        if ((src->flags & GAL_HWACCEL) == GAL_HWACCEL)
-        {
-            n_hw ++;
-        }
-        else
-        {
-            n_sw ++;
-        }
-        printf("[%06u] hw/blit=%d/%d %c size=%dX%d src=(%d %d),%p dst=(%d %d),%p\n",
-                times(NULL) % 1000000,
-                n_hw, n_hw+n_sw,
-                do_blit == src->map->sw_blit ? 'S':'H',
-                srcrect->w, srcrect->h,
-                srcrect->x, srcrect->y, src,
-                dstrect->x, dstrect->y, dst
-             );
-    }
 #endif
 
     return ret;
@@ -573,8 +554,8 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
 int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
            GAL_Surface *dst, GAL_Rect *dstrect, DWORD op)
 {
-    GAL_Rect fulldst;
-    int srcx, srcy, w, h;
+    GAL_Rect my_dst, my_src;
+    int w, h;
 
     if (! src || ! dst) {
         GAL_SetError("NEWGAL: GAL_UpperBlit: passed a NULL surface.\n");
@@ -583,76 +564,95 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
 
     /* If the destination rectangle is NULL, use the entire dest surface */
     if (dstrect == NULL) {
-        fulldst.x = fulldst.y = 0;
-        dstrect = &fulldst;
+        my_dst.x = my_dst.y = 0;
+        dstrect = &my_dst;
     }
 
-    /* clip the source rectangle to the source surface */
-    if(srcrect) {
-        int maxw, maxh;
+    if (srcrect == NULL) {
+        my_src.x = my_src.y = 0;
+        srcrect = &my_src;
 
-        srcx = srcrect->x;
-        w = srcrect->w;
-        if(srcx < 0) {
-            w += srcx;
-            dstrect->x -= srcx;
-            srcx = 0;
-        }
-        maxw = src->w - srcx;
-        if(maxw < w)
-            w = maxw;
-
-        srcy = srcrect->y;
-        h = srcrect->h;
-        if(srcy < 0) {
-                h += srcy;
-            dstrect->y -= srcy;
-            srcy = 0;
-        }
-        maxh = src->h - srcy;
-        if(maxh < h)
-            h = maxh;
-
-    } else {
-        srcx = srcy = 0;
-        w = src->w;
-        h = src->h;
+        srcrect->w = src->w;
+        srcrect->h = src->h;
     }
 
-    /* clip the destination rectangle against the clip rectangle */
-    {
+    /* make sure that two rectangles have the same size */
+    w = dstrect->w = srcrect->w;
+    h = dstrect->h = srcrect->h;
+
+    _DBG_PRINTF("before clipping: from (%d, %d, %d, %d) to (%d, %d)\n",
+                srcrect->x, srcrect->y, srcrect->w, srcrect->h,
+                dstrect->x, dstrect->y);
+
+    /* XXX: We must offset and clipping the source rectangle properly. */
+    int offx = dstrect->x - srcrect->x;
+    int offy = dstrect->y - srcrect->y;
+
+    /* clip the destination rectangle against the clip rectangle. */
+    if (TRUE) {
         GAL_Rect *clip = &dst->clip_rect;
         int dx, dy;
 
         dx = clip->x - dstrect->x;
-        if(dx > 0) {
+        if (dx > 0) {
             w -= dx;
             dstrect->x += dx;
-            srcx += dx;
         }
         dx = dstrect->x + w - clip->x - clip->w;
-        if(dx > 0)
+        if (dx > 0)
             w -= dx;
 
         dy = clip->y - dstrect->y;
-        if(dy > 0) {
+        if (dy > 0) {
             h -= dy;
             dstrect->y += dy;
-            srcy += dy;
         }
         dy = dstrect->y + h - clip->y - clip->h;
-        if(dy > 0)
+        if (dy > 0)
             h -= dy;
     }
 
-    if(w > 0 && h > 0) {
-        GAL_Rect sr;
-        sr.x = srcx;
-        sr.y = srcy;
-        sr.w = dstrect->w = w;
-        sr.h = dstrect->h = h;
-        return GAL_LowerBlit(src, &sr, dst, dstrect, op);
+    if (w <= 0 || h <= 0) {
+        _WRN_PRINTF("destrect clipped\n");
+        goto done;
     }
+
+    /* reset the size */
+    srcrect->w = dstrect->w = w;
+    srcrect->h = dstrect->h = h;
+
+    /* offset the source rectangle */
+    srcrect->x = dstrect->x - offx;
+    srcrect->y = dstrect->y - offy;
+
+    int old_src_x = srcrect->x;
+    int old_src_y = srcrect->y;
+
+    /* clip the source rectangle against the surface. */
+    if (TRUE) {
+        GAL_Rect surrect = { 0, 0, src->w, src->h };
+        if (!GAL_IntersectRect(srcrect, &surrect, srcrect)) {
+            _WRN_PRINTF("srcrect clipped\n");
+            goto done;
+        }
+
+        /* offset the destination rectangle propertly */
+        offx = srcrect->x - old_src_x;
+        offy = srcrect->y - old_src_y;
+
+        dstrect->x += offx;
+        dstrect->y += offy;
+        dstrect->w = srcrect->w;
+        dstrect->h = srcrect->h;
+    }
+
+    _DBG_PRINTF("After clipping: from (%d, %d, %d, %d) to (%d, %d)\n",
+                srcrect->x, srcrect->y, srcrect->w, srcrect->h,
+                dstrect->x, dstrect->y);
+
+    return GAL_LowerBlit(src, srcrect, dst, dstrect, op);
+
+done:
     dstrect->w = dstrect->h = 0;
     return 0;
 }
