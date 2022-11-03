@@ -403,19 +403,12 @@ int GUIAPI GetTabbedTextExtent (HDC hdc, const char* spText, int len,
     return advance;
 }
 
-int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
+static int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
                 const unsigned char* text, int len, int tab_width,
                 int nTabs, int *pTabPos, int nTabOrig, POINT* cur_pos)
 {
     TABBEDTEXTOUTEX_CTXT ctxt;
     int nr_delim_newline = 0, line_len = 0;
-
-#if 0
-    DEVFONT* sbc_devfont;
-    DEVFONT* mbc_devfont;
-    sbc_devfont = pdc->pLogFont->devfonts[0];
-    mbc_devfont = pdc->pLogFont->devfonts[1];
-#endif
 
     ctxt.pdc = pdc;
     ctxt.start_x = x;
@@ -586,23 +579,6 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
                             (NULL, 0, (const unsigned char*)text, len_cur_char);
             char_type = devfont->charset_ops->char_type (ach);
             gv = GetGlyphValueAlt(log_font, ach);
-
-            if (devfont == mbc_devfont) {
-                int i, dfi;
-                DEVFONT* df;
-
-                dfi = 1;
-                for (i = 1; i < MAXNR_DEVFONTS; i++) {
-                    if ((df = log_font->devfonts[i])) {
-                        if (df->font_ops->is_glyph_existed(log_font, df,
-                                gv)) {
-                            dfi = i;
-                            break;
-                        }
-                    }
-                }
-                gv = SET_GLYPH_DFI(gv, dfi);
-            }
 
             switch (char_type & ACHARTYPE_BASIC_MASK) {
                 case ACHAR_BASIC_ZEROWIDTH:
