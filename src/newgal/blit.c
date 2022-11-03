@@ -141,6 +141,7 @@ static void GAL_BlitCopyOverlap(GAL_BlitInfo *info)
 
     w = info->d_width*info->dst->BytesPerPixel;
     h = info->d_height;
+
     src = info->s_pixels;
     dst = info->d_pixels;
     srcskip = w+info->s_skip;
@@ -390,24 +391,18 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
     msk_img = src->msk_img;
     op = (pixman_op_t)src->pix_op;
 
-    _DBG_PRINTF ("srcrect: %d, %d, %dx%d; dstrect: %d, %d, %dx%d\n",
-            srcrect->x, srcrect->y, srcrect->w, srcrect->h,
-            dstrect->x, dstrect->y, dstrect->w, dstrect->h);
-
 #if 0
     pixman_region32_t clip_region;
     pixman_region32_init_rect (&clip_region,
             dst->clip_rect.x, dst->clip_rect.y, dst->clip_rect.w, dst->clip_rect.h);
     pixman_image_set_clip_region32 (dst_img, &clip_region);
-#endif
 
     // pixman_blt does not work
-#if 0
     if (pixman_image_get_format (src_img) == pixman_image_get_format (dst_img) &&
             op == PIXMAN_OP_SRC && msk_img == NULL) {
         pixman_blt ((uint32_t *)((char*)src->pixels + src->pixels_off),
                     (uint32_t *)((char*)dst->pixels + dst->pixels_off),
-					src->pitch, dst->pitch,
+                    src->pitch, dst->pitch,
                     GAL_BytesPerPixel (src),
                     GAL_BytesPerPixel (dst),
                     srcrect->x, srcrect->y,
