@@ -155,7 +155,10 @@ BOOL mg_InitSysFont (void)
                 goto error_load;
             }
 
-            if ((sys_fonts[i] = CreateLogFont (type, family, charset,
+            /* VW 20221003: use CreateLogFontEx instead of CreateLogFont to
+               follow the new style convention of font name,
+               but the orientation is ignored for the system logfont. */
+            if ((sys_fonts[i] = CreateLogFontEx (type, family, charset,
                     style [0], style [1], style [2],
                     style [3], style [4], style [5],
                     height, 0)) == NULL) {
