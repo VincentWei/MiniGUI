@@ -3245,7 +3245,7 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
         rcScroll = rcClient;
 
     /*
-     * BUGFIX: if we scrolled all area, the all area must
+     * BUGFIX: if we scrolled all area, the whole area must
      * be set as invalidate (dongjunjie 2010/7/28)
      */
     if ((dx != 0 && abs(dx) >= RECTW(rcScroll)) ||
@@ -3281,7 +3281,6 @@ int GUIAPI ScrollWindowEx (HWND hWnd, int dx, int dy,
     }
 
     SendMessage (HWND_DESKTOP, MSG_SCROLLMAINWIN, (WPARAM)hWnd, (LPARAM)(&swi));
-    UpdateInvalidClient(hWnd, FALSE);
 
     /* show caret */
     if (fCaret) ShowCaretEx (hWnd, FALSE);
