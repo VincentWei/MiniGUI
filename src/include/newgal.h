@@ -735,10 +735,10 @@ GAL_bool GAL_IntersectRect (const GAL_Rect *A, const GAL_Rect *B,
     Bmin = B->x;
     Bmax = Bmin + B->w;
     if (Bmin > Amin)
-            Amin = Bmin;
+        Amin = Bmin;
     intersection->x = Amin;
     if (Bmax < Amax)
-            Amax = Bmax;
+        Amax = Bmax;
     intersection->w = Amax - Amin > 0 ? Amax - Amin : 0;
 
     /* Vertical intersection */
@@ -747,10 +747,10 @@ GAL_bool GAL_IntersectRect (const GAL_Rect *A, const GAL_Rect *B,
     Bmin = B->y;
     Bmax = Bmin + B->h;
     if (Bmin > Amin)
-            Amin = Bmin;
+        Amin = Bmin;
     intersection->y = Amin;
     if (Bmax < Amax)
-            Amax = Bmax;
+        Amax = Bmax;
     intersection->h = Amax - Amin > 0 ? Amax - Amin : 0;
 
     return (intersection->w && intersection->h);
