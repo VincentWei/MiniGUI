@@ -2096,7 +2096,6 @@ static void teOnChar (HWND hWnd, PTEDATA ptedata, WPARAM wParam)
             rcInv.right = ptedata->svdata.scrdata.nContWidth;
             rcInv.bottom = rcInv.top + ptedata->nLineHeight - ptedata->nLineBaseH;
             REFRESH_NODE_EX(node, &rcInv);
-           // UpdateWindow(hWnd, FALSE);
 
             newlinenr = NODE_LINENR(node);
             rcInv.left = 0;
@@ -2104,12 +2103,10 @@ static void teOnChar (HWND hWnd, PTEDATA ptedata, WPARAM wParam)
                 rcInv.top += ptedata->nLineHeight;
                 rcInv.bottom = rcInv.top + ptedata->nLineHeight  - ptedata->nLineBaseH;
                 REFRESH_NODE_EX(node, &rcInv);
-             //   UpdateWindow(hWnd, FALSE);
             }
             /* houhh 20090814, UpdataWindow will invalidate all edit area, but
              * erase area is not same with msg_paint area.*/
-            UpdateWindow(hWnd, FALSE);
-            //SendMessage(hWnd, MSG_PAINT, 0, 0);
+            UpdateInvalidClient(hWnd, TRUE);
         }
     }
     else {

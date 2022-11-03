@@ -1678,7 +1678,7 @@ esright_input_char_refresh (HWND hWnd,
         scroll_rc.right = cur_caret_x;
 
         ScrollWindow(hWnd, -scroll_len, 0, &scroll_rc, NULL);
-        UpdateWindow(hWnd, FALSE);
+        UpdateInvalidClient(hWnd, TRUE);
         edtSetCaretPos (hWnd, sled);
 
         sled->changed = TRUE;

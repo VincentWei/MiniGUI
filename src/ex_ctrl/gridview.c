@@ -80,17 +80,17 @@ static void update_viewport (gvGridViewData *view, int from, int to, int is_row)
 {
     RECT r;
 
-    GetClientRect (view->hCtrl, &r);
+    GetClientRect(view->hCtrl, &r);
 
     if (is_row) {
         r.top = from;
-        ScrollWindow (view->hCtrl, 0, to, &r, NULL);
+        ScrollWindow(view->hCtrl, 0, to, &r, NULL);
     }
     else {
         r.left = from;
-        ScrollWindow (view->hCtrl, to, 0, &r, NULL);
+        ScrollWindow(view->hCtrl, to, 0, &r, NULL);
     }
-    UpdateWindow(view->hCtrl, FALSE);
+    UpdateInvalidClient(view->hCtrl, FALSE);
 }
 
 // scroll function {{{

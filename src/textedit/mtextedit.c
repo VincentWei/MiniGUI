@@ -53,7 +53,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-
 #ifdef __MINIGUI_LIB__
 #include "common.h"
 #include "minigui.h"
@@ -71,6 +70,8 @@
 #include "mobject.h"
 #include "mcomponent.h"
 #endif
+
+#define _NIL_PRINTF(fmt, ...) do { } while (0)
 
 #if defined(_MGCTRL_TEXTEDIT_USE_NEW_IMPL) || defined(_MGNCS_TEXTEDITOR)
 
@@ -1130,7 +1131,7 @@ static void textlayout_update_selection_ex(mTextLayout* self,
 
     rcUpdate.left = begin[0]; //begin.x
     rcUpdate.top  = begin[1]; //begin.y
-    //printf("--- update selection from : begin(%d,%d)-end(%d,%d)\n", begin[0],begin[1],end[0],end[1]);
+    _DBG_PRINTF("--- update selection from : begin(%d,%d)-end(%d,%d)\n", begin[0],begin[1],end[0],end[1]);
 
     //the same line
     if(begin[1] == end[1])
@@ -1440,7 +1441,7 @@ static void textlayout_relayout(mTextLayout* self, int begin,
     //if(self->old_height == -1)
     //    self->old_height = searchInfo.y_count;
     self->old_height = self->new_height = searchInfo.y_count;
-    //printf("--- textrelayout: old_height=%d\n", self->old_height);
+    _DBG_PRINTF("old_height=%d\n", self->old_height);
 
     txtit = (self->text_buffer)->_vtable->getAt(INTEFACE_ADJUST(self->text_buffer), begin_index);
 
@@ -1672,7 +1673,7 @@ END:
     //if last node is ended with '\n', we should add a new empty line
     //to make sure root node's height correct.
     end_node = textlayout_get_last_node(self, FALSE);
-    //printf("---- end_node=%p, text count = %d\n", end_node, end_node?end_node->text_count:0);
+    _DBG_PRINTF("---- end_node=%p, text count = %d\n", end_node, end_node?end_node->text_count:0);
     if(end_node)
     {
         (txtit)->_vtable->reset(INTEFACE_ADJUST(txtit), textlayout_get_str_count(self));
@@ -1701,7 +1702,7 @@ END:
                 if(end_node->parent)
                     _c(end_node->parent)->changeKey(end_node->parent, &diff, 0);
             }
-            //printf("--- insert null end node = %p, height=%d\n", end_node,height);
+            _DBG_PRINTF("--- insert null end node = %p, height=%d\n", end_node,height);
             bHeightChanged = TRUE;
         }
     }
@@ -1710,7 +1711,7 @@ END:
     (self->context)->_vtable->releaseDC(INTEFACE_ADJUST(self->context), hdc);
     (txtit)->_vtable->releaseIterator(INTEFACE_ADJUST(txtit));
 
-    //printf("--- old height=%d, new height=%d\n",self->old_height, self->new_height);
+    _DBG_PRINTF("old height=%d, new height=%d\n", self->old_height, self->new_height);
 
     if(bHeightChanged)
     {
@@ -1872,7 +1873,7 @@ static int mTextLayout_getCharIndex(mTextLayout* self, int* px, int* py,
                 reduce = 1;
             _I(txtit)->releaseIterator(INTEFACE_ADJUST(txtit));
         }
-        //printf("-- reduce=%d\n",reduce);
+        _DBG_PRINTF("-- reduce=%d\n",reduce);
 
         GETCHARINDEX_RET(node->width, searchInfo.y_count, node->height,
                 searchInfo.str_count + node->str_count - reduce ,
@@ -2089,8 +2090,8 @@ static int mTextLayout_setSelBeginPos(mTextLayout* self,
     if(str_index < 0)
         return self->sel_begin;
 
-    //printf("---- x_sel=%d,    y_sel=%d,    str_index=%d, text_index=%d\n", x_sel, y_sel, str_index, text_index);
-    //printf("---- cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
+    _DBG_PRINTF("---- x_sel=%d,    y_sel=%d,    str_index=%d, text_index=%d\n", x_sel, y_sel, str_index, text_index);
+    _DBG_PRINTF("---- cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
     if(bUpdate)
         textlayout_update_new_selection(self, str_index, x_sel, y_sel, height);
 
@@ -2181,7 +2182,7 @@ static BOOL mTextLayout_setCursor(mTextLayout* self, int text_index, BOOL isSel)
     self->cursor = _c(self)->getCharPos(self, self->text_cursor, &self->cursor_x,
             &self->cursor_y, &self->cursor_height, TRUE);
 
-    //printf("===== cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
+    _DBG_PRINTF("===== cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
 
     textlayout_resetsel(self);
 
@@ -2209,7 +2210,7 @@ static int mTextLayout_setCursorPos(mTextLayout* self, int x, int y, BOOL isSel)
     self->cursor_y = y;
     self->text_cursor = _c(self)->getCharIndex(self, &self->cursor_x,
             &self->cursor_y, &self->cursor_height, &self->cursor);
-    //printf("++++ cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
+    _DBG_PRINTF("++++ cursor_x=%d, cursor_y=%d, cursor=%d,    text_cursor=%d\n", self->cursor_x, self->cursor_y, self->cursor, self->text_cursor);
 
     textlayout_resetsel(self);
 
@@ -2269,7 +2270,7 @@ static int textlayout_drawline(mTextLayout* self,
 
     //if is in selection and the whole line is selected, we should draw whole line
     //drawLeftBg = (bsel &&  (total_count == max_selection - index));
-    //printf("--- bsel =%d, total_count=%d, max_selection=%d, index=%d\n",bsel, total_count, max_selection, index);
+    _DBG_PRINTF("--- bsel =%d, total_count=%d, max_selection=%d, index=%d\n",bsel, total_count, max_selection, index);
 
     if(max_selection >0 && total_count > max_selection - index)
     {
@@ -2280,26 +2281,6 @@ static int textlayout_drawline(mTextLayout* self,
     }
 
     textRender = (it)->_vtable->getTextRender(INTEFACE_ADJUST(it));
-#if 0
-    rcbg.left = *px;
-    rcbg.bottom = y + node->height;
-    rcbg.top  =  y;
-
-    //printf("---- rcbg=%d,%d,%d,%d\n",rcbg.left, rcbg.right, rcbg.top, rcbg.bottom);
-    if(rcbg.bottom > rcbg.top)
-    {
-        rcbg.right = (self->context)->_vtable->getMetrics(INTEFACE_ADJUST(self->context), TEXTMETRICS_MAXWIDTH);
-        if(bRecalcWidth && !drawLeftBg) //if drawLeftBg is true, mean we should draw whole line
-        {
-            RECT rcBounds;
-            (textRender)->_vtable->calc(INTEFACE_ADJUST(textRender), hdc,
-                    it, total_count, NULL, &rcbg, &rcBounds);
-            rcbg.right = rcbg.left + RECTW(rcBounds);
-        }
-        //printf("---- draw : rcbg=%d,%d,%d,%d\n",rcbg.left, rcbg.right, rcbg.top, rcbg.bottom);
-        (self->context)->_vtable->drawBkgnd(INTEFACE_ADJUST(self->context), hdc, &rcbg, bsel);
-    }
-#endif
 
     while(total_count > 0 && !(it)->_vtable->isEnd(INTEFACE_ADJUST(it)))
     {
@@ -2433,7 +2414,7 @@ static void mTextLayout_draw(mTextLayout* self,
             sel_begin = self->cursor;
             sel_end   = self->sel_begin;
         }
-        //printf("--- sel_begin=%d, sel_end=%d\n", sel_begin, sel_end);
+        _DBG_PRINTF("--- sel_begin=%d, sel_end=%d\n", sel_begin, sel_end);
 
         (self->context)->_vtable->setupDC(INTEFACE_ADJUST(self->context), hdc);
         x_sel_begin = textlayout_drawlines(self, hdc, x, x, &y, &node_it,
@@ -2736,7 +2717,7 @@ static void mTextLayout_foreachLine(mTextLayout* self, int x, int y, int maxWidt
 
     node = get_begin_line(self, &xline, &yline, &index);
     _c(self)->getTextBoundSize(self, &cx, &cy);
-    //printf("--- x=%d, y=%d, xline=%d, yline=%d, cx=%d,cy=%d\n",x, y,xline, yline,cx,cy);
+    _DBG_PRINTF("--- x=%d, y=%d, xline=%d, yline=%d, cx=%d,cy=%d\n",x, y,xline, yline,cx,cy);
     lineNo = _c(self)->getParaByIndex(self, index, NULL, FALSE);
     if(!node)
     {
@@ -3587,55 +3568,28 @@ static void _scroll_invalidate_window(mTextEditor* self, int offX, int offY)
 {
     RECT rcScrolled;
 
-    //make the the progress goto onPaint
-    if(texteditor_must_update_bkgnd(self))
-    {
-        if(offX != self->offX && offY != self->offY)
-        {
+    if (texteditor_must_update_bkgnd(self)) {
+        // invalidate the dirty area.
+        if (offX != self->offX && offY != self->offY) {
             InvalidateRect(self->hwnd, NULL, TRUE);
-            return ;
+            return;
         }
-        else
-        {
+        else {
             RECT rc;
             texteditor_get_view_rect(self, &rc);
             InvalidateRect(self->hwnd, &rc, TRUE);
         }
     }
-    else
-    {
-        //update the area must be update
-
+    else {
+        // scroll the area.
         texteditor_get_view_rect(self, &rcScrolled);
 
-#if 1
-        //printf("---- update scrollbar:self->offX=%d,offX=%d,self->offY=%d,offY=%d\n", self->offX, offX, self->offY, offY);
+        _DBG_PRINTF("rcScrolled: (%d, %d, %d, %d); offX %d -> %d, offY: %d -> %d\n",
+                rcScrolled.left, rcScrolled.top,
+                rcScrolled.right, rcScrolled.bottom,
+                self->offX, offX, self->offY, offY);
         ScrollWindow(self->hwnd, self->offX - offX, self->offY - offY, &rcScrolled, NULL);
-#else
-        rc = rcScrolled;
-        if(offX != self->offX)
-        {
-            if(offX > self->offX)
-                rcScrolled.left = rcScrolled.right - offX + self->offX - 1;
-            else
-                rcScrolled.right = self->offX - offX + rcScrolled.left + 1;
-            InvalidateRect(self->hwnd, &rcScrolled, TRUE);
-
-        }
-
-        if(offY != self->offY)
-        {
-            rcScrolled = rc;
-            if(offY > self->offY)
-                rcScrolled.top = rcScrolled.bottom - offY + self->offY - 1;
-            else
-                rcScrolled.bottom = self->offY - offY + rcScrolled.top + 1;
-            //printf("--- rcScrollend = %d,%d,%d,%d\n", rcScrolled.left, rcScrolled.top, rcScrolled.right, rcScrolled.bottom);
-            InvalidateRect(self->hwnd, &rcScrolled, TRUE);
-        }
-#endif
     }
-
 }
 
 static void _update_scrolled_margins(mTextEditor* self, int offX, int offY)
@@ -3643,7 +3597,7 @@ static void _update_scrolled_margins(mTextEditor* self, int offX, int offY)
     RECT rcScrolled;
     RECT rc;
 
-    if(texteditor_must_update_bkgnd(self))
+    if (texteditor_must_update_bkgnd(self))
         return ;
 
     GetClientRect(self->hwnd, &rc);
@@ -3710,15 +3664,16 @@ static void _update_content_view(mTextEditor* self, int width, int height, BOOL 
     if(height <= fm.font_height)
         height = fm.font_height + 1;
 
-    //printf("--- update content view: width=%d,height=%d, self->visWidth=%d, self->visHeight=%d\n", width, height, self->visWidth, self->visHeight);
+    _DBG_PRINTF("--- update content view: width=%d,height=%d, self->visWidth=%d, self->visHeight=%d\n", width, height, self->visWidth, self->visHeight);
     if(!bresetContent && self->visWidth == width && self->visHeight == height)
         return;
 
     self->visWidth = width;
     self->visHeight = height;
 
-    if ((bresetContent || (GetWindowStyle(self->hwnd)&NCSS_TE_AUTOWRAP) ) && _c(pTextBuffer)->getCount(pTextBuffer) > 0 ) {
-        //printf("--- update content view\n");
+    if ((bresetContent || (GetWindowStyle(self->hwnd) & NCSS_TE_AUTOWRAP)) &&
+            _c(pTextBuffer)->getCount(pTextBuffer) > 0) {
+        _DBG_PRINTF("--- update content view\n");
         _c(pTextLayout)->reset(pTextLayout);
 
         texteditor_update_title(self);
@@ -3738,15 +3693,14 @@ static void _change_caret_size(mTextEditor* self, BOOL show_caret);
 
 static void _update_height_changed(mTextEditor* self, int offX, int offY)
 {
-    //ScrollWindow may offset the invalidate area of window, so, we must call it firstly
-
-    if(self->textLayout->old_height != -1
-            && self->textLayout->old_height != self->textLayout->new_height)
-    {
+    if (self->textLayout->old_height != -1
+            && self->textLayout->old_height != self->textLayout->new_height) {
         RECT rc;
-        if(texteditor_must_update_bkgnd(self)) //text layout's height changed,
-        {
+
+        if (texteditor_must_update_bkgnd(self)) {
+            //text layout's height changed,
             int top;
+
             //invalidate All changed part
             GetClientRect(self->hwnd, &rc);
             top = self->textLayout->new_height - offY;
@@ -3754,23 +3708,22 @@ static void _update_height_changed(mTextEditor* self, int offX, int offY)
             InvalidateRect(self->hwnd, &rc, TRUE);
             self->textLayout->old_height = -1;
         }
-        else
-        {
-#if 1
+        else {
             //scroll the area
             texteditor_get_view_rect(self, &rc);
             if(self->textLayout->old_height < self->textLayout->new_height)
                 rc.top = self->textLayout->old_height - offY + self->margins.top;
             else
                 rc.top = self->textLayout->new_height - offY + self->margins.top;
-            //printf("--- scrollwindow: self->new_height=%d, self->old_height=%d\n", self->textLayout->new_height, self->textLayout->old_height);
-            //printf("--- scrollwindow: rc=%d,%d,%d,%d, offx=%d, offy=%d\n",rc.left, rc.top, rc.right, rc.bottom, 0, self->textLayout->new_height - self->textLayout->old_height);
-            ScrollWindow(self->hwnd, 0, self->textLayout->new_height - self->textLayout->old_height, &rc, NULL);
 
-#endif
+            _DBG_PRINTF("self->new_height=%d, self->old_height=%d\n",
+                    self->textLayout->new_height, self->textLayout->old_height);
+            _DBG_PRINTF("rc: (%d, %d, %d, %d), offx: %d, offy: %d\n",
+                    rc.left, rc.top, rc.right, rc.bottom,
+                    0, self->textLayout->new_height - self->textLayout->old_height);
+            ScrollWindow(self->hwnd, 0, self->textLayout->new_height - self->textLayout->old_height, &rc, NULL);
         }
     }
-
 }
 
 static void _update_height_changed_margins(mTextEditor* self)
@@ -3779,7 +3732,7 @@ static void _update_height_changed_margins(mTextEditor* self)
     int mintop;
     int right;
 
-    if(texteditor_must_update_bkgnd(self)) //text layout's height changed,
+    if (texteditor_must_update_bkgnd(self)) //text layout's height changed,
         return;
 
     if(!(self->textLayout->old_height != -1
@@ -3948,6 +3901,7 @@ static void str_lower_copy(char* str, const char* src, int len) {
         str[i] = (src[i] >= 'A' && src[i] <= 'Z') ? (src[i] - 'A' + 'a') : src[i];
     }
 }
+
 static char * texteditor_case_copy(mTextEditor* self, const char* text, int len)
 {
     DWORD bCase;
@@ -4032,7 +3986,7 @@ static int mTextEditor_getMetrics(mTextEditor *self,int type)
     if (self) {
         switch (type) {
             case TEXTMETRICS_MAXWIDTH:
-                if(GetWindowStyle(self->hwnd)&NCSS_TE_AUTOWRAP)
+                if (GetWindowStyle(self->hwnd) & NCSS_TE_AUTOWRAP)
                     return self->visWidth;
                 else {
                     //max value, to void the signal int overflow,
@@ -4063,7 +4017,7 @@ static void mTextEditor_beginSelection(mTextEditor *self, HDC hdc)
 
     SetTextColor (hdc,
         GetWindowElementPixelEx (self->hwnd, hdc,
-            GetWindowStyle(self->hwnd)&WS_DISABLED?
+            (GetWindowStyle(self->hwnd) & WS_DISABLED) ?
                 WE_FGC_DISABLED_ITEM : WE_FGC_SELECTED_ITEM));
 
     if (TE_IS_FOCUS(self)) {
@@ -4084,7 +4038,7 @@ static void mTextEditor_setupDC(mTextEditor *self, HDC hdc)
 
         SetTextColor (hdc,
             GetWindowElementPixelEx (self->hwnd, hdc,
-                GetWindowStyle(self->hwnd)&WS_DISABLED?
+                (GetWindowStyle(self->hwnd) & WS_DISABLED)?
                     WE_FGC_DISABLED_ITEM : WE_FGC_WINDOW));
     }
 }
@@ -4116,35 +4070,9 @@ static void mTextEditor_update(mTextEditor *self, BOOL bUpdateImdiate)
 
     _update_scrollbar(self);
 
-    if(bUpdateImdiate)
-    {
+    if (bUpdateImdiate) {
         _update_content_dirty_region(self);
     }
-
-
-#if 0
-    if (prcUpdate) {
-        RECT updateRC = *prcUpdate;
-        //printf("++ update:%d,%d,%d,%d\n", prcUpdate->left, prcUpdate->right, prcUpdate->top, prcUpdate->bottom);
-
-        if (self->offX) {
-            updateRC.left     -= self->offX;
-            updateRC.right    -= self->offX;
-        }
-        if (self->offY) {
-            updateRC.top      -= self->offY;
-            updateRC.bottom   -= self->offY;
-        }
-
-        //printf("-- update:%d,%d,%d,%d,self->offY=%d\n", prcUpdate->left, prcUpdate->right, prcUpdate->top, prcUpdate->bottom, self->offY);
-        texteditor_rect_view_to_client(self, &updateRC);
-        InvalidateRect(self->hwnd, &updateRC, TRUE);
-
-    }
-    else {
-        InvalidateRect(self->hwnd, NULL, TRUE);
-    }
-#endif
 }
 
 static int mTextEditor_getInvalidBkgnd(mTextEditor *self, RECT *prc)
@@ -4208,11 +4136,7 @@ static inline void _fill_bkgnd(mTextEditor *self,
 
 
     FillBox(hdc, prcBk->left, prcBk->top, RECTWP(prcBk), RECTHP(prcBk));
-
     SetBrushColor(hdc, oldColor);
-
-
-
 }
 
 static BOOL
@@ -4222,8 +4146,9 @@ mTextEditor_onEraseBkgnd(mTextEditor* self, HDC hdc, const PRECT pClip)
     //return TRUE;
 
 #ifdef __MINIGUI_LIB__
-    if (!self || (GetWindowExStyle(self->hwnd) && WS_EX_TRANSPARENT))
+    if (!self || (GetWindowExStyle(self->hwnd) & WS_EX_TRANSPARENT)) {
         return TRUE;
+    }
 
     _fill_bkgnd(self, hdc, pClip, FALSE);
     return TRUE;
@@ -4458,26 +4383,27 @@ static void _te_set_cursor_pos(mTextEditor *self, int x, int y, BOOL isSel)
         // text bound maybe bigger than visible rect, when not auotwrap.
         _c(pTextLayout)->getTextBoundSize(pTextLayout, &cx, &cy);
 
-        //printf("--- x=%d, y=%d, title:(x=%d,y=%d, height=%d, idx=%d, text_idx=%d\n", x, y, self->title_x, self->title_y, self->title_last_height, self->title_idx, self->title_text_idx);
+        _NIL_PRINTF("%s: x=%d, y=%d, title:(x=%d,y=%d, height=%d, idx=%d, text_idx=%d\n", __func__,
+                x, y, self->title_x, self->title_y, self->title_last_height, self->title_idx, self->title_text_idx);
 
         // click at title rect
-        if(y <= title_y
-                || (y >= title_y  && y <= (title_y + title_last_height) && x < title_x))
-        {
+        if (y <= title_y ||
+                (y >= title_y && y <= (title_y + title_last_height) && x < title_x)) {
             x = title_x;
             y = title_y + title_last_height;
         }
         // click at text rect outside
-        else if(y > total_height)
-        {
+        else if (y > total_height) {
             y = total_height;
-            if( x < title_x && y == (title_y + title_last_height))
+            if (x < title_x && y == (title_y + title_last_height))
                 x = self->title_x;
             else
                 x = cx;
         }
 
-        //printf("---- new x=%d, y=%d total_height=%d\n", x, y,total_height);
+        _DBG_PRINTF("new x=%d, y=%d total_height=%d\n",
+                x, y, total_height);
+
         { /* add {} for avoid compile error in Visual C. */
             TE_SEL_CHANGING(self);
             _c(pTextLayout)->setCursorPos(pTextLayout, x, y, isSel);
@@ -4493,7 +4419,7 @@ static void _te_set_cursor(mTextEditor *self, int pos, BOOL isSel)
 #ifdef _MGHAVE_TEXTEDITTITLE
         if(pos < self->title_text_idx)
             pos = self->title_text_idx;
-        //printf ("_te_set_cursor: pos:%d, text_idx:%d\n", pos, self->title_text_idx);
+        _DBG_PRINTF("_te_set_cursor: pos:%d, text_idx:%d\n", pos, self->title_text_idx);
 #endif
         { /* add {} for avoid compile error in Visual C. */
             TE_SEL_CHANGING(self);
@@ -4929,119 +4855,11 @@ static void mTextEditor_onPaint(mTextEditor *self, HDC hdc, const PCLIPRGN pClip
         RECT rcView;
 
         texteditor_get_view_rect(self, &rcView);
-        //printf("-- rcView = %d,%d,%d,%d\n", rcView.left, rcView.top, rcView.right, rcView.bottom);
+        _DBG_PRINTF("-- rcView = %d,%d,%d,%d\n", rcView.left, rcView.top, rcView.right, rcView.bottom);
 
-#if 0
-        if(!texteditor_must_update_bkgnd(self) && (
-                    (self->oldOffX != self->offX || self->oldOffY != self->offY )
-                        || (self->textLayout->old_height != -1
-                    && self->textLayout->old_height != self->textLayout->new_height)
-                    ))
-        {
-            //we scroll the view area
-            //use bitblt to scroll the area
-            int offx = self->oldOffX - self->offX;
-            int offy = self->oldOffY - self->offY;
-            int sx, sy, sw, sh, dx, dy;
-            RECT rc;
-            PCLIPRGN prgn = CreateClipRgn();
-
-            //save clipRgn
-            GetClipRegion(hdc,prgn);
-
-            //set ClipRgn make the scrolled area enabled
-
-            if(self->oldOffX != self->offX || self->oldOffY != self->offY)
-            {
-                if(offx == 0) {
-                    sx = dx = rcView.left;
-                    sw = RECTW(rcView);
-                }
-                else if(offx > 0)
-                {
-                    sx = rcView.left;
-                    dx = rcView.left + offx;
-                    sw = RECTW(rcView) - offx;
-                }
-                else {
-                    sx = rcView.left - offx;
-                    dx = rcView.left;
-                    sw = RECTW(rcView) + offx;
-                }
-
-                if(offy == 0){
-                    sy = dy = rcView.top;
-                    sh = RECTH(rcView);
-                }
-                else if(offy > 0){
-                    sy = rcView.top;
-                    dy = rcView.top + offy;
-                    sh = RECTH(rcView) - offy;
-                }
-                else {
-                    sy = rcView.top - offy;
-                    dy = rcView.top;
-                    sh = RECTH(rcView) + offy;
-                }
-                //sw --;
-                //sh --;
-
-                rc.left = dx;
-                rc.top  = dy;
-                rc.right = dx + sw;
-                rc.bottom = dy + sh;
-
-                SelectClipRect(hdc, &rc);
-
-                //printf("--- oldOffX=%d, Y=%d, offX=%d, y=%d\n",self->oldOffX, self->oldOffY, self->offX, self->offY);
-                //printf("--- bitblt:sx=%d,sy=%d,sw=%d,sh=%d, dx=%d,dy=%d\n", sx,sy, sw, sh, dx,dy);
-                BitBlt(hdc, sx, sy, sw, sh, hdc, dx, dy, 0);
-            }
-
-
-            //bitblt the area the height changed
-            if(self->textLayout->old_height != -1
-                    && self->textLayout->old_height != self->textLayout->new_height)
-            {
-                //printf("---- old_height=%d, new_height=%d\n", self->textLayout->old_height, self->textLayout->new_height);
-                sx = rcView.left;
-                sw = RECTW(rcView);
-                sy = self->textLayout->old_height - self->offY + self->margins.top;
-                sh = rcView.bottom - sy;
-                dy = self->textLayout->new_height - self->offY + self->margins.top;
-                if( (dy + sh) > rcView.bottom)
-                    sh = rcView.bottom - dy;
-                dx = sx;
-
-                rc.left = dx;
-                rc.top  = dy;
-                rc.right = dx + sw;
-                rc.bottom = dy + sh;
-
-                SelectClipRect(hdc, &rc);
-
-                //printf("--- bitblt height:sx=%d,sy=%d,sw=%d,sh=%d, dx=%d,dy=%d\n", sx,sy, sw, sh, dx,dy);
-                BitBlt(hdc, sx, sy, sw, sh, hdc, dx, dy, 0);
-                self->textLayout->old_height = -1;
-            }
-
-            SelectClipRegion(hdc, prgn);
-            DestroyClipRgn(prgn);
-        }
-
-        //clear the scroll info
-        self->oldOffX = self->offX;
-        self->oldOffY = self->offY;
-#endif
-
-/*     if(!(GetWindowExStyle(self->hwnd) & WS_EX_TRANSPARENT))
-            _fill_bkgnd(self, hdc, NULL, FALSE);
-*/
         SetBkMode(hdc, BM_TRANSPARENT);
 
-        //usleep(50000);
-
-        //TODO draw margins Decorative hear, e.g frameset
+        //TODO draw margins Decorative here, e.g frameset
 
         //draw linedectors
         mTextEditor_drawLinesDecorative(self, hdc, self->offX, self->offY, RECTW(rcView), RECTH(rcView));
@@ -5052,16 +4870,6 @@ static void mTextEditor_onPaint(mTextEditor *self, HDC hdc, const PCLIPRGN pClip
                 self->offY, self->visWidth, self->visHeight);
 
         //draw margin
-/*        SelectClipRect(hdc, NULL);
-        SetPenColor(hdc, COLOR_red);
-        RECT myrc;
-        GetClientRect(self->hwnd, &myrc);
-        Rectangle(hdc, self->margins.left-1, self->margins.top-1,myrc.right - self->margins.right-1, myrc.bottom - self->margins.bottom-1);
-        SetPenColor(hdc, COLOR_blue);
-        Rectangle(hdc, 0, 0, myrc.right ,self->margins.top);
-        Rectangle(hdc, 0, self->margins.top, self->margins.left, myrc.bottom - self->margins.bottom);
-        Rectangle(hdc, 0, myrc.bottom - self->margins.bottom, myrc.right, myrc.bottom);
-        Rectangle(hdc, myrc.right - self->margins.right, 0, myrc.right, myrc.bottom);*/
     }
 }
 
@@ -6289,7 +6097,7 @@ static void mTextEditor_lineDecorative(mTextEditor* self, int x, int y, int w, i
     RECT rcview;
 #ifdef _MGHAVE_TEXTEDITTITLE
     //TODO FIXEDME lineNo would be not correct if we set the title
-    //printf("--linedecorative x=%d, y=%d, title:(x=%d,y=%d, height=%d, idx=%d, text_idx=%d\n", x, y, self->title_x, self->title_y, self->title_last_height, self->title_idx, self->title_text_idx);
+    _DBG_PRINTF("--linedecorative x=%d, y=%d, title:(x=%d,y=%d, height=%d, idx=%d, text_idx=%d\n", x, y, self->title_x, self->title_y, self->title_last_height, self->title_idx, self->title_text_idx);
     if( y < self->title_y)
         return;
     else if( y >= self->title_y && y < (self->title_y + self->title_last_height))
@@ -6300,16 +6108,16 @@ static void mTextEditor_lineDecorative(mTextEditor* self, int x, int y, int w, i
     }
     else
         x = 0;
-    //printf("--linedecorative x=%d\n", x);
+    _DBG_PRINTF("--linedecorative x=%d\n", x);
 #else
     x = 0;
 #endif
     texteditor_get_view_rect(self, &rcview);
     y = y - self->offY + self->margins.top + h - 1;
-    //printf("---- print at y=%d<self->offY=%d, self->marigns.top=%d, h=%d, self->visHeight=%d>\n", y, self->offY, self->margins.top, h,self->visHeight);
+    _DBG_PRINTF("---- print at y=%d<self->offY=%d, self->marigns.top=%d, h=%d, self->visHeight=%d>\n", y, self->offY, self->margins.top, h,self->visHeight);
     if(y > rcview.bottom || y < rcview.top)
         return ;
-    //printf("-- lineNo=%d\n", lineNo);
+    _DBG_PRINTF("-- lineNo=%d\n", lineNo);
     //TODO hear, draw some information, e.g line No
 #if MARGIN_UPDATE
     //implement it if need
@@ -6327,19 +6135,13 @@ static void mTextEditor_lineDecorative(mTextEditor* self, int x, int y, int w, i
     }
 #endif
 
-#if 1
     //TODO : use the user defined handler to draw the lineDecorative
     /*
      if ( self->userLineDecorative )
         self->userLineDecorative( hdc, self->margins.left, y, self->visWidth - 1)
     else
      */
-    DrawHDotLine(hdc, self->margins.left + x + (self->offX % 2) ,
-            y,
-            self->visWidth - x);
-#else
-    LineEx(hdc, self->margins.left + x, y, self->margins.left + self->visWidth, y);
-#endif
+    DrawHDotLine(hdc, self->margins.left + x + (self->offX % 2), y, self->visWidth - x);
 }
 
 static BOOL mTextEditor_needLineDecorative(mTextEditor* self)
@@ -6398,7 +6200,8 @@ static int mTextEditor_wndProc(mTextEditor *self, int message, WPARAM wParam, LP
             break;
 
         case MSG_DOESNEEDIME:
-            if ((GetWindowStyle(self->hwnd) & NCSS_TE_READONLY) || (GetWindowExStyle(self->hwnd)&NCSS_EX_UNNEEDIME))
+            if ((GetWindowStyle(self->hwnd) & NCSS_TE_READONLY) ||
+                    (GetWindowExStyle(self->hwnd)&NCSS_EX_UNNEEDIME))
                 return FALSE;
             return TRUE;
 
