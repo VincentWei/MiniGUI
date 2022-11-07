@@ -578,6 +578,9 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
             ach = devfont->charset_ops->get_char_value
                             (NULL, 0, (const unsigned char*)text, len_cur_char);
             char_type = devfont->charset_ops->char_type (ach);
+
+            if (devfont == mbc_devfont)
+                ach = SET_MBCHV(ach);
             gv = GetGlyphValueAlt(log_font, ach);
 
             switch (char_type & ACHARTYPE_BASIC_MASK) {

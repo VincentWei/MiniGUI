@@ -476,6 +476,7 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
 
             chv = (*mbc_devfont->charset_ops->get_char_value)(NULL,
                     0, (const unsigned char*)text, 0);
+            chv = SET_MBCHV(chv);
 
             gv = GetGlyphValueAlt(pdc->pLogFont, chv);
             advance_cur_char = _gdi_get_glyph_advance (pdc, gv,
