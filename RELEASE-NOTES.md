@@ -26,6 +26,27 @@
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
 
+## Version 5.0.11
+
+On 11. 30, 2022, FMSoft announces the availability of MiniGUI 5.0.11,
+which is a bug fixing release with bug fixes and some minor enhancements
+of MiniGUI 5.0.x.
+
+### What's new in version 5.0.11
+
+In this version, we made some enhancements
+
+* ENHANCEMENTS:
+* BUGFIXING:
+   - Fix a bug reported in https://github.com/VincentWei/minigui/issues/94
+   - Fix a bug reported in https://github.com/VincentWei/minigui/issues/96
+* OPTIMIZATIONS:
+   - optimize the refresh of scrolled.
+* TUNING:
+   - call `mg_FreeMsgQueueForThisThread` immediately in `TerminateGUI()`.
+   - use `CreateLogFontEx` instead of `CreateLogFont` to follow the new style convention of font name when creating the system logfonts,
+     but the orientation is ignored for the system logfont.
+
 ## Version 5.0.10
 
 On Sep. 30, 2022, FMSoft announces the availability of MiniGUI 5.0.10,
