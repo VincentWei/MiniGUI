@@ -250,8 +250,6 @@ static inline void scrolled_refresh_view (PSCRDATA pscrdata)
         rcMargin.right = rcClient.right;
         InvalidateRect (pscrdata->hSV, &rcMargin, TRUE);
      }
-
-     UpdateInvalidClient(pscrdata->hSV, TRUE);
 }
 
 /* ------------------------------------------------------------------------- */

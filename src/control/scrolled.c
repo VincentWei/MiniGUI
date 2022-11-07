@@ -172,6 +172,10 @@ BOOL scrolled_set_cont_pos (HWND hWnd, PSCRDATA pscrdata, int cont_x, int cont_y
         SetScrollPos (hWnd, SB_VERT, cont_y);
         bChange = TRUE;
     }
+
+    if (bChange)
+        UpdateInvalidClient(hWnd, FALSE);
+
     return bChange;
 }
 
