@@ -2542,7 +2542,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 return 0;
         }
 
-        if (wParam == '\b') { // backspace
+        if (chars == 1 && charBuffer [0] == '\b') { // backspace
             int del = 1;
 
             if (sled->editPos == 0 && sled->selStart == sled->selEnd)
@@ -2564,9 +2564,8 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 sleBackspaceText (hWnd, sled, del, FALSE, FALSE);
             }
         }
-        else{
+        else {
             if (dwStyle & ES_LEFT) {
-            //if ((dwStyle&0xffff) ==  ES_LEFT) {
                 esleft_input_char_refresh(hWnd, sled, (char*)charBuffer, chars);
                 set_edit_caret_pos(hWnd, sled);
 
