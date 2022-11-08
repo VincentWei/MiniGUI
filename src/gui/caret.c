@@ -59,16 +59,21 @@
 #include "cliprect.h"
 #include "gal.h"
 #include "internals.h"
+#include "dc.h"
 
 BOOL GUIAPI CreateCaret (HWND hWnd, PBITMAP pBitmap, int nWidth, int nHeight)
 {
     PMAINWIN pWin;
-
     pWin = (PMAINWIN)hWnd;
 
     if (!pWin->pCaretInfo) {
+        HDC hdc;
+
         if (!(pWin->pCaretInfo = malloc (sizeof (CARETINFO))))
             return FALSE;
+
+        /* Since 5.0.11: use client DC of the window instead of screen DC */
+        hdc = GetClientDC(hWnd);
 
         pWin->pCaretInfo->pBitmap = pBitmap;
         if (pBitmap) {
@@ -78,17 +83,21 @@ BOOL GUIAPI CreateCaret (HWND hWnd, PBITMAP pBitmap, int nWidth, int nHeight)
         pWin->pCaretInfo->nWidth  = nWidth;
         pWin->pCaretInfo->nHeight = nHeight;
         pWin->pCaretInfo->caret_bmp.bmType = BMP_TYPE_NORMAL;
-        pWin->pCaretInfo->caret_bmp.bmBitsPerPixel = BITSPERPHYPIXEL;
-        pWin->pCaretInfo->caret_bmp.bmBytesPerPixel = BYTESPERPHYPIXEL;
+        pWin->pCaretInfo->caret_bmp.bmBitsPerPixel =
+            GetGDCapability(hdc, GDCAP_BITSPP);
+        pWin->pCaretInfo->caret_bmp.bmBytesPerPixel =
+            GetGDCapability(hdc, GDCAP_BPP);
         pWin->pCaretInfo->caret_bmp.bmWidth = nWidth;
         pWin->pCaretInfo->caret_bmp.bmHeight = nHeight;
         pWin->pCaretInfo->caret_bmp.bmAlphaMask = NULL;
         pWin->pCaretInfo->caret_bmp.bmAlphaPitch = 0;
 
-        pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (__gal_screen,
+        pWin->pCaretInfo->nBytesNr = GAL_GetBoxSize (dc_HDC2PDC(hdc)->surface,
                         nWidth, nHeight, &pWin->pCaretInfo->caret_bmp.bmPitch);
         pWin->pCaretInfo->pNormal = malloc (pWin->pCaretInfo->nBytesNr);
         pWin->pCaretInfo->pXored  = malloc (pWin->pCaretInfo->nBytesNr);
+
+        ReleaseDC(hdc);
 
         if (pWin->pCaretInfo->pNormal == NULL ||
             pWin->pCaretInfo->pXored == NULL) {
@@ -219,8 +228,8 @@ void GetCaretBitmaps (PCARETINFO pCaretInfo)
     int i;
     int sx, sy;
     HDC hdc;
+    Uint32 amask;
 
-    // convert to screen coordinates
     sx = pCaretInfo->x;
     sy = pCaretInfo->y;
 
@@ -231,36 +240,70 @@ void GetCaretBitmaps (PCARETINFO pCaretInfo)
                     pCaretInfo->caret_bmp.bmWidth,
                     pCaretInfo->caret_bmp.bmHeight,
                     &pCaretInfo->caret_bmp);
+    amask = GetGDCapability(hdc, GDCAP_AMASK);
     ReleaseDC (hdc);
 
     // generate XOR bitmap.
-    if (pCaretInfo->pBitmap) {
+    if (amask == 0) {
         BYTE* normal;
         BYTE* bitmap;
         BYTE* xored;
 
         normal = pCaretInfo->pNormal;
-        bitmap = pCaretInfo->pBitmap->bmBits;
         xored  = pCaretInfo->pXored;
 
-        for (i = 0; i < pCaretInfo->nBytesNr; i++)
-            xored[i] = normal[i] ^ bitmap[i];
+        if (pCaretInfo->pBitmap) {
+            bitmap = pCaretInfo->pBitmap->bmBits;
+            for (i = 0; i < pCaretInfo->nBytesNr; i++)
+                xored[i] = normal[i] ^ bitmap[i];
+        }
+        else {
+            for (i = 0; i < pCaretInfo->nBytesNr; i++)
+                xored[i] = normal[i] ^ 0xFF;
+        }
     }
     else {
+        // Since 5.0.11: restore the alpha component if having alpha component.
+        int x, y;
         BYTE* normal;
         BYTE* xored;
-        BYTE xor_byte;
+        BYTE* bitmap = NULL;
+        gal_pixel pix_normal, pix_bitmap, pix_xored, bits_alpha;
 
-        if (BITSPERPHYPIXEL < 8)
-            xor_byte = 0x0F;
-        else
-            xor_byte = 0xFF;
+        _DBG_PRINTF("restore alpha component for amask != 0\n");
 
-        normal = pCaretInfo->pNormal;
-        xored  = pCaretInfo->pXored;
+        for (y = 0; y < pCaretInfo->caret_bmp.bmHeight; y++) {
+            normal = pCaretInfo->pNormal + pCaretInfo->caret_bmp.bmPitch * y;
+            xored  = pCaretInfo->pXored  + pCaretInfo->caret_bmp.bmPitch * y;
+            if (pCaretInfo->pBitmap)
+                bitmap = pCaretInfo->pBitmap->bmBits +
+                    pCaretInfo->caret_bmp.bmPitch * y;
 
-        for (i = 0; i < pCaretInfo->nBytesNr; i++)
-            xored[i] = normal[i] ^ xor_byte;
+            for (x = 0; x < pCaretInfo->caret_bmp.bmWidth; x++) {
+
+                pix_normal = _mem_get_pixel(normal,
+                        pCaretInfo->caret_bmp.bmBytesPerPixel);
+                if (pCaretInfo->pBitmap) {
+                    pix_bitmap = _mem_get_pixel(bitmap,
+                            pCaretInfo->caret_bmp.bmBytesPerPixel);
+                }
+                else {
+                    pix_bitmap = 0xFFFFFFFF;
+                }
+
+                bits_alpha = pix_normal & amask;
+                pix_xored = pix_normal ^ pix_bitmap;
+                pix_xored &= ~amask;
+                pix_xored |= bits_alpha;
+                _mem_set_pixel(xored,
+                        pCaretInfo->caret_bmp.bmBytesPerPixel, pix_xored);
+
+                normal += pCaretInfo->caret_bmp.bmBytesPerPixel;
+                xored  += pCaretInfo->caret_bmp.bmBytesPerPixel;
+                if (pCaretInfo->pBitmap)
+                    bitmap += pCaretInfo->caret_bmp.bmBytesPerPixel;
+            }
+        }
     }
 }
 
