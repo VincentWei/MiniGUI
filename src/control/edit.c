@@ -2143,9 +2143,6 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         else {
             chars = 1;
 
-            if (charBuffer [0] == 127) // BS
-                charBuffer [0] = '\b';
-
             if (dwStyle & ES_UPPERCASE) {
                 charBuffer [0] = toupper (charBuffer[0]);
             }
@@ -2154,12 +2151,8 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
-        if (chars == 1) {
-            if (charBuffer [0] < 0x20 && charBuffer[0] != '\b') //FIXME
-                return 0;
-        }
-
-        if (chars == 1 && charBuffer[0] == '\b') { //backspace
+        if (chars == 1 && (charBuffer[0] == '\b' || charBuffer[0] == 0x7F)) {
+            // ASCII BS or DEL
             int del;
 
             if (sled->editPos == 0 && sled->selStart == sled->selEnd)
@@ -2183,6 +2176,10 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             else {
                 sleInsertText (hWnd, sled, NULL, del);
             }
+        }
+        else if (chars == 1 && charBuffer [0] < 0x20) {
+            // ignore all other ASCII control characters.
+            return 0;
         }
         else {
             if (dwStyle & ES_LEFT) {

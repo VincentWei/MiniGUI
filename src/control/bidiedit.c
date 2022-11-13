@@ -2505,8 +2505,6 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         unsigned char charBuffer [4];
         int chars;
 
-        _DBG_PRINTF("get a MSG_CHAR: %p\n", (PVOID)wParam);
-
         if (dwStyle & ES_READONLY)
             return 0;
 
@@ -2527,9 +2525,6 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         else {
             chars = 1;
 
-            if (charBuffer [0] == 127) // BS
-                charBuffer [0] = '\b';
-
             if (dwStyle & ES_UPPERCASE) {
                 charBuffer [0] = toupper (charBuffer[0]);
             }
@@ -2538,12 +2533,12 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
-        if (chars == 1) {
-            if (charBuffer [0] < 0x20 && charBuffer[0] != '\b') //FIXME
-                return 0;
+        if (chars > 1) {
+            _WRN_PRINTF("BIDISLEDIT only support ISO8859-6 charset\n");
+            return 0;
         }
-
-        if (chars == 1 && charBuffer [0] == '\b') { // backspace
+        else if (charBuffer [0] == '\b' || charBuffer [0] == 0x7F) {
+            // BS or DEL
             int del = 1;
 
             if (sled->editPos == 0 && sled->selStart == sled->selEnd)
@@ -2564,6 +2559,10 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             else {
                 sleBackspaceText (hWnd, sled, del, FALSE, FALSE);
             }
+        }
+        else if (charBuffer [0] < 0x20) {
+            // ignore all other control characters.
+            return 0;
         }
         else {
             if (dwStyle & ES_LEFT) {
@@ -2586,6 +2585,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 sleInsertText (hWnd, sled, (char* )charBuffer, chars, FALSE);
             }
         }
+
         return 0;
     }
 
