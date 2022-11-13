@@ -210,6 +210,7 @@ static void setup_dc (HWND hWnd, BIDISLEDITDATA *sled, HDC hdc, BOOL bSel)
     DWORD dwStyle = GetWindowStyle (hWnd);
 
     if (!bSel) {
+        SetBkMode (hdc, BM_TRANSPARENT);
 
         if (dwStyle & WS_DISABLED)
             SetTextColor (hdc,
@@ -583,7 +584,7 @@ static void slePaint (HWND hWnd, HDC hdc, PBIDISLEDITDATA sled)
 
             /* draw selected chars */
             setup_dc (hWnd, sled, hdc, TRUE);
-                outw += DrawACharString (hdc, startx + outw, starty,
+            outw += DrawACharString (hdc, startx + outw, starty,
                         achar_string, sled->selEnd - sled->selStart, NULL, NULL);
             achar_string += sled->selEnd - sled->selStart;
 
@@ -2504,7 +2505,7 @@ SLEditCtrlProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         unsigned char charBuffer [4];
         int chars;
 
-        _DBG_PRINTF("get char-----------------char----%p\n", (PVOID)wParam);
+        _DBG_PRINTF("get a MSG_CHAR: %p\n", (PVOID)wParam);
 
         if (dwStyle & ES_READONLY)
             return 0;
