@@ -475,6 +475,8 @@ PDC __mg_begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
     if (bmp->bmType & BMP_TYPE_COLORKEY) {
         pdc->bkmode = BM_TRANSPARENT;
     }
+    else
+        pdc->bkmode = BM_OPAQUE;
 
     if(__mg_enter_drawing (pdc) < 0) {
         goto fail;
