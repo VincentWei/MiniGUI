@@ -270,8 +270,6 @@ void GetCaretBitmaps (PCARETINFO pCaretInfo)
         BYTE* bitmap = NULL;
         gal_pixel pix_normal, pix_bitmap, pix_xored, bits_alpha;
 
-        _DBG_PRINTF("restore alpha component for amask != 0\n");
-
         for (y = 0; y < pCaretInfo->caret_bmp.bmHeight; y++) {
             normal = pCaretInfo->pNormal + pCaretInfo->caret_bmp.bmPitch * y;
             xored  = pCaretInfo->pXored  + pCaretInfo->caret_bmp.bmPitch * y;
