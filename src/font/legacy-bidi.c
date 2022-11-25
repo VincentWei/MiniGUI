@@ -703,21 +703,20 @@ void __mg_legacy_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
     print_hexstr(achars, len, TRUE);
 }
 
-#if 0
 static void bidi_map_reverse (void* context, int len, int pos)
 {
-    GLYPHMAPINFO* str = (GLYPHMAPINFO*)context + pos;
+    ACHARMAPINFO* str = (ACHARMAPINFO*)context + pos;
     int i;
     for (i = 0; i < len / 2; i++)
     {
-        GLYPHMAPINFO tmp = str[i];
+        ACHARMAPINFO tmp = str[i];
         str[i] = str[len - 1 - i];
         str[len - 1 - i] = tmp;
     }
 }
 
 Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
-        Achar32* achars, int len, GLYPHMAPINFO* map, int pel)
+        Achar32* achars, int len, int pel, ACHARMAPINFO* map)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
@@ -725,6 +724,7 @@ Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
     int i;
     int run_pos;
     int run_len;
+    REORDER_CONTEXT rc;
 
     print_hexstr(achars, len, FALSE);
 
@@ -741,8 +741,10 @@ Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
         }
     }
 
-    bidi_reorder_cb(map, len, &type_rl_list, max_level,
-            bidi_map_reverse);
+    rc.achars = NULL;
+    rc.extra = map;
+    rc.cb = bidi_map_reverse;
+    bidi_reorder(&rc, len, &type_rl_list, max_level);
 
     /* free typerun list.*/
     free_typerun_list(type_rl_list);
@@ -752,18 +754,23 @@ Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
     return achars;
 }
 
+#if 0
 Achar32* __mg_legacy_bidi_index_reorder (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int* index_map, int pel)
 {
     BYTE max_level = 1;
     TYPERUN *type_rl_list = NULL;
+    REORDER_CONTEXT rc;
 
     print_hexstr(achars, len, FALSE);
 
     /* W1~W7, N1~N2, I1~I2, Get the Embedding Level. */
     bidi_resolve_string (charset_ops, achars, len, pel, &type_rl_list, &max_level);
 
-    bidi_reorder_cb(index_map, len, &type_rl_list, max_level,
+    rc.achars = achars;
+    rc.extra = extra;
+    rc.cb = cb_reverse_extra;
+    bidi_reorder(index_map, len, &type_rl_list, max_level,
             bidi_string_reverse);
 
     /* free typerun list.*/
