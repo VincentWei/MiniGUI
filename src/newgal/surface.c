@@ -613,7 +613,7 @@ int GAL_UpperBlit (GAL_Surface *src, GAL_Rect *srcrect,
     }
 
     if (w <= 0 || h <= 0) {
-        _WRN_PRINTF("destrect clipped\n");
+        _DBG_PRINTF("destrect clipped\n");
         goto done;
     }
 
