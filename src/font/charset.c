@@ -49,6 +49,8 @@
 ** Create date: 2000/06/13
 */
 
+#undef NDEBUG
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -969,7 +971,6 @@ static const unsigned char* iso8859_8_get_next_word (const unsigned char* mstr,
 }
 
 static BidiType __mg_iso8859_8_bidi_char_type_map[] = {
-#if 0
     /*0x00~0x0f*/
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
@@ -1017,7 +1018,6 @@ static BidiType __mg_iso8859_8_bidi_char_type_map[] = {
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
-#endif
 
     /*0x80~0x8f*/
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
@@ -1072,10 +1072,9 @@ static BidiType __mg_iso8859_8_bidi_char_type_map[] = {
 static BidiType iso8859_8_bidi_char_type (Achar32 chv)
 {
     chv = REAL_ACHAR(chv);
-    if (chv > 0x7F)
-        return (BidiType)__mg_iso8859_8_bidi_char_type_map[chv - 0x80];
-    else
-        return (BidiType)__mg_iso8859_1_bidi_char_type_map[chv];
+    assert(chv < TABLESIZE(__mg_iso8859_8_bidi_char_type_map));
+
+    return (BidiType)__mg_iso8859_8_bidi_char_type_map[chv];
 }
 
 static const BIDICHAR_MIRROR_MAP __mg_iso8859_8_mirror_table [] =

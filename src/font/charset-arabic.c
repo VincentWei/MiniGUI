@@ -461,9 +461,8 @@ static int iso8859_6_len_first_char (const unsigned char* mstr, int len)
         return 2;
     else if (ignore == 2)
         return 3;
-    else
-        return 1;
 
+    return 1;
 }
 
 #define ISARABIC_LIG_HALF(s) ((s == 0xa5) || (s == 0xa6))
@@ -472,6 +471,7 @@ static unsigned int iso8859_6_char_type (Achar32 chv)
 {
     unsigned int ch_type = ACHAR_BASIC_UNKNOWN;
 
+    chv = REAL_ACHAR(chv);
     if (is_arabic_char_vowel (chv)) {  /* is vowel */
         ch_type = ACHAR_BASIC_VOWEL;
     }
@@ -483,7 +483,6 @@ static unsigned int iso8859_6_char_type (Achar32 chv)
 }
 
 static BidiType __mg_iso8859_6_bidi_char_type_map[] = {
-#if 0
     /*0x00~0x0f*/
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
     BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,  BIDI_TYPE_BN,
@@ -531,7 +530,6 @@ static BidiType __mg_iso8859_6_bidi_char_type_map[] = {
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_BN,
-#endif
 
     /*0x80~0x8f*/
     BIDI_TYPE_ON,  BIDI_TYPE_AL,  BIDI_TYPE_AL,  BIDI_TYPE_AL,
@@ -606,10 +604,9 @@ static BidiType __mg_iso8859_6_bidi_char_type_map[] = {
 static BidiType iso8859_6_bidi_char_type (Achar32 chv)
 {
     chv = REAL_ACHAR(chv);
-    if (chv > 0x7F)
-        return (BidiType)__mg_iso8859_6_bidi_char_type_map[chv - 0x80];
-    else
-        return (BidiType)__mg_iso8859_1_bidi_char_type_map[chv];
+    assert(chv < TABLESIZE(__mg_iso8859_6_bidi_char_type_map));
+
+    return (BidiType)__mg_iso8859_6_bidi_char_type_map[chv];
 }
 
 static int get_table_index(Uint8 c)
@@ -796,7 +793,7 @@ static const unsigned char* iso8859_6_get_next_word (const unsigned char* mstr,
 static Achar32 iso8859_6_get_shaped_char_value (const unsigned char* cur_mchar,
         int cur_len, int shape_type)
 {
-    Achar32 chv = -1;
+    Achar32 chv = INV_ACHAR_VALUE;
     int ignore;
     int index;
 
@@ -811,15 +808,14 @@ static Achar32 iso8859_6_get_shaped_char_value (const unsigned char* cur_mchar,
         }
     }
 
-    if (chv == -1 || chv == 0) {
+    if (chv == INV_ACHAR_VALUE || chv == 0) {
         if (ISARABIC_VOWEL(*cur_mchar)){
             chv = fontset_68x_get_vowel_char(*cur_mchar);
         }
 
-        if (chv == 0 || chv == -1) {
+        if (chv == 0 || chv == INV_ACHAR_VALUE) {
             index = get_table_index(*cur_mchar);
-            if (index >=0)
-            {
+            if (index >=0 ) {
                 switch (shape_type) {
                     case ACHAR_ISOLATED:
                         chv = shape_info[index].isolated;
@@ -841,7 +837,7 @@ static Achar32 iso8859_6_get_shaped_char_value (const unsigned char* cur_mchar,
     }
 
     if (chv == 0)
-        chv =-1;
+        chv = INV_ACHAR_VALUE;
 
     return chv;
 }
@@ -862,6 +858,7 @@ static const BIDICHAR_MIRROR_MAP __mg_iso8859_68x_mirror_table [] =
 
 static BOOL iso8859_6_bidi_mirror_char (Achar32 chv, Achar32* mirrored)
 {
+    chv = REAL_ACHAR(chv);
     return get_mirror_char (__mg_iso8859_68x_mirror_table,
             TABLESIZE (__mg_iso8859_68x_mirror_table), chv, mirrored);
 }
