@@ -1070,6 +1070,7 @@ static int ascii_bidi_type[] = {
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_ON,
     BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,  BIDI_TYPE_ON,
+
     /*0x60~0x6f*/
     BIDI_TYPE_ON,  BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
     BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR, BIDI_TYPE_LTR,
@@ -1086,20 +1087,22 @@ static int ascii_bidi_type[] = {
 static int inline get_char_bidi_type (LOGFONT* logfont, Achar32 chv)
 {
     DEVFONT* devfont;
+    int bidi_type = BIDI_TYPE_LTR;
 
     if (IS_MBCHV(chv)) {
         devfont = logfont->devfonts[1];
 
         if (devfont->charset_ops->bidi_char_type) {
-            return devfont->charset_ops->bidi_char_type (chv);
-        }
-        else {
-            return BIDI_TYPE_LTR;
+            bidi_type = devfont->charset_ops->bidi_char_type (chv);
         }
     }
     else {
-        return ascii_bidi_type[chv];
+        assert(chv < 0x80);
+        bidi_type = ascii_bidi_type[chv];
     }
+
+    _DBG_PRINTF("chv: %X: bidi_type: %x\n", chv, bidi_type);
+    return bidi_type;
 
 }
 static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_char_type,
@@ -1109,53 +1112,60 @@ static int get_text_rl_type (PLOGFONT logfont, char* newtext, int l_char_type,
     Achar32 chv;
     chv = GetACharValue (logfont, newtext, strlen(newtext), NULL, 0);
 
-    if (chv == INV_ACHAR_VALUE)
-        return -1;
+    int type = CHAR_TYPE_UNKKOWN;
+
+    if (chv == INV_ACHAR_VALUE) {
+        goto done;
+    }
 
     bidi_type = get_char_bidi_type (logfont, chv);
 
-    if (BIDI_IS_STRONG(bidi_type))
-    {
-        if (BIDI_IS_RTL(bidi_type))
-        {
-            return CHAR_TYPE_RTL;
+    if (BIDI_IS_STRONG(bidi_type)) {
+        if (BIDI_IS_RTL(bidi_type)) {
+            type = CHAR_TYPE_RTL;
+            goto done;
         }
-        else
-        {
-            return CHAR_TYPE_LTR;
+        else {
+            type = CHAR_TYPE_LTR;
+            goto done;
         }
     }
 
-    if (BIDI_IS_NUMBER(bidi_type))
-    {
-        return CHAR_TYPE_LTR;
+    if (BIDI_IS_NUMBER(bidi_type)) {
+        type = CHAR_TYPE_LTR;
+        goto done;
     }
 
-    if (l_char_type == r_char_type)
-    {
-        return l_char_type;
+    if (l_char_type == r_char_type) {
+        type = l_char_type;
+        goto done;
     }
     /* no left char */
-    else if (l_char_type == -1)
-    {
+    else if (l_char_type == CHAR_TYPE_UNKKOWN) {
         if (BIDI_IS_WEAK (bidi_type))
-            return r_char_type;
+            type = r_char_type;
         else
-            return line_type;
+            type = line_type;
+        goto done;
     }
     /* no right char */
-    else if (r_char_type == -1)
-    {
+    else if (r_char_type == CHAR_TYPE_UNKKOWN) {
         if (BIDI_IS_WEAK (bidi_type))
-            return l_char_type;
+            type = l_char_type;
         else
-            return line_type;
+            type = line_type;
+        goto done;
     }
-    else
-    {
-        return line_type;
+    else {
+        type = line_type;
     }
 
+    _DBG_PRINTF("l_char_type: %d, r_char_type: %d, line_type: %d, "
+            "type for %X: %d\n",
+            l_char_type, r_char_type, line_type, chv, type);
+
+done:
+    return type;
 }
 
 static int get_line_rl_type (ACHARMAPINFO* map, int len)
