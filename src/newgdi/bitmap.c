@@ -467,19 +467,16 @@ PDC __mg_begin_fill_bitmap (HDC hdc, int x, int y, int w, int h,
         info->line_alpha_buff = NULL;
     }
 
+    if(__mg_enter_drawing (pdc) < 0) {
+        goto fail;
+    }
+
     pdc->step = 1;
     pdc->cur_ban = NULL;
     pdc->cur_pixel = pdc->brushcolor;
     pdc->skip_pixel = bmp->bmColorKey;
-    fill_info->old_bkmode = pdc->bkmode;
     if (bmp->bmType & BMP_TYPE_COLORKEY) {
         pdc->bkmode = BM_TRANSPARENT;
-    }
-    else
-        pdc->bkmode = BM_OPAQUE;
-
-    if(__mg_enter_drawing (pdc) < 0) {
-        goto fail;
     }
 
     fill_info->dst_rect = rect;
@@ -501,8 +498,6 @@ fail:
 
 void __mg_end_fill_bitmap (PDC pdc, const BITMAP* bmp, FILLINFO *fill_info)
 {
-    pdc->bkmode = fill_info->old_bkmode;
-
     __mg_leave_drawing (pdc);
 
     if (fill_info->decoded_buff)
@@ -968,7 +963,6 @@ BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc, int x, int y, int w, int h,
 {
     PDC pdc;
     GAL_Rect rect;
-    int old_bkmode;
     struct _SCALER_INFO_FILLBMPPART info;
 
     if (bmp->bmWidth == 0 || bmp->bmHeight == 0 || bmp->bmBits == NULL)
@@ -1021,16 +1015,15 @@ BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc, int x, int y, int w, int h,
         info.line_alpha_buff = NULL;
     }
 
+    ENTER_DRAWING (pdc);
+
     pdc->step = 1;
     pdc->cur_ban = NULL;
     pdc->cur_pixel = pdc->brushcolor;
-    pdc->skip_pixel = bmp->bmColorKey;
-    old_bkmode = pdc->bkmode;
     if (bmp->bmType & BMP_TYPE_COLORKEY) {
         pdc->bkmode = BM_TRANSPARENT;
+        pdc->skip_pixel = bmp->bmColorKey;
     }
-
-    ENTER_DRAWING (pdc);
 
     if (bw != bmp->bmWidth || bh != bmp->bmHeight) {
 
@@ -1050,8 +1043,6 @@ BOOL GUIAPI FillBoxWithBitmapPart (HDC hdc, int x, int y, int w, int h,
         }
         _dc_fillbox_bmp_clip (pdc, &rect, &part);
     }
-
-    pdc->bkmode = old_bkmode;
 
     LEAVE_DRAWING (pdc);
 

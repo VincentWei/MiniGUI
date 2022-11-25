@@ -120,7 +120,7 @@ static int make_alpha_pixel_format (PDC pdc)
 
 static void make_gray_pixels (PDC pdc)
 {
-    if (pdc->bkmode == BM_TRANSPARENT
+    if (pdc->bkmode_set == BM_TRANSPARENT
                     && !make_alpha_pixel_format (pdc)) {
         int i;
         Uint8 r, g, b, a;

@@ -691,6 +691,11 @@ int __mg_enter_drawing (PDC pdc)
     if (!dc_IsMemDC (pdc))
         kernel_ShowCursorForGDI (FALSE, pdc);
 
+    /* Since 5.0.12, to fix issue #107.
+       Always use the background mode set by user as the initial value of
+       the effective background mode, then override pdc->bkmode
+       after entering drawing if need. */
+    pdc->bkmode = pdc->bkmode_set;
     return 0;
 
 fail:
@@ -1913,7 +1918,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
     memset (pdc->filter_pixels, 0, sizeof (pdc->filter_pixels));
 
     pdc->bkcolor = GAL_MapRGB (pdc->surface->format, 0xFF, 0xFF, 0xFF);
-    pdc->bkmode = 0;
+    pdc->bkmode_set = 0;    /* Since 5.0.12 */
 
     pdc->pencolor = GAL_MapRGB (pdc->surface->format, 0x00, 0x00, 0x00);
     pdc->brushcolor = GAL_MapRGB (pdc->surface->format, 0xFF, 0xFF, 0xFF);
@@ -2067,12 +2072,18 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
  * and copies the DC attributes from the refrence DC. */
 static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref)
 {
+    unsigned nr_bytes = pdc->__last_attr - pdc->__first_attr;
+
     memset (pdc->gray_pixels, 0, sizeof (pdc->gray_pixels));
     memset (pdc->filter_pixels, 0, sizeof (pdc->filter_pixels));
 
+#if 1
+    memcpy (pdc->__first_attr, pdc_ref->__first_attr, nr_bytes);
+#else
     /* copy attributes from reference DC
      * gal_pixel bkcolor, pencolor, brushcolor, textcolor;
-     * int bkmode, tabstop, cExtra, wExtra, alExtra, blExtra, mapmode, ta_flags, bidi_flags;
+     * int bkmode, bkmode_set, tabstop, cExtra, wExtra, alExtra, blExtra,
+     * mapmode, ta_flags, bidi_flags;
      */
     memcpy (&pdc->bkcolor, &pdc_ref->bkcolor,
                 sizeof (gal_pixel)*4 + sizeof (int)*9);
@@ -2080,6 +2091,8 @@ static void dc_InitMemDCFrom (PDC pdc, const PDC pdc_ref)
     memcpy (&pdc->pen_type, &pdc_ref->pen_type,
                 (sizeof(int)*7) + sizeof(POINT) + (sizeof (void*)*3));
 #endif
+#endif
+
     pdc->pLogFont = pdc_ref->pLogFont;
 
     /* reset view point info. */
@@ -2127,7 +2140,7 @@ static void dc_InitScreenDC (PDC pdc, GAL_Surface *surface)
     pdc->surface = surface;
 
     pdc->bkcolor = PIXEL_lightwhite;
-    pdc->bkmode = 0;
+    pdc->bkmode_set = 0;
 
     pdc->brushcolor = PIXEL_lightwhite;
 
@@ -3784,7 +3797,8 @@ HWND GUIAPI WindowFromDC (HDC hdc)
 typedef struct _DCSTATE
 {
     GAL_Color bkcolor, pencolor, brushcolor, textcolor;
-    /* bkmode, tabstop, cExtra, wExtra, alExtra, blExtra, mapmode, ta_flags, bidi_flags */
+    /* bkmode_set, tabstop, cExtra, wExtra, alExtra, blExtra,
+       mapmode, ta_flags, bidi_flags */
     char attrs_g1 [sizeof(int)*9];
 
 #ifdef _MGHAVE_ADV_2DAPI
@@ -3872,7 +3886,7 @@ int GUIAPI SaveDC (HDC hdc)
                 &dc_state->textcolor.r, &dc_state->textcolor.g,
                 &dc_state->textcolor.b, &dc_state->textcolor.a);
 
-    memcpy (dc_state->attrs_g1, &pdc->bkmode, sizeof (dc_state->attrs_g1));
+    memcpy (dc_state->attrs_g1, &pdc->bkmode_set, sizeof (dc_state->attrs_g1));
 #ifdef _MGHAVE_ADV_2DAPI
     memcpy (dc_state->attrs_adv, &pdc->pen_type, sizeof (dc_state->attrs_adv));
 #endif
@@ -3976,7 +3990,7 @@ BOOL GUIAPI RestoreDC (HDC hdc, int saved_dc)
                 dc_state->textcolor.r, dc_state->textcolor.g,
                 dc_state->textcolor.b, dc_state->textcolor.a);
 
-    memcpy (&pdc->bkmode, dc_state->attrs_g1, sizeof (dc_state->attrs_g1));
+    memcpy (&pdc->bkmode_set, dc_state->attrs_g1, sizeof (dc_state->attrs_g1));
 #ifdef _MGHAVE_ADV_2DAPI
     memcpy (&pdc->pen_type, dc_state->attrs_adv, sizeof (dc_state->attrs_adv));
 #endif

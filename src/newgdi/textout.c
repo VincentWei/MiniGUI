@@ -122,14 +122,13 @@ static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, unsigned int char
 {
     DRAW_GLYPHS_CTXT* ctxt = (DRAW_GLYPHS_CTXT*)context;
     int adv_x, adv_y;
-    int bkmode;
 
     if (check_zero_width(char_type)) {
         adv_x = adv_y = 0;
     }
     else if (check_vowel(char_type)) {
-        bkmode = GetBkMode (ctxt->hdc);
-        //SetBkMode (ctxt->hdc, BM_TRANSPARENT);
+        int bkmode = GetBkMode (ctxt->hdc);
+        SetBkMode (ctxt->hdc, BM_TRANSPARENT);
         DrawGlyph (ctxt->hdc, ctxt->x, ctxt->y, glyph_value, &adv_x, &adv_y);
         SetBkMode (ctxt->hdc, bkmode);
         adv_x = 0;
@@ -160,22 +159,19 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value,
 {
     TEXTOUT_CTXT* ctxt = (TEXTOUT_CTXT*)context;
     int adv_x, adv_y;
-    int bkmode;
 
     if (check_zero_width (char_type)) {
         adv_x = adv_y = 0;
     }
     else if (check_vowel(char_type)) {
         if (!ctxt->only_extent) {
-            bkmode = ctxt->pdc->bkmode;
-            //ctxt->pdc->bkmode = BM_TRANSPARENT;
+            int bkmode = ctxt->pdc->bkmode;
+            ctxt->pdc->bkmode = BM_TRANSPARENT;
             _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
             ctxt->pdc->bkmode = bkmode;
-
         }
-        //adv_x = adv_y = 0;
         adv_x = 0;
     }
     else {
@@ -324,14 +320,13 @@ static BOOL cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int
     TEXTOUTOMITTED_CTXT* ctxt = (TEXTOUTOMITTED_CTXT*)context;
     int adv_x, adv_y;
     int glyph_advance = 0;
-    //BBOX bbox;
-    int bkmode = ctxt->pdc->bkmode;
 
     if (check_zero_width(char_type)) {
         adv_x = adv_y = 0;
     }
     else if (check_vowel(char_type)) {
-        //ctxt->pdc->bkmode = BM_TRANSPARENT;
+        int bkmode = ctxt->pdc->bkmode;
+        ctxt->pdc->bkmode = BM_TRANSPARENT;
         _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                 (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                 ctxt->x, ctxt->y, &adv_x, &adv_y);

@@ -117,7 +117,6 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
     DRAWTEXTEX2_CTXT* ctxt = (DRAWTEXTEX2_CTXT*)context;
     int adv_x = 0, adv_y = 0;
     BBOX bbox;
-    int bkmode;
 
     switch (char_type & ACHARTYPE_BASIC_MASK) {
         case ACHAR_BASIC_ZEROWIDTH:
@@ -145,12 +144,11 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
 
         case ACHAR_BASIC_VOWEL:
             if (!ctxt->only_extent) {
-                bkmode = ctxt->pdc->bkmode;
-                //ctxt->pdc->bkmode = BM_TRANSPARENT;
+                // int bkmode = ctxt->pdc->bkmode;
                 _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                         (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                         ctxt->x, ctxt->y, &adv_x, &adv_y);
-                ctxt->pdc->bkmode = bkmode;
+                // ctxt->pdc->bkmode = bkmode;
                 adv_x = adv_y = 0;
             }
             break;

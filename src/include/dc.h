@@ -167,6 +167,8 @@ struct tagDC
     /* surface of this DC */
     GAL_Surface* surface;
 
+    char __first_attr[0];   // just a zero-length field for the first attribute
+
     /* background color */
     gal_pixel bkcolor;
 
@@ -179,7 +181,7 @@ struct tagDC
     /* text color */
     gal_pixel textcolor;
 
-    int bkmode;
+    int bkmode_set; /* the background mode set by user (5.0.12, Issue #107) */
 
     int tabstop;
     int cExtra;     /* Character extra */
@@ -212,6 +214,8 @@ struct tagDC
     const unsigned char* dash_list;
     size_t dash_list_len;
 #endif
+
+    char __last_attr[0];   // just a zero-length field for the last attribute
 
     PLOGFONT pLogFont;
 
@@ -247,6 +251,7 @@ struct tagDC
     gal_pixel   skip_pixel;
     gal_pixel   cur_pixel;
     int         step;
+    int         bkmode;     /* the effective background mode */
     /* ====================================================================== */
 
     CLIPRECT* cur_ban;

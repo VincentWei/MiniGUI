@@ -1185,7 +1185,7 @@ static void cb_direct_paint_mybmp_sl (void* context, int stepx,
 
 int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal)
 {
-    int i = 0,right,bottom,w,h,oldbkmode,stepy,stepx;
+    int i = 0,right,bottom,w,h,stepy,stepx;
     RECT rc_tmp;
     GAL_Rect dst_rect;
     PCLIPRECT cliprect;
@@ -1314,20 +1314,17 @@ int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal
     w = RECTW (pdc->rc_output); h = RECTH (pdc->rc_output);
     dst_rect.x = x; dst_rect.y = y; dst_rect.w = w; dst_rect.h = h;
 
-    pdc->step = 1;
-    pdc->cur_ban = NULL;
-    pdc->cur_pixel = pdc->brushcolor;
-    pdc->skip_pixel = colorKey;
-    //fill_info->old_bkmode = pdc->bkmode;
-    oldbkmode =pdc->bkmode;
-    if (mybmp->flags & MYBMP_TRANSPARENT) {
-        pdc->bkmode = BM_TRANSPARENT;
-    }
-
     if(__mg_enter_drawing (pdc) < 0) {
         goto fail;
     }
-    //bits = mybmp->bits;
+
+    pdc->step = 1;
+    pdc->cur_ban = NULL;
+    pdc->cur_pixel = pdc->brushcolor;
+    if (mybmp->flags & MYBMP_TRANSPARENT) {
+        pdc->bkmode = BM_TRANSPARENT;
+        pdc->skip_pixel = colorKey;
+    }
 
     info.hdc = hdc;
     info.pdc = pdc;
@@ -1350,7 +1347,6 @@ int GUIAPI FillBoxWithMyBitmap (HDC hdc, int x, int y, MYBITMAP* mybmp, RGB* pal
         cliprect = cliprect->next;
     }
 
-    pdc->bkmode =oldbkmode;
     __mg_leave_drawing (pdc);
     pdc->rc_output = rc_tmp;
     UNLOCK_GCRINFO (pdc);

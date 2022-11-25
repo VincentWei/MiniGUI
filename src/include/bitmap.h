@@ -70,7 +70,6 @@ struct _SCALER_INFO_FILLBMP
 typedef struct {
     struct _SCALER_INFO_FILLBMP scaler_info;
     GAL_Rect dst_rect;
-    int old_bkmode;
 
     BYTE* decoded_buff;
     BYTE* decoded_alpha_buff;
