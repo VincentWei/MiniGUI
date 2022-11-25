@@ -40,6 +40,7 @@ In this version, we made some enhancements
 * BUGFIXING:
    - Fix a bug reported in https://github.com/VincentWei/minigui/issues/94
    - Fix a bug reported in https://github.com/VincentWei/minigui/issues/96
+   - Fix a bug reported in https://github.com/VincentWei/minigui/issues/106
 * OPTIMIZATIONS:
    - optimize the refresh of scrolled.
 * TUNING:
