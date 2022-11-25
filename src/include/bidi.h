@@ -112,11 +112,11 @@ void __mg_legacy_bidi_get_embeddlevels (const CHARSETOPS* charset_ops,
 Uint32 __mg_legacy_bidi_str_base_dir (const CHARSETOPS* charset_ops,
         Achar32* achars, int len);
 
+Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
+        Achar32* achars, int len, int pel, ACHARMAPINFO* map);
+
 #if 0
 // Deprecated
-Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
-        Achar32* achars, int len, GLYPHMAPINFO* map, int pel);
-
 Achar32* __mg_legacy_bidi_index_reorder (const CHARSETOPS* charset_ops,
         Achar32* achars, int len, int* index_map, int pel);
 #endif

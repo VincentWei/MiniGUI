@@ -1429,6 +1429,7 @@ void GUIAPI BIDIGetTextRangesLog2Vis(LOGFONT* log_font,
     free(l_achars);
 }
 
+#if 0
 static void bidi_reverse_map (void* context, int len, int pos)
 {
     ACHARMAPINFO* str = (ACHARMAPINFO*)context + pos;
@@ -1440,6 +1441,7 @@ static void bidi_reverse_map (void* context, int len, int pos)
         str[len - 1 - i] = tmp;
     }
 }
+#endif
 
 int GUIAPI BIDIGetTextVisualAChars(LOGFONT* log_font,
         const char*    text, int text_len,
@@ -1457,9 +1459,8 @@ int GUIAPI BIDIGetTextVisualAChars(LOGFONT* log_font,
 
     if (nr_achars > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_char_type) {
-        __mg_legacy_bidi_achars_reorder (mbc_devfont->charset_ops,
-                *achs, nr_achars, -1,
-                *achs_map, bidi_reverse_map);
+        __mg_legacy_bidi_map_reorder (mbc_devfont->charset_ops,
+                *achs, nr_achars, -1, *achs_map);
     }
 
     return nr_achars;
@@ -1472,9 +1473,8 @@ Achar32* GUIAPI BIDILogAChars2VisAChars(LOGFONT* log_font,
 
     if (nr_achars > 0 && mbc_devfont
                 && mbc_devfont->charset_ops->bidi_char_type) {
-        __mg_legacy_bidi_achars_reorder (mbc_devfont->charset_ops,
-                achs, nr_achars, -1,
-                achs_map, bidi_reverse_map);
+        __mg_legacy_bidi_map_reorder (mbc_devfont->charset_ops,
+                achs, nr_achars, -1, achs_map);
 
         return achs;
     }
