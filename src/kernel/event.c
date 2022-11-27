@@ -89,8 +89,9 @@
 
 struct timeval __mg_event_timeout;
 
-static DWORD timeoutusec;
-static DWORD repeatusec;
+DWORD __mg_timeout_usec;
+DWORD __mg_repeat_usec;
+
 static DWORD dblclicktime;
 
 #ifndef _MGRM_THREADS
@@ -121,8 +122,8 @@ static void GetTimeout (void)
     char szValue [11];
     int mytimeoutusec, myrepeatusec;
 
-    timeoutusec = DEF_USEC_TIMEOUT;
-    repeatusec = DEF_REPEAT_TIME;
+    __mg_timeout_usec = DEF_USEC_TIMEOUT;
+    __mg_repeat_usec = DEF_REPEAT_TIME;
 
     if (GetMgEtcValue (EVENTPARA, EVENTPARA_REPEATUSEC, szValue, 10) < 0)
         return;
@@ -133,8 +134,8 @@ static void GetTimeout (void)
     mytimeoutusec = atoi(szValue);
 
     if (myrepeatusec >= 0 && mytimeoutusec > 0) {
-        timeoutusec = mytimeoutusec;
-        repeatusec = myrepeatusec;
+        __mg_timeout_usec = mytimeoutusec;
+        __mg_repeat_usec = myrepeatusec;
     }
 }
 
@@ -208,7 +209,7 @@ static void ResetKeyEvent(void)
     IAL_SetLeds (slock | (numlock << 1) | (capslock << 2));
 
     __mg_event_timeout.tv_sec = 0;
-    __mg_event_timeout.tv_usec = timeoutusec;
+    __mg_event_timeout.tv_usec = __mg_timeout_usec;
 
 #ifndef _MGRM_THREADS
 #ifdef _MGRM_PROCESSES
@@ -216,8 +217,8 @@ static void ResetKeyEvent(void)
     SHAREDRES_SHIFTSTATUS = status;
 #endif
 
-    timeout_threshold = timeoutusec / 10000;
-    repeat_threshold = repeatusec / 10000;
+    timeout_threshold = __mg_timeout_usec / 10000;
+    repeat_threshold = __mg_repeat_usec / 10000;
     timeout_count = timeout_threshold;
 #endif
 }
@@ -631,7 +632,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
 
             // set repeat time
             __mg_event_timeout.tv_sec = 0;
-            __mg_event_timeout.tv_usec = repeatusec;
+            __mg_event_timeout.tv_usec = __mg_repeat_usec;
 
             // repeat last event
             if (old_lwe.type == LWETYPE_KEY
@@ -652,7 +653,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
                         old_lwe.data.me.event == ME_MIDDLEDOWN))) {
                 // reset delay time
                 __mg_event_timeout.tv_sec = 0;
-                __mg_event_timeout.tv_usec = timeoutusec;
+                __mg_event_timeout.tv_usec = __mg_timeout_usec;
             }
 
             lwe->type = LWETYPE_TIMEOUT;
@@ -880,7 +881,7 @@ BOOL kernel_GetLWEvent (int event, PLWEVENT lwe)
         memcpy (oldkeystate, keystate, nr_keys);
         memcpy (&old_lwe, lwe, sizeof (LWEVENT));
         __mg_event_timeout.tv_sec = 0;
-        __mg_event_timeout.tv_usec = timeoutusec;
+        __mg_event_timeout.tv_usec = __mg_timeout_usec;
         return 1;
     }
 
@@ -899,7 +900,7 @@ mouseret:
     me->status = status;
     memcpy (&old_lwe, lwe, sizeof (LWEVENT));
     __mg_event_timeout.tv_sec = 0;
-    __mg_event_timeout.tv_usec = timeoutusec;
+    __mg_event_timeout.tv_usec = __mg_timeout_usec;
     return 1;
 }
 #endif

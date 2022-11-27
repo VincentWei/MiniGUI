@@ -127,6 +127,9 @@ typedef LWEVENT* PLWEVENT;
 extern "C" {
 #endif  /* __cplusplus */
 
+extern DWORD __mg_timeout_usec;
+extern DWORD __mg_repeat_usec;
+
 // The entrance of low level event handling thread
 BOOL mg_InitLWEvent (void);
 void mg_TerminateLWEvent (void);
