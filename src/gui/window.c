@@ -93,9 +93,8 @@ void GUIAPI SetAutoRepeatMessage (HWND hWnd, UINT uMsg,
 {
     MSG msg;
 
-    if (hWnd) {
-        if (!MG_IS_NORMAL_WINDOW(hWnd))
-            return;
+    if (hWnd && !MG_IS_NORMAL_WINDOW(hWnd)) {
+        return;
     }
 
     msg.hwnd = hWnd;
