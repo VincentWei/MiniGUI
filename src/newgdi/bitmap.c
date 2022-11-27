@@ -1554,8 +1554,6 @@ BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
 #else
     if (sx < 0) sx = 0;
     if (sy < 0) sy = 0;
-    if (dx < 0) dx = 0;
-    if (dy < 0) dy = 0;
 
     if (sx >= RECTW(psdc->DevRC))
         goto error_ret;
