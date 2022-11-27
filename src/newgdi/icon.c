@@ -625,12 +625,18 @@ void GUIAPI DrawIcon (HDC hdc, int x, int y, int w, int h, HICON hicon)
     HDC icon_dc;
     PICON picon = (PICON)hicon;
 
-    icon_dc = __mg_get_common_rgba8888_dc();
-    if (icon_dc == HDC_INVALID)
-        return;
+    MYBITMAP icon_bmp = { };
+    icon_bmp.flags = MYBMP_TYPE_RGBA | MYBMP_ALPHA;
+    icon_bmp.frames = 1;
+    icon_bmp.depth = 32;
+    icon_bmp.w = picon->width;
+    icon_bmp.h = picon->height;
+    icon_bmp.pitch = picon->pitch;
+    icon_bmp.size =picon->pitch * picon->height;
+    icon_bmp.bits = picon->pixels;
 
-    if (!__mg_reset_common_rgba8888_dc (picon->width, picon->height,
-                picon->pitch, picon->pixels))
+    icon_dc = CreateMemDCFromMyBitmap(&icon_bmp, NULL);
+    if (icon_dc == HDC_INVALID)
         return;
 
     if (w <= 0) w = picon->width;
@@ -645,5 +651,7 @@ void GUIAPI DrawIcon (HDC hdc, int x, int y, int w, int h, HICON hicon)
         BitBlt (icon_dc, 0, 0, picon->width, picon->height,
                 hdc, x, y, 0);
     }
+
+    DeleteMemDC(icon_dc);
 }
 
