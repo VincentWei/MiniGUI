@@ -559,7 +559,6 @@ static void _glyph_draw_pixels (PDC pdc, int x, int y, gal_pixel pixel, int w)
 
         pdc->cur_pixel = old_color;
     }
-    pdc->cur_pixel = old_color;
 }
 
 #include "../newgal/blit.h"
@@ -1151,8 +1150,7 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
                     rgba_cur.g, rgba_cur.b);
 
         if (pdc->cur_pixel != pixel) {
-            _glyph_draw_pixel (pdc,
-                    x+xpos, ypos, pdc->cur_pixel);
+            _glyph_draw_pixel (pdc, x+xpos, ypos, pdc->cur_pixel);
         }
     }
 
@@ -2691,15 +2689,14 @@ int _gdi_draw_null_glyph (PDC pdc, int advance, BOOL direction,
 
     if (WITHOUT_DRAWING (pdc)) goto end;
 
-    pdc->cur_pixel = pdc->bkcolor;
-    pdc->cur_ban = NULL;
-    pdc->step = 1;
-
-    if(!IntersectRect(&pdc->rc_output, &rc_back, &pdc->rc_output))
+    if (!IntersectRect(&pdc->rc_output, &rc_back, &pdc->rc_output))
         goto end;
 
     ENTER_DRAWING(pdc);
 
+    pdc->cur_pixel = pdc->bkcolor;
+    pdc->cur_ban = NULL;
+    pdc->step = 1;
     draw_back_area (pdc, area, &gal_rc, 0, 0, flag);
 
     LEAVE_DRAWING (pdc);
@@ -2968,7 +2965,7 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
         int* adv_x, int* adv_y)
 {
     int my_adv_x, my_adv_y;
-    int advance;
+    int advance, bkmode;
     PDC pdc;
 
     if (glyph_value == INV_GLYPH_VALUE)
@@ -2982,9 +2979,12 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
     /* convert to the start point on baseline. */
     _gdi_get_baseline_point (pdc, &x, &y);
 
+    bkmode = pdc->bkmode;
+    pdc->bkmode = pdc->bkmode_set;
     advance = _gdi_draw_one_glyph (pdc, glyph_value,
             (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
             x, y, &my_adv_x, &my_adv_y);
+    pdc->bkmode = bkmode;
 
     if (adv_x) *adv_x = my_adv_x;
     if (adv_y) *adv_y = my_adv_y;
@@ -2996,9 +2996,10 @@ int GUIAPI DrawGlyphStrings(HDC hdc, Glyph32* glyphs, int nr_glyphs,
         const POINT* pts)
 {
     int count = 0;
-    int i;
+    int i, bkmode;
     PDC pdc = dc_HDC2PDC(hdc);
 
+    bkmode = pdc->bkmode;
     for (i = 0; i < nr_glyphs; i++) {
         int x, y;
         int my_adv_x, my_adv_y;
@@ -3019,10 +3020,12 @@ int GUIAPI DrawGlyphStrings(HDC hdc, Glyph32* glyphs, int nr_glyphs,
         /* convert to the start point on baseline. */
         _gdi_get_baseline_point (pdc, &x, &y);
 
+        pdc->bkmode = pdc->bkmode_set;
         _gdi_draw_one_glyph (pdc, gv,
                 (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                 x, y, &my_adv_x, &my_adv_y);
     }
+    pdc->bkmode = bkmode;
 
     return count;
 }

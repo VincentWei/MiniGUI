@@ -175,9 +175,12 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
                     ctxt->x, ctxt->y, &adv_x, &adv_y, &bbox);
             }
             else {
+                int bkmode = ctxt->pdc->bkmode;
+                ctxt->pdc->bkmode = ctxt->pdc->bkmode_set;
                 ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
+                ctxt->pdc->bkmode = bkmode;
             }
             break;
     }
@@ -224,11 +227,14 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
             /* use some tabs to move current x. */
             if (ctxt->advance >= tab_pos) {
                 while (ctxt->advance >= tab_pos)
-                    tab_pos += (ctxt->nr_tab >= ctxt->nTabs) ? ctxt->tab_width : ctxt->pTabPos[ctxt->nr_tab++];
+                    tab_pos += (ctxt->nr_tab >= ctxt->nTabs) ?
+                        ctxt->tab_width : ctxt->pTabPos[ctxt->nr_tab++];
             }
             else {
-                tab_pos += (ctxt->nr_tab >= ctxt->nTabs) ? ctxt->tab_width : ctxt->pTabPos[ctxt->nr_tab++];
+                tab_pos += (ctxt->nr_tab >= ctxt->nTabs) ?
+                    ctxt->tab_width : ctxt->pTabPos[ctxt->nr_tab++];
             }
+
             _gdi_draw_null_glyph (ctxt->pdc, tab_pos - ctxt->advance,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
@@ -237,18 +243,26 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
             ctxt->nTabOrig = tab_pos;
             break;
 
-        case ACHAR_BASIC_VOWEL:
+        case ACHAR_BASIC_VOWEL: {
+            int bkmode = ctxt->pdc->bkmode;
+            ctxt->pdc->bkmode = BM_TRANSPARENT;
             _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
+            ctxt->pdc->bkmode = bkmode;
             adv_x = adv_y = 0;
             break;
+        }
 
-        default:
+        default: {
+            int bkmode = ctxt->pdc->bkmode;
+            ctxt->pdc->bkmode = ctxt->pdc->bkmode_set;
             ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
+            ctxt->pdc->bkmode = bkmode;
             break;
+        }
     }
 
     ctxt->x += adv_x;

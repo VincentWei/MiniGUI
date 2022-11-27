@@ -179,10 +179,14 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value,
             ctxt->advance += _gdi_get_glyph_advance (ctxt->pdc, glyph_value,
                 (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                 0, 0, &adv_x, &adv_y, NULL);
-        else
+        else {
+            int bkmode = ctxt->pdc->bkmode;
+            ctxt->pdc->bkmode = ctxt->pdc->bkmode_set;
             ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                 (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                 ctxt->x, ctxt->y, &adv_x, &adv_y);
+            ctxt->pdc->bkmode = bkmode;
+        }
     }
 
     ctxt->x += adv_x;
@@ -342,9 +346,12 @@ static BOOL cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int
         if((ctxt->advance + glyph_advance) > ctxt->max_extent)
             return FALSE;
 
+        int bkmode = ctxt->pdc->bkmode;
+        ctxt->pdc->bkmode = ctxt->pdc->bkmode_set;
         ctxt->advance += _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                 (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                 ctxt->x, ctxt->y, &adv_x, &adv_y);
+        ctxt->pdc->bkmode = bkmode;
     }
 
     ctxt->x += adv_x;
