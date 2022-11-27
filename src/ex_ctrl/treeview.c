@@ -93,14 +93,15 @@ BOOL RegisterTreeViewControl (void)
     const WINDOW_ELEMENT_RENDERER * rdr =
         GetDefaultWindowElementRenderer();
 
-
-    if (!(icon_fold = (HICON)RetrieveRes(gui_GetIconFile(rdr->name, SYSICON_FOLD, szValue)))) {
+    if (!(icon_fold = (HICON)RetrieveRes(gui_GetIconFile(rdr->name,
+                        SYSICON_FOLD, szValue)))) {
         if (!(icon_fold = LoadSystemIcon (SYSICON_FOLD, 0))) {
             return FALSE;
         }
     }
 
-    if (!(icon_unfold = (HICON)RetrieveRes(gui_GetIconFile(rdr->name, SYSICON_UNFOLD, szValue)))) {
+    if (!(icon_unfold = (HICON)RetrieveRes(gui_GetIconFile(rdr->name,
+                        SYSICON_UNFOLD, szValue)))) {
         if (!(icon_unfold = LoadSystemIcon (SYSICON_UNFOLD, 0))) {
             DestroyIcon (icon_fold);
             icon_fold = 0;
@@ -180,6 +181,7 @@ static BOOL tvInitTVData (HWND hwnd, PTVDATA pData, DWORD dwStyle, PTVITEMINFO r
             tvRoot->hIconFold = root_ii->hIconFold;
         else
             tvRoot->hIconFold = ICON_FOLD;
+
         if (root_ii && root_ii->hIconUnfold)
             tvRoot->hIconUnfold = root_ii->hIconUnfold;
         else
@@ -632,22 +634,13 @@ static void tvDrawItem (HWND hWnd, HDC hdc, PTVDATA pData, int centerX, int cent
     centerX += (h>>1) + TV_BOXGAP;
 
     if (pData->dwStyle & TVS_WITHICON) {
-        if (!(pData->dwStyle & TVS_ICONFORSELECT)
-                && (!p->child || (p->dwFlags & TVIF_FOLD))) {
+        if (p->child != NULL && (p->dwFlags & TVIF_FOLD)) {
             if ((p->hIconFold)) {
-                DrawIcon (hdc, centerX, centerY - (h>>1),
-                        h, h, p->hIconFold);
+                DrawIcon (hdc, centerX,  centerY - (h>>1), h, h, p->hIconFold);
             }
-        } else if ((pData->dwStyle & TVS_ICONFORSELECT) && p->dwFlags & TVIF_SELECTED) {
-            if ((p->hIconFold)) {
-                DrawIcon (hdc, centerX, centerY - (h>>1),
-                        h, h, p->hIconFold);
-            }
-        } else
-            if ((p->hIconUnfold)) {
-                DrawIcon (hdc, centerX, centerY - (h>>1),
-                        h, h, p->hIconUnfold);
-            }
+        } else if ((p->hIconUnfold)) {
+            DrawIcon (hdc, centerX, centerY - (h>>1), h, h, p->hIconUnfold);
+        }
         centerX += h + TV_ICONGAP;
     }
 
