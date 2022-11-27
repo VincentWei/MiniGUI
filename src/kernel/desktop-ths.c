@@ -72,6 +72,7 @@
 #include "dc.h"
 #include "misc.h"
 #include "devfont.h"
+#include "event.h"
 
 /******************************* global data *********************************/
 /* pointer to desktop message queue */

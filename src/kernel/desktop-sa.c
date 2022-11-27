@@ -74,6 +74,7 @@
 #include "dc.h"
 #include "misc.h"
 #include "devfont.h"
+#include "event.h"
 
 #ifndef WIN32
 #include <sys/termios.h>

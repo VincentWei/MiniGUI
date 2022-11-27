@@ -78,6 +78,7 @@
 #include "server.h"
 #include "drawsemop.h"
 #include "devfont.h"
+#include "event.h"
 
 /******************************* global data *********************************/
 PMSGQUEUE __mg_dsk_msg_queue;
@@ -2748,6 +2749,8 @@ static LRESULT dskWindowMessageHandler (UINT message,
     /* Since 5.0.0 */
     case MSG_SETAUTOREPEAT:
         sg_msgAutoRepeat = *(const MSG*)lParam;
+        /* start auto-repeat after 300ms */
+        sg_msgAutoRepeat.time = __mg_tick_counter + (__mg_timeout_usec/10000);
         break;
    }
 
@@ -4204,9 +4207,12 @@ static void dskOnTimeout (void)
     static UINT uCounter = 0;
     static UINT blink_counter = 0;
 
-    if (sg_msgAutoRepeat.hwnd != 0) {
+    if (sg_msgAutoRepeat.hwnd != 0 &&
+            __mg_tick_counter >= sg_msgAutoRepeat.time) {
         PostMessage (sg_msgAutoRepeat.hwnd, sg_msgAutoRepeat.message,
                 sg_msgAutoRepeat.wParam, sg_msgAutoRepeat.lParam);
+        /* next auto-repeat msg after 50ms */
+        sg_msgAutoRepeat.time = __mg_tick_counter + (__mg_repeat_usec/10000);
     }
 
     if (__mg_tick_counter < (blink_counter + 10))
