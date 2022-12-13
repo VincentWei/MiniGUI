@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.11](#version-5011)
+   + [What's new in version 5.0.11](#whats-new-in-version-5011)
 - [Version 5.0.10](#version-5010)
    + [What's new in version 5.0.10](#whats-new-in-version-5010)
 - [Version 5.0.9](#version-508)
@@ -28,7 +30,7 @@
 
 ## Version 5.0.11
 
-On 11. 30, 2022, FMSoft announces the availability of MiniGUI 5.0.11,
+On Dec. 31, 2022, FMSoft announces the availability of MiniGUI 5.0.11,
 which is a bug fixing release with bug fixes and some minor enhancements
 of MiniGUI 5.0.x.
 
@@ -40,12 +42,13 @@ In this version, we made some enhancements
 * BUGFIXING:
    - Fix a bug reported in https://github.com/VincentWei/minigui/issues/94
    - Fix a bug reported in https://github.com/VincentWei/minigui/issues/96
+   - Fix a bug reported in https://github.com/VincentWei/minigui/issues/105
    - Fix a bug reported in https://github.com/VincentWei/minigui/issues/106
 * OPTIMIZATIONS:
-   - optimize the refresh of scrolled.
+   - Optimize the refresh of scrolled.
 * TUNING:
-   - call `mg_FreeMsgQueueForThisThread` immediately in `TerminateGUI()`.
-   - use `CreateLogFontEx` instead of `CreateLogFont` to follow the new style convention of font name when creating the system logfonts,
+   - Call `mg_FreeMsgQueueForThisThread` immediately in `TerminateGUI()`.
+   - Use `CreateLogFontEx` instead of `CreateLogFont` to follow the new style convention of font name when creating the system logfonts,
      but the orientation is ignored for the system logfont.
 
 ## Version 5.0.10
