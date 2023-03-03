@@ -307,7 +307,7 @@ static int RealEngine_GetInfo (RealFBInfo * realfb_info)
 
     real_device->screen = GAL_CreateRGBSurface (GAL_SWSURFACE,
             0, 0, real_vformat.BitsPerPixel, real_vformat.Rmask,
-            real_vformat.Gmask, real_vformat.Bmask, 0);
+            real_vformat.Gmask, real_vformat.Bmask, real_vformat.Amask);
 
     if (real_device->screen == NULL)
         _ERR_PRINTF ("NEWGAL>SHADOW: can't create screen of real engine.\n");
