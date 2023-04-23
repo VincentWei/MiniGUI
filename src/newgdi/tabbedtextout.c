@@ -540,11 +540,8 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
     PDC pdc = dc_HDC2PDC(hdc);
     LOGFONT *log_font = pdc->pLogFont;
     DEVFONT* sbc_devfont = log_font->devfonts[0];
-    DEVFONT* mbc_devfont = log_font->devfonts[1];
-    DEVFONT* devfont;
     Achar32 *achars = NULL;
     ACHARMAPINFO* achars_map = NULL;
-    int *dx_achars = NULL;
     int nr_fit_achars = 0;
 
     int nr_achars = BIDIGetTextLogicalAChars(log_font, text, len,
