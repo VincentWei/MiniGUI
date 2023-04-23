@@ -12541,6 +12541,8 @@ typedef struct _ACHARMAPINFO {
     int char_len;
     /** The direction of the character; TRUE for RTL, FALSE for LTR. */
     BOOL is_rtol;
+    /** The BIDI type */
+    BidiType type;
 } ACHARMAPINFO;
 
 /**
@@ -12632,7 +12634,7 @@ MG_EXPORT int GUIAPI BIDIGetTextVisualAChars (LOGFONT* log_font,
  *      Achar32* achars, int nr_achars, int pel,
  *      void* extra, CB_REVERSE_ARRAY cb_reverse_extra)
  * \brief Reorder the specified logical glyph string in visual order and
- * reorder an extra array to reflect the visule order of the achars.
+ * reorder an extra array to reflect the visual order of the achars.
  *
  * This function reorders the logical glyph string in place to visual order.
  * If \a extra and \a cb_reverse_extra are both not NULL, it also reorders
@@ -12836,6 +12838,31 @@ MG_EXPORT int GUIAPI GetACharsExtent (HDC hdc, Achar32* achars, int nr_achars,
  */
 MG_EXPORT int GUIAPI GetACharsExtentPoint (HDC hdc, Achar32* achars,
         int nr_achars, int max_extent, SIZE* size);
+
+/**
+ * \fn int GUIAPI GetACharsExtentPointEx (HDC hdc, Achar32* achars, \
+ *         int nr_achars, int max_extent, int* dx_chars, SIZE* size)
+ * \brief Get the visual extent value of an achar string.
+ *
+ * This function gets the visual extent value of a glpyh string.
+ * Note that this function ignore all breaks in the achar string.
+ *
+ * \param hdc The device context.
+ * \param achars The pointer to the achar string.
+ * \param nr_achars The length of the achar string len.
+ * \param max_extent The maximal output extent value.
+ * \param dx_achars The output positions of each character in the text will be
+ *        returned through this pointer. It can be NULL.
+ * \param size The real extent of all visual achars in the achar string.
+ *
+ * \return The index of the last achar which can be fit to the extent.
+ *
+ * \sa GetACharsExtentPoint
+ *
+ * Since 5.0.12
+ */
+MG_EXPORT int GUIAPI GetACharsExtentPointEx (HDC hdc, Achar32* achars,
+        int nr_achars, int max_extent, int* dx_achars, SIZE* size);
 
 /**
  * \fn Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar, \

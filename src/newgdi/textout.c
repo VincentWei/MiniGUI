@@ -441,9 +441,61 @@ int GUIAPI TextOutOmitted (HDC hdc, int x, int y,
 
 #undef STRDOT_LEN
 
-int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
-                int max_extent,
-                int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
+static int get_text_extent_point_for_bidi(HDC hdc,
+        const char* text, int len, int max_extent,
+        int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
+{
+    PDC pdc = dc_HDC2PDC(hdc);
+    LOGFONT *log_font = pdc->pLogFont;
+    Achar32 *achars = NULL;
+    ACHARMAPINFO* achars_map = NULL;
+    int *dx_achars = NULL;
+    int nr_fit_achars = 0;
+
+    int nr_achars = BIDIGetTextLogicalAChars(log_font, text, len,
+            &achars, &achars_map);
+
+    if (nr_achars <= 0) {
+        goto done;
+    }
+
+    dx_achars = malloc(sizeof(int) * nr_achars);
+    if (dx_chars == NULL || achars == NULL || achars_map == NULL)
+        goto done;
+
+    BIDILogAChars2VisAChars(log_font, achars, nr_achars, achars_map);
+    nr_fit_achars = GetACharsExtentPointEx(hdc, achars, nr_achars,
+            max_extent, dx_achars, size);
+
+    if (fit_chars) {
+        *fit_chars = nr_fit_achars;
+    }
+
+    if (pos_chars || dx_chars) {
+        for (int i = 0; i < nr_fit_achars; i++) {
+            if (pos_chars) {
+                pos_chars[i] = achars_map[i].byte_index;
+            }
+
+            if (dx_chars) {
+                dx_chars[i] = dx_achars[i];
+            }
+        }
+    }
+
+done:
+    if (achars)
+        free(achars);
+    if (achars_map)
+        free(achars_map);
+    if (dx_achars)
+        free(dx_achars);
+    return nr_fit_achars;
+}
+
+int GUIAPI GetTextExtentPoint (HDC hdc,
+        const char* text, int len, int max_extent,
+        int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
 {
     PDC pdc = dc_HDC2PDC (hdc);
     LOGFONT* log_font = pdc->pLogFont;
@@ -459,8 +511,12 @@ int GUIAPI GetTextExtentPoint (HDC hdc, const char* text, int len,
     size->cx = size->cy = 0;
 
     /* This function does not support BIDI */
-    if (mbc_devfont && pdc->bidi_flags && mbc_devfont->charset_ops->bidi_char_type)
+    if (mbc_devfont && pdc->bidi_flags &&
+            mbc_devfont->charset_ops->bidi_char_type) {
+        get_text_extent_point_for_bidi(pdc, text, len, max_extent,
+                fit_chars, pos_chars, dx_chars, size);
         return -1;
+    }
 
     _gdi_start_new_line(pdc);
 
@@ -538,8 +594,8 @@ int GUIAPI DrawACharString (HDC hdc, int startx, int starty,
     return ctxt.advance;
 }
 
-int GUIAPI GetACharsExtentPoint(HDC hdc, Achar32* achars, int nr_achars,
-        int max_extent, SIZE* size)
+int GUIAPI GetACharsExtentPointEx (HDC hdc, Achar32* achars, int nr_achars,
+        int max_extent, int *dx_achars, SIZE* size)
 {
     int i = 0;
     int advance = 0;
@@ -552,7 +608,11 @@ int GUIAPI GetACharsExtentPoint(HDC hdc, Achar32* achars, int nr_achars,
     size->cx = 0;
     size->cy = 0;
 
-    while(i < nr_achars){
+    while (i < nr_achars){
+        if (dx_achars) {
+            dx_achars[i] = advance;
+        }
+
         devfont = SELECT_DEVFONT_BY_ACHAR(log_font, achars[i]);
         char_type = devfont->charset_ops->char_type(achars[i]);
 
@@ -578,13 +638,20 @@ int GUIAPI GetACharsExtentPoint(HDC hdc, Achar32* achars, int nr_achars,
 
         size->cx += adv_x;
         size->cy += adv_y;
-        i ++;
+        i++;
     }
 
     _gdi_calc_glyphs_size_from_two_points (pdc, 0, 0,
             size->cx, size->cy, size);
 
     return i;
+}
+
+int GUIAPI GetACharsExtentPoint(HDC hdc, Achar32* achars, int nr_achars,
+        int max_extent, SIZE* size)
+{
+    return GetACharsExtentPointEx(hdc, achars, nr_achars, max_extent,
+            NULL, size);
 }
 
 int GUIAPI GetACharsExtent(HDC hdc, Achar32* achars, int nr_achars, SIZE* size)
