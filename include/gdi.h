@@ -12541,8 +12541,6 @@ typedef struct _ACHARMAPINFO {
     int char_len;
     /** The direction of the character; TRUE for RTL, FALSE for LTR. */
     BOOL is_rtol;
-    /** The BIDI type */
-    BidiType type;
 } ACHARMAPINFO;
 
 /**

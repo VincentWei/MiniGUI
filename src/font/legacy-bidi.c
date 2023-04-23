@@ -735,10 +735,8 @@ Achar32* __mg_legacy_bidi_map_reorder (const CHARSETOPS* charset_ops,
         run_pos = node_p->pos;
         run_len = node_p->len;
 
-        for (i=0; i<run_len; i++)
-        {
+        for (i=0; i<run_len; i++) {
             (map+run_pos+i)->is_rtol = (node_p)->level & 1;
-            (map+run_pos+i)->type = (node_p)->type;
         }
     }
 

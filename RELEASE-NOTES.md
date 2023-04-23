@@ -28,6 +28,21 @@
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
 
+## Version 5.0.12
+
+On Apr. 30, 2023, FMSoft announces the availability of MiniGUI 5.0.12,
+which is an enhancement release with some minor enhancements
+of MiniGUI 5.0.x.
+
+### What's new in version 5.0.12
+
+In this version, we made some enhancements:
+
+* ENHANCEMENTS:
+  - Add new API `GetACharsExtentPointEx()`.
+  - Enhance two APIs `GetTextExtentPoint()` and `GetTabbedTextExtentPoint()`
+    to support BIDI charsets.
+
 ## Version 5.0.11
 
 On Dec. 31, 2022, FMSoft announces the availability of MiniGUI 5.0.11,
