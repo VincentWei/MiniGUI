@@ -200,7 +200,7 @@ Uint16 GUIAPI GetACharBidiType (LOGFONT* log_font, Achar32 chv)
 
 #include "unicode-ops.h"
 
-Uchar32 GUIAPI Achar2UChar(LOGFONT* logfont, Achar32 chv)
+Uchar32 GUIAPI AChar2UChar(LOGFONT* logfont, Achar32 chv)
 {
     Uchar32 uc;
     DEVFONT* devfont = SELECT_DEVFONT_BY_ACHAR(logfont, chv);
