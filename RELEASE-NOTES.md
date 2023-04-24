@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.12](#version-5012)
+   + [What's new in version 5.0.12](#whats-new-in-version-5012)
 - [Version 5.0.11](#version-5011)
    + [What's new in version 5.0.11](#whats-new-in-version-5011)
 - [Version 5.0.10](#version-5010)
@@ -40,8 +42,12 @@ In this version, we made some enhancements:
 
 * ENHANCEMENTS:
   - Add new API `GetACharsExtentPointEx()`.
+  - Add new APIs `GetTabbedACharsExtent()`, `GetTabbedACharsExtentPoint()`,
+    and `GetTabbedACharsExtentPointEx()`.
   - Enhance two APIs `GetTextExtentPoint()` and `GetTabbedTextExtentPoint()`
     to support BIDI charsets.
+* BUGFIXING:
+   - Fix a typo: `Achar2UChar()` to `AChar2UChar()`.
 
 ## Version 5.0.11
 

@@ -544,7 +544,7 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
     ACHARMAPINFO* achars_map = NULL;
     int nr_fit_achars = 0;
 
-    int nr_achars = BIDIGetTextLogicalAChars(log_font, text, len,
+    int nr_achars = BIDIGetTextVisualAChars(log_font, text, len,
             &achars, &achars_map);
     if (nr_achars <= 0) {
         goto done;
@@ -555,6 +555,8 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
     int tab_width = sbc_devfont->font_ops->get_ave_width(log_font, sbc_devfont)
                     * pdc->tabstop;
     int line_height = log_font->size + pdc->alExtra + pdc->blExtra;
+
+    size->cx = 0;
     size->cy = line_height;
 
     int left_achars = nr_achars;
@@ -564,8 +566,9 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
             pos_chars[nr_fit_achars] = achars_map[nr_fit_achars].byte_index;
         if (dx_chars)
             dx_chars[nr_fit_achars] = last_line_width;
+        size->cx = last_line_width;
 
-        Uint32 achar_type = GetACharBidiType(log_font, achars[nr_fit_achars]);
+        Uint32 achar_type = GetACharType(log_font, achars[nr_fit_achars]);
         Glyph32 gv = GetGlyphValueAlt(log_font, achars[nr_fit_achars]);
 
         int adv_x = 0, adv_y = 0;
@@ -576,9 +579,9 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
             case ACHAR_BASIC_LF:
                 adv_y = line_height;
             case ACHAR_BASIC_CR:
+                adv_x = 0;
                 if (last_line_width > size->cx) {
                     size->cx = last_line_width;
-                    adv_x = 0;
                 }
                 last_line_width = 0;
                 _gdi_start_new_line(pdc);
@@ -659,6 +662,7 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
             pos_chars [char_count] = len - left_bytes;
         if (dx_chars)
             dx_chars [char_count] = last_line_width;
+        size->cx = last_line_width;
 
         devfont = NULL;
         len_cur_char = 0;
@@ -689,7 +693,6 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
 
             switch (char_type & ACHARTYPE_BASIC_MASK) {
                 case ACHAR_BASIC_ZEROWIDTH:
-                case ACHAR_BASIC_VOWEL:
                     break;
                 case ACHAR_BASIC_LF:
                     size->cy += line_height;
@@ -730,5 +733,96 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
 ret:
     if (fit_chars) *fit_chars = char_count;
     return len - left_bytes;
+}
+
+int GUIAPI GetTabbedACharsExtentPointEx(HDC hdc,
+        Achar32* achars, int nr_achars, int max_extent,
+        int* dx_achars, int* dy_achars, SIZE* size)
+{
+    PDC pdc = dc_HDC2PDC(hdc);
+    LOGFONT *log_font = pdc->pLogFont;
+    DEVFONT* sbc_devfont = log_font->devfonts[0];
+    int nr_fit_achars = 0;
+
+    _gdi_start_new_line(pdc);
+
+    int tab_width = sbc_devfont->font_ops->get_ave_width(log_font, sbc_devfont)
+                    * pdc->tabstop;
+    int line_height = log_font->size + pdc->alExtra + pdc->blExtra;
+
+    size->cx = 0;
+    size->cy = 0;
+
+    int left_achars = nr_achars;
+    int last_line_width = 0;
+    while (left_achars > 0) {
+        if (dx_achars)
+            dx_achars[nr_fit_achars] = last_line_width;
+        if (dy_achars)
+            dy_achars[nr_fit_achars] = size->cy;
+        size->cx = last_line_width;
+
+        Uint32 achar_type = GetACharType(log_font, achars[nr_fit_achars]);
+        Glyph32 gv = GetGlyphValueAlt(log_font, achars[nr_fit_achars]);
+
+        int adv_x = 0, adv_y = 0;
+        switch (achar_type & ACHARTYPE_BASIC_MASK) {
+            case ACHAR_BASIC_ZEROWIDTH:
+                adv_x = adv_y = 0;
+                break;
+            case ACHAR_BASIC_LF:
+                adv_y = line_height;
+            case ACHAR_BASIC_CR:
+                adv_x = 0;
+                if (last_line_width > size->cx) {
+                    size->cx = last_line_width;
+                }
+                last_line_width = 0;
+                _gdi_start_new_line(pdc);
+                break;
+
+            case ACHAR_BASIC_HT:
+                adv_x = tab_width;
+                last_line_width += tab_width;
+                _gdi_start_new_line(pdc);
+                break;
+
+            default:
+               last_line_width  += _gdi_get_glyph_advance (pdc, gv,
+                    (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    0, 0, &adv_x, &adv_y, NULL);
+                last_line_width += pdc->cExtra;
+                break;
+        }
+
+        if (max_extent > 0 && last_line_width > max_extent) {
+            break;
+        }
+
+        size->cx += adv_x;
+        size->cy += adv_y;
+        if (last_line_width > size->cx)
+            size->cx = last_line_width;
+        left_achars--;
+        nr_fit_achars++;
+    }
+
+    size->cy += line_height;
+    return nr_fit_achars;
+}
+
+int GUIAPI GetTabbedACharsExtentPoint(HDC hdc, Achar32* achars,
+        int nr_achars, int max_extent, SIZE* size)
+{
+    return GetTabbedACharsExtentPointEx(hdc,
+        achars, nr_achars, max_extent, NULL, NULL, size);
+}
+
+int GUIAPI GetTabbedACharsExtent(HDC hdc, Achar32* achars,
+        int nr_achars, SIZE* size)
+{
+    GetTabbedACharsExtentPointEx(hdc,
+        achars, nr_achars, -1, NULL, NULL, size);
+    return size->cx;
 }
 

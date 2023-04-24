@@ -12863,6 +12863,80 @@ MG_EXPORT int GUIAPI GetACharsExtentPointEx (HDC hdc, Achar32* achars,
         int nr_achars, int max_extent, int* dx_achars, SIZE* size);
 
 /**
+ * \fn int GUIAPI GetTabbedACharsExtent (HDC hdc, Achar32* achars,
+ *          int nr_achars, SIZE* size)
+ * \brief Get visual extent value of an achar string.
+ *
+ * This function gets the extent value of an achar string on a DC. Note that
+ * this function will ignore all breaks in the achar string.
+ *
+ * \param hdc The device context.
+ * \param achars The pointer to the achar string.
+ * \param nr_achars The length of the achar string.
+ * \param size The buffer restoring the extents of the achar strings.
+ *
+ * \return The extent of the achar string.
+ *
+ * \sa GetTabbedACharsExtentPoint
+ *
+ * Since 5.0.12
+ */
+MG_EXPORT int GUIAPI GetTabbedACharsExtent (HDC hdc, Achar32* achars,
+        int nr_achars, SIZE* size);
+
+/**
+ * \fn int GUIAPI GetTabbedACharsExtentPoint (HDC hdc, Achar32* achars,
+ *         int nr_achars, int max_extent, SIZE* size)
+ * \brief Get the visual extent value of an achar string.
+ *
+ * This function gets the visual extent value of a glpyh string.
+ * Note that this function ignore all breaks in the achar string.
+ *
+ * \param hdc The device context.
+ * \param achars The pointer to the achar string.
+ * \param nr_achars The length of the achar string len.
+ * \param max_extent The maximal output extent value.
+ * \param size The real extent of all visual achars in the achar string.
+ *
+ * \return The the index of the last achar which can be fit to the extent.
+ *
+ * \sa GetTabbedACharsExtentPointEx
+ *
+ * Since 5.0.12
+ */
+MG_EXPORT int GUIAPI GetTabbedACharsExtentPoint (HDC hdc, Achar32* achars,
+        int nr_achars, int max_extent, SIZE* size);
+
+/**
+ * \fn int GUIAPI GetTabbedACharsExtentPointEx (HDC hdc,
+ *          Achar32* achars, int nr_achars, int max_extent,
+ *          int* dx_chars, int* dy_chars, SIZE* size)
+ * \brief Get the visual extent value of an achar string.
+ *
+ * This function gets the visual extent value of a glpyh string.
+ * Note that this function ignore all breaks in the achar string.
+ *
+ * \param hdc The device context.
+ * \param achars The pointer to the achar string.
+ * \param nr_achars The length of the achar string len.
+ * \param max_extent The maximal output extent value.
+ * \param dx_achars The output x-positions of each character in the text
+ *      will be returned through this pointer. It can be NULL.
+ * \param dy_achars The output y-positions of each character in the text
+ *      will be returned through this pointer. It can be NULL.
+ * \param size The real extent of all visual achars in the achar string.
+ *
+ * \return The index of the last achar which can be fit to the extent.
+ *
+ * \sa GetTabbedACharsExtentPoint
+ *
+ * Since 5.0.12
+ */
+MG_EXPORT int GUIAPI GetTabbedACharsExtentPointEx (HDC hdc,
+        Achar32* achars, int nr_achars, int max_extent,
+        int* dx_achars, int* dy_achars, SIZE* size);
+
+/**
  * \fn Glyph32 GUIAPI GetGlyphValue (LOGFONT* logfont, const char* mchar, \
  *         int mchar_len, const char* pre_mchar, int pre_len)
  * \brief Get the glyph value of a multi-byte character.

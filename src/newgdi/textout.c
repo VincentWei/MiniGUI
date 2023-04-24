@@ -319,7 +319,8 @@ typedef struct _TEXTOUTOMITTED_CTXT
     Uint32 max_extent;
 } TEXTOUTOMITTED_CTXT;
 
-static BOOL cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int char_type)
+static BOOL
+cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int char_type)
 {
     TEXTOUTOMITTED_CTXT* ctxt = (TEXTOUTOMITTED_CTXT*)context;
     int adv_x, adv_y;
@@ -452,7 +453,7 @@ static int get_text_extent_point_for_bidi(HDC hdc,
     int *dx_achars = NULL;
     int nr_fit_achars = 0;
 
-    int nr_achars = BIDIGetTextLogicalAChars(log_font, text, len,
+    int nr_achars = BIDIGetTextVisualAChars(log_font, text, len,
             &achars, &achars_map);
 
     if (nr_achars <= 0) {
@@ -463,7 +464,6 @@ static int get_text_extent_point_for_bidi(HDC hdc,
     if (dx_chars == NULL || achars == NULL || achars_map == NULL)
         goto done;
 
-    BIDILogAChars2VisAChars(log_font, achars, nr_achars, achars_map);
     nr_fit_achars = GetACharsExtentPointEx(hdc, achars, nr_achars,
             max_extent, dx_achars, size);
 
@@ -616,7 +616,7 @@ int GUIAPI GetACharsExtentPointEx (HDC hdc, Achar32* achars, int nr_achars,
         devfont = SELECT_DEVFONT_BY_ACHAR(log_font, achars[i]);
         char_type = devfont->charset_ops->char_type(achars[i]);
 
-        if (check_zero_width (char_type)) {
+        if (check_zero_width(char_type)) {
             adv_x = adv_y = 0;
         }
         else {

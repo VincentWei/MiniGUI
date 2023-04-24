@@ -612,8 +612,7 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
                         (NULL, 0, text + i, 1)))
                     return (text_len-i-1);
 
-                char_type = sbc_devfont->charset_ops->char_type
-                    (chv);
+                char_type = sbc_devfont->charset_ops->char_type (chv);
 
                 gv = GetGlyphValueAlt (pdc->pLogFont, chv);
                 if (gv == INV_GLYPH_VALUE)
