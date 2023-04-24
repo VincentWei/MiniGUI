@@ -533,6 +533,8 @@ int GUIAPI TabbedTextOutEx (HDC hdc, int x, int y, const char* spText,
     return advance;
 }
 
+#define SZ_BUFF_IN_STACK 256
+
 static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
         const char* text, int len, int max_extent,
         int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
@@ -540,8 +542,22 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
     PDC pdc = dc_HDC2PDC(hdc);
     LOGFONT *log_font = pdc->pLogFont;
     DEVFONT* sbc_devfont = log_font->devfonts[0];
-    Achar32 *achars = NULL;
-    ACHARMAPINFO* achars_map = NULL;
+    Achar32 achars_buff[SZ_BUFF_IN_STACK];
+    ACHARMAPINFO achars_map_buff[SZ_BUFF_IN_STACK];
+    Achar32 *achars;
+    ACHARMAPINFO* achars_map;
+
+    if (len < 0)
+        len = strlen(text);
+    if (len <= SZ_BUFF_IN_STACK) {
+        achars = achars_buff;
+        achars_map = achars_map_buff;
+    }
+    else {
+        achars = NULL;
+        achars_map = NULL;
+    }
+
     int nr_fit_achars = 0;
 
     int nr_achars = BIDIGetTextVisualAChars(log_font, text, len,
@@ -617,9 +633,9 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
         *fit_chars = nr_fit_achars;
 
 done:
-    if (achars)
+    if (achars != NULL && achars != achars_buff)
         free(achars);
-    if (achars_map)
+    if (achars_map != NULL && achars_map != achars_map_buff)
         free(achars_map);
     return nr_fit_achars;
 }

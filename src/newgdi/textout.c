@@ -442,25 +442,47 @@ int GUIAPI TextOutOmitted (HDC hdc, int x, int y,
 
 #undef STRDOT_LEN
 
+#define SZ_BUFF_IN_STACK 256
+
 static int get_text_extent_point_for_bidi(HDC hdc,
         const char* text, int len, int max_extent,
         int* fit_chars, int* pos_chars, int* dx_chars, SIZE* size)
 {
     PDC pdc = dc_HDC2PDC(hdc);
     LOGFONT *log_font = pdc->pLogFont;
-    Achar32 *achars = NULL;
-    ACHARMAPINFO* achars_map = NULL;
+    Achar32 achars_buff[SZ_BUFF_IN_STACK];
+    ACHARMAPINFO achars_map_buff[SZ_BUFF_IN_STACK];
+    int dx_achars_buff[SZ_BUFF_IN_STACK];
+    Achar32 *achars;
+    ACHARMAPINFO* achars_map;
     int *dx_achars = NULL;
+
+    if (len < 0)
+        len = strlen(text);
+    if (len <= SZ_BUFF_IN_STACK) {
+        achars = achars_buff;
+        achars_map = achars_map_buff;
+    }
+    else {
+        achars = NULL;
+        achars_map = NULL;
+    }
+
     int nr_fit_achars = 0;
 
     int nr_achars = BIDIGetTextVisualAChars(log_font, text, len,
             &achars, &achars_map);
-
     if (nr_achars <= 0) {
         goto done;
     }
 
-    dx_achars = malloc(sizeof(int) * nr_achars);
+    if (nr_achars <= SZ_BUFF_IN_STACK) {
+        dx_achars = dx_achars_buff;
+    }
+    else {
+        dx_achars = malloc(sizeof(int) * nr_achars);
+    }
+
     if (dx_chars == NULL || achars == NULL || achars_map == NULL)
         goto done;
 
@@ -484,11 +506,11 @@ static int get_text_extent_point_for_bidi(HDC hdc,
     }
 
 done:
-    if (achars)
+    if (achars != NULL && achars != achars_buff)
         free(achars);
-    if (achars_map)
+    if (achars_map != NULL && achars_map != achars_map_buff)
         free(achars_map);
-    if (dx_achars)
+    if (dx_achars != NULL && dx_achars != dx_achars_buff)
         free(dx_achars);
     return nr_fit_achars;
 }
