@@ -141,6 +141,14 @@ BOOL mg_InitDesktop (void)
 
 #include "debug.h"
 
+static IDLEHANDLER std_idle_handler;
+
+static BOOL idle_handler_for_desktop_thread (MSGQUEUE *msg_queue, BOOL wait)
+{
+    __mg_update_tick_count (NULL);
+    return std_idle_handler (msg_queue, wait);
+}
+
 void* __kernel_desktop_main (void* data)
 {
     MSG Msg;
@@ -152,8 +160,10 @@ void* __kernel_desktop_main (void* data)
         return NULL;
     }
 
-    /* for threads mode, the idle handler for desktop thread is NULL */
-    __mg_dsk_msg_queue->OnIdle = NULL;
+    /* For bug reported in Issue #116, under threads mode, the idle handler
+       for the desktop thread should call __mg_update_tick_count () */
+    std_idle_handler = __mg_dsk_msg_queue->OnIdle;
+    __mg_dsk_msg_queue->OnIdle = idle_handler_for_desktop_thread;
 
     /* init desktop window */
     init_desktop_win ();

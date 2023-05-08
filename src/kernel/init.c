@@ -391,14 +391,6 @@ static BOOL InstallSEGVHandler (void)
 #include <locale.h>
 #endif
 
-static IDLEHANDLER std_idle_handler;
-
-static BOOL idle_handler_for_main_thread (MSGQUEUE *msg_queue, BOOL wait)
-{
-    __mg_update_tick_count (NULL);
-    return std_idle_handler (msg_queue, wait);
-}
-
 int GUIAPI InitGUI (int args, const char *agr[])
 {
     char engine [LEN_ENGINE_NAME + 1];
@@ -582,11 +574,6 @@ int GUIAPI InitGUI (int args, const char *agr[])
         _ERR_PRINTF ("KERNEL>InitGUI: failed to allocate message queue!\n");
         goto failure;
     }
-
-    /* for threads mode, the idle handler for the main threads should
-       call __mg_update_tick_count () */
-    std_idle_handler = msg_queue->OnIdle;
-    msg_queue->OnIdle = idle_handler_for_main_thread;
 
     /* init timer for tick counter */
     step++;
