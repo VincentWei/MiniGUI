@@ -556,9 +556,11 @@ DWORD GUIAPI GetTickCount (void)
     else {
         __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
     }
-#else   /* defined _MGRM_PROCESSES */
+#elif defined(_MGRM_STANDALONE)
     __mg_tick_counter = __mg_os_get_time_ticks ();
-#endif  /* not defined _MGRM_PROCESSES */
+#else   /* not defined _MGRM_PROCESSES and _MGRM_PROCESSES */
+    /* do nothing here because the desktop thread updates the tick count */
+#endif  /* not defined _MGRM_PROCESSES and _MGRM_PROCESSES */
 
     return __mg_tick_counter;
 }
