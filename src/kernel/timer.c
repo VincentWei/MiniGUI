@@ -293,6 +293,11 @@ BOOL GUIAPI SetTimerEx (HWND hWnd, LINT id, DWORD interv,
     TIMER** timer_slots;
     PMSGQUEUE pMsgQueue;
 
+#ifndef _MGRM_THREADS
+    /* Force to update tick count */
+    GetTickCount();
+#endif
+
     if (id == 0) {
         _WRN_PRINTF ("bad identifier (%ld).\n", id);
         return FALSE;
@@ -415,7 +420,12 @@ int GUIAPI KillTimer (HWND hWnd, LINT id)
     int i;
     int killed = 0;
     MSGQUEUE* msg_queue;
-   
+
+#ifndef _MGRM_THREADS
+    /* Force to update tick count */
+    GetTickCount();
+#endif
+
     msg_queue = getMsgQueueForThisThread ();
     if (msg_queue) {
 
@@ -447,7 +457,12 @@ BOOL GUIAPI ResetTimerEx (HWND hWnd, LINT id, DWORD interv,
 {
     int i;
     MSGQUEUE* msg_queue;
-   
+
+#ifndef _MGRM_THREADS
+    /* Force to update tick count */
+    GetTickCount();
+#endif
+
     if (id == 0)
         return FALSE;
 
@@ -482,6 +497,11 @@ BOOL GUIAPI IsTimerInstalled (HWND hWnd, LINT id)
     int i;
     TIMER** timer_slots;
 
+#ifndef _MGRM_THREADS
+    /* Force to update tick count */
+    GetTickCount();
+#endif
+
     if (id == 0)
         return FALSE;
 
@@ -506,6 +526,11 @@ BOOL GUIAPI HaveFreeTimer (void)
 {
     int i;
     TIMER** timer_slots;
+
+#ifndef _MGRM_THREADS
+    /* Force to update tick count */
+    GetTickCount();
+#endif
 
     timer_slots = getTimerSlotsForThisThread (NULL);
     if (timer_slots) {
@@ -537,173 +562,4 @@ DWORD GUIAPI GetTickCount (void)
 
     return __mg_tick_counter;
 }
-
-#if 0   /* deprecated code */
-
-/* Since 5.0.0, we no longer use the timer thread for MiniGUI-Threads runmode */
-   in message queue */
-
-/* timer entry for thread version */
-#ifdef _MGRM_THREADS
-
-#ifdef __AOS__
-
-#include "os_api.h"
-
-static OS_TIMER_ID __mg_os_timer = 0;
-
-#else /* __AOS__ */
-static void* TimerEntry (void* data)
-{
-    sem_post ((sem_t*)data);
-
-    while (__mg_quiting_stage > _MG_QUITING_STAGE_TIMER) {
-        __mg_os_time_delay (10);
-        __mg_update_tick_count (NULL);
-    }
-
-    /* printf("quit from TimerEntry()\n"); */
-    return NULL;
-}
-#endif /* !__AOS__ */
-
-int __mg_timer_init (void)
-{
-    if (!mg_InitTimer ()) {
-        fprintf (stderr, "KERNEL>timer: Init Timer failure.\n");
-        return -1;
-    }
-
-#ifdef __AOS__
-    __mg_os_timer = tp_os_timer_create ("mgtimer", __mg_update_tick_count,
-                                         NULL, AOS_TIMER_TICKT,
-                                         OS_AUTO_ACTIVATE | OS_AUTO_LOAD);
-#else /* __AOS__ */
-    {
-        sem_t wait;
-        sem_init (&wait, 0, 0);
-        pthread_create (&__mg_timer, NULL, TimerEntry, &wait);
-        sem_wait (&wait);
-        sem_destroy (&wait);
-    }
-#endif /* !__AOS__ */
-
-    return 0;
-}
-
-void mg_TerminateTimer (void)
-{
-#ifdef __AOS__
-    tp_os_timer_delete (__mg_os_timer);
-#endif
-
-#ifdef __WINBOND_SWLINUX__
-    pthread_detach (__mg_timer); /* XXX: Can we pthread_join()? */
-#else
-    pthread_join (__mg_timer, NULL);
-#endif /* __WINBOND_SWLINUX__ */
-
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-    pthread_mutex_destroy (&timerLock);
-#endif
-
-#if 0   /* deprecated code */
-    /* Since 5.0.0, we allocate timer slots per thread, and manage the time slots
-       in message queue */
-    for (i = 0; i < DEF_NR_TIMERS; i++) {
-        if (timerstr[i] != NULL)
-            free ( timerstr[i] );
-        timerstr[i] = NULL;
-    }
-
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-    pthread_mutex_destroy (&timerLock);
-#endif
-#endif  /* deprecated code */
-}
-
-#else /* defined _MGRM_THREADS */
-#endif /* defined _MGRM_THREADS */
-
-/* Since 5.0.0, we use timer slots per thread, and manage the time slots
-   in message queue */
-static TIMER *timerstr[DEF_NR_TIMERS];
-
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-/* lock for protecting timerstr */
-static pthread_mutex_t timerLock;
-#define TIMER_LOCK()   pthread_mutex_lock(&timerLock)
-#define TIMER_UNLOCK() pthread_mutex_unlock(&timerLock)
-#else
-#define TIMER_LOCK()
-#define TIMER_UNLOCK()
-#endif
-
-int __mg_get_timer_slot (HWND hWnd, int id)
-{
-    int i;
-    int slot = -1;
-
-    TIMER_LOCK ();
-    for (i = 0; i < DEF_NR_TIMERS; i++) {
-        if (timerstr[i] != NULL) {
-            if (timerstr[i]->hWnd == hWnd && timerstr[i]->id == id) {
-                slot = i;
-                break;
-            }
-        }
-    }
-
-    TIMER_UNLOCK ();
-    return slot;
-}
-
-void __mg_move_timer_last (TIMER* timer, int slot)
-{
-    if (slot < 0 || slot >= DEF_NR_TIMERS)
-        return;
-
-    TIMER_LOCK ();
-
-    if (timer && timer->msg_queue) {
-        /* The following code is already called in message.c...
-         * timer->ticks_current = 0;
-         * timer->msg_queue->expired_timer_mask &= ~(0x01UL << slot);
-         */
-
-        if (slot != (DEF_NR_TIMERS - 1)) {
-            TIMER* t;
-
-            if (timer->msg_queue->expired_timer_mask & (0x01UL << (DEF_NR_TIMERS -1))) {
-                timer->msg_queue->expired_timer_mask |= (0x01UL << slot);
-                timer->msg_queue->expired_timer_mask &= ~(0x01UL << (DEF_NR_TIMERS -1));
-            }
-
-            t = timerstr [DEF_NR_TIMERS - 1];
-            timerstr [DEF_NR_TIMERS - 1] = timerstr [slot];
-            timerstr [slot] = t;
-        }
-    }
-
-    TIMER_UNLOCK ();
-    return;
-}
-
-TIMER* __mg_get_timer (int slot)
-{
-    TIMER** timer_slots;
-
-    if (slot < 0 || slot >= DEF_NR_TIMERS)
-        return NULL;
-
-    timer_slots = getTimerSlotsForThisThread (NULL);
-    if (timer_slots) {
-        return timer_slots[slot];
-    }
-
-    _WRN_PRINTF ("called for non message thread\n");
-    return NULL;
-}
-
-#endif  /* deprecated code */
 
