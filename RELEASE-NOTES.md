@@ -32,7 +32,7 @@
 
 ## Version 5.0.12
 
-On Apr. 30, 2023, FMSoft announces the availability of MiniGUI 5.0.12,
+On May 10, 2023, FMSoft announces the availability of MiniGUI 5.0.12,
 which is an enhancement release with some minor enhancements
 of MiniGUI 5.0.x.
 
@@ -46,6 +46,7 @@ In this version, we made some enhancements:
     and `GetTabbedACharsExtentPointEx()`.
   - Enhance two APIs `GetTextExtentPoint()` and `GetTabbedTextExtentPoint()`
     to support BIDI charsets.
+  - Tune management of tick count.
 * BUGFIXING:
    - Fix a typo: `Achar2UChar()` to `AChar2UChar()`.
 
