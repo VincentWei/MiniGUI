@@ -96,7 +96,7 @@ typedef struct _scrdata
 typedef SCRDATA *PSCRDATA;
 
 
-MG_EXPORT int     DefaultScrolledProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
+MG_EXPORT LRESULT DefaultScrolledProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam);
 MG_EXPORT int     scrolled_init (HWND hWnd, PSCRDATA pscrdata, int w, int h);
 MG_EXPORT void    scrolled_destroy (PSCRDATA pscrdata);
 MG_EXPORT void    scrolled_hscroll (HWND hWnd, PSCRDATA pscrdata, WPARAM wParam, LPARAM lParam);

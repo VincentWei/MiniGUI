@@ -404,7 +404,7 @@ void mglist_set_itemops (MgList *mglst, PMGITEMOPS iop)
     mglst->iop = *iop;
 }
 
-int DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
+LRESULT DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
                          PSCRDATA pscrdata, MgList *mglst)
 {
     switch (message) {

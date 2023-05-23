@@ -140,7 +140,7 @@ struct _MgList
 
 /* ------------------------- external api -------------------------- */
 
-MG_EXPORT int DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
+MG_EXPORT LRESULT DefaultItemViewProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam,
                          PSCRDATA pscrdata, MgList *mglst);
 
 MG_EXPORT SVITEM_DRAWFUNC mglist_set_itemdraw (MgList *mglst, SVITEM_DRAWFUNC draw_func);

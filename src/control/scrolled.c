@@ -589,7 +589,7 @@ int scrolled_init (HWND hWnd, PSCRDATA pscrdata, int w, int h)
     return 0;
 }
 
-int DefaultScrolledProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
+LRESULT DefaultScrolledProc (HWND hWnd, int message, WPARAM wParam, LPARAM lParam)
 {
     PSCRDATA pscrdata = NULL;
 
