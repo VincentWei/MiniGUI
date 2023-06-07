@@ -327,8 +327,15 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
 
     surface->pixels = NULL;
 #ifdef _MGUSE_PIXMAN
-    surface->pix_img = NULL;
-    surface->msk_img = NULL;
+    if (surface->pix_img) {
+        pixman_image_unref (surface->pix_img);
+        surface->pix_img = NULL;
+    }
+
+    if (surface->msk_img) {
+        pixman_image_unref (surface->msk_img);
+        surface->msk_img = NULL;
+    }
 #endif
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
@@ -480,8 +487,15 @@ void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
 
     surface->pixels = NULL;
 #ifdef _MGUSE_PIXMAN
-    surface->pix_img = NULL;
-    surface->msk_img = NULL;
+    if (surface->pix_img) {
+        pixman_image_unref (surface->pix_img);
+        surface->pix_img = NULL;
+    }
+
+    if (surface->msk_img) {
+        pixman_image_unref (surface->msk_img);
+        surface->msk_img = NULL;
+    }
 #endif
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
