@@ -90,7 +90,6 @@ typedef struct _RealFBInfo {
 
 struct GAL_PrivateVideoData {
     RealFBInfo * realfb_info;
-    pthread_t update_th;
 #ifdef _MGRM_PROCESSES
     int semid;
 #endif
