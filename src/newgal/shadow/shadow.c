@@ -309,11 +309,13 @@ static int RealEngine_GetInfo (RealFBInfo * realfb_info)
             0, 0, real_vformat.BitsPerPixel, real_vformat.Rmask,
             real_vformat.Gmask, real_vformat.Bmask, real_vformat.Amask);
 
-    if (real_device->screen == NULL)
-        _ERR_PRINTF ("NEWGAL>SHADOW: can't create screen of real engine.\n");
-
-    real_device->SetVideoMode(realfb_info->real_device,
+    /* VW: SetVideoMode may return a new surface */
+    real_device->screen = real_device->SetVideoMode(realfb_info->real_device,
             real_device->screen, w, h, depth, GAL_HWPALETTE);
+    if (real_device->screen == NULL) {
+        _ERR_PRINTF ("NEWGAL>SHADOW: can't create screen of real engine.\n");
+        return -1;
+    }
 
     realfb_info->height = real_device->screen->h;
     realfb_info->width = real_device->screen->w;
