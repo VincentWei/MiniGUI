@@ -57,6 +57,7 @@
 #include "error.h"
 #include "shadow.h"
 
+#if 0 /* use in-stack buffer since 5.0.14 */
 gal_uint8* __gal_a_line;
 
 int refresh_init (int pitch)
@@ -72,6 +73,7 @@ void refresh_destroy (void)
     if (__gal_a_line != NULL)
         free(__gal_a_line);
 }
+#endif
 
 static unsigned char pixel_bit [] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80};
 
@@ -275,7 +277,8 @@ void _get_src_rect_ccw (const RECT* dst_rect, RECT* src_rect, RealFBInfo *realfb
     src_rect->bottom = dst_rect->right;
 }
 
-void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_info, void* update)
+void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header,
+        RealFBInfo *realfb_info, void* update)
 {
     RECT src_update = *(RECT*)update;
     RECT dst_update;
@@ -283,6 +286,7 @@ void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_i
     BYTE* dst_line;
     int dst_width, dst_height;
     int x, y;
+    BYTE line_pixels[shadowfb_header->pitch];
 
     _get_dst_rect_cw (&dst_update, &src_update, realfb_info);
 
@@ -308,7 +312,7 @@ void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_i
         /* Copy the bits from vertical line to horizontal line */
         const BYTE* ver_bits = src_bits;
 
-        BYTE* hor_bits = __gal_a_line;
+        BYTE* hor_bits = line_pixels;
 
         switch (realfb_info->depth) {
             case 32:
@@ -349,25 +353,25 @@ void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_i
 
         switch (realfb_info->depth) {
             case 1:
-                put_one_line_1bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
+                put_one_line_1bpp (line_pixels, dst_line, dst_update.left, dst_width);
                 src_bits += 1;
                 dst_line += realfb_info->pitch;
                 break;
 
             case 2:
-                put_one_line_2bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
+                put_one_line_2bpp (line_pixels, dst_line, dst_update.left, dst_width);
                 src_bits +=1;
                 dst_line += realfb_info->pitch;
                 break;
 
             case 4:
-                put_one_line_4bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
+                put_one_line_4bpp (line_pixels, dst_line, dst_update.left, dst_width);
                 src_bits +=1;
                 dst_line += realfb_info->pitch;
                 break;
 
             default:
-                put_one_line_8bpp (__gal_a_line, dst_line, dst_update.left, dst_width, realfb_info);
+                put_one_line_8bpp (line_pixels, dst_line, dst_update.left, dst_width, realfb_info);
                 src_bits += realfb_info->depth/8;
                 dst_line += realfb_info->pitch;
                 break;
@@ -376,12 +380,14 @@ void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_i
     }
 }
 
-void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update)
+void refresh_ccw_msb_right(ShadowFBHeader* shadowfb_header,
+        RealFBInfo* realfb_info, void* update)
 {
     RECT src_update = *(RECT*)update;
     RECT dst_update;
     const BYTE* src_bits;
     BYTE* dst_line;
+    BYTE  line_pixels[shadowfb_header->pitch];
 
     int dst_width, dst_height;
     int x, y;
@@ -409,7 +415,7 @@ void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_
     for (x = 0; x < dst_height; x++) {
         /* Copy the bits from vertical line to horizontal line */
         const BYTE* ver_bits = src_bits;
-        BYTE* hor_bits = __gal_a_line;
+        BYTE* hor_bits = line_pixels;
 
         switch (realfb_info->depth) {
             case 32:
@@ -451,25 +457,25 @@ void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_
 
         switch (realfb_info->depth) {
             case 1:
-                put_one_line_1bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
+                put_one_line_1bpp (line_pixels, dst_line, dst_update.left, dst_width);
                 src_bits += 1;
                 dst_line -= realfb_info->pitch;
                 break;
 
             case 2:
-                put_one_line_2bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
+                put_one_line_2bpp (line_pixels, dst_line, dst_update.left, dst_width);
                 src_bits += 1;
                 dst_line -= realfb_info->pitch;
                 break;
 
             case 4:
-                put_one_line_4bpp (__gal_a_line, dst_line, dst_update.left, dst_width);
+                put_one_line_4bpp (line_pixels, dst_line, dst_update.left, dst_width);
                 src_bits += 1;
                 dst_line -= realfb_info->pitch;
                 break;
 
             default:
-                put_one_line_8bpp (__gal_a_line, dst_line, dst_update.left, dst_width,\
+                put_one_line_8bpp (line_pixels, dst_line, dst_update.left, dst_width,\
                                 realfb_info);
                 src_bits += realfb_info->depth/8;
                 dst_line -= realfb_info->pitch;
@@ -494,6 +500,7 @@ void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
     BYTE* dst_line;
     int src_width, src_height;
     int x, y;
+    BYTE line_pixels[shadowfb_header->pitch];
 
     /* Round the update rectangle.  */
     round_rect(realfb_info->depth, &src_update);
@@ -512,7 +519,7 @@ void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
     for (x = 0; x < src_height; x++) {
         /* Copy the bits from vertical line to horizontal line */
         const BYTE* ver_bits = src_bits;
-        BYTE* hor_bits = __gal_a_line;
+        BYTE* hor_bits = line_pixels;
 
         switch (realfb_info->depth) {
             case 32:
@@ -553,25 +560,25 @@ void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
         }
         switch (realfb_info->depth) {
             case 1:
-                put_one_line_1bpp (__gal_a_line, dst_line, realfb_info->width - src_update.right, src_width);
+                put_one_line_1bpp (line_pixels, dst_line, realfb_info->width - src_update.right, src_width);
                 src_bits += shadowfb_header->pitch;
                 dst_line += realfb_info->pitch;
                 break;
 
             case 2:
-                put_one_line_2bpp (__gal_a_line, dst_line, realfb_info->width - src_update.right, src_width);
+                put_one_line_2bpp (line_pixels, dst_line, realfb_info->width - src_update.right, src_width);
                 src_bits += shadowfb_header->pitch;
                 dst_line += realfb_info->pitch;
                 break;
 
             case 4:
-                put_one_line_4bpp (__gal_a_line, dst_line, realfb_info->width - src_update.right, src_width);
+                put_one_line_4bpp (line_pixels, dst_line, realfb_info->width - src_update.right, src_width);
                 src_bits += shadowfb_header->pitch;/* realfb_info->depth;*/
                 dst_line += realfb_info->pitch;
                 break;
 
             default:
-                put_one_line_8bpp (__gal_a_line, dst_line, realfb_info->width - src_update.right,
+                put_one_line_8bpp (line_pixels, dst_line, realfb_info->width - src_update.right,
                                 src_width, realfb_info);
                 src_bits += realfb_info->pitch;
                 dst_line += realfb_info->pitch;
@@ -596,6 +603,7 @@ void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
     BYTE* dst_line;
     int src_width, src_height;
     int x, y;
+    BYTE line_pixels[shadowfb_header->pitch];
 
     /* Round the update rectangle.  */
     round_rect (realfb_info->depth, &src_update);
@@ -614,7 +622,7 @@ void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
     for (x = 0; x < src_height; x++) {
         /* Copy the bits from vertical line to horizontal line */
         const BYTE* ver_bits = src_bits;
-        BYTE* hor_bits = __gal_a_line;
+        BYTE* hor_bits = line_pixels;
 
         switch (realfb_info->depth) {
             case 32:
@@ -656,25 +664,29 @@ void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realf
 
         switch (realfb_info->depth) {
             case 1:
-                put_one_line_1bpp (__gal_a_line, dst_line, src_update.left, src_width);
+                put_one_line_1bpp(line_pixels, dst_line, src_update.left,
+                        src_width);
                 src_bits -= shadowfb_header->pitch;
                 dst_line += realfb_info->pitch;
                 break;
 
             case 2:
-                put_one_line_2bpp (__gal_a_line, dst_line, src_update.left, src_width);
+                put_one_line_2bpp(line_pixels, dst_line, src_update.left,
+                        src_width);
                 src_bits -= shadowfb_header->pitch;
                 dst_line += realfb_info->pitch;
                 break;
 
             case 4:
-                put_one_line_4bpp (__gal_a_line, dst_line, src_update.left, src_width);
+                put_one_line_4bpp(line_pixels, dst_line, src_update.left,
+                        src_width);
                 src_bits -= shadowfb_header->pitch;/* realfb_info->depth;*/
                 dst_line += realfb_info->pitch;
                 break;
 
             default:
-                put_one_line_8bpp (__gal_a_line, dst_line, src_update.left, src_width, realfb_info);
+                put_one_line_8bpp(line_pixels, dst_line, src_update.left,
+                        src_width, realfb_info);
                 src_bits -= realfb_info->pitch;
                 dst_line += realfb_info->pitch;
                 break;

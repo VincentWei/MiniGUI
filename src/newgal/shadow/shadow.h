@@ -47,6 +47,9 @@
 #ifndef _GAL_SHADOW_H
 #define _GAL_SHADOW_H
 
+#include <pthread.h>
+#include <semaphore.h>
+
 //#include "sysvideo.h"
 
 #ifdef __cplusplus
@@ -56,23 +59,31 @@ extern "C" {
 /* Hidden "this" pointer for the video functions */
 #define _THIS    GAL_VideoDevice *this
 
+#define NR_CONC_UPDATERS            4
+#define MIN_PIXELS_MULTI_UPDATER    4096
+
 typedef struct _ShadowFBHeader {
     unsigned int info_size;
     int width;
     int height;
     int depth;
     int pitch;
-    int dirty;            /* true for dirty, and should reset to false after refreshing the dirty area */
+
+    int dirty:1;
+    int palette_changed:1;
+
     RECT dirty_rect;
-    int palette_changed;  /* true for changed, and should reset to false after reflecting the change */
+
     int palette_offset;
+    int firstcolor;
+    int ncolors;
     int fb_offset;
+
     Uint32 Rmask;
     Uint32 Gmask;
     Uint32 Bmask;
     Uint32 Amask;
-    int firstcolor;
-    int ncolors;
+
 } ShadowFBHeader;
 
 #define FLAG_REALFB_PREALLOC  0x01
@@ -82,8 +93,8 @@ typedef struct _RealFBInfo {
     int height, width;
     int depth;
     int pitch;
-    void* fb;
-    void * real_device;
+    void *fb;
+    void *real_device;
 } RealFBInfo;
 
 /* Private display data */
@@ -93,6 +104,15 @@ struct GAL_PrivateVideoData {
 #ifdef _MGRM_PROCESSES
     int semid;
 #endif
+
+    int         multi_updater:1;
+
+    /* only valid when using multiple updaters */
+    RECT        dirty_rcs[NR_CONC_UPDATERS];
+    sem_t       update_sems[NR_CONC_UPDATERS];
+    pthread_t   update_thds[NR_CONC_UPDATERS];
+
+    sem_t       sync_sem;
 };
 
 typedef struct _ShadowFBOps {

@@ -123,10 +123,6 @@ extern void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo
 
 extern void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update);
 
-extern int refresh_init(int pitch);
-
-extern void refresh_destroy(void);
-
 /* Initialization/Query functions */
 static int SHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat);
 static int RealEngine_SetPalette(RealFBInfo *realfb_info, int firstcolor, int ncolors, void *color);
@@ -135,6 +131,7 @@ static GAL_Surface *SHADOW_SetVideoMode (_THIS, GAL_Surface *current, int width,
 static int SHADOW_SetColors (_THIS, int firstcolor, int ncolors, GAL_Color *colors);
 static void SHADOW_VideoQuit (_THIS);
 static BOOL SHADOW_SyncUpdate (_THIS);
+static BOOL SHADOW_SyncUpdateConcurrently (_THIS);
 
 /* Hardware surface functions */
 static int SHADOW_AllocHWSurface (_THIS, GAL_Surface *surface);
@@ -176,7 +173,6 @@ static void SHADOW_DeleteDevice(GAL_VideoDevice *device)
 {
     free (device->hidden);
     free (device);
-    refresh_destroy();
 }
 
 static void SHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
@@ -270,8 +266,8 @@ static ShadowFBOps shadow_fb_ops;
 static int RealEngine_GetInfo (RealFBInfo * realfb_info)
 {
     GAL_PixelFormat real_vformat;
-    char engine[LEN_ENGINE_NAME + 1], mode[LEN_MODE+1],
-        rotate_screen[LEN_MODE+1];
+    char engine[LEN_ENGINE_NAME + 1], mode[LEN_MODE+1];
+    char rotate_screen[LEN_MODE+1];
     int w, h, depth, pitch_size;
     GAL_VideoDevice* real_device;
 
@@ -365,8 +361,6 @@ static int RealEngine_GetInfo (RealFBInfo * realfb_info)
             shadow_fb_ops.refresh = refresh_normal_msb_right;
     }
 
-    refresh_init (pitch_size);
-
     return 0;
 }
 
@@ -416,6 +410,161 @@ static int RealEngine_Init(void)
     return 0;
 }
 
+struct update_thd_args {
+    _THIS;
+    int number;
+};
+
+static void* task_do_update(void* data)
+{
+    struct update_thd_args args;
+    args = *(struct update_thd_args *)data;
+
+    if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL))
+        return NULL;
+
+    sem_post(&args.this->hidden->sync_sem);
+
+    do {
+        sem_wait(&args.this->hidden->update_sems[args.number]);
+
+        pthread_testcancel();
+
+        RECT *dirty_rc = args.this->hidden->dirty_rcs + args.number;
+
+        shadow_fb_ops.refresh(_shadowfbheader,
+                args.this->hidden->realfb_info, dirty_rc);
+
+        /* notify main thread for done of update */
+        sem_post(&args.this->hidden->sync_sem);
+    } while (1);
+
+    return NULL;
+}
+
+static void schedule_updaters(_THIS, RECT *dirty_rc)
+{
+    int w = RECTWP(dirty_rc);
+    int h = RECTHP(dirty_rc);
+
+    if (w < 4 || h < 4 || (w * h) < MIN_PIXELS_MULTI_UPDATER) {
+        shadow_fb_ops.refresh(_shadowfbheader,
+            this->hidden->realfb_info, dirty_rc);
+        return;
+    }
+
+    // partition the dirty rectangle
+    this->hidden->dirty_rcs[0].left = dirty_rc->left;
+    this->hidden->dirty_rcs[0].top = dirty_rc->top;
+    this->hidden->dirty_rcs[0].right = (dirty_rc->left + dirty_rc->right) / 2;
+    this->hidden->dirty_rcs[0].bottom = (dirty_rc->top + dirty_rc->bottom) / 2;
+
+    this->hidden->dirty_rcs[1].left = this->hidden->dirty_rcs[0].right;
+    this->hidden->dirty_rcs[1].top = dirty_rc->top;
+    this->hidden->dirty_rcs[1].right = dirty_rc->right;
+    this->hidden->dirty_rcs[1].bottom = this->hidden->dirty_rcs[0].bottom;
+
+    this->hidden->dirty_rcs[2].left = dirty_rc->left;
+    this->hidden->dirty_rcs[2].top = this->hidden->dirty_rcs[0].bottom;
+    this->hidden->dirty_rcs[2].right = this->hidden->dirty_rcs[0].right;
+    this->hidden->dirty_rcs[2].bottom = dirty_rc->bottom;
+
+    this->hidden->dirty_rcs[3].left = this->hidden->dirty_rcs[0].right;
+    this->hidden->dirty_rcs[3].top = this->hidden->dirty_rcs[0].bottom;
+    this->hidden->dirty_rcs[3].right = dirty_rc->right;
+    this->hidden->dirty_rcs[3].bottom = dirty_rc->bottom;
+
+    for (int i = 0; i < NR_CONC_UPDATERS; i++) {
+        sem_post(&this->hidden->update_sems[i]);
+    }
+
+    for (int i = 0; i < NR_CONC_UPDATERS; i++) {
+        sem_wait(&this->hidden->sync_sem);
+    }
+}
+
+static BOOL SHADOW_SyncUpdateConcurrently (_THIS)
+{
+    RECT dirty_rect;
+    GAL_Rect update_rect;
+
+    SetRect(&dirty_rect, 0, 0, _shadowfbheader->width, _shadowfbheader->height);
+
+    if (_shadowfbheader->dirty || _shadowfbheader->palette_changed) {
+        GAL_VideoDevice *real_device;
+        real_device = this->hidden->realfb_info->real_device;
+        assert(real_device);
+
+        if (_shadowfbheader->palette_changed) {
+            real_device->SetColors (real_device, _shadowfbheader->firstcolor,
+                    _shadowfbheader->ncolors,
+                    (GAL_Color*)((char*)_shadowfbheader + _shadowfbheader->palette_offset));
+            SetRect (&_shadowfbheader->dirty_rect, 0, 0,
+                    _shadowfbheader->width, _shadowfbheader->height);
+        }
+
+        schedule_updaters(this, &_shadowfbheader->dirty_rect);
+
+        if (this->hidden->realfb_info->flags & _ROT_DIR_CW) {
+            _get_dst_rect_cw (&dirty_rect, &(_shadowfbheader->dirty_rect),
+                    this->hidden->realfb_info);
+        }
+        else if (this->hidden->realfb_info->flags & _ROT_DIR_CCW) {
+            _get_dst_rect_ccw (&dirty_rect, &(_shadowfbheader->dirty_rect),
+                    this->hidden->realfb_info);
+        }
+        else if (this->hidden->realfb_info->flags & _ROT_DIR_HFLIP) {
+            dirty_rect = _shadowfbheader->dirty_rect;
+            _get_dst_rect_hflip (&dirty_rect, this->hidden->realfb_info);
+        }
+        else if (this->hidden->realfb_info->flags & _ROT_DIR_VFLIP) {
+            dirty_rect = _shadowfbheader->dirty_rect;
+            _get_dst_rect_vflip (&dirty_rect, this->hidden->realfb_info);
+        }
+        else {
+            dirty_rect = _shadowfbheader->dirty_rect;
+        }
+
+        update_rect.x = dirty_rect.left;
+        update_rect.y = dirty_rect.top;
+        update_rect.w = dirty_rect.right - dirty_rect.left;
+        update_rect.h = dirty_rect.bottom - dirty_rect.top;
+
+        if (real_device->UpdateRects)
+            real_device->UpdateRects(real_device, 1, &update_rect);
+        if (real_device->SyncUpdate)
+            real_device->SyncUpdate(real_device);
+
+        SetRect (&_shadowfbheader->dirty_rect, 0, 0, 0, 0);
+        _shadowfbheader->dirty = FALSE;
+        _shadowfbheader->palette_changed = FALSE;
+    }
+
+    return TRUE;
+}
+
+static int create_multiple_updaters(_THIS)
+{
+    if (sem_init(&this->hidden->sync_sem, 0, 0))
+        return -1;
+
+    struct update_thd_args args = { this, 0 };
+
+    for (int i = 0; i < NR_CONC_UPDATERS; i++) {
+        if (sem_init(&this->hidden->update_sems[i], 0, 0))
+            return -1;
+
+        args.number = i;
+        if (pthread_create(&this->hidden->update_thds[i], NULL,
+                task_do_update, &args))
+            return -1;
+
+        sem_wait(&this->hidden->sync_sem);
+    }
+
+    return 0;
+}
+
 static int SHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
 {
 #ifdef _MGRM_PROCESSES
@@ -447,6 +596,21 @@ static int SHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
         }
     }
 #endif
+
+    char multi_updater[LEN_MODE+1] = "no";
+    if (GetMgEtcValue ("shadow", "multi_updater",
+                multi_updater, LEN_MODE) < 0) {
+        // keep default
+    }
+
+    if (strcmp (multi_updater, "yes") == 0 ||
+            strcmp (multi_updater, "true") == 0) {
+        if (create_multiple_updaters (this)) {
+            perror ("NEWGAL>SHADOW: create_updaters");
+            return -1;
+        }
+        this->hidden->multi_updater = 1;
+    }
 
     /* We're done! */
     return 0;
@@ -649,12 +813,27 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
     current->pitch = _shadowfbheader->pitch;
     current->pixels = (char *)_shadowfbheader + _shadowfbheader->fb_offset;
 
+    if (this->hidden->multi_updater) {
+        this->SyncUpdate = SHADOW_SyncUpdateConcurrently;
+    }
+
     /* We're done */
     return (current);
 }
 
 static void SHADOW_VideoQuit (_THIS)
 {
+    if (this->hidden->multi_updater) {
+        for (int i = 0; i < NR_CONC_UPDATERS; i++) {
+            pthread_cancel(this->hidden->update_thds[i]);
+            sem_post(&this->hidden->update_sems[i]);
+            pthread_join(this->hidden->update_thds[i], NULL);
+            sem_destroy(&this->hidden->update_sems[i]);
+        }
+
+        sem_destroy(&this->hidden->sync_sem);
+    }
+
     if (_shadowfbheader) {
         _shadowfbheader->dirty = FALSE;
         free(_shadowfbheader);
