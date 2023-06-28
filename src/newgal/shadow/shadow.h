@@ -50,6 +50,13 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#undef _MGUSE_PIXMAN
+
+#ifdef _MGUSE_PIXMAN
+#include <pixman.h>
+#include <math.h>
+#endif
+
 //#include "sysvideo.h"
 
 #ifdef __cplusplus
@@ -59,8 +66,8 @@ extern "C" {
 /* Hidden "this" pointer for the video functions */
 #define _THIS    GAL_VideoDevice *this
 
-#define NR_CONC_UPDATERS            4
-#define MIN_PIXELS_MULTI_UPDATER    4096
+#define MAX_EXTRA_UPDATERS              3
+#define MIN_PIXELS_MULTI_UPDATER        4096
 
 typedef struct _ShadowFBHeader {
     unsigned int info_size;
@@ -94,7 +101,15 @@ typedef struct _RealFBInfo {
     int depth;
     int pitch;
     void *fb;
-    void *real_device;
+
+    GAL_VideoDevice *real_device;
+
+#ifdef _MGUSE_PIXMAN
+    pixman_image_t *src_img;
+    pixman_image_t *dst_img;
+    pixman_transform_t transform;
+#endif
+
 } RealFBInfo;
 
 /* Private display data */
@@ -105,13 +120,12 @@ struct GAL_PrivateVideoData {
     int semid;
 #endif
 
-    int         multi_updater:1;
+    int         extra_updaters;
 
-    /* only valid when using multiple updaters */
-    RECT        dirty_rcs[NR_CONC_UPDATERS];
-    sem_t       update_sems[NR_CONC_UPDATERS];
-    pthread_t   update_thds[NR_CONC_UPDATERS];
-
+    /* only valid when extra_updaters > 0 */
+    RECT        dirty_rcs[MAX_EXTRA_UPDATERS + 1];
+    sem_t       update_sems[MAX_EXTRA_UPDATERS];
+    pthread_t   update_thds[MAX_EXTRA_UPDATERS];
     sem_t       sync_sem;
 };
 
