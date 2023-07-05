@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2023, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -868,6 +868,7 @@ static CHARSETOPS CharsetOps_iso8859_6 = {
     3,
     FONT_CHARSET_ISO8859_6,
     0,
+    1,
     iso8859_6_len_first_char,
     iso8859_6_get_char_value,
     iso8859_6_get_shaped_char_value,

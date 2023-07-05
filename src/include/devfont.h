@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2023, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -208,6 +208,9 @@ struct _CHARSETOPS
 
     /** Default character. */
     Achar32 def_char_value;
+
+    /** Whether use legacy BIDI algorithm (Since 5.0.13). */
+    unsigned legacy_bidi:1;
 
     /** The method to get the length of the first character. */
     int (*len_first_char) (const unsigned char* mstr, int mstrlen);

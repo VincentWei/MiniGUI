@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2023, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -239,10 +239,36 @@ static const BidiType linear_enum_to_bidi_type[] = {
 #undef _UNIBIDI_ADD_TYPE
 };
 
+/* Since 5.0.13: this function only returns BidiType which
+   is recognizable by the legacy BIDI algorithm. */
 static BidiType unicode_bidi_char_type(Achar32 ch)
 {
     ch = REAL_ACHAR(ch);
-    return linear_enum_to_bidi_type[UNIBIDI_GET_BIDI_TYPE(ch)];
+    BidiType bt = linear_enum_to_bidi_type[UNIBIDI_GET_BIDI_TYPE(ch)];
+
+    switch (bt) {
+        case BIDI_TYPE_LTR:
+        case BIDI_TYPE_RTL:
+        case BIDI_TYPE_AL:
+        case BIDI_TYPE_EN:
+        case BIDI_TYPE_AN:
+        case BIDI_TYPE_ET:
+        case BIDI_TYPE_CS:
+        case BIDI_TYPE_NSM:
+        case BIDI_TYPE_BN:
+        case BIDI_TYPE_BS:
+        case BIDI_TYPE_SS:
+        case BIDI_TYPE_WS:
+        case BIDI_TYPE_ON:
+        case BIDI_TYPE_SOT:
+        case BIDI_TYPE_EOT:
+            return bt;
+        default:
+            _DBG_PRINTF("Not recognizable for char (0x%04x): %u\n", ch, bt);
+            break;
+    }
+
+    return BIDI_TYPE_WS;
 }
 
 BidiType GUIAPI UCharGetBidiType(Uchar32 uc)
@@ -628,6 +654,7 @@ CHARSETOPS __mg_CharsetOps_utf8 = {
     6,
     FONT_CHARSET_UTF8,
     0,
+    0,
     utf8_len_first_char,
     utf8_get_char_value,
     NULL,
@@ -854,6 +881,7 @@ CHARSETOPS __mg_CharsetOps_utf16le = {
     4,
     FONT_CHARSET_UTF16LE,
     0,
+    0,
     utf16le_len_first_char,
     utf16le_get_char_value,
     NULL,
@@ -1079,6 +1107,7 @@ CHARSETOPS __mg_CharsetOps_utf16be = {
     0x7FFFFFFF,
     4,
     FONT_CHARSET_UTF16BE,
+    0,
     0,
     utf16be_len_first_char,
     utf16be_get_char_value,
