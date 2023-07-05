@@ -533,7 +533,8 @@ int GUIAPI GetTextExtentPoint (HDC hdc,
     size->cx = size->cy = 0;
 
     /* This function does not support BIDI */
-    if (mbc_devfont && pdc->bidi_flags &&
+    if (mbc_devfont &&
+            (mbc_devfont->charset_ops->legacy_bidi || pdc->bidi_flags) &&
             mbc_devfont->charset_ops->bidi_char_type) {
         get_text_extent_point_for_bidi(pdc, text, len, max_extent,
                 fit_chars, pos_chars, dx_chars, size);

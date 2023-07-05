@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.13](#version-5013)
+   + [What's new in version 5.0.13](#whats-new-in-version-5013)
 - [Version 5.0.12](#version-5012)
    + [What's new in version 5.0.12](#whats-new-in-version-5012)
 - [Version 5.0.11](#version-5011)
@@ -29,6 +31,23 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.13
+
+On July 31, 2023, FMSoft announces the availability of MiniGUI 5.0.13,
+which is an enhancement release with some minor enhancements
+of MiniGUI 5.0.x.
+
+### What's new in version 5.0.13
+
+In this version, we made some enhancements:
+
+* ENHANCEMENTS:
+   - Disable BIDI for text in UTF-8 charset by default.
+* CHANGES:
+   - Add `BIDI_FLAG_NONE` and `BIDI_FLAG_LEGACY`.
+* BUGFIXING:
+   - Ignore C0CTRL characters when renerding text.
 
 ## Version 5.0.12
 

@@ -136,6 +136,8 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
 
     switch (char_type & ACHARTYPE_BASIC_MASK) {
         case ACHAR_BASIC_ZEROWIDTH:
+        case ACHAR_BASIC_CTRL1:
+        case ACHAR_BASIC_CTRL2:
             adv_x = adv_y = 0;
             break;
 
@@ -219,6 +221,8 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
 
     switch (char_type & ACHARTYPE_BASIC_MASK) {
         case ACHAR_BASIC_ZEROWIDTH:
+        case ACHAR_BASIC_CTRL1:
+        case ACHAR_BASIC_CTRL2:
             adv_x = adv_y = 0;
             break;
 
@@ -590,6 +594,8 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
         int adv_x = 0, adv_y = 0;
         switch (achar_type & ACHARTYPE_BASIC_MASK) {
             case ACHAR_BASIC_ZEROWIDTH:
+            case ACHAR_BASIC_CTRL1:
+            case ACHAR_BASIC_CTRL2:
                 adv_x = adv_y = 0;
                 break;
             case ACHAR_BASIC_LF:
@@ -660,7 +666,8 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
     /* set size to zero first */
     size->cx = size->cy = 0;
 
-    if (mbc_devfont && pdc->bidi_flags &&
+    if (mbc_devfont &&
+            (mbc_devfont->charset_ops->legacy_bidi || pdc->bidi_flags) &&
             mbc_devfont->charset_ops->bidi_char_type) {
         return get_tabbed_text_extent_point_for_bidi(hdc, text, len,
                 max_extent, fit_chars, pos_chars, dx_chars, size);
@@ -709,6 +716,8 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
 
             switch (char_type & ACHARTYPE_BASIC_MASK) {
                 case ACHAR_BASIC_ZEROWIDTH:
+                case ACHAR_BASIC_CTRL1:
+                case ACHAR_BASIC_CTRL2:
                     break;
                 case ACHAR_BASIC_LF:
                     size->cy += line_height;
@@ -784,6 +793,8 @@ int GUIAPI GetTabbedACharsExtentPointEx(HDC hdc,
         int adv_x = 0, adv_y = 0;
         switch (achar_type & ACHARTYPE_BASIC_MASK) {
             case ACHAR_BASIC_ZEROWIDTH:
+            case ACHAR_BASIC_CTRL1:
+            case ACHAR_BASIC_CTRL2:
                 adv_x = adv_y = 0;
                 break;
             case ACHAR_BASIC_LF:

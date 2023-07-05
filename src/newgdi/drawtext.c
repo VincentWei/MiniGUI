@@ -120,6 +120,8 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
 
     switch (char_type & ACHARTYPE_BASIC_MASK) {
         case ACHAR_BASIC_ZEROWIDTH:
+        case ACHAR_BASIC_CTRL1:
+        case ACHAR_BASIC_CTRL2:
         case ACHAR_BASIC_CR:
             adv_x = adv_y = 0;
             break;
@@ -312,7 +314,7 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
                 pText, nCount, '\n', &nr_delim_newline);
 
         /* line_len == 0 means the first char is '\n' */
-        if(nFormat & DT_SINGLELINE) {
+        if (nFormat & DT_SINGLELINE) {
             line_len = nCount;
         }
         else if (line_len == 0) {
@@ -324,7 +326,7 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
         nCount -= line_len + nr_delim_newline;
         pText = pText + line_len + nr_delim_newline;
 
-        while(line_len){
+        while (line_len){
             if (nLines == 0) {
                 line_x = indent;
                 maxwidth = rcDraw.right - rcDraw.left;
@@ -369,7 +371,7 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
                 ctxt.x = x + line_x;
                 ctxt.advance = 0;
                 ctxt.only_extent = old_set;
-                if((nFormat & DT_CALCRECT) && (pRect->left > ctxt.x))
+                if ((nFormat & DT_CALCRECT) && (pRect->left > ctxt.x))
                     pRect->left = ctxt.x;
                 _gdi_reorder_text_break (pdc, pline, line_len,
                         (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,

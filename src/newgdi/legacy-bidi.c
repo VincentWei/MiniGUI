@@ -95,6 +95,7 @@ static Achar32* _gdi_get_achars_string(PDC pdc, const unsigned char* text,
                 logical_achars[i++] = SET_MBCHV(chv);
                 char_type = (*mbc_devfont->charset_ops->char_type)
                     (chv);
+
                 if (!(char_type & ACHAR_BASIC_NOSPACING_MARK)){
                     prev_mchar = text;
                     prev_len = len_cur_char;
@@ -476,7 +477,7 @@ static int _gdi_output_achars_direct(PDC pdc, const unsigned char* text,
     }
 #endif
 
-    while (left_bytes > 0){
+    while (left_bytes > 0) {
         if (mbc_devfont) {
             len_cur_char = mbc_devfont->charset_ops->len_first_char
                 ((const unsigned char*)text, left_bytes);
@@ -551,7 +552,9 @@ Achar32* _gdi_bidi_reorder (PDC pdc, const unsigned char* text, int text_len,
     DEVFONT* mbc_devfont = pdc->pLogFont->devfonts[1];
     Achar32 *logical_achars = NULL;
 
-    if (mbc_devfont && mbc_devfont->charset_ops->bidi_char_type) {
+    if (mbc_devfont &&
+            (mbc_devfont->charset_ops->legacy_bidi || pdc->bidi_flags) &&
+            mbc_devfont->charset_ops->bidi_char_type) {
         logical_achars = _gdi_get_achars_string (pdc, text, text_len, nr_achars);
         if (*nr_achars > 0)
             __mg_legacy_bidi_achars_reorder (mbc_devfont->charset_ops,
@@ -574,7 +577,8 @@ int _gdi_reorder_text (PDC pdc, const unsigned char* text, int text_len,
         int nr_achars = 0;
         Achar32 *logical_achars = NULL;
 
-        if (mbc_devfont->charset_ops->bidi_char_type) {
+        if ((mbc_devfont->charset_ops->legacy_bidi || pdc->bidi_flags) &&
+                mbc_devfont->charset_ops->bidi_char_type) {
 
             logical_achars = _gdi_bidi_reorder (pdc, text, text_len, &nr_achars);
             if (!logical_achars || nr_achars <= 0)
@@ -969,7 +973,8 @@ int _gdi_reorder_text_break (PDC pdc, const unsigned char* text,
         int nr_achars = text_len;
         Achar32 *logical_achars = NULL;
 
-        if (mbc_devfont->charset_ops->bidi_char_type){
+        if ((mbc_devfont->charset_ops->legacy_bidi || pdc->bidi_flags) &&
+                mbc_devfont->charset_ops->bidi_char_type){
 
             logical_achars = _gdi_get_achars_string_break(pdc, text, text_len,
                     &nr_achars, context);
@@ -1456,8 +1461,8 @@ int GUIAPI BIDIGetTextVisualAChars(LOGFONT* log_font,
     nr_achars = BIDIGetTextLogicalAChars(log_font, text, text_len,
             achs, achs_map);
 
-    if (nr_achars > 0 && mbc_devfont
-                && mbc_devfont->charset_ops->bidi_char_type) {
+    if (nr_achars > 0 && mbc_devfont &&
+            mbc_devfont->charset_ops->bidi_char_type) {
         __mg_legacy_bidi_map_reorder (mbc_devfont->charset_ops,
                 *achs, nr_achars, -1, *achs_map);
     }

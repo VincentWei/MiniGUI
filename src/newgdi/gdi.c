@@ -1932,7 +1932,7 @@ static void dc_InitDC (PDC pdc, HWND hWnd, BOOL bIsClient)
 
     pdc->mapmode = MM_TEXT;
     pdc->ta_flags = TA_LEFT | TA_TOP | TA_NOUPDATECP;
-    pdc->bidi_flags = BIDI_FLAG_LTR;
+    pdc->bidi_flags = BIDI_FLAG_NONE;
 
     pdc->ViewOrig.x = pdc->ViewOrig.y = 0;
     pdc->ViewExtent.x = pdc->ViewExtent.y = 1;
@@ -2155,7 +2155,7 @@ static void dc_InitScreenDC (PDC pdc, GAL_Surface *surface)
 
     pdc->mapmode = MM_TEXT;
     pdc->ta_flags = TA_LEFT | TA_TOP | TA_NOUPDATECP;
-    pdc->bidi_flags = BIDI_FLAG_LTR;
+    pdc->bidi_flags = BIDI_FLAG_NONE;
 
     pdc->ViewOrig.x = pdc->ViewOrig.y = 0;
     pdc->ViewExtent.x = pdc->ViewExtent.y = 1;

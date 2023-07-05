@@ -10713,7 +10713,10 @@ MG_EXPORT int GUIAPI GetTabbedTextExtent (HDC hdc,
             SetDCAttr (hdc, DC_ATTR_TEXT_ALIGN, (DWORD)ta_flags)
 
 #define BIDI_FLAG_LTR       0x00
-#define BIDI_FLAG_RTL       0x10
+#define BIDI_FLAG_RTL       0x01
+
+#define BIDI_FLAG_NONE      BIDI_FLAG_LTR
+#define BIDI_FLAG_LEGACY    0x10
 
 #define GetBIDIFlags(hdc)                   \
             GetDCAttr (hdc, DC_ATTR_BIDI_FLAGS)
