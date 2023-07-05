@@ -266,6 +266,11 @@ MGNCS_EXPORT mObject* mgInitObjectArgs(mObject* pobj, mObjectClass* _class, ...)
 #define INIT_OBJ(Clss, pobj)  INIT_OBJEX(Clss, pobj, 0)
 #define INIT_OBJV(Clss, pobj, ...) ((Clss* )initObjectArgs((mObject*)((void*)(pobj)), \
                 (mObjectClass*)((void*)(&(Class(Clss)))), ##__VA_ARGS__))
+
+/*
+** the implementation of GET_ARG_COUNT is bad, because some systems
+** define va_list as a pointer, and others define it as an array of
+** pointers (of length 1).
 static inline int MGGET_ARG_COUNT(va_list va)
 {
 	union {
@@ -282,6 +287,8 @@ static inline int MGGET_ARG_COUNT(va_list va)
     return 1;
 }
 #define GET_ARG_COUNT MGGET_ARG_COUNT
+*/
+
 #define UNIT_OBJ(pobj)  (_c(pobj)->destroy(pobj))
 
 

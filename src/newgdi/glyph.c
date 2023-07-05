@@ -137,7 +137,9 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 
     glyph_type = devfont->charset_ops->glyph_type (glyph_value);
 
-    if (glyph_type == MCHAR_TYPE_ZEROWIDTH) {
+    if (glyph_type == MCHAR_TYPE_ZEROWIDTH ||
+            glyph_type == MCHAR_TYPE_CTRL1 ||
+            glyph_type == MCHAR_TYPE_CTRL2) {
         if (adv_x) *adv_x = 0;
         if (adv_y) *adv_y = 0;
         advance = 0;

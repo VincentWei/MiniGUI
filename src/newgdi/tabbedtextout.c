@@ -99,6 +99,8 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
 
     switch (glyph_type) {
         case MCHAR_TYPE_ZEROWIDTH:
+        case MCHAR_TYPE_CTRL1:
+        case MCHAR_TYPE_CTRL2:
             adv_x = adv_y = 0;
             break;
 
@@ -176,6 +178,8 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
 
     switch (glyph_type) {
         case MCHAR_TYPE_ZEROWIDTH:
+        case MCHAR_TYPE_CTRL1:
+        case MCHAR_TYPE_CTRL2:
             adv_x = adv_y = 0;
             break;
 
@@ -546,6 +550,8 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
 
             switch (glyph_type) {
                 case MCHAR_TYPE_ZEROWIDTH:
+                case MCHAR_TYPE_CTRL1:
+                case MCHAR_TYPE_CTRL2:
                 case MCHAR_TYPE_VOWEL:
                     break;
                 case MCHAR_TYPE_LF:

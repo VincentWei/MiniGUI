@@ -295,6 +295,8 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
 
     switch (glyph_type) {
         case MCHAR_TYPE_ZEROWIDTH:
+        case MCHAR_TYPE_CTRL1:
+        case MCHAR_TYPE_CTRL2:
         case MCHAR_TYPE_CR:
             adv_x = adv_y = 0;
             break;

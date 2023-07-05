@@ -1055,8 +1055,10 @@ int GUIAPI GetGlyphsExtentPoint(
             (glyphs[i]);
 
 
-        if (glyph_type == MCHAR_TYPE_ZEROWIDTH 
-                || (glyph_type & MCHAR_TYPE_NOSPACING_MARK)) {
+        if (glyph_type == MCHAR_TYPE_ZEROWIDTH ||
+                glyph_type == MCHAR_TYPE_CTRL1 ||
+                glyph_type == MCHAR_TYPE_CTRL2 ||
+                (glyph_type & MCHAR_TYPE_NOSPACING_MARK)) {
             adv_x = adv_y = 0;
         }
         else {
@@ -1112,8 +1114,10 @@ int GUIAPI GetGlyphsExtent(
         glyph_type = devfont->charset_ops->glyph_type
             (glyphs[i]);
 
-        if (glyph_type == MCHAR_TYPE_ZEROWIDTH 
-                || (glyph_type & MCHAR_TYPE_NOSPACING_MARK)) {
+        if (glyph_type == MCHAR_TYPE_ZEROWIDTH ||
+                glyph_type == MCHAR_TYPE_CTRL1 ||
+                glyph_type == MCHAR_TYPE_CTRL2 ||
+                (glyph_type & MCHAR_TYPE_NOSPACING_MARK)) {
             adv_x = adv_y = 0;
         }
         else {

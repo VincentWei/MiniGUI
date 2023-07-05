@@ -86,7 +86,9 @@ static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, int glyph_type)
     int adv_x, adv_y;
     int bkmode;
 
-    if (glyph_type == MCHAR_TYPE_ZEROWIDTH) {
+    if (glyph_type == MCHAR_TYPE_ZEROWIDTH ||
+            glyph_type == MCHAR_TYPE_CTRL1 ||
+            glyph_type == MCHAR_TYPE_CTRL2) {
         adv_x = adv_y = 0;
     }
     else if (glyph_type == MCHAR_TYPE_VOWEL){
@@ -142,7 +144,9 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value, int glyph_type)
     int adv_x, adv_y;
     int bkmode;
 
-    if (glyph_type == MCHAR_TYPE_ZEROWIDTH) {
+    if (glyph_type == MCHAR_TYPE_ZEROWIDTH ||
+            glyph_type == MCHAR_TYPE_CTRL1 ||
+            glyph_type == MCHAR_TYPE_CTRL2) {
         adv_x = adv_y = 0;
     }
     else if (glyph_type == MCHAR_TYPE_VOWEL){
@@ -308,7 +312,9 @@ static BOOL cb_textout_omitted (void* context, Glyph32 glyph_value, int glyph_ty
     //BBOX bbox;
     int bkmode = ctxt->pdc->bkmode;
 
-    if (glyph_type == MCHAR_TYPE_ZEROWIDTH) {
+    if (glyph_type == MCHAR_TYPE_ZEROWIDTH ||
+            glyph_type == MCHAR_TYPE_CTRL1 ||
+            glyph_type == MCHAR_TYPE_CTRL2) {
         adv_x = adv_y = 0;
     }
     else if(glyph_type == MCHAR_TYPE_VOWEL) {

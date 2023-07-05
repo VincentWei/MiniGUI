@@ -1,12 +1,25 @@
 # Release Notes
 
+## Version 3.0.14
+
+On July 31, 2023, FMSoft announces the availability of MiniGUI 3.0.13,
+which is a bug fixing release of MiniGUI 3.0.x.
+
+### What's new in version 3.0.14
+
+In this version, we fixed some bugs:
+
+* ENHANCEMENTS:
+   - Ignore C0CTRL characters when renerding text.
+   - Tune some code to suppress compilation warings.
+
 ## Version 3.0.13
 
 The MiniGUI development team announces the availability of MiniGUI 3.0.13.
 All users of MiniGUI are encouraged to test this version carefully, and 
 report any bugs and incompatibilities in
 
-    https://github.com/VincentWei/minigui. 
+    https://github.com/VincentWei/minigui
 
 ### What's new in this version
 
