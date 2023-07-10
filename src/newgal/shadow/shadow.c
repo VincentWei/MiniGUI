@@ -513,8 +513,10 @@ static void* task_do_update(void* data)
 
         RECT *dirty_rc = args.this->hidden->dirty_rcs + args.number;
 
-        shadow_fb_ops.refresh(_shadowfbheader,
-                args.this->hidden->realfb_info, dirty_rc);
+        if (RECTHP(dirty_rc)) {
+            shadow_fb_ops.refresh(_shadowfbheader,
+                    args.this->hidden->realfb_info, dirty_rc);
+        }
 
         /* notify main thread for done of update */
         sem_post(&args.this->hidden->sync_sem);
@@ -527,45 +529,62 @@ static void schedule_updaters(_THIS, RECT *dirty_rc)
 {
     int w = RECTWP(dirty_rc);
     int h = RECTHP(dirty_rc);
+    int i;
 
-    if (h <= this->hidden->extra_updaters || (w * h) < MIN_PIXELS_MULTI_UPDATER) {
+    /* always use updaters
+    if (h < this->hidden->nr_updaters || (w * h) < MIN_PIXELS_USING_UPDATER) {
         shadow_fb_ops.refresh(_shadowfbheader,
             this->hidden->realfb_info, dirty_rc);
         return;
     }
+    */
 
-    // partition the dirty rectangle horizontally
-    int span = h / (this->hidden->extra_updaters + 1);
-    assert(span > 0);
-
-    int i;
-    for (i = 0; i <= this->hidden->extra_updaters; i++) {
-        this->hidden->dirty_rcs[i].left = dirty_rc->left;
-        this->hidden->dirty_rcs[i].right = dirty_rc->right;
-        if (i == 0)
-            this->hidden->dirty_rcs[i].top = dirty_rc->top;
-        else
-            this->hidden->dirty_rcs[i].top =
-                this->hidden->dirty_rcs[i-1].bottom;
-
-        this->hidden->dirty_rcs[i].bottom =
-            this->hidden->dirty_rcs[i].top + span;
+    /* wait for the finish of extra updaters */
+    for (i = 0; i < this->hidden->nr_updaters; i++) {
+        sem_wait(&this->hidden->sync_sem);
     }
-    this->hidden->dirty_rcs[i - 1].bottom = dirty_rc->bottom;
+
+    /* partition the dirty rectangle horizontally */
+    int span = h / (this->hidden->nr_updaters);
+    if (span == 0) {
+        memset(this->hidden->dirty_rcs, 0, sizeof(this->hidden->dirty_rcs));
+        for (i = 0; i < h; i++) {
+            this->hidden->dirty_rcs[i].left = dirty_rc->left;
+            this->hidden->dirty_rcs[i].right = dirty_rc->right;
+            if (i == 0)
+                this->hidden->dirty_rcs[i].top = dirty_rc->top;
+            else
+                this->hidden->dirty_rcs[i].top =
+                    this->hidden->dirty_rcs[i-1].bottom;
+            this->hidden->dirty_rcs[i].bottom =
+                this->hidden->dirty_rcs[i].top + 1;
+        }
+    }
+    else {
+        for (i = 0; i < this->hidden->nr_updaters; i++) {
+            this->hidden->dirty_rcs[i].left = dirty_rc->left;
+            this->hidden->dirty_rcs[i].right = dirty_rc->right;
+            if (i == 0)
+                this->hidden->dirty_rcs[i].top = dirty_rc->top;
+            else
+                this->hidden->dirty_rcs[i].top =
+                    this->hidden->dirty_rcs[i-1].bottom;
+
+            this->hidden->dirty_rcs[i].bottom =
+                this->hidden->dirty_rcs[i].top + span;
+        }
+        this->hidden->dirty_rcs[i - 1].bottom = dirty_rc->bottom;
+    }
 
     /* notify extra updaters */
-    for (i = 0; i < this->hidden->extra_updaters; i++) {
+    for (i = 0; i < this->hidden->nr_updaters; i++) {
         sem_post(&this->hidden->update_sems[i]);
     }
 
-    /* update the last rectangle */
+    /* update the last rectangle
     shadow_fb_ops.refresh(_shadowfbheader, this->hidden->realfb_info,
-            this->hidden->dirty_rcs + this->hidden->extra_updaters);
-
-    /* wait for the finish of all extra updaters */
-    for (i = 0; i < this->hidden->extra_updaters; i++) {
-        sem_wait(&this->hidden->sync_sem);
-    }
+            this->hidden->dirty_rcs + this->hidden->nr_updaters);
+    */
 }
 
 static BOOL SHADOW_SyncUpdateConcurrently (_THIS)
@@ -635,16 +654,28 @@ static int create_extra_updaters(_THIS)
 
     struct update_thd_args args = { this, 0 };
 
-    for (int i = 0; i < this->hidden->extra_updaters; i++) {
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    for (int i = 0; i < this->hidden->nr_updaters; i++) {
         if (sem_init(&this->hidden->update_sems[i], 0, 0))
             return -1;
 
+        struct sched_param sp = { 90 };
+        pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+        pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+        pthread_attr_setschedparam(&attr, &sp);
+
         args.number = i;
-        if (pthread_create(&this->hidden->update_thds[i], NULL,
+        if (pthread_create(&this->hidden->update_thds[i], &attr,
                 task_do_update, &args))
             return -1;
 
         sem_wait(&this->hidden->sync_sem);
+    }
+    pthread_attr_destroy(&attr);
+
+    for (int i = 0; i < this->hidden->nr_updaters; i++) {
+        sem_post(&this->hidden->sync_sem);
     }
 
     return 0;
@@ -682,19 +713,19 @@ static int SHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
     }
 #endif
 
-    char extra_updaters[LEN_MODE+1] = "0";
-    if (GetMgEtcValue ("shadow", "extra_updaters",
-                extra_updaters, LEN_MODE) < 0) {
+    char nr_updaters[LEN_MODE+1] = "0";
+    if (GetMgEtcValue ("shadow", "nr_updaters",
+                nr_updaters, LEN_MODE) < 0) {
         // keep default
     }
 
-    this->hidden->extra_updaters = atoi(extra_updaters);
-    if (this->hidden->extra_updaters < 0)
-        this->hidden->extra_updaters = 0;
-    else if (this->hidden->extra_updaters > MAX_EXTRA_UPDATERS)
-        this->hidden->extra_updaters = MAX_EXTRA_UPDATERS;
+    this->hidden->nr_updaters = atoi(nr_updaters);
+    if (this->hidden->nr_updaters < 0)
+        this->hidden->nr_updaters = 0;
+    else if (this->hidden->nr_updaters > MAX_NR_UPDATERS)
+        this->hidden->nr_updaters = MAX_NR_UPDATERS;
 
-    if (this->hidden->extra_updaters > 0) {
+    if (this->hidden->nr_updaters > 0) {
         if (create_extra_updaters(this)) {
             perror ("NEWGAL>SHADOW: create_updaters");
         }
@@ -901,7 +932,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
     current->pitch = _shadowfbheader->pitch;
     current->pixels = (char *)_shadowfbheader + _shadowfbheader->fb_offset;
 
-    if (this->hidden->extra_updaters > 0) {
+    if (this->hidden->nr_updaters > 0) {
         this->SyncUpdate = SHADOW_SyncUpdateConcurrently;
     }
 
@@ -971,8 +1002,8 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
 
 static void SHADOW_VideoQuit (_THIS)
 {
-    if (this->hidden->extra_updaters > 0) {
-        for (int i = 0; i < this->hidden->extra_updaters; i++) {
+    if (this->hidden->nr_updaters > 0) {
+        for (int i = 0; i < this->hidden->nr_updaters; i++) {
             pthread_cancel(this->hidden->update_thds[i]);
             sem_post(&this->hidden->update_sems[i]);
             pthread_join(this->hidden->update_thds[i], NULL);

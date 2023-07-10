@@ -66,8 +66,8 @@ extern "C" {
 /* Hidden "this" pointer for the video functions */
 #define _THIS    GAL_VideoDevice *this
 
-#define MAX_EXTRA_UPDATERS              3
-#define MIN_PIXELS_MULTI_UPDATER        4096
+#define MAX_NR_UPDATERS              6
+#define MIN_PIXELS_USING_UPDATER     4096
 
 typedef struct _ShadowFBHeader {
     unsigned int info_size;
@@ -120,12 +120,12 @@ struct GAL_PrivateVideoData {
     int semid;
 #endif
 
-    int         extra_updaters;
+    int         nr_updaters;
 
-    /* only valid when extra_updaters > 0 */
-    RECT        dirty_rcs[MAX_EXTRA_UPDATERS + 1];
-    sem_t       update_sems[MAX_EXTRA_UPDATERS];
-    pthread_t   update_thds[MAX_EXTRA_UPDATERS];
+    /* only valid when nr_updaters > 0 */
+    RECT        dirty_rcs[MAX_NR_UPDATERS];
+    sem_t       update_sems[MAX_NR_UPDATERS];
+    pthread_t   update_thds[MAX_NR_UPDATERS];
     sem_t       sync_sem;
 };
 
