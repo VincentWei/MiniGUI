@@ -110,6 +110,88 @@ static void FB_WaitIdle(_THIS);
 #define FBIO_ENABLE_CACHE       0x4631
 #endif
 
+#ifdef FBCON_DEBUG
+static void print_vinfo(struct fb_var_screeninfo *vinfo)
+{
+    fprintf(stderr, "Printing vinfo:\n");
+    fprintf(stderr, "txres: %d\n", vinfo->xres);
+    fprintf(stderr, "tyres: %d\n", vinfo->yres);
+    fprintf(stderr, "txres_virtual: %d\n", vinfo->xres_virtual);
+    fprintf(stderr, "tyres_virtual: %d\n", vinfo->yres_virtual);
+    fprintf(stderr, "txoffset: %d\n", vinfo->xoffset);
+    fprintf(stderr, "tyoffset: %d\n", vinfo->yoffset);
+    fprintf(stderr, "tbits_per_pixel: %d\n", vinfo->bits_per_pixel);
+    fprintf(stderr, "tgrayscale: %d\n", vinfo->grayscale);
+    fprintf(stderr, "tnonstd: %d\n", vinfo->nonstd);
+    fprintf(stderr, "tactivate: %d\n", vinfo->activate);
+    fprintf(stderr, "theight: %d\n", vinfo->height);
+    fprintf(stderr, "twidth: %d\n", vinfo->width);
+    fprintf(stderr, "taccel_flags: %d\n", vinfo->accel_flags);
+    fprintf(stderr, "tpixclock: %d\n", vinfo->pixclock);
+    fprintf(stderr, "tleft_margin: %d\n", vinfo->left_margin);
+    fprintf(stderr, "tright_margin: %d\n", vinfo->right_margin);
+    fprintf(stderr, "tupper_margin: %d\n", vinfo->upper_margin);
+    fprintf(stderr, "tlower_margin: %d\n", vinfo->lower_margin);
+    fprintf(stderr, "thsync_len: %d\n", vinfo->hsync_len);
+    fprintf(stderr, "tvsync_len: %d\n", vinfo->vsync_len);
+    fprintf(stderr, "tsync: %d\n", vinfo->sync);
+    fprintf(stderr, "tvmode: %d\n", vinfo->vmode);
+    fprintf(stderr, "tred: %d/%d\n", vinfo->red.length, vinfo->red.offset);
+    fprintf(stderr, "tgreen: %d/%d\n", vinfo->green.length, vinfo->green.offset);
+    fprintf(stderr, "tblue: %d/%d\n", vinfo->blue.length, vinfo->blue.offset);
+    fprintf(stderr, "talpha: %d/%d\n", vinfo->transp.length, vinfo->transp.offset);
+}
+
+static void print_finfo(struct fb_fix_screeninfo *finfo)
+{
+    fprintf(stderr, "Printing finfo:\n");
+    fprintf(stderr, "tsmem_start = %p\n", (char *)finfo->smem_start);
+    fprintf(stderr, "tsmem_len = %d\n", finfo->smem_len);
+    fprintf(stderr, "ttype = %d\n", finfo->type);
+    fprintf(stderr, "ttype_aux = %d\n", finfo->type_aux);
+    fprintf(stderr, "tvisual = %d\n", finfo->visual);
+    fprintf(stderr, "txpanstep = %d\n", finfo->xpanstep);
+    fprintf(stderr, "typanstep = %d\n", finfo->ypanstep);
+    fprintf(stderr, "tywrapstep = %d\n", finfo->ywrapstep);
+    fprintf(stderr, "tline_length = %d\n", finfo->line_length);
+    fprintf(stderr, "tmmio_start = %p\n", (char *)finfo->mmio_start);
+    fprintf(stderr, "tmmio_len = %d\n", finfo->mmio_len);
+    fprintf(stderr, "taccel = %d\n", finfo->accel);
+}
+#endif  /* FBCON_DEBUG */
+
+static void FB_UpdateRectsPanning (_THIS, int numrects, GAL_Rect *rects)
+{
+    (void)this;
+    (void)numrects;
+    (void)rects;
+    return;
+}
+
+static BOOL FB_SyncUpdatePanning (_THIS)
+{
+    currt_vinfo.yoffset = this->hidden->idx_buffer * currt_vinfo.yres;
+    if (ioctl(console_fd, FBIOPAN_DISPLAY, &currt_vinfo) < 0) {
+        _WRN_PRINTF("Failed ioctl(): FBIOPAN_DISPLAY\n");
+        return FALSE;
+    }
+
+    int old = this->hidden->idx_buffer;
+    this->hidden->idx_buffer = 1 - this->hidden->idx_buffer;
+    memcpy(this->hidden->buffers[this->hidden->idx_buffer],
+        this->hidden->buffers[old], this->hidden->len_buffer);
+
+    int dummy = 0;
+    if (ioctl(console_fd, FBIO_WAITFORVSYNC, &dummy) < 0) {
+        _WRN_PRINTF("Failed ioctl(): FBIO_WAITFORVSYNC\n");
+        return FALSE;
+    }
+
+    this->hidden->real_screen->pixels =
+        this->hidden->buffers[this->hidden->idx_buffer];
+    return TRUE;
+}
+
 static BOOL FB_SyncUpdate (_THIS)
 {
     if (IsRectEmpty (&this->hidden->dirty_rc))
@@ -375,6 +457,12 @@ static int FB_VideoInit(_THIS, GAL_PixelFormat *vformat)
         FB_VideoQuit(this);
         return(-1);
     }
+
+#ifdef FBCON_DEBUG
+    fprintf (stderr, "Printing original finfo:\n");
+    print_finfo(&finfo);
+#endif
+
     switch (finfo.type) {
         case FB_TYPE_PACKED_PIXELS:
             /* Supported, no worries.. */
@@ -523,56 +611,6 @@ static GAL_Rect **FB_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
     return (GAL_Rect**) -1;
 }
 
-#ifdef FBCON_DEBUG
-static void print_vinfo(struct fb_var_screeninfo *vinfo)
-{
-    fprintf(stderr, "Printing vinfo:\n");
-    fprintf(stderr, "txres: %d\n", vinfo->xres);
-    fprintf(stderr, "tyres: %d\n", vinfo->yres);
-    fprintf(stderr, "txres_virtual: %d\n", vinfo->xres_virtual);
-    fprintf(stderr, "tyres_virtual: %d\n", vinfo->yres_virtual);
-    fprintf(stderr, "txoffset: %d\n", vinfo->xoffset);
-    fprintf(stderr, "tyoffset: %d\n", vinfo->yoffset);
-    fprintf(stderr, "tbits_per_pixel: %d\n", vinfo->bits_per_pixel);
-    fprintf(stderr, "tgrayscale: %d\n", vinfo->grayscale);
-    fprintf(stderr, "tnonstd: %d\n", vinfo->nonstd);
-    fprintf(stderr, "tactivate: %d\n", vinfo->activate);
-    fprintf(stderr, "theight: %d\n", vinfo->height);
-    fprintf(stderr, "twidth: %d\n", vinfo->width);
-    fprintf(stderr, "taccel_flags: %d\n", vinfo->accel_flags);
-    fprintf(stderr, "tpixclock: %d\n", vinfo->pixclock);
-    fprintf(stderr, "tleft_margin: %d\n", vinfo->left_margin);
-    fprintf(stderr, "tright_margin: %d\n", vinfo->right_margin);
-    fprintf(stderr, "tupper_margin: %d\n", vinfo->upper_margin);
-    fprintf(stderr, "tlower_margin: %d\n", vinfo->lower_margin);
-    fprintf(stderr, "thsync_len: %d\n", vinfo->hsync_len);
-    fprintf(stderr, "tvsync_len: %d\n", vinfo->vsync_len);
-    fprintf(stderr, "tsync: %d\n", vinfo->sync);
-    fprintf(stderr, "tvmode: %d\n", vinfo->vmode);
-    fprintf(stderr, "tred: %d/%d\n", vinfo->red.length, vinfo->red.offset);
-    fprintf(stderr, "tgreen: %d/%d\n", vinfo->green.length, vinfo->green.offset);
-    fprintf(stderr, "tblue: %d/%d\n", vinfo->blue.length, vinfo->blue.offset);
-    fprintf(stderr, "talpha: %d/%d\n", vinfo->transp.length, vinfo->transp.offset);
-}
-
-static void print_finfo(struct fb_fix_screeninfo *finfo)
-{
-    fprintf(stderr, "Printing finfo:\n");
-    fprintf(stderr, "tsmem_start = %p\n", (char *)finfo->smem_start);
-    fprintf(stderr, "tsmem_len = %d\n", finfo->smem_len);
-    fprintf(stderr, "ttype = %d\n", finfo->type);
-    fprintf(stderr, "ttype_aux = %d\n", finfo->type_aux);
-    fprintf(stderr, "tvisual = %d\n", finfo->visual);
-    fprintf(stderr, "txpanstep = %d\n", finfo->xpanstep);
-    fprintf(stderr, "typanstep = %d\n", finfo->ypanstep);
-    fprintf(stderr, "tywrapstep = %d\n", finfo->ywrapstep);
-    fprintf(stderr, "tline_length = %d\n", finfo->line_length);
-    fprintf(stderr, "tmmio_start = %p\n", (char *)finfo->mmio_start);
-    fprintf(stderr, "tmmio_len = %d\n", finfo->mmio_len);
-    fprintf(stderr, "taccel = %d\n", finfo->accel);
-}
-#endif  /* FBCON_DEBUG */
-
 static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
@@ -605,6 +643,11 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         FB_RestorePalette (this);
     }
 
+    if (ioctl(console_fd, FBIOGET_FSCREENINFO, &finfo) < 0) {
+        GAL_SetError("NEWGAL>FBCON: Couldn't get console hardware info");
+        return(NULL);
+    }
+
     /* Set the video mode and get the final screen format */
     if (ioctl(console_fd, FBIOGET_VSCREENINFO, &vinfo) < 0) {
         GAL_SetError("NEWGAL>FBCON: Couldn't get console screen info\n");
@@ -612,9 +655,6 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     }
 
 #ifdef FBCON_DEBUG
-    fprintf (stderr, "Printing original finfo:\n");
-    print_finfo(&finfo);
-
     fprintf (stderr, "Printing original vinfo:\n");
     print_vinfo(&vinfo);
 #endif
@@ -663,7 +703,6 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
             vinfo.yres_virtual = maxheight;
         }
     }
-    cache_vinfo = vinfo;
 #ifdef FBCON_DEBUG
     fprintf (stderr, "NEWGAL>FBCON: Printing actual vinfo:\n");
     print_vinfo(&vinfo);
@@ -724,6 +763,28 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     current->pitch = finfo.line_length;
     current->pixels = mapped_mem+mapped_offset;
 
+    /* Since 5.0.13, use FBIOPAN_DISPLAY if possible */
+    this->hidden->nr_buffers = finfo.smem_len / (vinfo.yres * current->pitch);
+    if (this->hidden->nr_buffers > 1) {
+        this->hidden->nr_buffers = 2;
+        vinfo.yres_virtual = this->hidden->nr_buffers * vinfo.yres;
+        if (ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0) {
+            GAL_SetError("NEWGAL>FBCON: Couldn't enable virtual yres");
+            this->hidden->nr_buffers = 0;
+        }
+        else {
+            this->hidden->len_buffer = finfo.line_length * vinfo.yres;
+
+            this->hidden->buffers[0] = mapped_mem+mapped_offset;
+            this->hidden->buffers[1] = this->hidden->buffers[0] +
+                this->hidden->len_buffer;
+
+            this->hidden->idx_buffer = 1;
+            current->pixels = this->hidden->buffers[this->hidden->idx_buffer];
+        }
+    }
+
+    currt_vinfo = vinfo;
     /* Set up the information for hardware surfaces */
     surfaces_mem = (char *)current->pixels +
                             vinfo.yres_virtual*current->pitch;
@@ -764,12 +825,12 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         sigma8654_hdmi_init();
 #endif
 
+    // this is a trick in order that GAL_CreateRGBSurface tries to
+    // allocate hardware surface first.
+    GAL_PublicSurface = current;
+
 #ifdef _MGSCHEMA_COMPOSITING
     if (mgIsServer) {
-        // this is a trick in order that GAL_CreateRGBSurface tries to
-        // allocate hardware surface first.
-        GAL_PublicSurface = current;
-
         dblbuff = TRUE;
     }
     else {
@@ -795,7 +856,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
 #endif
 
         /* create shadow screen */
-        this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
+        this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_SWSURFACE,
                 current->w, current->h,
                 current->format->BitsPerPixel,
                 current->format->Rmask, current->format->Gmask,
@@ -811,6 +872,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
             this->UpdateRects = shadowScreen_UpdateRects;
             this->SyncUpdate = FB_SyncUpdate;
 
+            current->video = this;
             this->hidden->real_screen = current;
             current = this->hidden->shadow_screen;
 
@@ -827,6 +889,10 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     else {
         this->hidden->real_screen = current;
         this->hidden->shadow_screen = NULL;
+        if (this->hidden->nr_buffers > 1) {
+            this->UpdateRects = FB_UpdateRectsPanning;
+            this->SyncUpdate = FB_SyncUpdatePanning;
+        }
     }
 
     /* We're done */

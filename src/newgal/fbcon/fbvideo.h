@@ -90,10 +90,16 @@ struct GAL_PrivateVideoData {
     /* end of header for shadow screen */
 
     int console_fd;
-    struct fb_var_screeninfo cache_vinfo;
+    struct fb_var_screeninfo currt_vinfo;
     struct fb_var_screeninfo saved_vinfo;
     int saved_cmaplen;
     __u16 *saved_cmap;
+
+    /* Since 5.0.13, use FBIOPAN_DISPLAY if possible */
+    int nr_buffers;
+    int idx_buffer;
+    unsigned len_buffer;
+    char *buffers[2];
 
 #ifdef _MGHAVE_PCIACCESS
     int pci_accel_driver;
@@ -115,13 +121,7 @@ struct GAL_PrivateVideoData {
 
 /* Old variable names */
 #define console_fd          (this->hidden->console_fd)
-#define current_vt          (this->hidden->current_vt)
-#define saved_vt            (this->hidden->saved_vt)
-#define keyboard_fd         (this->hidden->keyboard_fd)
-#define saved_kbd_mode      (this->hidden->saved_kbd_mode)
-#define saved_kbd_termios   (this->hidden->saved_kbd_termios)
-#define mouse_fd            (this->hidden->mouse_fd)
-#define cache_vinfo         (this->hidden->cache_vinfo)
+#define currt_vinfo         (this->hidden->currt_vinfo)
 #define saved_vinfo         (this->hidden->saved_vinfo)
 #define saved_cmaplen       (this->hidden->saved_cmaplen)
 #define saved_cmap          (this->hidden->saved_cmap)

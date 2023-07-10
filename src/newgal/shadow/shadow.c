@@ -160,11 +160,13 @@ static void refresh_ccw_32bpp(ShadowFBHeader* shadowfb_header,
     dst_height = RECTH(dst_update);
     BYTE line_pixels[dst_width * 4];
 
-    /* Copy the bits from Shadow FrameBuffer to console FrameBuffer */
+    /* Copy the bits from Shadow FrameBuffer to real FrameBuffer */
     src_bits = (BYTE *)shadowfb_header + shadowfb_header->fb_offset;
-    src_bits += src_update.top * shadowfb_header->pitch + src_update.left * 4;
+    src_bits += src_update.top * shadowfb_header->pitch +
+        src_update.left * 4;
+    dst_line = (BYTE *)realfb_info->fb + (dst_update.bottom - 1) *
+        realfb_info->pitch;
 
-    dst_line = (BYTE *)realfb_info->fb + (dst_update.bottom - 1) * realfb_info->pitch;
     for (x = 0; x < dst_height; x++) {
         /* Copy the bits from vertical line to horizontal line */
         const BYTE* ver_bits = src_bits;
@@ -176,9 +178,50 @@ static void refresh_ccw_32bpp(ShadowFBHeader* shadowfb_header,
             hor_bits += 4;
         }
 
-        memcpy(dst_line + (dst_update.left << 2), line_pixels, dst_width << 2);
+        memcpy(dst_line + (dst_update.left << 2), line_pixels,
+                dst_width << 2);
         src_bits += 4;
         dst_line -= realfb_info->pitch;
+    }
+}
+
+static void refresh_cw_32bpp(ShadowFBHeader* shadowfb_header,
+        RealFBInfo* realfb_info, void* update)
+{
+    RECT src_update = *(RECT*)update;
+    RECT dst_update;
+    const BYTE *src_bits;
+    BYTE *dst_line;
+    int dst_width, dst_height;
+    int x, y;
+
+    _get_dst_rect_cw(&dst_update, &src_update, realfb_info);
+    dst_width = RECTW(dst_update);
+    dst_height = RECTH(dst_update);
+    BYTE line_pixels[dst_width * 4];
+
+    /* Copy the bits from Shadow FrameBuffer to real FrameBuffer */
+    src_bits = (BYTE *)shadowfb_header + shadowfb_header->fb_offset;
+    src_bits += (src_update.bottom - 1) * shadowfb_header->pitch +
+        src_update.left * 4;
+    dst_line = (BYTE *)realfb_info->fb + dst_update.top *
+        realfb_info->pitch;
+
+    for (x = 0; x < dst_height; x++) {
+        /* Copy the bits from vertical line to horizontal line */
+        const BYTE* ver_bits = src_bits;
+        BYTE* hor_bits = line_pixels;
+
+        for (y = 0; y < dst_width; y++) {
+            *(Uint32 *)hor_bits = *(Uint32 *)ver_bits;
+            ver_bits -= shadowfb_header->pitch;
+            hor_bits += 4;
+        }
+
+        memcpy(dst_line + (dst_update.left << 2), line_pixels,
+                dst_width << 2);
+        src_bits += 4;
+        dst_line += realfb_info->pitch;
     }
 }
 
@@ -382,13 +425,16 @@ static int RealEngine_GetInfo (RealFBInfo * realfb_info)
     realfb_info->real_device = real_device;
     real_device->VideoInit(realfb_info->real_device, &real_vformat);
 
-    real_device->screen = GAL_CreateRGBSurface (GAL_SWSURFACE,
+    GAL_Surface *prev_surf, *screen;
+    prev_surf = GAL_CreateRGBSurface (GAL_SWSURFACE,
             0, 0, real_vformat.BitsPerPixel, real_vformat.Rmask,
             real_vformat.Gmask, real_vformat.Bmask, real_vformat.Amask);
 
+    real_device->screen = NULL;
     /* VW: SetVideoMode may return a new surface */
-    real_device->screen = real_device->SetVideoMode(realfb_info->real_device,
-            real_device->screen, w, h, depth, GAL_HWPALETTE);
+    screen = real_device->SetVideoMode(realfb_info->real_device,
+            prev_surf, w, h, depth, GAL_HWPALETTE);
+    real_device->screen = (screen != NULL) ? screen : prev_surf;
     if (real_device->screen == NULL) {
         _ERR_PRINTF ("NEWGAL>SHADOW: can't create screen of real engine.\n");
         return -1;
@@ -539,11 +585,6 @@ static void schedule_updaters(_THIS, RECT *dirty_rc)
     }
     */
 
-    /* wait for the finish of extra updaters */
-    for (i = 0; i < this->hidden->nr_updaters; i++) {
-        sem_wait(&this->hidden->sync_sem);
-    }
-
     /* partition the dirty rectangle horizontally */
     int span = h / (this->hidden->nr_updaters);
     if (span == 0) {
@@ -585,6 +626,11 @@ static void schedule_updaters(_THIS, RECT *dirty_rc)
     shadow_fb_ops.refresh(_shadowfbheader, this->hidden->realfb_info,
             this->hidden->dirty_rcs + this->hidden->nr_updaters);
     */
+
+    /* wait for the finish of extra updaters */
+    for (i = 0; i < this->hidden->nr_updaters; i++) {
+        sem_wait(&this->hidden->sync_sem);
+    }
 }
 
 static BOOL SHADOW_SyncUpdateConcurrently (_THIS)
@@ -844,7 +890,7 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
     ret = 0;
 
     bzero(&shadowfbheader, sizeof(shadowfbheader));
-    realfb_info = malloc (sizeof(RealFBInfo));
+    realfb_info = calloc (1, sizeof(RealFBInfo));
     if (shadow_fb_ops.get_realfb_info (realfb_info))
     {
         _ERR_PRINTF ("NEWGAL>SHADOW: "
@@ -991,9 +1037,12 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
         }
     }
 #else
-    if (_shadowfbheader->depth == 32 &&
-            this->hidden->realfb_info->flags & _ROT_DIR_CCW)
-        shadow_fb_ops.refresh = refresh_ccw_32bpp;
+    if (_shadowfbheader->depth == 32) {
+        if (this->hidden->realfb_info->flags & _ROT_DIR_CCW)
+            shadow_fb_ops.refresh = refresh_ccw_32bpp;
+        else if (this->hidden->realfb_info->flags & _ROT_DIR_CW)
+            shadow_fb_ops.refresh = refresh_cw_32bpp;
+    }
 #endif
 
     /* We're done */

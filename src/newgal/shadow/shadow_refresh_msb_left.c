@@ -230,7 +230,7 @@ void refresh_cw_msb_left (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_in
     BYTE* dst_line;
     int dst_width, dst_height;
     int x, y;
-    BYTE line_pixels[shadowfb_header->pitch];
+    BYTE line_pixels[realfb_info->pitch];
 
     _get_dst_rect_cw (&dst_update, &src_update, realfb_info);
 
@@ -332,7 +332,7 @@ void refresh_ccw_msb_left (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_i
     BYTE* dst_line;
     int dst_width, dst_height;
     int x, y;
-    BYTE line_pixels[shadowfb_header->pitch];
+    BYTE line_pixels[realfb_info->pitch];
 
     _get_dst_rect_ccw (&dst_update, &src_update, realfb_info);
 
@@ -433,7 +433,7 @@ void refresh_hflip_msb_left (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb
     BYTE* dst_line;
     int src_width, src_height;
     int x, y;
-    BYTE line_pixels[shadowfb_header->pitch];
+    BYTE line_pixels[realfb_info->pitch];
 
     /* Round the update rectangle.  */
     round_rect(realfb_info->depth, &src_update);
@@ -527,7 +527,7 @@ void refresh_vflip_msb_left (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb
     BYTE* dst_line;
     int src_width, src_height;
     int x, y;
-    BYTE line_pixels[shadowfb_header->pitch];
+    BYTE line_pixels[realfb_info->pitch];
 
     /* Round the update rectangle.  */
     round_rect (realfb_info->depth, &src_update);
