@@ -109,11 +109,8 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        dbl_buff:2;
     uint32_t        scanout_buff_id;
 
-    /* Use DMA for real buffer */
-    drm_context_t   context;
-    int             dma_bufs_idx;
-    int             dma_bufs_siz;
-    drmBufMapPtr    dma_bufs_map;
+    /* Use DMA-BUF */
+    int             dmabuf_fd;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;
