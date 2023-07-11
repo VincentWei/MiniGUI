@@ -419,8 +419,10 @@ static int RealEngine_GetInfo (RealFBInfo * realfb_info)
     memset (&real_vformat, 0, sizeof(real_vformat));
     real_device = GAL_GetVideo (engine, FALSE);
 
-    if (real_device == NULL)
-        _ERR_PRINTF ("NEWGAL>SHADOW: can not init real engine (%s) \n", engine);
+    if (real_device == NULL) {
+        _ERR_PRINTF ("NEWGAL>SHADOW: can not find real engine (%s)\n", engine);
+        return -1;
+    }
 
     realfb_info->real_device = real_device;
     real_device->VideoInit(realfb_info->real_device, &real_vformat);
