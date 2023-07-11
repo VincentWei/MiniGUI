@@ -577,13 +577,11 @@ static void schedule_updaters(_THIS, RECT *dirty_rc)
     int h = RECTHP(dirty_rc);
     int i;
 
-    /* always use updaters
     if (h < this->hidden->nr_updaters || (w * h) < MIN_PIXELS_USING_UPDATER) {
         shadow_fb_ops.refresh(_shadowfbheader,
             this->hidden->realfb_info, dirty_rc);
         return;
     }
-    */
 
     /* partition the dirty rectangle horizontally */
     int span = h / (this->hidden->nr_updaters);
@@ -720,9 +718,10 @@ static int create_extra_updaters(_THIS)
     }
     pthread_attr_destroy(&attr);
 
+    /*
     for (int i = 0; i < this->hidden->nr_updaters; i++) {
         sem_post(&this->hidden->sync_sem);
-    }
+    }*/
 
     return 0;
 }

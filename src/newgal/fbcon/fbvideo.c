@@ -856,7 +856,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
 #endif
 
         /* create shadow screen */
-        this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_SWSURFACE,
+        this->hidden->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
                 current->w, current->h,
                 current->format->BitsPerPixel,
                 current->format->Rmask, current->format->Gmask,
