@@ -119,6 +119,12 @@ typedef struct _DrmSurfaceBuffer {
      */
     uint32_t fb_id;
 
+    /**
+     * The DMA buffer index if the buffer was allocated via drmDMA().
+     * Since 5.0.13.
+     */
+    int      dma_idx;
+
     /** The DRM format of the buffer. */
     uint32_t drm_format;
     /** The bits per pixel */

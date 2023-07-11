@@ -65,6 +65,12 @@
 
 typedef struct drm_mode_info DrmModeInfo;
 
+enum {
+    DRM_DBLBUF_NONE   = 0,
+    DRM_DBLBUF_MEMCPY,
+    DRM_DBLBUF_DMA,
+};
+
 typedef struct GAL_PrivateVideoData {
     /* For compositing schema, we force to use double buffering */
 #ifdef _MGSCHEMA_COMPOSITING
@@ -100,8 +106,14 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        cap_cursor_width;
     uint32_t        cap_cursor_height;
     uint32_t        cap_dumb:1;
-    uint32_t        dbl_buff:1;
+    uint32_t        dbl_buff:2;
     uint32_t        scanout_buff_id;
+
+    /* Use DMA for real buffer */
+    drm_context_t   context;
+    int             dma_bufs_idx;
+    int             dma_bufs_siz;
+    drmBufMapPtr    dma_bufs_map;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;
