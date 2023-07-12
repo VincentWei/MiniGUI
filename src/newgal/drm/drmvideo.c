@@ -120,6 +120,7 @@ static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
 
 static void DRM_UpdateRects(_THIS, int numrects, GAL_Rect *rects);
 static BOOL DRM_SyncUpdate(_THIS);
+static BOOL DRM_SyncUpdateAsync(_THIS);
 
 static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
 static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
@@ -2476,7 +2477,8 @@ static void* task_do_update(void *data)
     vbl.request.signal = 0;
     if (drmWaitVBlank(fd, &vbl)) {
         _ERR_PRINTF("Failed drmWaitVBlank(): %m\n");
-        goto error;
+        close(fd);
+        fd = -1;
     }
 
     this->hidden->updater_ready = 1;
@@ -2484,17 +2486,26 @@ static void* task_do_update(void *data)
 
     do {
 
-        vbl.request.type = DRM_VBLANK_RELATIVE | DRM_VBLANK_NEXTONMISS;
-        vbl.request.sequence = 1;
-        vbl.request.signal = 0;
-        drmWaitVBlank(fd, &vbl);
-        _DBG_PRINTF("It's time to update real screen. (%ld.%06ld)\n",
-                vbl.reply.tval_sec, vbl.reply.tval_usec);
+        if (fd >= 0) {
+            vbl.request.type = DRM_VBLANK_RELATIVE | DRM_VBLANK_NEXTONMISS;
+            vbl.request.sequence = 1;
+            vbl.request.signal = 0;
+            drmWaitVBlank(fd, &vbl);
+            _DBG_PRINTF("It's time to update real screen. (%ld.%06ld)\n",
+                    vbl.reply.tval_sec, vbl.reply.tval_usec);
+        }
+        else {
+            usleep(20 * 1000);  // 20ms
+            _DBG_PRINTF("update real screen evenry 20ms.\n");
+        }
 
         pthread_mutex_lock(&this->hidden->update_mutex);
         if (RECTH(this->hidden->update_rect)) {
             update_real_screen_memcpy(this);
             SetRectEmpty(&this->hidden->update_rect);
+        }
+        else {
+            _DBG_PRINTF("Empty update rect!\n");
         }
         pthread_mutex_unlock(&this->hidden->update_mutex);
 
@@ -2704,7 +2715,8 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 
     GAL_FreeSurface (current);
     if (vdata->shadow_screen) {
-        if (create_async_updater(this)) {
+        if (create_async_updater(this) == 0) {
+            this->SyncUpdate = DRM_SyncUpdateAsync;
         }
 
         return vdata->shadow_screen;
