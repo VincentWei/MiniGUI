@@ -2245,13 +2245,13 @@ static int drm_map_buffer_via_dmabuf(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer)
 {
     if (drmSetMaster(vdata->dev_fd)) {
-        _ERR_PRINTF("NEWGAL>DRM: failed to call drmSetMaster: %m\n");
+        _ERR_PRINTF("NEWGAL>DRM: failed drmSetMaster(): %m\n");
         return -1;
     }
 
     if (drmPrimeHandleToFD(vdata->dev_fd, surface_buffer->handle,
                 DRM_RDWR | DRM_CLOEXEC, &surface_buffer->prime_fd)) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot get DMA-BUF fd: %m\n");
+        _ERR_PRINTF ("NEWGAL>DRM: failed drmPrimeHandleToFD(): %m\n");
         return -1;
     }
 
