@@ -67,7 +67,7 @@ typedef struct drm_mode_info DrmModeInfo;
 
 enum {
     DRM_DBLBUF_NONE   = 0,
-    DRM_DBLBUF_MEMCPY,
+    DRM_DBLBUF_BLIT,
     DRM_DBLBUF_DMA,
 };
 
@@ -108,9 +108,6 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        cap_dumb:1;
     uint32_t        dbl_buff:2;
     uint32_t        scanout_buff_id;
-
-    /* Use DMA-BUF */
-    int             dmabuf_fd;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;

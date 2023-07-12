@@ -1264,8 +1264,9 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             device->hidden->dbl_buff = 0;
         }
         else if (strcasecmp (tmp, "true") == 0 ||
-                strcasecmp (tmp, "yes") == 0) {
-            device->hidden->dbl_buff = DRM_DBLBUF_MEMCPY;
+                strcasecmp (tmp, "yes") == 0 ||
+                strcasecmp (tmp, "blit") == 0) {
+            device->hidden->dbl_buff = DRM_DBLBUF_BLIT;
         }
         else if (strcasecmp (tmp, "dma") == 0) {
             device->hidden->dbl_buff = DRM_DBLBUF_DMA;
@@ -2240,24 +2241,27 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdat
     return surface_buffer;
 }
 
-static void drm_map_buffer_via_dmabuf(DrmVideoData* vdata,
+static int drm_map_buffer_via_dmabuf(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer)
 {
     if (drmPrimeHandleToFD(vdata->dev_fd, surface_buffer->handle,
-                DRM_RDWR | DRM_CLOEXEC, &vdata->dmabuf_fd)) {
+                DRM_RDWR | DRM_CLOEXEC, &surface_buffer->prime_fd)) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot get DMA-BUF fd: %m\n");
-        return;
+        return -1;
     }
 
     /* perform actual memory mapping */
     surface_buffer->buff = mmap64(0, surface_buffer->size,
             PROT_READ | PROT_WRITE, MAP_SHARED,
-            vdata->dmabuf_fd, 0);
+            surface_buffer->prime_fd, 0);
     if (surface_buffer->buff == MAP_FAILED) {
         _ERR_PRINTF("NEWGAL>DRM: cannot mmap DMA-BUF %m (size: %u)\n",
                         (unsigned)surface_buffer->size);
         surface_buffer->buff = NULL;
+        return -1;
     }
+
+    return 0;
 }
 
 #if 0
@@ -2432,9 +2436,12 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         real_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                 drm_format, 0, info->width, info->height);
         if (vdata->dbl_buff == DRM_DBLBUF_DMA) {
-            drm_map_buffer_via_dmabuf(vdata, real_buffer);
+            if (drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
+                vdata->dbl_buff == DRM_DBLBUF_BLIT;
+            }
         }
-        else {
+
+        if (vdata->dbl_buff != DRM_DBLBUF_DMA) {
             vdata->driver_ops->map_buffer(vdata->driver, real_buffer, 1);
         }
     }
@@ -3427,23 +3434,27 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 static void drm_dmabuf_start(_THIS)
 {
     struct dma_buf_sync sync;
+    DrmSurfaceBuffer *real_buffer;
+    real_buffer = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
 
-    if (this->hidden->dmabuf_fd < 0)
+    if (real_buffer->prime_fd < 0)
         return;
 
     sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_START;
-    ioctl(this->hidden->dmabuf_fd, DMA_BUF_IOCTL_SYNC, &sync);
+    ioctl(real_buffer->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
 }
 
 static void drm_dmabuf_end(_THIS)
 {
     struct dma_buf_sync sync;
+    DrmSurfaceBuffer *real_buffer;
+    real_buffer = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
 
-    if (this->hidden->dmabuf_fd < 0)
+    if (real_buffer->prime_fd < 0)
         return;
 
     sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END;
-    ioctl(this->hidden->dmabuf_fd, DMA_BUF_IOCTL_SYNC, &sync);
+    ioctl(real_buffer->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
 }
 
 static BOOL DRM_SyncUpdate(_THIS)
@@ -3480,45 +3491,46 @@ static BOOL DRM_SyncUpdate(_THIS)
     bound = *dirty_rc;
 
     if (this->hidden->shadow_screen) {
-#if 0   /* test code using memcpy */
-        DrmSurfaceBuffer *real_buff, *shadow_buff;
-        real_buff = (DrmSurfaceBuffer*)this->hidden->real_screen->hwdata;
-        shadow_buff = (DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata;
+        if (this->hidden->dbl_buff == DRM_DBLBUF_DMA) {
+            DrmSurfaceBuffer *real_buff, *shadow_buff;
+            real_buff = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
+            shadow_buff = (DrmSurfaceBuffer *)this->hidden->shadow_screen->hwdata;
 
-        uint32_t i;
-        uint8_t *src, *dst;
-        size_t count = shadow_buff->cpp * RECTW (bound);
+            uint32_t i;
+            uint8_t *src, *dst;
+            size_t count = shadow_buff->cpp * RECTW (bound);
 
-        src = shadow_buff->buff;
-        src += shadow_buff->pitch * bound.top + shadow_buff->cpp * bound.left;
-        src += shadow_buff->offset;
+            src = shadow_buff->buff;
+            src += shadow_buff->pitch * bound.top + shadow_buff->cpp * bound.left;
+            src += shadow_buff->offset;
 
-        dst = real_buff->buff;
-        dst += real_buff->pitch * bound.top + real_buff->cpp * bound.left;
-        dst += real_buff->offset;
+            dst = real_buff->buff;
+            dst += real_buff->pitch * bound.top + real_buff->cpp * bound.left;
+            dst += real_buff->offset;
 
-        for (i = 0; i < RECTH (bound); i++) {
-            memcpy (dst, src, count);
-            src += shadow_buff->pitch;
-            dst += shadow_buff->pitch;
+            drm_dmabuf_start(this);
+            for (i = 0; i < RECTH (bound); i++) {
+                memcpy (dst, src, count);
+                src += shadow_buff->pitch;
+                dst += shadow_buff->pitch;
+            }
+            drm_dmabuf_end(this);
         }
-#else   /* test code using memcpy */
-        GAL_Rect src_rect, dst_rect;
-        src_rect.x = bound.left;
-        src_rect.y = bound.top;
-        src_rect.w = RECTW (bound);
-        src_rect.h = RECTH (bound);
-        dst_rect = src_rect;
+        else {
+            GAL_Rect src_rect, dst_rect;
+            src_rect.x = bound.left;
+            src_rect.y = bound.top;
+            src_rect.w = RECTW (bound);
+            src_rect.h = RECTH (bound);
+            dst_rect = src_rect;
 
-        drm_dmabuf_start(this);
-        GAL_SetupBlitting (this->hidden->shadow_screen,
-                this->hidden->real_screen, 0);
-        GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
-                this->hidden->real_screen, &dst_rect);
-        GAL_CleanupBlitting (this->hidden->shadow_screen,
-                this->hidden->real_screen);
-        drm_dmabuf_end(this);
-#endif  /* use blitting */
+            GAL_SetupBlitting (this->hidden->shadow_screen,
+                    this->hidden->real_screen, 0);
+            GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
+                    this->hidden->real_screen, &dst_rect);
+            GAL_CleanupBlitting (this->hidden->shadow_screen,
+                    this->hidden->real_screen);
+        }
     }
 
 #ifdef _MGSCHEMA_COMPOSITING
