@@ -1694,6 +1694,8 @@ static int DRM_SetColors(_THIS, int firstcolor, int ncolors, GAL_Color *colors)
     return(1);
 }
 
+static void cancel_async_updater(_THIS);
+
 static void DRM_VideoQuit(_THIS)
 {
     if (this->screen->pixels != NULL) {
@@ -1703,6 +1705,8 @@ static void DRM_VideoQuit(_THIS)
 #if IS_SHAREDFB_SCHEMA_PROCS
     if (mgIsServer)
 #endif
+        cancel_async_updater(this);
+
 #ifndef _MGSCHEMA_COMPOSITING
         if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
             if (sem_unlink (SEM_UPDATE_LOCK)) {
@@ -2403,6 +2407,147 @@ static int drm_allocate_dma_buffers(DrmVideoData* vdata, int size)
 }
 #endif
 
+static void drm_dmabuf_start(DrmSurfaceBuffer *real_buff)
+{
+    struct dma_buf_sync sync;
+
+    if (real_buff->prime_fd < 0)
+        return;
+
+    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_START;
+    ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
+}
+
+static void drm_dmabuf_end(DrmSurfaceBuffer *real_buff)
+{
+    struct dma_buf_sync sync;
+    if (real_buff->prime_fd < 0)
+        return;
+
+    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END;
+    ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
+}
+
+static void update_real_screen_memcpy(_THIS)
+{
+    DrmSurfaceBuffer *real_buff, *shadow_buff;
+    real_buff = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
+    shadow_buff = (DrmSurfaceBuffer *)this->hidden->shadow_screen->hwdata;
+
+    uint32_t i;
+    uint8_t *src, *dst;
+    RECT *update_rect = &this->hidden->update_rect;
+    size_t count = shadow_buff->cpp * RECTWP(update_rect);
+
+    src = shadow_buff->buff;
+    src += shadow_buff->pitch * update_rect->top +
+        shadow_buff->cpp * update_rect->left;
+    src += shadow_buff->offset;
+
+    dst = real_buff->buff;
+    dst += real_buff->pitch * update_rect->top +
+        real_buff->cpp * update_rect->left;
+    dst += real_buff->offset;
+
+    drm_dmabuf_start(real_buff);
+    for (i = 0; i < RECTHP(update_rect); i++) {
+        memcpy(dst, src, count);
+        src += shadow_buff->pitch;
+        dst += shadow_buff->pitch;
+    }
+    drm_dmabuf_end(real_buff);
+}
+
+static void* task_do_update(void *data)
+{
+    _THIS = data;
+    int fd = dup(this->hidden->dev_fd);
+
+    if (fd < 0)
+        return NULL;
+
+    if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)) {
+        goto error;
+    }
+
+    drmVBlank vbl;
+    vbl.request.type = DRM_VBLANK_RELATIVE;
+    vbl.request.sequence = 0;
+    vbl.request.signal = 0;
+    if (drmWaitVBlank(fd, &vbl)) {
+        _ERR_PRINTF("Failed drmWaitVBlank(): %m\n");
+        goto error;
+    }
+
+    this->hidden->updater_ready = 1;
+    sem_post(&this->hidden->sync_sem);
+
+    do {
+
+        vbl.request.type = DRM_VBLANK_RELATIVE | DRM_VBLANK_NEXTONMISS;
+        vbl.request.sequence = 1;
+        vbl.request.signal = 0;
+        drmWaitVBlank(fd, &vbl);
+        _DBG_PRINTF("It's time to update real screen. (%ld.%06ld)\n",
+                vbl.reply.tval_sec, vbl.reply.tval_usec);
+
+        pthread_mutex_lock(&this->hidden->update_mutex);
+        if (RECTH(this->hidden->update_rect)) {
+            update_real_screen_memcpy(this);
+            SetRectEmpty(&this->hidden->update_rect);
+        }
+        pthread_mutex_unlock(&this->hidden->update_mutex);
+
+        pthread_testcancel();
+
+    } while (1);
+
+    close(fd);
+    return NULL;
+
+error:
+    if (fd >= 0)
+        close(fd);
+    sem_post(&this->hidden->sync_sem);
+    return NULL;
+}
+
+static int create_async_updater(_THIS)
+{
+    if (sem_init(&this->hidden->sync_sem, 0, 0))
+        return -1;
+
+    if (pthread_mutex_init(&this->hidden->update_mutex, NULL))
+        return -1;
+
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    struct sched_param sp = { 90 };
+    pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+    pthread_attr_setschedparam(&attr, &sp);
+
+    if (pthread_create(&this->hidden->update_thd, &attr,
+            task_do_update, this))
+        return -1;
+
+    sem_wait(&this->hidden->sync_sem);
+    pthread_attr_destroy(&attr);
+
+    return this->hidden->updater_ready ? 0 : -1;
+}
+
+static void cancel_async_updater(_THIS)
+{
+    if (this->hidden->updater_ready) {
+        pthread_cancel(this->hidden->update_thd);
+        pthread_join(this->hidden->update_thd, NULL);
+        pthread_mutex_destroy(&this->hidden->update_mutex);
+
+        sem_destroy(&this->hidden->sync_sem);
+    }
+}
+
 /* DRM engine methods for dumb buffers */
 static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
@@ -2558,8 +2703,12 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 #endif /* IS_COMPOSITING_SCHEMA */
 
     GAL_FreeSurface (current);
-    if (vdata->shadow_screen)
+    if (vdata->shadow_screen) {
+        if (create_async_updater(this)) {
+        }
+
         return vdata->shadow_screen;
+    }
 
     return vdata->real_screen;
 
@@ -3437,32 +3586,6 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 #endif
 }
 
-static void drm_dmabuf_start(_THIS)
-{
-    struct dma_buf_sync sync;
-    DrmSurfaceBuffer *real_buffer;
-    real_buffer = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
-
-    if (real_buffer->prime_fd < 0)
-        return;
-
-    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_START;
-    ioctl(real_buffer->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
-}
-
-static void drm_dmabuf_end(_THIS)
-{
-    struct dma_buf_sync sync;
-    DrmSurfaceBuffer *real_buffer;
-    real_buffer = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
-
-    if (real_buffer->prime_fd < 0)
-        return;
-
-    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END;
-    ioctl(real_buffer->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
-}
-
 static BOOL DRM_SyncUpdate(_THIS)
 {
     BOOL retval = FALSE;
@@ -3514,13 +3637,13 @@ static BOOL DRM_SyncUpdate(_THIS)
             dst += real_buff->pitch * bound.top + real_buff->cpp * bound.left;
             dst += real_buff->offset;
 
-            drm_dmabuf_start(this);
+            drm_dmabuf_start(real_buff);
             for (i = 0; i < RECTH (bound); i++) {
                 memcpy (dst, src, count);
                 src += shadow_buff->pitch;
                 dst += shadow_buff->pitch;
             }
-            drm_dmabuf_end(this);
+            drm_dmabuf_end(real_buff);
         }
         else {
             GAL_Rect src_rect, dst_rect;
@@ -3589,6 +3712,53 @@ ret:
     }
 #endif
 
+    return retval;
+}
+
+static BOOL DRM_SyncUpdateAsync(_THIS)
+{
+    BOOL retval = FALSE;
+    RECT* dirty_rc;
+    RECT bound;
+
+#ifndef _MGSCHEMA_COMPOSITING
+    if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
+        sem_wait (this->hidden->update_lock);
+    }
+#endif
+
+#if IS_SHAREDFB_SCHEMA_PROCS
+    GAL_ShadowSurfaceHeader* hdr;
+    if (this->hidden->shadow_screen->flags & GAL_HWSURFACE) {
+        hdr = (GAL_ShadowSurfaceHeader*)
+            ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
+    }
+    else {
+        hdr = (GAL_ShadowSurfaceHeader*)
+            ((uint8_t*)this->hidden->shadow_screen->pixels -
+            this->hidden->shadow_screen->pixels_off);
+    }
+    dirty_rc = &hdr->dirty_rc;
+#else
+    dirty_rc = &this->hidden->dirty_rc;
+#endif
+
+    if (IsRectEmpty(dirty_rc))
+        goto ret;
+
+    bound = *dirty_rc;
+    pthread_mutex_lock(&this->hidden->update_mutex);
+    RECT *update_rect = &this->hidden->update_rect;
+    GetBoundRect(update_rect, &bound, update_rect);
+    pthread_mutex_unlock(&this->hidden->update_mutex);
+    retval = TRUE;
+
+ret:
+#ifndef _MGSCHEMA_COMPOSITING
+    if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
+        sem_post (this->hidden->update_lock);
+    }
+#endif
     return retval;
 }
 

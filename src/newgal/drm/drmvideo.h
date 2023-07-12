@@ -119,10 +119,12 @@ typedef struct GAL_PrivateVideoData {
     DrmModeInfo*    saved_info;
     drmModeCrtc*    saved_crtc;
 
-#if 0   /* deprecated code */
-    uint32_t        console_buff_id;
-    uint8_t*        scanout_fb;
-#endif  /* deprecated code */
+    /* async updater */
+    int             updater_ready;
+    RECT            update_rect;
+    pthread_t       update_thd;
+    pthread_mutex_t update_mutex;
+    sem_t           sync_sem;
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */
