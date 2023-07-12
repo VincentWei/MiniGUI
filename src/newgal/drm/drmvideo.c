@@ -2244,6 +2244,11 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdat
 static int drm_map_buffer_via_dmabuf(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer)
 {
+    if (drmSetMaster(vdata->dev_fd)) {
+        _ERR_PRINTF("NEWGAL>DRM: failed to call drmSetMaster: %m\n");
+        return -1;
+    }
+
     if (drmPrimeHandleToFD(vdata->dev_fd, surface_buffer->handle,
                 DRM_RDWR | DRM_CLOEXEC, &surface_buffer->prime_fd)) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot get DMA-BUF fd: %m\n");
@@ -2437,7 +2442,8 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
                 drm_format, 0, info->width, info->height);
         if (vdata->dbl_buff == DRM_DBLBUF_DMA) {
             if (drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
-                vdata->dbl_buff == DRM_DBLBUF_BLIT;
+                _WRN_PRINTF("Cannot map real screen buffer via DMA-BUF\n");
+                vdata->dbl_buff = DRM_DBLBUF_BLIT;
             }
         }
 
