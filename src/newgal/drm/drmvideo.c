@@ -2440,6 +2440,8 @@ static void update_real_screen_memcpy(_THIS)
     RECT *update_rect = &this->hidden->update_rect;
     size_t count = shadow_buff->cpp * RECTWP(update_rect);
 
+    _DBG_PRINTF("Copy pixels to real screen (pitch: %u, count: %u, h: %d)\n",
+            (unsigned)real_buff->pitch, (unsigned)count, RECTHP(update_rect));
     src = shadow_buff->buff;
     src += shadow_buff->pitch * update_rect->top +
         shadow_buff->cpp * update_rect->left;
@@ -2491,7 +2493,7 @@ static void* task_do_update(void *data)
             vbl.request.sequence = 1;
             vbl.request.signal = 0;
             drmWaitVBlank(fd, &vbl);
-            _DBG_PRINTF("It's time to update real screen. (%ld.%06ld)\n",
+            _DBG_PRINTF("Got a VBlank, it's time to update real screen. (%ld.%06ld)\n",
                     vbl.reply.tval_sec, vbl.reply.tval_usec);
         }
         else {
@@ -2502,6 +2504,15 @@ static void* task_do_update(void *data)
         pthread_mutex_lock(&this->hidden->update_mutex);
         if (RECTH(this->hidden->update_rect)) {
             update_real_screen_memcpy(this);
+            drmModeClip clip = {
+                this->hidden->update_rect.left,
+                this->hidden->update_rect.top,
+                this->hidden->update_rect.right,
+                this->hidden->update_rect.bottom };
+
+            drmModeDirtyFB(fd,
+                    this->hidden->scanout_buff_id, &clip, 1);
+
             SetRectEmpty(&this->hidden->update_rect);
         }
         else {
@@ -2525,6 +2536,8 @@ error:
 
 static int create_async_updater(_THIS)
 {
+    return -1;
+
     if (sem_init(&this->hidden->sync_sem, 0, 0))
         return -1;
 
