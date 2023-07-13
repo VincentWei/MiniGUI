@@ -47,12 +47,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-// #define _DEBUG
+#define _DEBUG
 
 #include "common.h"
 
 #ifdef _MGGAL_DRM
 
+#include <time.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
 #include <sys/sysmacros.h>
@@ -2438,6 +2439,25 @@ static void drm_dmabuf_end(DrmSurfaceBuffer *real_buff)
     ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
 }
 
+#ifdef _DEBUG
+static double get_elapsed_seconds(const struct timespec *ts_from,
+        const struct timespec *ts_to)
+{
+    struct timespec ts_curr;
+    time_t ds;
+    long dns;
+
+    if (ts_to == NULL) {
+        clock_gettime(CLOCK_REALTIME, &ts_curr);
+        ts_to = &ts_curr;
+    }
+
+    ds = ts_to->tv_sec - ts_from->tv_sec;
+    dns = ts_to->tv_nsec - ts_from->tv_nsec;
+    return ds + dns * 1.0E-9;
+}
+#endif
+
 static void update_real_screen_memcpy(_THIS)
 {
     DrmSurfaceBuffer *real_buff, *shadow_buff;
@@ -2447,27 +2467,47 @@ static void update_real_screen_memcpy(_THIS)
     uint32_t i;
     uint8_t *src, *dst;
     RECT *update_rect = &this->hidden->update_rect;
-    size_t count = shadow_buff->cpp * RECTWP(update_rect);
+    int cpp = real_buff->cpp;
+    int shadow_pitch = this->hidden->shadow_screen->pitch;
+    int real_pitch = real_buff->pitch;
+    size_t count = cpp * RECTWP(update_rect);
 
-    _DBG_PRINTF("Copy pixels to real screen (pitch: %u, count: %u, h: %d)\n",
-            (unsigned)real_buff->pitch, (unsigned)count, RECTHP(update_rect));
-    src = shadow_buff->buff;
-    src += shadow_buff->pitch * update_rect->top +
-        shadow_buff->cpp * update_rect->left;
-    src += shadow_buff->offset;
+    _DBG_PRINTF("Copy pixels to real screen (pitch: %u, count: %u, %d x %d)\n",
+            (unsigned)real_buff->pitch, (unsigned)count,
+            RECTWP(update_rect), RECTHP(update_rect));
+
+#ifdef _DEBUG
+    struct timespec ts_start;
+    clock_gettime(CLOCK_REALTIME, &ts_start);
+#endif
+
+    if (shadow_buff) {
+        src = shadow_buff->buff;
+        src += shadow_buff->offset;
+    }
+    else {
+        src = this->hidden->shadow_screen->pixels;
+        src += this->hidden->shadow_screen->pixels_off;
+    }
+
+    src += shadow_pitch * update_rect->top + cpp * update_rect->left;
 
     dst = real_buff->buff;
-    dst += real_buff->pitch * update_rect->top +
-        real_buff->cpp * update_rect->left;
+    dst += real_pitch * update_rect->top + cpp * update_rect->left;
     dst += real_buff->offset;
 
     drm_dmabuf_start(real_buff);
     for (i = 0; i < RECTHP(update_rect); i++) {
         memcpy(dst, src, count);
-        src += shadow_buff->pitch;
-        dst += shadow_buff->pitch;
+        src += shadow_pitch;
+        dst += real_pitch;
     }
     drm_dmabuf_end(real_buff);
+
+#ifdef _DEBUG
+    double elapsed = get_elapsed_seconds(&ts_start, NULL);
+    _MG_PRINTF("Cosumed time to update real screen: %f (seconds)\n", elapsed);
+#endif
 }
 
 static void* task_do_update(void *data)
@@ -2477,18 +2517,44 @@ static void* task_do_update(void *data)
         goto error;
     }
 
-    BOOL vbl_ok = TRUE;
+    BOOL vbl_ok = FALSE;
     drmVBlank vbl;
+#if 0
+    for (int i = 0; i < 65; i++) {
+        memset(&vbl, 0, sizeof(vbl));
+        vbl.request.type = DRM_VBLANK_RELATIVE;
+        if (this->hidden->cap_vblank_high_crtc)
+            vbl.request.type |=
+                (i << DRM_VBLANK_HIGH_CRTC_SHIFT);
+        vbl.request.sequence = 1;
+        vbl.request.signal = 0;
+        _DBG_PRINTF("VBL type: 0x%08x\n", vbl.request.type);
+        if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
+            _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", i);
+        }
+        else {
+            vbl_ok = TRUE;
+            this->hidden->crtc_idx = i;
+            _DBG_PRINTF("Found crtc_idx: %d\n", i);
+            break;
+        }
+    }
+#else
+    memset(&vbl, 0, sizeof(vbl));
     vbl.request.type = DRM_VBLANK_RELATIVE;
     if (this->hidden->cap_vblank_high_crtc)
         vbl.request.type |=
             (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
     vbl.request.sequence = 1;
     vbl.request.signal = 0;
+    _DBG_PRINTF("VBL type: 0x%08x\n", vbl.request.type);
     if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
-        _WRN_PRINTF("Failed drmWaitVBlank(): %m\n");
-        vbl_ok = FALSE;
+        _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", this->hidden->crtc_idx);
     }
+    else {
+        vbl_ok = TRUE;
+    }
+#endif
 
     this->hidden->updater_ready = 1;
     sem_post(&this->hidden->sync_sem);
@@ -2668,7 +2734,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
                  vdata->shadow_screen->pixels_off);
             SetRectEmpty (&hdr->dirty_rc);
 #else
-            vdata->shadow_screen = GAL_CreateRGBSurface (GAL_SWSURFACE,
+            vdata->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
                     real_buffer->width, real_buffer->height, real_buffer->bpp,
                     RGBAmasks[0], RGBAmasks[1], RGBAmasks[2], RGBAmasks[3]);
 
@@ -3637,29 +3703,7 @@ static BOOL DRM_SyncUpdate(_THIS)
 
     if (this->hidden->shadow_screen) {
 #if 1
-        DrmSurfaceBuffer *real_buff, *shadow_buff;
-        real_buff = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
-        shadow_buff = (DrmSurfaceBuffer *)this->hidden->shadow_screen->hwdata;
-
-        uint32_t i;
-        uint8_t *src, *dst;
-        size_t count = shadow_buff->cpp * RECTW (bound);
-
-        src = shadow_buff->buff;
-        src += shadow_buff->pitch * bound.top + shadow_buff->cpp * bound.left;
-        src += shadow_buff->offset;
-
-        dst = real_buff->buff;
-        dst += real_buff->pitch * bound.top + real_buff->cpp * bound.left;
-        dst += real_buff->offset;
-
-        drm_dmabuf_start(real_buff);
-        for (i = 0; i < RECTH (bound); i++) {
-            memcpy (dst, src, count);
-            src += shadow_buff->pitch;
-            dst += shadow_buff->pitch;
-        }
-        drm_dmabuf_end(real_buff);
+        update_real_screen_memcpy(this);
 #else
         GAL_Rect src_rect, dst_rect;
         src_rect.x = bound.left;
@@ -3765,6 +3809,7 @@ static BOOL DRM_SyncUpdateAsync(_THIS)
     RECT *update_rect = &this->hidden->update_rect;
     GetBoundRect(update_rect, &bound, update_rect);
     retval = TRUE;
+    SetRectEmpty(dirty_rc);
 
 ret:
 #ifndef _MGSCHEMA_COMPOSITING
