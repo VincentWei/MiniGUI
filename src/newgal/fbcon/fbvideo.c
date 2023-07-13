@@ -172,7 +172,7 @@ static BOOL FB_SyncUpdatePanning (_THIS)
 {
     currt_vinfo.yoffset = this->hidden->idx_buffer * currt_vinfo.yres;
     if (ioctl(console_fd, FBIOPAN_DISPLAY, &currt_vinfo) < 0) {
-        _WRN_PRINTF("Failed ioctl(): FBIOPAN_DISPLAY\n");
+        _WRN_PRINTF("Failed ioctl(): FBIOPAN_DISPLAY: %m\n");
         return FALSE;
     }
 
@@ -183,8 +183,7 @@ static BOOL FB_SyncUpdatePanning (_THIS)
 
     int dummy = 0;
     if (ioctl(console_fd, FBIO_WAITFORVSYNC, &dummy) < 0) {
-        _WRN_PRINTF("Failed ioctl(): FBIO_WAITFORVSYNC\n");
-        return FALSE;
+        _WRN_PRINTF("Failed ioctl(): FBIO_WAITFORVSYNC: %m\n");
     }
 
     this->hidden->real_screen->pixels =
@@ -765,7 +764,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
 
     /* Since 5.0.13, use FBIOPAN_DISPLAY if possible */
     this->hidden->nr_buffers = finfo.smem_len / (vinfo.yres * current->pitch);
-    if (this->hidden->nr_buffers > 1) {
+    if (0 && this->hidden->nr_buffers > 1) {
         this->hidden->nr_buffers = 2;
         vinfo.yres_virtual = this->hidden->nr_buffers * vinfo.yres;
         if (ioctl(console_fd, FBIOPUT_VSCREENINFO, &vinfo) < 0) {
@@ -889,7 +888,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     else {
         this->hidden->real_screen = current;
         this->hidden->shadow_screen = NULL;
-        if (this->hidden->nr_buffers > 1) {
+        if (0 && this->hidden->nr_buffers > 1) {
             this->UpdateRects = FB_UpdateRectsPanning;
             this->SyncUpdate = FB_SyncUpdatePanning;
         }

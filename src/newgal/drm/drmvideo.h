@@ -65,12 +65,6 @@
 
 typedef struct drm_mode_info DrmModeInfo;
 
-enum {
-    DRM_DBLBUF_NONE   = 0,
-    DRM_DBLBUF_BLIT,
-    DRM_DBLBUF_DMA,
-};
-
 typedef struct GAL_PrivateVideoData {
     /* For compositing schema, we force to use double buffering */
 #ifdef _MGSCHEMA_COMPOSITING
@@ -91,8 +85,9 @@ typedef struct GAL_PrivateVideoData {
 
     /* the global names of real screen and shadow screen */
     uint32_t        real_name, shadow_name;
-    sem_t *update_lock;
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
+
+    sem_t *update_lock;
 
 #if !IS_SHAREDFB_SCHEMA_PROCS
     RECT dirty_rc;
@@ -106,8 +101,10 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        cap_cursor_width;
     uint32_t        cap_cursor_height;
     uint32_t        cap_dumb:1;
-    uint32_t        dbl_buff:2;
+    uint32_t        cap_vblank_high_crtc:1;
+    uint32_t        dbl_buff:1;
     uint32_t        scanout_buff_id;
+    int             crtc_idx;
 
     void*           exdrv_handle;
     DrmDriverOps*   driver_ops;
@@ -123,7 +120,6 @@ typedef struct GAL_PrivateVideoData {
     int             updater_ready;
     RECT            update_rect;
     pthread_t       update_thd;
-    pthread_mutex_t update_mutex;
     sem_t           sync_sem;
 } DrmVideoData;
 

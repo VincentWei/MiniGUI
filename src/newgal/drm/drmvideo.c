@@ -47,7 +47,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _DEBUG
+// #define _DEBUG
 
 #include "common.h"
 
@@ -1160,16 +1160,27 @@ static int open_drm_device(GAL_VideoDevice *device)
 
     /* get capabilities */
     {
-        uint64_t has_dumb, cursor_width, cursor_height;
+        uint64_t has_set, cursor_width, cursor_height;
 
         /* check whether supports dumb buffer */
-        if (drmGetCap(fd, DRM_CAP_DUMB_BUFFER, &has_dumb) < 0 ||
-                !has_dumb) {
+        if (drmGetCap(fd, DRM_CAP_DUMB_BUFFER, &has_set) < 0 ||
+                !has_set) {
             device->hidden->cap_dumb = 0;
         }
         else {
             device->hidden->cap_dumb = 1;
         }
+
+        if (drmGetCap(fd, DRM_CAP_VBLANK_HIGH_CRTC, &has_set) < 0 ||
+                !has_set) {
+            device->hidden->cap_vblank_high_crtc = 0;
+        }
+        else {
+            device->hidden->cap_vblank_high_crtc = 1;
+        }
+
+        _DBG_PRINTF("DRM_CAP_VBLANK_HIGH_CRTC: %s\n",
+                device->hidden->cap_vblank_high_crtc ? "yes" : "no");
 
         if (drmGetCap(fd, DRM_CAP_CURSOR_WIDTH, &cursor_width) < 0 ||
                 cursor_width == 0) {
@@ -1265,16 +1276,13 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             device->hidden->dbl_buff = 0;
         }
         else if (strcasecmp (tmp, "true") == 0 ||
-                strcasecmp (tmp, "yes") == 0 ||
-                strcasecmp (tmp, "blit") == 0) {
-            device->hidden->dbl_buff = DRM_DBLBUF_BLIT;
+                strcasecmp (tmp, "yes") == 0) {
+            device->hidden->dbl_buff = 1;
         }
-        else if (strcasecmp (tmp, "dma") == 0) {
-            device->hidden->dbl_buff = DRM_DBLBUF_DMA;
+        else {
+            device->hidden->dbl_buff = 0;
         }
 
-#ifndef _MGSCHEMA_COMPOSITING 
-#ifndef _MGRM_STANDALONE
         if (device->hidden->dbl_buff) {
             mode_t old_mask = umask (0000);
             sem_unlink (SEM_UPDATE_LOCK);
@@ -1286,10 +1294,9 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
                 device->hidden->dbl_buff = 0;
             }
         }
-#else   /* not defined _MGRM_STANDALONE */
-        device->hidden->update_lock = SEM_FAILED;
-#endif  /* defined _MGRM_STANDALONE */
-#endif  /* not defined _MGSCHEMA_COMPOSITING */
+        else {
+            device->hidden->update_lock = SEM_FAILED;
+        }
     }
 #ifdef _MGRM_PROCESSES
     else {
@@ -1310,29 +1317,15 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 #if IS_COMPOSITING_SCHEMA
     /* force to use double buffering for compositing schema */
     if (mgIsServer) {
-        device->hidden->dbl_buff = DRM_DBLBUF_DMA;
-#if 0   /* test code */
-        device->UpdateRects = DRM_UpdateRects_Async;
-        device->SyncUpdate = DRM_SyncUpdate_Async;
-        pthread_mutex_init (&device->hidden->update_lock, NULL);
-        sem_init (&device->hidden->sem_update, 0, 0);
-        pthread_create (&device->hidden->update_th, NULL,
-                        task_do_update, device);
-#endif   /* test code */
+        device->hidden->dbl_buff = 1;
     }
     else {
         device->hidden->dbl_buff = 0;
-#if 0   /* test code */
-        device->hidden->update_th = 0;
-#endif  /* test code */
     }
 #endif  /* IS_COMPOSITING_SCHEMA */
 
-    if (device->hidden->dbl_buff) {
-        device->UpdateRects = DRM_UpdateRects;
-        device->SyncUpdate = DRM_SyncUpdate;
-    }
-
+    device->UpdateRects = DRM_UpdateRects;
+    device->SyncUpdate = DRM_SyncUpdate;
     device->VideoInit = DRM_VideoInit;
     device->ListModes = DRM_ListModes;
     device->SetColors = DRM_SetColors;
@@ -1497,6 +1490,19 @@ static int drm_find_crtc(DrmVideoData* vdata,
     return -ENOENT;
 }
 
+static int get_crtc_index(drmModeRes *res, uint32_t id)
+{
+    int i;
+
+    for (i = 0; i < res->count_crtcs; ++i) {
+        if (res->crtcs[i] == id)
+            return i;
+    }
+
+    return -1;
+}
+
+
 /*
  * drm_setup_connector:
  * Set up a single connector.
@@ -1535,6 +1541,9 @@ static int drm_setup_connector(DrmVideoData* vdata,
         return ret;
     }
 
+    vdata->crtc_idx = get_crtc_index(res, info->crtc);
+    _DBG_PRINTF("CRTC found: id: %u; idx: %d\n",
+            info->crtc, vdata->crtc_idx);
     return 0;
 }
 
@@ -2464,23 +2473,21 @@ static void update_real_screen_memcpy(_THIS)
 static void* task_do_update(void *data)
 {
     _THIS = data;
-    int fd = dup(this->hidden->dev_fd);
-
-    if (fd < 0)
-        return NULL;
-
     if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)) {
         goto error;
     }
 
+    BOOL vbl_ok = TRUE;
     drmVBlank vbl;
     vbl.request.type = DRM_VBLANK_RELATIVE;
-    vbl.request.sequence = 0;
+    if (this->hidden->cap_vblank_high_crtc)
+        vbl.request.type |=
+            (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
+    vbl.request.sequence = 1;
     vbl.request.signal = 0;
-    if (drmWaitVBlank(fd, &vbl)) {
-        _ERR_PRINTF("Failed drmWaitVBlank(): %m\n");
-        close(fd);
-        fd = -1;
+    if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
+        _WRN_PRINTF("Failed drmWaitVBlank(): %m\n");
+        vbl_ok = FALSE;
     }
 
     this->hidden->updater_ready = 1;
@@ -2488,20 +2495,22 @@ static void* task_do_update(void *data)
 
     do {
 
-        if (fd >= 0) {
+        if (vbl_ok) {
             vbl.request.type = DRM_VBLANK_RELATIVE | DRM_VBLANK_NEXTONMISS;
+            if (this->hidden->cap_vblank_high_crtc)
+                vbl.request.type |=
+                    (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
             vbl.request.sequence = 1;
             vbl.request.signal = 0;
-            drmWaitVBlank(fd, &vbl);
+            drmWaitVBlank(this->hidden->dev_fd, &vbl);
             _DBG_PRINTF("Got a VBlank, it's time to update real screen. (%ld.%06ld)\n",
                     vbl.reply.tval_sec, vbl.reply.tval_usec);
         }
         else {
             usleep(20 * 1000);  // 20ms
-            _DBG_PRINTF("update real screen evenry 20ms.\n");
         }
 
-        pthread_mutex_lock(&this->hidden->update_mutex);
+        sem_wait(this->hidden->update_lock);
         if (RECTH(this->hidden->update_rect)) {
             update_real_screen_memcpy(this);
             drmModeClip clip = {
@@ -2510,38 +2519,29 @@ static void* task_do_update(void *data)
                 this->hidden->update_rect.right,
                 this->hidden->update_rect.bottom };
 
-            drmModeDirtyFB(fd,
-                    this->hidden->scanout_buff_id, &clip, 1);
+            if (drmModeDirtyFB(this->hidden->dev_fd,
+                    this->hidden->scanout_buff_id, &clip, 1)) {
+                _WRN_PRINTF("Failed drmModeDirtyFB: %m\n");
+            }
 
             SetRectEmpty(&this->hidden->update_rect);
         }
-        else {
-            _DBG_PRINTF("Empty update rect!\n");
-        }
-        pthread_mutex_unlock(&this->hidden->update_mutex);
+        sem_post(this->hidden->update_lock);
 
         pthread_testcancel();
 
     } while (1);
 
-    close(fd);
     return NULL;
 
 error:
-    if (fd >= 0)
-        close(fd);
     sem_post(&this->hidden->sync_sem);
     return NULL;
 }
 
 static int create_async_updater(_THIS)
 {
-    return -1;
-
     if (sem_init(&this->hidden->sync_sem, 0, 0))
-        return -1;
-
-    if (pthread_mutex_init(&this->hidden->update_mutex, NULL))
         return -1;
 
     pthread_attr_t attr;
@@ -2566,7 +2566,6 @@ static void cancel_async_updater(_THIS)
     if (this->hidden->updater_ready) {
         pthread_cancel(this->hidden->update_thd);
         pthread_join(this->hidden->update_thd, NULL);
-        pthread_mutex_destroy(&this->hidden->update_mutex);
 
         sem_destroy(&this->hidden->sync_sem);
     }
@@ -2609,15 +2608,11 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         assert (vdata->driver_ops->create_buffer);
         real_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                 drm_format, 0, info->width, info->height);
-        if (vdata->dbl_buff == DRM_DBLBUF_DMA) {
+        if (vdata->dbl_buff) {
             if (drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
                 _WRN_PRINTF("Cannot map real screen buffer via DMA-BUF\n");
-                vdata->dbl_buff = DRM_DBLBUF_BLIT;
+                vdata->driver_ops->map_buffer(vdata->driver, real_buffer, 1);
             }
-        }
-
-        if (vdata->dbl_buff != DRM_DBLBUF_DMA) {
-            vdata->driver_ops->map_buffer(vdata->driver, real_buffer, 1);
         }
     }
     else {
@@ -3600,10 +3595,6 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     *dirty_rc = bound;
-    bound = GetScreenRect();
-    if (!IntersectRect (dirty_rc, dirty_rc, &bound))
-        SetRectEmpty (dirty_rc);
-
 #ifndef _MGSCHEMA_COMPOSITING
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_post (this->hidden->update_lock);
@@ -3645,46 +3636,45 @@ static BOOL DRM_SyncUpdate(_THIS)
     bound = *dirty_rc;
 
     if (this->hidden->shadow_screen) {
-        if (this->hidden->dbl_buff == DRM_DBLBUF_DMA) {
-            DrmSurfaceBuffer *real_buff, *shadow_buff;
-            real_buff = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
-            shadow_buff = (DrmSurfaceBuffer *)this->hidden->shadow_screen->hwdata;
+#if 1
+        DrmSurfaceBuffer *real_buff, *shadow_buff;
+        real_buff = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
+        shadow_buff = (DrmSurfaceBuffer *)this->hidden->shadow_screen->hwdata;
 
-            uint32_t i;
-            uint8_t *src, *dst;
-            size_t count = shadow_buff->cpp * RECTW (bound);
+        uint32_t i;
+        uint8_t *src, *dst;
+        size_t count = shadow_buff->cpp * RECTW (bound);
 
-            src = shadow_buff->buff;
-            src += shadow_buff->pitch * bound.top + shadow_buff->cpp * bound.left;
-            src += shadow_buff->offset;
+        src = shadow_buff->buff;
+        src += shadow_buff->pitch * bound.top + shadow_buff->cpp * bound.left;
+        src += shadow_buff->offset;
 
-            dst = real_buff->buff;
-            dst += real_buff->pitch * bound.top + real_buff->cpp * bound.left;
-            dst += real_buff->offset;
+        dst = real_buff->buff;
+        dst += real_buff->pitch * bound.top + real_buff->cpp * bound.left;
+        dst += real_buff->offset;
 
-            drm_dmabuf_start(real_buff);
-            for (i = 0; i < RECTH (bound); i++) {
-                memcpy (dst, src, count);
-                src += shadow_buff->pitch;
-                dst += shadow_buff->pitch;
-            }
-            drm_dmabuf_end(real_buff);
+        drm_dmabuf_start(real_buff);
+        for (i = 0; i < RECTH (bound); i++) {
+            memcpy (dst, src, count);
+            src += shadow_buff->pitch;
+            dst += shadow_buff->pitch;
         }
-        else {
-            GAL_Rect src_rect, dst_rect;
-            src_rect.x = bound.left;
-            src_rect.y = bound.top;
-            src_rect.w = RECTW (bound);
-            src_rect.h = RECTH (bound);
-            dst_rect = src_rect;
+        drm_dmabuf_end(real_buff);
+#else
+        GAL_Rect src_rect, dst_rect;
+        src_rect.x = bound.left;
+        src_rect.y = bound.top;
+        src_rect.w = RECTW (bound);
+        src_rect.h = RECTH (bound);
+        dst_rect = src_rect;
 
-            GAL_SetupBlitting (this->hidden->shadow_screen,
-                    this->hidden->real_screen, 0);
-            GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
-                    this->hidden->real_screen, &dst_rect);
-            GAL_CleanupBlitting (this->hidden->shadow_screen,
-                    this->hidden->real_screen);
-        }
+        GAL_SetupBlitting (this->hidden->shadow_screen,
+                this->hidden->real_screen, 0);
+        GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
+                this->hidden->real_screen, &dst_rect);
+        GAL_CleanupBlitting (this->hidden->shadow_screen,
+                this->hidden->real_screen);
+#endif
     }
 
 #ifdef _MGSCHEMA_COMPOSITING
@@ -3772,10 +3762,8 @@ static BOOL DRM_SyncUpdateAsync(_THIS)
         goto ret;
 
     bound = *dirty_rc;
-    pthread_mutex_lock(&this->hidden->update_mutex);
     RECT *update_rect = &this->hidden->update_rect;
     GetBoundRect(update_rect, &bound, update_rect);
-    pthread_mutex_unlock(&this->hidden->update_mutex);
     retval = TRUE;
 
 ret:
@@ -3814,58 +3802,6 @@ static BOOL DRM_SyncUpdateDMA (_THIS)
     return TRUE;
 }
 #endif
-
-#if 0   /* test code */
-#ifdef _MGSCHEMA_COMPOSITING
-static void* task_do_update (void* data)
-{
-    _THIS;
-    this = data;
-
-    if (pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL))
-        return NULL;
-
-    do {
-        sem_wait (&this->hidden->sem_update);
-
-        pthread_testcancel ();
-
-        pthread_mutex_lock (&this->hidden->update_lock);
-        DRM_SyncUpdate (this);
-        pthread_mutex_unlock (&this->hidden->update_lock);
-
-    } while (1);
-
-    return NULL;
-}
-
-static void DRM_UpdateRects_Async (_THIS, int numrects, GAL_Rect *rects)
-{
-    pthread_mutex_lock (&this->hidden->update_lock);
-
-    DRM_UpdateRects (this, numrects, rects);
-
-    pthread_mutex_unlock (&this->hidden->update_lock);
-    return;
-}
-
-static BOOL DRM_SyncUpdate_Async (_THIS)
-{
-    BOOL rc = FALSE;
-
-    pthread_mutex_lock (&this->hidden->update_lock);
-
-    if (!IsRectEmpty (&this->hidden->dirty_rc)) {
-        // signal the update thread to do update
-        sem_post (&this->hidden->sem_update);
-        rc = TRUE;
-    }
-
-    pthread_mutex_unlock (&this->hidden->update_lock);
-    return rc;
-}
-#endif  /* _MGSCHEMA_COMPOSITING */
-#endif  /* test code */
 
 static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
 {
