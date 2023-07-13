@@ -1157,7 +1157,6 @@ static int open_drm_device(GAL_VideoDevice *device)
 
     device->hidden->driver_ops = load_external_driver (device->hidden,
             driver_name, fd);
-    free (driver_name);
 
     /* get capabilities */
     {
@@ -1206,10 +1205,12 @@ static int open_drm_device(GAL_VideoDevice *device)
     device->hidden->dev_fd = fd;
     if (device->hidden->driver_ops) {
         device->hidden->driver = device->hidden->driver_ops->create_driver(fd);
+        if (device->hidden->driver == NULL)
+            _WRN_PRINTF("Failed to create DRM driver: %s\n", driver_name);
     }
+    free(driver_name);
 
     if (device->hidden->driver == NULL) {
-        _WRN_PRINTF("failed to create DRM driver\n");
         device->hidden->driver_ops = NULL;
 
         /* check whether supports dumb buffer */
@@ -1272,6 +1273,15 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     if (mgIsServer)
 #endif /* defined _MGRM_PROCESSES */
     {
+        if (GetMgEtcIntValue("drm", "update_interval",
+                    &device->hidden->update_interval) < 0) {
+            device->hidden->update_interval = 20;
+        }
+        else if (device->hidden->update_interval < 0 ||
+                device->hidden->update_interval > 50) {
+            device->hidden->update_interval = 20;
+        }
+
         char tmp [8];
         if (GetMgEtcValue ("drm", "double_buffering", tmp, 8) < 0) {
             device->hidden->dbl_buff = 0;
@@ -1491,19 +1501,6 @@ static int drm_find_crtc(DrmVideoData* vdata,
     return -ENOENT;
 }
 
-static int get_crtc_index(drmModeRes *res, uint32_t id)
-{
-    int i;
-
-    for (i = 0; i < res->count_crtcs; ++i) {
-        if (res->crtcs[i] == id)
-            return i;
-    }
-
-    return -1;
-}
-
-
 /*
  * drm_setup_connector:
  * Set up a single connector.
@@ -1542,9 +1539,6 @@ static int drm_setup_connector(DrmVideoData* vdata,
         return ret;
     }
 
-    vdata->crtc_idx = get_crtc_index(res, info->crtc);
-    _DBG_PRINTF("CRTC found: id: %u; idx: %d\n",
-            info->crtc, vdata->crtc_idx);
     return 0;
 }
 
@@ -1810,6 +1804,40 @@ static void DRM_CopyVideoInfoToSharedRes(_THIS)
 }
 #endif  /* _MGRM_PROCESSES */
 
+static int get_crtc_index(DrmVideoData* vdata)
+{
+#if 1
+    int pipe = -1;
+    drmModeRes *res;
+
+    res = drmModeGetResources(vdata->dev_fd);
+    if (!res)
+        goto done;
+
+    for (int i = 0; i < res->count_crtcs; i++) {
+        if (vdata->saved_info->crtc == res->crtcs[i]) {
+            pipe = i;
+            break;
+        }
+    }
+    drmModeFreeResources(res);
+
+done:
+    vdata->crtc_idx = pipe;
+    return pipe;
+#else
+    int i;
+
+    for (i = 0; i < res->count_crtcs; ++i) {
+        if (res->crtcs[i] == id)
+            return i;
+    }
+
+    return -1;
+#endif
+}
+
+
 static int drm_setup_scanout_buffer (DrmVideoData* vdata,
         uint32_t handle, uint32_t drm_format,
         uint32_t width, uint32_t height, uint32_t pitch, uint32_t offset)
@@ -1846,6 +1874,14 @@ static int drm_setup_scanout_buffer (DrmVideoData* vdata,
 
         drmModeFreeCrtc(vdata->saved_crtc);
         vdata->saved_crtc = NULL;
+    }
+    else {
+        if (get_crtc_index(vdata) < 0) {
+            _WRN_PRINTF("Invalid return value of get_crtc_index()\n");
+        }
+        else {
+            _DBG_PRINTF("CRTC index: %d\n", vdata->crtc_idx);
+        }
     }
 
     return ret;
@@ -1930,22 +1966,6 @@ static int drm_setup_cursor_plane (DrmVideoData* vdata, uint32_t drm_format,
             return 0;
         }
     }
-
-#if 0
-    int pipe = -1;
-    drmModeRes *res;
-
-    res = drmModeGetResources(vdata->dev_fd);
-    if (!res) return ret;
-    for (i = 0; i < res->count_crtcs; i++) {
-        if (vdata->saved_info->crtc == res->crtcs[i]) {
-            pipe = i;
-            break;
-        }
-    }
-    drmModeFreeResources(res);
-    assert (pipe >= 0);
-#endif
 
     plane_res = drmModeGetPlaneResources (vdata->dev_fd);
     if (!plane_res) {
@@ -2540,19 +2560,21 @@ static void* task_do_update(void *data)
         }
     }
 #else
-    memset(&vbl, 0, sizeof(vbl));
-    vbl.request.type = DRM_VBLANK_RELATIVE;
-    if (this->hidden->cap_vblank_high_crtc)
-        vbl.request.type |=
-            (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
-    vbl.request.sequence = 1;
-    vbl.request.signal = 0;
-    _DBG_PRINTF("VBL type: 0x%08x\n", vbl.request.type);
-    if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
-        _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", this->hidden->crtc_idx);
-    }
-    else {
-        vbl_ok = TRUE;
+    if (this->hidden->crtc_idx >= 0) {
+        memset(&vbl, 0, sizeof(vbl));
+        vbl.request.type = DRM_VBLANK_RELATIVE;
+        if (this->hidden->cap_vblank_high_crtc)
+            vbl.request.type |=
+                (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
+        vbl.request.sequence = 1;
+        vbl.request.signal = 0;
+        _DBG_PRINTF("VBL type: 0x%08x\n", vbl.request.type);
+        if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
+            _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", this->hidden->crtc_idx);
+        }
+        else {
+            vbl_ok = TRUE;
+        }
     }
 #endif
 
@@ -2573,12 +2595,13 @@ static void* task_do_update(void *data)
                     vbl.reply.tval_sec, vbl.reply.tval_usec);
         }
         else {
-            usleep(20 * 1000);  // 20ms
+            usleep(this->hidden->update_interval * 1000);
         }
 
         sem_wait(this->hidden->update_lock);
         if (RECTH(this->hidden->update_rect)) {
             update_real_screen_memcpy(this);
+            /* TODO: update cursor under compositing schema */
             drmModeClip clip = {
                 this->hidden->update_rect.left,
                 this->hidden->update_rect.top,
@@ -3753,6 +3776,10 @@ static BOOL DRM_SyncUpdate(_THIS)
     if (this->hidden->driver && this->hidden->driver_ops->flush_driver) {
         this->hidden->driver_ops->flush_driver(this->hidden->driver);
     }
+
+    _DBG_PRINTF("called: %d, %d, %d, %d\n",
+            bound.left, bound.top,
+            bound.right, bound.bottom);
 
     {
         drmModeClip clip = { bound.left, bound.top,

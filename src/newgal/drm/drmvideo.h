@@ -104,6 +104,7 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        cap_vblank_high_crtc:1;
     uint32_t        dbl_buff:1;
     uint32_t        scanout_buff_id;
+    int             update_interval;
     int             crtc_idx;
 
     void*           exdrv_handle;

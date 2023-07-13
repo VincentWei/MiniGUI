@@ -120,13 +120,13 @@ struct GAL_PrivateVideoData {
     int semid;
 #endif
 
-    int         nr_updaters;
-
-    /* only valid when nr_updaters > 0 */
-    RECT        dirty_rcs[MAX_NR_UPDATERS];
-    sem_t       update_sems[MAX_NR_UPDATERS];
-    pthread_t   update_thds[MAX_NR_UPDATERS];
-    sem_t       sync_sem;
+    /* async updater */
+    int             async_update;
+    int             update_interval;
+    RECT            update_rect;
+    pthread_t       update_thd;
+    pthread_mutex_t update_lock;
+    sem_t           sync_sem;
 };
 
 typedef struct _ShadowFBOps {
