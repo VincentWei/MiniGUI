@@ -128,6 +128,9 @@ struct GAL_VideoDevice {
      */
     void (*UpdateRects)(_THIS, int numrects, GAL_Rect *rects);
 
+    /* Wait vertical blank */
+    BOOL (*WaitVBlank)(_THIS);
+
     /* Synchronize the dirty content */
     BOOL (*SyncUpdate)(_THIS);
 

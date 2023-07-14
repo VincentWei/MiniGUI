@@ -99,8 +99,6 @@ static void FB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request,
         REP_HWSURFACE* reply);
 static int FB_AllocHWSurface(_THIS, GAL_Surface *surface);
 static void FB_FreeHWSurface(_THIS, GAL_Surface *surface);
-static void FB_WaitVBL(_THIS);
-static void FB_WaitIdle(_THIS);
 
 #include "../shadow-screen.h"
 #include "debug.h"
@@ -191,6 +189,19 @@ static BOOL FB_SyncUpdatePanning (_THIS)
     return TRUE;
 }
 
+static BOOL FB_WaitVBlank(_THIS)
+{
+    if (wait_vbl) {
+        wait_vbl(this);
+    }
+    else if (ioctl(console_fd, FBIO_WAITFORVSYNC, 0)) {
+        _WRN_PRINTF("Failed VSync.\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 static BOOL FB_SyncUpdate (_THIS)
 {
     if (IsRectEmpty (&this->hidden->dirty_rc))
@@ -269,8 +280,6 @@ static GAL_VideoDevice *FB_CreateDevice(int devindex)
     memset(this->hidden, 0, (sizeof *this->hidden));
     this->hidden->magic = MAGIC_SHADOW_SCREEN_HEADER;
     this->hidden->version = 0;
-    wait_vbl = FB_WaitVBL;
-    wait_idle = FB_WaitIdle;
 
     /* Set the function pointers */
     this->VideoInit = FB_VideoInit;
@@ -894,6 +903,11 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         }
     }
 
+    if (FB_WaitVBlank(this))
+        this->WaitVBlank = FB_WaitVBlank;
+    else
+        _WRN_PRINTF("The FBCon device does not support VSync.\n");
+
     /* We're done */
     return (current);
 }
@@ -1174,19 +1188,6 @@ static void FB_FreeHWSurface(_THIS, GAL_Surface *surface)
 
     surface->pixels = NULL;
     surface->hwdata = NULL;
-}
-
-static void FB_WaitVBL(_THIS)
-{
-#ifdef FBIOWAITRETRACE /* Heheh, this didn't make it into the main kernel */
-    ioctl(console_fd, FBIOWAITRETRACE, 0);
-#endif
-    return;
-}
-
-static void FB_WaitIdle(_THIS)
-{
-    return;
 }
 
 void FB_SavePaletteTo(_THIS, int palette_len, __u16 *area)

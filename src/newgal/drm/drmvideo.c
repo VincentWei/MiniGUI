@@ -120,6 +120,7 @@ static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
         Uint32 color);
 
 static void DRM_UpdateRects(_THIS, int numrects, GAL_Rect *rects);
+static BOOL DRM_WaitVBlank(_THIS);
 static BOOL DRM_SyncUpdate(_THIS);
 static BOOL DRM_SyncUpdateAsync(_THIS);
 
@@ -2574,6 +2575,7 @@ static void* task_do_update(void *data)
         }
         else {
             vbl_ok = TRUE;
+            this->WaitVBlank = DRM_WaitVBlank;
         }
     }
 #endif
@@ -3711,6 +3713,21 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
         sem_post (this->hidden->update_lock);
     }
 #endif
+}
+
+static BOOL DRM_WaitVBlank(_THIS)
+{
+    drmVBlank vbl;
+    vbl.request.type = DRM_VBLANK_RELATIVE | DRM_VBLANK_NEXTONMISS;
+    if (this->hidden->cap_vblank_high_crtc)
+        vbl.request.type |=
+            (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
+    vbl.request.sequence = 1;
+    vbl.request.signal = 0;
+    if (drmWaitVBlank(this->hidden->dev_fd, &vbl))
+        return FALSE;
+
+    return TRUE;
 }
 
 static BOOL DRM_SyncUpdate(_THIS)

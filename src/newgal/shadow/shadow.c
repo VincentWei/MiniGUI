@@ -630,7 +630,12 @@ static void *task_do_update(void *data)
     sem_post(&this->hidden->sync_sem);
 
     do {
-        usleep(this->hidden->update_interval * 1000);
+        if (this->WaitVBlank) {
+            this->WaitVBlank(this);
+        }
+        else {
+            usleep(this->hidden->update_interval * 1000);
+        }
 
 #if USE_UPDATE_SEM
         if (sem_wait(&this->hidden->update_sem))
