@@ -47,7 +47,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// #define _DEBUG
+#define _DEBUG
 
 #include "common.h"
 
@@ -1827,14 +1827,30 @@ done:
     vdata->crtc_idx = pipe;
     return pipe;
 #else
-    int i;
+    int pipe = -1;
 
-    for (i = 0; i < res->count_crtcs; ++i) {
-        if (res->crtcs[i] == id)
-            return i;
+    for (int i = 0; i < 66; i++) {
+        drmVBlank vbl;
+        memset(&vbl, 0, sizeof(vbl));
+        vbl.request.type = DRM_VBLANK_RELATIVE;
+        if (vdata->cap_vblank_high_crtc)
+            vbl.request.type |=
+                (i << DRM_VBLANK_HIGH_CRTC_SHIFT);
+        vbl.request.sequence = 1;
+        vbl.request.signal = 0;
+        _DBG_PRINTF("VBL type: 0x%08x\n", vbl.request.type);
+        if (drmWaitVBlank(vdata->dev_fd, &vbl)) {
+            _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", i);
+        }
+        else {
+            pipe = i;
+            _DBG_PRINTF("Found crtc_idx: %d\n", i);
+            break;
+        }
     }
 
-    return -1;
+    vdata->crtc_idx = pipe;
+    return pipe;
 #endif
 }
 
@@ -2540,27 +2556,6 @@ static void* task_do_update(void *data)
 
     BOOL vbl_ok = FALSE;
     drmVBlank vbl;
-#if 0
-    for (int i = 0; i < 65; i++) {
-        memset(&vbl, 0, sizeof(vbl));
-        vbl.request.type = DRM_VBLANK_RELATIVE;
-        if (this->hidden->cap_vblank_high_crtc)
-            vbl.request.type |=
-                (i << DRM_VBLANK_HIGH_CRTC_SHIFT);
-        vbl.request.sequence = 1;
-        vbl.request.signal = 0;
-        _DBG_PRINTF("VBL type: 0x%08x\n", vbl.request.type);
-        if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
-            _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", i);
-        }
-        else {
-            vbl_ok = TRUE;
-            this->hidden->crtc_idx = i;
-            _DBG_PRINTF("Found crtc_idx: %d\n", i);
-            break;
-        }
-    }
-#else
     if (this->hidden->crtc_idx >= 0) {
         memset(&vbl, 0, sizeof(vbl));
         vbl.request.type = DRM_VBLANK_RELATIVE;
@@ -2575,10 +2570,8 @@ static void* task_do_update(void *data)
         }
         else {
             vbl_ok = TRUE;
-            this->WaitVBlank = DRM_WaitVBlank;
         }
     }
-#endif
 
     this->hidden->updater_ready = 1;
     sem_post(&this->hidden->sync_sem);
@@ -2746,6 +2739,9 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         _ERR_PRINTF("NEWGAL>DRM: cannot setup scanout buffer\n");
         goto error;
     }
+
+    if (vdata->crtc_idx >= 0)
+        this->WaitVBlank = DRM_WaitVBlank;
 
     vdata->real_screen = create_surface_from_buffer (this, real_buffer,
             bpp, RGBAmasks);

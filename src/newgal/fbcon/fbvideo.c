@@ -191,11 +191,12 @@ static BOOL FB_SyncUpdatePanning (_THIS)
 
 static BOOL FB_WaitVBlank(_THIS)
 {
+    int dummy;
     if (wait_vbl) {
         wait_vbl(this);
     }
-    else if (ioctl(console_fd, FBIO_WAITFORVSYNC, 0)) {
-        _WRN_PRINTF("Failed VSync.\n");
+    else if (ioctl(console_fd, FBIO_WAITFORVSYNC, &dummy)) {
+        _DBG_PRINTF("Failed VSync: %m\n");
         return FALSE;
     }
 
@@ -903,10 +904,12 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
         }
     }
 
-    if (FB_WaitVBlank(this))
+    if (FB_WaitVBlank(this)) {
         this->WaitVBlank = FB_WaitVBlank;
-    else
+    }
+    else {
         _WRN_PRINTF("The FBCon device does not support VSync.\n");
+    }
 
     /* We're done */
     return (current);
