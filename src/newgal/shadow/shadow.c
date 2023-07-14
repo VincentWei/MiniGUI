@@ -55,11 +55,14 @@
 #include <string.h>
 #include <error.h>
 #include <time.h>
-#include <unistd.h>
 
 #define _DEBUG
 
 #include "common.h"
+
+#if __LINUX__
+#include <unistd.h>
+#endif
 
 #ifdef _MGGAL_SHADOW
 
@@ -106,49 +109,6 @@ extern void _get_dst_rect_hflip (RECT* src_rect, RealFBInfo *realfb_info);
 extern void _get_dst_rect_vflip (RECT* src_rect, RealFBInfo *realfb_info);
 extern void _get_dst_rect_ccw (RECT* dst_rect, const RECT* src_rect, RealFBInfo *realfb_info);
 extern GAL_VideoDevice *GAL_GetVideo(const char* driver_name, BOOL check_compos);
-
-
-#ifdef _MGUSE_PIXMAN
-static void refresh_by_using_pixman(ShadowFBHeader *shadowfb_header,
-        RealFBInfo *realfb_info, void *update)
-{
-    RECT src_rc = *(RECT *)update;
-    RECT dst_rc;
-    int dst_x, dst_y;
-
-    if (realfb_info->flags & _ROT_DIR_CW) {
-        _get_dst_rect_cw(&dst_rc, update, realfb_info);
-        dst_x = -realfb_info->real_device->screen->h;
-        dst_y = 0;
-    }
-    else if (realfb_info->flags & _ROT_DIR_CCW) {
-        _get_dst_rect_ccw(&dst_rc, update, realfb_info);
-        dst_x = 0; // -realfb_info->real_device->screen->w / 2;
-        dst_y = realfb_info->real_device->screen->h / 4;
-    }
-
-    int w = RECTW(dst_rc);
-    int h = RECTH(dst_rc);
-
-    pixman_region32_t clip_region;
-    pixman_region32_init_rect(&clip_region, dst_rc.left, dst_rc.top, w, h);
-    pixman_image_set_clip_region32(realfb_info->dst_img, &clip_region);
-
-    pixman_image_set_filter(realfb_info->src_img, PIXMAN_FILTER_FAST, NULL, 0);
-    pixman_image_set_transform(realfb_info->src_img, &realfb_info->transform);
-    pixman_image_composite32(PIXMAN_OP_SRC, realfb_info->src_img, NULL,
-            realfb_info->dst_img,
-            0, 0, 0, 0,
-            dst_x, dst_y,
-            realfb_info->real_device->screen->h,
-            realfb_info->real_device->screen->h);
-    pixman_region32_fini(&clip_region);
-
-    pixman_image_set_transform(realfb_info->src_img, NULL);
-    pixman_image_set_clip_region32(realfb_info->dst_img, NULL);
-}
-
-#else
 
 #ifdef _DEBUG
 static double get_elapsed_seconds(const struct timespec *ts_from,
@@ -269,8 +229,6 @@ static void refresh_cw_32bpp(ShadowFBHeader* shadowfb_header,
 #endif
 }
 
-#endif
-
 extern void refresh_normal_msb_left (ShadowFBHeader * shadowfb_header, RealFBInfo *realfb_info, void* update);
 
 extern void refresh_cw_msb_left (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_info, void* update);
@@ -300,7 +258,6 @@ static int SHADOW_SetColors (_THIS, int firstcolor, int ncolors, GAL_Color *colo
 static void SHADOW_VideoQuit (_THIS);
 static BOOL SHADOW_SyncUpdate (_THIS);
 static BOOL SHADOW_SyncUpdateAsync (_THIS);
-static BOOL SHADOW_SyncUpdateConcurrently (_THIS);
 
 /* Hardware surface functions */
 static int SHADOW_AllocHWSurface (_THIS, GAL_Surface *surface);
@@ -353,9 +310,6 @@ static void SHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     _sysvipc_sem_op (this->hidden->semid, 0, -1);
 #endif
 
-    if (this->hidden->async_update) {
-        pthread_mutex_lock(&this->hidden->update_lock);
-    }
     bound = _shadowfbheader->dirty_rect;
 
     for (i = 0; i < numrects; i++) {
@@ -377,9 +331,6 @@ static void SHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
         }
     }
 
-    if (this->hidden->async_update) {
-        pthread_mutex_unlock(&this->hidden->update_lock);
-    }
 #ifdef _MGRM_PROCESSES
     _sysvipc_sem_op (this->hidden->semid, 0, 1);
 #endif
@@ -591,7 +542,26 @@ static int RealEngine_Init(void)
     return 0;
 }
 
-static BOOL SHADOW_SyncUpdateAsync (_THIS)
+static int SHADOW_LockHWSurface(_THIS, GAL_Surface *surface)
+{
+    if (surface == this->screen && this->hidden->async_update) {
+        _DBG_PRINTF("called\n");
+        pthread_mutex_lock(&this->hidden->update_lock);
+        return 0;
+    }
+
+    return -1;
+}
+
+static void SHADOW_UnlockHWSurface(_THIS, GAL_Surface *surface)
+{
+    if (surface == this->screen && this->hidden->async_update) {
+        _DBG_PRINTF("called\n");
+        pthread_mutex_unlock(&this->hidden->update_lock);
+    }
+}
+
+static BOOL SHADOW_SyncUpdateAsync(_THIS)
 {
     if (this->hidden->async_update) {
         pthread_mutex_lock(&this->hidden->update_lock);
@@ -699,10 +669,14 @@ static int create_async_updater(_THIS)
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-    struct sched_param sp = { 90 };
-    pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-    pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
-    pthread_attr_setschedparam(&attr, &sp);
+#if __LINUX__
+    if (geteuid() == 0) {
+        struct sched_param sp = { 90 };
+        pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+        pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+        pthread_attr_setschedparam(&attr, &sp);
+    }
+#endif
 
     if (pthread_create(&this->hidden->update_thd, &attr,
             task_do_update, this))
@@ -819,6 +793,7 @@ static void schedule_updaters(_THIS, RECT *dirty_rc)
     }
 }
 
+static BOOL SHADOW_SyncUpdateConcurrently (_THIS);
 static BOOL SHADOW_SyncUpdateConcurrently (_THIS)
 {
     RECT dirty_rect;
@@ -967,11 +942,6 @@ static int SHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
         else if (this->hidden->update_interval < 0 ||
                 this->hidden->update_interval > 50) {
             this->hidden->update_interval = 20;
-        }
-
-        create_async_updater(this);
-        if (this->hidden->async_update) {
-            this->SyncUpdate = SHADOW_SyncUpdateAsync;
         }
     }
 
@@ -1196,74 +1166,22 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
     current->pitch = _shadowfbheader->pitch;
     current->pixels = (char *)_shadowfbheader + _shadowfbheader->fb_offset;
 
-#if 0 /* Code for multiple updaters */
-    if (this->hidden->nr_updaters > 0) {
-        this->SyncUpdate = SHADOW_SyncUpdateConcurrently;
-    }
-#endif
-
-#ifdef _MGUSE_PIXMAN
-    GAL_CreatePixmanImage(current);
-    GAL_CreatePixmanImage(real_device->screen);
-    realfb_info->src_img = current->pix_img;
-    realfb_info->dst_img = real_device->screen->pix_img;
-    if (realfb_info->src_img && realfb_info->dst_img &&
-            (this->hidden->realfb_info->flags & _ROT_DIR_CW ||
-             this->hidden->realfb_info->flags & _ROT_DIR_CCW)) {
-        double fscale_x, fscale_y;
-        double rotation = 0.0;
-        pixman_f_transform_t ftransform;
-
-        if (this->hidden->realfb_info->flags == 0) {
-            fscale_x = current->w * 1.0 / real_device->screen->w;
-            fscale_y = current->h * 1.0 / real_device->screen->h;
-        }
-        else {
-            fscale_x = current->w * 1.0 / real_device->screen->h;
-            fscale_y = current->h * 1.0 / real_device->screen->w;
-        }
-
-        if (this->hidden->realfb_info->flags & _ROT_DIR_CW) {
-            rotation = - M_PI / 2.0;
-        }
-        else if (this->hidden->realfb_info->flags & _ROT_DIR_CCW) {
-            rotation = M_PI / 2.0;
-        }
-
-        pixman_f_transform_init_identity(&ftransform);
-        if (rotation != 0.0) {
-            double cx = current->w / 2.0;
-            double cy = current->h / 2.0;
-            pixman_f_transform_translate(&ftransform, NULL, -cx, -cy);
-            pixman_f_transform_rotate(&ftransform, NULL,
-                    cos(rotation), sin(rotation));
-            pixman_f_transform_translate(&ftransform, NULL, cy, cx);
-        }
-
-        pixman_f_transform_scale(&ftransform, NULL, fscale_x, fscale_y);
-        pixman_transform_from_pixman_f_transform(&realfb_info->transform,
-                &ftransform);
-        shadow_fb_ops.refresh = refresh_by_using_pixman;
-    }
-    else {
-        if (realfb_info->src_img) {
-            pixman_image_unref(realfb_info->src_img);
-            realfb_info->src_img = NULL;
-        }
-
-        if (realfb_info->dst_img) {
-            pixman_image_unref(realfb_info->dst_img);
-            realfb_info->dst_img = NULL;
-        }
-    }
-#else
     if (_shadowfbheader->depth == 32) {
         if (this->hidden->realfb_info->flags & _ROT_DIR_CCW)
             shadow_fb_ops.refresh = refresh_ccw_32bpp;
         else if (this->hidden->realfb_info->flags & _ROT_DIR_CW)
             shadow_fb_ops.refresh = refresh_cw_32bpp;
     }
-#endif
+
+    if (this->hidden->async_update) {
+        create_async_updater(this);
+        if (this->hidden->async_update) {
+            current->flags |= GAL_ASYNCBLIT;
+            this->LockHWSurface = SHADOW_LockHWSurface;
+            this->UnlockHWSurface = SHADOW_UnlockHWSurface;
+            this->SyncUpdate = SHADOW_SyncUpdateAsync;
+        }
+    }
 
     /* We're done */
     return (current);
@@ -1293,12 +1211,6 @@ static void SHADOW_VideoQuit (_THIS)
     }
 
     if (this->hidden->realfb_info) {
-#ifdef _MGUSE_PIXMAN
-        if (this->hidden->realfb_info->src_img)
-            pixman_image_unref(this->hidden->realfb_info->src_img);
-        if (this->hidden->realfb_info->dst_img)
-            pixman_image_unref(this->hidden->realfb_info->dst_img);
-#endif
         shadow_fb_ops.release(this->hidden->realfb_info);
         this->hidden->realfb_info = NULL;
     }
@@ -1517,3 +1429,113 @@ static int SHADOW_SetColors (_THIS, int firstcolor, int ncolors,
 
 #endif /* _MGGAL_SHADOW */
 
+#if 0 /* Code for multiple updaters */
+    if (this->hidden->nr_updaters > 0) {
+        this->SyncUpdate = SHADOW_SyncUpdateConcurrently;
+    }
+#endif
+
+#if 0 /* code for testing pixman */
+
+static void refresh_by_using_pixman(ShadowFBHeader *shadowfb_header,
+        RealFBInfo *realfb_info, void *update)
+{
+    RECT src_rc = *(RECT *)update;
+    RECT dst_rc;
+    int dst_x, dst_y;
+
+    if (realfb_info->flags & _ROT_DIR_CW) {
+        _get_dst_rect_cw(&dst_rc, update, realfb_info);
+        dst_x = -realfb_info->real_device->screen->h;
+        dst_y = 0;
+    }
+    else if (realfb_info->flags & _ROT_DIR_CCW) {
+        _get_dst_rect_ccw(&dst_rc, update, realfb_info);
+        dst_x = 0; // -realfb_info->real_device->screen->w / 2;
+        dst_y = realfb_info->real_device->screen->h / 4;
+    }
+
+    int w = RECTW(dst_rc);
+    int h = RECTH(dst_rc);
+
+    pixman_region32_t clip_region;
+    pixman_region32_init_rect(&clip_region, dst_rc.left, dst_rc.top, w, h);
+    pixman_image_set_clip_region32(realfb_info->dst_img, &clip_region);
+
+    pixman_image_set_filter(realfb_info->src_img, PIXMAN_FILTER_FAST, NULL, 0);
+    pixman_image_set_transform(realfb_info->src_img, &realfb_info->transform);
+    pixman_image_composite32(PIXMAN_OP_SRC, realfb_info->src_img, NULL,
+            realfb_info->dst_img,
+            0, 0, 0, 0,
+            dst_x, dst_y,
+            realfb_info->real_device->screen->h,
+            realfb_info->real_device->screen->h);
+    pixman_region32_fini(&clip_region);
+
+    pixman_image_set_transform(realfb_info->src_img, NULL);
+    pixman_image_set_clip_region32(realfb_info->dst_img, NULL);
+}
+
+    GAL_CreatePixmanImage(current);
+    GAL_CreatePixmanImage(real_device->screen);
+    realfb_info->src_img = current->pix_img;
+    realfb_info->dst_img = real_device->screen->pix_img;
+    if (realfb_info->src_img && realfb_info->dst_img &&
+            (this->hidden->realfb_info->flags & _ROT_DIR_CW ||
+             this->hidden->realfb_info->flags & _ROT_DIR_CCW)) {
+        double fscale_x, fscale_y;
+        double rotation = 0.0;
+        pixman_f_transform_t ftransform;
+
+        if (this->hidden->realfb_info->flags == 0) {
+            fscale_x = current->w * 1.0 / real_device->screen->w;
+            fscale_y = current->h * 1.0 / real_device->screen->h;
+        }
+        else {
+            fscale_x = current->w * 1.0 / real_device->screen->h;
+            fscale_y = current->h * 1.0 / real_device->screen->w;
+        }
+
+        if (this->hidden->realfb_info->flags & _ROT_DIR_CW) {
+            rotation = - M_PI / 2.0;
+        }
+        else if (this->hidden->realfb_info->flags & _ROT_DIR_CCW) {
+            rotation = M_PI / 2.0;
+        }
+
+        pixman_f_transform_init_identity(&ftransform);
+        if (rotation != 0.0) {
+            double cx = current->w / 2.0;
+            double cy = current->h / 2.0;
+            pixman_f_transform_translate(&ftransform, NULL, -cx, -cy);
+            pixman_f_transform_rotate(&ftransform, NULL,
+                    cos(rotation), sin(rotation));
+            pixman_f_transform_translate(&ftransform, NULL, cy, cx);
+        }
+
+        pixman_f_transform_scale(&ftransform, NULL, fscale_x, fscale_y);
+        pixman_transform_from_pixman_f_transform(&realfb_info->transform,
+                &ftransform);
+        shadow_fb_ops.refresh = refresh_by_using_pixman;
+    }
+    else {
+        if (realfb_info->src_img) {
+            pixman_image_unref(realfb_info->src_img);
+            realfb_info->src_img = NULL;
+        }
+
+        if (realfb_info->dst_img) {
+            pixman_image_unref(realfb_info->dst_img);
+            realfb_info->dst_img = NULL;
+        }
+    }
+
+        if (this->hidden->realfb_info->src_img)
+            pixman_image_unref(this->hidden->realfb_info->src_img);
+        if (this->hidden->realfb_info->dst_img)
+            pixman_image_unref(this->hidden->realfb_info->dst_img);
+
+    pixman_image_t *src_img;
+    pixman_image_t *dst_img;
+    pixman_transform_t transform;
+#endif

@@ -50,15 +50,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#undef _MGUSE_PIXMAN
-
-#ifdef _MGUSE_PIXMAN
-#include <pixman.h>
-#include <math.h>
-#endif
-
-//#include "sysvideo.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -103,12 +94,6 @@ typedef struct _RealFBInfo {
     void *fb;
 
     GAL_VideoDevice *real_device;
-
-#ifdef _MGUSE_PIXMAN
-    pixman_image_t *src_img;
-    pixman_image_t *dst_img;
-    pixman_transform_t transform;
-#endif
 
 } RealFBInfo;
 

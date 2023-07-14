@@ -472,11 +472,15 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
 
     prc = &cur_pdc->rc_output;
 
+    /* Since 5.0.13 */
+    if (!fShow) {
+        GAL_LockSurface(cur_pdc->surface);
+    }
+
     if (cur_pdc->surface != __gal_screen) {
         if (fShow) {
-            GAL_UpdateRect (cur_pdc->surface,
+            GAL_UpdateRect(cur_pdc->surface,
                             prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-            // GAL_SyncUpdate (cur_pdc->surface);
         }
     }
     else {
@@ -500,7 +504,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
                 pthread_mutex_unlock(&__mg_mouselock);
                 // GAL_SyncUpdate (cur_pdc->surface);
             }
-            return;
+            goto done;
         }
 
         if (fShow && nShowCount >= 0 && pCurCsr) {
@@ -517,6 +521,12 @@ void kernel_ShowCursorForGDI (BOOL fShow, void *pdc)
 
             // GAL_SyncUpdate (cur_pdc->surface);
         }
+    }
+
+done:
+    /* Since 5.0.13 */
+    if (fShow) {
+        GAL_UnlockSurface(cur_pdc->surface);
     }
 }
 
@@ -556,11 +566,20 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     PDC cur_pdc = (PDC)pdc;
     const RECT* prc = NULL;
 
+    /* Since 5.0.13 */
+    if (!fShow) {
+        GAL_LockSurface(cur_pdc->surface);
+    }
+
     prc = &cur_pdc->rc_output;
 
-    if (fShow)
+    if (fShow) {
         GAL_UpdateRect (cur_pdc->surface,
                         prc->left, prc->top, RECTWP(prc), RECTHP(prc));
+
+        /* Since 5.0.13 */
+        GAL_UnLockSurface(cur_pdc->surface);
+    }
 }
 
 #endif /* _MGHAVE_CURSOR */

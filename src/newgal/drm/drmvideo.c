@@ -2660,6 +2660,25 @@ static void cancel_async_updater(_THIS)
     }
 }
 
+static int DRM_LockHWSurface(_THIS, GAL_Surface *surface)
+{
+    if (surface == this->screen && this->hidden->updater_ready) {
+        _DBG_PRINTF("called\n");
+        sem_wait(this->hidden->update_lock);
+        return 0;
+    }
+
+    return -1;
+}
+
+static void DRM_UnlockHWSurface(_THIS, GAL_Surface *surface)
+{
+    if (surface == this->screen && this->hidden->updater_ready) {
+        _DBG_PRINTF("called\n");
+        sem_post(this->hidden->update_lock);
+    }
+}
+
 /* DRM engine methods for dumb buffers */
 static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
@@ -2813,6 +2832,9 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
     GAL_FreeSurface (current);
     if (vdata->shadow_screen) {
         if (create_async_updater(this) == 0) {
+            vdata->shadow_screen->flags |= GAL_ASYNCBLIT;
+            this->LockHWSurface = DRM_LockHWSurface;
+            this->UnlockHWSurface = DRM_UnlockHWSurface;
             this->SyncUpdate = DRM_SyncUpdateAsync;
         }
 
@@ -3649,7 +3671,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     RECT* dirty_rc;
     RECT bound;
 
-#ifndef _MGSCHEMA_COMPOSITING
+#if 0 // ndef _MGSCHEMA_COMPOSITING
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_wait (this->hidden->update_lock);
     }
@@ -3684,7 +3706,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     *dirty_rc = bound;
-#ifndef _MGSCHEMA_COMPOSITING
+#if 0 // ndef _MGSCHEMA_COMPOSITING
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_post (this->hidden->update_lock);
     }

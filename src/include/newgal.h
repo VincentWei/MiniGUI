@@ -670,7 +670,6 @@ void GAL_MoveCursor (GAL_Surface* surface, int x, int y);
 
 #endif /* defined _MGSCHEMA_COMPOSITING */
 
-#if 0
 /*
  * GAL_LockSurface() sets up a surface for directly accessing the pixels.
  * Between calls to GAL_LockSurface()/GAL_UnlockSurface(), you can write
@@ -680,9 +679,7 @@ void GAL_MoveCursor (GAL_Surface* surface, int x, int y);
  *
  * Not all surfaces require locking.  If GAL_MUSTLOCK(surface) evaluates
  * to 0, then you can read and write to the surface at any time, and the
- * pixel format of the surface will not change.  In particular, if the
- * GAL_HWSURFACE flag is not given when calling GAL_SetVideoMode(), you
- * will not need to lock the display surface before accessing it.
+ * pixel format of the surface will not change.
  *
  * No operating system or library calls should be made between lock/unlock
  * pairs, as critical system locks may be held during this time.
@@ -691,7 +688,6 @@ void GAL_MoveCursor (GAL_Surface* surface, int x, int y);
  */
 int GAL_LockSurface (GAL_Surface *surface);
 void GAL_UnlockSurface (GAL_Surface *surface);
-#endif
 
 /*
  * Set the color key (transparent pixel) in a blittable surface.

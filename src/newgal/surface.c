@@ -2102,3 +2102,22 @@ BYTE* gal_PutPixelAlphaChannel (GAL_Surface* dst, BYTE* dstrow,
     return dstrow;
 }
 
+int GAL_LockSurface(GAL_Surface *surface)
+{
+    GAL_VideoDevice *video = surface->video;
+    if (video && GAL_MUSTLOCK(surface) && video->LockHWSurface) {
+        video->LockHWSurface(video, surface);
+        return 0;
+    }
+
+    return -1;
+}
+
+void GAL_UnlockSurface (GAL_Surface *surface)
+{
+    GAL_VideoDevice *video = surface->video;
+    if (video && GAL_MUSTLOCK(surface) && video->UnlockHWSurface) {
+        video->UnlockHWSurface(video, surface);
+    }
+}
+

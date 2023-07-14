@@ -209,11 +209,11 @@ struct GAL_VideoDevice {
     /* Set per surface hardware alpha value */
     int (*SetHWAlpha)(_THIS, GAL_Surface *surface, Uint8 value);
 
-#if 0
-    /* Returns a readable/writable surface */
+    /* Returns a readable/writable surface; nullable. */
     int (*LockHWSurface)(_THIS, GAL_Surface *surface);
     void (*UnlockHWSurface)(_THIS, GAL_Surface *surface);
 
+#if 0
     /* Performs hardware flipping */
     int (*FlipHWSurface)(_THIS, GAL_Surface *surface);
 #endif
