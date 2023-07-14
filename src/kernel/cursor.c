@@ -566,19 +566,18 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     PDC cur_pdc = (PDC)pdc;
     const RECT* prc = NULL;
 
+    prc = &cur_pdc->rc_output;
+
     /* Since 5.0.13 */
     if (!fShow) {
         GAL_LockSurface(cur_pdc->surface);
     }
-
-    prc = &cur_pdc->rc_output;
-
-    if (fShow) {
+    else {
         GAL_UpdateRect (cur_pdc->surface,
                         prc->left, prc->top, RECTWP(prc), RECTHP(prc));
 
         /* Since 5.0.13 */
-        GAL_UnLockSurface(cur_pdc->surface);
+        GAL_UnlockSurface(cur_pdc->surface);
     }
 }
 

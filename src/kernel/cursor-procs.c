@@ -1081,6 +1081,12 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     const RECT* prc;
 
     prc = &cur_pdc->rc_output;
+
+    /* Since 5.0.13 */
+    if (!fShow) {
+        GAL_LockSurface(cur_pdc->surface);
+    }
+
     if (cur_pdc->surface != __gal_screen) {
         if (fShow) {
             GAL_UpdateRect (cur_pdc->surface,
@@ -1090,7 +1096,7 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     }
     else {
         if (!mgIsServer && (SHAREDRES_TOPMOST_LAYER != __mg_layer)) {
-            return;
+            goto done;
         }
 
         if (!fShow) {
@@ -1109,6 +1115,12 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
             UNLOCK_CURSOR_SEM ();
         }
     }
+
+done:
+    /* Since 5.0.13 */
+    if (fShow) {
+        GAL_UnlockSurface(cur_pdc->surface);
+    }
 }
 
 #else   /* defined _MGSCHEMA_SHAREDFB */
@@ -1124,6 +1136,12 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     }
 
     prc = &cur_pdc->rc_output;
+
+    /* Since 5.0.13 */
+    if (!fShow) {
+        GAL_LockSurface(cur_pdc->surface);
+    }
+
     if (cur_pdc->surface == __gal_screen) {
         // Under compositing schema, we never call SyncUpdate in
         // kernel_ShowCursorForGDI for __gal_screen.
@@ -1149,6 +1167,12 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
                         prc->left, prc->top, RECTWP(prc), RECTHP(prc));
         // For surface other than screen, we call SyncUpdate.
         GAL_SyncUpdate (cur_pdc->surface);
+    }
+
+done:
+    /* Since 5.0.13 */
+    if (fShow) {
+        GAL_UnlockSurface(cur_pdc->surface);
     }
 }
 
@@ -1228,26 +1252,25 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
     PDC cur_pdc = (PDC)pdc;
     const RECT* prc = NULL;
 
-    prc = &cur_pdc->rc_output;
-
-    /* houhh20080827, if --disable-cursor, mginit can not update auto(qvfb). */
-#if 0
-    if (cur_pdc->surface == __gal_screen
-            && mgIsServer && (SHAREDRES_TOPMOST_LAYER != __mg_layer))
-        return;
-
-    if (fShow)
-        GAL_UpdateRect (cur_pdc->surface,
-                        prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-#else
     if (!mgIsServer && (SHAREDRES_TOPMOST_LAYER != __mg_layer)) {
         return;
+    }
+
+    prc = &cur_pdc->rc_output;
+
+    /* Since 5.0.13 */
+    if (!fShow) {
+        GAL_LockSurface(cur_pdc->surface);
     }
 
     if (fShow)
         GAL_UpdateRect (cur_pdc->surface,
                 prc->left, prc->top, RECTWP(prc), RECTHP(prc));
-#endif
+
+    /* Since 5.0.13 */
+    if (fShow) {
+        GAL_UnlockSurface(cur_pdc->surface);
+    }
 }
 
 #endif /* _MGHAVE_CURSOR */
