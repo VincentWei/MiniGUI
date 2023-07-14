@@ -545,8 +545,10 @@ static int RealEngine_Init(void)
 static int SHADOW_LockHWSurface(_THIS, GAL_Surface *surface)
 {
     if (surface == this->screen && this->hidden->async_update) {
-        _DBG_PRINTF("called\n");
-        pthread_mutex_lock(&this->hidden->update_lock);
+        if (pthread_mutex_lock(&this->hidden->update_lock)) {
+            _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
+        }
+        _DBG_PRINTF("locked\n");
         return 0;
     }
 
@@ -556,15 +558,18 @@ static int SHADOW_LockHWSurface(_THIS, GAL_Surface *surface)
 static void SHADOW_UnlockHWSurface(_THIS, GAL_Surface *surface)
 {
     if (surface == this->screen && this->hidden->async_update) {
-        _DBG_PRINTF("called\n");
-        pthread_mutex_unlock(&this->hidden->update_lock);
+        if (pthread_mutex_unlock(&this->hidden->update_lock)) {
+            _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
+        }
+        _DBG_PRINTF("unlocked\n");
     }
 }
 
 static BOOL SHADOW_SyncUpdateAsync(_THIS)
 {
     if (this->hidden->async_update) {
-        pthread_mutex_lock(&this->hidden->update_lock);
+        if (pthread_mutex_lock(&this->hidden->update_lock))
+            _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
     }
 
     if (_shadowfbheader->dirty || _shadowfbheader->palette_changed) {
@@ -589,7 +594,8 @@ static BOOL SHADOW_SyncUpdateAsync(_THIS)
     }
 
     if (this->hidden->async_update) {
-        pthread_mutex_unlock(&this->hidden->update_lock);
+        if (pthread_mutex_unlock(&this->hidden->update_lock))
+            _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
     }
 
     return TRUE;
@@ -608,7 +614,11 @@ static void *task_do_update(void *data)
     do {
         usleep(this->hidden->update_interval * 1000);
 
-        pthread_mutex_lock(&this->hidden->update_lock);
+        if (pthread_mutex_lock(&this->hidden->update_lock)) {
+            _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
+        }
+        _DBG_PRINTF("locked\n");
+
         if (RECTH(this->hidden->update_rect)) {
 
             shadow_fb_ops.refresh(_shadowfbheader,
@@ -650,7 +660,9 @@ static void *task_do_update(void *data)
 
             SetRectEmpty(&this->hidden->update_rect);
         }
-        pthread_mutex_unlock(&this->hidden->update_lock);
+        if (pthread_mutex_unlock(&this->hidden->update_lock))
+            _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
+        _DBG_PRINTF("unlocked\n");
 
     } while (1);
 
@@ -664,12 +676,19 @@ error:
 
 static int create_async_updater(_THIS)
 {
-    if (sem_init(&this->hidden->sync_sem, 0, 0))
+    if (sem_init(&this->hidden->sync_sem, 0, 0)) {
+        _ERR_PRINTF("Failed sem_init(): %m\n");
         return -1;
+    }
+
+    if (pthread_mutex_init(&this->hidden->update_lock, NULL)) {
+        _ERR_PRINTF("Failed pthread_mutex_init(): %m\n");
+        return -1;
+    }
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-#if __LINUX__
+#ifdef __LINUX__
     if (geteuid() == 0) {
         struct sched_param sp = { 90 };
         pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
@@ -679,8 +698,10 @@ static int create_async_updater(_THIS)
 #endif
 
     if (pthread_create(&this->hidden->update_thd, &attr,
-            task_do_update, this))
+            task_do_update, this)) {
+        _ERR_PRINTF("Failed pthread_create(): %m\n");
         return -1;
+    }
 
     sem_wait(&this->hidden->sync_sem);
     pthread_attr_destroy(&attr);
@@ -694,6 +715,7 @@ static void cancel_async_updater(_THIS)
         pthread_cancel(this->hidden->update_thd);
         pthread_join(this->hidden->update_thd, NULL);
 
+        pthread_mutex_destroy(&this->hidden->update_lock);
         sem_destroy(&this->hidden->sync_sem);
     }
 }
