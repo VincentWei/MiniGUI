@@ -3720,8 +3720,10 @@ static BOOL DRM_WaitVBlank(_THIS)
             (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
     vbl.request.sequence = 1;
     vbl.request.signal = 0;
-    if (drmWaitVBlank(this->hidden->dev_fd, &vbl))
+    if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
+        _WRN_PRINTF("Failed drmWaitVBlank: %m\n");
         return FALSE;
+    }
 
     return TRUE;
 }

@@ -630,8 +630,11 @@ static void *task_do_update(void *data)
     sem_post(&this->hidden->sync_sem);
 
     do {
-        if (this->WaitVBlank) {
-            this->WaitVBlank(this);
+        GAL_VideoDevice *real_device;
+        real_device = this->hidden->realfb_info->real_device;
+
+        if (real_device->WaitVBlank) {
+            real_device->WaitVBlank(this);
         }
         else {
             usleep(this->hidden->update_interval * 1000);
@@ -678,8 +681,6 @@ static void *task_do_update(void *data)
             update_rect.w = RECTW(dirty_rect);
             update_rect.h = RECTH(dirty_rect);
 
-            GAL_VideoDevice *real_device;
-            real_device = this->hidden->realfb_info->real_device;
             if (real_device->UpdateRects)
                 real_device->UpdateRects(real_device, 1, &update_rect);
             if (real_device->SyncUpdate)
