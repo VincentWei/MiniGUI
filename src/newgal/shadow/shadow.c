@@ -56,8 +56,6 @@
 #include <error.h>
 #include <time.h>
 
-// #define _DEBUG
-
 #include "common.h"
 
 #if __LINUX__
