@@ -99,6 +99,8 @@ typedef struct _RealFBInfo {
 
 /* Private display data */
 
+#define USE_UPDATE_SEM 0
+
 struct GAL_PrivateVideoData {
     RealFBInfo * realfb_info;
 #ifdef _MGRM_PROCESSES
@@ -110,8 +112,13 @@ struct GAL_PrivateVideoData {
     int             update_interval;
     RECT            update_rect;
     pthread_t       update_thd;
-    pthread_mutex_t update_lock;
     sem_t           sync_sem;
+
+#if USE_UPDATE_SEM
+    sem_t           update_sem;
+#else
+    pthread_mutex_t update_lock;
+#endif
 };
 
 typedef struct _ShadowFBOps {

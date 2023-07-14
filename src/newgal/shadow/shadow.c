@@ -545,9 +545,13 @@ static int RealEngine_Init(void)
 static int SHADOW_LockHWSurface(_THIS, GAL_Surface *surface)
 {
     if (surface == this->screen && this->hidden->async_update) {
-        if (pthread_mutex_lock(&this->hidden->update_lock)) {
+#if USE_UPDATE_SEM
+        if (sem_wait(&this->hidden->update_sem))
+            _ERR_PRINTF("Failed sem_wait(): %m\n");
+#else
+        if (pthread_mutex_lock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
-        }
+#endif
         _DBG_PRINTF("locked\n");
         return 0;
     }
@@ -558,9 +562,13 @@ static int SHADOW_LockHWSurface(_THIS, GAL_Surface *surface)
 static void SHADOW_UnlockHWSurface(_THIS, GAL_Surface *surface)
 {
     if (surface == this->screen && this->hidden->async_update) {
-        if (pthread_mutex_unlock(&this->hidden->update_lock)) {
+#if USE_UPDATE_SEM
+        if (sem_post(&this->hidden->update_sem))
+            _ERR_PRINTF("Failed sem_post(): %m\n");
+#else
+        if (pthread_mutex_unlock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
-        }
+#endif
         _DBG_PRINTF("unlocked\n");
     }
 }
@@ -568,8 +576,13 @@ static void SHADOW_UnlockHWSurface(_THIS, GAL_Surface *surface)
 static BOOL SHADOW_SyncUpdateAsync(_THIS)
 {
     if (this->hidden->async_update) {
+#if USE_UPDATE_SEM
+        if (sem_wait(&this->hidden->update_sem))
+            _ERR_PRINTF("Failed sem_wait(): %m\n");
+#else
         if (pthread_mutex_lock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
+#endif
     }
 
     if (_shadowfbheader->dirty || _shadowfbheader->palette_changed) {
@@ -594,8 +607,13 @@ static BOOL SHADOW_SyncUpdateAsync(_THIS)
     }
 
     if (this->hidden->async_update) {
+#if USE_UPDATE_SEM
+        if (sem_post(&this->hidden->update_sem))
+            _ERR_PRINTF("Failed sem_post(): %m\n");
+#else
         if (pthread_mutex_unlock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
+#endif
     }
 
     return TRUE;
@@ -614,9 +632,13 @@ static void *task_do_update(void *data)
     do {
         usleep(this->hidden->update_interval * 1000);
 
-        if (pthread_mutex_lock(&this->hidden->update_lock)) {
+#if USE_UPDATE_SEM
+        if (sem_wait(&this->hidden->update_sem))
+            _ERR_PRINTF("Failed sem_wait(): %m\n");
+#else
+        if (pthread_mutex_lock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
-        }
+#endif
         _DBG_PRINTF("locked\n");
 
         if (RECTH(this->hidden->update_rect)) {
@@ -660,8 +682,13 @@ static void *task_do_update(void *data)
 
             SetRectEmpty(&this->hidden->update_rect);
         }
+#if USE_UPDATE_SEM
+        if (sem_post(&this->hidden->update_sem))
+            _ERR_PRINTF("Failed sem_post(): %m\n");
+#else
         if (pthread_mutex_unlock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
+#endif
         _DBG_PRINTF("unlocked\n");
 
     } while (1);
@@ -681,10 +708,17 @@ static int create_async_updater(_THIS)
         return -1;
     }
 
+#if USE_UPDATE_SEM
+    if (sem_init(&this->hidden->update_sem, 0, 1)) {
+        _ERR_PRINTF("Failed sem_init(): %m\n");
+        return -1;
+    }
+#else
     if (pthread_mutex_init(&this->hidden->update_lock, NULL)) {
         _ERR_PRINTF("Failed pthread_mutex_init(): %m\n");
         return -1;
     }
+#endif
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -715,7 +749,11 @@ static void cancel_async_updater(_THIS)
         pthread_cancel(this->hidden->update_thd);
         pthread_join(this->hidden->update_thd, NULL);
 
+#if USE_UPDATE_SEM
+        sem_destroy(&this->hidden->update_sem);
+#else
         pthread_mutex_destroy(&this->hidden->update_lock);
+#endif
         sem_destroy(&this->hidden->sync_sem);
     }
 }
