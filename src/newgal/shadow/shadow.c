@@ -56,7 +56,7 @@
 #include <error.h>
 #include <time.h>
 
-#define _DEBUG
+// #define _DEBUG
 
 #include "common.h"
 
