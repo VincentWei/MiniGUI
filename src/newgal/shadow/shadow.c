@@ -634,7 +634,7 @@ static void *task_do_update(void *data)
         real_device = this->hidden->realfb_info->real_device;
 
         if (real_device->WaitVBlank) {
-            real_device->WaitVBlank(this);
+            real_device->WaitVBlank(real_device);
         }
         else {
             usleep(this->hidden->update_interval * 1000);
