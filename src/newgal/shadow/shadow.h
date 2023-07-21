@@ -49,6 +49,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,6 +119,11 @@ struct GAL_PrivateVideoData {
     sem_t           update_sem;
 #else
     pthread_mutex_t update_lock;
+#endif
+
+#ifdef _DEBUG
+    struct timespec ts_start;
+    unsigned        frames;
 #endif
 };
 

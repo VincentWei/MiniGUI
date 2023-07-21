@@ -47,6 +47,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+// #define _DEBUG
+
 #include "common.h"
 
 #ifdef _MGGAL_DRM
@@ -1135,7 +1137,7 @@ static int open_drm_device(GAL_VideoDevice *device)
         int auth_result;
 
         if (drmGetMagic(fd, &magic)) {
-            _DBG_PRINTF("failed to call drmGetMagic: %m\n");
+            _ERR_PRINTF("failed to call drmGetMagic: %m\n");
             return -errno;
         }
 
@@ -2507,11 +2509,11 @@ static void update_real_screen_memcpy(_THIS)
     int real_pitch = real_buff->pitch;
     size_t count = cpp * RECTWP(update_rect);
 
+#if 0 // def _DEBUG
     _DBG_PRINTF("Copy pixels to real screen (pitch: %u, count: %u, %d x %d)\n",
             (unsigned)real_buff->pitch, (unsigned)count,
             RECTWP(update_rect), RECTHP(update_rect));
 
-#ifdef _DEBUG
     struct timespec ts_start;
     clock_gettime(CLOCK_REALTIME, &ts_start);
 #endif
@@ -2539,7 +2541,7 @@ static void update_real_screen_memcpy(_THIS)
     }
     drm_dmabuf_end(real_buff);
 
-#ifdef _DEBUG
+#if 0 // def _DEBUG
     double elapsed = get_elapsed_seconds(&ts_start, NULL);
     _MG_PRINTF("Cosumed time to update real screen: %f (seconds)\n", elapsed);
 #endif
@@ -2562,7 +2564,6 @@ static void* task_do_update(void *data)
                 (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
         vbl.request.sequence = 1;
         vbl.request.signal = 0;
-        _DBG_PRINTF("VBL type: 0x%08x\n", vbl.request.type);
         if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
             _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", this->hidden->crtc_idx);
         }
@@ -2574,6 +2575,10 @@ static void* task_do_update(void *data)
     this->hidden->updater_ready = 1;
     sem_post(&this->hidden->sync_sem);
 
+#ifdef _DEBUG
+    clock_gettime(CLOCK_REALTIME, &this->hidden->ts_start);
+#endif
+
     do {
 
         if (vbl_ok) {
@@ -2584,12 +2589,14 @@ static void* task_do_update(void *data)
             vbl.request.sequence = 1;
             vbl.request.signal = 0;
             drmWaitVBlank(this->hidden->dev_fd, &vbl);
-            _DBG_PRINTF("Got a VBlank, it's time to update real screen. (%ld.%06ld)\n",
-                    vbl.reply.tval_sec, vbl.reply.tval_usec);
         }
         else {
             usleep(this->hidden->update_interval * 1000);
         }
+
+#ifdef _DEBUG
+        this->hidden->frames++;
+#endif
 
         sem_wait(this->hidden->update_lock);
         if (RECTH(this->hidden->update_rect)) {
@@ -2648,6 +2655,10 @@ static void cancel_async_updater(_THIS)
     if (this->hidden->updater_ready) {
         pthread_cancel(this->hidden->update_thd);
         pthread_join(this->hidden->update_thd, NULL);
+#ifdef _DEBUG
+        double elapsed = get_elapsed_seconds(&this->hidden->ts_start, NULL);
+        _DBG_PRINTF("Frames per second: %f\n", this->hidden->frames / elapsed);
+#endif
 
         sem_destroy(&this->hidden->sync_sem);
     }
@@ -2656,7 +2667,6 @@ static void cancel_async_updater(_THIS)
 static int DRM_LockHWSurface(_THIS, GAL_Surface *surface)
 {
     if (surface == this->screen && this->hidden->updater_ready) {
-        _DBG_PRINTF("called\n");
         sem_wait(this->hidden->update_lock);
         return 0;
     }
@@ -2667,7 +2677,6 @@ static int DRM_LockHWSurface(_THIS, GAL_Surface *surface)
 static void DRM_UnlockHWSurface(_THIS, GAL_Surface *surface)
 {
     if (surface == this->screen && this->hidden->updater_ready) {
-        _DBG_PRINTF("called\n");
         sem_post(this->hidden->update_lock);
     }
 }
@@ -3812,8 +3821,7 @@ static BOOL DRM_SyncUpdate(_THIS)
         this->hidden->driver_ops->flush_driver(this->hidden->driver);
     }
 
-    _DBG_PRINTF("called: %d, %d, %d, %d\n",
-            bound.left, bound.top,
+    _DBG_PRINTF("called: %d, %d, %d, %d\n", bound.left, bound.top,
             bound.right, bound.bottom);
 
     {

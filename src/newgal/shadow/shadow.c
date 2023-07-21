@@ -56,6 +56,8 @@
 #include <error.h>
 #include <time.h>
 
+#define _DEBUG
+
 #include "common.h"
 
 #if __LINUX__
@@ -137,7 +139,7 @@ static void refresh_ccw_32bpp(ShadowFBHeader* shadowfb_header,
     int dst_width, dst_height;
     int x, y;
 
-#ifdef _DEBUG
+#if 0 // def _DEBUG
     struct timespec ts_start;
     clock_gettime(CLOCK_REALTIME, &ts_start);
 #endif
@@ -171,7 +173,7 @@ static void refresh_ccw_32bpp(ShadowFBHeader* shadowfb_header,
         dst_line -= realfb_info->pitch;
     }
 
-#ifdef _DEBUG
+#if 0 // def _DEBUG
     double elapsed = get_elapsed_seconds(&ts_start, NULL);
     _MG_PRINTF("Cosumed time to rotate dirty rect (ccw): %f (seconds)\n", elapsed);
 #endif
@@ -187,7 +189,7 @@ static void refresh_cw_32bpp(ShadowFBHeader* shadowfb_header,
     int dst_width, dst_height;
     int x, y;
 
-#ifdef _DEBUG
+#if 0 // def _DEBUG
     struct timespec ts_start;
     clock_gettime(CLOCK_REALTIME, &ts_start);
 #endif
@@ -204,48 +206,59 @@ static void refresh_cw_32bpp(ShadowFBHeader* shadowfb_header,
     dst_line = (BYTE *)realfb_info->fb + dst_update.top *
         realfb_info->pitch;
 
+    int src_pitch = shadowfb_header->pitch / 4;
+    int dst_pitch = realfb_info->pitch / 4;
     for (x = 0; x < dst_height; x++) {
         /* Copy the bits from vertical line to horizontal line */
-        const BYTE* ver_bits = src_bits;
-        BYTE* hor_bits = line_pixels;
+        const Uint32 *src_pixels = (const Uint32 *)src_bits;
+        Uint32 *dst_pixels = (Uint32 *)dst_line;
+        dst_pixels += dst_update.left;
 
         for (y = 0; y < dst_width; y++) {
-            *(Uint32 *)hor_bits = *(Uint32 *)ver_bits;
-            ver_bits -= shadowfb_header->pitch;
-            hor_bits += 4;
+            *dst_pixels = *src_pixels;
+            src_pixels -= src_pitch;
+            dst_pixels += 1;
         }
 
-        memcpy(dst_line + (dst_update.left << 2), line_pixels,
-                dst_width << 2);
         src_bits += 4;
         dst_line += realfb_info->pitch;
     }
 
-#ifdef _DEBUG
+#if 0 // def _DEBUG
     double elapsed = get_elapsed_seconds(&ts_start, NULL);
     _MG_PRINTF("Cosumed time to rotate dirty rect (cw): %f (seconds)\n", elapsed);
 #endif
 }
 
-extern void refresh_normal_msb_left (ShadowFBHeader * shadowfb_header, RealFBInfo *realfb_info, void* update);
+extern void refresh_normal_msb_left (ShadowFBHeader * shadowfb_header,
+        RealFBInfo *realfb_info, void* update);
 
-extern void refresh_cw_msb_left (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_info, void* update);
+extern void refresh_cw_msb_left (ShadowFBHeader *shadowfb_header,
+        RealFBInfo *realfb_info, void* update);
 
-extern void refresh_ccw_msb_left (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update);
+extern void refresh_ccw_msb_left (ShadowFBHeader* shadowfb_header,
+        RealFBInfo* realfb_info, void* update);
 
-extern void refresh_hflip_msb_left (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update);
+extern void refresh_hflip_msb_left (ShadowFBHeader* shadowfb_header,
+        RealFBInfo* realfb_info, void* update);
 
-extern void refresh_vflip_msb_left (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update);
+extern void refresh_vflip_msb_left (ShadowFBHeader* shadowfb_header,
+        RealFBInfo* realfb_info, void* update);
 
-extern void refresh_normal_msb_right (ShadowFBHeader * shadowfb_header, RealFBInfo *realfb_info, void* update);
+extern void refresh_normal_msb_right (ShadowFBHeader * shadowfb_header,
+        RealFBInfo *realfb_info, void* update);
 
-extern void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header, RealFBInfo *realfb_info, void* update);
+extern void refresh_cw_msb_right (ShadowFBHeader *shadowfb_header,
+        RealFBInfo *realfb_info, void* update);
 
-extern void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update);
+extern void refresh_ccw_msb_right (ShadowFBHeader* shadowfb_header,
+        RealFBInfo* realfb_info, void* update);
 
-extern void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update);
+extern void refresh_hflip_msb_right (ShadowFBHeader* shadowfb_header,
+        RealFBInfo* realfb_info, void* update);
 
-extern void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header, RealFBInfo* realfb_info, void* update);
+extern void refresh_vflip_msb_right (ShadowFBHeader* shadowfb_header,
+        RealFBInfo* realfb_info, void* update);
 
 /* Initialization/Query functions */
 static int SHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat);
@@ -550,7 +563,6 @@ static int SHADOW_LockHWSurface(_THIS, GAL_Surface *surface)
         if (pthread_mutex_lock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
 #endif
-        _DBG_PRINTF("locked\n");
         return 0;
     }
 
@@ -567,7 +579,6 @@ static void SHADOW_UnlockHWSurface(_THIS, GAL_Surface *surface)
         if (pthread_mutex_unlock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
 #endif
-        _DBG_PRINTF("unlocked\n");
     }
 }
 
@@ -627,6 +638,10 @@ static void *task_do_update(void *data)
     this->hidden->async_update = 1;
     sem_post(&this->hidden->sync_sem);
 
+#ifdef _DEBUG
+    clock_gettime(CLOCK_REALTIME, &this->hidden->ts_start);
+#endif
+
     do {
         GAL_VideoDevice *real_device;
         real_device = this->hidden->realfb_info->real_device;
@@ -638,6 +653,10 @@ static void *task_do_update(void *data)
             usleep(this->hidden->update_interval * 1000);
         }
 
+#ifdef _DEBUG
+        this->hidden->frames++;
+#endif
+
 #if USE_UPDATE_SEM
         if (sem_wait(&this->hidden->update_sem))
             _ERR_PRINTF("Failed sem_wait(): %m\n");
@@ -645,7 +664,6 @@ static void *task_do_update(void *data)
         if (pthread_mutex_lock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
 #endif
-        _DBG_PRINTF("locked\n");
 
         if (RECTH(this->hidden->update_rect)) {
 
@@ -693,7 +711,6 @@ static void *task_do_update(void *data)
         if (pthread_mutex_unlock(&this->hidden->update_lock))
             _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
 #endif
-        _DBG_PRINTF("unlocked\n");
 
     } while (1);
 
@@ -752,6 +769,10 @@ static void cancel_async_updater(_THIS)
     if (this->hidden->async_update) {
         pthread_cancel(this->hidden->update_thd);
         pthread_join(this->hidden->update_thd, NULL);
+#ifdef _DEBUG
+        double elapsed = get_elapsed_seconds(&this->hidden->ts_start, NULL);
+        _DBG_PRINTF("Frames per second: %f\n", this->hidden->frames / elapsed);
+#endif
 
 #if USE_UPDATE_SEM
         sem_destroy(&this->hidden->update_sem);

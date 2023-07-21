@@ -122,6 +122,12 @@ typedef struct GAL_PrivateVideoData {
     RECT            update_rect;
     pthread_t       update_thd;
     sem_t           sync_sem;
+
+#ifdef _DEBUG
+    struct timespec ts_start;
+    unsigned        frames;
+#endif
+
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */
