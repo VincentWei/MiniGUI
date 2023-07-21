@@ -635,6 +635,14 @@ static void *task_do_update(void *data)
     if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL))
         goto error;
 
+    GAL_VideoDevice *real_device;
+    real_device = this->hidden->realfb_info->real_device;
+
+    BOOL vbl_ok = FALSE;
+    if (real_device->WaitVBlank) {
+        vbl_ok = real_device->WaitVBlank(real_device);
+    }
+
     this->hidden->async_update = 1;
     sem_post(&this->hidden->sync_sem);
 
@@ -643,10 +651,7 @@ static void *task_do_update(void *data)
 #endif
 
     do {
-        GAL_VideoDevice *real_device;
-        real_device = this->hidden->realfb_info->real_device;
-
-        if (real_device->WaitVBlank) {
+        if (vbl_ok) {
             real_device->WaitVBlank(real_device);
         }
         else {
