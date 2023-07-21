@@ -47,7 +47,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// #define _DEBUG
+#define _DEBUG
 
 #include "common.h"
 
@@ -2630,19 +2630,27 @@ error:
 
 static int create_async_updater(_THIS)
 {
-    if (sem_init(&this->hidden->sync_sem, 0, 0))
+    if (sem_init(&this->hidden->sync_sem, 0, 0)) {
+        _ERR_PRINTF("NEWGAL>DRM: failed to create sync. semaphore: %m\n");
         return -1;
+    }
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-    struct sched_param sp = { 90 };
-    pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-    pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
-    pthread_attr_setschedparam(&attr, &sp);
+#ifdef __LINUX__
+    if (geteuid() == 0) {
+        struct sched_param sp = { 99 };
+        pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+        pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+        pthread_attr_setschedparam(&attr, &sp);
+    }
+#endif
 
     if (pthread_create(&this->hidden->update_thd, &attr,
-            task_do_update, this))
+            task_do_update, this)) {
+        _ERR_PRINTF("NEWGAL>DRM: failed to create update thread: %m\n");
         return -1;
+    }
 
     sem_wait(&this->hidden->sync_sem);
     pthread_attr_destroy(&attr);
@@ -3820,9 +3828,6 @@ static BOOL DRM_SyncUpdate(_THIS)
     if (this->hidden->driver && this->hidden->driver_ops->flush_driver) {
         this->hidden->driver_ops->flush_driver(this->hidden->driver);
     }
-
-    _DBG_PRINTF("called: %d, %d, %d, %d\n", bound.left, bound.top,
-            bound.right, bound.bottom);
 
     {
         drmModeClip clip = { bound.left, bound.top,
