@@ -867,7 +867,7 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
     if (dstrect) {
         /* Perform clipping */
         if (!GAL_IntersectRect(dstrect, &dst->clip_rect, &my_dstrect)) {
-            return(0);
+            return 0;
         }
     } else {
         my_dstrect = dst->clip_rect;
@@ -876,7 +876,8 @@ int GAL_FillRect(GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color)
     /* Check for hardware acceleration */
     if (((dst->flags & GAL_HWSURFACE) == GAL_HWSURFACE) &&
                     video->info.blit_fill) {
-        return(video->FillHWRect(this, dst, &my_dstrect, color));
+        if (video->FillHWRect(this, dst, &my_dstrect, color) == 0)
+            return 0;
     }
 
 #ifdef _MGUSE_PIXMAN
