@@ -87,8 +87,10 @@ extern "C" {
 /** The current version of DRM driver. */
 #define DRM_DRIVER_VERSION  2
 
-#define DRM_SURBUF_TYPE_OFFSCREEN    0x0000
-#define DRM_SURBUF_TYPE_SCANOUT      0x0001
+#define DRM_SURBUF_TYPE_OFFSCREEN       0x0000
+#define DRM_SURBUF_TYPE_SHADOW          0x0001
+#define DRM_SURBUF_TYPE_SCANOUT         0x0002
+#define DRM_SURBUF_TYPE_MASK            0x000F
 
 /**
  * The struct type represents the DRI sub driver.
