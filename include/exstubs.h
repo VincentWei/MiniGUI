@@ -179,13 +179,12 @@ typedef enum {
 typedef enum {
    BLIT_COLORKEY_NONE = 0,
    BLIT_COLORKEY_NORMAL,
-   BLIT_COLORKEY_INVERT,
+   BLIT_COLORKEY_INVERTED,
 } BlitKeyOperation;
 
 typedef enum {
    BLIT_ALPHA_NONE = 0,
-   BLIT_ALPHA_BYTE,
-   BLIT_ALPHA_FLOAT,
+   BLIT_ALPHA_SET,
 } BlitAlphaOperation;
 
 typedef struct _DrmBlitOperations {
@@ -197,10 +196,7 @@ typedef struct _DrmBlitOperations {
     ScalingFilter       scl;
 
     uint32_t            key_min, key_max;
-    union {
-        uint8_t         alpha_byte;
-        double          alpha_float;
-    };
+    uint8_t             alpha;
 } DrmBlitOperations;
 
 typedef int (*CB_DRM_BLIT) (DrmDriver *driver,

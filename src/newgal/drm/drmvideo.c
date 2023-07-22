@@ -3604,8 +3604,8 @@ static int DRM_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
     }
 
     if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
-        blit_ops.alf = BLIT_ALPHA_BYTE;
-        blit_ops.alpha_byte = src->format->alpha;
+        blit_ops.alf = BLIT_ALPHA_SET;
+        blit_ops.alpha = src->format->alpha;
     }
 
     if ((src->flags & GAL_SRCPIXELALPHA) == GAL_SRCPIXELALPHA) {
@@ -3641,7 +3641,7 @@ static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
     }
 
     if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
-        blit_ops.alf = BLIT_ALPHA_BYTE;
+        blit_ops.alf = BLIT_ALPHA_SET;
     }
 
     if (srcrc->w != dstrc->w || srcrc->h != dstrc->h) {
