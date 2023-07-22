@@ -241,8 +241,11 @@ static int HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect,
     return(0);
 }
 
-static int CheckHWBlit (_THIS, GAL_Surface *src, GAL_Surface *dst)
+static int CheckHWBlit(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
+        GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op)
 {
+    (void)srcrc;
+    (void)dstrc;
     int accelerated;
 
     /* Set initial acceleration on */
@@ -258,6 +261,13 @@ static int CheckHWBlit (_THIS, GAL_Surface *src, GAL_Surface *dst)
         if ( ! this->info.blit_hw_CC ) {
             src->flags &= ~GAL_HWACCEL;
         }
+    }
+
+    /* color blend, logical operation, and scaling filter are not supported */
+    if ((op & COLOR_BLEND_MASK) ||
+            ((op & COLOR_LOGICOP_MASK) != COLOR_LOGICOP_COPY) ||
+            (op & SCALING_FILTER_MASK)) {
+        src->flags &= ~GAL_HWACCEL;
     }
 
     if (src->format->BitsPerPixel > 16)

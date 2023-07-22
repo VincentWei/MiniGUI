@@ -84,6 +84,12 @@ extern "C" {
      * @{
      */
 
+/** The current version of DRM driver. */
+#define DRM_DRIVER_VERSION  2
+
+#define DRM_SURBUF_TYPE_OFFSCREEN    0x0000
+#define DRM_SURBUF_TYPE_SCANOUT      0x0001
+
 /**
  * The struct type represents the DRI sub driver.
  * The concrete struct should be defined by the driver.
@@ -157,8 +163,50 @@ typedef struct _DrmSurfaceBuffer {
     uint8_t* buff;
 } DrmSurfaceBuffer;
 
+typedef enum {
+   BLIT_COPY_NORMAL = 0,
+   BLIT_COPY_SCALE,
+   BLIT_COPY_ROT_90,
+   BLIT_COPY_ROT_180,
+   BLIT_COPY_ROT_270,
+   BLIT_COPY_FLIP_H,
+   BLIT_COPY_FLIP_V,
+   BLIT_COPY_FLIP_H_V
+} BlitCopyOperation;
+
+typedef enum {
+   BLIT_COLORKEY_NONE = 0,
+   BLIT_COLORKEY_NORMAL,
+   BLIT_COLORKEY_INVERT,
+} BlitKeyOperation;
+
+typedef enum {
+   BLIT_ALPHA_NONE = 0,
+   BLIT_ALPHA_BYTE,
+   BLIT_ALPHA_FLOAT,
+} BlitAlphaOperation;
+
+typedef struct _DrmBlitOperations {
+    BlitCopyOperation   cpy;
+    BlitKeyOperation    key;
+    BlitAlphaOperation  alf;
+    ColorBlendMethod    bld;
+    ColorLogicalOp      rop;
+    ScalingFilter       scl;
+
+    uint32_t            key_min, key_max;
+    union {
+        uint8_t         alpha_byte;
+        double          alpha_float;
+    };
+} DrmBlitOperations;
+
+typedef int (*CB_DRM_BLIT) (DrmDriver *driver,
+            DrmSurfaceBuffer *src_buf, const GAL_Rect *src_rc,
+            DrmSurfaceBuffer *dst_buf, const GAL_Rect *dst_rc,
+            const DrmBlitOperations *blit_ops);
 /**
- * The structure type defines the operations for a DRM driver.
+ * The structure type defines the operations for a userland DRM driver.
  */
 typedef struct _DrmDriverOps {
     /**
@@ -194,7 +242,7 @@ typedef struct _DrmDriverOps {
      */
     DrmSurfaceBuffer* (* create_buffer) (DrmDriver *driver,
             uint32_t drm_format, uint32_t hdr_size,
-            uint32_t width, uint32_t height);
+            uint32_t width, uint32_t height, unsigned flags);
 
     /**
      * This operation creates a buffer from a given and possibly foreign handle
@@ -207,7 +255,9 @@ typedef struct _DrmDriverOps {
      *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_handle) (DrmDriver *driver,
-            uint32_t handle, size_t size);
+            uint32_t handle, size_t size,
+            uint32_t drm_format, uint32_t hdr_size,
+            uint32_t width, uint32_t height, uint32_t pitch);
 
     /**
      * This operation creates a buffer for the given system global name
@@ -219,7 +269,9 @@ typedef struct _DrmDriverOps {
      *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_name) (DrmDriver *driver,
-            uint32_t name);
+            uint32_t name,
+            uint32_t drm_format, uint32_t hdr_size,
+            uint32_t width, uint32_t height, uint32_t pitch);
 
     /**
      * This operation creates a buffer for the given PRIME file descriptor
@@ -231,21 +283,19 @@ typedef struct _DrmDriverOps {
      *  DrmSurfaceBuffer object.
      */
     DrmSurfaceBuffer* (* create_buffer_from_prime_fd) (DrmDriver *driver,
-            int prime_fd, size_t size);
+            int prime_fd, size_t size,
+            uint32_t drm_format, uint32_t hdr_size,
+            uint32_t width, uint32_t height, uint32_t pitch);
 
     /**
      * This operation maps the buffer into the current process's virtual memory
      * space, and returns the virtual address. If failed, it returns NULL.
      *
-     * When \a for_scanout is not zero, the buffer will be used for scan out
-     * frame buffer.
-     *
      * \note The driver must implement this operation. The driver must
      *  set a valid value for buff field of the DrmSurfaceBuffer object
      *  on success.
      */
-    uint8_t* (* map_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer,
-            int for_scanout);
+    uint8_t* (* map_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
 
     /**
      * This operation un-maps a buffer.
@@ -264,95 +314,60 @@ typedef struct _DrmDriverOps {
     void (* destroy_buffer) (DrmDriver *driver, DrmSurfaceBuffer* buffer);
 
     /**
-     * This operation clears the specific rectangle area of a buffer
+     * This operation fills the specific rectangle area of a buffer
      * with the specific pixel value. If succeed, it returns 0.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated clear operation.
+     * hardware accelerated filling operation.
      */
-    int (* clear_buffer) (DrmDriver *driver,
+    int (* fill_rect) (DrmDriver *driver,
             DrmSurfaceBuffer* dst_buf, const GAL_Rect* rc, uint32_t pixel_value);
 
     /**
-     * This operation checks whether a hardware accelerated blit
+     * This operation checks whether a specified hardware accelerated blit
      * can be done between the source buffer and the destination buffer.
-     * If succeed, it returns 0.
+     * If succeed, it returns a callback for the specified blit operations.
      *
      * \note If this operation is set as NULL, it will be supposed that
      * the driver does not support any hardware accelerated blitting operation.
      */
-    int (* check_blit) (DrmDriver *driver,
+    CB_DRM_BLIT (* check_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
+            const DrmBlitOperations *ops);
+
+    /**
+     * This operation copies the whole bits from a source buffer to
+     * a destination buffer.
+     *
+     * \note If this operation is set as NULL, the driver does not support
+     * hardware accelerated copy operation between buffers.
+     */
+    int (* copy_buff) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf);
 
     /**
-     * This operation copies bits from a source buffer to a destination buffer.
+     * This operation rotates the bits from a source buffer to
+     * a destination buffer.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated copy blitting.
-     *
-     * \note Currently, the logical operation is ignored.
+     * hardware accelerated rotation operation between buffers.
      */
-    int (* copy_blit) (DrmDriver *driver,
-            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
-            ColorLogicalOp logic_op);
+    int (* rotate_buff) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf,
+            BlitCopyOperation op);
 
     /**
-     * This operation blits pixels from a source buffer with the source alpha
-     * value specified to a destination buffer.
+     * This operation flips the bits from a source buffer to
+     * a destination buffer.
      *
      * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blitting with alpha.
+     * hardware accelerated flip operation between buffers.
      */
-    int (* alpha_blit) (DrmDriver *driver,
-            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
-            uint8_t alpha);
-
-    /**
-     * This operation blits pixels from a source buffer to a destination buffer,
-     * but skipping the pixel value specified by \a color_key.
-     *
-     * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blitting with color key.
-     */
-    int (* key_blit) (DrmDriver *driver,
-            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
-            uint32_t color_key);
-
-    /**
-     * This operation blits pixels from a source buffer with the source alpha
-     * value specified to a destination buffer, but skipping the pixel value
-     * specified.
-     *
-     * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blitting with alpha and color key.
-     */
-    int (* alpha_key_blit) (DrmDriver *driver,
-            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
-            uint8_t alpha, uint32_t color_key);
-
-    /**
-     * This operation blits pixels from a source buffer with the source alpha
-     * value of pixels to the destination buffer, and with the specified color
-     * compositing/blending method (\a ColorBlendMethod).
-     *
-     * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated blitting with alpha on basis per pixel.
-     *
-     * \note Currently, the color compositing/blending method is ignored.
-     */
-    int (* alpha_pixel_blit) (DrmDriver *driver,
-            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
-            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
-            ColorBlendMethod blend_method);
-
+    int (* flip_buff) (DrmDriver *driver,
+            DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf,
+            BlitCopyOperation op);
 } DrmDriverOps;
-
-/** The current version of DRM driver. */
-#define DRM_DRIVER_VERSION  1
 
 /**
  * Implement this stub to return the DRI driver operations

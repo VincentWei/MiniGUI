@@ -59,11 +59,14 @@ extern void GAL_FreeFormat(GAL_PixelFormat *format);
 /* Blit mapping functions */
 extern GAL_BlitMap *GAL_AllocBlitMap(void);
 extern void GAL_InvalidateMap(GAL_BlitMap *map);
-extern int GAL_MapSurface (GAL_Surface *src, GAL_Surface *dst);
+extern int GAL_MapSurface (GAL_Surface *src, const GAL_Rect *srcrc,
+        GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op);
 extern void GAL_FreeBlitMap(GAL_BlitMap *map);
 
 /* Miscellaneous functions */
 extern Uint32 GAL_CalculatePitch(GAL_Surface *surface);
 extern void GAL_DitherColors(GAL_Color *colors, int bpp);
 extern Uint8 GAL_FindColor(GAL_Palette *pal, Uint8 r, Uint8 g, Uint8 b);
-extern void GAL_ApplyGamma(Uint16 *gamma, GAL_Color *colors, GAL_Color *output, int ncolors);
+extern void GAL_ApplyGamma(Uint16 *gamma, GAL_Color *colors, GAL_Color *output,
+        int ncolors);
+

@@ -289,7 +289,7 @@ int GAL_SetupStretchBlit (GAL_Surface *src, GAL_Rect *srcrect,
             src->pix_filter = PIXMAN_FILTER_FAST;
         }
 
-        ops &= COLOR_BLEND_FLAGS_MASK;
+        ops &= COLOR_BLEND_PIXMAN_MASK;
         if (ops == COLOR_BLEND_LEGACY) {
             if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
                 src->pix_op = PIXMAN_OP_OVER;
@@ -376,7 +376,7 @@ int GAL_StretchBlt (GAL_Surface *src, GAL_Rect *srcrect,
 
     if (src_img == NULL || dst_img == NULL || (src->flags & GAL_SRCCOLORKEY))
         return GAL_StretchBltLegacy (src, srcrect, dst, dstrect,
-                ops & COLOR_BLEND_FLAGS_MASK);
+                ops & COLOR_BLEND_PIXMAN_MASK);
 
     msk_img = src->msk_img;
     op = (pixman_op_t)src->pix_op;

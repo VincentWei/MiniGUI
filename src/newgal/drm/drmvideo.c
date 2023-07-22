@@ -115,7 +115,8 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 /* DRM engine methods accelerated */
 static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface);
 static void DRM_FreeHWSurface_Accl(_THIS, GAL_Surface *surface);
-static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst);
+static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
+        GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op);
 static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
         Uint32 color);
 
@@ -776,7 +777,7 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     /* for dumb buffer, already mapped */
     if (surface_buffer->buff == NULL &&
             vdata->driver && vdata->driver_ops->map_buffer) {
-        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 0)) {
+        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer)) {
             _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
             goto error;
         }
@@ -1656,7 +1657,7 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 #endif
 
     if (this->hidden->driver) {
-        if (this->hidden->driver_ops->clear_buffer) {
+        if (this->hidden->driver_ops->fill_rect) {
             this->info.blit_fill = 1;
             this->FillHWRect = DRM_FillHWRect_Accl;
         }
@@ -1669,10 +1670,8 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
             this->SetHWAlpha = DRM_SetHWAlpha_Accl;
 
             this->info.blit_hw = 1;
-            if (this->hidden->driver_ops->alpha_blit)
-                this->info.blit_hw_A = 1;
-            if (this->hidden->driver_ops->key_blit)
-                this->info.blit_hw_CC = 1;
+            this->info.blit_hw_A = 1;
+            this->info.blit_hw_CC = 1;
         }
         else {
             this->CheckHWBlit = NULL;
@@ -2725,11 +2724,12 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
     if (vdata->driver) {
         assert (vdata->driver_ops->create_buffer);
         real_buffer = vdata->driver_ops->create_buffer(vdata->driver,
-                drm_format, 0, info->width, info->height);
+                drm_format, 0, info->width, info->height,
+                DRM_SURBUF_TYPE_SCANOUT);
         if (vdata->dbl_buff) {
             if (drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
                 _WRN_PRINTF("Cannot map real screen buffer via DMA-BUF\n");
-                vdata->driver_ops->map_buffer(vdata->driver, real_buffer, 1);
+                vdata->driver_ops->map_buffer(vdata->driver, real_buffer);
             }
         }
     }
@@ -2772,8 +2772,8 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             assert (vdata->driver_ops->create_buffer);
             shadow_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                     drm_format, hdr_size,
-                    info->width, info->height);
-            vdata->driver_ops->map_buffer(vdata->driver, shadow_buffer, 0);
+                    info->width, info->height, DRM_SURBUF_TYPE_OFFSCREEN);
+            vdata->driver_ops->map_buffer(vdata->driver, shadow_buffer);
         }
 
         if (shadow_buffer == NULL || shadow_buffer->buff == NULL) {
@@ -2963,8 +2963,9 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     hdr_size = sizeof (GAL_SharedSurfaceHeader);
     if (vdata->driver_ops) {
         surface_buffer = vdata->driver_ops->create_buffer(vdata->driver,
-                drm_format, hdr_size, surface->w, surface->h);
-        vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 0);
+                drm_format, hdr_size, surface->w, surface->h,
+                DRM_SURBUF_TYPE_OFFSCREEN);
+        vdata->driver_ops->map_buffer(vdata->driver, surface_buffer);
     }
     else {
         surface_buffer = drm_create_dumb_buffer(vdata,
@@ -2978,7 +2979,8 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
     }
 
     /* get the prime fd */
-    if (drmPrimeHandleToFD (vdata->dev_fd, surface_buffer->handle,
+    if (surface_buffer->prime_fd < 0 &&
+            drmPrimeHandleToFD (vdata->dev_fd, surface_buffer->handle,
                 DRM_RDWR | DRM_CLOEXEC, &surface_buffer->prime_fd)) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot get prime fd: %m\n");
         goto error;
@@ -3049,7 +3051,7 @@ static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
             goto error;
         }
 
-        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 0)) {
+        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer)) {
             _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
             goto error;
         }
@@ -3532,12 +3534,12 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
     }
 
     surface_buffer = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
-            0, surface->w, surface->h);
+            0, surface->w, surface->h, DRM_SURBUF_TYPE_OFFSCREEN);
     if (surface_buffer == NULL) {
         return -1;
     }
 
-    if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer, 0)) {
+    if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer)) {
         _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
         goto error;
     }
@@ -3590,40 +3592,36 @@ static int DRM_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
     src_buf = (DrmSurfaceBuffer*)src->hwdata;
     dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
 
-    if ((src->flags & GAL_SRCPIXELALPHA) == GAL_SRCPIXELALPHA) {
-        return vdata->driver_ops->alpha_pixel_blit(vdata->driver,
-            src_buf, src_rc, dst_buf, dst_rc,
-            COLOR_BLEND_PD_SRC_OVER);
-    }
-    else if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
-            (src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
-        return vdata->driver_ops->alpha_key_blit(vdata->driver,
-            src_buf, src_rc, dst_buf, dst_rc,
-            src->format->alpha, src->format->colorkey);
-    }
-    else if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
-        return vdata->driver_ops->alpha_blit(vdata->driver,
-            src_buf, src_rc, dst_buf, dst_rc,
-            src->format->alpha);
-    }
-    else if ((src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
-        return vdata->driver_ops->key_blit(vdata->driver,
-            src_buf, src_rc, dst_buf, dst_rc,
-            src->format->colorkey);
-    }
-    else {
-        return vdata->driver_ops->copy_blit(vdata->driver,
-            src_buf, src_rc, dst_buf, dst_rc, COLOR_LOGICOP_COPY);
+    CB_DRM_BLIT blitor = src->map->hw_void;
+    assert(blitor);
+
+    DrmBlitOperations blit_ops = { };
+    blit_ops.cpy = BLIT_COPY_NORMAL;
+
+    if ((src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
+        blit_ops.key = BLIT_COLORKEY_NORMAL;
+        blit_ops.key_max = blit_ops.key_min = src->format->colorkey;
     }
 
-    return 0;
+    if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
+        blit_ops.alf = BLIT_ALPHA_BYTE;
+        blit_ops.alpha_byte = src->format->alpha;
+    }
+
+    if ((src->flags & GAL_SRCPIXELALPHA) == GAL_SRCPIXELALPHA) {
+        blit_ops.bld = COLOR_BLEND_PD_SRC_OVER;
+    }
+
+    blit_ops.rop = COLOR_LOGICOP_COPY;
+
+    return blitor(vdata->driver, src_buf, src_rc, dst_buf, dst_rc, &blit_ops);
 }
 
-static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
+static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
+        GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op)
 {
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer *src_buf, *dst_buf;
-    int accelerated;
 
     src_buf = (DrmSurfaceBuffer*)src->hwdata;
     dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
@@ -3631,41 +3629,42 @@ static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, GAL_Surface *dst)
     /* Set initial acceleration on */
     src->flags |= GAL_HWACCEL;
 
-    /* Set the surface attributes */
-    if ((src->flags & GAL_SRCPIXELALPHA) == GAL_SRCPIXELALPHA &&
-            (vdata->driver_ops->alpha_pixel_blit == NULL)) {
-        src->flags &= ~GAL_HWACCEL;
-    }
-    else if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
-            (src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY &&
-            (vdata->driver_ops->alpha_key_blit == NULL)) {
-        src->flags &= ~GAL_HWACCEL;
-    }
-    else if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA &&
-            (vdata->driver_ops->alpha_blit == NULL)) {
-        src->flags &= ~GAL_HWACCEL;
-    }
-    else if ((src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY &&
-            (vdata->driver_ops->key_blit == NULL)) {
-        src->flags &= ~GAL_HWACCEL;
-    }
-    else if (vdata->driver_ops->copy_blit == NULL) {
-        src->flags &= ~GAL_HWACCEL;
+    DrmBlitOperations blit_ops = { };
+    blit_ops.cpy = BLIT_COPY_NORMAL;
+
+    if ((src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
+        blit_ops.key = BLIT_COLORKEY_NORMAL;
     }
 
+    if ((src->flags & GAL_SRCPIXELALPHA) == GAL_SRCPIXELALPHA) {
+        blit_ops.bld = op & COLOR_BLEND_MASK;
+    }
+
+    if ((src->flags & GAL_SRCALPHA) == GAL_SRCALPHA) {
+        blit_ops.alf = BLIT_ALPHA_BYTE;
+    }
+
+    if (srcrc->w != dstrc->w || srcrc->h != dstrc->h) {
+        blit_ops.scl = op & SCALING_FILTER_MASK;
+    }
+
+    blit_ops.rop = op & COLOR_LOGICOP_MASK;
+
     /* Check to see if final surface blit is accelerated */
-    accelerated = !!(src->flags & GAL_HWACCEL);
-    if (accelerated &&
-            vdata->driver_ops->check_blit(vdata->driver, src_buf, dst_buf) == 0) {
+    CB_DRM_BLIT blitor;
+    blitor = vdata->driver_ops->check_blit(vdata->driver, src_buf, srcrc,
+            dst_buf, dstrc, &blit_ops);
+
+    if (blitor) {
         src->map->hw_blit = DRM_HWBlit;
+        src->map->hw_void = blitor;
     }
     else {
         src->map->hw_blit = NULL;
         src->flags &= ~GAL_HWACCEL;
-        accelerated = 0;
     }
 
-    return accelerated;
+    return !!(src->flags & GAL_HWACCEL);
 }
 
 static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
@@ -3675,7 +3674,7 @@ static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
     DrmSurfaceBuffer *dst_buf;
 
     dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
-    return vdata->driver_ops->clear_buffer(vdata->driver, dst_buf, rect, color);
+    return vdata->driver_ops->fill_rect(vdata->driver, dst_buf, rect, color);
 }
 
 static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
@@ -4004,7 +4003,8 @@ GAL_Surface* __drm_create_surface_from_name (GHANDLE video,
     }
     else {
         surface_buffer = vdata->driver_ops->create_buffer_from_name(
-                vdata->driver, name);
+                vdata->driver, name, drm_format, pixels_off, width, height,
+                pitch);
         if (surface_buffer == NULL) {
             _ERR_PRINTF ("NEWGAL>DRM: faile to create buffer from name: %u!\n",
                     name);
@@ -4059,7 +4059,8 @@ GAL_Surface* __drm_create_surface_from_handle (GHANDLE video, uint32_t handle,
     }
     else {
         surface_buffer = vdata->driver_ops->create_buffer_from_handle (
-                vdata->driver, handle, size);
+                vdata->driver, handle, size, drm_format, pixels_off,
+                width, height, pitch);
         if (surface_buffer == NULL) {
             _ERR_PRINTF ("NEWGAL>DRM: failed to create buffer from handle (%u): "
                    "%m!\n", handle);
@@ -4114,7 +4115,8 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
     }
     else {
         surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd (
-                vdata->driver, prime_fd, size);
+                vdata->driver, prime_fd, size, drm_format, pixels_off,
+                width, height, pitch);
         if (surface_buffer == NULL) {
             _ERR_PRINTF ("NEWGAL>DRM: failed to create buffer from prime "
                     "fd: %d!\n", prime_fd);

@@ -80,7 +80,10 @@ typedef struct GAL_BlitMap {
     Uint8 *table;
     GAL_blit hw_blit;
     GAL_blit sw_blit;
-    struct private_hwaccel *hw_data;
+    union {
+        struct private_hwaccel *hw_data;
+        void                   *hw_void;
+    };
     struct private_swaccel *sw_data;
 
     int identity;
@@ -94,7 +97,8 @@ typedef struct GAL_BlitMap {
 #include "blit_A.h"
 
 /* Functions found in GAL_blit.c */
-extern int GAL_CalculateBlit(GAL_Surface *surface);
+extern int GAL_CalculateBlit(GAL_Surface *surface, const GAL_Rect *srcrc,
+        const GAL_Rect *dstrc, DWORD op);
 
 /* Functions found in GAL_blit_{0,1,N,A}.c */
 extern GAL_loblit GAL_CalculateBlit0(GAL_Surface *surface, int complex);

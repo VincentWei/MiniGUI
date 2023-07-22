@@ -171,7 +171,8 @@ static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
 #endif
 
 /* Figure out which of many blit routines to set up on a surface */
-int GAL_CalculateBlit(GAL_Surface *surface)
+int GAL_CalculateBlit(GAL_Surface *surface, const GAL_Rect *srcrc,
+        const GAL_Rect *dstrc, DWORD op)
 {
     int blit_index;
     GAL_VideoDevice *src_video, *dst_video, *cur_video = NULL;
@@ -242,7 +243,8 @@ int GAL_CalculateBlit(GAL_Surface *surface)
         if (hw_blit_ok && cur_video) {
             GAL_VideoDevice *video = cur_video;
             GAL_VideoDevice *this  = cur_video;
-            video->CheckHWBlit (this, surface, surface->map->dst);
+            video->CheckHWBlit (this, surface, srcrc,
+                    surface->map->dst, dstrc, op);
         }
     }
 
@@ -343,7 +345,7 @@ int GAL_SetupBlitting (GAL_Surface *src, GAL_Surface *dst, DWORD ops)
         else
             src->msk_img = NULL;
 
-        ops &= COLOR_BLEND_FLAGS_MASK;
+        ops &= COLOR_BLEND_PIXMAN_MASK;
         if (ops == COLOR_BLEND_LEGACY) {
             if ((src->flags & GAL_SRCPIXELALPHA) && src->format->Amask && src != dst) {
                 src->pix_op = PIXMAN_OP_OVER;

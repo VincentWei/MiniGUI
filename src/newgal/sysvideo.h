@@ -201,7 +201,8 @@ struct GAL_VideoDevice {
     /* Set the hardware accelerated blit function, if any, based
        on the current flags of the surface (colorkey, alpha, etc.)
      */
-    int (*CheckHWBlit)(_THIS, GAL_Surface *src, GAL_Surface *dst);
+    int (*CheckHWBlit)(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
+            GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op);
 
     /* Fills a surface rectangle with the given color */
     int (*FillHWRect)(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);

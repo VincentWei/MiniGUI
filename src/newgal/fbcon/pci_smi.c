@@ -831,8 +831,11 @@ static int SMI_SetHWColorKey (_THIS, GAL_Surface *surface, Uint32 key)
     return 0;
 }
 
-static int SMI_CheckHWBlit (_THIS, GAL_Surface *src, GAL_Surface *dst)
+static int SMI_CheckHWBlit (_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
+        GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op)
 {
+    (void)srcrc;
+    (void)dstrc;
     int accelerated;
 
     /* Set initial acceleration on */
@@ -848,6 +851,13 @@ static int SMI_CheckHWBlit (_THIS, GAL_Surface *src, GAL_Surface *dst)
 
     if (src->format->BitsPerPixel == 24 &&
             (src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
+        src->flags &= ~GAL_HWACCEL;
+    }
+
+    /* color blend, logical operation, and scaling filter are not supported */
+    if ((op & COLOR_BLEND_MASK) ||
+            ((op & COLOR_LOGICOP_MASK) != COLOR_LOGICOP_COPY) ||
+            (op & SCALING_FILTER_MASK)) {
         src->flags &= ~GAL_HWACCEL;
     }
 

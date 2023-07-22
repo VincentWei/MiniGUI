@@ -617,7 +617,8 @@ void GAL_InvalidateMap(GAL_BlitMap *map)
     }
 }
 
-int GAL_MapSurface (GAL_Surface *src, GAL_Surface *dst)
+int GAL_MapSurface (GAL_Surface *src, const GAL_Rect *srcrc,
+        GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op)
 {
     GAL_PixelFormat *srcfmt;
     GAL_PixelFormat *dstfmt;
@@ -698,7 +699,7 @@ int GAL_MapSurface (GAL_Surface *src, GAL_Surface *dst)
     map->format_version = (++dst->format_version);
 
     /* Choose your blitters wisely */
-    return(GAL_CalculateBlit(src));
+    return(GAL_CalculateBlit(src, srcrc, dstrc, op));
 }
 
 void GAL_FreeBlitMap(GAL_BlitMap *map)

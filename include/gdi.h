@@ -5170,7 +5170,8 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
  */
 typedef enum {
     COLOR_BLEND_LEGACY      = 0,
-    COLOR_BLEND_FLAGS_MASK  = 0x00FF,
+    COLOR_BLEND_MASK        = 0xFFFF,
+    COLOR_BLEND_PIXMAN_MASK = 0x00FF,
 
     /** Porter Duff rule: clear */
     COLOR_BLEND_PD_CLEAR    = 0x0100,   // PIXMAN_OP_CLEAR          = 0x00
@@ -5308,22 +5309,25 @@ typedef enum {
  * The color logical operations.
  */
 typedef enum {
-   COLOR_LOGICOP_CLEAR = 0,
-   COLOR_LOGICOP_NOR,
-   COLOR_LOGICOP_AND_INVERTED,
-   COLOR_LOGICOP_COPY_INVERTED,
-   COLOR_LOGICOP_AND_REVERSE,
-   COLOR_LOGICOP_INVERT,
-   COLOR_LOGICOP_XOR,
-   COLOR_LOGICOP_NAND,
-   COLOR_LOGICOP_AND,
-   COLOR_LOGICOP_EQUIV,
-   COLOR_LOGICOP_NOOP0,
-   COLOR_LOGICOP_OR_INVERTED1,
-   COLOR_LOGICOP_COPY,
-   COLOR_LOGICOP_OR_REVERSE,
-   COLOR_LOGICOP_OR,
-   COLOR_LOGICOP_SET,
+    COLOR_LOGICOP_CLEAR             = 0,
+    COLOR_LOGICOP_NOR               = 0x01 << 24,
+    COLOR_LOGICOP_AND_INVERTED      = 0x02 << 24,
+    COLOR_LOGICOP_COPY_INVERTED     = 0x03 << 24,
+    COLOR_LOGICOP_AND_REVERSE       = 0x04 << 24,
+    COLOR_LOGICOP_INVERT            = 0x05 << 24,
+    COLOR_LOGICOP_XOR               = 0x06 << 24,
+    COLOR_LOGICOP_NAND              = 0x07 << 24,
+    COLOR_LOGICOP_AND               = 0x08 << 24,
+    COLOR_LOGICOP_EQUIV             = 0x09 << 24,
+    COLOR_LOGICOP_NOOP0             = 0x0A << 24,
+    COLOR_LOGICOP_OR_INVERTED1      = 0x0B << 24,
+    COLOR_LOGICOP_COPY              = 0x0C << 24,
+    COLOR_LOGICOP_OR_REVERSE        = 0x0D << 24,
+    COLOR_LOGICOP_OR                = 0x0E << 24,
+    COLOR_LOGICOP_SET               = 0x0F << 24,
+
+    COLOR_LOGICOP_MASK              = 0x0F << 24,
+    COLOR_LOGICOP_SHIFT             = 24,
 } ColorLogicalOp;
 
 /**
@@ -5353,15 +5357,18 @@ typedef enum {
  *        in the destination DC.
  * \param dy The y coordinate of the upper-left corner of the rectangle
  *        in the destination DC.
- * \param dwRop The color blending method, see \a ColorBlendMethod.
- *        This argument is only valid when Pixman is used.
+ * \param dwRop The color blending method, see \a ColorBlendMethod, OR'd
+ *        with a color logical operation, see \a ColorLogicalOp.
+ *        This argument is only valid when Pixman is used, or the hardware
+ *        provides a proper accelerator.
  *
  * \note When the source color key is specified for the blitting operation,
  *      or the formats of the device contexts are not supported by Pixman,
  *      this function will use the legacy implementation. In this situation,
  *      the color blending method will be ignored.
  *
- * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod
+ * \sa StretchBlt, SetMemDCAlpha, SetMemDCColorKey, ColorBlendMethod,
+ *      ColorLogicalOp
  */
 MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
                 HDC hddc, int dx, int dy, DWORD dwRop);
@@ -5371,18 +5378,20 @@ MG_EXPORT void GUIAPI BitBlt (HDC hsdc, int sx, int sy, int sw, int sh,
  */
 typedef enum {
     /** The fast filter (DDA scaler) */
-    SCALING_FILTER_FAST     = 0x00000000,
+    SCALING_FILTER_FAST         = 0x0000 << 16,
     /** The good filter */
-    SCALING_FILTER_GOOD     = 0x00010000,
+    SCALING_FILTER_GOOD         = 0x0001 << 16,
     /** The best filter */
-    SCALING_FILTER_BEST     = 0x00020000,
+    SCALING_FILTER_BEST         = 0x0002 << 16,
     /** The filter using nearest algorithm */
-    SCALING_FILTER_NEAREST  = 0x00020000,
+    SCALING_FILTER_NEAREST      = 0x0003 << 16,
     /** The filter using bi-linear algorithm */
-    SCALING_FILTER_BILINEAR = 0x00040000,
+    SCALING_FILTER_BILINEAR     = 0x0004 << 16,
     /** The filter using convolution algorithm */
-    SCALING_FILTER_CONVOLUTION = 0x00050000,
-    SCALING_FILTER_SHIFT    = 16,
+    SCALING_FILTER_CONVOLUTION  = 0x0005 << 16,
+
+    SCALING_FILTER_MASK         = (0x0F << 16),
+    SCALING_FILTER_SHIFT        = 16,
 } ScalingFilter;
 
 /**
@@ -5435,8 +5444,10 @@ typedef struct _STRETCH_EXTRA_INFO {
  * \param sei The pointer to a stretch extra information strucure;
  *        can be NULL. Note this only works when Pixman is used.
  * \param dwRop The color blending method, see \a ColorBlendMethod, OR'd
- *        with a fiter of the scaling, see \a ScalingFilter.
- *        This argument only works when Pixman is used.
+ *        with a fiter of the scaling, see \a ScalingFilter, and OR'd
+ *        with a color logical operation, see \a ColorLogicalOp.
+ *        This argument only works when Pixman is used or the hardware
+ *        provides a proper accelerator.
  *
  * \return TRUE for success, FALSE for bad arguments and there is no any
  *      drawing occurred.
@@ -5448,7 +5459,7 @@ typedef struct _STRETCH_EXTRA_INFO {
  *      will be ignored.
  *
  * \sa BitBlt, SetMemDCAlpha, SetMemDCColorKey, STRETCH_EXTRA_INFO,
- *     ColorBlendMethod, ScalingFilter
+ *     ColorBlendMethod, ScalingFilter, ColorLogicalOp
  */
 MG_EXPORT BOOL GUIAPI StretchBltEx (HDC hsdc, int sx, int sy, int sw, int sh,
         HDC hddc, int dx, int dy, int dw, int dh,
