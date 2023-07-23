@@ -5162,6 +5162,27 @@ MG_EXPORT BOOL GUIAPI FillBitmapPartInBox (HDC hdc, int box_x, int box_y,
                 int box_w, int box_h, const BITMAP* pbmp, int bmp_x, int bmp_y,
                 int bmp_w, int bmp_h);
 
+typedef enum {
+   BLIT_COPY_TRANSLATE = 0,
+   BLIT_COPY_ROT_90,
+   BLIT_COPY_ROT_180,
+   BLIT_COPY_ROT_270,
+   BLIT_COPY_FLIP_H,
+   BLIT_COPY_FLIP_V,
+   BLIT_COPY_FLIP_H_V
+} BlitCopyOperation;
+
+typedef enum {
+   BLIT_COLORKEY_NONE = 0,
+   BLIT_COLORKEY_NORMAL,
+   BLIT_COLORKEY_INVERTED,
+} BlitKeyOperation;
+
+typedef enum {
+   BLIT_ALPHA_NONE = 0,
+   BLIT_ALPHA_SET,
+} BlitAlphaOperation;
+
 /**
  * The color blend mothed.
  *

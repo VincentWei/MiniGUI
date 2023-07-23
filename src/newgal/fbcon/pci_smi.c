@@ -715,7 +715,7 @@ static void SMI_SubsequentScreenToScreenCopy (int x1, int y1, int x2,
     WRITE_DPR(pSmi, 0x0C, pSmi->AccelCmd);
 }
 
-static int SMI_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static int SMI_FillHWRect (_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     SMIPtr pSmi = &smi_rec;
     int x = rect->x;
@@ -825,12 +825,6 @@ static void SMI_WaitIdle (_THIS)
 #endif
 }
 
-/* Set video mem colorkey and accelerated blit function */
-static int SMI_SetHWColorKey (_THIS, GAL_Surface *surface, Uint32 key)
-{
-    return 0;
-}
-
 static int SMI_CheckHWBlit (_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
         GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op)
 {
@@ -908,7 +902,6 @@ static int SMI_Init (_THIS, const GAL_Surface* current)
     this->info.blit_hw = 1;
     this->info.blit_hw_A = 0;
     this->info.blit_hw_CC = 1;
-    this->SetHWColorKey = SMI_SetHWColorKey;
     return 0;
 }
 

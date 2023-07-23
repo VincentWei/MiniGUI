@@ -196,8 +196,6 @@ static GAL_VideoDevice *S3C6410_CreateDevice(int devindex)
     device->AllocHWSurface = S3C6410_AllocHWSurface;
     device->CheckHWBlit = S3C6410_CheckHWBlit;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = S3C6410_FreeHWSurface;
 
     device->free = S3C6410_DeleteDevice;

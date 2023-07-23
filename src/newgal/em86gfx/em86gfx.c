@@ -69,7 +69,7 @@ static int GFX_VideoInit(_THIS, GAL_PixelFormat * vformat);
 static GAL_Rect ** GFX_ListModes(_THIS, GAL_PixelFormat * format, Uint32 flags);
 static GAL_Surface * GFX_SetVideoMode(_THIS, GAL_Surface * current, int width, int height, int bpp, Uint32 flags);
 static void GFX_VideoQuit(_THIS);
-static int GFX_FillHWRect(_THIS, GAL_Surface * dst, GAL_Rect * rect, Uint32 color);
+static int GFX_FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color);
 static int GFX_AllocHWSurface(_THIS, GAL_Surface * surface);
 static void GFX_FreeHWSurface(_THIS, GAL_Surface * surface);
 static int GFX_HWAccelBlit(GAL_Surface * src, GAL_Rect * srcrect, GAL_Surface * dst, GAL_Rect * dstrect);
@@ -112,8 +112,6 @@ static GAL_VideoDevice * GFX_CreateDevice(int devindex)
     this->AllocHWSurface = GFX_AllocHWSurface;
     this->CheckHWBlit = GFX_CheckHWBlit;
     this->FillHWRect = GFX_FillHWRect;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
     this->UpdateRects = NULL;
     this->FreeHWSurface = GFX_FreeHWSurface;
 
@@ -298,7 +296,8 @@ static void GFX_VideoQuit (_THIS)
     return;
 }
 
-static int GFX_FillHWRect(_THIS, GAL_Surface * surface, GAL_Rect * rect, Uint32 color)
+static int
+GFX_FillHWRect(_THIS, GAL_Surface *surface, const GAL_Rect *rect, Uint32 color)
 {
     struct GFXEngine_FillRectangle_type fill_param;
     struct GFXEngine_Surface_type surface_param;

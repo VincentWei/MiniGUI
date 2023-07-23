@@ -242,8 +242,6 @@ static GAL_VideoDevice *HI3560A_CreateDevice(int devindex)
     device->AllocHWSurface = HI3560A_AllocHWSurface;
     device->CheckHWBlit = HI3560A_CheckHWBlit;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FillHWRect = HI3560A_FillHWRect;
     device->FreeHWSurface = HI3560A_FreeHWSurface;
 
@@ -994,7 +992,7 @@ static int HI3560A_AllocHWSurface(_THIS, GAL_Surface *surface)
     }
 }
 
-static int HI3560A_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static int HI3560A_FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     TDE_HANDLE tdeHandle;
     int ret = 0;

@@ -107,7 +107,7 @@ static int DFB_AllocHWSurface (_THIS, GAL_Surface *surface);
 static void DFB_FreeHWSurface (_THIS, GAL_Surface *surface);
 static int DFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dstrect);
 static int DFB_CheckHWBlit (_THIS, GAL_Surface * src, GAL_Surface * dst);
-static int DFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);
+static int DFB_FillHWRect (_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color);
 
 /* common dfb function address */
 GAL_FunctionTable mgGALFuncTable = {
@@ -173,8 +173,6 @@ static GAL_VideoDevice *DFB_CreateDevice (int devindex)
         device->AllocHWSurface = DFB_AllocHWSurface;
         device->CheckHWBlit = DFB_CheckHWBlit;
         device->FillHWRect = DFB_FillHWRect;
-        device->SetHWColorKey = NULL;
-        device->SetHWAlpha = NULL;
         device->FreeHWSurface = DFB_FreeHWSurface;
         device->free = DFB_DeleteDevice;
 
@@ -518,7 +516,8 @@ static void DFB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWSUR
     }
 }
 
-static int DFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static int
+DFB_FillHWRect (_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     if ((dst->hwdata == NULL && dst != GAL_VideoSurface)) {
         fprintf(stderr, "NEWGAL>DFB: src_hwdata or dst_hwdata NULL\n");

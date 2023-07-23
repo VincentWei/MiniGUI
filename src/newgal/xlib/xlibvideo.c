@@ -261,8 +261,6 @@ static GAL_VideoDevice *XXVFB_CreateDevice (int devindex)
 
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
 
     this->free = XXVFB_DeleteDevice;
 

@@ -157,8 +157,6 @@ static GAL_VideoDevice *BF533_CreateDevice(int devindex)
     device->AllocHWSurface = BF533_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = BF533_FreeHWSurface;
     device->UpdateRects = BF533_UpdateRects;
 

@@ -383,8 +383,6 @@ static GAL_VideoDevice *USVFB_CreateDevice (int devindex)
     device->AllocHWSurface = USVFB_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = USVFB_FreeHWSurface;
     device->UpdateRects = USVFB_UpdateRects;
 

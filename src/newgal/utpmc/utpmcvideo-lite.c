@@ -350,8 +350,6 @@ static GAL_VideoDevice *UTPMC_CreateDevice (int devindex)
     device->AllocHWSurface = UTPMC_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = UTPMC_FreeHWSurface;
     device->UpdateRects = UTPMC_UpdateRects;
 

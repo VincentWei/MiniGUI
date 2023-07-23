@@ -183,8 +183,6 @@ static GAL_VideoDevice *EM85XXOSD_CreateDevice(int devindex)
     device->AllocHWSurface = EM85XXOSD_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = EM85XXOSD_FreeHWSurface;
     device->UpdateRects = EM85XXOSD_UpdateRects;
 

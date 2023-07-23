@@ -350,8 +350,6 @@ static GAL_VideoDevice *PCXVFB_CreateDevice (int devindex)
 
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
 
     this->free = PCXVFB_DeleteDevice;
 

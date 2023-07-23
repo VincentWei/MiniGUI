@@ -675,7 +675,7 @@ static int HI3560_CheckHWBlit(_THIS, GAL_Surface *src, GAL_Surface *dst)
 
 }
 
-static Sint32 Hi3560_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static Sint32 Hi3560_FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     TDE_SURFACE_S surface ={0};
     TDE_OPT_S param;
@@ -1855,8 +1855,6 @@ static GAL_VideoDevice *HI3560_CreateDevice (int devindex)
 //#endif
 #endif
     this->FreeHWSurface = HI3560_FreeHWSurface;
-    this->SetHWAlpha = NULL;
-    this->SetHWColorKey = NULL;
     this->free = HI3560_DeleteDevice;
     //this->SetAttr   = HI3560_SetLayerAttr;
 

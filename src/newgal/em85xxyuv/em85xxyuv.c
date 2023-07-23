@@ -454,8 +454,6 @@ static GAL_VideoDevice *EM85XXYUV_CreateDevice(int devindex)
     device->AllocHWSurface = EM85XXYUV_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = EM85XXYUV_FreeHWSurface;
     device->UpdateRects = EM85XXYUV_UpdateRects;
 

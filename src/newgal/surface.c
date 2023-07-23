@@ -247,12 +247,14 @@ int GAL_SetColorKey (GAL_Surface *surface, Uint32 flag, Uint32 key)
 
         surface->flags |= GAL_SRCCOLORKEY;
         surface->format->colorkey = key;
+#if 0
         if ((surface->flags & GAL_HWACCEL) == GAL_HWACCEL) {
             if ((video->SetHWColorKey == NULL) ||
                  (video->SetHWColorKey(this, surface, key) < 0)) {
                 surface->flags &= ~GAL_HWACCEL;
             }
         }
+#endif
         if (flag & GAL_RLEACCELOK) {
             surface->flags |= GAL_RLEACCELOK;
         } else {
@@ -307,13 +309,15 @@ int GAL_SetAlpha (GAL_Surface *surface, Uint32 flag, Uint8 value)
             surface->flags |= GAL_SRCPIXELALPHA;
         }
 
-
+#if 0
         if ((surface->flags & GAL_HWACCEL) == GAL_HWACCEL) {
             if ((video->SetHWAlpha == NULL) ||
                  (video->SetHWAlpha(this, surface, value) < 0)) {
                 surface->flags &= ~GAL_HWACCEL;
             }
         }
+#endif
+
         if (flag & GAL_RLEACCELOK) {
                 surface->flags |= GAL_RLEACCELOK;
         } else {

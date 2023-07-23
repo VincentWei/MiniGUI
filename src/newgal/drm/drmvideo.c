@@ -117,16 +117,13 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface);
 static void DRM_FreeHWSurface_Accl(_THIS, GAL_Surface *surface);
 static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
         GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op);
-static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
+static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, const GAL_Rect *rect,
         Uint32 color);
 
 static void DRM_UpdateRects(_THIS, int numrects, GAL_Rect *rects);
 static BOOL DRM_WaitVBlank(_THIS);
 static BOOL DRM_SyncUpdate(_THIS);
 static BOOL DRM_SyncUpdateAsync(_THIS);
-
-static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
-static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
 
 #if IS_SHAREDFB_SCHEMA_PROCS
 /* DRM engine methods for clients under sharedfb schema and MiniGUI-Processes */
@@ -1408,8 +1405,6 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
     /* set accelerated methods in DRM_VideoInit */
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->Suspend = DRM_Suspend;
     device->Resume = DRM_Resume;
     device->free = DRM_DeleteDevice;
@@ -1666,8 +1661,10 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
 
         if (this->hidden->driver_ops->check_blit) {
             this->CheckHWBlit = DRM_CheckHWBlit_Accl;
+#if 0
             this->SetHWColorKey = DRM_SetHWColorKey_Accl;
             this->SetHWAlpha = DRM_SetHWAlpha_Accl;
+#endif
 
             this->info.blit_hw = 1;
             this->info.blit_hw_A = 1;
@@ -1675,8 +1672,6 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
         }
         else {
             this->CheckHWBlit = NULL;
-            this->SetHWColorKey = NULL;
-            this->SetHWAlpha = NULL;
         }
     }
 
@@ -3596,7 +3591,7 @@ static int DRM_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
     assert(blitor);
 
     DrmBlitOperations blit_ops = { };
-    blit_ops.cpy = BLIT_COPY_NORMAL;
+    blit_ops.cpy = BLIT_COPY_TRANSLATE;
 
     if ((src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
         blit_ops.key = BLIT_COLORKEY_NORMAL;
@@ -3630,7 +3625,7 @@ static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
     src->flags |= GAL_HWACCEL;
 
     DrmBlitOperations blit_ops = { };
-    blit_ops.cpy = BLIT_COPY_NORMAL;
+    blit_ops.cpy = BLIT_COPY_TRANSLATE;
 
     if ((src->flags & GAL_SRCCOLORKEY) == GAL_SRCCOLORKEY) {
         blit_ops.key = BLIT_COLORKEY_NORMAL;
@@ -3667,7 +3662,7 @@ static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
     return !!(src->flags & GAL_HWACCEL);
 }
 
-static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, GAL_Rect *rect,
+static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, const GAL_Rect *rect,
         Uint32 color)
 {
     DrmVideoData* vdata = this->hidden;
@@ -3920,7 +3915,9 @@ static BOOL DRM_SyncUpdateDMA (_THIS)
     SetRectEmpty(&this->hidden->dirty_rc);
     return TRUE;
 }
-#endif
+
+static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
+static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
 
 static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
 {
@@ -3931,6 +3928,7 @@ static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
 {
     return 0;
 }
+#endif
 
 MG_EXPORT int drmGetDeviceFD (GHANDLE video)
 {

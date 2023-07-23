@@ -165,28 +165,6 @@ typedef struct _DrmSurfaceBuffer {
     uint8_t* buff;
 } DrmSurfaceBuffer;
 
-typedef enum {
-   BLIT_COPY_NORMAL = 0,
-   BLIT_COPY_SCALE,
-   BLIT_COPY_ROT_90,
-   BLIT_COPY_ROT_180,
-   BLIT_COPY_ROT_270,
-   BLIT_COPY_FLIP_H,
-   BLIT_COPY_FLIP_V,
-   BLIT_COPY_FLIP_H_V
-} BlitCopyOperation;
-
-typedef enum {
-   BLIT_COLORKEY_NONE = 0,
-   BLIT_COLORKEY_NORMAL,
-   BLIT_COLORKEY_INVERTED,
-} BlitKeyOperation;
-
-typedef enum {
-   BLIT_ALPHA_NONE = 0,
-   BLIT_ALPHA_SET,
-} BlitAlphaOperation;
-
 typedef struct _DrmBlitOperations {
     BlitCopyOperation   cpy;
     BlitKeyOperation    key;
@@ -335,35 +313,15 @@ typedef struct _DrmDriverOps {
             const DrmBlitOperations *ops);
 
     /**
-     * This operation copies the whole bits from a source buffer to
-     * a destination buffer.
+     * This operation copies the pixels from the source buffer to
+     * the destination buffer, with or without scaling, rotation, and flip.
      *
      * \note If this operation is set as NULL, the driver does not support
      * hardware accelerated copy operation between buffers.
      */
     int (* copy_buff) (DrmDriver *driver,
-            DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf);
-
-    /**
-     * This operation rotates the bits from a source buffer to
-     * a destination buffer.
-     *
-     * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated rotation operation between buffers.
-     */
-    int (* rotate_buff) (DrmDriver *driver,
-            DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf,
-            BlitCopyOperation op);
-
-    /**
-     * This operation flips the bits from a source buffer to
-     * a destination buffer.
-     *
-     * \note If this operation is set as NULL, the driver does not support
-     * hardware accelerated flip operation between buffers.
-     */
-    int (* flip_buff) (DrmDriver *driver,
-            DrmSurfaceBuffer* src_buf, DrmSurfaceBuffer* dst_buf,
+            DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
+            DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
             BlitCopyOperation op);
 } DrmDriverOps;
 

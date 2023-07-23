@@ -251,8 +251,6 @@ static GAL_VideoDevice *MB93493_CreateDevice(int devindex)
     device->AllocHWSurface = MB93493_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = MB93493_FreeHWSurface;
     device->UpdateRects = MB93493_UpdateRects;
     device->free = MB93493_DeleteDevice;

@@ -171,8 +171,6 @@ static GAL_VideoDevice *QVFB_CreateDevice (int devindex)
 
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
 
     this->free = QVFB_DeleteDevice;
 

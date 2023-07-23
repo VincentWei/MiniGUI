@@ -111,7 +111,7 @@ typedef struct _GAL_FunctionTable {
     int (*AllocHWSurface)(_THIS, GAL_Surface *surface);
     int (*CheckHWBlit)(_THIS, GAL_Surface *src, GAL_Surface *dst);
     int (*HWAccelBlit)(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dstrect);
-    int (*FillHWRect)(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);
+    int (*FillHWRect)(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color);
     int (*SetHWColorKey)(_THIS, GAL_Surface *surface, Uint32 key);
     int (*SetHWAlpha)(_THIS, GAL_Surface *surface, Uint8 value);
     void (*FreeHWSurface)(_THIS, GAL_Surface *surface);

@@ -335,8 +335,6 @@ static GAL_VideoDevice *MLSHADOW_CreateDevice (int devindex)
         device->AllocHWSurface = MLSHADOW_AllocHWSurface;
         device->CheckHWBlit = NULL;
         device->FillHWRect = NULL;
-        device->SetHWColorKey = NULL;
-        device->SetHWAlpha = NULL;
         device->FreeHWSurface = MLSHADOW_FreeHWSurface;
         device->UpdateRects = MLSHADOW_UpdateRects;
         device->DeleteSurface = MLSHADOW_DeleteSurface;

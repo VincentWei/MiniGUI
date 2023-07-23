@@ -501,7 +501,7 @@ static int HI3510_CheckHWBlit(_THIS, GAL_Surface *src, GAL_Surface *dst)
 }
 
  /* Fills a surface rectangle with the given color */
-static int HI3510_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static int HI3510_FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     Uint8 r,g,b;
     Uint8* pvirtual_addr;
@@ -1863,8 +1863,6 @@ static GAL_VideoDevice *HI3510_CreateDevice (int devindex)
 #endif
     this->FreeHWSurface = HI3510_FreeHWSurface;
     this->free = HI3510_DeleteDevice;
-    this->SetHWAlpha = NULL;
-    this->SetHWColorKey = NULL;
 
     return this;
 }

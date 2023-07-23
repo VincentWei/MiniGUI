@@ -205,19 +205,26 @@ struct GAL_VideoDevice {
             GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op);
 
     /* Fills a surface rectangle with the given color */
-    int (*FillHWRect)(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);
+    int (*FillHWRect)(_THIS, GAL_Surface *dst, const GAL_Rect *dstrc,
+            Uint32 color);
 
-    /* Set video mem colorkey and accelerated blit function */
-    int (*SetHWColorKey)(_THIS, GAL_Surface *surface, Uint32 key);
-
-    /* Set per surface hardware alpha value */
-    int (*SetHWAlpha)(_THIS, GAL_Surface *surface, Uint8 value);
+    /* Copies pixles in the source surface to the destination surface
+       with or without scaling, rotation, or flip; nullable. */
+    int (*CopyHWSurface)(_THIS,
+            GAL_Surface *src, const GAL_Rect *srcrc,
+            GAL_Surface *dst, const GAL_Rect *dstrc, BlitCopyOperation op);
 
     /* Returns a readable/writable surface; nullable. */
     int (*LockHWSurface)(_THIS, GAL_Surface *surface);
     void (*UnlockHWSurface)(_THIS, GAL_Surface *surface);
 
 #if 0
+    /* Set video mem colorkey and accelerated blit function */
+    int (*SetHWColorKey)(_THIS, GAL_Surface *surface, Uint32 key);
+
+    /* Set per surface hardware alpha value */
+    int (*SetHWAlpha)(_THIS, GAL_Surface *surface, Uint8 value);
+
     /* Performs hardware flipping */
     int (*FlipHWSurface)(_THIS, GAL_Surface *surface);
 #endif

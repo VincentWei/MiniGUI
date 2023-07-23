@@ -208,8 +208,6 @@ static GAL_VideoDevice *RTOS_XVFB_CreateDevice (int devindex)
 
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
 
     this->free = RTOS_XVFB_DeleteDevice;
 

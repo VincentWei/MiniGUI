@@ -106,12 +106,10 @@ static void MStar_VideoQuit(_THIS);
 /* Hardware surface functions */
 static int MStar_InitHWSurfaces(_THIS, GAL_Surface *screen, char *base, int size);
 static int MStar_AllocHWSurface(_THIS, GAL_Surface *surface);
-static int MStar_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *dstrect, Uint32 color);
+static int MStar_FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *dstrect, Uint32 color);
 static void MStar_FreeHWSurface(_THIS, GAL_Surface *surface);
 static int MStar_CheckHWBlit(_THIS, GAL_Surface *src, GAL_Surface *dst);
 static int MStar_HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dstrect);
-static int MStar_SetHWColorKey(_THIS, GAL_Surface *surface, Uint32 key);
-static int MStar_SetHWAlpha(_THIS, GAL_Surface *surface, Uint8 alpha);
 
 /* Various screen update functions available */
 static void MStar_DirectUpdate(_THIS, int numrects, GAL_Rect *rects);
@@ -190,8 +188,10 @@ static GAL_VideoDevice * MStar_CreateDevice(int devindex)
     device->AllocHWSurface = MStar_AllocHWSurface;
     device->CheckHWBlit = MStar_CheckHWBlit;
     device->FillHWRect = MStar_FillHWRect;
+#if 0
     device->SetHWColorKey = MStar_SetHWColorKey;
     device->SetHWAlpha = MStar_SetHWAlpha;
+#endif
     device->FreeHWSurface = MStar_FreeHWSurface;
     device->UpdateRects = MStar_DirectUpdate;
     device->UpdateSurfaceRects = NULL;
@@ -725,7 +725,7 @@ void cleanEngineState(MSTARDeviceData *sdev)
     sdev->dst_ge_format = GFX_FMT_ARGB8888;
 }
 
-static int MStar_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static int MStar_FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     GFX_RectFillInfo rectInfo;
     GFX_Point v0, v1;
@@ -773,6 +773,7 @@ static int MStar_FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 colo
     return 0;
 }
 
+#if 0
 static int MStar_SetHWColorKey(_THIS, GAL_Surface *src, Uint32 key)
 {
     FUNC_ENTER();
@@ -790,6 +791,7 @@ static int MStar_SetHWAlpha(_THIS, GAL_Surface *surface, Uint8 alpha)
     FUNC_LEAVE();
     return 0;
 }
+#endif
 
 static void MStar_DirectUpdate(_THIS, int numrects, GAL_Rect *rects)
 {

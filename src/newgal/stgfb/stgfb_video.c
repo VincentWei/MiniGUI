@@ -123,7 +123,7 @@ static int STGFB_AllocHWSurface (_THIS, GAL_Surface *surface);
 static void STGFB_FreeHWSurface (_THIS, GAL_Surface *surface);
 static int STGFB_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect, GAL_Surface *dst, GAL_Rect *dstrect);
 static int STGFB_CheckHWBlit (_THIS, GAL_Surface * src, GAL_Surface * dst);
-static int STGFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color);
+static int STGFB_FillHWRect (_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color);
 
 /* STAPI functions */
 static int STAPI_Init (_THIS);
@@ -854,8 +854,6 @@ static GAL_VideoDevice *STGFB_CreateDevice (int devindex)
     this->FreeHWSurface = STGFB_FreeHWSurface;
     this->CheckHWBlit = STGFB_CheckHWBlit;
     this->FillHWRect = STGFB_FillHWRect;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
     this->free = STGFB_DeleteDevice;
 
     return this;
@@ -1211,7 +1209,7 @@ static void STGFB_RequestHWSurface (_THIS, const REQ_HWSURFACE* request, REP_HWS
 }
 
 
-static int STGFB_FillHWRect (_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static int STGFB_FillHWRect (_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     if (dst == NULL || rect == NULL) {
         fprintf(stderr, "STGFB_FillHWRect >> dst or dstrect NULL\n");

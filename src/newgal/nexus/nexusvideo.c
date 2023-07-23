@@ -83,9 +83,9 @@ static REP_NEXUS_GETSURFACE reply_primary_surface_info;
 /* Initialization/Query functions */
 static int NEXUS_VideoInit(_THIS, GAL_PixelFormat * vformat);
 static GAL_Rect **NEXUS_ListModes(_THIS, GAL_PixelFormat * format,
-                                  Uint32 flags);
-static GAL_Surface *NEXUS_SetVideoMode(_THIS, GAL_Surface * current, int width,
-                                       int height, int bpp, Uint32 flags);
+        Uint32 flags);
+static GAL_Surface *NEXUS_SetVideoMode(_THIS, GAL_Surface *current,
+        int width, int height, int bpp, Uint32 flags);
 static int NEXUS_SetColors(_THIS, int firstcolor, int ncolors,
                            GAL_Color * colors);
 static void NEXUS_VideoQuit(_THIS);
@@ -93,8 +93,8 @@ static void NEXUS_VideoQuit(_THIS);
 /* Hardware surface functions */
 static int NEXUS_AllocHWSurface(_THIS, GAL_Surface * surface);
 static void NEXUS_FreeHWSurface(_THIS, GAL_Surface * surface);
-static int NEXUS_FillHWRect(_THIS, GAL_Surface * dst, GAL_Rect * rect,
-                            Uint32 color);
+static int NEXUS_FillHWRect(_THIS, GAL_Surface * dst, const GAL_Rect * rect,
+        Uint32 color);
 static void NEXUS_UpdateSurfaceRects(_THIS, GAL_Surface* surface,
         int numrects, GAL_Rect *rects);
 static int NEXUS_CheckHWBlit(_THIS, GAL_Surface * src, GAL_Surface * dst);
@@ -112,11 +112,6 @@ NEXUS_DeleteDevice(GAL_VideoDevice * device)
 {
     free(device->hidden);
     free(device);
-}
-
-static int NEXUS_SetHWColorKey(_THIS, GAL_Surface *surface, Uint32 key)
-{
-    return 0;
 }
 
 static GAL_VideoDevice *
@@ -152,8 +147,6 @@ NEXUS_CreateDevice(int devindex)
     device->AllocHWSurface = NEXUS_AllocHWSurface;
     device->CheckHWBlit = NEXUS_CheckHWBlit;
     device->FillHWRect = NEXUS_FillHWRect;
-    device->SetHWColorKey = NEXUS_SetHWColorKey;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = NEXUS_FreeHWSurface;
     device->UpdateRects = NULL;
     device->UpdateSurfaceRects = NEXUS_UpdateSurfaceRects;
@@ -455,7 +448,7 @@ NEXUS_FreeHWSurface(_THIS, GAL_Surface * surface)
 }
 
 static int
-NEXUS_FillHWRect(_THIS, GAL_Surface * dst, GAL_Rect * rect, Uint32 color)
+NEXUS_FillHWRect(_THIS, GAL_Surface * dst, const GAL_Rect * rect, Uint32 color)
 {
     return NexusPrivate_FillRect(this->hidden->privateData,
                                  (NexusPrivate_HWSurface_hwdata *) dst->hwdata,

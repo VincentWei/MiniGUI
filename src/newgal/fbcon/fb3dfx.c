@@ -68,13 +68,7 @@ static void WaitIdle(_THIS)
     tdfx_waitidle();
 }
 
-/* Set video mem colorkey and accelerated blit function */
-static int SetHWColorKey(_THIS, GAL_Surface *surface, Uint32 key)
-{
-    return(0);
-}
-
-static int FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static int FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     int bpp;
     char *dst_base;
@@ -230,5 +224,4 @@ void FB_3DfxAccel(_THIS, __u32 card)
     /* The 3Dfx has accelerated normal and colorkey blits */
     this->info.blit_hw = 1;
     this->info.blit_hw_CC = 1;
-    this->SetHWColorKey = SetHWColorKey;
 }

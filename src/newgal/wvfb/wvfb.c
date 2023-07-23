@@ -148,8 +148,6 @@ static GAL_VideoDevice *WVFB_CreateDevice (int devindex)
 
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
 
     this->free = WVFB_DeleteDevice;
 

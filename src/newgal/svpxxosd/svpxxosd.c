@@ -137,8 +137,6 @@ static GAL_VideoDevice * SVPXXOSD_CreateDevice (int devindex)
     device->AllocHWSurface = SVPXXOSD_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = SVPXXOSD_FreeHWSurface;
     device->UpdateRects = NULL;
 

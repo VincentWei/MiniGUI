@@ -139,8 +139,6 @@ static GAL_VideoDevice *DUMMY_CreateDevice(int devindex)
     device->AllocHWSurface = DUMMY_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = DUMMY_FreeHWSurface;
 
     device->free = DUMMY_DeleteDevice;

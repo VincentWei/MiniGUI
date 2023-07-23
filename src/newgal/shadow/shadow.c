@@ -376,8 +376,6 @@ static GAL_VideoDevice *SHADOW_CreateDevice(int devindex)
     device->AllocHWSurface = SHADOW_AllocHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->FreeHWSurface = SHADOW_FreeHWSurface;
     device->UpdateRects = SHADOW_UpdateRects;
 #ifdef _MGRM_PROCESSES

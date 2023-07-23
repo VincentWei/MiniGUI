@@ -236,8 +236,6 @@ static GAL_VideoDevice *COMMLCD_CreateDevice (int devindex)
     device->FreeHWSurface = COMMLCD_FreeHWSurface;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->SetHWColorKey = NULL;
-    device->SetHWAlpha = NULL;
     device->UpdateRects = NULL;
     device->SyncUpdate = NULL;
 

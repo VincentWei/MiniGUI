@@ -74,21 +74,7 @@ static void WaitIdle(_THIS)
     mga_waitidle();
 }
 
-/* Set video mem colorkey and accelerated blit function */
-static int SetHWColorKey(_THIS, GAL_Surface *surface, Uint32 key)
-{
-    return(0);
-}
-
-/* Set per surface hardware alpha value */
-#if 0
-static int SetHWAlpha(_THIS, GAL_Surface *surface, Uint8 value)
-{
-    return(0);
-}
-#endif
-
-static int FillHWRect(_THIS, GAL_Surface *dst, GAL_Rect *rect, Uint32 color)
+static int FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 color)
 {
     int dstX, dstY;
     Uint32 fxbndry;
@@ -279,7 +265,6 @@ void FB_MatroxAccel(_THIS, __u32 card)
      */
     if ( card != FB_ACCEL_MATROX_MGA2064W ) {
         this->info.blit_hw_CC = 1;
-        this->SetHWColorKey = SetHWColorKey;
     }
 
 #if 0 /* Not yet implemented? */

@@ -294,8 +294,6 @@ static GAL_VideoDevice *FB_CreateDevice(int devindex)
     this->AllocHWSurface = FB_AllocHWSurface;
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
     this->UpdateRects = NULL;
 #if 0
     this->LockHWSurface = FB_LockHWSurface;

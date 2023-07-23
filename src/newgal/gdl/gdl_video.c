@@ -116,8 +116,6 @@ static GAL_VideoDevice *GDL_CreateDevice (int devindex)
 
     this->CheckHWBlit = NULL;
     this->FillHWRect = NULL;
-    this->SetHWColorKey = NULL;
-    this->SetHWAlpha = NULL;
 
     this->free = GDL_DeleteDevice;
 
