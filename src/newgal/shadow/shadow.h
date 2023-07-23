@@ -58,9 +58,6 @@ extern "C" {
 /* Hidden "this" pointer for the video functions */
 #define _THIS    GAL_VideoDevice *this
 
-#define MAX_NR_UPDATERS              6
-#define MIN_PIXELS_USING_UPDATER     4096
-
 typedef struct _ShadowFBHeader {
     unsigned int info_size;
     int width;
@@ -107,6 +104,8 @@ struct GAL_PrivateVideoData {
 #ifdef _MGRM_PROCESSES
     int semid;
 #endif
+
+    int             min_pixels_using_hwaccl;
 
     /* async updater */
     int             async_update;

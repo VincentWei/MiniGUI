@@ -104,7 +104,6 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        cap_vblank_high_crtc:1;
     uint32_t        dbl_buff:1;
     uint32_t        scanout_buff_id;
-    int             update_interval;
     int             crtc_idx;
 
     void*           exdrv_handle;
@@ -117,8 +116,11 @@ typedef struct GAL_PrivateVideoData {
     DrmModeInfo*    saved_info;
     drmModeCrtc*    saved_crtc;
 
+    int             min_pixels_using_hwaccl;
+
     /* async updater */
     int             updater_ready;
+    int             update_interval;
     RECT            update_rect;
     pthread_t       update_thd;
     sem_t           sync_sem;

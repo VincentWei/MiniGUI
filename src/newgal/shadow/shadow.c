@@ -661,15 +661,17 @@ update_helper(_THIS, GAL_VideoDevice *real_device, RECT *update_rect)
     dst_rc.h = RECTH(dirty_rect);
 
     BOOL hw_ok = FALSE;
-    if (real_device->CopyHWSurface) {
-        GAL_Rect src_rc = {
-            update_rect->left, update_rect->top,
-            RECTWP(update_rect), RECTHP(update_rect) };
+    if ((dst_rc.w * dst_rc.h) >= this->hidden->min_pixels_using_hwaccl) {
+        if (real_device->CopyHWSurface) {
+            GAL_Rect src_rc = {
+                update_rect->left, update_rect->top,
+                RECTWP(update_rect), RECTHP(update_rect) };
 
-        if (real_device->CopyHWSurface(real_device,
-                    this->screen, &src_rc,
-                    real_device->screen, &dst_rc, op) == 0) {
-            hw_ok = TRUE;
+            if (real_device->CopyHWSurface(real_device,
+                        this->screen, &src_rc,
+                        real_device->screen, &dst_rc, op) == 0) {
+                hw_ok = TRUE;
+            }
         }
     }
 
@@ -1056,6 +1058,14 @@ static int SHADOW_VideoInit (_THIS, GAL_PixelFormat *vformat)
                 this->hidden->update_interval > 50) {
             this->hidden->update_interval = 20;
         }
+    }
+
+    if (GetMgEtcIntValue("shadow", "min_pixels_using_hwaccl",
+                &this->hidden->min_pixels_using_hwaccl) < 0) {
+        this->hidden->min_pixels_using_hwaccl = 4096;
+    }
+    else if (this->hidden->min_pixels_using_hwaccl < 0) {
+        this->hidden->min_pixels_using_hwaccl = 4096;
     }
 
 #if 0   /* code for multiple updaters */

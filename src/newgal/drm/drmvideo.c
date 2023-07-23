@@ -1275,6 +1275,14 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             device->hidden->update_interval = 20;
         }
 
+        if (GetMgEtcIntValue("drm", "min_pixels_using_hwaccl",
+                    &device->hidden->min_pixels_using_hwaccl) < 0) {
+            device->hidden->min_pixels_using_hwaccl = 4096;
+        }
+        else if (device->hidden->min_pixels_using_hwaccl < 0) {
+            device->hidden->min_pixels_using_hwaccl = 4096;
+        }
+
         char tmp [8];
         if (GetMgEtcValue ("drm", "double_buffering", tmp, 8) < 0) {
             device->hidden->dbl_buff = 0;
@@ -2440,9 +2448,11 @@ static void update_real_screen_helper(_THIS)
             RECTW(this->hidden->update_rect),
             RECTH(this->hidden->update_rect) };
 
-        if (vdata->driver_ops->copy_buff(vdata->driver, shadow_buff, &rect,
-            real_buff, &rect, BLIT_COPY_TRANSLATE) == 0) {
-            hw_ok = TRUE;
+        if ((rect.w * rect.h) >= vdata->min_pixels_using_hwaccl) {
+            if (vdata->driver_ops->copy_buff(vdata->driver, shadow_buff, &rect,
+                real_buff, &rect, BLIT_COPY_TRANSLATE) == 0) {
+                hw_ok = TRUE;
+            }
         }
     }
 
