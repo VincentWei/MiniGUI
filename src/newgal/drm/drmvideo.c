@@ -119,6 +119,9 @@ static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
         GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op);
 static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, const GAL_Rect *rect,
         Uint32 color);
+static int DRM_CopyHWSurface_Accl(_THIS,
+        GAL_Surface *src, const GAL_Rect *srcrc,
+        GAL_Surface *dst, const GAL_Rect *dstrc, BlitCopyOperation op);
 
 static void DRM_UpdateRects(_THIS, int numrects, GAL_Rect *rects);
 static BOOL DRM_WaitVBlank(_THIS);
@@ -149,15 +152,6 @@ static int DRM_SetCursor_Plane(_THIS, GAL_Surface *surface, int hot_x, int hot_y
 static int DRM_MoveCursor_Plane(_THIS, int x, int y);
 static int DRM_SetCursor_SW(_THIS, GAL_Surface *surface, int hot_x, int hot_y);
 static int DRM_MoveCursor_SW(_THIS, int x, int y);
-
-#if 0   /* test code */
-/* for asynchronous update */
-#include <pthread.h>
-
-static void* task_do_update (void* data);
-static void DRM_UpdateRects_Async(_THIS, int numrects, GAL_Rect *rects);
-static BOOL DRM_SyncUpdate_Async(_THIS);
-#endif  /* test code */
 
 #endif  /* IS_COMPOSITING_SCHEMA */
 
@@ -1673,6 +1667,13 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
         else {
             this->CheckHWBlit = NULL;
         }
+
+        if (this->hidden->driver_ops->copy_buff) {
+            this->CopyHWSurface = DRM_CopyHWSurface_Accl;
+        }
+        else
+            this->CopyHWSurface = NULL;
+
     }
 
     /* We're done! */
@@ -2315,48 +2316,6 @@ static int drm_map_buffer_via_dmabuf(DrmVideoData* vdata,
     return 0;
 }
 
-#if 0
-static DrmSurfaceBuffer *drm_create_dumb_buffer_from_dma(DrmVideoData* vdata,
-        int idx)
-{
-    int ret;
-    DrmSurfaceBuffer *surface_buffer = NULL;
-    struct drm_mode_map_dumb mreq;
-
-    if ((surface_buffer = malloc(sizeof(DrmSurfaceBuffer))) == NULL) {
-        _ERR_PRINTF("NEWGAL>DRM: Failed to allocate memory\n");
-        goto error;
-    }
-
-    drm_handle_t offset;
-    drmSize size;
-    drmMapType type;
-    drmMapFlags flags;
-    drm_handle_t handle;
-    int mtrr;
-    ret = drmGetMap(vdata->dev_fd, idx, &offset, &size, &type, &flags,
-                         &handle, &mtrr);
-    if (ret) {
-        _ERR_PRINTF("NEWGAL>DRM: Failed drmGetMap\n");
-        goto error;
-    }
-
-    surface_buffer->handle = handle;
-    surface_buffer->prime_fd = -1;
-    surface_buffer->name = 0;
-    surface_buffer->fb_id = 0;
-    surface_buffer->size = size;
-    surface_buffer->buff = vdata->dma_bufs_map->list[idx].address;
-    return surface_buffer;
-
-error:
-    if (surface_buffer)
-        free(surface_buffer);
-
-    return NULL;
-}
-#endif
-
 static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer)
 {
@@ -2401,75 +2360,6 @@ static DrmModeInfo* find_mode(DrmVideoData* vdata, int width, int height)
     return NULL;
 }
 
-#if 0
-static int drm_allocate_dma_buffers(DrmVideoData* vdata, int size)
-{
-    int ret, count;
-
-    ret = drmCreateContext(vdata->dev_fd, &vdata->context);
-    if (ret) {
-        _WRN_PRINTF("NEWGAL>DRM: "
-                "failed drmCreateContext: %m\n");
-        drm_context_t *ctxt = drmGetReservedContextList(vdata->dev_fd, &count);
-        if (ctxt == NULL || count == 0) {
-            _ERR_PRINTF("NEWGAL>DRM: "
-                    "failed drmGetReservedContextList: %m\n");
-            vdata->context = 0;
-        }
-        else
-            vdata->context = ctxt[0];
-    }
-
-    drmDMAReq dma_req;
-    dma_req.context = vdata->context;
-    dma_req.send_count = 0;
-    dma_req.send_list = NULL;
-    dma_req.send_sizes = NULL;
-    dma_req.flags = DRM_DMA_WAIT | DRM_DMA_LARGER_OK;
-    dma_req.request_count = 1;
-    dma_req.request_size = size;
-    dma_req.request_list = &vdata->dma_bufs_idx;
-    dma_req.request_sizes = &vdata->dma_bufs_siz;
-    dma_req.granted_count = 0;
-    ret = drmDMA(vdata->dev_fd, &dma_req);
-    if (ret || dma_req.granted_count == 0) {
-        _ERR_PRINTF("NEWGAL>DRM: "
-                "failed drmDMA: %s\n", strerror(errno));
-        return ret;
-    }
-
-    vdata->dma_bufs_map = drmMapBufs(vdata->dev_fd);
-    if (vdata->dma_bufs_map == NULL) {
-        _ERR_PRINTF("NEWGAL>DRM: "
-                "failed drmMapBufs: %s\n", strerror(errno));
-        return -errno;
-    }
-
-    return 0;
-}
-#endif
-
-static void drm_dmabuf_start(DrmSurfaceBuffer *real_buff)
-{
-    struct dma_buf_sync sync;
-
-    if (real_buff->prime_fd < 0)
-        return;
-
-    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_START;
-    ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
-}
-
-static void drm_dmabuf_end(DrmSurfaceBuffer *real_buff)
-{
-    struct dma_buf_sync sync;
-    if (real_buff->prime_fd < 0)
-        return;
-
-    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END;
-    ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
-}
-
 #ifdef _DEBUG
 static double get_elapsed_seconds(const struct timespec *ts_from,
         const struct timespec *ts_to)
@@ -2503,15 +2393,6 @@ static void update_real_screen_memcpy(_THIS)
     int real_pitch = real_buff->pitch;
     size_t count = cpp * RECTWP(update_rect);
 
-#if 0 // def _DEBUG
-    _DBG_PRINTF("Copy pixels to real screen (pitch: %u, count: %u, %d x %d)\n",
-            (unsigned)real_buff->pitch, (unsigned)count,
-            RECTWP(update_rect), RECTHP(update_rect));
-
-    struct timespec ts_start;
-    clock_gettime(CLOCK_REALTIME, &ts_start);
-#endif
-
     if (shadow_buff) {
         src = shadow_buff->buff;
         src += shadow_buff->offset;
@@ -2527,13 +2408,47 @@ static void update_real_screen_memcpy(_THIS)
     dst += real_pitch * update_rect->top + cpp * update_rect->left;
     dst += real_buff->offset;
 
-    drm_dmabuf_start(real_buff);
     for (i = 0; i < RECTHP(update_rect); i++) {
         memcpy(dst, src, count);
         src += shadow_pitch;
         dst += real_pitch;
     }
-    drm_dmabuf_end(real_buff);
+}
+
+static void update_real_screen_helper(_THIS)
+{
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer *real_buff, *shadow_buff;
+
+    real_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
+    shadow_buff = (DrmSurfaceBuffer *)vdata->shadow_screen->hwdata;
+
+#if 0 // def _DEBUG
+    _DBG_PRINTF("Copy pixels to real screen (pitch: %u, count: %u, %d x %d)\n",
+            (unsigned)real_buff->pitch, (unsigned)count,
+            RECTWP(update_rect), RECTHP(update_rect));
+
+    struct timespec ts_start;
+    clock_gettime(CLOCK_REALTIME, &ts_start);
+#endif
+
+    BOOL hw_ok = FALSE;
+    if (real_buff && shadow_buff && vdata->driver_ops->copy_buff) {
+        GAL_Rect rect = {
+            this->hidden->update_rect.left,
+            this->hidden->update_rect.top,
+            RECTW(this->hidden->update_rect),
+            RECTH(this->hidden->update_rect) };
+
+        if (vdata->driver_ops->copy_buff(vdata->driver, shadow_buff, &rect,
+            real_buff, &rect, BLIT_COPY_TRANSLATE) == 0) {
+            hw_ok = TRUE;
+        }
+    }
+
+    if (!hw_ok) {
+        update_real_screen_memcpy(this);
+    }
 
 #if 0 // def _DEBUG
     double elapsed = get_elapsed_seconds(&ts_start, NULL);
@@ -2594,7 +2509,7 @@ static void* task_do_update(void *data)
 
         sem_wait(this->hidden->update_lock);
         if (RECTH(this->hidden->update_rect)) {
-            update_real_screen_memcpy(this);
+            update_real_screen_helper(this);
             /* TODO: update cursor under compositing schema */
             drmModeClip clip = {
                 this->hidden->update_rect.left,
@@ -3672,6 +3587,22 @@ static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, const GAL_Rect *rect,
     return vdata->driver_ops->fill_rect(vdata->driver, dst_buf, rect, color);
 }
 
+static int DRM_CopyHWSurface_Accl(_THIS,
+        GAL_Surface *src, const GAL_Rect *srcrc,
+        GAL_Surface *dst, const GAL_Rect *dstrc, BlitCopyOperation op)
+{
+    DrmVideoData* vdata = this->hidden;
+    DrmSurfaceBuffer *src_buf, *dst_buf;
+
+    src_buf = (DrmSurfaceBuffer*)src->hwdata;
+    dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
+    if (src_buf == NULL || dst_buf == NULL)
+        return -1;
+
+    return vdata->driver_ops->copy_buff(vdata->driver, src_buf, srcrc,
+            dst_buf, dstrc, op);
+}
+
 static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 {
     int i;
@@ -3771,23 +3702,7 @@ static BOOL DRM_SyncUpdate(_THIS)
     bound = *dirty_rc;
 
     if (this->hidden->shadow_screen) {
-#if 1
-        update_real_screen_memcpy(this);
-#else
-        GAL_Rect src_rect, dst_rect;
-        src_rect.x = bound.left;
-        src_rect.y = bound.top;
-        src_rect.w = RECTW (bound);
-        src_rect.h = RECTH (bound);
-        dst_rect = src_rect;
-
-        GAL_SetupBlitting (this->hidden->shadow_screen,
-                this->hidden->real_screen, 0);
-        GAL_BlitSurface (this->hidden->shadow_screen, &src_rect,
-                this->hidden->real_screen, &dst_rect);
-        GAL_CleanupBlitting (this->hidden->shadow_screen,
-                this->hidden->real_screen);
-#endif
+        update_real_screen_helper(this);
     }
 
 #ifdef _MGSCHEMA_COMPOSITING
@@ -3888,47 +3803,6 @@ ret:
 #endif
     return retval;
 }
-
-#if 0
-static BOOL DRM_SyncUpdateDMA (_THIS)
-{
-    drmDMAReq dma_req;
-    int ret;
-
-    dma_req.context = this->hidden->context;
-    dma_req.send_count = 1;
-    dma_req.send_list = &this->hidden->dma_bufs_idx;
-    dma_req.send_sizes = &this->hidden->dma_bufs_siz;
-    dma_req.flags = DRM_DMA_BLOCK | DRM_DMA_PRIORITY;
-    dma_req.request_count = 0;
-    dma_req.request_size = 0;
-    dma_req.request_list = NULL;
-    dma_req.request_sizes = NULL;
-    dma_req.granted_count = 0;
-
-    ret = drmDMA(this->hidden->dev_fd, &dma_req);
-    if (ret) {
-        _ERR_PRINTF("NEWGAL>DRM: "
-                "failed drmDMA: %s\n", strerror(errno));
-    }
-
-    SetRectEmpty(&this->hidden->dirty_rc);
-    return TRUE;
-}
-
-static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
-static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
-
-static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
-{
-    return 0;
-}
-
-static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
-{
-    return 0;
-}
-#endif
 
 MG_EXPORT int drmGetDeviceFD (GHANDLE video)
 {
@@ -4135,4 +4009,152 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
 }
 
 #endif /* _MGGAL_DRM */
+
+#if 0   /* deprecated code */
+static int drm_allocate_dma_buffers(DrmVideoData* vdata, int size)
+{
+    int ret, count;
+
+    ret = drmCreateContext(vdata->dev_fd, &vdata->context);
+    if (ret) {
+        _WRN_PRINTF("NEWGAL>DRM: "
+                "failed drmCreateContext: %m\n");
+        drm_context_t *ctxt = drmGetReservedContextList(vdata->dev_fd, &count);
+        if (ctxt == NULL || count == 0) {
+            _ERR_PRINTF("NEWGAL>DRM: "
+                    "failed drmGetReservedContextList: %m\n");
+            vdata->context = 0;
+        }
+        else
+            vdata->context = ctxt[0];
+    }
+
+    drmDMAReq dma_req;
+    dma_req.context = vdata->context;
+    dma_req.send_count = 0;
+    dma_req.send_list = NULL;
+    dma_req.send_sizes = NULL;
+    dma_req.flags = DRM_DMA_WAIT | DRM_DMA_LARGER_OK;
+    dma_req.request_count = 1;
+    dma_req.request_size = size;
+    dma_req.request_list = &vdata->dma_bufs_idx;
+    dma_req.request_sizes = &vdata->dma_bufs_siz;
+    dma_req.granted_count = 0;
+    ret = drmDMA(vdata->dev_fd, &dma_req);
+    if (ret || dma_req.granted_count == 0) {
+        _ERR_PRINTF("NEWGAL>DRM: "
+                "failed drmDMA: %s\n", strerror(errno));
+        return ret;
+    }
+
+    vdata->dma_bufs_map = drmMapBufs(vdata->dev_fd);
+    if (vdata->dma_bufs_map == NULL) {
+        _ERR_PRINTF("NEWGAL>DRM: "
+                "failed drmMapBufs: %s\n", strerror(errno));
+        return -errno;
+    }
+
+    return 0;
+}
+
+static void drm_dmabuf_start(DrmSurfaceBuffer *real_buff)
+{
+    struct dma_buf_sync sync;
+
+    if (real_buff->prime_fd < 0)
+        return;
+
+    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_START;
+    ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
+}
+
+static void drm_dmabuf_end(DrmSurfaceBuffer *real_buff)
+{
+    struct dma_buf_sync sync;
+    if (real_buff->prime_fd < 0)
+        return;
+
+    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END;
+    ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
+}
+
+static BOOL DRM_SyncUpdateDMA (_THIS)
+{
+    drmDMAReq dma_req;
+    int ret;
+
+    dma_req.context = this->hidden->context;
+    dma_req.send_count = 1;
+    dma_req.send_list = &this->hidden->dma_bufs_idx;
+    dma_req.send_sizes = &this->hidden->dma_bufs_siz;
+    dma_req.flags = DRM_DMA_BLOCK | DRM_DMA_PRIORITY;
+    dma_req.request_count = 0;
+    dma_req.request_size = 0;
+    dma_req.request_list = NULL;
+    dma_req.request_sizes = NULL;
+    dma_req.granted_count = 0;
+
+    ret = drmDMA(this->hidden->dev_fd, &dma_req);
+    if (ret) {
+        _ERR_PRINTF("NEWGAL>DRM: "
+                "failed drmDMA: %s\n", strerror(errno));
+    }
+
+    SetRectEmpty(&this->hidden->dirty_rc);
+    return TRUE;
+}
+
+static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key);
+static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value);
+
+static int DRM_SetHWColorKey_Accl(_THIS, GAL_Surface *surface, Uint32 key)
+{
+    return 0;
+}
+
+static int DRM_SetHWAlpha_Accl(_THIS, GAL_Surface *surface, Uint8 value)
+{
+    return 0;
+}
+static DrmSurfaceBuffer *drm_create_dumb_buffer_from_dma(DrmVideoData* vdata,
+        int idx)
+{
+    int ret;
+    DrmSurfaceBuffer *surface_buffer = NULL;
+    struct drm_mode_map_dumb mreq;
+
+    if ((surface_buffer = malloc(sizeof(DrmSurfaceBuffer))) == NULL) {
+        _ERR_PRINTF("NEWGAL>DRM: Failed to allocate memory\n");
+        goto error;
+    }
+
+    drm_handle_t offset;
+    drmSize size;
+    drmMapType type;
+    drmMapFlags flags;
+    drm_handle_t handle;
+    int mtrr;
+    ret = drmGetMap(vdata->dev_fd, idx, &offset, &size, &type, &flags,
+                         &handle, &mtrr);
+    if (ret) {
+        _ERR_PRINTF("NEWGAL>DRM: Failed drmGetMap\n");
+        goto error;
+    }
+
+    surface_buffer->handle = handle;
+    surface_buffer->prime_fd = -1;
+    surface_buffer->name = 0;
+    surface_buffer->fb_id = 0;
+    surface_buffer->size = size;
+    surface_buffer->buff = vdata->dma_bufs_map->list[idx].address;
+    return surface_buffer;
+
+error:
+    if (surface_buffer)
+        free(surface_buffer);
+
+    return NULL;
+}
+
+#endif
 

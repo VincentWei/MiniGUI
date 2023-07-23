@@ -626,6 +626,66 @@ static BOOL SHADOW_SyncUpdateAsync(_THIS)
     return TRUE;
 }
 
+static void
+update_helper(_THIS, GAL_VideoDevice *real_device, RECT *update_rect)
+{
+    BlitCopyOperation op = BLIT_COPY_TRANSLATE;
+    RECT dirty_rect;
+
+    if (this->hidden->realfb_info->flags & _ROT_DIR_CW) {
+        op = BLIT_COPY_ROT_90;
+        _get_dst_rect_cw(&dirty_rect, update_rect, this->hidden->realfb_info);
+    }
+    else if (this->hidden->realfb_info->flags & _ROT_DIR_CCW) {
+        op = BLIT_COPY_ROT_270;
+        _get_dst_rect_ccw(&dirty_rect, update_rect, this->hidden->realfb_info);
+    }
+    else if (this->hidden->realfb_info->flags & _ROT_DIR_HFLIP) {
+        op = BLIT_COPY_FLIP_H;
+        dirty_rect = *update_rect;
+        _get_dst_rect_hflip (&dirty_rect, this->hidden->realfb_info);
+    }
+    else if (this->hidden->realfb_info->flags & _ROT_DIR_VFLIP) {
+        op = BLIT_COPY_FLIP_V;
+        dirty_rect = *update_rect;
+        _get_dst_rect_vflip (&dirty_rect, this->hidden->realfb_info);
+    }
+    else {
+        dirty_rect = *update_rect;
+    }
+
+    GAL_Rect dst_rc;
+    dst_rc.x = dirty_rect.left;
+    dst_rc.y = dirty_rect.top;
+    dst_rc.w = RECTW(dirty_rect);
+    dst_rc.h = RECTH(dirty_rect);
+
+    BOOL hw_ok = FALSE;
+    if (real_device->CopyHWSurface) {
+        GAL_Rect src_rc = {
+            update_rect->left, update_rect->top,
+            RECTWP(update_rect), RECTHP(update_rect) };
+
+        if (real_device->CopyHWSurface(real_device,
+                    this->screen, &src_rc,
+                    real_device->screen, &dst_rc, op) == 0) {
+            hw_ok = TRUE;
+        }
+    }
+
+    if (!hw_ok) {
+        shadow_fb_ops.refresh(_shadowfbheader,
+                this->hidden->realfb_info, update_rect);
+    }
+
+    if (real_device->UpdateRects)
+        real_device->UpdateRects(real_device, 1, &dst_rc);
+    if (real_device->SyncUpdate)
+        real_device->SyncUpdate(real_device);
+
+    SetRectEmpty(update_rect);
+}
+
 static void *task_do_update(void *data)
 {
     _THIS = data;
@@ -669,44 +729,9 @@ static void *task_do_update(void *data)
 #endif
 
         if (RECTH(this->hidden->update_rect)) {
-
-            shadow_fb_ops.refresh(_shadowfbheader,
-                    this->hidden->realfb_info, &this->hidden->update_rect);
-
-            RECT dirty_rect;
-            if (this->hidden->realfb_info->flags & _ROT_DIR_CW) {
-                _get_dst_rect_cw(&dirty_rect, &(this->hidden->update_rect),
-                        this->hidden->realfb_info);
-            }
-            else if (this->hidden->realfb_info->flags & _ROT_DIR_CCW) {
-                _get_dst_rect_ccw(&dirty_rect, &(this->hidden->update_rect),
-                        this->hidden->realfb_info);
-            }
-            else if (this->hidden->realfb_info->flags & _ROT_DIR_HFLIP) {
-                dirty_rect = this->hidden->update_rect;
-                _get_dst_rect_hflip (&dirty_rect, this->hidden->realfb_info);
-            }
-            else if (this->hidden->realfb_info->flags & _ROT_DIR_VFLIP) {
-                dirty_rect = this->hidden->update_rect;
-                _get_dst_rect_vflip (&dirty_rect, this->hidden->realfb_info);
-            }
-            else {
-                dirty_rect = this->hidden->update_rect;
-            }
-
-            GAL_Rect update_rect;
-            update_rect.x = dirty_rect.left;
-            update_rect.y = dirty_rect.top;
-            update_rect.w = RECTW(dirty_rect);
-            update_rect.h = RECTH(dirty_rect);
-
-            if (real_device->UpdateRects)
-                real_device->UpdateRects(real_device, 1, &update_rect);
-            if (real_device->SyncUpdate)
-                real_device->SyncUpdate(real_device);
-
-            SetRectEmpty(&this->hidden->update_rect);
+            update_helper(this, real_device, &this->hidden->update_rect);
         }
+
 #if USE_UPDATE_SEM
         if (sem_post(&this->hidden->update_sem))
             _ERR_PRINTF("Failed sem_post(): %m\n");
@@ -1062,56 +1087,23 @@ static BOOL SHADOW_SyncUpdate (_THIS)
     RECT dirty_rect;
     GAL_Rect update_rect;
 
-    SetRect(&dirty_rect, 0, 0, _shadowfbheader->width, _shadowfbheader->height);
-
     if (_shadowfbheader->dirty || _shadowfbheader->palette_changed) {
         GAL_VideoDevice *real_device;
         real_device = this->hidden->realfb_info->real_device;
 
-        if (real_device) {
-            if (_shadowfbheader->palette_changed) {
-                real_device->SetColors (real_device, _shadowfbheader->firstcolor,
-                        _shadowfbheader->ncolors,
-                        (GAL_Color*)((char*)_shadowfbheader + _shadowfbheader->palette_offset));
-                SetRect (&_shadowfbheader->dirty_rect, 0, 0,
-                        _shadowfbheader->width, _shadowfbheader->height);
-            }
-
-            shadow_fb_ops.refresh (_shadowfbheader,
-                    this->hidden->realfb_info, &(_shadowfbheader->dirty_rect));
-
-            if (this->hidden->realfb_info->flags & _ROT_DIR_CW) {
-                _get_dst_rect_cw (&dirty_rect, &(_shadowfbheader->dirty_rect),
-                        this->hidden->realfb_info);
-            }
-            else if (this->hidden->realfb_info->flags & _ROT_DIR_CCW) {
-                _get_dst_rect_ccw (&dirty_rect, &(_shadowfbheader->dirty_rect),
-                        this->hidden->realfb_info);
-            }
-            else if (this->hidden->realfb_info->flags & _ROT_DIR_HFLIP) {
-                dirty_rect = _shadowfbheader->dirty_rect;
-                _get_dst_rect_hflip (&dirty_rect, this->hidden->realfb_info);
-            }
-            else if (this->hidden->realfb_info->flags & _ROT_DIR_VFLIP) {
-                dirty_rect = _shadowfbheader->dirty_rect;
-                _get_dst_rect_vflip (&dirty_rect, this->hidden->realfb_info);
-            }
-            else {
-                dirty_rect = _shadowfbheader->dirty_rect;
-            }
-
-            update_rect.x = dirty_rect.left;
-            update_rect.y = dirty_rect.top;
-            update_rect.w = dirty_rect.right - dirty_rect.left;
-            update_rect.h = dirty_rect.bottom - dirty_rect.top;
-
-            if (real_device->UpdateRects)
-                real_device->UpdateRects(real_device, 1, &update_rect);
-            if (real_device->SyncUpdate)
-                real_device->SyncUpdate(real_device);
+        if (_shadowfbheader->palette_changed) {
+            real_device->SetColors (real_device, _shadowfbheader->firstcolor,
+                    _shadowfbheader->ncolors,
+                    (GAL_Color *)((char *)_shadowfbheader +
+                        _shadowfbheader->palette_offset));
+            SetRect (&_shadowfbheader->dirty_rect, 0, 0,
+                    _shadowfbheader->width, _shadowfbheader->height);
         }
 
-        SetRect (&_shadowfbheader->dirty_rect, 0, 0, 0, 0);
+        if (RECTH(_shadowfbheader->dirty_rect)) {
+            update_helper(this, real_device, &(_shadowfbheader->dirty_rect));
+        }
+
         _shadowfbheader->dirty = FALSE;
         _shadowfbheader->palette_changed = FALSE;
     }
