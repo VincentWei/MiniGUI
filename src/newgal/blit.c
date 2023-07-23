@@ -57,9 +57,12 @@
 #include "memops.h"
 
 /* The general purpose software blit routine */
-static int GAL_SoftBlit(GAL_Surface *src, GAL_Rect *srcrect,
-            GAL_Surface *dst, GAL_Rect *dstrect)
+static int GAL_SoftBlit(GAL_VideoDevice *video,
+        GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect)
 {
+    (void)video;
+
     int okay;
 
     /* Everything is okay at the beginning...  */
@@ -166,7 +169,8 @@ static void GAL_BlitCopyOverlap(GAL_BlitInfo *info)
 #ifdef _MGUSE_PIXMAN
 #include <pixman.h>
 
-static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
+static int GAL_PixmanBlit(GAL_VideoDevice *video,
+        struct GAL_Surface *src, GAL_Rect *srcrect,
         struct GAL_Surface *dst, GAL_Rect *dstrect);
 #endif
 
@@ -383,9 +387,12 @@ int GAL_CleanupBlitting (GAL_Surface *src, GAL_Surface *dst)
     return 0;
 }
 
-static int GAL_PixmanBlit (struct GAL_Surface *src, GAL_Rect *srcrect,
+static int GAL_PixmanBlit (GAL_VideoDevice *video,
+        struct GAL_Surface *src, GAL_Rect *srcrect,
         struct GAL_Surface *dst, GAL_Rect *dstrect)
 {
+    (void)video;
+
     pixman_image_t *src_img = src->pix_img, *dst_img = dst->pix_img;
     pixman_image_t *msk_img;
     pixman_op_t op;

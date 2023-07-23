@@ -189,9 +189,11 @@ static void make_rects (GAL_Rect *src, GAL_Rect* dst, const RECT* rc, Uint32 x, 
     dst->h = src->h;
 }
 
-static int HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect,
+static int HWAccelBlit (_THIS, GAL_Surface *src, GAL_Rect *srcrect,
                        GAL_Surface *dst, GAL_Rect *dstrect)
 {
+    (void)this;
+
     RECT rc_src = {srcrect->x, srcrect->y, srcrect->x + srcrect->w, srcrect->y + srcrect->h};
     RECT rc_dst = {dstrect->x, dstrect->y, dstrect->x + dstrect->w, dstrect->y + dstrect->h};
     RECT rc_inter, rc_sub [4];
@@ -270,8 +272,14 @@ static int CheckHWBlit(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
     /* Check to see if final surface blit is accelerated */
     accelerated = !!(src->flags & GAL_HWACCEL);
     if ( accelerated ) {
+        src->map->video = this;
         src->map->hw_blit = HWAccelBlit;
     }
+    else {
+        src->map->video = NULL;
+        src->map->hw_blit = NULL;
+    }
+
     return(accelerated);
 }
 

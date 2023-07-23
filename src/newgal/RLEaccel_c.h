@@ -47,9 +47,11 @@
 /* Useful functions and variables from RLEaccel.c */
 
 extern int GAL_RLESurface(GAL_Surface *surface);
-extern int GAL_RLEBlit(GAL_Surface *src, GAL_Rect *srcrect,
-                       GAL_Surface *dst, GAL_Rect *dstrect);
-extern int GAL_RLEAlphaBlit(GAL_Surface *src, GAL_Rect *srcrect,
-                GAL_Surface *dst, GAL_Rect *dstrect);
+extern int GAL_RLEBlit(GAL_VideoDevice *video,
+        GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect);
+extern int GAL_RLEAlphaBlit(GAL_VideoDevice *video,
+        GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect);
 extern void GAL_UnRLESurface(GAL_Surface *surface, int recode);
 

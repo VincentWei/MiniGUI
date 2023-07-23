@@ -271,8 +271,37 @@ static BOOL SHADOW_SyncUpdate (_THIS);
 static BOOL SHADOW_SyncUpdateAsync (_THIS);
 
 /* Hardware surface functions */
-static int SHADOW_AllocHWSurface (_THIS, GAL_Surface *surface);
-static void SHADOW_FreeHWSurface (_THIS, GAL_Surface *surface);
+static int SHADOW_AllocHWSurface (_THIS, GAL_Surface *surface)
+{
+    GAL_VideoDevice *real_device;
+    real_device = this->hidden->realfb_info->real_device;
+    return real_device->AllocHWSurface(real_device, surface);
+}
+
+static void SHADOW_FreeHWSurface (_THIS, GAL_Surface *surface)
+{
+    GAL_VideoDevice *real_device;
+    if (this->hidden->realfb_info) {
+        real_device = this->hidden->realfb_info->real_device;
+        real_device->FreeHWSurface(real_device, surface);
+    }
+}
+
+static int SHADOW_CheckHWBlit(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
+            GAL_Surface *dst, const GAL_Rect *dstrc, DWORD op)
+{
+    GAL_VideoDevice *real_device;
+    real_device = this->hidden->realfb_info->real_device;
+    return real_device->CheckHWBlit(real_device, src, srcrc, dst, dstrc, op);
+}
+
+static int SHADOW_FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *dstrc,
+            Uint32 color)
+{
+    GAL_VideoDevice *real_device;
+    real_device = this->hidden->realfb_info->real_device;
+    return real_device->FillHWRect(real_device, dst, dstrc, color);
+}
 
 #ifdef _MGRM_PROCESSES
 static int shmid;
@@ -373,10 +402,10 @@ static GAL_VideoDevice *SHADOW_CreateDevice(int devindex)
     device->SetVideoMode = SHADOW_SetVideoMode;
     device->SetColors = SHADOW_SetColors;
     device->VideoQuit = SHADOW_VideoQuit;
-    device->AllocHWSurface = SHADOW_AllocHWSurface;
+    device->AllocHWSurface = NULL;
     device->CheckHWBlit = NULL;
     device->FillHWRect = NULL;
-    device->FreeHWSurface = SHADOW_FreeHWSurface;
+    device->FreeHWSurface = NULL;
     device->UpdateRects = SHADOW_UpdateRects;
 #ifdef _MGRM_PROCESSES
     if (mgIsServer)
@@ -732,6 +761,9 @@ static void *task_do_update(void *data)
 
         if (RECTH(this->hidden->update_rect)) {
             update_helper(this, real_device, &this->hidden->update_rect);
+        }
+        else {
+            _DBG_PRINTF("Empty update rectangle\n");
         }
 
 #if USE_UPDATE_SEM
@@ -1273,6 +1305,19 @@ static GAL_Surface *SHADOW_SetVideoMode(_THIS, GAL_Surface *current,
         }
     }
 
+    if (real_device->AllocHWSurface) {
+        this->AllocHWSurface = SHADOW_AllocHWSurface;
+    }
+    if (real_device->CheckHWBlit) {
+        this->CheckHWBlit = SHADOW_CheckHWBlit;
+    }
+    if (real_device->FillHWRect) {
+        this->FillHWRect = SHADOW_FillHWRect;
+    }
+    if (real_device->FreeHWSurface) {
+        this->FreeHWSurface = SHADOW_FreeHWSurface;
+    }
+
     /* We're done */
     return (current);
 }
@@ -1457,6 +1502,7 @@ static void SHADOW_VideoQuit (_THIS)
         _shadowfbheader = NULL;
         shmdt (tmp);
         shadow_fb_ops.release(this->hidden->realfb_info);
+        this->hidden->realfb_info = NULL;
 
         if (shmctl (shmid, IPC_RMID, NULL))
             perror ("NEWGAL>SHADOW: shmctl");
@@ -1472,17 +1518,6 @@ static GAL_Rect **SHADOW_ListModes (_THIS, GAL_PixelFormat *format,
         Uint32 flags)
 {
     return (GAL_Rect **) -1;
-}
-
-/* We don't actually allow hardware surfaces other than the main one */
-static int SHADOW_AllocHWSurface (_THIS, GAL_Surface *surface)
-{
-    return -1;
-}
-
-static void SHADOW_FreeHWSurface (_THIS, GAL_Surface *surface)
-{
-    surface->pixels = NULL;
 }
 
 static int SHADOW_SetColors (_THIS, int firstcolor, int ncolors,

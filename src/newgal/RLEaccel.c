@@ -462,99 +462,100 @@ static void RLEClipBlit(int w, Uint8 *srcbuf, GAL_Surface *dst,
 
 }
 
-
 /* blit a colorkeyed RLE surface */
-int GAL_RLEBlit(GAL_Surface *src, GAL_Rect *srcrect,
+int GAL_RLEBlit(GAL_VideoDevice *video, GAL_Surface *src, GAL_Rect *srcrect,
                 GAL_Surface *dst, GAL_Rect *dstrect)
 {
-        Uint8 *dstbuf;
-        Uint8 *srcbuf;
-        int x, y;
-        int w = src->w;
-        unsigned alpha;
+    (void)video;
 
-        /* Set up the source and destination pointers */
-        x = dstrect->x;
-        y = dstrect->y;
-        dstbuf = (Uint8 *)dst->pixels
-                 + y * dst->pitch + x * src->format->BytesPerPixel;
-        srcbuf = (Uint8 *)src->map->sw_data->aux_data;
+    Uint8 *dstbuf;
+    Uint8 *srcbuf;
+    int x, y;
+    int w = src->w;
+    unsigned alpha;
 
-        {
-            /* skip lines at the top if neccessary */
-            int vskip = srcrect->y;
-            int ofs = 0;
-            if(vskip) {
+    /* Set up the source and destination pointers */
+    x = dstrect->x;
+    y = dstrect->y;
+    dstbuf = (Uint8 *)dst->pixels
+             + y * dst->pitch + x * src->format->BytesPerPixel;
+    srcbuf = (Uint8 *)src->map->sw_data->aux_data;
+
+    {
+        /* skip lines at the top if neccessary */
+        int vskip = srcrect->y;
+        int ofs = 0;
+        if(vskip) {
 
 #define RLESKIP(bpp, Type)                        \
-                for(;;) {                        \
-                    int run;                        \
-                    ofs += *(Type *)srcbuf;        \
-                    run = ((Type *)srcbuf)[1];        \
-                    srcbuf += sizeof(Type) * 2;        \
-                    if(run) {                        \
-                        srcbuf += run * bpp;        \
-                        ofs += run;                \
-                    } else if(!ofs)                \
-                        goto done;                \
-                    if(ofs == w) {                \
-                        ofs = 0;                \
-                        if(!--vskip)                \
-                            break;                \
-                    }                                \
-                }
+            for(;;) {                        \
+                int run;                        \
+                ofs += *(Type *)srcbuf;        \
+                run = ((Type *)srcbuf)[1];        \
+                srcbuf += sizeof(Type) * 2;        \
+                if(run) {                        \
+                    srcbuf += run * bpp;        \
+                    ofs += run;                \
+                } else if(!ofs)                \
+                    goto done;                \
+                if(ofs == w) {                \
+                    ofs = 0;                \
+                    if(!--vskip)                \
+                        break;                \
+                }                                \
+            }
 
-                switch(src->format->BytesPerPixel) {
-                case 1: RLESKIP(1, Uint8); break;
-                case 2: RLESKIP(2, Uint8); break;
-                case 3: RLESKIP(3, Uint8); break;
-                case 4: RLESKIP(4, Uint16); break;
-                }
+            switch(src->format->BytesPerPixel) {
+            case 1: RLESKIP(1, Uint8); break;
+            case 2: RLESKIP(2, Uint8); break;
+            case 3: RLESKIP(3, Uint8); break;
+            case 4: RLESKIP(4, Uint16); break;
+            }
 
 #undef RLESKIP
 
-            }
         }
+    }
 
-        alpha = (src->flags & GAL_SRCALPHA) == GAL_SRCALPHA
-                ? src->format->alpha : 255;
-        /* if left or right edge clipping needed, call clip blit */
-        if ( srcrect->x || srcrect->w != src->w ) {
-            RLEClipBlit(w, srcbuf, dst, dstbuf, srcrect, alpha);
-        } else {
-            GAL_PixelFormat *fmt = src->format;
+    alpha = (src->flags & GAL_SRCALPHA) == GAL_SRCALPHA
+            ? src->format->alpha : 255;
+    /* if left or right edge clipping needed, call clip blit */
+    if ( srcrect->x || srcrect->w != src->w ) {
+        RLEClipBlit(w, srcbuf, dst, dstbuf, srcrect, alpha);
+    } else {
+        GAL_PixelFormat *fmt = src->format;
 
 #define RLEBLIT(bpp, Type, do_blit)                                              \
-            do {                                                              \
-                int linecount = srcrect->h;                                      \
-                int ofs = 0;                                                      \
-                for(;;) {                                                      \
-                    unsigned run;                                              \
-                    ofs += *(Type *)srcbuf;                                      \
-                    run = ((Type *)srcbuf)[1];                                      \
-                    srcbuf += 2 * sizeof(Type);                                      \
-                    if(run) {                                                      \
-                        do_blit(dstbuf + ofs * bpp, srcbuf, run, bpp, alpha); \
-                        srcbuf += run * bpp;                                      \
-                        ofs += run;                                              \
-                    } else if(!ofs)                                              \
-                        break;                                                      \
-                    if(ofs == w) {                                              \
-                        ofs = 0;                                              \
-                        dstbuf += dst->pitch;                                      \
-                        if(!--linecount)                                      \
-                            break;                                              \
-                    }                                                              \
+        do {                                                              \
+            int linecount = srcrect->h;                                      \
+            int ofs = 0;                                                      \
+            for(;;) {                                                      \
+                unsigned run;                                              \
+                ofs += *(Type *)srcbuf;                                      \
+                run = ((Type *)srcbuf)[1];                                      \
+                srcbuf += 2 * sizeof(Type);                                      \
+                if(run) {                                                      \
+                    do_blit(dstbuf + ofs * bpp, srcbuf, run, bpp, alpha); \
+                    srcbuf += run * bpp;                                      \
+                    ofs += run;                                              \
+                } else if(!ofs)                                              \
+                    break;                                                      \
+                if(ofs == w) {                                              \
+                    ofs = 0;                                              \
+                    dstbuf += dst->pitch;                                      \
+                    if(!--linecount)                                      \
+                        break;                                              \
                 }                                                              \
-            } while(0)
+            }                                                              \
+        } while(0)
 
-            CHOOSE_BLIT(RLEBLIT, alpha, fmt);
+        CHOOSE_BLIT(RLEBLIT, alpha, fmt);
 
 #undef RLEBLIT
-        }
+    }
 
 done:
-        return(0);
+    return(0);
 }
 
 #undef OPAQUE_BLIT
@@ -720,9 +721,12 @@ static void RLEAlphaClipBlit(int w, Uint8 *srcbuf, GAL_Surface *dst,
 }
 
 /* blit a pixel-alpha RLE surface */
-int GAL_RLEAlphaBlit(GAL_Surface *src, GAL_Rect *srcrect,
-                     GAL_Surface *dst, GAL_Rect *dstrect)
+int GAL_RLEAlphaBlit(GAL_VideoDevice *video,
+        GAL_Surface *src, GAL_Rect *srcrect,
+        GAL_Surface *dst, GAL_Rect *dstrect)
 {
+    (void)video;
+
     int x, y;
     int w = src->w;
     Uint8 *srcbuf, *dstbuf;
@@ -1502,7 +1506,7 @@ void GAL_UnRLESurface(GAL_Surface *surface, int recode)
                 full.h = surface->h;
                 alpha_flag = surface->flags & GAL_SRCALPHA;
                 surface->flags &= ~GAL_SRCALPHA; /* opaque blit */
-                GAL_RLEBlit(surface, &full, surface, &full);
+                GAL_RLEBlit(NULL, surface, &full, surface, &full);
                 surface->flags |= alpha_flag;
             } else
                 UnRLEAlpha(surface);

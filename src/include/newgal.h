@@ -117,8 +117,10 @@ void GAL_FreeFormat(GAL_PixelFormat *format);
 
 /* typedef for private surface blitting functions */
 struct GAL_Surface;
-typedef int (*GAL_blit)(struct GAL_Surface *src, GAL_Rect *srcrect,
-                        struct GAL_Surface *dst, GAL_Rect *dstrect);
+
+typedef int (*GAL_blit)(GAL_VideoDevice *video,
+        struct GAL_Surface *src, GAL_Rect *srcrect,
+        struct GAL_Surface *dst, GAL_Rect *dstrect);
 
 #if IS_COMPOSITING_SCHEMA
 typedef struct _DirtyInfo {

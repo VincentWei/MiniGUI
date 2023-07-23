@@ -548,7 +548,7 @@ int GAL_LowerBlit (GAL_Surface *src, GAL_Rect *srcrect,
     _DBG_PRINTF("calling do_blit: from (%d, %d, %d, %d) to (%d, %d)\n",
                 srcrect->x, srcrect->y, srcrect->w, srcrect->h,
                 dstrect->x, dstrect->y);
-    ret = do_blit(src, srcrect, dst, dstrect);
+    ret = do_blit(src->map->video, src, srcrect, dst, dstrect);
 #endif
 
     return ret;

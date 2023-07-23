@@ -80,10 +80,15 @@ typedef struct GAL_BlitMap {
     Uint8 *table;
     GAL_blit hw_blit;
     GAL_blit sw_blit;
+    GAL_VideoDevice *video;
+
+    /* data for hardware blittor */
     union {
         struct private_hwaccel *hw_data;
         void                   *hw_void;
     };
+
+    /* data for software blittor */
     struct private_swaccel *sw_data;
 
     int identity;

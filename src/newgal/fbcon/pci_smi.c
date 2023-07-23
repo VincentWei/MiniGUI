@@ -770,9 +770,11 @@ static void SMI_BlitTransRect (int srcx, int srcy, int w, int h, int dstx,
 #endif
 }
 
-static int SMI_HWAccelBlit (GAL_Surface *src, GAL_Rect *srcrect,
+static int SMI_HWAccelBlit (_THIS, GAL_Surface *src, GAL_Rect *srcrect,
                        GAL_Surface *dst, GAL_Rect *dstrect)
 {
+    (void)this;
+
     SMIPtr pSmi = &smi_rec;
     int srcx = srcrect->x;
     int srcy = srcrect->y;
@@ -858,7 +860,12 @@ static int SMI_CheckHWBlit (_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
     /* Check to see if final surface blit is accelerated */
     accelerated = !!(src->flags & GAL_HWACCEL);
     if (accelerated) {
+        src->map->video = this;
         src->map->hw_blit = SMI_HWAccelBlit;
+    }
+    else {
+        src->map->video = NULL;
+        src->map->hw_blit = NULL;
     }
 
     return (accelerated);

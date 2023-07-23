@@ -100,10 +100,9 @@ static int FillHWRect(_THIS, GAL_Surface *dst, const GAL_Rect *rect, Uint32 colo
     return(0);
 }
 
-static int HWAccelBlit(GAL_Surface *src, GAL_Rect *srcrect,
+static int HWAccelBlit(_THIS, GAL_Surface *src, GAL_Rect *srcrect,
                        GAL_Surface *dst, GAL_Rect *dstrect)
 {
-    GAL_VideoDevice *this = __mg_current_video;
     int bpp;
     Uint32 src_format;
     /* Uint32 dst_format; */
@@ -201,8 +200,14 @@ static int CheckHWBlit(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
     /* Check to see if final surface blit is accelerated */
     accelerated = !!(src->flags & GAL_HWACCEL);
     if ( accelerated ) {
+        src->map->video = this;
         src->map->hw_blit = HWAccelBlit;
     }
+    else {
+        src->map->video = NULL;
+        src->map->hw_blit = NULL;
+    }
+
     return(accelerated);
 }
 

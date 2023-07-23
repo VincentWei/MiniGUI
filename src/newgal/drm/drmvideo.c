@@ -3502,10 +3502,9 @@ static void DRM_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
     surface->hwdata = NULL;
 }
 
-static int DRM_HWBlit(GAL_Surface *src, GAL_Rect *src_rc,
+static int DRM_HWBlit(_THIS, GAL_Surface *src, GAL_Rect *src_rc,
                        GAL_Surface *dst, GAL_Rect *dst_rc)
 {
-    GAL_VideoDevice *this = __mg_current_video;
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer *src_buf, *dst_buf;
 
@@ -3576,10 +3575,12 @@ static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
             dst_buf, dstrc, &blit_ops);
 
     if (blitor) {
+        src->map->video = this;
         src->map->hw_blit = DRM_HWBlit;
         src->map->hw_void = blitor;
     }
     else {
+        src->map->video = NULL;
         src->map->hw_blit = NULL;
         src->flags &= ~GAL_HWACCEL;
     }
