@@ -940,6 +940,10 @@ static void drm_cleanup(DrmVideoData* vdata)
 
 static void DRM_DeleteDevice(GAL_VideoDevice *device)
 {
+    if (device->hidden->real_screen) {
+        GAL_FreeSurface(device->hidden->real_screen);
+    }
+
     drm_cleanup(device->hidden);
 
     if (device->hidden->dev_name)
@@ -1715,6 +1719,10 @@ static void DRM_VideoQuit(_THIS)
     if (mgIsServer)
 #endif
         cancel_async_updater(this);
+
+        if (this->hidden->shadow_screen) {
+            GAL_FreeSurface(this->hidden->shadow_screen);
+        }
 
 #ifndef _MGSCHEMA_COMPOSITING
         if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
@@ -2646,11 +2654,9 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         real_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                 drm_format, 0, info->width, info->height,
                 DRM_SURBUF_TYPE_SCANOUT);
-        if (vdata->dbl_buff) {
-            if (drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
-                _WRN_PRINTF("Cannot map real screen buffer via DMA-BUF\n");
-                vdata->driver_ops->map_buffer(vdata->driver, real_buffer);
-            }
+        if (drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
+            _WRN_PRINTF("Cannot map real screen buffer via DMA-BUF\n");
+            vdata->driver_ops->map_buffer(vdata->driver, real_buffer);
         }
     }
     else {

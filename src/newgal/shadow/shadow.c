@@ -328,6 +328,7 @@ static ShadowFBHeader* _shadowfbheader;
 DWORD __mg_shadow_rotate_flags;
 extern void (*__mg_ial_change_mouse_xy_hook)(int* x, int* y);
 extern GAL_Surface* __gal_screen;
+static ShadowFBOps shadow_fb_ops;
 
 /* SHADOW driver bootstrap functions */
 static int SHADOW_Available(void)
@@ -335,10 +336,15 @@ static int SHADOW_Available(void)
     return 1;
 }
 
-static void SHADOW_DeleteDevice(GAL_VideoDevice *device)
+static void SHADOW_DeleteDevice(_THIS)
 {
-    free (device->hidden);
-    free (device);
+    if (this->hidden->realfb_info) {
+        shadow_fb_ops.release(this->hidden->realfb_info);
+        this->hidden->realfb_info = NULL;
+    }
+
+    free(this->hidden);
+    free(this);
 }
 
 static void SHADOW_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
@@ -427,7 +433,6 @@ VideoBootStrap SHADOW_bootstrap = {
 
 #define LEN_MODE    32
 
-static ShadowFBOps shadow_fb_ops;
 static int RealEngine_GetInfo (RealFBInfo * realfb_info)
 {
     GAL_PixelFormat real_vformat;
@@ -761,9 +766,6 @@ static void *task_do_update(void *data)
 
         if (RECTH(this->hidden->update_rect)) {
             update_helper(this, real_device, &this->hidden->update_rect);
-        }
-        else {
-            _DBG_PRINTF("Empty update rectangle\n");
         }
 
 #if USE_UPDATE_SEM
@@ -1345,10 +1347,7 @@ static void SHADOW_VideoQuit (_THIS)
         _shadowfbheader = NULL;
     }
 
-    if (this->hidden->realfb_info) {
-        shadow_fb_ops.release(this->hidden->realfb_info);
-        this->hidden->realfb_info = NULL;
-    }
+    GAL_FreeSurface(this->screen);
 }
 
 #else
