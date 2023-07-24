@@ -177,10 +177,6 @@ typedef struct _DrmBlitOperations {
     uint8_t             alpha;
 } DrmBlitOperations;
 
-typedef int (*CB_DRM_BLIT) (DrmDriver *driver,
-            DrmSurfaceBuffer *src_buf, const GAL_Rect *src_rc,
-            DrmSurfaceBuffer *dst_buf, const GAL_Rect *dst_rc,
-            const DrmBlitOperations *blit_ops);
 /**
  * The structure type defines the operations for a userland DRM driver.
  */
@@ -302,15 +298,25 @@ typedef struct _DrmDriverOps {
     /**
      * This operation checks whether a specified hardware accelerated blit
      * can be done between the source buffer and the destination buffer.
-     * If succeed, it returns a callback for the specified blit operations.
+     * If succeed, it returns zero, otherwise for failure.
+     * If succeed, it is safe to call do_blit operation.
      *
      * \note If this operation is set as NULL, it will be supposed that
      * the driver does not support any hardware accelerated blitting operation.
      */
-    CB_DRM_BLIT (* check_blit) (DrmDriver *driver,
+    int (* check_blit) (DrmDriver *driver,
             DrmSurfaceBuffer* src_buf, const GAL_Rect* src_rc,
             DrmSurfaceBuffer* dst_buf, const GAL_Rect* dst_rc,
             const DrmBlitOperations *ops);
+
+    /**
+     * This operation does the real blit. It should not be NULL if check_blit
+     * is not NULL.
+     */
+    int (* do_blit) (DrmDriver *driver,
+            DrmSurfaceBuffer *src_buf, const GAL_Rect *src_rc,
+            DrmSurfaceBuffer *dst_buf, const GAL_Rect *dst_rc,
+            const DrmBlitOperations *blit_ops);
 
     /**
      * This operation copies the pixels from the source buffer to

@@ -83,11 +83,7 @@ typedef struct GAL_BlitMap {
     GAL_VideoDevice *video;
 
     /* data for hardware blittor */
-    union {
-        struct private_hwaccel *hw_data;
-        void                   *hw_void;
-    };
-
+    struct private_hwaccel *hw_data;
     /* data for software blittor */
     struct private_swaccel *sw_data;
 

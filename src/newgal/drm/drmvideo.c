@@ -3517,8 +3517,7 @@ static int DRM_HWBlit(_THIS, GAL_Surface *src, GAL_Rect *src_rc,
     src_buf = (DrmSurfaceBuffer*)src->hwdata;
     dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
 
-    CB_DRM_BLIT blitor = src->map->hw_void;
-    assert(blitor);
+    assert(vdata->driver_ops->do_blit);
 
     DrmBlitOperations blit_ops = { };
     blit_ops.cpy = BLIT_COPY_TRANSLATE;
@@ -3539,7 +3538,8 @@ static int DRM_HWBlit(_THIS, GAL_Surface *src, GAL_Rect *src_rc,
 
     blit_ops.rop = COLOR_LOGICOP_COPY;
 
-    return blitor(vdata->driver, src_buf, src_rc, dst_buf, dst_rc, &blit_ops);
+    return vdata->driver_ops->do_blit(vdata->driver, src_buf, src_rc,
+            dst_buf, dst_rc, &blit_ops);
 }
 
 static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
@@ -3576,14 +3576,10 @@ static int DRM_CheckHWBlit_Accl(_THIS, GAL_Surface *src, const GAL_Rect *srcrc,
     blit_ops.rop = op & COLOR_LOGICOP_MASK;
 
     /* Check to see if final surface blit is accelerated */
-    CB_DRM_BLIT blitor;
-    blitor = vdata->driver_ops->check_blit(vdata->driver, src_buf, srcrc,
-            dst_buf, dstrc, &blit_ops);
-
-    if (blitor) {
+    if (vdata->driver_ops->check_blit(vdata->driver, src_buf, srcrc,
+            dst_buf, dstrc, &blit_ops) == 0) {
         src->map->video = this;
         src->map->hw_blit = DRM_HWBlit;
-        src->map->hw_void = blitor;
     }
     else {
         src->map->video = NULL;
