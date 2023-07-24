@@ -3596,6 +3596,10 @@ static int DRM_FillHWRect_Accl(_THIS, GAL_Surface *dst, const GAL_Rect *rect,
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer *dst_buf;
 
+    if ((rect->w * rect->h) < vdata->min_pixels_using_hwaccl) {
+        return -1;
+    }
+
     dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
     return vdata->driver_ops->fill_rect(vdata->driver, dst_buf, rect, color);
 }
@@ -3611,6 +3615,10 @@ static int DRM_CopyHWSurface_Accl(_THIS,
     dst_buf = (DrmSurfaceBuffer*)dst->hwdata;
     if (src_buf == NULL || dst_buf == NULL)
         return -1;
+
+    if ((srcrc->w * srcrc->h) < vdata->min_pixels_using_hwaccl) {
+        return -1;
+    }
 
     return vdata->driver_ops->copy_buff(vdata->driver, src_buf, srcrc,
             dst_buf, dstrc, op);
