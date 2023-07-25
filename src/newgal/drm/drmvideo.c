@@ -2449,7 +2449,8 @@ static void update_real_screen_helper(_THIS)
 #endif
 
     BOOL hw_ok = FALSE;
-    if (real_buff && shadow_buff && vdata->driver_ops->copy_buff) {
+    if (real_buff && shadow_buff && vdata->driver &&
+            vdata->driver_ops->copy_buff) {
         GAL_Rect rect = {
             this->hidden->update_rect.left,
             this->hidden->update_rect.top,
