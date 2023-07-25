@@ -776,6 +776,7 @@ static void *task_do_update(void *data)
             _ERR_PRINTF("Failed pthread_mutex_unlock(): %m\n");
 #endif
 
+        pthread_testcancel();
     } while (1);
 
     return NULL;
