@@ -148,9 +148,15 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
             if (!ctxt->only_extent) {
                 int bkmode = ctxt->pdc->bkmode;
                 ctxt->pdc->bkmode = BM_TRANSPARENT;
+#if 0
                 _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                         (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                         ctxt->x, ctxt->y, &adv_x, &adv_y);
+#else
+                _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                        ctxt->last_x, ctxt->last_y, &adv_x, &adv_y);
+#endif
                 ctxt->pdc->bkmode = bkmode;
                 adv_x = adv_y = 0;
             }
@@ -174,6 +180,8 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
             break;
     }
 
+    ctxt->last_x = ctxt->x;
+    ctxt->last_y = ctxt->y;
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
@@ -189,6 +197,8 @@ int _gdi_get_drawtext_extent (PDC pdc, const unsigned char* text, int len,
     ctxt.pdc = pdc;
     ctxt.x = 0;
     ctxt.y = 0;
+    ctxt.last_x = 0;
+    ctxt.last_y = 0;
     ctxt.advance = 0;
     ctxt.only_extent = TRUE;
     ctxt.nFormat = _tmp->nFormat;
@@ -306,6 +316,8 @@ int DrawTextEx2 (HDC hdc, const char* pText, int nCount,
     ctxt.pdc = pdc;
     ctxt.x   = x;
     ctxt.y   = y;
+    ctxt.last_x   = x;
+    ctxt.last_y   = y;
 
     while (nCount > 0) {
         int line_x, maxwidth;

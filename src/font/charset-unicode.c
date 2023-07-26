@@ -210,6 +210,8 @@ static unsigned int unicode_char_type (Achar32 chv)
         mchar_type = ACHAR_BASIC_LF;
     else if (break_type == UCHAR_BREAK_SPACE)
         mchar_type = ACHAR_BASIC_SPACE;
+    else if (basic_type == UCHAR_CATEGORY_NON_SPACING_MARK)
+        mchar_type = ACHAR_BASIC_VOWEL;
     else if (chv != 0x00AD && ISZEROWIDTHTYPE (basic_type))
         mchar_type = ACHAR_BASIC_ZEROWIDTH;
     else if ((chv >= 0x1160 && chv < 0x1200)
