@@ -2307,11 +2307,6 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdat
 static int drm_map_buffer_via_dmabuf(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer)
 {
-    if (drmSetMaster(vdata->dev_fd)) {
-        _ERR_PRINTF("NEWGAL>DRM: failed drmSetMaster(): %m\n");
-        return -1;
-    }
-
     if (drmPrimeHandleToFD(vdata->dev_fd, surface_buffer->handle,
                 DRM_RDWR | DRM_CLOEXEC, &surface_buffer->prime_fd)) {
         _ERR_PRINTF ("NEWGAL>DRM: failed drmPrimeHandleToFD(): %m\n");
@@ -2431,6 +2426,25 @@ static void update_real_screen_memcpy(_THIS)
     }
 }
 
+static void drm_dmabuf_start(DrmSurfaceBuffer *real_buff)
+{
+    struct dma_buf_sync sync;
+
+    sync.flags = DMA_BUF_SYNC_WRITE | DMA_BUF_SYNC_START;
+    if (ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync)) {
+        _WRN_PRINTF("Failed ioctl(DMA_BUF_IOCTL_SYNC): %m\n");
+    }
+}
+
+static void drm_dmabuf_end(DrmSurfaceBuffer *real_buff)
+{
+    struct dma_buf_sync sync;
+    sync.flags = DMA_BUF_SYNC_WRITE | DMA_BUF_SYNC_END;
+    if (ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync)) {
+        _WRN_PRINTF("Failed ioctl(DMA_BUF_IOCTL_SYNC): %m\n");
+    }
+}
+
 static void update_real_screen_helper(_THIS)
 {
     DrmVideoData* vdata = this->hidden;
@@ -2448,9 +2462,11 @@ static void update_real_screen_helper(_THIS)
     clock_gettime(CLOCK_REALTIME, &ts_start);
 #endif
 
+    if (real_buff->prime_fd >= 0 && real_buff->dma_buff)
+        drm_dmabuf_start(real_buff);
+
     BOOL hw_ok = FALSE;
-    if (real_buff && shadow_buff && vdata->driver &&
-            vdata->driver_ops->copy_buff) {
+    if (shadow_buff && vdata->driver && vdata->driver_ops->copy_buff) {
         GAL_Rect rect = {
             this->hidden->update_rect.left,
             this->hidden->update_rect.top,
@@ -2468,6 +2484,9 @@ static void update_real_screen_helper(_THIS)
     if (!hw_ok) {
         update_real_screen_memcpy(this);
     }
+
+    if (real_buff->prime_fd >= 0 && real_buff->dma_buff)
+    drm_dmabuf_end(real_buff);
 
 #if 0 // def _DEBUG
     double elapsed = get_elapsed_seconds(&ts_start, NULL);
@@ -2699,7 +2718,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             assert (vdata->driver_ops->create_buffer);
             shadow_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                     drm_format, hdr_size,
-                    info->width, info->height, DRM_SURBUF_TYPE_OFFSCREEN);
+                    info->width, info->height, DRM_SURBUF_TYPE_SHADOW);
             vdata->driver_ops->map_buffer(vdata->driver, shadow_buffer);
         }
 
@@ -4077,27 +4096,6 @@ static int drm_allocate_dma_buffers(DrmVideoData* vdata, int size)
     }
 
     return 0;
-}
-
-static void drm_dmabuf_start(DrmSurfaceBuffer *real_buff)
-{
-    struct dma_buf_sync sync;
-
-    if (real_buff->prime_fd < 0)
-        return;
-
-    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_START;
-    ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
-}
-
-static void drm_dmabuf_end(DrmSurfaceBuffer *real_buff)
-{
-    struct dma_buf_sync sync;
-    if (real_buff->prime_fd < 0)
-        return;
-
-    sync.flags = DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END;
-    ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync);
 }
 
 static BOOL DRM_SyncUpdateDMA (_THIS)
