@@ -836,7 +836,7 @@ static int create_async_updater(_THIS)
 
 static void cancel_async_updater(_THIS)
 {
-    if (this->hidden->async_update) {
+    if (this->hidden->async_update && this->LockHWSurface) {
         pthread_cancel(this->hidden->update_thd);
         pthread_join(this->hidden->update_thd, NULL);
 #ifdef _DEBUG
