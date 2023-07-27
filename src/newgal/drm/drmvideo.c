@@ -127,6 +127,8 @@ static void DRM_UpdateRects(_THIS, int numrects, GAL_Rect *rects);
 static BOOL DRM_WaitVBlank(_THIS);
 static BOOL DRM_SyncUpdate(_THIS);
 static BOOL DRM_SyncUpdateAsync(_THIS);
+static void DRM_OnBeforeUpdate(_THIS);
+static void DRM_OnAfterUpdate(_THIS);
 
 #if IS_SHAREDFB_SCHEMA_PROCS
 /* DRM engine methods for clients under sharedfb schema and MiniGUI-Processes */
@@ -2426,24 +2428,74 @@ static void update_real_screen_memcpy(_THIS)
     }
 }
 
-static void drm_dmabuf_start(DrmSurfaceBuffer *real_buff)
+static void DRM_OnBeforeUpdate(_THIS)
 {
-    struct dma_buf_sync sync;
+    DrmVideoData *vdata = this->hidden;
+    DrmSurfaceBuffer *real_buff;
+    real_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;;
 
-    sync.flags = DMA_BUF_SYNC_WRITE | DMA_BUF_SYNC_START;
-    if (ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync)) {
-        _WRN_PRINTF("Failed ioctl(DMA_BUF_IOCTL_SYNC): %m\n");
+    if (vdata->dirty_fb_ok == 0 &&
+            real_buff->prime_fd >= 0 && real_buff->dma_buff) {
+        struct dma_buf_sync sync;
+
+        sync.flags = DMA_BUF_SYNC_WRITE | DMA_BUF_SYNC_START;
+        if (ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync)) {
+            _WRN_PRINTF("Failed ioctl(DMA_BUF_IOCTL_SYNC): %m\n");
+        }
     }
 }
 
-static void drm_dmabuf_end(DrmSurfaceBuffer *real_buff)
+static void DRM_OnAfterUpdate(_THIS)
 {
-    struct dma_buf_sync sync;
-    sync.flags = DMA_BUF_SYNC_WRITE | DMA_BUF_SYNC_END;
-    if (ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync)) {
-        _WRN_PRINTF("Failed ioctl(DMA_BUF_IOCTL_SYNC): %m\n");
+    DrmVideoData *vdata = this->hidden;
+    DrmSurfaceBuffer *real_buff;
+    real_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;;
+
+    if (vdata->dirty_fb_ok == 0 &&
+            real_buff->prime_fd >= 0 && real_buff->dma_buff) {
+        struct dma_buf_sync sync;
+        sync.flags = DMA_BUF_SYNC_WRITE | DMA_BUF_SYNC_END;
+        if (ioctl(real_buff->prime_fd, DMA_BUF_IOCTL_SYNC, &sync)) {
+            _WRN_PRINTF("Failed ioctl(DMA_BUF_IOCTL_SYNC): %m\n");
+        }
     }
 }
+
+#ifdef _MGSCHEMA_COMPOSITING
+static void refresh_cursor(_THIS)
+{
+    if (this->hidden->cursor && !this->hidden->cursor_buff) {
+        RECT csr_rc, eff_rc;
+        csr_rc.left = boxleft (this);
+        csr_rc.top = boxtop (this);
+        csr_rc.right = csr_rc.left + CURSORWIDTH;
+        csr_rc.bottom = csr_rc.top + CURSORHEIGHT;
+
+        if (IntersectRect (&eff_rc, &csr_rc, &bound)) {
+            GAL_Rect src_rect, dst_rect;
+            src_rect.x = eff_rc.left - csr_rc.left;
+            src_rect.y = eff_rc.top - csr_rc.top;
+            src_rect.w = RECTW (eff_rc);
+            src_rect.h = RECTH (eff_rc);
+
+            dst_rect.x = eff_rc.left;
+            dst_rect.y = eff_rc.top;
+            dst_rect.w = src_rect.w;
+            dst_rect.h = src_rect.h;
+            GAL_SetupBlitting (this->hidden->cursor,
+                    this->hidden->real_screen, 0);
+            GAL_BlitSurface (this->hidden->cursor, &src_rect,
+                    this->hidden->real_screen, &dst_rect);
+            GAL_CleanupBlitting (this->hidden->cursor,
+                    this->hidden->real_screen);
+        }
+    }
+}
+#else
+static inline void refresh_cursor(_THIS) {
+    (void)this;
+}
+#endif  /* _MGSCHEMA_COMPOSITING */
 
 static void update_real_screen_helper(_THIS)
 {
@@ -2461,9 +2513,6 @@ static void update_real_screen_helper(_THIS)
     struct timespec ts_start;
     clock_gettime(CLOCK_REALTIME, &ts_start);
 #endif
-
-    if (real_buff->prime_fd >= 0 && real_buff->dma_buff)
-        drm_dmabuf_start(real_buff);
 
     BOOL hw_ok = FALSE;
     if (shadow_buff && vdata->driver && vdata->driver_ops->copy_buff) {
@@ -2485,8 +2534,7 @@ static void update_real_screen_helper(_THIS)
         update_real_screen_memcpy(this);
     }
 
-    if (real_buff->prime_fd >= 0 && real_buff->dma_buff)
-    drm_dmabuf_end(real_buff);
+    refresh_cursor(this);
 
 #if 0 // def _DEBUG
     double elapsed = get_elapsed_seconds(&ts_start, NULL);
@@ -2547,17 +2595,19 @@ static void* task_do_update(void *data)
 
         sem_wait(this->hidden->update_lock);
         if (RECTH(this->hidden->update_rect)) {
+            DRM_OnBeforeUpdate(this);
             update_real_screen_helper(this);
-            /* TODO: update cursor under compositing schema */
-            drmModeClip clip = {
-                this->hidden->update_rect.left,
-                this->hidden->update_rect.top,
-                this->hidden->update_rect.right,
-                this->hidden->update_rect.bottom };
+            DRM_OnAfterUpdate(this);
 
-            if (drmModeDirtyFB(this->hidden->dev_fd,
-                    this->hidden->scanout_buff_id, &clip, 1)) {
-                _WRN_PRINTF("Failed drmModeDirtyFB: %m\n");
+            if (this->hidden->dirty_fb_ok) {
+                drmModeClip clip = {
+                    this->hidden->update_rect.left,
+                    this->hidden->update_rect.top,
+                    this->hidden->update_rect.right,
+                    this->hidden->update_rect.bottom };
+
+                drmModeDirtyFB(this->hidden->dev_fd,
+                        this->hidden->scanout_buff_id, &clip, 1);
             }
 
             SetRectEmpty(&this->hidden->update_rect);
@@ -2789,6 +2839,16 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 #endif /* IS_COMPOSITING_SCHEMA */
 
     GAL_FreeSurface (current);
+
+    drmModeClip clip = { 0, 0, 1, 1 };
+    if (drmModeDirtyFB(vdata->dev_fd,
+            vdata->scanout_buff_id, &clip, 1) == 0) {
+        vdata->dirty_fb_ok = 1;
+    }
+    else {
+        _WRN_PRINTF("Failed drmModeDirtyFB: %m\n");
+    }
+
     if (vdata->shadow_screen) {
         if (create_async_updater(this) == 0) {
             vdata->shadow_screen->flags |= GAL_ASYNCBLIT;
@@ -2798,6 +2858,10 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         }
 
         return vdata->shadow_screen;
+    }
+    else if (vdata->dirty_fb_ok == 0) {
+        this->OnBeforeUpdate = DRM_OnBeforeUpdate;
+        this->OnAfterUpdate = DRM_OnAfterUpdate;
     }
 
     return vdata->real_screen;
@@ -3717,7 +3781,7 @@ static BOOL DRM_SyncUpdate(_THIS)
 
 #ifndef _MGSCHEMA_COMPOSITING
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
-        sem_wait (this->hidden->update_lock);
+        sem_wait(this->hidden->update_lock);
     }
 #endif
 
@@ -3743,46 +3807,20 @@ static BOOL DRM_SyncUpdate(_THIS)
     bound = *dirty_rc;
 
     if (this->hidden->shadow_screen) {
+        DRM_OnBeforeUpdate(this);
         update_real_screen_helper(this);
+        DRM_OnAfterUpdate(this);
     }
 
-#ifdef _MGSCHEMA_COMPOSITING
-    if (this->hidden->cursor && !this->hidden->cursor_buff) {
-        RECT csr_rc, eff_rc;
-        csr_rc.left = boxleft (this);
-        csr_rc.top = boxtop (this);
-        csr_rc.right = csr_rc.left + CURSORWIDTH;
-        csr_rc.bottom = csr_rc.top + CURSORHEIGHT;
-
-        if (IntersectRect (&eff_rc, &csr_rc, &bound)) {
-            GAL_Rect src_rect, dst_rect;
-            src_rect.x = eff_rc.left - csr_rc.left;
-            src_rect.y = eff_rc.top - csr_rc.top;
-            src_rect.w = RECTW (eff_rc);
-            src_rect.h = RECTH (eff_rc);
-
-            dst_rect.x = eff_rc.left;
-            dst_rect.y = eff_rc.top;
-            dst_rect.w = src_rect.w;
-            dst_rect.h = src_rect.h;
-            GAL_SetupBlitting (this->hidden->cursor,
-                    this->hidden->real_screen, 0);
-            GAL_BlitSurface (this->hidden->cursor, &src_rect,
-                    this->hidden->real_screen, &dst_rect);
-            GAL_CleanupBlitting (this->hidden->cursor,
-                    this->hidden->real_screen);
-        }
-    }
-#endif  /* _MGSCHEMA_COMPOSITING */
+    refresh_cursor(this);
 
     if (this->hidden->driver && this->hidden->driver_ops->flush_driver) {
         this->hidden->driver_ops->flush_driver(this->hidden->driver);
     }
 
-    {
+    if (this->hidden->dirty_fb_ok) {
         drmModeClip clip = { bound.left, bound.top,
             bound.right, bound.bottom };
-
         drmModeDirtyFB(this->hidden->dev_fd,
                 this->hidden->scanout_buff_id, &clip, 1);
     }

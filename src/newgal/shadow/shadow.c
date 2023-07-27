@@ -677,12 +677,12 @@ update_helper(_THIS, GAL_VideoDevice *real_device, RECT *update_rect)
     else if (this->hidden->realfb_info->flags & _ROT_DIR_HFLIP) {
         op = BLIT_COPY_FLIP_H;
         dirty_rect = *update_rect;
-        _get_dst_rect_hflip (&dirty_rect, this->hidden->realfb_info);
+        _get_dst_rect_hflip(&dirty_rect, this->hidden->realfb_info);
     }
     else if (this->hidden->realfb_info->flags & _ROT_DIR_VFLIP) {
         op = BLIT_COPY_FLIP_V;
         dirty_rect = *update_rect;
-        _get_dst_rect_vflip (&dirty_rect, this->hidden->realfb_info);
+        _get_dst_rect_vflip(&dirty_rect, this->hidden->realfb_info);
     }
     else {
         dirty_rect = *update_rect;
@@ -693,6 +693,9 @@ update_helper(_THIS, GAL_VideoDevice *real_device, RECT *update_rect)
     dst_rc.y = dirty_rect.top;
     dst_rc.w = RECTW(dirty_rect);
     dst_rc.h = RECTH(dirty_rect);
+
+    if (real_device->OnBeforeUpdate)
+        real_device->OnBeforeUpdate(real_device);
 
     BOOL hw_ok = FALSE;
     if ((dst_rc.w * dst_rc.h) >= this->hidden->min_pixels_using_hwaccl) {
@@ -718,6 +721,8 @@ update_helper(_THIS, GAL_VideoDevice *real_device, RECT *update_rect)
         real_device->UpdateRects(real_device, 1, &dst_rc);
     if (real_device->SyncUpdate)
         real_device->SyncUpdate(real_device);
+    if (real_device->OnAfterUpdate)
+        real_device->OnAfterUpdate(real_device);
 
     SetRectEmpty(update_rect);
 }
