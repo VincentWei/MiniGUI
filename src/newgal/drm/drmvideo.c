@@ -127,8 +127,6 @@ static void DRM_UpdateRects(_THIS, int numrects, GAL_Rect *rects);
 static BOOL DRM_WaitVBlank(_THIS);
 static BOOL DRM_SyncUpdate(_THIS);
 static BOOL DRM_SyncUpdateAsync(_THIS);
-static void DRM_OnBeforeUpdate(_THIS);
-static void DRM_OnAfterUpdate(_THIS);
 
 #if IS_SHAREDFB_SCHEMA_PROCS
 /* DRM engine methods for clients under sharedfb schema and MiniGUI-Processes */
@@ -2428,6 +2426,7 @@ static void update_real_screen_memcpy(_THIS)
     }
 }
 
+#if 0
 static void DRM_OnBeforeUpdate(_THIS)
 {
     DrmVideoData *vdata = this->hidden;
@@ -2460,6 +2459,7 @@ static void DRM_OnAfterUpdate(_THIS)
         }
     }
 }
+#endif
 
 #ifdef _MGSCHEMA_COMPOSITING
 static void refresh_cursor(_THIS)
@@ -2595,9 +2595,7 @@ static void* task_do_update(void *data)
 
         sem_wait(this->hidden->update_lock);
         if (RECTH(this->hidden->update_rect)) {
-            DRM_OnBeforeUpdate(this);
             update_real_screen_helper(this);
-            DRM_OnAfterUpdate(this);
 
             if (this->hidden->dirty_fb_ok) {
                 drmModeClip clip = {
@@ -2858,10 +2856,6 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         }
 
         return vdata->shadow_screen;
-    }
-    else if (vdata->dirty_fb_ok == 0) {
-        this->OnBeforeUpdate = DRM_OnBeforeUpdate;
-        this->OnAfterUpdate = DRM_OnAfterUpdate;
     }
 
     return vdata->real_screen;
@@ -3807,9 +3801,7 @@ static BOOL DRM_SyncUpdate(_THIS)
     bound = *dirty_rc;
 
     if (this->hidden->shadow_screen) {
-        DRM_OnBeforeUpdate(this);
         update_real_screen_helper(this);
-        DRM_OnAfterUpdate(this);
     }
 
     refresh_cursor(this);

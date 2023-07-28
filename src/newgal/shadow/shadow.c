@@ -694,9 +694,6 @@ update_helper(_THIS, GAL_VideoDevice *real_device, RECT *update_rect)
     dst_rc.w = RECTW(dirty_rect);
     dst_rc.h = RECTH(dirty_rect);
 
-    if (real_device->OnBeforeUpdate)
-        real_device->OnBeforeUpdate(real_device);
-
     BOOL hw_ok = FALSE;
     if ((dst_rc.w * dst_rc.h) >= this->hidden->min_pixels_using_hwaccl) {
         if (real_device->CopyHWSurface) {
@@ -721,8 +718,6 @@ update_helper(_THIS, GAL_VideoDevice *real_device, RECT *update_rect)
         real_device->UpdateRects(real_device, 1, &dst_rc);
     if (real_device->SyncUpdate)
         real_device->SyncUpdate(real_device);
-    if (real_device->OnAfterUpdate)
-        real_device->OnAfterUpdate(real_device);
 
     SetRectEmpty(update_rect);
 }

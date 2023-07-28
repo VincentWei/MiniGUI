@@ -131,16 +131,8 @@ struct GAL_VideoDevice {
     /* Wait vertical blank */
     BOOL (*WaitVBlank)(_THIS);
 
-    /* Shadow engine will call this before updating the dirty content
-       if it is not NULL. */
-    void (*OnBeforeUpdate)(_THIS);
-
     /* Synchronize the dirty content */
     BOOL (*SyncUpdate)(_THIS);
-
-    /* Shadow engine will call this after updating the dirty content
-      if it is not NULL. */
-    void (*OnAfterUpdate)(_THIS);
 
     /* Reverse the effects VideoInit() -- called if VideoInit() fails
        or if the application is shutting down the video subsystem.
