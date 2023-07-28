@@ -137,8 +137,8 @@ typedef struct _DrmSurfaceBuffer {
     uint32_t dumb:1;
     /** Is it a scanout buffer. Since 5.0.0. */
     uint32_t scanout:1;
-    /** The buffer is also a dma-buff. Since 5.0.13. */
-    uint32_t dma_buff:1;
+    /** The buffer is also a dma-buf. Since 5.0.13. */
+    uint32_t dma_buf:1;
 
     /** The width of the buffer. */
     uint32_t width;
