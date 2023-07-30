@@ -164,7 +164,7 @@ typedef struct _DrmSurfaceBuffer {
       * The address of the pixel data:
       *     uint8_t* pixels = this->buff + this->offset;
       */
-    uint8_t* buff;
+    uint8_t* vaddr;
 } DrmSurfaceBuffer;
 
 typedef struct _DrmBlitOperations {
@@ -198,12 +198,13 @@ typedef struct _DrmDriverOps {
     void (*destroy_driver) (DrmDriver *driver);
 
     /**
-     * This operation flushes the batch buffer of the driver or
-     * the hardware cache.
+     * This operation flushes the batch buffer of the driver and/or
+     * the specified buffer.
      *
      * \note This operation can be NULL.
      */
-    void (* flush_driver) (DrmDriver *driver);
+    void (* flush) (DrmDriver *driver, DrmSurfaceBuffer* buff,
+            const GAL_Rect *dirty_rect);
 
     /**
      * This operation creates a surface buffer with the specified pixel format,

@@ -766,7 +766,7 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     }
 
     /* for dumb buffer, already mapped */
-    if (surface_buffer->buff == NULL &&
+    if (surface_buffer->vaddr == NULL &&
             vdata->driver && vdata->driver_ops->map_buffer) {
         if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer)) {
             _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
@@ -809,7 +809,7 @@ static GAL_Surface* create_surface_from_buffer (_THIS,
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
 #endif
-    surface->pixels = surface_buffer->buff + surface_buffer->offset;
+    surface->pixels = surface_buffer->vaddr + surface_buffer->offset;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
 
     /* The surface is ready to go */
@@ -1990,7 +1990,7 @@ static int drm_setup_cursor_plane (DrmVideoData* vdata, uint32_t drm_format,
                 vdata->cursor_buff->handle, width, height, 0, 0);
         if (ret == 0) {
             // Supported
-            memset (vdata->cursor_buff->buff, 0, vdata->cursor_buff->size);
+            memset (vdata->cursor_buff->vaddr, 0, vdata->cursor_buff->size);
             return 0;
         }
     }
@@ -2145,10 +2145,10 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
     }
 
     /* perform actual memory mapping */
-    surface_buffer->buff = mmap64(0, surface_buffer->size,
+    surface_buffer->vaddr = mmap64(0, surface_buffer->size,
             PROT_READ | PROT_WRITE, MAP_SHARED,
             vdata->dev_fd, mreq.offset);
-    if (surface_buffer->buff == MAP_FAILED) {
+    if (surface_buffer->vaddr == MAP_FAILED) {
         _ERR_PRINTF("NEWGAL>DRM: cannot mmap dumb buffer %m (%u at %u)\n",
                         (unsigned)surface_buffer->size, (unsigned)mreq.offset);
         goto err_fb;
@@ -2194,10 +2194,10 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_handle(DrmVideoData* vdata,
     }
 
     /* perform actual memory mapping */
-    surface_buffer->buff = mmap64(0, surface_buffer->size,
+    surface_buffer->vaddr = mmap64(0, surface_buffer->size,
             PROT_READ | PROT_WRITE, MAP_SHARED,
             vdata->dev_fd, mreq.offset);
-    if (surface_buffer->buff == MAP_FAILED) {
+    if (surface_buffer->vaddr == MAP_FAILED) {
         _ERR_PRINTF("NEWGAL>DRM: cannot mmap dumb buffer (%u): %m\n", errno);
         goto error;
     }
@@ -2278,9 +2278,9 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_prime_fd(DrmVideoData* vdat
     surface_buffer->size = size;
 
     /* perform actual memory mapping */
-    surface_buffer->buff = mmap64(0, size,
+    surface_buffer->vaddr = mmap64(0, size,
             PROT_READ | PROT_WRITE, MAP_SHARED, prime_fd, 0);
-    if (surface_buffer->buff == MAP_FAILED) {
+    if (surface_buffer->vaddr == MAP_FAILED) {
         _ERR_PRINTF("NEWGAL>DRM: cannot mmap dumb buffer for prime fd (%d): "
                 "%m\n", prime_fd);
         goto error;
@@ -2314,13 +2314,13 @@ static int drm_map_buffer_via_dmabuf(DrmVideoData* vdata,
     }
 
     /* perform actual memory mapping */
-    surface_buffer->buff = mmap64(0, surface_buffer->size,
+    surface_buffer->vaddr = mmap64(0, surface_buffer->size,
             PROT_READ | PROT_WRITE, MAP_SHARED,
             surface_buffer->prime_fd, 0);
-    if (surface_buffer->buff == MAP_FAILED) {
+    if (surface_buffer->vaddr == MAP_FAILED) {
         _ERR_PRINTF("NEWGAL>DRM: cannot mmap DMA-BUF %m (size: %u)\n",
                         (unsigned)surface_buffer->size);
-        surface_buffer->buff = NULL;
+        surface_buffer->vaddr = NULL;
         return -1;
     }
 
@@ -2334,8 +2334,8 @@ static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
         drmModeRmFB (vdata->dev_fd, surface_buffer->fb_id);
     }
 
-    if (surface_buffer->buff)
-        munmap (surface_buffer->buff, surface_buffer->size);
+    if (surface_buffer->vaddr)
+        munmap (surface_buffer->vaddr, surface_buffer->size);
 
     assert (surface_buffer->handle);
 
@@ -2390,7 +2390,7 @@ static double get_elapsed_seconds(const struct timespec *ts_from,
 }
 #endif
 
-static void update_real_screen_memcpy(_THIS)
+static void update_real_screen_memcpy(_THIS, const GAL_Rect *dirty_rect)
 {
     DrmSurfaceBuffer *real_buff, *shadow_buff;
     real_buff = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
@@ -2398,14 +2398,13 @@ static void update_real_screen_memcpy(_THIS)
 
     uint32_t i;
     uint8_t *src, *dst;
-    RECT *update_rect = &this->hidden->update_rect;
     int cpp = real_buff->cpp;
     int shadow_pitch = this->hidden->shadow_screen->pitch;
     int real_pitch = real_buff->pitch;
-    size_t count = cpp * RECTWP(update_rect);
+    size_t count = cpp * dirty_rect->w;
 
     if (shadow_buff) {
-        src = shadow_buff->buff;
+        src = shadow_buff->vaddr;
         src += shadow_buff->offset;
     }
     else {
@@ -2413,13 +2412,13 @@ static void update_real_screen_memcpy(_THIS)
         src += this->hidden->shadow_screen->pixels_off;
     }
 
-    src += shadow_pitch * update_rect->top + cpp * update_rect->left;
+    src += shadow_pitch * dirty_rect->y + cpp * dirty_rect->x;
 
-    dst = real_buff->buff;
-    dst += real_pitch * update_rect->top + cpp * update_rect->left;
+    dst = real_buff->vaddr;
+    dst += real_pitch * dirty_rect->y + cpp * dirty_rect->x;
     dst += real_buff->offset;
 
-    for (i = 0; i < RECTHP(update_rect); i++) {
+    for (i = 0; i < dirty_rect->h; i++) {
         memcpy(dst, src, count);
         src += shadow_pitch;
         dst += real_pitch;
@@ -2497,7 +2496,7 @@ static inline void refresh_cursor(_THIS) {
 }
 #endif  /* _MGSCHEMA_COMPOSITING */
 
-static void update_real_screen_helper(_THIS)
+static void update_real_screen_helper(_THIS, const GAL_Rect *dirty_rect)
 {
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer *real_buff, *shadow_buff;
@@ -2516,22 +2515,17 @@ static void update_real_screen_helper(_THIS)
 
     BOOL hw_ok = FALSE;
     if (shadow_buff && vdata->driver && vdata->driver_ops->copy_buff) {
-        GAL_Rect rect = {
-            this->hidden->update_rect.left,
-            this->hidden->update_rect.top,
-            RECTW(this->hidden->update_rect),
-            RECTH(this->hidden->update_rect) };
-
-        if ((rect.w * rect.h) >= vdata->min_pixels_using_hwaccl) {
-            if (vdata->driver_ops->copy_buff(vdata->driver, shadow_buff, &rect,
-                real_buff, &rect, BLIT_COPY_TRANSLATE) == 0) {
+        if ((dirty_rect->w * dirty_rect->h) >= vdata->min_pixels_using_hwaccl) {
+            if (vdata->driver_ops->copy_buff(vdata->driver, shadow_buff,
+                        dirty_rect, real_buff, dirty_rect,
+                        BLIT_COPY_TRANSLATE) == 0) {
                 hw_ok = TRUE;
             }
         }
     }
 
     if (!hw_ok) {
-        update_real_screen_memcpy(this);
+        update_real_screen_memcpy(this, dirty_rect);
     }
 
     refresh_cursor(this);
@@ -2545,72 +2539,84 @@ static void update_real_screen_helper(_THIS)
 static void* task_do_update(void *data)
 {
     _THIS = data;
+    DrmVideoData* vdata = this->hidden;
+
     if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)) {
         goto error;
     }
 
     BOOL vbl_ok = FALSE;
     drmVBlank vbl;
-    if (this->hidden->crtc_idx >= 0) {
+    if (vdata->crtc_idx >= 0) {
         memset(&vbl, 0, sizeof(vbl));
         vbl.request.type = DRM_VBLANK_RELATIVE;
-        if (this->hidden->cap_vblank_high_crtc)
+        if (vdata->cap_vblank_high_crtc)
             vbl.request.type |=
-                (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
+                (vdata->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
         vbl.request.sequence = 1;
         vbl.request.signal = 0;
-        if (drmWaitVBlank(this->hidden->dev_fd, &vbl)) {
-            _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", this->hidden->crtc_idx);
+        if (drmWaitVBlank(vdata->dev_fd, &vbl)) {
+            _WRN_PRINTF("Failed drmWaitVBlank(%d): %m\n", vdata->crtc_idx);
         }
         else {
             vbl_ok = TRUE;
         }
     }
 
-    this->hidden->updater_ready = 1;
-    sem_post(&this->hidden->sync_sem);
+    vdata->updater_ready = 1;
+    sem_post(&vdata->sync_sem);
 
 #ifdef _DEBUG
-    clock_gettime(CLOCK_REALTIME, &this->hidden->ts_start);
+    clock_gettime(CLOCK_REALTIME, &vdata->ts_start);
 #endif
 
     do {
 
         if (vbl_ok) {
             vbl.request.type = DRM_VBLANK_RELATIVE | DRM_VBLANK_NEXTONMISS;
-            if (this->hidden->cap_vblank_high_crtc)
+            if (vdata->cap_vblank_high_crtc)
                 vbl.request.type |=
-                    (this->hidden->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
+                    (vdata->crtc_idx << DRM_VBLANK_HIGH_CRTC_SHIFT);
             vbl.request.sequence = 1;
             vbl.request.signal = 0;
-            drmWaitVBlank(this->hidden->dev_fd, &vbl);
+            drmWaitVBlank(vdata->dev_fd, &vbl);
         }
         else {
-            usleep(this->hidden->update_interval * 1000);
+            usleep(vdata->update_interval * 1000);
         }
 
 #ifdef _DEBUG
-        this->hidden->frames++;
+        vdata->frames++;
 #endif
 
-        sem_wait(this->hidden->update_lock);
-        if (RECTH(this->hidden->update_rect)) {
-            update_real_screen_helper(this);
+        sem_wait(vdata->update_lock);
+        if (RECTH(vdata->update_rect)) {
+            GAL_Rect dirty_rect = {
+                vdata->update_rect.left,
+                vdata->update_rect.top,
+                RECTW(vdata->update_rect),
+                RECTH(vdata->update_rect) };
+            update_real_screen_helper(this, &dirty_rect);
 
-            if (this->hidden->dirty_fb_ok) {
+            if (vdata->driver && vdata->driver_ops->flush) {
+                DrmSurfaceBuffer *real_buff;
+                real_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
+                vdata->driver_ops->flush(vdata->driver,
+                        real_buff, &dirty_rect);
+            }
+            else if (vdata->dirty_fb_ok) {
                 drmModeClip clip = {
-                    this->hidden->update_rect.left,
-                    this->hidden->update_rect.top,
-                    this->hidden->update_rect.right,
-                    this->hidden->update_rect.bottom };
-
-                drmModeDirtyFB(this->hidden->dev_fd,
-                        this->hidden->scanout_buff_id, &clip, 1);
+                    vdata->update_rect.left,
+                    vdata->update_rect.top,
+                    vdata->update_rect.right,
+                    vdata->update_rect.bottom };
+                drmModeDirtyFB(vdata->dev_fd,
+                        vdata->scanout_buff_id, &clip, 1);
             }
 
-            SetRectEmpty(&this->hidden->update_rect);
+            SetRectEmpty(&vdata->update_rect);
         }
-        sem_post(this->hidden->update_lock);
+        sem_post(vdata->update_lock);
 
         pthread_testcancel();
 
@@ -2722,7 +2728,8 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         real_buffer = vdata->driver_ops->create_buffer(vdata->driver,
                 drm_format, 0, info->width, info->height,
                 DRM_SURBUF_TYPE_SCANOUT);
-        if (drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
+        if (real_buffer && real_buffer->dma_buf &&
+                drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
             _WRN_PRINTF("Cannot map real screen buffer via DMA-BUF\n");
             vdata->driver_ops->map_buffer(vdata->driver, real_buffer);
         }
@@ -2732,7 +2739,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
                 info->width, info->height);
     }
 
-    if (real_buffer == NULL || real_buffer->buff == NULL) {
+    if (real_buffer == NULL || real_buffer->vaddr == NULL) {
         _ERR_PRINTF("NEWGAL>DRM: "
                 "failed to create and map buffer for real screen\n");
         return NULL;
@@ -2770,7 +2777,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             vdata->driver_ops->map_buffer(vdata->driver, shadow_buffer);
         }
 
-        if (shadow_buffer == NULL || shadow_buffer->buff == NULL) {
+        if (shadow_buffer == NULL || shadow_buffer->vaddr == NULL) {
             // do not use dumb buffer for shadow screen.
 #if IS_SHAREDFB_SCHEMA_PROCS
             vdata->shadow_screen = GAL_CreateRGBSurfaceInShm (
@@ -2794,7 +2801,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             vdata->shadow_screen = create_surface_from_buffer (this,
                     shadow_buffer, bpp, RGBAmasks);
 
-            hdr = (GAL_ShadowSurfaceHeader*)shadow_buffer->buff;
+            hdr = (GAL_ShadowSurfaceHeader*)shadow_buffer->vaddr;
             SetRectEmpty (&hdr->dirty_rc);
         }
 
@@ -2875,7 +2882,7 @@ error:
     }
     else if (shadow_buffer) {
         if (vdata->driver) {
-            if (shadow_buffer->buff)
+            if (shadow_buffer->vaddr)
                 vdata->driver_ops->unmap_buffer(vdata->driver, shadow_buffer);
             vdata->driver_ops->destroy_buffer(vdata->driver, shadow_buffer);
         }
@@ -2890,7 +2897,7 @@ error:
     }
     else if (real_buffer) {
         if (vdata->driver) {
-            if (real_buffer->buff)
+            if (real_buffer->vaddr)
                 vdata->driver_ops->unmap_buffer(vdata->driver, real_buffer);
             vdata->driver_ops->destroy_buffer(vdata->driver, real_buffer);
         }
@@ -2925,7 +2932,7 @@ static int DRM_AllocDumbSurface (_THIS, GAL_Surface *surface)
     }
 
     surface->pitch = surface_buffer->pitch;
-    surface->pixels = surface_buffer->buff + surface_buffer->offset;
+    surface->pixels = surface_buffer->vaddr + surface_buffer->offset;
     surface->flags |= GAL_HWSURFACE;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
     return 0;
@@ -2976,7 +2983,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
                 drm_format, hdr_size, surface->w, surface->h);
     }
 
-    if (surface_buffer == NULL || surface_buffer->buff == NULL) {
+    if (surface_buffer == NULL || surface_buffer->vaddr == NULL) {
         _ERR_PRINTF("NEWGAL>DRM: Failed to create shared hardware surface: "
                 "size (%d x %d)\n", surface->w, surface->h);
         return -1;
@@ -2995,11 +3002,11 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
 
     /* go for success */
     /* the caller will set the pixels and flags
-    surface->pixels = surface_buffer->buff + surface_buffer->offset;
+    surface->pixels = surface_buffer->vaddr + surface_buffer->offset;
     surface->flags |= GAL_HWSURFACE;
     */
     surface->pitch = surface_buffer->pitch;
-    surface->shared_header = (GAL_SharedSurfaceHeader*)surface_buffer->buff;
+    surface->shared_header = (GAL_SharedSurfaceHeader*)surface_buffer->vaddr;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
 
     return surface_buffer->prime_fd;
@@ -3067,7 +3074,7 @@ static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
     }
 
     if (surface_buffer) {
-        surface->shared_header = (GAL_SharedSurfaceHeader*)surface_buffer->buff;
+        surface->shared_header = (GAL_SharedSurfaceHeader*)surface_buffer->vaddr;
         surface->hwdata = (struct private_hwdata *)surface_buffer;
         retval = 0;
     }
@@ -3096,7 +3103,7 @@ static int DRM_DettachSharedHWSurface(_THIS, GAL_Surface *surface)
     surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
     if (surface_buffer) {
         if (vdata->driver) {
-            if (surface_buffer->buff)
+            if (surface_buffer->vaddr)
                 vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
             vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
         }
@@ -3189,7 +3196,7 @@ static int DRM_SetCursor_Plane(_THIS, GAL_Surface *surface, int hot_x, int hot_y
 
         assert (vdata->cursor_buff);
         src = surface->pixels;
-        dst = vdata->cursor_buff->buff + vdata->cursor_buff->offset;
+        dst = vdata->cursor_buff->vaddr + vdata->cursor_buff->offset;
 
         height = MIN(surface->h, vdata->cursor_buff->height);
         pitch = MIN(surface->pitch, vdata->cursor_buff->pitch);
@@ -3202,7 +3209,7 @@ static int DRM_SetCursor_Plane(_THIS, GAL_Surface *surface, int hot_x, int hot_y
     }
     else {
         uint8_t *dst;
-        dst = vdata->cursor_buff->buff + vdata->cursor_buff->offset;
+        dst = vdata->cursor_buff->vaddr + vdata->cursor_buff->offset;
         memset (dst, 0, vdata->cursor_buff->pitch * vdata->cursor_buff->height);
     }
 
@@ -3549,7 +3556,7 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
     }
 
     surface->pitch = surface_buffer->pitch;
-    surface->pixels = surface_buffer->buff + surface_buffer->offset;
+    surface->pixels = surface_buffer->vaddr + surface_buffer->offset;
     surface->flags |= GAL_HWSURFACE;
     surface->hwdata = (struct private_hwdata *)surface_buffer;
 
@@ -3576,7 +3583,7 @@ static void DRM_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
     if (vdata->driver) {
         surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
         if (surface_buffer) {
-            if (surface_buffer->buff)
+            if (surface_buffer->vaddr)
                 vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
             vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
         }
@@ -3718,7 +3725,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     GAL_ShadowSurfaceHeader* hdr;
     if (this->hidden->shadow_screen->flags & GAL_HWSURFACE) {
         hdr = (GAL_ShadowSurfaceHeader*)
-            ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
+            ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->vaddr;
     }
     else {
         hdr = (GAL_ShadowSurfaceHeader*)
@@ -3769,60 +3776,63 @@ static BOOL DRM_WaitVBlank(_THIS)
 
 static BOOL DRM_SyncUpdate(_THIS)
 {
+    DrmVideoData *vdata = vdata;
     BOOL retval = FALSE;
     RECT* dirty_rc;
-    RECT bound;
 
 #ifndef _MGSCHEMA_COMPOSITING
-    if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
-        sem_wait(this->hidden->update_lock);
+    if (vdata->dbl_buff && vdata->update_lock != SEM_FAILED) {
+        sem_wait(vdata->update_lock);
     }
 #endif
 
 #if IS_SHAREDFB_SCHEMA_PROCS
     GAL_ShadowSurfaceHeader* hdr;
-    if (this->hidden->shadow_screen->flags & GAL_HWSURFACE) {
-        hdr = (GAL_ShadowSurfaceHeader*)
-            ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
+    if (vdata->shadow_screen->flags & GAL_HWSURFACE) {
+        hdr = (GAL_ShadowSurfaceHeader *)
+            ((DrmSurfaceBuffer*)vdata->shadow_screen->hwdata)->vaddr;
     }
     else {
-        hdr = (GAL_ShadowSurfaceHeader*)
-            ((uint8_t*)this->hidden->shadow_screen->pixels -
-            this->hidden->shadow_screen->pixels_off);
+        hdr = (GAL_ShadowSurfaceHeader *)
+            ((uint8_t*)vdata->shadow_screen->pixels -
+            vdata->shadow_screen->pixels_off);
     }
     dirty_rc = &hdr->dirty_rc;
 #else
-    dirty_rc = &this->hidden->dirty_rc;
+    dirty_rc = &vdata->dirty_rc;
 #endif
 
-    if (IsRectEmpty (dirty_rc))
+    if (IsRectEmpty(dirty_rc))
         goto ret;
 
-    bound = *dirty_rc;
+    GAL_Rect dirty_rect = { dirty_rc->left, dirty_rc->top,
+        RECTWP(dirty_rc), RECTHP(dirty_rc) };
 
-    if (this->hidden->shadow_screen) {
-        update_real_screen_helper(this);
+    if (vdata->shadow_screen) {
+        update_real_screen_helper(this, &dirty_rect);
     }
 
     refresh_cursor(this);
 
-    if (this->hidden->driver && this->hidden->driver_ops->flush_driver) {
-        this->hidden->driver_ops->flush_driver(this->hidden->driver);
+    if (vdata->driver && vdata->driver_ops->flush) {
+        DrmSurfaceBuffer *real_buff;
+        real_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
+        vdata->driver_ops->flush(vdata->driver,
+                real_buff, &dirty_rect);
+    }
+    else if (vdata->dirty_fb_ok) {
+        drmModeClip clip = { dirty_rc->left, dirty_rc->top,
+            dirty_rc->right, dirty_rc->bottom };
+        drmModeDirtyFB(vdata->dev_fd,
+                vdata->scanout_buff_id, &clip, 1);
     }
 
-    if (this->hidden->dirty_fb_ok) {
-        drmModeClip clip = { bound.left, bound.top,
-            bound.right, bound.bottom };
-        drmModeDirtyFB(this->hidden->dev_fd,
-                this->hidden->scanout_buff_id, &clip, 1);
-    }
-
-    SetRectEmpty (dirty_rc);
+    SetRectEmpty(dirty_rc);
 
 ret:
 #ifndef _MGSCHEMA_COMPOSITING
-    if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
-        sem_post (this->hidden->update_lock);
+    if (vdata->dbl_buff && vdata->update_lock != SEM_FAILED) {
+        sem_post(vdata->update_lock);
     }
 #endif
 
@@ -3845,7 +3855,7 @@ static BOOL DRM_SyncUpdateAsync(_THIS)
     GAL_ShadowSurfaceHeader* hdr;
     if (this->hidden->shadow_screen->flags & GAL_HWSURFACE) {
         hdr = (GAL_ShadowSurfaceHeader*)
-            ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->buff;
+            ((DrmSurfaceBuffer*)this->hidden->shadow_screen->hwdata)->vaddr;
     }
     else {
         hdr = (GAL_ShadowSurfaceHeader*)
@@ -4196,7 +4206,7 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer_from_dma(DrmVideoData* vdata,
     surface_buffer->name = 0;
     surface_buffer->fb_id = 0;
     surface_buffer->size = size;
-    surface_buffer->buff = vdata->dma_bufs_map->list[idx].address;
+    surface_buffer->vaddr = vdata->dma_bufs_map->list[idx].address;
     return surface_buffer;
 
 error:
