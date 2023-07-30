@@ -3776,7 +3776,7 @@ static BOOL DRM_WaitVBlank(_THIS)
 
 static BOOL DRM_SyncUpdate(_THIS)
 {
-    DrmVideoData *vdata = vdata;
+    DrmVideoData *vdata = this->hidden;
     BOOL retval = FALSE;
     RECT* dirty_rc;
 
