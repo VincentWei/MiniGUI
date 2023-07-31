@@ -2731,6 +2731,9 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         if (real_buffer && real_buffer->dma_buf &&
                 drm_map_buffer_via_dmabuf(vdata, real_buffer)) {
             _WRN_PRINTF("Cannot map real screen buffer via DMA-BUF\n");
+        }
+
+        if (real_buffer->vaddr == NULL) {
             vdata->driver_ops->map_buffer(vdata->driver, real_buffer);
         }
     }
