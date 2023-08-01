@@ -122,6 +122,7 @@ typedef struct _TABBEDTEXTOUT_CTXT
     int line_height;
 
     int x, y;
+    int last_x, last_y;
     int advance;
 
     BOOL only_extent;
@@ -161,9 +162,15 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
             if (!ctxt->only_extent) {
                 int bkmode = ctxt->pdc->bkmode;
                 ctxt->pdc->bkmode = BM_TRANSPARENT;
+#if 0
                 _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                         (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                         ctxt->x, ctxt->y, &adv_x, &adv_y);
+#else
+                _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                        ctxt->last_x, ctxt->last_y, &adv_x, &adv_y);
+#endif
                 ctxt->pdc->bkmode = bkmode;
             }
             adv_x = adv_y = 0;
@@ -187,6 +194,8 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
             break;
     }
 
+    ctxt->last_x = ctxt->x;
+    ctxt->last_y = ctxt->y;
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
@@ -209,6 +218,7 @@ typedef struct _TABBEDTEXTOUTEX_CTXT
 
     /* para for current char. */
     int x, y;
+    int last_x, last_y;
     int advance;
 } TABBEDTEXTOUTEX_CTXT;
 
@@ -250,9 +260,15 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
         case ACHAR_BASIC_VOWEL: {
             int bkmode = ctxt->pdc->bkmode;
             ctxt->pdc->bkmode = BM_TRANSPARENT;
+#if 0
             _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
+#else
+            _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    ctxt->last_x, ctxt->last_y, &adv_x, &adv_y);
+#endif
             ctxt->pdc->bkmode = bkmode;
             adv_x = adv_y = 0;
             break;
@@ -269,6 +285,8 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
         }
     }
 
+    ctxt->last_x = ctxt->x;
+    ctxt->last_y = ctxt->y;
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
@@ -293,6 +311,8 @@ int _gdi_tabbed_text_out (PDC pdc, int x, int y,
 
     ctxt.x = x;
     ctxt.y = y;
+    ctxt.last_x = x;
+    ctxt.last_y = y;
     ctxt.advance = 0;
     ctxt.only_extent = only_extent;
 
@@ -437,6 +457,8 @@ static int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
 
     ctxt.x = x;
     ctxt.y = y;
+    ctxt.last_x = x;
+    ctxt.last_y = y;
     ctxt.advance = 0;
 
     /* init the tab relative info.*/
@@ -593,6 +615,7 @@ static int get_tabbed_text_extent_point_for_bidi(HDC hdc,
 
         int adv_x = 0, adv_y = 0;
         switch (achar_type & ACHARTYPE_BASIC_MASK) {
+            case ACHAR_BASIC_VOWEL:
             case ACHAR_BASIC_ZEROWIDTH:
             case ACHAR_BASIC_CTRL1:
             case ACHAR_BASIC_CTRL2:
@@ -715,6 +738,7 @@ int GUIAPI GetTabbedTextExtentPoint (HDC hdc, const char* text,
             gv = GetGlyphValueAlt(log_font, ach);
 
             switch (char_type & ACHARTYPE_BASIC_MASK) {
+                case ACHAR_BASIC_VOWEL:
                 case ACHAR_BASIC_ZEROWIDTH:
                 case ACHAR_BASIC_CTRL1:
                 case ACHAR_BASIC_CTRL2:
@@ -792,6 +816,7 @@ int GUIAPI GetTabbedACharsExtentPointEx(HDC hdc,
 
         int adv_x = 0, adv_y = 0;
         switch (achar_type & ACHARTYPE_BASIC_MASK) {
+            case ACHAR_BASIC_VOWEL:
             case ACHAR_BASIC_ZEROWIDTH:
             case ACHAR_BASIC_CTRL1:
             case ACHAR_BASIC_CTRL2:

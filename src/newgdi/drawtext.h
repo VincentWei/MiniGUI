@@ -131,6 +131,7 @@ typedef struct _DRAWTEXTEX2_CTXT
     int line_height;
 
     int x, y;
+    int last_x, last_y;
     int advance;
 
     int nFormat;
