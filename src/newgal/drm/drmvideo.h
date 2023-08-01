@@ -53,10 +53,12 @@
 #ifndef _MGSCHEMA_COMPOSITING
 #include <fcntl.h>           /* For O_* constants */
 #include <sys/stat.h>        /* For mode constants */
+#endif
+
+#include <pthread.h>
 #include <semaphore.h>
 
-#define SEM_UPDATE_LOCK     "mginit-drm-update"
-#endif
+#define SEM_UPDATE_LOCK     "minigui-drm-update"
 
 /* Hidden "this" pointer for the video functions */
 #define _THIS   GAL_VideoDevice *this

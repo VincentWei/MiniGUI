@@ -2461,38 +2461,56 @@ static void DRM_OnAfterUpdate(_THIS)
 #endif
 
 #ifdef _MGSCHEMA_COMPOSITING
-static void refresh_cursor(_THIS)
+static inline int boxleft (_THIS)
+{
+    if (this->hidden->cursor == NULL)
+        return -100;
+    return this->hidden->csr_x - this->hidden->hot_x;
+}
+
+static inline int boxtop (_THIS)
+{
+    if (this->hidden->cursor == NULL)
+        return -100;
+    return this->hidden->csr_y - this->hidden->hot_y;
+}
+
+static void refresh_cursor(_THIS, const GAL_Rect *dirty_rect)
 {
     if (this->hidden->cursor && !this->hidden->cursor_buff) {
         RECT csr_rc, eff_rc;
-        csr_rc.left = boxleft (this);
-        csr_rc.top = boxtop (this);
+        csr_rc.left = boxleft(this);
+        csr_rc.top = boxtop(this);
         csr_rc.right = csr_rc.left + CURSORWIDTH;
         csr_rc.bottom = csr_rc.top + CURSORHEIGHT;
 
-        if (IntersectRect (&eff_rc, &csr_rc, &bound)) {
+        RECT dirty_rc = { dirty_rect->x, dirty_rect->y,
+            dirty_rect->x + dirty_rect->w, dirty_rect->y + dirty_rect->h };
+
+        if (IntersectRect(&eff_rc, &csr_rc, &dirty_rc)) {
             GAL_Rect src_rect, dst_rect;
             src_rect.x = eff_rc.left - csr_rc.left;
             src_rect.y = eff_rc.top - csr_rc.top;
-            src_rect.w = RECTW (eff_rc);
-            src_rect.h = RECTH (eff_rc);
+            src_rect.w = RECTW(eff_rc);
+            src_rect.h = RECTH(eff_rc);
 
             dst_rect.x = eff_rc.left;
             dst_rect.y = eff_rc.top;
             dst_rect.w = src_rect.w;
             dst_rect.h = src_rect.h;
-            GAL_SetupBlitting (this->hidden->cursor,
+            GAL_SetupBlitting(this->hidden->cursor,
                     this->hidden->real_screen, 0);
-            GAL_BlitSurface (this->hidden->cursor, &src_rect,
+            GAL_BlitSurface(this->hidden->cursor, &src_rect,
                     this->hidden->real_screen, &dst_rect);
-            GAL_CleanupBlitting (this->hidden->cursor,
+            GAL_CleanupBlitting(this->hidden->cursor,
                     this->hidden->real_screen);
         }
     }
 }
 #else
-static inline void refresh_cursor(_THIS) {
+static inline void refresh_cursor(_THIS, const GAL_Rect *dirty_rect) {
     (void)this;
+    (void)dirty_rect;
 }
 #endif  /* _MGSCHEMA_COMPOSITING */
 
@@ -2528,7 +2546,7 @@ static void update_real_screen_helper(_THIS, const GAL_Rect *dirty_rect)
         update_real_screen_memcpy(this, dirty_rect);
     }
 
-    refresh_cursor(this);
+    refresh_cursor(this, dirty_rect);
 
 #if 0 // def _DEBUG
     double elapsed = get_elapsed_seconds(&ts_start, NULL);
@@ -3058,7 +3076,7 @@ static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
 
     if (vdata->driver_ops && vdata->driver_ops->create_buffer_from_prime_fd) {
         surface_buffer = vdata->driver_ops->create_buffer_from_prime_fd(
-                vdata->driver, prime_fd, mapsize);
+                vdata->driver, prime_fd, mapsize, 0, 0, 0, 0, 0);
         if (surface_buffer == NULL) {
             _ERR_PRINTF ("NEWGAL>DRM: failed to create buffer from prime fd: "
                     "%d!\n", prime_fd);
@@ -3255,20 +3273,6 @@ static int DRM_MoveCursor_Plane(_THIS, int x, int y)
     }
 
     return retval;
-}
-
-static inline int boxleft (_THIS)
-{
-    if (this->hidden->cursor == NULL)
-        return -100;
-    return this->hidden->csr_x - this->hidden->hot_x;
-}
-
-static inline int boxtop (_THIS)
-{
-    if (this->hidden->cursor == NULL)
-        return -100;
-    return this->hidden->csr_y - this->hidden->hot_y;
 }
 
 static int DRM_SetCursor_SW (_THIS, GAL_Surface *surface, int hot_x, int hot_y)
@@ -3815,7 +3819,7 @@ static BOOL DRM_SyncUpdate(_THIS)
         update_real_screen_helper(this, &dirty_rect);
     }
 
-    refresh_cursor(this);
+    refresh_cursor(this, &dirty_rect);
 
     if (vdata->driver && vdata->driver_ops->flush) {
         DrmSurfaceBuffer *real_buff;
