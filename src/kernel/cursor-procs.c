@@ -1169,7 +1169,6 @@ void kernel_ShowCursorForGDI (BOOL fShow, void* pdc)
         GAL_SyncUpdate (cur_pdc->surface);
     }
 
-done:
     /* Since 5.0.13 */
     if (fShow) {
         GAL_UnlockSurface(cur_pdc->surface);

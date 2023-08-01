@@ -48,6 +48,7 @@
 #define _GAL_fbvideo_h
 
 #include <pthread.h>
+#include <semaphore.h>
 #include <sys/types.h>
 #include <termios.h>
 #include <linux/fb.h>
