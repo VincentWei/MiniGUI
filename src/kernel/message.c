@@ -955,6 +955,14 @@ checkagain:
 
         goto checkagain;
     }
+    else {
+        /* no message, wait again. */
+        if (pMsgQueue->OnIdle && !pMsgQueue->OnIdle (pMsgQueue, FALSE)) {
+            handle_idle_message (pMsgQueue);
+        }
+
+        goto checkagain;
+    }
 #else   /* defined _MGHAVE_VIRTUAL_WINDOW */
     /* no message, idle */
     if (bWait) {
@@ -963,6 +971,11 @@ checkagain:
             handle_idle_message (pMsgQueue);
         }
         goto checkagain;
+    }
+    else {
+        if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+            handle_idle_message (pMsgQueue);
+        }
     }
 #endif  /* not defined _MGHAVE_VIRTUAL_WINDOW */
 
