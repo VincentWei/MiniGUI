@@ -516,6 +516,8 @@ do_glyph:
             _txt.pdc         = pdc;
             _txt.x           = 0;
             _txt.y           = 0;
+            _txt.last_x      = 0;
+            _txt.last_y      = 0;
             _txt.advance     = 0;
             _txt.nFormat     = ctxt->nFormat;
             _txt.only_extent = TRUE;
