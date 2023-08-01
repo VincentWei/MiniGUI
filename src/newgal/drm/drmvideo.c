@@ -2480,7 +2480,8 @@ static inline int boxtop (_THIS)
 
 static void refresh_cursor(_THIS, const GAL_Rect *dirty_rect)
 {
-    if (this->hidden->cursor && !this->hidden->cursor_buff) {
+    if (this->hidden->cursor && this->hidden->cursor->pixels &&
+            !this->hidden->cursor_buff) {
         RECT csr_rc, eff_rc;
         csr_rc.left = boxleft(this);
         csr_rc.top = boxtop(this);
@@ -2557,6 +2558,13 @@ static void update_real_screen_helper(_THIS, const GAL_Rect *dirty_rect)
 #endif
 }
 
+#define retry_syscall_for_eintr(expression)             \
+   (__extension__                                       \
+     ({ long int __result;                              \
+        do __result = (long int) (expression);          \
+        while (__result == -1L && errno == EINTR);      \
+        __result; }))
+
 static void* task_do_update(void *data)
 {
     _THIS = data;
@@ -2610,7 +2618,7 @@ static void* task_do_update(void *data)
         vdata->frames++;
 #endif
 
-        sem_wait(vdata->update_lock);
+        retry_syscall_for_eintr(sem_wait(vdata->update_lock));
         if (RECTH(vdata->update_rect)) {
             GAL_Rect dirty_rect = {
                 vdata->update_rect.left,
@@ -2674,7 +2682,7 @@ static int create_async_updater(_THIS)
         return -1;
     }
 
-    sem_wait(&this->hidden->sync_sem);
+    retry_syscall_for_eintr(sem_wait(&this->hidden->sync_sem));
     pthread_attr_destroy(&attr);
 
     return this->hidden->updater_ready ? 0 : -1;
@@ -2697,7 +2705,7 @@ static void cancel_async_updater(_THIS)
 static int DRM_LockHWSurface(_THIS, GAL_Surface *surface)
 {
     if (surface == this->screen && this->hidden->updater_ready) {
-        sem_wait(this->hidden->update_lock);
+        retry_syscall_for_eintr(sem_wait(this->hidden->update_lock));
         return 0;
     }
 
@@ -3186,8 +3194,7 @@ static int DRM_MoveCursor(_THIS, int x, int y)
 {
     int retval = -1;
 
-    if (this->hidden->csr_x != x ||
-             this->hidden->csr_y != y) {
+    if (this->hidden->csr_x != x || this->hidden->csr_y != y) {
 
         this->hidden->csr_x = x;
         this->hidden->csr_y = y;
@@ -3727,7 +3734,7 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     RECT bound;
 
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
-        sem_wait (this->hidden->update_lock);
+        retry_syscall_for_eintr(sem_wait(this->hidden->update_lock));
     }
 
 #if IS_SHAREDFB_SCHEMA_PROCS
@@ -3787,11 +3794,9 @@ static BOOL DRM_SyncUpdate(_THIS)
     BOOL retval = FALSE;
     RECT* dirty_rc;
 
-#ifndef _MGSCHEMA_COMPOSITING
     if (vdata->dbl_buff && vdata->update_lock != SEM_FAILED) {
-        sem_wait(vdata->update_lock);
+        retry_syscall_for_eintr(sem_wait(vdata->update_lock));
     }
-#endif
 
 #if IS_SHAREDFB_SCHEMA_PROCS
     GAL_ShadowSurfaceHeader* hdr;
@@ -3842,11 +3847,9 @@ static BOOL DRM_SyncUpdate(_THIS)
     }
 
 ret:
-#ifndef _MGSCHEMA_COMPOSITING
     if (vdata->dbl_buff && vdata->update_lock != SEM_FAILED) {
         sem_post(vdata->update_lock);
     }
-#endif
 
     return retval;
 }
@@ -3858,7 +3861,7 @@ static BOOL DRM_SyncUpdateAsync(_THIS)
     RECT bound;
 
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
-        sem_wait (this->hidden->update_lock);
+        retry_syscall_for_eintr(sem_wait(this->hidden->update_lock));
     }
 
 #if IS_SHAREDFB_SCHEMA_PROCS
