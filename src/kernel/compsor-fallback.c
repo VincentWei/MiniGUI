@@ -228,6 +228,7 @@ static void composite_wallpaper_rect (CompositorCtxt* ctxt,
         }
     }
     else {
+        SelectClipRect (HDC_SCREEN_SYS, dirty_rc);
         SetBrushColor (HDC_SCREEN_SYS,
             GetWindowElementPixelEx (HWND_DESKTOP, HDC_SCREEN_SYS,
                 WE_BGC_DESKTOP));

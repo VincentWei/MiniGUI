@@ -240,8 +240,10 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
         req.len_data = strlen (SYSSF_WALLPAPER_PATTER) + 1;
 
         if ((ClientRequestEx2 (&req, NULL, 0, -1,
-                &info, sizeof (SHAREDSURFINFO), &fd) < 0) || (fd < 0))
+                &info, sizeof (SHAREDSURFINFO), &fd) < 0) || (fd < 0)) {
+            _WRN_PRINTF ("creating an empty wallpaper pattern surface\n");
             goto empty;
+        }
 
         _DBG_PRINTF ("REQID_GETSHAREDSURFACE: size (%lu), flags (0x%x), fd: %d\n",
                     info.size, info.flags, fd);
@@ -253,7 +255,6 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
     }
 
 empty:
-    _DBG_PRINTF ("creating an empty wallpaper pattern surface\n");
     if (IsServer()) {
         return GAL_CreateRGBSurface (GAL_SWSURFACE, 0, 0,
                     screen->format->BitsPerPixel,
