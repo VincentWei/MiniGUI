@@ -226,7 +226,7 @@ static int iso8859_6_conv_from_uc32 (Uchar32 wc, unsigned char* mchar)
 }
 #endif
 
-/* must attetion the para s is arabic chv value.*/
+#if 0
 static int is_arabic_char_vowel(Uint8 c)
 {
 
@@ -240,6 +240,7 @@ static int is_arabic_char_vowel(Uint8 c)
     */
     return 0;
 }
+#endif
 
 /* ISO8859-6 charset vowel relative define and judge */
 #define ISARABIC_VOWEL(s) ((s >= FATHATAN) && (s <= SUKUN))
@@ -469,9 +470,12 @@ static int iso8859_6_len_first_char (const unsigned char* mstr, int len)
 
 static unsigned int iso8859_6_char_type (Achar32 chv)
 {
+    chv = REAL_ACHAR(chv);
+#if 1
+    return sb_char_type(chv);
+#else
     unsigned int ch_type = ACHAR_BASIC_UNKNOWN;
 
-    chv = REAL_ACHAR(chv);
     if (is_arabic_char_vowel (chv)) {  /* is vowel */
         ch_type = ACHAR_BASIC_VOWEL;
     }
@@ -480,6 +484,7 @@ static unsigned int iso8859_6_char_type (Achar32 chv)
     }
 
     return ch_type;
+#endif
 }
 
 static BidiType __mg_iso8859_6_bidi_char_type_map[] = {
