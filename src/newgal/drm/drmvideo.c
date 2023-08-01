@@ -1287,6 +1287,9 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
             device->hidden->min_pixels_using_hwaccl = 4096;
         }
 
+#if IS_COMPOSITING_SCHEMA
+        device->hidden->dbl_buff = 1;
+#else
         char tmp [8];
         if (GetMgEtcValue ("drm", "double_buffering", tmp, 8) < 0) {
             device->hidden->dbl_buff = 0;
@@ -1298,6 +1301,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         else {
             device->hidden->dbl_buff = 0;
         }
+#endif
 
         if (device->hidden->dbl_buff) {
             mode_t old_mask = umask (0000);
@@ -1341,7 +1345,9 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
 #endif  /* IS_COMPOSITING_SCHEMA */
 
     device->UpdateRects = DRM_UpdateRects;
+#if !IS_COMPOSITING_SCHEMA
     device->SyncUpdate = DRM_SyncUpdate;
+#endif
     device->VideoInit = DRM_VideoInit;
     device->ListModes = DRM_ListModes;
     device->SetColors = DRM_SetColors;
@@ -1711,12 +1717,8 @@ static void cancel_async_updater(_THIS);
 
 static void DRM_VideoQuit(_THIS)
 {
-    if (this->screen->pixels != NULL) {
-        this->screen->pixels = NULL;
-    }
-
-#if IS_SHAREDFB_SCHEMA_PROCS
-    if (mgIsServer)
+#ifdef _MGRM_PROCESSES
+    if (mgIsServer) {
 #endif
         cancel_async_updater(this);
 
@@ -1724,14 +1726,15 @@ static void DRM_VideoQuit(_THIS)
             GAL_FreeSurface(this->hidden->shadow_screen);
         }
 
-#ifndef _MGSCHEMA_COMPOSITING
         if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
-            if (sem_unlink (SEM_UPDATE_LOCK)) {
+            if (sem_unlink(SEM_UPDATE_LOCK)) {
                 _ERR_PRINTF ("Failed to unlink the update lock semaphore: %s\n",
                         strerror (errno));
             }
         }
-#endif  /* not defined _MGSCHEMA_COMPOSITING */
+#ifdef _MGRM_PROCESSES
+    }
+#endif
 
 #if 0   /* test code */
 #ifdef _MBSCHEMA_COMPOSITING
@@ -2752,6 +2755,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         }
 
         if (real_buffer->vaddr == NULL) {
+            _WRN_PRINTF("calling driver_ops->map_buffer()\n");
             vdata->driver_ops->map_buffer(vdata->driver, real_buffer);
         }
     }
@@ -3722,11 +3726,9 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     RECT* dirty_rc;
     RECT bound;
 
-#if 0 // ndef _MGSCHEMA_COMPOSITING
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_wait (this->hidden->update_lock);
     }
-#endif
 
 #if IS_SHAREDFB_SCHEMA_PROCS
     GAL_ShadowSurfaceHeader* hdr;
@@ -3757,11 +3759,9 @@ static void DRM_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
     }
 
     *dirty_rc = bound;
-#if 0 // ndef _MGSCHEMA_COMPOSITING
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_post (this->hidden->update_lock);
     }
-#endif
 }
 
 static BOOL DRM_WaitVBlank(_THIS)
@@ -3812,8 +3812,15 @@ static BOOL DRM_SyncUpdate(_THIS)
     if (IsRectEmpty(dirty_rc))
         goto ret;
 
-    GAL_Rect dirty_rect = { dirty_rc->left, dirty_rc->top,
-        RECTWP(dirty_rc), RECTHP(dirty_rc) };
+    RECT real_scrrc = { 0, 0, this->hidden->real_screen->w,
+        this->hidden->real_screen->h };
+    RECT clipped = *dirty_rc;
+    SetRectEmpty(dirty_rc);
+    if (!IntersectRect(&clipped, &clipped, &real_scrrc))
+        goto ret;
+
+    GAL_Rect dirty_rect = { clipped.left, clipped.top,
+        RECTW(clipped), RECTH(clipped) };
 
     if (vdata->shadow_screen) {
         update_real_screen_helper(this, &dirty_rect);
@@ -3828,13 +3835,11 @@ static BOOL DRM_SyncUpdate(_THIS)
                 real_buff, &dirty_rect);
     }
     else if (vdata->dirty_fb_ok) {
-        drmModeClip clip = { dirty_rc->left, dirty_rc->top,
-            dirty_rc->right, dirty_rc->bottom };
+        drmModeClip clip = { clipped.left, clipped.top,
+            clipped.right, clipped.bottom };
         drmModeDirtyFB(vdata->dev_fd,
                 vdata->scanout_buff_id, &clip, 1);
     }
-
-    SetRectEmpty(dirty_rc);
 
 ret:
 #ifndef _MGSCHEMA_COMPOSITING
@@ -3852,11 +3857,9 @@ static BOOL DRM_SyncUpdateAsync(_THIS)
     RECT* dirty_rc;
     RECT bound;
 
-#ifndef _MGSCHEMA_COMPOSITING
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_wait (this->hidden->update_lock);
     }
-#endif
 
 #if IS_SHAREDFB_SCHEMA_PROCS
     GAL_ShadowSurfaceHeader* hdr;
@@ -3880,15 +3883,16 @@ static BOOL DRM_SyncUpdateAsync(_THIS)
     bound = *dirty_rc;
     RECT *update_rect = &this->hidden->update_rect;
     GetBoundRect(update_rect, &bound, update_rect);
+    RECT real_scrrc = { 0, 0, this->hidden->real_screen->w,
+        this->hidden->real_screen->h };
+    IntersectRect(update_rect, update_rect, &real_scrrc);
     retval = TRUE;
     SetRectEmpty(dirty_rc);
 
 ret:
-#ifndef _MGSCHEMA_COMPOSITING
     if (this->hidden->dbl_buff && this->hidden->update_lock != SEM_FAILED) {
         sem_post (this->hidden->update_lock);
     }
-#endif
     return retval;
 }
 
