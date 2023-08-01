@@ -266,11 +266,11 @@ static BOOL PCXVFB_SyncUpdate (_THIS)
 {
     RECT dirty_rc;
 
-    if (IsRectEmpty (&this->hidden->dirty_rc))
+    if (IsRectEmpty(&this->hidden->dirty_rc))
         return FALSE;
 
 #ifdef WIN32
-    win_PCXVFbLock ();
+    win_PCXVFbLock();
 #else
     shm_lock(semid);
 #endif
@@ -282,10 +282,10 @@ static BOOL PCXVFB_SyncUpdate (_THIS)
     if (dirty_rc.right == -1) dirty_rc.right = 0;
     if (dirty_rc.bottom == -1) dirty_rc.bottom = 0;
 
-    GetBoundRect (&this->hidden->dirty_rc, &dirty_rc,
+    GetBoundRect(&this->hidden->dirty_rc, &dirty_rc,
             &this->hidden->dirty_rc);
 
-    shadowScreen_BlitToReal (this);
+    shadowScreen_BlitToReal(this, NULL);
 
     this->hidden->hdr->dirty_rc_l = this->hidden->dirty_rc.left;
     this->hidden->hdr->dirty_rc_t = this->hidden->dirty_rc.top;
@@ -293,10 +293,10 @@ static BOOL PCXVFB_SyncUpdate (_THIS)
     this->hidden->hdr->dirty_rc_b = this->hidden->dirty_rc.bottom;
     this->hidden->hdr->dirty = TRUE;
 
-    SetRectEmpty (&this->hidden->dirty_rc);
+    SetRectEmpty(&this->hidden->dirty_rc);
 
 #ifdef WIN32
-    win_PCXVFbUnlock ();
+    win_PCXVFbUnlock();
 #else
     shm_unlock(semid);
 #endif

@@ -47,6 +47,7 @@
 #ifndef _GAL_fbvideo_h
 #define _GAL_fbvideo_h
 
+#include <pthread.h>
 #include <sys/types.h>
 #include <termios.h>
 #include <linux/fb.h>
@@ -95,12 +96,19 @@ struct GAL_PrivateVideoData {
     int saved_cmaplen;
     __u16 *saved_cmap;
 
-    /* Since 5.0.13, use FBIOPAN_DISPLAY if possible */
-    int nr_buffers;
-    int idx_buffer;
-    unsigned len_buffer;
-    char *buffers[2];
+    /* Since 5.0.13, async updater */
+    int             updater_ready;
+    int             update_interval;
+    RECT            update_rect;
+    pthread_t       update_thd;
+    pthread_mutex_t update_lock;
+    sem_t           sync_sem;
 
+#ifdef _DEBUG
+    struct timespec ts_start;
+    unsigned        frames;
+
+#endif
 #ifdef _MGHAVE_PCIACCESS
     int pci_accel_driver;
 #endif

@@ -231,13 +231,16 @@ void shadowScreen_UpdateRects (_THIS, int numrects, GAL_Rect *rects)
 }
 
 /* Blit dirty content from shadow surface to ultimate surface */
-int shadowScreen_BlitToReal (_THIS)
+int shadowScreen_BlitToReal (_THIS, const RECT *dirty_rc)
 {
     RECT bound;
 
     CHECK_VERSION_RETVAL (this, -1);
 
-    bound = this->hidden->dirty_rc;
+    if (dirty_rc == NULL)
+        bound = this->hidden->dirty_rc;
+    else
+        bound = *dirty_rc;
 
     if (this->hidden->real_screen) {
         GAL_Rect src_rect, dst_rect;

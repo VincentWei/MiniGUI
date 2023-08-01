@@ -67,7 +67,7 @@ extern "C" {
 int shadowScreen_SetCursor (_THIS, GAL_Surface *surface, int hot_x, int hot_y);
 int shadowScreen_MoveCursor (_THIS, int x, int y);
 void shadowScreen_UpdateRects (_THIS, int numrects, GAL_Rect *rects);
-int shadowScreen_BlitToReal (_THIS);
+int shadowScreen_BlitToReal (_THIS, const RECT *dirty_rc);
 
 #ifdef __cplusplus
 }

@@ -158,37 +158,6 @@ static void print_finfo(struct fb_fix_screeninfo *finfo)
 }
 #endif  /* FBCON_DEBUG */
 
-static void FB_UpdateRectsPanning (_THIS, int numrects, GAL_Rect *rects)
-{
-    (void)this;
-    (void)numrects;
-    (void)rects;
-    return;
-}
-
-static BOOL FB_SyncUpdatePanning (_THIS)
-{
-    currt_vinfo.yoffset = this->hidden->idx_buffer * currt_vinfo.yres;
-    if (ioctl(console_fd, FBIOPAN_DISPLAY, &currt_vinfo) < 0) {
-        _WRN_PRINTF("Failed ioctl(): FBIOPAN_DISPLAY: %m\n");
-        return FALSE;
-    }
-
-    int old = this->hidden->idx_buffer;
-    this->hidden->idx_buffer = 1 - this->hidden->idx_buffer;
-    memcpy(this->hidden->buffers[this->hidden->idx_buffer],
-        this->hidden->buffers[old], this->hidden->len_buffer);
-
-    int dummy = 0;
-    if (ioctl(console_fd, FBIO_WAITFORVSYNC, &dummy) < 0) {
-        _WRN_PRINTF("Failed ioctl(): FBIO_WAITFORVSYNC: %m\n");
-    }
-
-    this->hidden->real_screen->pixels =
-        this->hidden->buffers[this->hidden->idx_buffer];
-    return TRUE;
-}
-
 static BOOL FB_WaitVBlank(_THIS)
 {
     int dummy;
@@ -205,20 +174,22 @@ static BOOL FB_WaitVBlank(_THIS)
 
 static BOOL FB_SyncUpdate (_THIS)
 {
-    if (IsRectEmpty (&this->hidden->dirty_rc))
+    if (IsRectEmpty(&this->hidden->dirty_rc))
         return FALSE;
 
-    if (shadowScreen_BlitToReal (this) == 0) {
+    if (shadowScreen_BlitToReal(this, NULL) == 0) {
 #if defined(__TARGET_R818__)
         uintptr_t args[2];
         args[0] = (uintptr_t)this->hidden->real_screen->pixels;
-        args[0] += this->hidden->real_screen->pitch * this->hidden->dirty_rc.top;
-        args[1] = this->hidden->real_screen->pitch * RECTH(this->hidden->dirty_rc);
+        args[0] += this->hidden->real_screen->pitch *
+            this->hidden->dirty_rc.top;
+        args[1] = this->hidden->real_screen->pitch *
+            RECTH(this->hidden->dirty_rc);
         if (ioctl (console_fd, FBIO_CACHE_SYNC, args) < 0) {
-            _WRN_PRINTF ("failed to sync cache\n");
+            _WRN_PRINTF("failed to flush cache for R818\n");
         }
 #endif
-        SetRectEmpty (&this->hidden->dirty_rc);
+        SetRectEmpty(&this->hidden->dirty_rc);
         return TRUE;
     }
 
@@ -618,6 +589,164 @@ static GAL_Rect **FB_ListModes(_THIS, GAL_PixelFormat *format, Uint32 flags)
     return (GAL_Rect**) -1;
 }
 
+static void* task_do_update(void *data)
+{
+    _THIS = data;
+
+    if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)) {
+        goto error;
+    }
+
+    BOOL vbl_ok = FALSE;
+    if (FB_WaitVBlank(this)) {
+        vbl_ok = TRUE;
+    }
+
+    this->hidden->updater_ready = 1;
+    sem_post(&this->hidden->sync_sem);
+
+#ifdef _DEBUG
+    clock_gettime(CLOCK_REALTIME, &this->hidden->ts_start);
+#endif
+
+    do {
+
+        if (vbl_ok) {
+            FB_WaitVBlank(this);
+        }
+        else {
+            usleep(this->hidden->update_interval * 1000);
+        }
+
+#ifdef _DEBUG
+        this->hidden->frames++;
+#endif
+
+        pthread_mutex_lock(&this->hidden->update_lock);
+        if (RECTH(this->hidden->update_rect)) {
+            if (shadowScreen_BlitToReal(this,
+                        &this->hidden->update_rect) == 0) {
+#if defined(__TARGET_R818__)
+                uintptr_t args[2];
+                args[0] = (uintptr_t)this->hidden->real_screen->pixels;
+                args[0] += this->hidden->real_screen->pitch *
+                    this->hidden->update_rect.top;
+                args[1] = this->hidden->real_screen->pitch *
+                    RECTH(this->hidden->update_rect);
+                if (ioctl(console_fd, FBIO_CACHE_SYNC, args) < 0) {
+                    _WRN_PRINTF("failed to flush cache for R818\n");
+                }
+#endif
+            }
+            else {
+                _ERR_PRINTF("failed shadowScreen_BlitToReal()\n");
+            }
+
+            SetRectEmpty(&this->hidden->update_rect);
+        }
+        pthread_mutex_unlock(&this->hidden->update_lock);
+
+        pthread_testcancel();
+
+    } while (1);
+
+    return NULL;
+
+error:
+    sem_post(&this->hidden->sync_sem);
+    return NULL;
+}
+
+static int create_async_updater(_THIS)
+{
+    if (sem_init(&this->hidden->sync_sem, 0, 0)) {
+        _ERR_PRINTF("NEWGAL>FBCON: failed to create sync. semaphore: %m\n");
+        return -1;
+    }
+
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+#ifdef __LINUX__
+    if (geteuid() == 0) {
+        struct sched_param sp = { 99 };
+        pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+        pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+        pthread_attr_setschedparam(&attr, &sp);
+    }
+#endif
+
+    if (pthread_create(&this->hidden->update_thd, &attr,
+            task_do_update, this)) {
+        _ERR_PRINTF("NEWGAL>FBCON: failed to create update thread: %m\n");
+        return -1;
+    }
+
+    sem_wait(&this->hidden->sync_sem);
+    pthread_attr_destroy(&attr);
+
+    return this->hidden->updater_ready ? 0 : -1;
+}
+
+static void cancel_async_updater(_THIS)
+{
+    if (this->hidden->updater_ready) {
+        pthread_cancel(this->hidden->update_thd);
+        pthread_join(this->hidden->update_thd, NULL);
+#ifdef _DEBUG
+        double elapsed = get_elapsed_seconds(&this->hidden->ts_start, NULL);
+        _DBG_PRINTF("Frames per second: %f\n", this->hidden->frames / elapsed);
+#endif
+
+        sem_destroy(&this->hidden->sync_sem);
+    }
+}
+
+static int FB_LockHWSurface(_THIS, GAL_Surface *surface)
+{
+    if (surface == this->screen && this->hidden->updater_ready) {
+        pthread_mutex_lock(&this->hidden->update_lock);
+        return 0;
+    }
+
+    return -1;
+}
+
+static void FB_UnlockHWSurface(_THIS, GAL_Surface *surface)
+{
+    if (surface == this->screen && this->hidden->updater_ready) {
+        pthread_mutex_unlock(&this->hidden->update_lock);
+    }
+}
+
+static BOOL FB_SyncUpdateAsync(_THIS)
+{
+    BOOL retval = FALSE;
+    RECT* dirty_rc;
+
+    if (this->hidden->updater_ready) {
+        if (pthread_mutex_lock(&this->hidden->update_lock))
+            _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
+    }
+
+    dirty_rc = &this->hidden->dirty_rc;
+    if (IsRectEmpty(dirty_rc))
+        goto ret;
+
+    RECT bound = *dirty_rc;
+    RECT *update_rect = &this->hidden->update_rect;
+    GetBoundRect(update_rect, &bound, update_rect);
+    retval = TRUE;
+    SetRectEmpty(dirty_rc);
+
+ret:
+    if (this->hidden->updater_ready) {
+        if (pthread_mutex_unlock(&this->hidden->update_lock))
+            _ERR_PRINTF("Failed pthread_mutex_lock(): %m\n");
+    }
+
+    return retval;
+}
+
 static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
                 int width, int height, int bpp, Uint32 flags)
 {
@@ -770,6 +899,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     current->pitch = finfo.line_length;
     current->pixels = mapped_mem+mapped_offset;
 
+#if 0 /* deprecated code */
     /* Since 5.0.13, use FBIOPAN_DISPLAY if possible */
     this->hidden->nr_buffers = finfo.smem_len / (vinfo.yres * current->pitch);
     if (0 && this->hidden->nr_buffers > 1) {
@@ -790,6 +920,7 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
             current->pixels = this->hidden->buffers[this->hidden->idx_buffer];
         }
     }
+#endif
 
     currt_vinfo = vinfo;
     /* Set up the information for hardware surfaces */
@@ -896,17 +1027,54 @@ static GAL_Surface *FB_SetVideoMode(_THIS, GAL_Surface *current,
     else {
         this->hidden->real_screen = current;
         this->hidden->shadow_screen = NULL;
+#if 0 /* deprecated code */
         if (0 && this->hidden->nr_buffers > 1) {
             this->UpdateRects = FB_UpdateRectsPanning;
             this->SyncUpdate = FB_SyncUpdatePanning;
         }
+#endif
     }
 
     if (FB_WaitVBlank(this)) {
         this->WaitVBlank = FB_WaitVBlank;
     }
     else {
-        _WRN_PRINTF("The FBCon device does not support VSync.\n");
+        _WRN_PRINTF("The FBCon device does not support WaitVBlank.\n");
+    }
+
+    if (this->hidden->shadow_screen) {
+        char tmp[8];
+        int async_update;
+        if (GetMgEtcValue ("fbcon", "async_update", tmp, sizeof(tmp)) < 0) {
+                async_update = 0;
+        }
+        else if (strcasecmp(tmp, "true") == 0 ||
+                strcasecmp(tmp, "yes") == 0) {
+            async_update = 1;
+        }
+        else {
+            async_update = 0;
+        }
+
+        if (async_update) {
+            create_async_updater(this);
+
+            if (this->hidden->updater_ready) {
+                if (GetMgEtcIntValue("fbcon", "update_interval",
+                            &this->hidden->update_interval) < 0) {
+                    this->hidden->update_interval = 20;
+                }
+                else if (this->hidden->update_interval < 0 ||
+                        this->hidden->update_interval > 50) {
+                    this->hidden->update_interval = 20;
+                }
+
+                current->flags |= GAL_ASYNCBLIT;
+                this->LockHWSurface = FB_LockHWSurface;
+                this->UnlockHWSurface = FB_UnlockHWSurface;
+                this->SyncUpdate = FB_SyncUpdateAsync;
+            }
+        }
     }
 
     /* We're done */
@@ -1344,6 +1512,8 @@ static void FB_VideoQuit(_THIS)
     }
 #endif
 
+    cancel_async_updater(this);
+
 #ifdef _MGRM_PROCESSES
     if (mgIsServer && this->screen) {
 #else
@@ -1421,4 +1591,37 @@ static void FB_VideoQuit(_THIS)
         sigma8654_hdmi_quit();
 #endif
 }
+
+#if 0 /* deprecated code */
+static void FB_UpdateRectsPanning (_THIS, int numrects, GAL_Rect *rects)
+{
+    (void)this;
+    (void)numrects;
+    (void)rects;
+    return;
+}
+
+static BOOL FB_SyncUpdatePanning (_THIS)
+{
+    currt_vinfo.yoffset = this->hidden->idx_buffer * currt_vinfo.yres;
+    if (ioctl(console_fd, FBIOPAN_DISPLAY, &currt_vinfo) < 0) {
+        _WRN_PRINTF("Failed ioctl(): FBIOPAN_DISPLAY: %m\n");
+        return FALSE;
+    }
+
+    int old = this->hidden->idx_buffer;
+    this->hidden->idx_buffer = 1 - this->hidden->idx_buffer;
+    memcpy(this->hidden->buffers[this->hidden->idx_buffer],
+        this->hidden->buffers[old], this->hidden->len_buffer);
+
+    int dummy = 0;
+    if (ioctl(console_fd, FBIO_WAITFORVSYNC, &dummy) < 0) {
+        _WRN_PRINTF("Failed ioctl(): FBIO_WAITFORVSYNC: %m\n");
+    }
+
+    this->hidden->real_screen->pixels =
+        this->hidden->buffers[this->hidden->idx_buffer];
+    return TRUE;
+}
+#endif
 
