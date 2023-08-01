@@ -973,7 +973,7 @@ checkagain:
         goto checkagain;
     }
     else {
-        if (!pMsgQueue->OnIdle (pMsgQueue, TRUE)) {
+        if (!pMsgQueue->OnIdle (pMsgQueue, FALE)) {
             handle_idle_message (pMsgQueue);
         }
     }
