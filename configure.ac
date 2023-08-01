@@ -95,7 +95,7 @@ message_string="no"
 osname="unspecified"
 runtime_mode="procs"
 compositing_schema="yes"
-virtual_window="no"
+virtual_window="yes"
 use_shmopen="no"
 mgslice_use_fallback="no"
 
