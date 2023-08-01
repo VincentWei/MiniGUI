@@ -960,8 +960,6 @@ checkagain:
         if (pMsgQueue->OnIdle && !pMsgQueue->OnIdle (pMsgQueue, FALSE)) {
             handle_idle_message (pMsgQueue);
         }
-
-        goto checkagain;
     }
 #else   /* defined _MGHAVE_VIRTUAL_WINDOW */
     /* no message, idle */
