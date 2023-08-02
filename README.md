@@ -72,7 +72,7 @@ It greatly reduces the size and resource consumption of the entire solution, imp
 [HybridOS] is another large open source project initiated by FMSoft.
 It is an open source operating system designed for embedded/AIoT devices and cloud computing environment.
 
-HybridOS provides the complete software stack and the app framework based on HVML for embedded systems.
+HybridOS provides the complete software stack and the app framework based on [HVML] for embedded systems.
 You can easily develop your products which has rich functions and excellent expressiveness by using HybridOS.
 
 In practice, MiniGUI and the software which are used to integrated with GPU constitute the graphics stack of HybridOS.
@@ -85,13 +85,13 @@ The following chart shows the graphics stack of HybridOS:
   -----------------------------------------------
  |               MiniGUI/HVML Apps               |
  |-----------------------------------------------|
- |           |         (Graphics Stack)          |
- |           |              ---------------------|
- |           |              | hiMesa             |
- |           | hiCairo      |  ------------------|
- |           | MiniGUI      |  | EGL for MiniGUI |
- | C++ libs  | hiDRMDrivers |  | GL, GLES, VG    |
- | C libs    | libDRM       |  | GPU drivers     |
+ |          |         (Graphics Stack)           |
+ |          |                --------------------|
+ |          |               |    Mesa-HBD        |
+ |          | Cairo-HBD     |  ------------------|
+ |          | MiniGUI       |  | EGL for MiniGUI |
+ | C++ libs | HBDDRMDrivers |  | GL, GLES, VG    |
+ | C libs   | libDRM        |  | GPU drivers     |
  |-----------------------------------------------|
  |  Linux Kernel                                 |
  |            -----------------------------------|
@@ -102,10 +102,10 @@ The following chart shows the graphics stack of HybridOS:
 As shown in the chart above, the HybridOS graphics stack consists of the following software:
 
 - `libDRM` provides some user land APIs for Linux Direct Rendering Infrastructure.
-- `hiDRMDrivers` contains the drivers (user land drivers, not kernel drivers) for
+- `HBDDRMDrivers` contains the drivers (user land drivers, not kernel drivers) for
    MiniGUI DRM engine. The drivers implement the basic hardware accelerated
    2D graphics operations of various GPUs for MiniGUI.
-- `hiMesa` is the Mesa derivative for HybridOS, while Mesa is the open source
+- `Mesa-HBD` is the Mesa derivative for HybridOS, while Mesa is the open source
   implementation of OpenGL and other graphics APIs, including OpenGL ES
   (versions 1, 2, 3), OpenCL, OpenMAX, and Vulkan. It contains the following
   components:
@@ -113,12 +113,16 @@ As shown in the chart above, the HybridOS graphics stack consists of the followi
      graphics APIs.
    + The EGL implementation for MiniGUI platform.
    + The graphics drivers for various GPUs and a software driver called `swrast`.
-- `hiCairo` is the Cairo derivative for HybridOS. Cairo is a 2D vector graphics
+- `Cairo-HBD` is the Cairo derivative for HybridOS. Cairo is a 2D vector graphics
   library for Gtk. We provide support for MiniGUI backend in `hiCairo`.
 
 For more information about HybridOS, please refer to:
 
 <https://hybridos.fmsoft.cn/>
+
+For more information about HVML, please refer to:
+
+<https://hvml.fmsoft.cn/> or <https://www.hvml.org>
 
 ### Source Code Repositories
 
@@ -561,13 +565,14 @@ A brief history description of the development progress is listed as follow:
 1. May., 2021:     FMSoft released MiniGUI version 5.0.6.
 1. Jan., 2022:     FMSoft released MiniGUI version 5.0.9.
 1. Sep., 2022:     FMSoft released MiniGUI version 5.0.10.
+1. Aug., 2023:     FMSoft released MiniGUI version 5.0.14.
 
 ## AUTHORS AND COPYING
 
 The original author of MiniGUI is Vincent Wei, and now MiniGUI is maintained by FMSoft.
 For more information, please refer to <http://www.fmsoft.cn>.
 
-Copyright (C) 2002 ~ 2022, Beijing FMSoft Technologies Co., Ltd.  
+Copyright (C) 2002 ~ 2023, Beijing FMSoft Technologies Co., Ltd.  
 Copyright (C) 1998 ~ 2002, Vincent Wei
 
 This program is free software: you can redistribute it and/or modify
@@ -645,13 +650,12 @@ A: Yes, FMSoft can provide you with guaranteed commercial technical
 [FMSoft Technologies]: https://www.fmsoft.cn
 [FMSoft]: https://www.fmsoft.cn
 [HybridOS Official Site]: https://hybridos.fmsoft.cn
-[MiniGUI Official Site]: https://hvml.fmsoft.cn
+[MiniGUI Official Site]: https://minigui.fmsoft.cn
 [HVML Official Site]: https://hvml.fmsoft.cn
 [Vincent Wei]: https://github.com/VincentWei
 
-[MiniGUI]: https://github.com/VincentWei/MiniGUI
-[HybridOS]: https://github.com/FMSoftCN/HybridOS
-
+[MiniGUI]: https://github.com/VincentWei
+[HybridOS]: https://github.com/HybridOS2
 [HVML]: https://github.com/HVML
 [PurC]: https://github.com/HVML/PurC
 [xGUI Pro]: https://github.com/HVML/xGUI-Pro
