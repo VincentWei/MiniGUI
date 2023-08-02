@@ -2,7 +2,8 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
-Runmode=@MINIGUI_RUNMODE@
+runmode=@MINIGUI_RUNMODE@
+libsuffix=@MGLIB_SUFFIX@
 
 Name: MiniGUI
 Description: A mature cross-platform windowing and GUI system for embedded systems and IoT smart devices.

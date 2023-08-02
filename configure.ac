@@ -1704,12 +1704,12 @@ fi
 
 CPPFLAGS="$CPPFLAGS -D__MINIGUI_LIB__"
 
-surface_schema="shared frame buffer"
+surface_schema="shared"
 case "$runtime_mode" in
     sa)
         AC_DEFINE(_MGRM_STANDALONE, 1,
             [Define if build MiniGUI-Standalone])
-        MINIGUI_RUNMODE="sa"
+        MINIGUI_RUNMODE="standalone"
         RUNMODE_LADD="standalone/libstandalone.la"
         RUNMODE_SUBDIRS="standalone"
     ;;
@@ -1717,13 +1717,13 @@ case "$runtime_mode" in
         AC_DEFINE(_MGRM_THREADS, 1,
             [Define if build MiniGUI-Threads])
         CPPFLAGS="$CPPFLAGS -D_REENTRANT"
-        MINIGUI_RUNMODE="ths"
+        MINIGUI_RUNMODE="threads"
         virtual_window="yes"
     ;;
     *)
         AC_DEFINE(_MGRM_PROCESSES, 1,
             [Define if build MiniGUI-Processes])
-        MINIGUI_RUNMODE="procs"
+        MINIGUI_RUNMODE="processes"
         RUNMODE_LADD="server/libserver.la client/libclient.la"
         RUNMODE_SUBDIRS="server client"
         if test "x$compositing_schema" = "xyes"; then
@@ -2664,6 +2664,7 @@ if test "x$no_math" = "xno"; then
 fi
 
 DEP_LIBS="$DEP_LIBS -lpthread"
+MINIGUI_RUNMODE="$MINIGUI_RUNMODE-${surface_schema}"
 
 AC_SUBST(VIDEO_SUBDIRS)
 AC_SUBST(VIDEO_DRIVERS)
