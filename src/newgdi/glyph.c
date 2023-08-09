@@ -2935,6 +2935,105 @@ end:
     return advance;
 }
 
+int _gdi_draw_one_vowel (PDC pdc, Glyph32 glyph_value, BOOL direction,
+            int x, int y, int last_adv)
+{
+    LOGFONT* logfont;
+    DEVFONT* devfont;
+
+    BBOX bbox;
+    int advance, adv_x, adv_y;
+    GAL_Rect fg_gal_rc;
+
+    RECT rc_output;
+    RECT rc_front;
+    RECT rc_tmp;
+
+    int italic = 0;
+    int bold = 0;
+    SIZE bbx_size;
+    int flag = 0;
+    int glyph_bmptype;
+
+    y += pdc->alExtra;
+
+    rc_tmp = pdc->rc_output;
+    advance = _gdi_get_glyph_advance (pdc, glyph_value, direction,
+            x, y, &adv_x, &adv_y, &bbox);
+    if (last_adv > 0) {
+        /* Adjust position */
+        if (direction)
+            x += (last_adv - advance) >> 1;
+        else
+            x -= (last_adv - advance) >> 1;
+        advance = 0;    /* no advance */
+    }
+
+    logfont = pdc->pLogFont;
+    devfont = SELECT_DEVFONT_BY_GLYPH (logfont, glyph_value);
+
+    glyph_bmptype = devfont->font_ops->get_glyph_bmptype (logfont, devfont)
+            & DEVFONTGLYPHTYPE_MASK_BMPTYPE;
+
+    // VincentWei: only use auto bold when the weight of devfont does not
+    // match the weight of logfont.
+    if (((int)(logfont->style & FS_WEIGHT_MASK) -
+            (int)(devfont->style & FS_WEIGHT_MASK)) > FS_WEIGHT_AUTOBOLD
+            && (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP)) {
+        bold = GET_DEVFONT_SCALE (logfont, devfont);
+    }
+
+    if (logfont->style & FS_SLANT_ITALIC
+            && !(devfont->style & FS_SLANT_ITALIC)) {
+        italic = devfont->font_ops->get_font_height (logfont, devfont) >> 1;
+    }
+
+    fg_gal_rc.x = bbox.x;
+    fg_gal_rc.y = bbox.y;
+    fg_gal_rc.w = bbox.w + italic;
+    fg_gal_rc.h = bbox.h;
+
+    if (glyph_bmptype == DEVFONTGLYPHTYPE_MONOBMP
+            && (logfont->style & FS_DECORATE_OUTLINE)) {
+        fg_gal_rc.x--; fg_gal_rc.y--;
+        fg_gal_rc.w += 2; fg_gal_rc.h += 2;
+    }
+
+    rc_front.left = fg_gal_rc.x;
+    rc_front.top = fg_gal_rc.y;
+    rc_front.right = fg_gal_rc.x + fg_gal_rc.w;
+    rc_front.bottom = fg_gal_rc.y + fg_gal_rc.h;
+    rc_output = rc_front;
+
+    if (!(pdc = __mg_check_ecrgn ((HDC)pdc))) {
+        return advance;
+    }
+
+    if (!IntersectRect(&pdc->rc_output, &rc_output, &pdc->rc_output)) {
+        goto end;
+    }
+
+    if (WITHOUT_DRAWING (pdc)) goto end;
+
+    ENTER_DRAWING (pdc);
+
+    pdc->step = 1;
+    pdc->cur_ban = NULL;
+
+    /* bbox is the real glyph pixels on one scan-line. */
+    bbx_size.cx = bbox.w;
+    bbx_size.cy = bbox.h;
+
+    _gdi_direct_fillglyph (pdc, glyph_value, &fg_gal_rc, &bbx_size,
+            y - bbox.y, advance, italic, bold);
+
+    LEAVE_DRAWING (pdc);
+end:
+    pdc->rc_output = rc_tmp;
+    UNLOCK_GCRINFO (pdc);
+    return advance;
+}
+
 int _gdi_get_italic_added_width (LOGFONT* logfont)
 {
     /* FIXME: use the correct devfont for auto-italic */
@@ -2988,6 +3087,31 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
 
     if (adv_x) *adv_x = my_adv_x;
     if (adv_y) *adv_y = my_adv_y;
+
+    return advance;
+}
+
+int GUIAPI DrawVowel (HDC hdc, int x, int y, Glyph32 glyph_value,
+        int last_adv)
+{
+    int my_adv_x, my_adv_y;
+    int advance;
+    PDC pdc;
+
+    if (glyph_value == INV_GLYPH_VALUE)
+        return 0;
+
+    pdc = dc_HDC2PDC(hdc);
+    /* Transfer logical to device to screen here. */
+    coor_LP2SP (pdc, &x, &y);
+    pdc->rc_output = pdc->DevRC;
+
+    /* convert to the start point on baseline. */
+    _gdi_get_baseline_point (pdc, &x, &y);
+
+    advance = _gdi_draw_one_vowel (pdc, glyph_value,
+            (pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+            x, y, last_adv);
 
     return advance;
 }

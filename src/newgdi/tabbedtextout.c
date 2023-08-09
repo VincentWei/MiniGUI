@@ -124,6 +124,7 @@ typedef struct _TABBEDTEXTOUT_CTXT
     int x, y;
     int last_x, last_y;
     int advance;
+    int last_adv;
 
     BOOL only_extent;
 } TABBEDTEXTOUT_CTXT;
@@ -160,18 +161,18 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
 
         case ACHAR_BASIC_VOWEL:
             if (!ctxt->only_extent) {
+#if 0
                 int bkmode = ctxt->pdc->bkmode;
                 ctxt->pdc->bkmode = BM_TRANSPARENT;
-#if 0
                 _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                         (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                         ctxt->x, ctxt->y, &adv_x, &adv_y);
-#else
-                _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
-                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                        ctxt->last_x, ctxt->last_y, &adv_x, &adv_y);
-#endif
                 ctxt->pdc->bkmode = bkmode;
+#else
+                _gdi_draw_one_vowel (ctxt->pdc, glyph_value,
+                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                        ctxt->last_x, ctxt->last_y, ctxt->last_adv);
+#endif
             }
             adv_x = adv_y = 0;
             break;
@@ -196,6 +197,7 @@ static BOOL cb_tabbedtextout (void* context, Glyph32 glyph_value,
 
     ctxt->last_x = ctxt->x;
     ctxt->last_y = ctxt->y;
+    ctxt->last_adv = adv_x;
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
@@ -220,6 +222,7 @@ typedef struct _TABBEDTEXTOUTEX_CTXT
     int x, y;
     int last_x, last_y;
     int advance;
+    int last_adv;
 } TABBEDTEXTOUTEX_CTXT;
 
 static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
@@ -258,18 +261,18 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
             break;
 
         case ACHAR_BASIC_VOWEL: {
+#if 0
             int bkmode = ctxt->pdc->bkmode;
             ctxt->pdc->bkmode = BM_TRANSPARENT;
-#if 0
             _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
                     (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
                     ctxt->x, ctxt->y, &adv_x, &adv_y);
-#else
-            _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                    ctxt->last_x, ctxt->last_y, &adv_x, &adv_y);
-#endif
             ctxt->pdc->bkmode = bkmode;
+#else
+            _gdi_draw_one_vowel (ctxt->pdc, glyph_value,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    ctxt->last_x, ctxt->last_y, ctxt->last_adv);
+#endif
             adv_x = adv_y = 0;
             break;
         }
@@ -287,6 +290,7 @@ static BOOL cb_tabbedtextoutex (void* context, Glyph32 glyph_value,
 
     ctxt->last_x = ctxt->x;
     ctxt->last_y = ctxt->y;
+    ctxt->last_adv = adv_x;
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
@@ -314,6 +318,7 @@ int _gdi_tabbed_text_out (PDC pdc, int x, int y,
     ctxt.last_x = x;
     ctxt.last_y = y;
     ctxt.advance = 0;
+    ctxt.last_adv = 0;
     ctxt.only_extent = only_extent;
 
     if (!only_extent)
@@ -460,6 +465,7 @@ static int _gdi_tabbedex_text_out (PDC pdc, int x, int y,
     ctxt.last_x = x;
     ctxt.last_y = y;
     ctxt.advance = 0;
+    ctxt.last_adv = 0;
 
     /* init the tab relative info.*/
     ctxt.nTabs = nTabs;

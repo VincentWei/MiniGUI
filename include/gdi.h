@@ -12972,7 +12972,7 @@ MG_EXPORT Glyph32 GUIAPI GetGlyphValueAlt(LOGFONT* logfont, Achar32 chv);
  *         int* adv_x, int* adv_y)
  * \brief Draw a glyph.
  *
- * This function draws a glyph to the specific postion of a DC.
+ * This function draws a glyph to the specific position of a DC.
  *
  * \param hdc The device context.
  * \param x The output start x position.
@@ -12987,6 +12987,25 @@ MG_EXPORT Glyph32 GUIAPI GetGlyphValueAlt(LOGFONT* logfont, Achar32 chv);
  */
 MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
         int* adv_x, int* adv_y);
+
+/**
+ * \fn int GUIAPI DrawVowel (HDC hdc, int x, int y, Glyph32 glyph_value, \
+ *         int last_adv)
+ * \brief Draw a glyph as vowel.
+ *
+ * This function draws a glyph as a vowel of the last glyph to
+ * the specific position of a DC.
+ *
+ * \param hdc The device context.
+ * \param x The output start x position.
+ * \param y The output start y position.
+ * \param glyph_value The glyph value.
+ * \param last_adv The advance on the baseline of the last glyph.
+ *
+ * \return The advance on baseline of the vowel.
+ */
+MG_EXPORT int GUIAPI DrawVowel (HDC hdc, int x, int y, Glyph32 glyph_value,
+        int last_adv);
 
 /*
  * \fn int GUIAPI DrawGlyphString (HDC hdc, Glyph32* glyphs, int nr_glyphs,
