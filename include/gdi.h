@@ -13003,6 +13003,8 @@ MG_EXPORT int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
  * \param last_adv The advance on the baseline of the last glyph.
  *
  * \return The advance on baseline of the vowel.
+ *
+ * Since 5.0.13
  */
 MG_EXPORT int GUIAPI DrawVowel (HDC hdc, int x, int y, Glyph32 glyph_value,
         int last_adv);

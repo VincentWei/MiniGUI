@@ -146,18 +146,19 @@ static BOOL cb_drawtextex2 (void* context, Glyph32 glyph_value,
 
         case ACHAR_BASIC_VOWEL:
             if (!ctxt->only_extent) {
-#if 0
-                int bkmode = ctxt->pdc->bkmode;
-                ctxt->pdc->bkmode = BM_TRANSPARENT;
-                _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
-                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                        ctxt->x, ctxt->y, &adv_x, &adv_y);
-                ctxt->pdc->bkmode = bkmode;
-#else
-                _gdi_draw_one_vowel (ctxt->pdc, glyph_value,
-                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                        ctxt->last_x, ctxt->last_y, ctxt->last_adv);
-#endif
+                if (_gdi_if_mark_bbox_is_ok(ctxt->pdc, glyph_value)) {
+                    int bkmode = ctxt->pdc->bkmode;
+                    ctxt->pdc->bkmode = ctxt->pdc->bkmode_set;
+                    _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                            (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                            ctxt->x, ctxt->y, &adv_x, &adv_y);
+                    ctxt->pdc->bkmode = bkmode;
+                }
+                else {
+                    _gdi_draw_one_vowel (ctxt->pdc, glyph_value,
+                            (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                            ctxt->last_x, ctxt->last_y, ctxt->last_adv);
+                }
                 adv_x = adv_y = 0;
             }
             break;

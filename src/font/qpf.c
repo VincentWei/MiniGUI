@@ -287,6 +287,17 @@ static unsigned char def_smooth_bitmap [] =
 static QPF_GLYPH def_glyph = {&def_metrics, def_bitmap};
 static QPF_GLYPH def_smooth_glyph = {&def_smooth_metrics, def_smooth_bitmap};
 
+static DWORD get_feature (LOGFONT* logfont, DEVFONT* devfont,
+        enum devfont_feature feature)
+{
+    switch (feature) {
+    case DEVFONT_FEATURE_MARK_BBOX:
+        return 0;
+    }
+
+    return 0;
+}
+
 static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     if (QPFONT_INFO_P (devfont)->fm->flags & FLAG_MODE_SMOOTH)
@@ -541,6 +552,7 @@ static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
 
 /**************************** Global data ************************************/
 FONTOPS __mg_qpf_ops = {
+    get_feature,
     get_glyph_bmptype,
     get_ave_width,
     get_max_width,

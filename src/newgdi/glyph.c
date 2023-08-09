@@ -2806,6 +2806,18 @@ static void draw_glyph_lines (PDC pdc, int x1, int y1, int x2, int y2)
     }
 }
 
+BOOL _gdi_if_mark_bbox_is_ok(PDC pdc, Glyph32 gv)
+{
+    LOGFONT* logfont;
+    DEVFONT* devfont;
+
+    logfont = pdc->pLogFont;
+    devfont = SELECT_DEVFONT_BY_GLYPH (logfont, gv);
+
+    return devfont->font_ops->get_feature(logfont, devfont,
+            DEVFONT_FEATURE_MARK_BBOX) != 0;
+}
+
 int _gdi_draw_one_glyph (PDC pdc, Glyph32 glyph_value, BOOL direction,
             int x, int y, int* adv_x, int* adv_y)
 {
@@ -3091,6 +3103,7 @@ int GUIAPI DrawGlyph (HDC hdc, int x, int y, Glyph32 glyph_value,
     return advance;
 }
 
+/* XXX: an experimental API */
 int GUIAPI DrawVowel (HDC hdc, int x, int y, Glyph32 glyph_value,
         int last_adv)
 {

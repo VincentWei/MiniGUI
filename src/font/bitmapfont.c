@@ -202,6 +202,17 @@ static void destroy (GLYPHTREENODE *root)
 
 /*** device font ops ***/
 
+static DWORD get_feature (LOGFONT* logfont, DEVFONT* devfont,
+        enum devfont_feature feature)
+{
+    switch (feature) {
+    case DEVFONT_FEATURE_MARK_BBOX:
+        return 0;
+    }
+
+    return 0;
+}
+
 static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     return DEVFONTGLYPHTYPE_PRERDRBMP;
@@ -380,6 +391,7 @@ static int get_glyph_bbox (LOGFONT* logfont, DEVFONT* devfont,
 
 /**************************** Global data ************************************/
 FONTOPS __mg_bitmap_font_ops = {
+    get_feature,
     get_glyph_bmptype,
     get_ave_width,
     get_max_width,
