@@ -34,7 +34,7 @@
 
 ## Version 5.0.13
 
-On July 31, 2023, FMSoft announces the availability of MiniGUI 5.0.13,
+On Aug. 31, 2023, FMSoft announces the availability of MiniGUI 5.0.13,
 which is an enhancement release with some minor enhancements
 of MiniGUI 5.0.x.
 
@@ -48,6 +48,7 @@ In this version, we made some enhancements:
    - Add `BIDI_FLAG_NONE` and `BIDI_FLAG_LEGACY`.
 * BUGFIXING:
    - Ignore C0CTRL characters when renerding text.
+   - Support for vowels.
 
 ## Version 5.0.12
 
