@@ -116,6 +116,7 @@ typedef struct _DRAW_GLYPHS_CTXT {
     int x, y;
     int last_x, last_y;
     int advance;
+    int last_adv;
 } DRAW_GLYPHS_CTXT;
 
 static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, unsigned int char_type)
@@ -127,14 +128,15 @@ static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, unsigned int char
         adv_x = adv_y = 0;
     }
     else if (check_vowel(char_type)) {
-        int bkmode = GetBkMode (ctxt->hdc);
-        SetBkMode (ctxt->hdc, BM_TRANSPARENT);
-#if 0
-        DrawGlyph (ctxt->hdc, ctxt->x, ctxt->y, glyph_value, &adv_x, &adv_y);
-#else
-        DrawGlyph (ctxt->hdc, ctxt->last_x, ctxt->last_y, glyph_value, &adv_x, &adv_y);
-#endif
-        SetBkMode (ctxt->hdc, bkmode);
+        PDC pdc = dc_HDC2PDC(ctxt->hdc);
+        if (_gdi_if_mark_bbox_is_ok(pdc, glyph_value)) {
+            DrawGlyph (ctxt->hdc, ctxt->x, ctxt->y, glyph_value,
+                    &adv_x, &adv_y);
+        }
+        else {
+            DrawVowel (ctxt->hdc, ctxt->last_x, ctxt->last_y,
+                    glyph_value, ctxt->last_adv);
+        }
         adv_x = 0;
         adv_y = 0;
     }
@@ -145,6 +147,7 @@ static BOOL cb_draw_glyph (void* context, Glyph32 glyph_value, unsigned int char
 
     ctxt->last_x = ctxt->x;
     ctxt->last_y = ctxt->y;
+    ctxt->last_adv = adv_x;
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
@@ -157,6 +160,7 @@ typedef struct _TEXTOUT_CTXT
     int x, y;
     int last_x, last_y;
     int advance;
+    int last_adv;
     BOOL only_extent;
 } TEXTOUT_CTXT;
 
@@ -171,18 +175,19 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value,
     }
     else if (check_vowel(char_type)) {
         if (!ctxt->only_extent) {
-            int bkmode = ctxt->pdc->bkmode;
-            ctxt->pdc->bkmode = BM_TRANSPARENT;
-#if 0
-            _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                    ctxt->x, ctxt->y, &adv_x, &adv_y);
-#else
-            _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
-                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                    ctxt->last_x, ctxt->last_y, &adv_x, &adv_y);
-#endif
-            ctxt->pdc->bkmode = bkmode;
+            if (_gdi_if_mark_bbox_is_ok(ctxt->pdc, glyph_value)) {
+                int bkmode = ctxt->pdc->bkmode;
+                ctxt->pdc->bkmode = ctxt->pdc->bkmode_set;
+                _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                        ctxt->x, ctxt->y, &adv_x, &adv_y);
+                ctxt->pdc->bkmode = bkmode;
+            }
+            else {
+                _gdi_draw_one_vowel (ctxt->pdc, glyph_value,
+                        (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                        ctxt->last_x, ctxt->last_y, ctxt->last_adv);
+            }
         }
         adv_x = adv_y = 0;
     }
@@ -203,6 +208,7 @@ static BOOL cb_textout (void* context, Glyph32 glyph_value,
 
     ctxt->last_x = ctxt->x;
     ctxt->last_y = ctxt->y;
+    ctxt->last_adv = adv_x;
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
@@ -223,6 +229,7 @@ int _gdi_text_out (PDC pdc, int x, int y,
     ctxt.last_x = x;
     ctxt.last_y = y;
     ctxt.advance = 0;
+    ctxt.last_adv = 0;
     ctxt.only_extent = FALSE;
 
     _gdi_start_new_line (pdc);
@@ -280,6 +287,7 @@ int _gdi_get_text_extent (PDC pdc, const unsigned char* text, int len,
     ctxt.last_x = 0;
     ctxt.last_y = 0;
     ctxt.advance = 0;
+    ctxt.last_adv = 0;
     ctxt.only_extent = TRUE;
 
     _gdi_start_new_line (pdc);
@@ -334,6 +342,7 @@ typedef struct _TEXTOUTOMITTED_CTXT
     int x, y;
     int last_x, last_y;
     int advance;
+    int last_adv;
     Uint32 max_extent;
 } TEXTOUTOMITTED_CTXT;
 
@@ -348,18 +357,19 @@ cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int char_type)
         adv_x = adv_y = 0;
     }
     else if (check_vowel(char_type)) {
-        int bkmode = ctxt->pdc->bkmode;
-        ctxt->pdc->bkmode = BM_TRANSPARENT;
-#if 0
-        _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
-                (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                ctxt->x, ctxt->y, &adv_x, &adv_y);
-#else
-        _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
-                (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
-                ctxt->last_x, ctxt->last_y, &adv_x, &adv_y);
-#endif
-        ctxt->pdc->bkmode = bkmode;
+        if (_gdi_if_mark_bbox_is_ok(ctxt->pdc, glyph_value)) {
+            int bkmode = ctxt->pdc->bkmode;
+            ctxt->pdc->bkmode = ctxt->pdc->bkmode_set;
+            _gdi_draw_one_glyph (ctxt->pdc, glyph_value,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    ctxt->x, ctxt->y, &adv_x, &adv_y);
+            ctxt->pdc->bkmode = bkmode;
+        }
+        else {
+            _gdi_draw_one_vowel (ctxt->pdc, glyph_value,
+                    (ctxt->pdc->ta_flags & TA_X_MASK) != TA_RIGHT,
+                    ctxt->last_x, ctxt->last_y, ctxt->last_adv);
+        }
         adv_x = adv_y = 0;
     }
     else {
@@ -381,6 +391,7 @@ cb_textout_omitted (void* context, Glyph32 glyph_value, unsigned int char_type)
 
     ctxt->last_x = ctxt->x;
     ctxt->last_y = ctxt->y;
+    ctxt->last_adv = adv_x;
     ctxt->x += adv_x;
     ctxt->y += adv_y;
 
@@ -401,6 +412,7 @@ int _gdi_textout_omitted (PDC pdc, int x, int y,
     ctxt.last_x = x;
     ctxt.last_y = y;
     ctxt.advance = 0;
+    ctxt.last_adv = 0;
     ctxt.max_extent = max_extent;
 
     _gdi_start_new_line (pdc);

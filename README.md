@@ -565,7 +565,7 @@ A brief history description of the development progress is listed as follow:
 1. May., 2021:     FMSoft released MiniGUI version 5.0.6.
 1. Jan., 2022:     FMSoft released MiniGUI version 5.0.9.
 1. Sep., 2022:     FMSoft released MiniGUI version 5.0.10.
-1. Aug., 2023:     FMSoft released MiniGUI version 5.0.14.
+1. Aug., 2023:     FMSoft released MiniGUI version 5.0.13.
 
 ## AUTHORS AND COPYING
 

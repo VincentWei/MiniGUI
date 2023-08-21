@@ -255,6 +255,17 @@ compute_kernval (TTFINSTANCEINFO* ttf_inst_info)
     return kernval;
 }
 
+static DWORD get_feature (LOGFONT* logfont, DEVFONT* devfont,
+        enum devfont_feature feature)
+{
+    switch (feature) {
+    case DEVFONT_FEATURE_MARK_BBOX:
+        return 0;
+    }
+
+    return 0;
+}
+
 static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     if (logfont->style & FS_WEIGHT_BOOK)
@@ -792,6 +803,7 @@ static int is_rotatable (LOGFONT* logfont, DEVFONT* devfont, int rot_desired)
 }
 /**************************** Global data ************************************/
 FONTOPS __mg_ttf_ops = {
+    get_feature,
     get_glyph_bmptype,
     get_ave_width,
     get_max_width,

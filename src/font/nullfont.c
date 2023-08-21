@@ -66,6 +66,17 @@
 #define NUF_WIDTH   8
 #define NUF_HEIGHT  1
 
+static DWORD get_feature (LOGFONT* logfont, DEVFONT* devfont,
+        enum devfont_feature feature)
+{
+    switch (feature) {
+    case DEVFONT_FEATURE_MARK_BBOX:
+        return 0;
+    }
+
+    return 0;
+}
+
 static DWORD get_glyph_bmptype (LOGFONT* logfont, DEVFONT* devfont)
 {
     return DEVFONTGLYPHTYPE_MONOBMP;
@@ -171,6 +182,7 @@ static void unload_font_data (DEVFONT* devfont, void* data)
 }
 
 FONTOPS __mg_null_font_ops = {
+    get_feature,
     get_glyph_bmptype,
     get_ave_width,
     get_max_width,

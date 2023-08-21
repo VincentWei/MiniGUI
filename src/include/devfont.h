@@ -209,7 +209,7 @@ struct _CHARSETOPS
     /** Default character. */
     Achar32 def_char_value;
 
-    /** Whether use legacy BIDI algorithm (Since 5.0.13). */
+    /** Whether using legacy BIDI algorithm (Since 5.0.13). */
     unsigned legacy_bidi:1;
 
     /** The method to get the length of the first character. */
@@ -266,9 +266,17 @@ struct _CHARSETOPS
 
 #define DEVFONTGLYPHTYPE_MASK_BMPTYPE   0x0F
 
+enum devfont_feature {
+    DEVFONT_FEATURE_MARK_BBOX = 0,
+};
+
 /** The font operation structure. */
 struct _FONTOPS
 {
+    /** The method to get the feature value of the font (Since 5.0.13). */
+    DWORD (*get_feature) (LOGFONT* logfont, DEVFONT* devfont,
+            enum devfont_feature feature);
+
     /** The method to get the glyph bitmap type . */
     DWORD (*get_glyph_bmptype) (LOGFONT* logfont, DEVFONT* devfont);
 
