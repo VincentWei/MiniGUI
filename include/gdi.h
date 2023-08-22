@@ -1704,6 +1704,27 @@ MG_EXPORT BOOL GUIAPI IsScreenDC (HDC hdc);
  */
 MG_EXPORT BOOL GUIAPI IsWindowDC (HDC hdc);
 
+#ifdef _MGSCHEMA_COMPOSITING
+/**
+ * \fn HDC GUIAPI CreateMemDCFromSurfaceBufferFD (int fd);
+ * \brief Creates a memory DC from a file descriptor of a surface buffer.
+ *
+ * This function creates a memory DC from the specified file descriptor \a fd,
+ * which represents a surface buffer.
+ *
+ * \param fd The file descriptor which represents a surface buffer.
+ *
+ * \return The handle to a new memory DC, HDC_INVALID indicates an error.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa GetWindowSurfaceBufferFD
+ *
+ * Since 5.0.13
+ */
+MG_EXPORT HDC GUIAPI CreateMemDCFromSurfaceBufferFD (int fd);
+#endif /* _MGSCHEMA_COMPOSITING */
+
 /**
  * \fn HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags, \
  Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask,

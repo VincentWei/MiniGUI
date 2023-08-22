@@ -3391,6 +3391,29 @@ struct GAL_Surface* GetSurfaceFromDC (HDC hdc)
     return pdc->surface;
 }
 
+#ifdef _MGSCHEMA_COMPOSITING
+HDC GUIAPI CreateMemDCFromSurfaceBufferFD (int fd)
+{
+    HDC memdc = HDC_INVALID;
+    GAL_Surface* surf;
+
+    surf = GAL_AttachSharedRGBSurface (fd, 0, GAL_HWSURFACE, TRUE);
+    if (surf) {
+        memdc = CreateMemDCFromSurface (surf);
+        if (memdc == HDC_INVALID) {
+            GAL_FreeSurface(surf);
+
+            _ERR_PRINTF("failed to create memory dc from surface: %p\n", surf);
+        }
+    }
+    else {
+        _ERR_PRINTF("failed to attach to surface buffer via fd: %d\n", fd);
+    }
+
+    return memdc;
+}
+#endif /* _MGSCHEMA_COMPOSITING */
+
 HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
                 int width, int height, BOOL comp_to_parent)
 {

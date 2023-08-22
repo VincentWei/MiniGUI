@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.2.0](#version-520)
+   + [What's new in version 5.2.0](#whats-new-in-version-520)
 - [Version 5.0.13](#version-5013)
    + [What's new in version 5.0.13](#whats-new-in-version-5013)
 - [Version 5.0.12](#version-5012)
@@ -31,6 +33,17 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.2.0
+
+On Nov. 30, 2023, FMSoft announces the availability of MiniGUI 5.2.0,
+which is an mainline release with some major enhancements:
+
+* ENHANCEMENTS:
+   - Optimize NEWGAL engines: `shadow`, `drm`, and `fbcon` for large resolution.
+   - New APIs: `GetWindowSurfaceBufferFD()` and `CreateMemDCFromSurfaceBufferFD()` for compositing schema.
+* CHANGES:
+   - The operations for DRM userland driver changed.
 
 ## Version 5.0.13
 

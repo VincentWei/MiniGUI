@@ -6066,6 +6066,19 @@ error:
     return HWND_INVALID;
 }
 
+#ifdef _MGSCHEMA_COMPOSITING
+int GUIAPI GetWindowSurfaceBufferFD (HWND hWnd)
+{
+    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1);
+
+    PMAINWIN pWin = (PMAINWIN)hWnd;
+    if (pWin->surf->shared_header)
+        return pWin->surf->shared_header->fd;
+
+    return -1;
+}
+#endif /* _MGSCHEMA_COMPOSITING */
+
 BOOL GUIAPI DestroyWindow (HWND hWnd)
 {
     PCONTROL pCtrl;

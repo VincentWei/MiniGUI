@@ -7238,6 +7238,29 @@ MG_EXPORT BOOL GUIAPI SetMainWindowGestureFlags (HWND hWnd, DWORD dwFlags);
 #ifdef _MGSCHEMA_COMPOSITING
 
 /**
+ * \fn int GUIAPI GetWindowSurfaceBufferFD (HWND hwnd)
+ * \brief Gets the file descriptor of the surface buffer for a window or
+ * the main window it locates.
+ *
+ * This function gets the file descriptor of the surface buffer for
+ * the specified window if it is a main window or the main window it locates.
+ * Note that if the window is a control that has the style `WS_EX_CTRLASMAINWIN`,
+ * the window will have a separate surface buffer.
+ *
+ * \param hwnd The handle to the window.
+ *
+ * \return An integer larger than or equal to 0 for a valid file descriptor,
+ *      otherwise a negative value.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa CreateMemDCFromSurfaceBufferFD
+ *
+ * Since 5.0.13
+ */
+MG_EXPORT int GUIAPI GetWindowSurfaceBufferFD (HWND hWnd);
+
+/**
  * \fn BOOL GUIAPI SetMainWindowCompositing (HWND hWnd,
         int type, DWORD arg)
  * \brief Set the compositing type of a main window.
