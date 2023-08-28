@@ -6067,7 +6067,7 @@ error:
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
-int GUIAPI GetWindowSurfaceBufferFD (HWND hWnd)
+int GUIAPI GetWindowSharedSurfaceFD (HWND hWnd)
 {
     MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1);
 

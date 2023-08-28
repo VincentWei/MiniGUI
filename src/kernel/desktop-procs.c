@@ -55,6 +55,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "common.h"
 
@@ -1519,6 +1520,33 @@ static BOOL _cb_update_rc_nocli (void* context,
     return FALSE;
 }
 #endif /* not defined _MGSCHEMA_COMPOSITING */
+
+/* Since 5.2.0 */
+ZORDERNODE *__mg_find_znode_by_client_hwnd (int cli, HWND hwnd)
+{
+    ZORDERINFO* zi = get_zorder_info(cli);
+    ZORDERNODE* nodes;
+
+    if (zi == NULL)
+        return NULL;
+
+    int level, slot = -1;
+    nodes = GET_ZORDERNODE(zi);
+    for (level = 0; level < NR_ZORDER_LEVELS; level++) {
+        slot = zi->first_in_levels[level];
+        for (; slot > 0; slot = nodes[slot].next) {
+            if (nodes[slot].cli == cli && nodes[slot].hwnd == hwnd) {
+                goto found;
+            }
+        }
+    }
+
+    return NULL;
+
+found:
+    assert(slot >= 0);
+    return nodes + slot;
+}
 
 int __mg_remove_all_znodes_of_client (int cli)
 {

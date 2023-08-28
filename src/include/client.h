@@ -105,6 +105,10 @@
 #define REQID_GETSHAREDSURFACE      0x001C
     // for compositing schema
     #define SYSSF_WALLPAPER_PATTER      "syssf-wallpaper-pattern"
+    #define APPSF_NAME_PREFIX           "appsf-name-"
+    #define APPSF_NAME_PATTER           "appsf-name-%s"
+    #define APPSF_HWND_PREFIX           "appsf-hwnd-"
+    #define APPSF_HWND_PATTER           "appsf-hwnd-%d-%p"
     // for sharedfb schema
     #define SYSSF_REAL_SCREEN           "syssf-real-screen"
     #define SYSSF_SHADOW_SCREEN         "syssf-shadow-screen"
@@ -126,7 +130,14 @@
 // Authenticate client
 #define REQID_AUTHCLIENT            0x0023
 
-#define REQID_SYS_LAST              REQID_AUTHCLIENT
+/* Since 5.2.0 */
+// Operate a shared surface to register/revoke the name and set the fd
+#define REQID_OPERATENAMEDSSURF     0x0024
+    #define ID_NAMEDSSURFOP_REGISTER    1
+    #define ID_NAMEDSSURFOP_SET         2
+    #define ID_NAMEDSSURFOP_REVOKE      3
+
+#define REQID_SYS_LAST              REQID_OPERATENAMEDSSURF
 
 /*
  * XXX: To fellows who need to add a new REQID,
@@ -141,6 +152,14 @@
 MGUI_COMPILE_TIME_ASSERT(sys_request_id, MAX_SYS_REQID >= REQID_SYS_LAST);
 
 #undef MGUI_COMPILE_TIME_ASSERT
+
+/* Since 5.2.0 */
+typedef struct OperateNSSurfInfo
+{
+    int     id_op;
+    char    name[NAME_MAX + 1];
+    size_t  map_size;
+} OPERATENSSURFINFO;
 
 /* Since 5.0.0 */
 typedef struct _SharedSurfInfo {

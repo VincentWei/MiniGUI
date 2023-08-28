@@ -3392,7 +3392,7 @@ struct GAL_Surface* GetSurfaceFromDC (HDC hdc)
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
-HDC GUIAPI CreateMemDCFromSurfaceBufferFD (int fd)
+HDC GUIAPI CreateMemDCFromSharedSurfaceFD (int fd)
 {
     HDC memdc = HDC_INVALID;
     GAL_Surface* surf;

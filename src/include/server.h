@@ -132,6 +132,10 @@ void __mg_client_del (int cli);
 
 void __mg_release_global_res (int cli);
 
+/* Since 5.2.0 */
+int __mg_nssurf_map_new(void);
+void __mg_nssurf_map_delete(void);
+
 void __mg_remove_client (int cli, int clifd);
 
 int __mg_handle_request (int clifd, int req_id, int cli);
@@ -150,6 +154,7 @@ int __mg_remove_all_znodes_of_client (int cli);
 
 int __mg_handle_normal_mouse_move (const ZORDERINFO* zi, int x, int y);
 int __mg_get_znode_at_point (const ZORDERINFO* zi, int x, int y, HWND* hwnd);
+ZORDERNODE *__mg_find_znode_by_client_hwnd (int cli, HWND hwnd);
 
 int __mg_do_reghook_operation (int cli, const REGHOOKINFO* info);
 int __mg_handle_mouse_hook (int message, WPARAM wParam, LPARAM lParam);

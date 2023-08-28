@@ -1705,24 +1705,260 @@ MG_EXPORT BOOL GUIAPI IsScreenDC (HDC hdc);
 MG_EXPORT BOOL GUIAPI IsWindowDC (HDC hdc);
 
 #ifdef _MGSCHEMA_COMPOSITING
+struct GAL_Surface;
+typedef struct GAL_Surface *HSURF;
+
 /**
- * \fn HDC GUIAPI CreateMemDCFromSurfaceBufferFD (int fd);
- * \brief Creates a memory DC from a file descriptor of a surface buffer.
+ * \fn HSURF GUIAPI CreateSharedSurface (const char *name, DWORD flags,
+ *      int width, int height, int depth,
+ *      Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
+ * \brief Creates a shared surface for specified size and pixel format.
  *
- * This function creates a memory DC from the specified file descriptor \a fd,
- * which represents a surface buffer.
+ * This function creates a shared surface on the current video device with
+ * the specified size and pixel format. This function also registers
+ * the shared surface by using the specified name \a name to the server
+ * if \a name is not NULL. Another client can use the name to retrieve
+ * the shared surface by calling \a RetrieveSharedSurfaceFDByName().
+
+ * \param video The handle to the video; NULL for the current default video.
+ * \param name The gobal unique name for the shared surface.
+ * \param flags The flags, can be one of the following values:
+ *   - MEMDC_FLAG_SWSURFACE\n
+ *     Creates the surface in the system memory.
+ *   - MEMDC_FLAG_HWSURFACE\n
+ *     Creates the surface in the video memory.
+ * \param width The expected width of the result surface.
+ * \param height The expected height of the result surface.
+ * \param depth The expected color depth of the surface.
+ * \param Rmask The bit-masks of the red components in a pixel value.
+ * \param Gmask The bit-masks of the green components in a pixel value.
+ * \param Bmask The bit-masks of the blue components in a pixel value.
+ * \param Amask The bit-masks of the alpha components in a pixel value.
  *
- * \param fd The file descriptor which represents a surface buffer.
+ * \return The file descriptor which represents the new shared surface buffer;
+ *      a value less than 0 indicates an error.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa DestroySharedSurface, RetrieveSharedSurfaceFDByName
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT HSURF GUIAPI CreateSharedSurface (const char *name, DWORD flags,
+        int width, int height, int depth,
+        Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+
+/**
+ * \fn BOOL GUIAPI GUIAPI DestroySharedSurface (HSURF surf, const char *name)
+ * \brief Destroies a shared surface.
+ *
+ * This function destroies the specified shared surface \a surf,
+ * and/or revoke the global unique name \a name from the server if \a name
+ * is not NULL.
+ * \param surf The handle to the shared surface.
+ * \param name The gobal unique name for the shared surface.
+ *
+ * \return TRUE on success, otherwise failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa CreateSharedSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT BOOL GUIAPI DestroySharedSurface (HSURF surf);
+
+/**
+ * \fn int GUIAPI GetSharedSurfaceFDByClientWindow (int client,
+ *      HWND hwnd)
+ * \brief Gets the file descriptor of the shared surface of a window created
+ * by another client.
+ *
+ * This function gets the file descriptor of the shared surface of the window
+ * \a hwnd, which is created by another client. If there is one such window
+ * in the system, the server will return a file descriptor which represents
+ * the shared surface of the window to the caller.
+ *
+ * \param client The client identifier.
+ * \param hwnd The handle to the window created by the client.
+ *
+ * \return The file descriptor which represents the shared surface on success;
+ *      a value less than 0 for failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa CreateSharedSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT int GUIAPI GetSharedSurfaceFDByClientWindow (int client,
+        HWND hwnd);
+
+/**
+ * \fn int GUIAPI GetSharedSurfaceFDByName (const char *name)
+ * \brief Gets the file descriptor of a shared surface by name.
+ *
+ * This function gets the file descriptor of the shared surface created
+ * by \a CreateSharedSurface by another client. If there is one such window
+ * in the system, the server will return a file descriptor which represents
+ * the shared surface.
+ *
+ * \param name The gobal unique name for the shared surface.
+ *
+ * \return The file descriptor which represents the shared surface on success;
+ *      a value less than 0 for failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa CreateSharedSurface, AttachToSharedSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT int GUIAPI GetSharedSurfaceFDByName (const char *name);
+
+/**
+ * \fn HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd)
+ * \brief Attaches to a shared surface.
+ *
+ * This function attaches to the shared surface which is represents by
+ * the given file descriptor \a fd.
+ *
+ * \param video The handle to the video; NULL for the current default video.
+ * \param fd The file descriptor of the shared surface.
+ *
+ * \return The handle to the shared surface on success; NULL for failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa GetSharedSurfaceFDByName, DetachFromSharedSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd);
+
+/**
+ * \fn int GUIAPI GetSharedSurfaceInfo (HSURF surf, SIZE *size, int *pitch,
+ *          size_t *file_size, size_t *pixel_off)
+ * \brief Gets the file descriptor of a shared surface.
+ *
+ * This function gets the file descriptor of the shared surface. It also
+ * returns the size and the pitch of the surface if \a size or \a pitch is
+ * not NULL.
+ *
+ * \param surf The handle to the shared surface.
+ * \param size The pointer to a buffer of SIZE to return the size of
+ *      the shared surface; nullable.
+ * \param pitch The pointer to a buffer of int for value of pitch; nullable.
+ * \param file_size The pointer to a buffer of size_t for the whole file size;
+ *      nullable.
+ * \param pixel_off The pointer to a buffer of size_t for the offset of
+ *      pixel data; nullable.
+ *
+ * \return The file descriptor of the shared surface on success;
+ *      a value less than zero for failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa GetSharedSurfaceFDByName, DetachFromSharedSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT int GUIAPI GetSharedSurfaceInfo (HSURF surf, SIZE *size, int *pitch,
+        size_t *file_size, size_t *pixel_off);
+
+/**
+ * \fn BOOL GUIAPI LockSharedSurfaceIfDirty (HSURF surf,
+ *      unsigned old_dirty_age, unsigned *dirty_age,
+ *      int *nr_dirty_rects, RECT *const *dirty_rects)
+ * \brief Locks the shared surface if it is dirty.
+ *
+ * This function compares the dirty age of the shared surface with the value
+ * containing in \a dirty_age, and lock the shared surface if it has
+ * a larger dirty age value.
+ *
+ * \param surf The handle to the shared surface.
+ * \param old_dirty_age The old dirty age.
+ * \param dirty_age The pointer to a buffer of unsigned integer to return
+ *      the current dirty age of the shared surface.
+ * \param nr_dirty_rects The pointer to a buffer of integer to return the valid
+ *      dirty rectangles; nullable.
+ * \param dirty_rects The pointer to a buffer of (const RECT *) for the array
+ *      of dirty rectangles; nullable.
+ *
+ * \return TRUE for success and if the value contains in \a dirty_age is larger
+ *      than \a old_dirty_age, the surface was locked; otherwise failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa UnlockSharedSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT BOOL GUIAPI LockSharedSurfaceIfDirty (HSURF surf,
+        unsigned old_dirty_age, unsigned *dirty_age,
+        int *nr_dirty_rects, RECT *const *dirty_rects);
+
+/**
+ * \fn BOOL GUIAPI UnlockSharedSurface (HSURF surf, BOOL clear_dirty)
+ * \brief Unocks the shared surface and clears the dirty information.
+ *
+ * This function compares the dirty age of the shared surface with the value
+ * containing in \a dirty_age, and lock the shared surface if it has
+ * a larger dirty age value.
+ *
+ * \param surf The handle to the shared surface.
+ * \param clear_dirty A boolean value indicates whether to clear the dirty
+ *      information of the shared surface.
+ *
+ * \return TRUE on success; otherwise failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa LockSharedSurfaceIfDirty
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT BOOL GUIAPI UnlockSharedSurface (HSURF surf, BOOL clear_dirty);
+
+/**
+ * \fn BOOL GUIAPI DetachFromSharedSurface (HSURF surf)
+ * \brief Detaches from a shared surface.
+ *
+ * This function detaches from the shared surface \a surf and delete the memory
+ * used by the surface.
+ *
+ * \param surf The handle to the shared surface.
+ *
+ * \return TRUE on success; otherwise failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa AttachToSharedSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT BOOL GUIAPI DetachFromSharedSurface (HSURF surf);
+
+/**
+ * \fn HDC GUIAPI CreateMemDCOnSharedSurface (HSURF surf, const RECT *rect);
+ * \brief Creates a memory DC on a shared surface.
+ *
+ * This function creates a memory DC on the specified shared surface \a surf
+ * within the specified rectangle \a rect on the surface.
+ *
+ * \param surf The handle to the shared surface.
+ * \param rect A rectangle in the surface which defines the bounds of memory DC;
+ *      NULL for whole surface.
  *
  * \return The handle to a new memory DC, HDC_INVALID indicates an error.
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
  *
- * \sa GetWindowSurfaceBufferFD
+ * \sa DeleteMemDC
  *
  * Since 5.0.13
  */
-MG_EXPORT HDC GUIAPI CreateMemDCFromSurfaceBufferFD (int fd);
+MG_EXPORT HDC GUIAPI CreateMemDCOnSharedSurface (HSURF surf, const RECT *rect);
 #endif /* _MGSCHEMA_COMPOSITING */
 
 /**

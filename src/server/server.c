@@ -299,9 +299,17 @@ BOOL GUIAPI ServerStartup (int nr_globals,
     SHAREDRES_DEF_NR_TOPMOSTS = def_nr_topmosts;
     SHAREDRES_DEF_NR_NORMALS = def_nr_normals;
 
+    /* Since 5.2.0 */
+#ifdef _MGSCHEMA_COMPOSITING
+    if (__mg_nssurf_map_new()) {
+        _ERR_PRINTF ("mginit: failed to initialize map for named shared surface\n");
+        return FALSE;
+    }
+#endif
+
     if (__mg_init_layers () == -1) {
         _ERR_PRINTF ("mginit: failed to initialize layers\n");
-        return FALSE;
+        goto fail_layers;
     }
 
     SHAREDRES_NR_LAYSERS = 1;
@@ -340,6 +348,10 @@ BOOL GUIAPI ServerStartup (int nr_globals,
 
 fail:
     __mg_cleanup_layers ();
+fail_layers:
+#ifdef _MGSCHEMA_COMPOSITING
+   __mg_nssurf_map_delete ();
+#endif
     return FALSE;
 }
 

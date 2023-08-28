@@ -83,6 +83,11 @@ static inline int comp_key_string (const void *key1, const void *key2)
     return strcmp (key1, key2);
 }
 
+static inline void free_val_alloc (void *val)
+{
+    free (val);
+}
+
 typedef struct _map_t map_t;
 typedef struct _map_entry_t {
     struct rb_node  node;

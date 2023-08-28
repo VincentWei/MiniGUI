@@ -41,7 +41,7 @@ which is an mainline release with some major enhancements:
 
 * ENHANCEMENTS:
    - Optimize NEWGAL engines: `shadow`, `drm`, and `fbcon` for large resolution.
-   - New APIs: `GetWindowSurfaceBufferFD()` and `CreateMemDCFromSurfaceBufferFD()` for compositing schema.
+   - New APIs: `GetWindowSharedSurfaceFD()` and `CreateMemDCFromSharedSurfaceFD()` for compositing schema.
 * CHANGES:
    - The operations for DRM userland driver changed.
 

@@ -70,6 +70,8 @@
 #include "server.h"
 #include "sharedres.h"
 #include "misc.h"
+#include "map.h"
+#include "dc.h"
 
 typedef void (* ReleaseProc) (void* );
 
@@ -778,25 +780,159 @@ extern int __mg_clipboard_op (int cli, int clifd, void* buff, size_t len);
 #endif
 
 #if IS_COMPOSITING_SCHEMA
+static map_t *__nssurf_map;
+
+struct nssurf_info {
+    int creator;
+    int fd;
+    size_t map_size;
+};
+
+static void my_free_val(void *val)
+{
+    struct nssurf_info *nssurf_info = val;
+    if (nssurf_info->fd >= 0)
+        close(nssurf_info->fd);
+    free(val);
+}
+
+int __mg_nssurf_map_new(void)
+{
+    __nssurf_map = __mg_map_create(copy_key_string,
+            free_key_string, NULL, my_free_val, comp_key_string);
+    if (__nssurf_map == NULL)
+        return -1;
+
+    return 0;
+}
+
+void __mg_nssurf_map_delete(void)
+{
+    assert(__nssurf_map);
+    __mg_map_destroy(__nssurf_map);
+}
+
 /* get the fake screen surface (wallpaper pattern surface) */
 static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
 {
-    SHAREDSURFINFO info;
+    SHAREDSURFINFO info = {};
+    int fd = -1;
 
     assert (__gal_fake_screen);
 
-    info.flags = __gal_fake_screen->flags;
-    if (strcmp (buff, SYSSF_WALLPAPER_PATTER) == 0 &&
+    if (strcmp(buff, SYSSF_WALLPAPER_PATTER) == 0 &&
             __gal_fake_screen->shared_header) {
+        info.flags = __gal_fake_screen->flags;
         info.size = __gal_fake_screen->shared_header->map_size;
-        return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO),
-                    __gal_fake_screen->shared_header->fd);
+        fd = __gal_fake_screen->shared_header->fd;
     }
-    else {
-        info.size = 0;
-        return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), -1);
+    else if (strncmp(buff, APPSF_NAME_PREFIX,
+                sizeof(APPSF_NAME_PREFIX) - 1) == 0) {
+        const char *name = buff + sizeof(APPSF_NAME_PREFIX) - 1;
+        map_entry_t *entry = __mg_map_find(__nssurf_map, name);
+        if (entry == NULL)
+            goto failed;
+
+        struct nssurf_info *nssurf_info = entry->val;
+        assert(nssurf_info);
+        info.size = nssurf_info->map_size;
+        fd = nssurf_info->fd;
     }
+    else if (strncmp(buff, APPSF_HWND_PREFIX,
+                sizeof(APPSF_HWND_PREFIX) - 1) == 0) {
+        int client;
+        HWND hwnd;
+        int ret = sscanf(buff, APPSF_HWND_PATTER, &client, &hwnd);
+        if (ret != 2)
+            goto failed;
+
+        ZORDERNODE *znode = __mg_find_znode_by_client_hwnd(client, hwnd);
+        if (znode == NULL)
+            goto failed;
+
+        PDC pdc = dc_HDC2PDC(znode->mem_dc);
+        assert(pdc->surface->shared_header);
+        info.size = pdc->surface->shared_header->map_size;
+        info.width = pdc->surface->shared_header->width;
+        info.height = pdc->surface->shared_header->height;
+        info.pitch = pdc->surface->shared_header->pitch;
+        info.offset = pdc->surface->shared_header->pixels_off;
+        fd = pdc->surface->shared_header->fd;
+    }
+
+    return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), fd);
+
+failed:
+    return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), -1);
 }
+
+static int
+operate_nssurface(int cli, int clifd, void* buff, size_t len, int fd)
+{
+    int result = -1;
+    map_entry_t *entry;
+    struct nssurf_info *nssurf_info;
+
+    OPERATENSSURFINFO* req_info = (OPERATENSSURFINFO*)buff;
+    switch (req_info->id_op) {
+        case ID_NAMEDSSURFOP_REGISTER:
+            entry = __mg_map_find(__nssurf_map, req_info->name);
+            if (entry)
+                goto done;
+            nssurf_info = malloc(sizeof(*nssurf_info));
+            if (nssurf_info == NULL)
+                goto done;
+
+            nssurf_info->creator = cli;
+            nssurf_info->fd = -1;
+            nssurf_info->map_size = 0;
+            if (__mg_map_insert(__nssurf_map, req_info->name, nssurf_info)) {
+                free(nssurf_info);
+                goto done;
+            }
+            break;
+
+        case ID_NAMEDSSURFOP_SET:
+            if (fd == -1) {
+                goto done;
+            }
+            entry = __mg_map_find(__nssurf_map, req_info->name);
+            if (entry == NULL)
+                goto done;
+
+            assert(entry->val);
+            nssurf_info = entry->val;
+            if (nssurf_info->creator != cli)
+                goto done;
+
+            nssurf_info->fd = fd;
+            nssurf_info->map_size = req_info->map_size;
+            result = 0;
+            break;
+
+        case ID_NAMEDSSURFOP_REVOKE:
+            entry = __mg_map_find(__nssurf_map, req_info->name);
+            if (entry == NULL)
+                goto done;
+
+            assert(entry->val);
+            nssurf_info = entry->val;
+            if (nssurf_info->creator != cli)
+                goto done;
+
+            if (__mg_map_erase(__nssurf_map, req_info->name))
+                goto done;
+            result = 0;
+            break;
+
+        default:
+            break;
+    }
+
+done:
+    return ServerSendReply(clifd, &result, sizeof(int));
+}
+
 #else   /* IS_COMPOSITING_SCHEMA */
 /* get the rendering surface */
 static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
@@ -894,6 +1030,11 @@ static struct req_request {
     { move_to_layer, 0 },       // REQID_MOVETOLAYER
     { calc_position, 0 },       // REQID_CALCPOSITION
     { authenticate_client, 0 }, // REQID_AUTHCLIENT
+#if IS_COMPOSITING_SCHEMA
+    { operate_nssurface, 1 },   // REQID_OPERATENSSURF
+#else
+    { NULL, 0 },
+#endif
 };
 
 BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
