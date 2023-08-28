@@ -359,6 +359,10 @@ void server_ServerCleanup (void)
 {
     __mg_cleanup_layers ();
 
+#ifdef _MGSCHEMA_COMPOSITING
+   __mg_nssurf_map_delete ();
+#endif
+
     mg_TerminateTimer (TRUE);
 
     unlink (CS_PATH);
