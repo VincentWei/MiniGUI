@@ -243,7 +243,7 @@ map_entry_t* __mg_map_find (map_t* map, const void* key)
     return entry;
 }
 
-int __mg_map_erase (map_t* map, void* key)
+int __mg_map_erase (map_t* map, const void* key)
 {
     int retval = -1;
     map_entry_t* entry = NULL;

@@ -135,6 +135,9 @@ void __mg_release_global_res (int cli);
 /* Since 5.2.0 */
 int __mg_nssurf_map_new(void);
 void __mg_nssurf_map_delete(void);
+int __mg_nssurf_map_operate_srv(const OPERATENSSURFINFO* req_info,
+        int cli, int fd);
+int __mg_get_shared_surface_srv(const char *itn_name, SHAREDSURFINFO *info);
 
 void __mg_remove_client (int cli, int clifd);
 

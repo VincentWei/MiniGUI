@@ -812,68 +812,13 @@ void __mg_nssurf_map_delete(void)
     __mg_map_destroy(__nssurf_map);
 }
 
-/* get the fake screen surface (wallpaper pattern surface) */
-static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
-{
-    SHAREDSURFINFO info = {};
-    int fd = -1;
-
-    assert (__gal_fake_screen);
-
-    if (strcmp(buff, SYSSF_WALLPAPER_PATTER) == 0 &&
-            __gal_fake_screen->shared_header) {
-        info.flags = __gal_fake_screen->flags;
-        info.size = __gal_fake_screen->shared_header->map_size;
-        fd = __gal_fake_screen->shared_header->fd;
-    }
-    else if (strncmp(buff, APPSF_NAME_PREFIX,
-                sizeof(APPSF_NAME_PREFIX) - 1) == 0) {
-        const char *name = buff + sizeof(APPSF_NAME_PREFIX) - 1;
-        map_entry_t *entry = __mg_map_find(__nssurf_map, name);
-        if (entry == NULL)
-            goto failed;
-
-        struct nssurf_info *nssurf_info = entry->val;
-        assert(nssurf_info);
-        info.size = nssurf_info->map_size;
-        fd = nssurf_info->fd;
-    }
-    else if (strncmp(buff, APPSF_HWND_PREFIX,
-                sizeof(APPSF_HWND_PREFIX) - 1) == 0) {
-        int client;
-        HWND hwnd;
-        int ret = sscanf(buff, APPSF_HWND_PATTER, &client, &hwnd);
-        if (ret != 2)
-            goto failed;
-
-        ZORDERNODE *znode = __mg_find_znode_by_client_hwnd(client, hwnd);
-        if (znode == NULL)
-            goto failed;
-
-        PDC pdc = dc_HDC2PDC(znode->mem_dc);
-        assert(pdc->surface->shared_header);
-        info.size = pdc->surface->shared_header->map_size;
-        info.width = pdc->surface->shared_header->width;
-        info.height = pdc->surface->shared_header->height;
-        info.pitch = pdc->surface->shared_header->pitch;
-        info.offset = pdc->surface->shared_header->pixels_off;
-        fd = pdc->surface->shared_header->fd;
-    }
-
-    return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), fd);
-
-failed:
-    return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), -1);
-}
-
-static int
-operate_nssurface(int cli, int clifd, void* buff, size_t len, int fd)
+int __mg_nssurf_map_operate_srv(const OPERATENSSURFINFO* req_info,
+        int cli, int fd)
 {
     int result = -1;
     map_entry_t *entry;
     struct nssurf_info *nssurf_info;
 
-    OPERATENSSURFINFO* req_info = (OPERATENSSURFINFO*)buff;
     switch (req_info->id_op) {
         case ID_NAMEDSSURFOP_REGISTER:
             entry = __mg_map_find(__nssurf_map, req_info->name);
@@ -930,6 +875,75 @@ operate_nssurface(int cli, int clifd, void* buff, size_t len, int fd)
     }
 
 done:
+    return result;
+}
+
+int __mg_get_shared_surface_srv(const char *itn_name, SHAREDSURFINFO *info)
+{
+    int fd = -1;
+    assert (__gal_fake_screen);
+
+    if (strcmp(itn_name, SYSSF_WALLPAPER_PATTER) == 0 &&
+            __gal_fake_screen->shared_header) {
+        info->flags = __gal_fake_screen->flags;
+        info->size = __gal_fake_screen->shared_header->map_size;
+        fd = __gal_fake_screen->shared_header->fd;
+    }
+    else if (strncmp(itn_name, APPSF_NAME_PREFIX,
+                sizeof(APPSF_NAME_PREFIX) - 1) == 0) {
+        const char *name = itn_name + sizeof(APPSF_NAME_PREFIX) - 1;
+        map_entry_t *entry = __mg_map_find(__nssurf_map, name);
+        if (entry == NULL)
+            goto done;
+
+        struct nssurf_info *nssurf_info = entry->val;
+        assert(nssurf_info);
+        info->size = nssurf_info->map_size;
+        fd = nssurf_info->fd;
+    }
+    else if (strncmp(itn_name, APPSF_HWND_PREFIX,
+                sizeof(APPSF_HWND_PREFIX) - 1) == 0) {
+        int client;
+        HWND hwnd;
+        int ret = sscanf(itn_name, APPSF_HWND_PATTER, &client, &hwnd);
+        if (ret != 2)
+            goto done;
+
+        ZORDERNODE *znode = __mg_find_znode_by_client_hwnd(client, hwnd);
+        if (znode == NULL)
+            goto done;
+
+        PDC pdc = dc_HDC2PDC(znode->mem_dc);
+        assert(pdc->surface->shared_header);
+        info->size = pdc->surface->shared_header->map_size;
+        info->width = pdc->surface->shared_header->width;
+        info->height = pdc->surface->shared_header->height;
+        info->pitch = pdc->surface->shared_header->pitch;
+        info->offset = pdc->surface->shared_header->pixels_off;
+        fd = pdc->surface->shared_header->fd;
+    }
+
+done:
+    return fd;
+}
+
+/* get the fake screen surface (wallpaper pattern surface) */
+static int get_shared_surface (int cli, int clifd, void* buff, size_t len)
+{
+    SHAREDSURFINFO info = {};
+    int fd = __mg_get_shared_surface_srv(buff, &info);
+
+    return ServerSendReplyEx (clifd, &info, sizeof (SHAREDSURFINFO), fd);
+}
+
+static int
+operate_nssurface(int cli, int clifd, void* buff, size_t len, int fd)
+{
+    int result = -1;
+
+    assert(len >= sizeof(OPERATENSSURFINFO));
+    OPERATENSSURFINFO* req_info = (OPERATENSSURFINFO*)buff;
+    result = __mg_nssurf_map_operate_srv(req_info, cli, fd);
     return ServerSendReply(clifd, &result, sizeof(int));
 }
 

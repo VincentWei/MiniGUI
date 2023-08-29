@@ -119,7 +119,7 @@ int __mg_map_find_replace_or_insert (map_t* map, const void* key,
 int __mg_map_replace (map_t* map, const void* key,
         const void* val, free_val_fn free_val_alt);
 
-int __mg_map_erase (map_t* map, void* key);
+int __mg_map_erase (map_t* map, const void* key);
 int __mg_map_get_size (map_t* map);
 
 #if 0   /* deprecated code */

@@ -1709,7 +1709,8 @@ struct GAL_Surface;
 typedef struct GAL_Surface *HSURF;
 
 /**
- * \fn HSURF GUIAPI CreateSharedSurface (const char *name, DWORD flags,
+ * \fn HSURF GUIAPI CreateSharedSurface (GHANDLE video,
+ *      const char *name, DWORD flags,
  *      int width, int height, int depth,
  *      Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
  * \brief Creates a shared surface for specified size and pixel format.
@@ -1717,8 +1718,8 @@ typedef struct GAL_Surface *HSURF;
  * This function creates a shared surface on the current video device with
  * the specified size and pixel format. This function also registers
  * the shared surface by using the specified name \a name to the server
- * if \a name is not NULL. Another client can use the name to retrieve
- * the shared surface by calling \a RetrieveSharedSurfaceFDByName().
+ * if \a name is not NULL. Another client can use the name to get
+ * the shared surface by calling \a GetSharedSurfaceFDByName().
 
  * \param video The handle to the video; NULL for the current default video.
  * \param name The gobal unique name for the shared surface.
@@ -1740,11 +1741,12 @@ typedef struct GAL_Surface *HSURF;
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
  *
- * \sa DestroySharedSurface, RetrieveSharedSurfaceFDByName
+ * \sa DestroySharedSurface, GetSharedSurfaceFDByName
  *
  * Since 5.2.0
  */
-MG_EXPORT HSURF GUIAPI CreateSharedSurface (const char *name, DWORD flags,
+MG_EXPORT HSURF GUIAPI CreateSharedSurface (GHANDLE video,
+        const char *name, DWORD flags,
         int width, int height, int depth,
         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
 
@@ -1792,7 +1794,7 @@ MG_EXPORT BOOL GUIAPI DestroySharedSurface (HSURF surf);
  * Since 5.2.0
  */
 MG_EXPORT int GUIAPI GetSharedSurfaceFDByClientWindow (int client,
-        HWND hwnd);
+        HWND hwnd, size_t *map_size, DWORD *flags);
 
 /**
  * \fn int GUIAPI GetSharedSurfaceFDByName (const char *name)
@@ -1814,10 +1816,12 @@ MG_EXPORT int GUIAPI GetSharedSurfaceFDByClientWindow (int client,
  *
  * Since 5.2.0
  */
-MG_EXPORT int GUIAPI GetSharedSurfaceFDByName (const char *name);
+MG_EXPORT int GUIAPI GetSharedSurfaceFDByName (const char *name,
+        size_t *map_size, DWORD *flags);
 
 /**
- * \fn HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd)
+ * \fn HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd,
+ *      size_t map_size, DWORD flags)
  * \brief Attaches to a shared surface.
  *
  * This function attaches to the shared surface which is represents by
@@ -1834,7 +1838,8 @@ MG_EXPORT int GUIAPI GetSharedSurfaceFDByName (const char *name);
  *
  * Since 5.2.0
  */
-MG_EXPORT HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd);
+MG_EXPORT HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd,
+        size_t map_size, DWORD flags);
 
 /**
  * \fn int GUIAPI GetSharedSurfaceInfo (HSURF surf, SIZE *size, int *pitch,

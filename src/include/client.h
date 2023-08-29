@@ -163,13 +163,13 @@ typedef struct OperateNSSurfInfo
 
 /* Since 5.0.0 */
 typedef struct _SharedSurfInfo {
+    size_t      size;       // whole size of the surface
+    off_t       offset;     // offset of pixel data
     uint32_t    flags;      // the flags of the surface
     uint32_t    width, height;
     uint32_t    pitch;
     uint32_t    name;       // when use flink name
     uint32_t    drm_format; // DRM pixel format
-    size_t      size;       // whole size of the surface
-    off_t       offset;     // offset of pixel data
 } SHAREDSURFINFO;
 
 typedef struct JoinLayerInfo {

@@ -14,7 +14,8 @@ SRC_FILES = gdi.c attr.c clip.c map.c coor.c rect.c  \
             simple-glyph-renderer.c glyph-shaped.c \
             textruns.c \
             shape-glyphs-basic.c shape-glyphs-complex.c \
-            layout.c layout-utils.c layout-ellipsize.c
+            layout.c layout-utils.c layout-ellipsize.c \
+            shared-surface.c
 
 HDR_FILES = glyph.h drawtext.h mi.h midc.h mistruct.h miwideline.h \
             pixel_ops.h mifillarc.h mispans.h polygon.h mifpoly.h \

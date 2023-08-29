@@ -166,6 +166,9 @@ typedef struct _SharedSurfaceHeader {
     size_t          map_size;
     /* the offset of pixels data */
     off_t           pixels_off;
+
+    /* the name of the shared surface. */
+    char            name[NAME_MAX + 1];
 } GAL_SharedSurfaceHeader;
 #endif /* IS_COMPOSITING_SCHEMA */
 
