@@ -299,7 +299,7 @@ ret:
     return retval;
 }
 
-int __mg_map_insert_ex (map_t* map, const void* key,
+map_entry_t*  __mg_map_insert_ex2 (map_t* map, const void* key,
         const void* val, free_val_fn free_val_alt)
 {
     map_entry_t **pentry;
@@ -317,7 +317,7 @@ int __mg_map_insert_ex (map_t* map, const void* key,
 
     while (*pentry) {
         int ret;
-       
+
         if (map->comp_key)
             ret = map->comp_key (key, (*pentry)->key);
         else
@@ -354,7 +354,7 @@ int __mg_map_insert_ex (map_t* map, const void* key,
     }
 
     UNLOCK_MAP (map);
-    return 0;
+    return entry;
 }
 
 int __mg_map_find_replace_or_insert (map_t* map, const void* key,

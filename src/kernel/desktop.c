@@ -1603,7 +1603,8 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
             surf->refcount++;
         }
         else if (fd >= 0) {
-            surf = GAL_AttachSharedRGBSurface (fd, surf_size, surf_flags, TRUE);
+            surf = GAL_AttachSharedRGBSurface (NULL, fd,
+                    surf_size, surf_flags, TRUE);
             close (fd);
         }
         else {

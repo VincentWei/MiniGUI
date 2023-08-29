@@ -1836,10 +1836,10 @@ void GAL_FreeSurface (GAL_Surface *surface)
     }
 
     if (surface->shared_header) {
-        if (surface->shared_header->creator == getpid())
-            GAL_FreeSharedSurfaceData(surface);
+        if (surface->flags & GAL_SSURF_ATTACHED)
+            GAL_DetachSharedSurfaceData(surface);
         else
-            GAL_DettachSharedSurfaceData(surface);
+            GAL_FreeSharedSurfaceData(surface);
 
         surface->hwdata = NULL;
         surface->pixels = NULL;

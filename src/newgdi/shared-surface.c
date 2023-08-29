@@ -170,8 +170,17 @@ BOOL GUIAPI DestroySharedSurface(HSURF surf)
         goto failed;
     }
 
-    if (surf->shared_header->creator == getpid() &&
-            surf->shared_header->name[0]) {
+    if (surf->flags & GAL_SSURF_ATTACHED) {
+        _ERR_PRINTF("INVALID_CALL: surface is created by attaching: %p\n", surf);
+        goto failed;
+    }
+
+    if (surf->shared_header->creator != getpid()) {
+        _ERR_PRINTF("INVALID_CALL: surface is not created by current process: %p\n", surf);
+        goto failed;
+    }
+
+    if (surf->shared_header->name[0]) {
         /* This is a named shared surface created by this client */
 
         OPERATENSSURFINFO nssurf_req = {};
@@ -276,6 +285,125 @@ int GUIAPI GetSharedSurfaceFDByName(const char *name,
     }
 
     return get_shared_surface(itn_name, map_size, flags);
+}
+
+HSURF GUIAPI AttachToSharedSurface(GHANDLE video, int fd,
+        size_t map_size, DWORD flags)
+{
+    return GAL_AttachSharedRGBSurface(video, fd, map_size, flags, TRUE);
+}
+
+const char *GUIAPI GetSharedSurfaceInfo(HSURF surf, int *fd,
+        SIZE *size, int *pitch, size_t *map_size, off_t *pixels_off)
+{
+    if (surf->shared_header == NULL) {
+        _ERR_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
+        goto failed;
+    }
+
+    if (fd) {
+        *fd = surf->shared_header->fd;
+    }
+
+    if (size) {
+        size->cx = surf->shared_header->width;
+        size->cy = surf->shared_header->height;
+    }
+
+    if (pitch) {
+        *pitch = surf->shared_header->pitch;
+    }
+
+    if (map_size) {
+        *map_size = surf->shared_header->map_size;
+    }
+
+    if (pixels_off) {
+        *pixels_off = surf->shared_header->pixels_off;
+    }
+
+    return surf->shared_header->name;
+
+failed:
+    return NULL;
+}
+
+BOOL GUIAPI LockSharedSurfaceIfDirty(HSURF surf,
+        unsigned old_dirty_age, unsigned *dirty_age,
+        int *nr_dirty_rcs, const RECT **dirty_rcs)
+{
+    if (surf->shared_header == NULL) {
+        _ERR_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
+        goto failed;
+    }
+
+    if (surf->flags & GAL_SSURF_LOCKED) {
+        _ERR_PRINTF("INVALID_CALL: surface locked: %p\n", surf);
+        goto failed;
+    }
+
+    /* FIXME: use atomic types */
+    if (old_dirty_age != surf->shared_header->dirty_info.dirty_age) {
+        LOCK_SURFACE_SEM(surf->shared_header->sem_num);
+
+        surf->flags |= GAL_SSURF_LOCKED;
+        *dirty_age = surf->shared_header->dirty_info.dirty_age;
+        if (nr_dirty_rcs) {
+            *nr_dirty_rcs = surf->shared_header->dirty_info.nr_dirty_rcs;
+        }
+
+        if (dirty_rcs) {
+            *dirty_rcs = surf->shared_header->dirty_info.dirty_rcs;
+        }
+    }
+
+    return TRUE;
+
+failed:
+    return FALSE;
+}
+
+BOOL GUIAPI UnlockSharedSurface(HSURF surf, BOOL clear_dirty)
+{
+    if (surf->shared_header == NULL) {
+        _ERR_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
+        goto failed;
+    }
+
+    if (!(surf->flags & GAL_SSURF_LOCKED)) {
+        _ERR_PRINTF("INVALID_CALL: surface is not locked: %p\n", surf);
+        goto failed;
+    }
+
+    if (clear_dirty) {
+        surf->dirty_info->nr_dirty_rcs = 0;
+    }
+
+    UNLOCK_SURFACE_SEM(surf->shared_header->sem_num);
+    surf->flags &= ~GAL_SSURF_LOCKED;
+    return TRUE;
+
+failed:
+    return FALSE;
+}
+
+BOOL GUIAPI DetachFromSharedSurface(HSURF surf)
+{
+    if (surf->shared_header == NULL) {
+        _ERR_PRINTF("INVALID_ARG: not a shared surface: %p\n", surf);
+        goto failed;
+    }
+
+    if (!(surf->flags & GAL_SSURF_ATTACHED)) {
+        _ERR_PRINTF("INVALID_CALL: surface was not created by attaching: %p\n", surf);
+        goto failed;
+    }
+
+    GAL_FreeSurface(surf);
+    return TRUE;
+
+failed:
+    return FALSE;
 }
 
 #endif  /* defined _MGSCHEMA_COMPOSITING */

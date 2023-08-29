@@ -174,10 +174,10 @@ struct GAL_VideoDevice {
     int (*AttachSharedHWSurface)(_THIS, GAL_Surface *surface,
             int prime_fd, size_t mapsize, BOOL with_rw);
 
-    /* Dettach from a shared surface in hardware video memory.
+    /* Detach from a shared surface in hardware video memory.
        Set to NULL if no hardware shared surface supported.
        Return 0 if success, otherwise -1. */
-    int (*DettachSharedHWSurface)(_THIS, GAL_Surface *surface);
+    int (*DetachSharedHWSurface)(_THIS, GAL_Surface *surface);
 
     /* Allocate a dumb surface from hardware.
        Set to NULL if dumb surface is not supported.

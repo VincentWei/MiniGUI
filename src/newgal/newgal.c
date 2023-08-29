@@ -247,7 +247,7 @@ static GAL_Surface* create_wp_surface(GAL_Surface* screen)
 
         _DBG_PRINTF ("REQID_GETSHAREDSURFACE: size (%lu), flags (0x%x), fd: %d\n",
                     info.size, info.flags, fd);
-        wp_surf = GAL_AttachSharedRGBSurface (fd, info.size,
+        wp_surf = GAL_AttachSharedRGBSurface (NULL, fd, info.size,
             info.flags, TRUE);
         close (fd);
 

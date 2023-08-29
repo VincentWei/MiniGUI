@@ -788,18 +788,10 @@ struct nssurf_info {
     size_t map_size;
 };
 
-static void my_free_val(void *val)
-{
-    struct nssurf_info *nssurf_info = val;
-    if (nssurf_info->fd >= 0)
-        close(nssurf_info->fd);
-    free(val);
-}
-
 int __mg_nssurf_map_new(void)
 {
     __nssurf_map = __mg_map_create(copy_key_string,
-            free_key_string, NULL, my_free_val, comp_key_string);
+            free_key_string, NULL, NULL, comp_key_string);
     if (__nssurf_map == NULL)
         return -1;
 
@@ -809,7 +801,25 @@ int __mg_nssurf_map_new(void)
 void __mg_nssurf_map_delete(void)
 {
     assert(__nssurf_map);
+    int sz = __mg_map_get_size(__nssurf_map);
+    if (sz > 0) {
+        _WRN_PRINTF("There are still not freed named shared surface(s): %d\n", sz);
+    }
     __mg_map_destroy(__nssurf_map);
+}
+
+static void release_nssurf_info(void *res)
+{
+    map_entry_t *entry;
+    entry = __mg_map_find(__nssurf_map, res);
+    if (entry) {
+        struct nssurf_info *nssurf_info = entry->val;
+        if (nssurf_info->fd >= 0)
+            close(nssurf_info->fd);
+        free(nssurf_info);
+
+        __mg_map_erase(__nssurf_map, res);
+    }
 }
 
 int __mg_nssurf_map_operate_srv(const OPERATENSSURFINFO* req_info,
@@ -831,10 +841,14 @@ int __mg_nssurf_map_operate_srv(const OPERATENSSURFINFO* req_info,
             nssurf_info->creator = cli;
             nssurf_info->fd = -1;
             nssurf_info->map_size = 0;
-            if (__mg_map_insert(__nssurf_map, req_info->name, nssurf_info)) {
+            entry = __mg_map_insert_ex2(__nssurf_map, req_info->name,
+                    nssurf_info, NULL);
+            if (entry == NULL) {
                 free(nssurf_info);
                 goto done;
             }
+
+            add_global_res(cli, __nssurf_map, entry->key, release_nssurf_info);
             break;
 
         case ID_NAMEDSSURFOP_SET:
@@ -865,8 +879,7 @@ int __mg_nssurf_map_operate_srv(const OPERATENSSURFINFO* req_info,
             if (nssurf_info->creator != cli)
                 goto done;
 
-            if (__mg_map_erase(__nssurf_map, req_info->name))
-                goto done;
+            del_global_res(cli, __nssurf_map, entry->key);
             result = 0;
             break;
 

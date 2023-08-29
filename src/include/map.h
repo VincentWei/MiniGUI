@@ -105,8 +105,15 @@ int __mg_map_get_size (map_t* map);
 
 map_entry_t* __mg_map_find (map_t* map, const void* key);
 
-int __mg_map_insert_ex (map_t* map, const void* key,
+map_entry_t* __mg_map_insert_ex2 (map_t* map, const void* key,
         const void* val, free_val_fn free_val_alt);
+
+static int __mg_map_insert_ex (map_t* map, const void* key,
+        const void* val, free_val_fn free_val_alt)
+{
+    return __mg_map_insert_ex2(map, key, val, NULL) ? 0 : -1;
+}
+
 static inline int  __mg_map_insert (map_t* map, const void* key,
         const void* val)
 {

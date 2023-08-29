@@ -6069,7 +6069,7 @@ error:
 #ifdef _MGSCHEMA_COMPOSITING
 int GUIAPI GetWindowSharedSurfaceFD (HWND hWnd, size_t *map_size, DWORD *flags)
 {
-    MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1);
+    MG_CHECK_RET (MG_IS_NORMAL_WINDOW (hWnd), -1);
 
     PMAINWIN pWin = (PMAINWIN)hWnd;
     if (pWin->surf->shared_header) {

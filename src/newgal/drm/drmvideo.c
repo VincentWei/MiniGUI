@@ -144,7 +144,7 @@ static int DRM_AllocSharedHWSurface(_THIS, GAL_Surface *surface,
 static int DRM_FreeSharedHWSurface(_THIS, GAL_Surface *surface);
 static int DRM_AttachSharedHWSurface(_THIS, GAL_Surface *surface,
             int prime_fd, size_t mapsize, BOOL with_rw);
-static int DRM_DettachSharedHWSurface(_THIS, GAL_Surface *surface);
+static int DRM_DetachSharedHWSurface(_THIS, GAL_Surface *surface);
 
 static int DRM_SetCursor(_THIS, GAL_Surface *surface, int hot_x, int hot_y);
 static int DRM_MoveCursor(_THIS, int x, int y);
@@ -1410,7 +1410,7 @@ static GAL_VideoDevice *DRM_CreateDevice(int devindex)
         device->AllocSharedHWSurface = DRM_AllocSharedHWSurface;
         device->FreeSharedHWSurface = DRM_FreeSharedHWSurface;
         device->AttachSharedHWSurface = DRM_AttachSharedHWSurface;
-        device->DettachSharedHWSurface = DRM_DettachSharedHWSurface;
+        device->DetachSharedHWSurface = DRM_DetachSharedHWSurface;
     }
 #endif /* IS_COMPOSITING_SCHEMA */
 
@@ -3127,7 +3127,7 @@ error:
     return retval;
 }
 
-static int DRM_DettachSharedHWSurface(_THIS, GAL_Surface *surface)
+static int DRM_DetachSharedHWSurface(_THIS, GAL_Surface *surface)
 {
     int retval = -1;
     DrmVideoData* vdata = this->hidden;

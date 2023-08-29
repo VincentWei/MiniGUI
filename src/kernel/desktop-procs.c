@@ -837,7 +837,8 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
         surf->refcount++;
     }
     else if (fd >= 0) {
-        surf = GAL_AttachSharedRGBSurface (fd, surf_size, surf_flags, TRUE);
+        surf = GAL_AttachSharedRGBSurface (NULL, fd,
+                surf_size, surf_flags, TRUE);
         close (fd);
     }
     else {
@@ -994,7 +995,8 @@ static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
             surf->refcount++;
         }
         else {
-            surf = GAL_AttachSharedRGBSurface (fd, surf_size, surf_flags, TRUE);
+            surf = GAL_AttachSharedRGBSurface (NULL, fd,
+                    surf_size, surf_flags, TRUE);
             close (fd);
         }
 

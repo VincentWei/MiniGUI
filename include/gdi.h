@@ -1704,10 +1704,10 @@ MG_EXPORT BOOL GUIAPI IsScreenDC (HDC hdc);
  */
 MG_EXPORT BOOL GUIAPI IsWindowDC (HDC hdc);
 
-#ifdef _MGSCHEMA_COMPOSITING
 struct GAL_Surface;
 typedef struct GAL_Surface *HSURF;
 
+#ifdef _MGSCHEMA_COMPOSITING
 /**
  * \fn HSURF GUIAPI CreateSharedSurface (GHANDLE video,
  *      const char *name, DWORD flags,
@@ -1842,15 +1842,18 @@ MG_EXPORT HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd,
         size_t map_size, DWORD flags);
 
 /**
- * \fn int GUIAPI GetSharedSurfaceInfo (HSURF surf, SIZE *size, int *pitch,
- *          size_t *file_size, size_t *pixel_off)
- * \brief Gets the file descriptor of a shared surface.
+ * \fn const char *GUIAPI GetSharedSurfaceInfo (HSURF surf, int *fd,
+ *          SIZE *size, int *pitch, size_t *map_size, off_t *pixels_off)
+ * \brief Gets the basic information of a shared surface.
  *
- * This function gets the file descriptor of the shared surface. It also
- * returns the size and the pitch of the surface if \a size or \a pitch is
- * not NULL.
+ * This function gets the name and other information of
+ * the given shared surface \a surf. It also returns the file descriptor,
+ * the size, or the pitch of the surface if \a fd, \a size or \a pitch
+ * is not NULL.
  *
  * \param surf The handle to the shared surface.
+ * \param fd The pointer to a buffer of int to return the file descriptor of
+ *      the shared surface; nullable.
  * \param size The pointer to a buffer of SIZE to return the size of
  *      the shared surface; nullable.
  * \param pitch The pointer to a buffer of int for value of pitch; nullable.
@@ -1859,8 +1862,8 @@ MG_EXPORT HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd,
  * \param pixel_off The pointer to a buffer of size_t for the offset of
  *      pixel data; nullable.
  *
- * \return The file descriptor of the shared surface on success;
- *      a value less than zero for failure.
+ * \return The name of the shared surface on success; NULL for failure.
+ *      Note that if the name is an empty string, it is an anonymous surface.
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
  *
@@ -1868,13 +1871,13 @@ MG_EXPORT HSURF GUIAPI AttachToSharedSurface (GHANDLE video, int fd,
  *
  * Since 5.2.0
  */
-MG_EXPORT int GUIAPI GetSharedSurfaceInfo (HSURF surf, SIZE *size, int *pitch,
-        size_t *file_size, size_t *pixel_off);
+MG_EXPORT const char *GUIAPI GetSharedSurfaceInfo (HSURF surf, int *fd,
+        SIZE *size, int *pitch, size_t *map_size, off_t *pixels_off);
 
 /**
  * \fn BOOL GUIAPI LockSharedSurfaceIfDirty (HSURF surf,
  *      unsigned old_dirty_age, unsigned *dirty_age,
- *      int *nr_dirty_rects, RECT *const *dirty_rects)
+ *      int *nr_dirty_rects, const RECT **dirty_rects)
  * \brief Locks the shared surface if it is dirty.
  *
  * This function compares the dirty age of the shared surface with the value
@@ -1884,14 +1887,14 @@ MG_EXPORT int GUIAPI GetSharedSurfaceInfo (HSURF surf, SIZE *size, int *pitch,
  * \param surf The handle to the shared surface.
  * \param old_dirty_age The old dirty age.
  * \param dirty_age The pointer to a buffer of unsigned integer to return
- *      the current dirty age of the shared surface.
+ *      the current dirty age of the shared surface; NOT nullable.
  * \param nr_dirty_rects The pointer to a buffer of integer to return the valid
  *      dirty rectangles; nullable.
  * \param dirty_rects The pointer to a buffer of (const RECT *) for the array
  *      of dirty rectangles; nullable.
  *
- * \return TRUE for success and if the value contains in \a dirty_age is larger
- *      than \a old_dirty_age, the surface was locked; otherwise failure.
+ * \return TRUE for success and if the value contains in \a dirty_age is not
+ *      equal to \a old_dirty_age, the surface was locked; otherwise failure.
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
  *
@@ -1901,7 +1904,7 @@ MG_EXPORT int GUIAPI GetSharedSurfaceInfo (HSURF surf, SIZE *size, int *pitch,
  */
 MG_EXPORT BOOL GUIAPI LockSharedSurfaceIfDirty (HSURF surf,
         unsigned old_dirty_age, unsigned *dirty_age,
-        int *nr_dirty_rects, RECT *const *dirty_rects);
+        int *nr_dirty_rects, const RECT **dirty_rects);
 
 /**
  * \fn BOOL GUIAPI UnlockSharedSurface (HSURF surf, BOOL clear_dirty)
@@ -1942,28 +1945,23 @@ MG_EXPORT BOOL GUIAPI UnlockSharedSurface (HSURF surf, BOOL clear_dirty);
  * Since 5.2.0
  */
 MG_EXPORT BOOL GUIAPI DetachFromSharedSurface (HSURF surf);
+#endif /* _MGSCHEMA_COMPOSITING */
 
 /**
- * \fn HDC GUIAPI CreateMemDCOnSharedSurface (HSURF surf, const RECT *rect);
- * \brief Creates a memory DC on a shared surface.
+ * \fn HDC GUIAPI CreateMemDCFromSurface (HSURF surf);
+ * \brief Creates a memory DC from a surface.
  *
- * This function creates a memory DC on the specified shared surface \a surf
- * within the specified rectangle \a rect on the surface.
+ * This function creates a memory DC on the specified surface \a surf.
  *
  * \param surf The handle to the shared surface.
- * \param rect A rectangle in the surface which defines the bounds of memory DC;
- *      NULL for whole surface.
  *
  * \return The handle to a new memory DC, HDC_INVALID indicates an error.
  *
- * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
- *
  * \sa DeleteMemDC
  *
- * Since 5.0.13
+ * Since 5.2.0
  */
-MG_EXPORT HDC GUIAPI CreateMemDCOnSharedSurface (HSURF surf, const RECT *rect);
-#endif /* _MGSCHEMA_COMPOSITING */
+MG_EXPORT HDC GUIAPI CreateMemDCFromSurface(HSURF surf);
 
 /**
  * \fn HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags, \

@@ -256,6 +256,8 @@ typedef struct GAL_Surface {
 
 #define GAL_PREALLOC         0x01000000    /* Surface uses preallocated memory */
 #define GAL_FORMAT_CHECKED   0x02000000    /* Pixman format checked */
+#define GAL_SSURF_ATTACHED   0x04000000    /* The shared surface is attached to. */
+#define GAL_SSURF_LOCKED     0x04000000    /* The shared surface is locked. */
 
 /* Available for GAL_SetVideoMode() */
 #define GAL_ANYFORMAT        0x10000000     /* Allow any video depth/pixel-format */
@@ -655,11 +657,11 @@ GAL_Surface *GAL_CreateSurfaceForZNodeAs (const GAL_Surface* ref_surf,
 void GAL_FreeSharedSurfaceData (GAL_Surface *surface);
 
 /* Attach to a shared RGB surface. */
-GAL_Surface *GAL_AttachSharedRGBSurface (int fd, size_t map_size,
-            Uint32 flags, BOOL with_wr);
+GAL_Surface *GAL_AttachSharedRGBSurface (GAL_VideoDevice* video,
+        int fd, size_t map_size, Uint32 flags, BOOL with_wr);
 
-/* Dettach from a shared RGB surface from the specific video device. */
-void GAL_DettachSharedSurfaceData (GAL_Surface *surface);
+/* Detach from a shared RGB surface from the specific video device. */
+void GAL_DetachSharedSurfaceData (GAL_Surface *surface);
 
 /* Create a cursor surface from the specific video device. */
 GAL_Surface* GAL_CreateCursorSurface (GAL_VideoDevice* video,

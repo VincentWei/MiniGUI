@@ -3346,8 +3346,8 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     return (HDC)pmem_dc;
 }
 
-/* Since 5.0.0 */
-HDC CreateMemDCFromSurface (GAL_Surface* surface)
+/* Since 5.0.0; exported as API since 5.2.0 */
+HDC GUIAPI CreateMemDCFromSurface (HSURF surface)
 {
     PDC pmem_dc = NULL;
 
@@ -3391,29 +3391,6 @@ struct GAL_Surface* GetSurfaceFromDC (HDC hdc)
     return pdc->surface;
 }
 
-#ifdef _MGSCHEMA_COMPOSITING
-HDC GUIAPI CreateMemDCFromSharedSurfaceFD (int fd)
-{
-    HDC memdc = HDC_INVALID;
-    GAL_Surface* surf;
-
-    surf = GAL_AttachSharedRGBSurface (fd, 0, GAL_HWSURFACE, TRUE);
-    if (surf) {
-        memdc = CreateMemDCFromSurface (surf);
-        if (memdc == HDC_INVALID) {
-            GAL_FreeSurface(surf);
-
-            _ERR_PRINTF("failed to create memory dc from surface: %p\n", surf);
-        }
-    }
-    else {
-        _ERR_PRINTF("failed to attach to surface buffer via fd: %d\n", fd);
-    }
-
-    return memdc;
-}
-#endif /* _MGSCHEMA_COMPOSITING */
-
 HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
                 int width, int height, BOOL comp_to_parent)
 {
@@ -3437,7 +3414,6 @@ HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,
     else if(off_y > parent_height) off_y = parent_height;
     if (width < 0)  width = 0;
     if (height < 0) height = 0;
-
 
     if (off_x + width > pdc_parent->DevRC.right)
         width = pdc_parent->DevRC.right - off_x;

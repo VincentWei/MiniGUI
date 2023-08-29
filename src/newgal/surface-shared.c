@@ -68,7 +68,7 @@
 /*
  * Create a shared empty RGB surface of the appropriate depth and pixel format
  */
-GAL_Surface * GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
+GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             Uint32 flags, Uint32 rw_modes, int width, int height, int depth,
             Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
 {
@@ -337,10 +337,9 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
 /*
  * Attach to a shared RGB surface
  */
-GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
-        Uint32 flags, BOOL with_wr)
+GAL_Surface * GAL_AttachSharedRGBSurface (GAL_VideoDevice *video,
+        int fd, size_t map_size, Uint32 flags, BOOL with_wr)
 {
-    GAL_VideoDevice *video = NULL;
     GAL_Surface *surface;
     void* data_map = MAP_FAILED;
     GAL_SharedSurfaceHeader* hdr;
@@ -362,11 +361,10 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
         goto error;
     }
 
-    if ((flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
-        video = __mg_current_video;
-    }
-    else {
-        video = NULL;
+    if (video == NULL) {
+        if ((flags & GAL_HWSURFACE) == GAL_HWSURFACE) {
+            video = __mg_current_video;
+        }
     }
 
     surface->video = video;
@@ -439,14 +437,17 @@ GAL_Surface * GAL_AttachSharedRGBSurface (int fd, size_t map_size,
         goto error;
     }
 
+    /* Since 5.2.0 */
+    surface->flags |= GAL_SSURF_ATTACHED;
+
     /* The surface is ready to go */
     surface->refcount = 1;
     return (surface);
 
 error:
     if (video && surface && surface->hwdata) {
-        assert (video->DettachSharedHWSurface);
-        video->DettachSharedHWSurface (video, surface);
+        assert (video->DetachSharedHWSurface);
+        video->DetachSharedHWSurface (video, surface);
     }
     else if (data_map != MAP_FAILED) {
         munmap (data_map, map_size);
@@ -462,15 +463,15 @@ error:
 /*
  * Free data of a shared surface created by the above function.
  */
-void GAL_DettachSharedSurfaceData (GAL_Surface *surface)
+void GAL_DetachSharedSurfaceData (GAL_Surface *surface)
 {
     GAL_VideoDevice *video = surface->video;
 
     assert (surface->shared_header);
 
     if (video && surface->hwdata) {
-        assert (video->DettachSharedHWSurface);
-        video->DettachSharedHWSurface (video, surface);
+        assert (video->DetachSharedHWSurface);
+        video->DetachSharedHWSurface (video, surface);
         surface->hwdata = NULL;
     }
     else {
