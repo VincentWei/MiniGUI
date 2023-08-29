@@ -1905,11 +1905,10 @@ MG_EXPORT BOOL GUIAPI LockSharedSurfaceIfDirty (HSURF surf,
 
 /**
  * \fn BOOL GUIAPI UnlockSharedSurface (HSURF surf, BOOL clear_dirty)
- * \brief Unocks the shared surface and clears the dirty information.
+ * \brief Unlocks the shared surface and clears the dirty information.
  *
- * This function compares the dirty age of the shared surface with the value
- * containing in \a dirty_age, and lock the shared surface if it has
- * a larger dirty age value.
+ * This function unlocks the shared surface \a surf, and clears its dirty
+ * information if \a clear_dirty is TRUE.
  *
  * \param surf The handle to the shared surface.
  * \param clear_dirty A boolean value indicates whether to clear the dirty

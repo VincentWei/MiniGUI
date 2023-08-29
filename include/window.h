@@ -7238,7 +7238,8 @@ MG_EXPORT BOOL GUIAPI SetMainWindowGestureFlags (HWND hWnd, DWORD dwFlags);
 #ifdef _MGSCHEMA_COMPOSITING
 
 /**
- * \fn int GUIAPI GetWindowSharedSurfaceFD (HWND hwnd)
+ * \fn int GUIAPI GetWindowSharedSurfaceFD (HWND hwnd, size_t *map_size,
+ *      DWORD *flags)
  * \brief Gets the file descriptor of the surface buffer for a window or
  * the main window it locates.
  *
@@ -7258,7 +7259,8 @@ MG_EXPORT BOOL GUIAPI SetMainWindowGestureFlags (HWND hWnd, DWORD dwFlags);
  *
  * Since 5.0.13
  */
-MG_EXPORT int GUIAPI GetWindowSharedSurfaceFD (HWND hWnd);
+MG_EXPORT int GUIAPI GetWindowSharedSurfaceFD (HWND hWnd, size_t *map_size,
+        DWORD *flags);
 
 /**
  * \fn BOOL GUIAPI SetMainWindowCompositing (HWND hWnd,

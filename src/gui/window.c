@@ -6067,13 +6067,22 @@ error:
 }
 
 #ifdef _MGSCHEMA_COMPOSITING
-int GUIAPI GetWindowSharedSurfaceFD (HWND hWnd)
+int GUIAPI GetWindowSharedSurfaceFD (HWND hWnd, size_t *map_size, DWORD *flags)
 {
     MG_CHECK_RET (MG_IS_APP_WINDOW (hWnd), -1);
 
     PMAINWIN pWin = (PMAINWIN)hWnd;
-    if (pWin->surf->shared_header)
+    if (pWin->surf->shared_header) {
+        if (map_size)
+            *map_size = pWin->surf->shared_header->map_size;
+        if (flags) {
+            *flags = MEMDC_FLAG_SWSURFACE;
+            if (pWin->surf->shared_header->byhw)
+                *flags |= MEMDC_FLAG_HWSURFACE;
+        }
+
         return pWin->surf->shared_header->fd;
+    }
 
     return -1;
 }

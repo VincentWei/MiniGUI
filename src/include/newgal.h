@@ -139,20 +139,26 @@ typedef struct _DirtyInfo {
  * than the creator.
  */
 typedef struct _SharedSurfaceHeader {
+    /* the name of the shared surface; since 5.2.0. */
+    char            name[NAME_MAX + 1];
+
+    /* The pid of the creator */
+    pid_t           creator;
+
+    /* the size of the whole buffer */
+    size_t          map_size;
+    /* the offset of pixels data */
+    off_t           pixels_off;
+
     /* The number of semphore for this surface.
        The SysV semaphore set id for synchronizing this shared surface:
        SHAREDRES_SEMID_SHARED_SURF. */
     int             sem_num;
 
-    /* The pid of the creator */
-    pid_t           creator;
-
     /* The file descriptor in context of the creator. */
     int             fd;
     /* Not zero for hardware surface. */
     int             byhw;
-    /* The dirty information */
-    GAL_DirtyInfo   dirty_info;
     /* the size of the surface */
     int             width, height;
     /* the pitch of the surface */
@@ -162,13 +168,8 @@ typedef struct _SharedSurfaceHeader {
     /* the RGBA masks */
     Uint32          Rmask, Gmask, Bmask, Amask;
 
-    /* the size of the whole buffer */
-    size_t          map_size;
-    /* the offset of pixels data */
-    off_t           pixels_off;
-
-    /* the name of the shared surface. */
-    char            name[NAME_MAX + 1];
+    /* The dirty information */
+    GAL_DirtyInfo   dirty_info;
 } GAL_SharedSurfaceHeader;
 #endif /* IS_COMPOSITING_SCHEMA */
 
