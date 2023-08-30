@@ -457,6 +457,45 @@ MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
      */
 
 /**
+ * \fn GHANDLE GUIAPI JoinLayerEx (const char* layer_name,
+                const char* client_name,
+                int max_nr_highers, int max_nr_normals, int *cli_id)
+ * \brief Joins to a layer and returns the client identifier if success.
+ *
+ * This function should be called by clients before calling any other MiniGUI
+ * functions. You can call \a GetLayerInfo to get the layer information.
+ * If the layer to be joined does not exist, the server, i.e. \a mginit, will
+ * try to create a new one. If you passed a NULL pointer or a null string for
+ * \a layer_name, the client will join to the default layer.
+ *
+ * If the client want to create a new layer, you should specify the maximal
+ * number of z-nodes in the higher level (max_nr_highers) and the maximal
+ * number of z-nodes in the normal level (max_nr_normals) of the new layer.
+ * Passing zero to \a max_nr_highers and max_nr_normals will use the default
+ * values, and the default values are specified by ServerStartup.
+ *
+ * Note that the server will create a default layer named "mginit".
+ *
+ * \param layer_name The name of the layer. You can use NAME_TOPMOST_LAYER to
+ *        specify the current topmost layer.
+ * \param client_name The name of the client.
+ * \param max_nr_highers The maximal number of z-nodes in the higher level of
+ *        the new layer.
+ * \param max_nr_normals The maximal number of z-nodes in the normal level of
+ *        the new layer.
+ * \param cli_id The pointer to a buffer of int to return the client identifier.
+ *
+ * \return The handle to the layer on success, INV_LAYER_HANDLE on error.
+ *
+ * \note Only call this function in clients of MiniGUI-Processes.
+ *
+ * \sa GetLayerInfo, ServerStartup, ServerCreateLayer
+ */
+MG_EXPORT GHANDLE GUIAPI JoinLayerEx (const char* layer_name,
+                const char* client_name,
+                int max_nr_highers, int max_nr_normals, int *cli_id);
+
+/**
  * \fn GHANDLE GUIAPI JoinLayer (const char* layer_name,
                 const char* client_name,
                 int max_nr_highers, int max_nr_normals)
@@ -490,9 +529,30 @@ MG_EXPORT void GUIAPI MiniGUIPanic (int exitcode);
  *
  * \sa GetLayerInfo, ServerStartup, ServerCreateLayer
  */
-MG_EXPORT GHANDLE GUIAPI JoinLayer (const char* layer_name,
+static inline GHANDLE GUIAPI JoinLayer (const char* layer_name,
                 const char* client_name,
-                int max_nr_highers, int max_nr_normals);
+                int max_nr_highers, int max_nr_normals)
+{
+    return JoinLayerEx (layer_name, client_name,
+                max_nr_highers, max_nr_normals, NULL);
+}
+
+/**
+ * \fn int GUIAPI GetClientId (void)
+ * \brief Gets the client identifier.
+ *
+ * You can get the information of a layer through this function.
+ * The information will be returned through the pointer arguments
+ * if the specific pointer is not NULL.
+ *
+ * \return Returns the client identifier of the current process.
+ *      Note that the server always returns 0.
+ *
+ * \sa JoinLayerEx
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT int GUIAPI GetClientId (void);
 
 /**
  * \fn GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
@@ -2125,7 +2185,7 @@ MG_EXPORT int GUIAPI ServerSendReplyEx (int clifd,
  * \fn int GUIAPI ServerSendReply (int clifd, const void* reply, int len)
  * \brief Sends the reply to the client.
  *
- * This function sends a replay pointed to by \a reply which is
+ * This function sends a reply pointed to by \a reply which is
  * \a len bytes long to the client.
  *
  * \note Only used by the server to send the reply to the client.
@@ -2674,6 +2734,26 @@ MG_EXPORT void GUIAPI DesktopUpdateAllWindow (void);
 #define DUMMY_LAYER_HANDLE  (GHANDLE)(-1)
 
 /**
+ * \fn GHANDLE GUIAPI JoinLayerEx (const char* layer_name,
+                const char* client_name,
+                int max_nr_highers, int max_nr_normals, int *cli_fd)
+ * \brief The dummy replacement of the same function for MiniGUI-Processes.
+ *
+ * This function is a replacment of the same function for MiniGUI-Processes
+ * runtime mode. We provide this function for MiniGUI-Threads and
+ * MiniGUI-Standalone runtime modes, in order to avoid using the
+ * conditional compilation instructions in your source code.
+ *
+ * \return Always returns DUMMY_LAYER_HANDLE to indicate success.
+ */
+static inline GHANDLE GUIAPI JoinLayerEx (const char* layer_name,
+        const char* client_name,
+        int max_nr_highers, int max_nr_normals, int *cli_fd)
+{
+    return DUMMY_LAYER_HANDLE;
+}
+
+/**
  * \fn GHANDLE GUIAPI JoinLayer (const char* layer_name,
                 const char* client_name,
                 int max_nr_highers, int max_nr_normals)
@@ -2687,7 +2767,8 @@ MG_EXPORT void GUIAPI DesktopUpdateAllWindow (void);
  * \return Always returns DUMMY_LAYER_HANDLE to indicate success.
  */
 static inline GHANDLE GUIAPI JoinLayer (const char* layer_name,
-        const char* client_name, int max_nr_highers, int max_nr_normals)
+        const char* client_name,
+        int max_nr_highers, int max_nr_normals)
 {
     return DUMMY_LAYER_HANDLE;
 }

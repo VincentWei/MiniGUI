@@ -307,7 +307,7 @@ map_entry_t*  __mg_map_insert_ex2 (map_t* map, const void* key,
     map_entry_t *parent;
 
     if (map == NULL)
-        return -1;
+        return NULL;
 
     WRLOCK_MAP (map);
 

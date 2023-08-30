@@ -518,8 +518,8 @@ BOOL client_IdleHandler4Client (PMSGQUEUE msg_queue, BOOL wait)
     return (n > 0);
 }
 
-GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
-               int max_nr_topmosts, int max_nr_normals)
+GHANDLE GUIAPI JoinLayerEx (const char* layer_name, const char* client_name,
+               int max_nr_topmosts, int max_nr_normals, int *cli_id)
 {
     GHANDLE layer_handle = INV_LAYER_HANDLE;
     REQUEST req;
@@ -529,8 +529,12 @@ GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
     if (mgIsServer)
         return layer_handle;
 
-    if (__mg_client_id != 0) /* Already joined, return the handle */
+    if (__mg_client_id != 0) {
+        /* Already joined, return the handle */
+        if (cli_id)
+            *cli_id = __mg_client_id;
         return GetLayerInfo (NAME_SELF_LAYER, NULL, NULL, NULL);
+    }
 
     if (layer_name) {
         strncpy (info.layer_name, layer_name, LEN_LAYER_NAME);
@@ -593,8 +597,16 @@ GHANDLE GUIAPI JoinLayer (const char* layer_name, const char* client_name,
 
     __mg_start_client_desktop ();
 
+    if (cli_id)
+        *cli_id = __mg_client_id;
+
 ret:
     return layer_handle;
+}
+
+int GUIAPI GetClientId (void)
+{
+    return __mg_client_id;
 }
 
 GHANDLE GUIAPI GetLayerInfo (const char* layer_name,
