@@ -1772,7 +1772,7 @@ MG_EXPORT BOOL GUIAPI DestroySharedSurface (HSURF surf);
 
 /**
  * \fn int GUIAPI GetSharedSurfaceFDByClientWindow (int client,
- *      HWND hwnd)
+ *      HWND hwnd, size_t *map_size, DWORD *flags)
  * \brief Gets the file descriptor of the shared surface of a window created
  * by another client.
  *
@@ -1783,13 +1783,17 @@ MG_EXPORT BOOL GUIAPI DestroySharedSurface (HSURF surf);
  *
  * \param client The client identifier.
  * \param hwnd The handle to the window created by the client.
+ * \param map_size The pointer to a buffer of size_t to receive the whole size
+ *      of the shared surface in bytes; nullable.
+ * \param flags The pointer to a buffer of DWORD to receive the flags of
+ *      the shared surface; nullable.
  *
  * \return The file descriptor which represents the shared surface on success;
  *      a value less than 0 for failure.
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
  *
- * \sa CreateSharedSurface
+ * \sa AttachToSharedSurface, GetWindowSharedSurfaceFD
  *
  * Since 5.2.0
  */
@@ -1797,7 +1801,8 @@ MG_EXPORT int GUIAPI GetSharedSurfaceFDByClientWindow (int client,
         HWND hwnd, size_t *map_size, DWORD *flags);
 
 /**
- * \fn int GUIAPI GetSharedSurfaceFDByName (const char *name)
+ * \fn int GUIAPI GetSharedSurfaceFDByName (const char *name,
+ *      size_t *map_size, DWORD *flags)
  * \brief Gets the file descriptor of a shared surface by name.
  *
  * This function gets the file descriptor of the shared surface created
@@ -1806,6 +1811,10 @@ MG_EXPORT int GUIAPI GetSharedSurfaceFDByClientWindow (int client,
  * the shared surface.
  *
  * \param name The gobal unique name for the shared surface.
+ * \param map_size The pointer to a buffer of size_t to receive the whole size
+ *      of the shared surface in bytes; nullable.
+ * \param flags The pointer to a buffer of DWORD to receive the flags of
+ *      the shared surface; nullable.
  *
  * \return The file descriptor which represents the shared surface on success;
  *      a value less than 0 for failure.

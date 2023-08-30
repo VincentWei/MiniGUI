@@ -55,6 +55,7 @@
 
 #include <signal.h>
 
+#define _DEBUG
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -831,6 +832,7 @@ int __mg_nssurf_map_operate_srv(const OPERATENSSURFINFO* req_info,
 
     switch (req_info->id_op) {
         case ID_NAMEDSSURFOP_REGISTER:
+            _DBG_PRINTF("Registering name: %s from client: %d\n", req_info->name, cli);
             entry = __mg_map_find(__nssurf_map, req_info->name);
             if (entry)
                 goto done;
@@ -849,6 +851,7 @@ int __mg_nssurf_map_operate_srv(const OPERATENSSURFINFO* req_info,
             }
 
             add_global_res(cli, __nssurf_map, entry->key, release_nssurf_info);
+            result = 0;
             break;
 
         case ID_NAMEDSSURFOP_SET:
