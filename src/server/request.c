@@ -55,7 +55,6 @@
 
 #include <signal.h>
 
-#define _DEBUG
 #include "common.h"
 #include "minigui.h"
 #include "gdi.h"
@@ -869,6 +868,7 @@ int __mg_nssurf_map_operate_srv(const OPERATENSSURFINFO* req_info,
 
             nssurf_info->fd = fd;
             nssurf_info->map_size = req_info->map_size;
+            _DBG_PRINTF("fd set for named ssurf %s: %d\n", req_info->name, fd);
             result = 0;
             break;
 
@@ -909,8 +909,10 @@ int __mg_get_shared_surface_srv(const char *itn_name, SHAREDSURFINFO *info)
                 sizeof(APPSF_NAME_PREFIX) - 1) == 0) {
         const char *name = itn_name + sizeof(APPSF_NAME_PREFIX) - 1;
         map_entry_t *entry = __mg_map_find(__nssurf_map, name);
-        if (entry == NULL)
+        if (entry == NULL) {
+            _DBG_PRINTF("Not found named ssurf: %s\n", name);
             goto done;
+        }
 
         struct nssurf_info *nssurf_info = entry->val;
         assert(nssurf_info);
@@ -922,8 +924,10 @@ int __mg_get_shared_surface_srv(const char *itn_name, SHAREDSURFINFO *info)
         int client;
         HWND hwnd;
         int ret = sscanf(itn_name, APPSF_HWND_PATTER, &client, &hwnd);
-        if (ret != 2)
+        if (ret != 2) {
+            _WRN_PRINTF("Failed sscanf: %s\n", itn_name);
             goto done;
+        }
 
         ZORDERNODE *znode = __mg_find_znode_by_client_hwnd(client, hwnd);
         if (znode == NULL)
@@ -936,7 +940,7 @@ int __mg_get_shared_surface_srv(const char *itn_name, SHAREDSURFINFO *info)
         info->height = pdc->surface->shared_header->height;
         info->pitch = pdc->surface->shared_header->pitch;
         info->offset = pdc->surface->shared_header->pixels_off;
-        fd = pdc->surface->shared_header->fd;
+        fd = znode->fd;
     }
 
 done:

@@ -268,6 +268,8 @@ MGUI_COMPILE_TIME_ASSERT(sint64, sizeof(Sint64) == 8);
 #define MG_UNLIKELY(expr) (expr)
 #endif
 
+#define HAVE(FEATURE) (defined HAVE_##FEATURE && HAVE_##FEATURE)
+
     /**
      * \defgroup endian_info Endianness information
      * @{

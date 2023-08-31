@@ -1884,26 +1884,22 @@ MG_EXPORT const char *GUIAPI GetSharedSurfaceInfo (HSURF surf, int *fd,
         SIZE *size, int *pitch, size_t *map_size, off_t *pixels_off);
 
 /**
- * \fn BOOL GUIAPI LockSharedSurfaceIfDirty (HSURF surf,
- *      unsigned old_dirty_age, unsigned *dirty_age,
- *      int *nr_dirty_rects, const RECT **dirty_rects)
- * \brief Locks the shared surface if it is dirty.
+ * \fn BOOL GUIAPI LockSharedSurface (HSURF surf,
+ *      unsigned *dirty_age, int *nr_dirty_rects, const RECT **dirty_rects)
+ * \brief Locks the shared surface.
  *
- * This function compares the dirty age of the shared surface with the value
- * containing in \a dirty_age, and lock the shared surface if it has
- * a larger dirty age value.
+ * This function lock the given shared surface \a surf and returns
+ * the dirty age.
  *
  * \param surf The handle to the shared surface.
- * \param old_dirty_age The old dirty age.
- * \param dirty_age The pointer to a buffer of unsigned integer to return
- *      the current dirty age of the shared surface; NOT nullable.
+ * \param dirty_age The pointer to a buffer of unsigned integer to
+ *      return the latest dirty age of the shared surface; nullable.
  * \param nr_dirty_rects The pointer to a buffer of integer to return the valid
  *      dirty rectangles; nullable.
  * \param dirty_rects The pointer to a buffer of (const RECT *) for the array
  *      of dirty rectangles; nullable.
  *
- * \return TRUE for success and if the value contains in \a dirty_age is not
- *      equal to \a old_dirty_age, the surface was locked; otherwise failure.
+ * \return 1 for locked; 0 for not locked; -1 for failure.
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
  *
@@ -1911,9 +1907,8 @@ MG_EXPORT const char *GUIAPI GetSharedSurfaceInfo (HSURF surf, int *fd,
  *
  * Since 5.2.0
  */
-MG_EXPORT BOOL GUIAPI LockSharedSurfaceIfDirty (HSURF surf,
-        unsigned old_dirty_age, unsigned *dirty_age,
-        int *nr_dirty_rects, const RECT **dirty_rects);
+MG_EXPORT BOOL GUIAPI LockSharedSurface (HSURF surf,
+        unsigned *dirty_age, int *nr_dirty_rects, const RECT **dirty_rects);
 
 /**
  * \fn BOOL GUIAPI UnlockSharedSurface (HSURF surf, BOOL clear_dirty)
@@ -1971,6 +1966,22 @@ MG_EXPORT BOOL GUIAPI DetachFromSharedSurface (HSURF surf);
  * Since 5.2.0
  */
 MG_EXPORT HDC GUIAPI CreateMemDCFromSurface(HSURF surf);
+
+/**
+ * \fn HSURF GUIAPI GetSurfaceFromDC(HDC hdc);
+ * \brief Gets surface handle from a DC.
+ *
+ * This function returns the handle to the surface of the given DC \a hdc.
+ *
+ * \param hdc The handle to the DC.
+ *
+ * \return The handle to the surface, NULL for failure.
+ *
+ * \sa CreateMemDCFromSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT HSURF GUIAPI GetSurfaceFromDC(HDC hdc);
 
 /**
  * \fn HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags, \

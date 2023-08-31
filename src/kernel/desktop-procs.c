@@ -839,7 +839,8 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     else if (fd >= 0) {
         surf = GAL_AttachSharedRGBSurface (NULL, fd,
                 surf_size, surf_flags, TRUE);
-        close (fd);
+        /* Since 5.2.0: keep fd available.
+        close (fd); */
     }
     else {
         _ERR_PRINTF("KERNEL: not server but fd for shared surface is invalid\n");
@@ -864,7 +865,7 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 #endif /* def _MGSCHEMA_COMPOSITING */
 
     free_slot = AllocZOrderNode (cli, hwnd,
-                    main_win, flags, rc, caption, memdc, ct, ct_arg);
+                    main_win, flags, rc, caption, memdc, fd, ct, ct_arg);
 
     if ((free_slot != -1) && OnZNodeOperation)
         OnZNodeOperation (ZNOP_ALLOCATE, cli, free_slot);
@@ -997,7 +998,8 @@ static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
         else {
             surf = GAL_AttachSharedRGBSurface (NULL, fd,
                     surf_size, surf_flags, TRUE);
-            close (fd);
+            /* Since 5.2.0: keep fd available.
+            close (fd); */
         }
 
         if (surf) {
@@ -1016,10 +1018,9 @@ static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
             return -1;
         }
     }
-
 #endif /* def _MGSCHEMA_COMPOSITING */
 
-    ret = dskMoveWindow (cli, idx_znode, memdc, rcWin);
+    ret = dskMoveWindow (cli, idx_znode, memdc, fd, rcWin);
     if (ret == 0 && OnZNodeOperation)
         OnZNodeOperation (ZNOP_MOVEWIN, cli, idx_znode);
 
@@ -2255,7 +2256,8 @@ static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
     }
 
 #ifdef _MGSCHEMA_COMPOSITING
-    if (pCtrl->surf->shared_header && pCtrl->surf->shared_header->fd >= 0) {
+    /* Since 5.2.0: keep fd available. */
+    if (0 && pCtrl->surf->shared_header && pCtrl->surf->shared_header->fd >= 0) {
         close (pCtrl->surf->shared_header->fd);
         pCtrl->surf->shared_header->fd = -1;
     }
@@ -2286,7 +2288,8 @@ static int dskMoveMainWindow (PMAINWIN pWin, RECT* prcExpect)
         __mg_update_dc_on_surface_changed ((HWND)pWin, pWin->surf);
     }
 
-    if (pWin->surf->shared_header && pWin->surf->shared_header->fd >= 0) {
+    /* Since 5.2.0: keep fd available. */
+    if (0 && pWin->surf->shared_header && pWin->surf->shared_header->fd >= 0) {
         close (pWin->surf->shared_header->fd);
         pWin->surf->shared_header->fd = -1;
     }

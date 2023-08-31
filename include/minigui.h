@@ -1222,6 +1222,9 @@ typedef struct _ZNODEHEADER {
     int             lock_count;
 
 #ifdef _MGSCHEMA_COMPOSITING
+    /** The file descriptor of the surface; since 5.2.0. */
+    int             fd;
+
     /** The count for changes of the content. */
     unsigned int    changes;
     /**

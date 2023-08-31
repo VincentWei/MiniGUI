@@ -3384,11 +3384,14 @@ HDC GUIAPI CreateMemDCFromSurface (HSURF surface)
     return (HDC)pmem_dc;
 }
 
-struct GAL_Surface* GetSurfaceFromDC (HDC hdc)
+HSURF GUIAPI GetSurfaceFromDC (HDC hdc)
 {
     PDC pdc;
-    pdc = dc_HDC2PDC (hdc);
-    return pdc->surface;
+    pdc = dc_HDC2PDC(hdc);
+    if (pdc)
+        return pdc->surface;
+
+    return NULL;
 }
 
 HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,

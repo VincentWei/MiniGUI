@@ -1535,6 +1535,10 @@ static int srvForceCloseMenu (int cli)
     for (i = (zi->nr_popupmenus - 1); i >= 0; i--) {
         DO_COMPSOR_OP_ARGS (on_hiding_ppp, i);
         DeleteMemDC (menu_nodes[i].mem_dc);
+        /* Since 5.2.0 */
+        assert (menu_nodes[i].fd >= 0);
+        close (menu_nodes[i].fd);
+        menu_nodes[i].fd = -1;
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
@@ -1605,7 +1609,8 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
         else if (fd >= 0) {
             surf = GAL_AttachSharedRGBSurface (NULL, fd,
                     surf_size, surf_flags, TRUE);
-            close (fd);
+            /* Since 5.2.0: keep fd available.
+            close (fd); */
         }
         else {
             _WRN_PRINTF("not server but fd for shared surface is invalid\n");
@@ -1648,6 +1653,7 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
     menu_nodes [zi->nr_popupmenus].rc = *rc;
     menu_nodes [zi->nr_popupmenus].hwnd = ptmi;
 #ifdef _MGSCHEMA_COMPOSITING
+    menu_nodes [zi->nr_popupmenus].fd = fd;
     menu_nodes [zi->nr_popupmenus].changes = 0;
     menu_nodes [zi->nr_popupmenus].ct = CT_OPAQUE;
     menu_nodes [zi->nr_popupmenus].ct_arg = 0;
@@ -1693,6 +1699,8 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
 
 #ifdef _MGSCHEMA_COMPOSITING
     DO_COMPSOR_OP_ARGS (on_hiding_ppp, idx_znode);
+    close(menu_nodes [idx_znode].fd);
+    menu_nodes [idx_znode].fd = -1;
     DeleteMemDC (menu_nodes [idx_znode].mem_dc);
 #else   /* not defined _MGSCHEMA_COMPOSITING */
     rc = menu_nodes [idx_znode].rc;
@@ -2148,7 +2156,7 @@ static void update_on_new_visible_znode (void* layer, ZORDERINFO* zi,
 
 static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption,
-                HDC mem_dc, int ct, DWORD ct_arg)
+                HDC mem_dc, int fd, int ct, DWORD ct_arg)
 {
     DWORD type = flags & ZOF_TYPE_MASK;
     int *first = NULL, *nr_nodes = NULL;
@@ -2353,6 +2361,7 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].main_win = main_win;
     nodes [free_slot].lock_count = 0;
 #ifdef _MGSCHEMA_COMPOSITING
+    nodes [free_slot].fd = fd;
     nodes [free_slot].changes = 0;
     nodes [free_slot].ct = validate_compositing_type (flags, ct);
     nodes [free_slot].ct_arg = ct_arg;
@@ -2418,10 +2427,10 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 
 static inline int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption,
-                HDC mem_dc, int ct, DWORD ct_arg)
+                HDC mem_dc, int fd, int ct, DWORD ct_arg)
 {
     return AllocZOrderNodeEx (get_zorder_info(cli), cli, hwnd, main_win,
-            flags, rc, caption, mem_dc, ct, ct_arg);
+            flags, rc, caption, mem_dc, fd, ct, ct_arg);
 }
 
 static void prepare_to_delete_visible_znode (void* layer, ZORDERINFO* zi,
@@ -2567,6 +2576,14 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
         free (nodes[idx_znode].caption);
         nodes[idx_znode].caption = NULL;
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    /* Since 5.2.0 */
+    if (nodes[idx_znode].fd >= 0) {
+        close(nodes[idx_znode].fd);
+        nodes[idx_znode].fd = -1;
+    }
+#endif
 
     /* Free mask rects */
     if (nodes[idx_znode].idx_mask_rect) {
@@ -3361,7 +3378,8 @@ static int dskHideWindow (int cli, int idx_znode)
     return 0;
 }
 
-static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
+static int dskMoveWindow (int cli, int idx_znode, HDC memdc, int fd,
+        const RECT* rcWin)
 {
     DWORD type;
     int level, *first = NULL;
@@ -3710,6 +3728,10 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
         if (memdc != HDC_INVALID) {
             DeleteMemDC (nodes [idx_znode].mem_dc);
             nodes [idx_znode].mem_dc = memdc;
+            /* Since 5.2.0 */
+            assert (nodes [idx_znode].fd >= 0);
+            close (nodes [idx_znode].fd);
+            nodes [idx_znode].fd = fd;
         }
 
         unlock_zi_for_change (zi);

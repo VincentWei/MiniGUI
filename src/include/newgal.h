@@ -142,18 +142,18 @@ typedef struct _SharedSurfaceHeader {
     /* the name of the shared surface; since 5.2.0. */
     char            name[NAME_MAX + 1];
 
-    /* The pid of the creator */
-    pid_t           creator;
-
-    /* the size of the whole buffer */
-    size_t          map_size;
-    /* the offset of pixels data */
-    off_t           pixels_off;
+    /* The client identifier of the creator. */
+    int             create_cli;
 
     /* The number of semphore for this surface.
        The SysV semaphore set id for synchronizing this shared surface:
        SHAREDRES_SEMID_SHARED_SURF. */
     int             sem_num;
+
+    /* the size of the whole buffer */
+    size_t          map_size;
+    /* the offset of pixels data */
+    off_t           pixels_off;
 
     /* The file descriptor in context of the creator. */
     int             fd;

@@ -62,7 +62,7 @@ dnl ========================================================================
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS(limits.h math.h locale.h unistd.h termio.h sys/types.h sys/time.h sys/select.h sys/memfd.h)
+AC_CHECK_HEADERS(limits.h math.h stdatomic.h locale.h unistd.h termio.h sys/types.h sys/time.h sys/select.h sys/memfd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

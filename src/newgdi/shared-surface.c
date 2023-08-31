@@ -175,7 +175,7 @@ BOOL GUIAPI DestroySharedSurface(HSURF surf)
         goto failed;
     }
 
-    if (surf->shared_header->creator != getpid()) {
+    if (surf->shared_header->create_cli != __mg_client_id) {
         _ERR_PRINTF("INVALID_CALL: surface is not created by current process: %p\n", surf);
         goto failed;
     }
@@ -290,7 +290,12 @@ int GUIAPI GetSharedSurfaceFDByName(const char *name,
 HSURF GUIAPI AttachToSharedSurface(GHANDLE video, int fd,
         size_t map_size, DWORD flags)
 {
-    return GAL_AttachSharedRGBSurface(video, fd, map_size, flags, TRUE);
+    HSURF surf = GAL_AttachSharedRGBSurface(video, fd, map_size, flags, TRUE);
+    if (surf) {
+        surf->refcount++;
+    }
+
+    return surf;
 }
 
 const char *GUIAPI GetSharedSurfaceInfo(HSURF surf, int *fd,
@@ -328,8 +333,7 @@ failed:
     return NULL;
 }
 
-BOOL GUIAPI LockSharedSurfaceIfDirty(HSURF surf,
-        unsigned old_dirty_age, unsigned *dirty_age,
+BOOL GUIAPI LockSharedSurface(HSURF surf, unsigned *dirty_age,
         int *nr_dirty_rcs, const RECT **dirty_rcs)
 {
     if (surf->shared_header == NULL) {
@@ -338,23 +342,23 @@ BOOL GUIAPI LockSharedSurfaceIfDirty(HSURF surf,
     }
 
     if (surf->flags & GAL_SSURF_LOCKED) {
-        _ERR_PRINTF("INVALID_CALL: surface locked: %p\n", surf);
+        _WRN_PRINTF("INVALID_CALL: surface locked: %p\n", surf);
         goto failed;
     }
 
-    /* FIXME: use atomic types */
-    if (old_dirty_age != surf->shared_header->dirty_info.dirty_age) {
-        LOCK_SURFACE_SEM(surf->shared_header->sem_num);
+    LOCK_SURFACE_SEM(surf->shared_header->sem_num);
+    surf->flags |= GAL_SSURF_LOCKED;
 
-        surf->flags |= GAL_SSURF_LOCKED;
+    if (dirty_age) {
         *dirty_age = surf->shared_header->dirty_info.dirty_age;
-        if (nr_dirty_rcs) {
-            *nr_dirty_rcs = surf->shared_header->dirty_info.nr_dirty_rcs;
-        }
+    }
 
-        if (dirty_rcs) {
-            *dirty_rcs = surf->shared_header->dirty_info.dirty_rcs;
-        }
+    if (nr_dirty_rcs) {
+        *nr_dirty_rcs = surf->shared_header->dirty_info.nr_dirty_rcs;
+    }
+
+    if (dirty_rcs) {
+        *dirty_rcs = surf->shared_header->dirty_info.dirty_rcs;
     }
 
     return TRUE;
@@ -371,16 +375,17 @@ BOOL GUIAPI UnlockSharedSurface(HSURF surf, BOOL clear_dirty)
     }
 
     if (!(surf->flags & GAL_SSURF_LOCKED)) {
-        _ERR_PRINTF("INVALID_CALL: surface is not locked: %p\n", surf);
+        _WRN_PRINTF("INVALID_CALL: surface not locked: %p\n", surf);
         goto failed;
     }
+
+    UNLOCK_SURFACE_SEM(surf->shared_header->sem_num);
+    surf->flags &= ~GAL_SSURF_LOCKED;
 
     if (clear_dirty) {
         surf->dirty_info->nr_dirty_rcs = 0;
     }
 
-    UNLOCK_SURFACE_SEM(surf->shared_header->sem_num);
-    surf->flags &= ~GAL_SSURF_LOCKED;
     return TRUE;
 
 failed:

@@ -4476,8 +4476,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
 #endif
 
 #ifdef _MGSCHEMA_COMPOSITING
-    // Close file descriptor to free kernel memory?
-    if (pWin->surf->shared_header) {
+    /* Since 5.2.0: keep fd available. */
+    if (0 && pWin->surf->shared_header) {
         close (pWin->surf->shared_header->fd);
         pWin->surf->shared_header->fd = -1;
     }
@@ -6036,8 +6036,8 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
     }
 
 #ifdef _MGSCHEMA_COMPOSITING
-    // Close file descriptor to free kernel memory?
-    if (dwExStyle & WS_EX_CTRLASMAINWIN && pNewCtrl->surf->shared_header) {
+    /* Since 5.2.0: keep fd available. */
+    if (0 && dwExStyle & WS_EX_CTRLASMAINWIN && pNewCtrl->surf->shared_header) {
         close (pNewCtrl->surf->shared_header->fd);
         pNewCtrl->surf->shared_header->fd = -1;
     }

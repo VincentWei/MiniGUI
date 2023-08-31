@@ -59,6 +59,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include "internals.h"
 #include "misc.h"
 #include "newgal.h"
 #include "sysvideo.h"
@@ -203,7 +204,7 @@ GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 
         /* fill fileds of shared header */
         memset (hdr, 0, sizeof(GAL_SharedSurfaceHeader));
-        hdr->creator    = getpid();
+        hdr->create_cli = __mg_client_id;
         hdr->fd         = fd;
         hdr->byhw       = byhw;
         hdr->width      = surface->w;
@@ -387,7 +388,7 @@ GAL_Surface * GAL_AttachSharedRGBSurface (GAL_VideoDevice *video,
 
         data_map = mmap (NULL, map_size, prot, MAP_SHARED, fd, 0);
         if (data_map == MAP_FAILED) {
-            _ERR_PRINTF("NEWGAL: Failed to map shared RGB surface: %d\n", fd);
+            _ERR_PRINTF("NEWGAL: Failed to map shared RGB surface: %d (%m)\n", fd);
             goto error;
         }
 

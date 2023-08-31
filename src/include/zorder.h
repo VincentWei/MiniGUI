@@ -79,6 +79,7 @@ typedef struct _ZORDERNODE {
     unsigned int    lock_count;     /* the lock count */
 
 #ifdef _MGSCHEMA_COMPOSITING
+    int             fd;             /* the file descriptor; since 5.2.0. */
     unsigned int    changes;        /* count for changes of content */
     int             ct;             /* the compositing type */
     DWORD           ct_arg;         /* the argument for compositing */
