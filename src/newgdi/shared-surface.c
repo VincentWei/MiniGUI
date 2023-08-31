@@ -337,7 +337,7 @@ BOOL GUIAPI LockSharedSurface(HSURF surf, unsigned *dirty_age,
         int *nr_dirty_rcs, const RECT **dirty_rcs)
 {
     if (surf->shared_header == NULL) {
-        _ERR_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
+        _WRN_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
         goto failed;
     }
 
@@ -370,7 +370,7 @@ failed:
 BOOL GUIAPI UnlockSharedSurface(HSURF surf, BOOL clear_dirty)
 {
     if (surf->shared_header == NULL) {
-        _ERR_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
+        _WRN_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
         goto failed;
     }
 
@@ -395,12 +395,12 @@ failed:
 BOOL GUIAPI DetachFromSharedSurface(HSURF surf)
 {
     if (surf->shared_header == NULL) {
-        _ERR_PRINTF("INVALID_ARG: not a shared surface: %p\n", surf);
+        _WRN_PRINTF("INVALID_ARG: not a shared surface: %p\n", surf);
         goto failed;
     }
 
     if (!(surf->flags & GAL_SSURF_ATTACHED)) {
-        _ERR_PRINTF("INVALID_CALL: surface was not created by attaching: %p\n", surf);
+        _WRN_PRINTF("INVALID_CALL: surface was not created by attaching: %p\n", surf);
         goto failed;
     }
 
