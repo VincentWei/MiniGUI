@@ -114,7 +114,7 @@ static LRESULT AboutWinProc (HWND hWnd, UINT message,
         DrawText (hdc,
                 "MiniGUI -- a mature cross-platform windowing system "
                 "and GUI support system for embedded or IoT devices.\n\n"
-                "Copyright (C) 2002 ~ 2020 FMSoft Co., Ltd.",
+                "Copyright (C) 2002 ~ 2023 FMSoft Co., Ltd.",
                 -1, &rcClient, DT_WORDBREAK | DT_CENTER);
 
         EndPaint (hWnd, hdc);
