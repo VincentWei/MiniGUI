@@ -289,12 +289,7 @@ int GUIAPI GetSharedSurfaceFDByName(const char *name,
 HSURF GUIAPI AttachToSharedSurface(GHANDLE video, int fd,
         size_t map_size, DWORD flags)
 {
-    HSURF surf = GAL_AttachSharedRGBSurface(video, fd, map_size, flags, TRUE);
-    if (surf) {
-        surf->refcount++;
-    }
-
-    return surf;
+    return GAL_AttachSharedRGBSurface(video, fd, map_size, flags, TRUE);
 }
 
 const char *GUIAPI GetSharedSurfaceInfo(HSURF surf, int *fd,

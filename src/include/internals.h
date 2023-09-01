@@ -958,9 +958,7 @@ BOOL gui_LoadIconRes(HDC hdc, const char* rdr_name, char* file);
 void gui_WndRect(HWND hWnd, PRECT prc);
 void gui_WndClientRect(HWND hWnd, PRECT prc);
 
-/* Undisclosed APIs */
-HDC CreateMemDCFromSurface (struct GAL_Surface* surface);
-struct GAL_Surface* GetSurfaceFromDC (HDC hdc);
+HDC __mg_create_memdc_for_surface (struct GAL_Surface* surface);
 
 /* Since 5.0.0 */
 #ifdef _MGRM_PROCESSES

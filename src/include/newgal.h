@@ -583,6 +583,11 @@ GAL_Surface *GAL_CreateRGBSurface
 GAL_Surface *GAL_CreateRGBSurfaceFrom (void *pixels,
                         int width, int height, int depth, int pitch,
                         Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+/* Since 5.2.0 */
+static GAL_Surface *GAL_RefSurface (GAL_Surface *surface) {
+    surface->refcount++;
+    return surface;
+}
 void GAL_FreeSurface (GAL_Surface *surface);
 
 typedef struct REQ_HWSURFACE {

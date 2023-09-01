@@ -1614,7 +1614,7 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
         }
 
         if (surf) {
-            memdc = CreateMemDCFromSurface (surf);
+            memdc = __mg_create_memdc_for_surface (surf);
             if (memdc == HDC_INVALID) {
                 GAL_FreeSurface (surf);
                 _WRN_PRINTF("failed to create memory dc for znode\n");

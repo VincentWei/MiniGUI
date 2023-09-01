@@ -2185,7 +2185,7 @@ static int create_memdc_for_menu (TRACKMENUINFO* ptmi)
         return -1;
     }
 
-    ptmi->dc = CreateMemDCFromSurface (surf);
+    ptmi->dc = __mg_create_memdc_for_surface (surf);
     if (ptmi->dc == HDC_INVALID) {
         GAL_FreeSurface (surf);
         return -1;

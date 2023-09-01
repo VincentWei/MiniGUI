@@ -3346,8 +3346,7 @@ HDC GUIAPI CreateMemDCEx (int width, int height, int depth, DWORD flags,
     return (HDC)pmem_dc;
 }
 
-/* Since 5.0.0; exported as API since 5.2.0 */
-HDC GUIAPI CreateMemDCFromSurface (HSURF surface)
+static HDC create_memdc_from_surface(HSURF surface, BOOL take_owner)
 {
     PDC pmem_dc = NULL;
 
@@ -3360,7 +3359,10 @@ HDC GUIAPI CreateMemDCFromSurface (HSURF surface)
     pmem_dc->DataType = TYPE_HDC;
     pmem_dc->DCType   = TYPE_MEMDC;
     pmem_dc->bInUse   = TRUE;
-    pmem_dc->surface  = surface;
+    if (take_owner)
+        pmem_dc->surface  = surface;
+    else
+        pmem_dc->surface  = GAL_RefSurface(surface);
 
     dc_InitDC (pmem_dc, HWND_NULL, FALSE);
 
@@ -3384,14 +3386,22 @@ HDC GUIAPI CreateMemDCFromSurface (HSURF surface)
     return (HDC)pmem_dc;
 }
 
+/* Since 5.2.0 */
+HDC GUIAPI CreateMemDCFromSurface (HSURF surface)
+{
+    return create_memdc_from_surface(surface, FALSE);
+}
+
+HDC __mg_create_memdc_for_surface (HSURF surface)
+{
+    return create_memdc_from_surface(surface, TRUE);
+}
+
 HSURF GUIAPI GetSurfaceFromDC (HDC hdc)
 {
     PDC pdc;
     pdc = dc_HDC2PDC(hdc);
-    if (pdc)
-        return pdc->surface;
-
-    return NULL;
+    return pdc->surface;
 }
 
 HDC GUIAPI CreateSubMemDC (HDC parent, int off_x, int off_y,

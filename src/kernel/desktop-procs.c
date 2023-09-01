@@ -848,7 +848,7 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
     }
 
     if (surf) {
-        memdc = CreateMemDCFromSurface (surf);
+        memdc = __mg_create_memdc_for_surface (surf);
         if (memdc == HDC_INVALID) {
             if (cli > 0) {
                 GAL_FreeSurface (surf);
@@ -1003,7 +1003,7 @@ static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
         }
 
         if (surf) {
-            memdc = CreateMemDCFromSurface (surf);
+            memdc = __mg_create_memdc_for_surface (surf);
             if (memdc == HDC_INVALID) {
                 if (cli > 0) {
                     GAL_FreeSurface (surf);
