@@ -269,7 +269,7 @@ void GUIAPI GetClipRgnBoundRect (PCLIPRGN pRgn, PRECT pRect)
 
 BOOL GUIAPI IsEmptyClipRgn (const CLIPRGN* pRgn)
 {
-     if (pRgn->head == NULL)
+     if (pRgn->head == NULL || IsRectEmpty (&pRgn->rcBound))
          return TRUE;
 
      return FALSE;

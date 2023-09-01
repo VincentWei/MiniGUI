@@ -679,6 +679,19 @@ static BOOL merge_dirty_ppp (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
     return rc;
 }
 
+#if 0
+static void dump_dirty_region(CompositorCtxt* ctxt, const char *prefix, int zidx)
+{
+    CLIPRGN* rgn = &ctxt->dirty_rgn;
+    _WRN_PRINTF("%s (%d): dirty region on screen: (%d, %d) %d x %d; "
+            "highest dirty win: %d; lowest dirty win: %d\n",
+            prefix, zidx,
+            rgn->rcBound.left, rgn->rcBound.top,
+            RECTW (rgn->rcBound), RECTH (rgn->rcBound),
+            ctxt->highest_dirty_win, ctxt->lowest_dirty_win);
+}
+#endif
+
 static BOOL merge_dirty_win (CompositorCtxt* ctxt, MG_Layer* layer, int zidx)
 {
     BOOL rc = FALSE;
@@ -722,8 +735,12 @@ static BOOL merge_dirty_wpp (CompositorCtxt* ctxt, MG_Layer* layer)
 static BOOL refresh_dirty_region (CompositorCtxt* ctxt, MG_Layer* layer)
 {
     /* the fallback compositor only manages znodes on the topmost layer. */
-    if (layer != mgTopmostLayer || IsEmptyClipRgn (&ctxt->dirty_rgn))
+    if (layer != mgTopmostLayer)
         return FALSE;
+
+    if (IsEmptyClipRgn (&ctxt->dirty_rgn)) {
+        return FALSE;
+    }
 
     if (ctxt->highest_dirty_ppp >= 0) {
         composite_ppp_znodes (ctxt);

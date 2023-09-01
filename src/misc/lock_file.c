@@ -63,22 +63,50 @@
 
 void __mg_lock_file_for_read(int fd)
 {
-    while (flock(fd, LOCK_SH) == -1 && errno == EINTR);
+    struct flock lock;
+
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+
+    while (fcntl(fd, F_SETLKW, &lock) == -1 && errno == EINTR);
 }
 
 void __mg_unlock_file_for_read(int fd)
 {
-    flock(fd, LOCK_UN);
+    struct flock lock;
+
+    lock.l_type = F_UNLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+
+    fcntl(fd, F_SETLK, &lock);
 }
 
 void __mg_lock_file_for_write(int fd)
 {
-    while (flock(fd, LOCK_EX) == -1 && errno == EINTR);
+    struct flock lock;
+
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+
+    while (fcntl(fd, F_SETLKW, &lock) == -1 && errno == EINTR);
 }
 
 void __mg_unlock_file_for_write(int fd)
 {
-    flock(fd, LOCK_UN);
+    struct flock lock;
+
+    lock.l_type = F_UNLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+
+    fcntl(fd, F_SETLK, &lock);
 }
 
 #endif /* __NOUNIX__ */

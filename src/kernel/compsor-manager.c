@@ -68,6 +68,7 @@
 #include "constants.h"
 #include "zorder.h"
 #include "dc.h"
+#include "server.h"
 
 #define MAX_NR_COMPOSITORS      8
 #define LEN_COMPOSITOR_NAME     15
@@ -138,7 +139,6 @@ static void lock_znode_surface (PDC pdc, ZORDERNODE* node)
         node->dirty_age = pdc->surface->dirty_info->dirty_age;
         node->nr_dirty_rcs = pdc->surface->dirty_info->nr_dirty_rcs;
         node->dirty_rcs = pdc->surface->dirty_info->dirty_rcs;
-
     }
 
     node->lock_count++;
@@ -174,8 +174,9 @@ static void reset_znode_surface_dirty (PDC pdc, ZORDERNODE* node, int slot)
         pdc->surface->dirty_info->nr_dirty_rcs = 0;
     }
     else if (node->hwnd) {
-        MSG msg = { HWND_NULL, MSG_WINCOMPOSITED, slot, (LPARAM)node->hwnd };
-        __mg_send2client(&msg, node);
+        MSG msg = { HWND_NULL, MSG_WINCOMPOSITED,
+            slot, (LPARAM)node->hwnd, (DWORD)node->changes };
+        __mg_send2client(&msg, mgClients + node->cli);
     }
 }
 
