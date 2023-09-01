@@ -7,7 +7,7 @@ EXTRA_DIST= misc.c systext.c rwops.c endianrw.c nposix.c clipboard.c \
 
 libmisc_la_SOURCES = misc.c systext.c rwops.c endianrw.c nposix.c clipboard.c \
                 math.c about.c license.c anon_file.c rbtree.c map.c \
-                error.c sockio.c
+                error.c sockio.c lock_file.c
 
 SRC_FILES = $(libmisc_la_SOURCES)
 LIB_NAME=libmisc

@@ -145,20 +145,19 @@ typedef struct _SharedSurfaceHeader {
     /* The client identifier of the creator. */
     int             create_cli;
 
-    /* The number of semphore for this surface.
-       The SysV semaphore set id for synchronizing this shared surface:
-       SHAREDRES_SEMID_SHARED_SURF. */
-    int             sem_num;
-
-    /* the size of the whole buffer */
-    size_t          map_size;
-    /* the offset of pixels data */
-    off_t           pixels_off;
-
-    /* The file descriptor in context of the creator. */
-    int             fd;
     /* Not zero for hardware surface. */
     int             byhw;
+
+    /* Deprecated since 5.2.0.
+       The number of semphore for this surface.
+       The SysV semaphore set id for synchronizing this shared surface:
+       SHAREDRES_SEMID_SHARED_SURF.
+    int             sem_num; */
+
+    /* Deprecated since 5.2.0.
+       The file descriptor in context of the creator.
+    int             fd; */
+
     /* the size of the surface */
     int             width, height;
     /* the pitch of the surface */
@@ -167,6 +166,11 @@ typedef struct _SharedSurfaceHeader {
     int             depth;
     /* the RGBA masks */
     Uint32          Rmask, Gmask, Bmask, Amask;
+
+    /* the size of the whole buffer */
+    size_t          map_size;
+    /* the offset of pixels data */
+    off_t           pixels_off;
 
     /* The dirty information */
     GAL_DirtyInfo   dirty_info;
@@ -234,6 +238,8 @@ typedef struct GAL_Surface {
     GAL_SharedSurfaceHeader *shared_header;     /* Private */
     /* The dirty info for non-shared surface. */
     GAL_DirtyInfo *dirty_info;                  /* Private */
+    /* The file descriptor if the surface is a shared surface. */
+    int  fd;                                    /* Private; since 5.2.0. */
 #endif
 } GAL_Surface;
 

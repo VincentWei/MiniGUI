@@ -910,7 +910,7 @@ const ZNODEHEADER* GUIAPI ServerGetWinZNodeHeader (MG_Layer* layer,
         if (hdr->lock_count == 0) {
             if (pdc->surface->shared_header) {
                 // XXX: consider timeout.
-                LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+                __mg_lock_file_for_read(pdc->surface->fd);
             }
 
             hdr->dirty_age = pdc->surface->dirty_info->dirty_age;
@@ -962,7 +962,7 @@ const ZNODEHEADER* GUIAPI ServerGetPopupMenuZNodeHeader (int idx,
         if (hdr->lock_count == 0) {
             if (pdc->surface->shared_header) {
                 // XXX: consider timeout
-                LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+                __mg_lock_file_for_read(pdc->surface->fd);
             }
 
             hdr->dirty_age = pdc->surface->dirty_info->dirty_age;
@@ -1006,7 +1006,7 @@ BOOL GUIAPI ServerReleaseWinZNodeHeader (MG_Layer* layer, int idx_znode)
         hdr->lock_count--;
         if (hdr->lock_count == 0) {
             if (pdc->surface->shared_header)
-                UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+                __mg_unlock_file_for_read(pdc->surface->fd);
 
             hdr->dirty_age = 0;
             hdr->nr_dirty_rcs = 0;
@@ -1035,7 +1035,7 @@ BOOL GUIAPI ServerReleasePopupMenuZNodeHeader (int idx)
         hdr->lock_count--;
         if (hdr->lock_count == 0) {
             if (pdc->surface->shared_header)
-                UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+                __mg_unlock_file_for_read(pdc->surface->fd);
 
             hdr->dirty_age = 0;
             hdr->nr_dirty_rcs = 0;

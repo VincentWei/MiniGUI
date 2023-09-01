@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2020, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2023, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -143,6 +143,7 @@ GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 #endif
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
+    surface->fd = -1;
     GAL_SetClipRect (surface, NULL);
 
 #ifdef _MGUSE_UPDATE_REGION
@@ -202,10 +203,12 @@ GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             surface->shared_header = hdr = (GAL_SharedSurfaceHeader*)data_map;
         }
 
+        surface->fd = fd;   /* Since 5.2.0 */
+
         /* fill fileds of shared header */
         memset (hdr, 0, sizeof(GAL_SharedSurfaceHeader));
         hdr->create_cli = __mg_client_id;
-        hdr->fd         = fd;
+        // hdr->fd         = fd;
         hdr->byhw       = byhw;
         hdr->width      = surface->w;
         hdr->height     = surface->h;
@@ -222,7 +225,8 @@ GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
         surface->dirty_info->dirty_age       = 0;
         surface->dirty_info->nr_dirty_rcs    = 0;
 
-        /* allocate semaphore from semaphore for shared surface */
+        /* Deprecated since 5.2.0.
+           allocate semaphore from semaphore for shared surface
         if (IsServer() && __gal_fake_screen == NULL) {
             // use 0 for wallpaper pattern,
             // because the semaphore set manager is not ready.
@@ -233,7 +237,7 @@ GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
             if (hdr->sem_num < 0) {
                 goto error;
             }
-        }
+        } */
 
         surface->pixels = (uint8_t*)surface->shared_header + pixels_off;
 
@@ -255,16 +259,16 @@ GAL_Surface *GAL_CreateSharedRGBSurface (GAL_VideoDevice *video,
 
 error:
     if (surface) {
-        if (surface->shared_header) {
-#if 0
-            if (sem_inited) {
-                sem_destroy (&surface->shared_header->sem_lock);
-            }
-#endif
+        if (surface->fd >= 0) {
+            close(surface->fd);
+            surface->fd = -1;
+        }
 
+        if (surface->shared_header) {
+            /* Deprecated since 5.2.0
             if (surface->shared_header->sem_num >= 0) {
                 __mg_free_sem_for_shared_surf (surface->shared_header->sem_num);
-            }
+            } */
 
             if (surface->shared_header->byhw) {
                 assert(video->FreeSharedHWSurface);
@@ -272,7 +276,6 @@ error:
                 surface->hwdata = NULL; /* set to NULL for GAL_FreeSurface */
             }
             else {
-                close (surface->shared_header->fd);
                 munmap (surface->shared_header,
                     surface->shared_header->map_size);
             }
@@ -301,20 +304,16 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
     GAL_VideoDevice *video = surface->video;
 
     assert (surface->shared_header);
+    assert (surface->fd >= 0);
 
 #if 0
     sem_destroy (&surface->shared_header->sem_lock);
 #endif
 
+    /* Deprecated since 5.2.0
     if (surface->shared_header->sem_num >= 0) {
         __mg_free_sem_for_shared_surf (surface->shared_header->sem_num);
-    }
-
-    // the file descriptor may have been closed.
-    if (surface->shared_header->fd >= 0) {
-        close (surface->shared_header->fd);
-        surface->shared_header->fd = -1;
-    }
+    } */
 
     if (surface->shared_header->byhw) {
         assert (video->FreeSharedHWSurface);
@@ -326,6 +325,8 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
             surface->shared_header->map_size);
     }
 
+    close(surface->fd);
+
     surface->pixels = NULL;
 #ifdef _MGUSE_PIXMAN
     surface->pix_img = NULL;
@@ -333,6 +334,7 @@ void GAL_FreeSharedSurfaceData (GAL_Surface *surface)
 #endif
     surface->shared_header = NULL;
     surface->dirty_info = NULL;
+    surface->fd = -1;
 }
 
 /*
@@ -373,6 +375,8 @@ GAL_Surface * GAL_AttachSharedRGBSurface (GAL_VideoDevice *video,
 
     surface->shared_header = NULL;
     surface->hwdata = NULL;
+    surface->fd = fd;
+
     if (video && video->AttachSharedHWSurface) {
         // this method should fill hwdata and shared_header fields if success
         video->AttachSharedHWSurface (video, surface, fd, map_size, with_wr);

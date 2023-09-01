@@ -903,7 +903,7 @@ int __mg_get_shared_surface_srv(const char *itn_name, SHAREDSURFINFO *info)
             __gal_fake_screen->shared_header) {
         info->flags = __gal_fake_screen->flags;
         info->size = __gal_fake_screen->shared_header->map_size;
-        fd = __gal_fake_screen->shared_header->fd;
+        fd = __gal_fake_screen->fd;
     }
     else if (strncmp(itn_name, APPSF_NAME_PREFIX,
                 sizeof(APPSF_NAME_PREFIX) - 1) == 0) {
@@ -940,7 +940,7 @@ int __mg_get_shared_surface_srv(const char *itn_name, SHAREDSURFINFO *info)
         info->height = pdc->surface->shared_header->height;
         info->pitch = pdc->surface->shared_header->pitch;
         info->offset = pdc->surface->shared_header->pixels_off;
-        fd = znode->fd;
+        fd = pdc->surface->fd;
     }
 
 done:

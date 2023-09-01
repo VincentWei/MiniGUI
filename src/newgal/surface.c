@@ -1841,6 +1841,11 @@ void GAL_FreeSurface (GAL_Surface *surface)
         else
             GAL_FreeSharedSurfaceData(surface);
 
+        if (surface->fd >= 0) {
+            close(surface->fd);
+            surface->fd = -1;
+        }
+
         surface->hwdata = NULL;
         surface->pixels = NULL;
     }

@@ -4478,8 +4478,8 @@ HWND GUIAPI CreateMainWindowEx2 (PMAINWINCREATE pCreateInfo, LINT id,
 #ifdef _MGSCHEMA_COMPOSITING
     /* Since 5.2.0: keep fd available. */
     if (0 && pWin->surf->shared_header) {
-        close (pWin->surf->shared_header->fd);
-        pWin->surf->shared_header->fd = -1;
+        close (pWin->surf->fd);
+        pWin->surf->fd = -1;
     }
 #endif
 
@@ -6038,8 +6038,8 @@ HWND GUIAPI CreateWindowEx2 (const char* spClassName,
 #ifdef _MGSCHEMA_COMPOSITING
     /* Since 5.2.0: keep fd available. */
     if (0 && dwExStyle & WS_EX_CTRLASMAINWIN && pNewCtrl->surf->shared_header) {
-        close (pNewCtrl->surf->shared_header->fd);
-        pNewCtrl->surf->shared_header->fd = -1;
+        close (pNewCtrl->surf->fd);
+        pNewCtrl->surf->fd = -1;
     }
 #endif
 
@@ -6081,7 +6081,7 @@ int GUIAPI GetWindowSharedSurfaceFD (HWND hWnd, size_t *map_size, DWORD *flags)
                 *flags |= MEMDC_FLAG_HWSURFACE;
         }
 
-        return pWin->surf->shared_header->fd;
+        return pWin->surf->fd;
     }
 
     return -1;

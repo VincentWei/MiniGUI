@@ -521,14 +521,16 @@ static inline void _dc_step_y (PDC pdc, int step)
 
 #       define BLOCK_DRAW_SEM(pdc)                                  \
 do {                                                                \
-    if (pdc->surface->shared_header)                                \
-        LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);    \
+    if (pdc->surface->shared_header) {                              \
+        __mg_lock_file_for_write(pdc->surface->fd);                 \
+    }                                                               \
 } while (0)
 
 #       define UNBLOCK_DRAW_SEM(pdc)                                \
 do {                                                                \
-    if (pdc->surface->shared_header)                                \
-        UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);  \
+    if (pdc->surface->shared_header) {                              \
+        __mg_unlock_file_for_write(pdc->surface->fd);               \
+    }                                                               \
 } while (0)
 
 #       define IS_SCREEN_SURFACE(pdc)                       \

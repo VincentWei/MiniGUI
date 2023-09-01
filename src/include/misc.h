@@ -79,6 +79,11 @@ struct timezone {
 extern "C" {
 #endif  /* __cplusplus */
 
+void __mg_lock_file_for_read(int fd);
+void __mg_unlock_file_for_read(int fd);
+void __mg_lock_file_for_write(int fd);
+void __mg_unlock_file_for_write(int fd);
+
 unsigned int __mg_os_get_random_seed (void);
 void __mg_os_time_delay (int ms);
 void __mg_os_start_time (void);

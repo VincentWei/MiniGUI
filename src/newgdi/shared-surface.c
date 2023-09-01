@@ -128,8 +128,7 @@ HSURF GUIAPI CreateSharedSurface(GHANDLE video, const char *name, DWORD flags,
 
         int result;
         if (IsServer()) {
-            result = __mg_nssurf_map_operate_srv(&nssurf_req, 0,
-                    nssurf->shared_header->fd);
+            result = __mg_nssurf_map_operate_srv(&nssurf_req, 0, nssurf->fd);
         }
         else {
             REQUEST req;
@@ -138,7 +137,7 @@ HSURF GUIAPI CreateSharedSurface(GHANDLE video, const char *name, DWORD flags,
             req.data = &nssurf_req;
             req.len_data = sizeof(OPERATENSSURFINFO);
 
-            if (ClientRequestEx2(&req, NULL, 0, nssurf->shared_header->fd,
+            if (ClientRequestEx2(&req, NULL, 0, nssurf->fd,
                         &result, sizeof(result), NULL)) {
                 _ERR_PRINTF("BAD_REQUEST: when setting fd of the new shared surface.\n");
                 goto failed;
@@ -307,7 +306,7 @@ const char *GUIAPI GetSharedSurfaceInfo(HSURF surf, int *fd,
     }
 
     if (fd) {
-        *fd = surf->shared_header->fd;
+        *fd = surf->fd;
     }
 
     if (size) {
@@ -341,13 +340,7 @@ BOOL GUIAPI LockSharedSurface(HSURF surf, unsigned *dirty_age,
         goto failed;
     }
 
-    if (surf->flags & GAL_SSURF_LOCKED) {
-        _WRN_PRINTF("INVALID_CALL: surface locked: %p\n", surf);
-        goto failed;
-    }
-
-    LOCK_SURFACE_SEM(surf->shared_header->sem_num);
-    surf->flags |= GAL_SSURF_LOCKED;
+    __mg_lock_file_for_read(surf->fd);
 
     if (dirty_age) {
         *dirty_age = surf->shared_header->dirty_info.dirty_age;
@@ -374,13 +367,7 @@ BOOL GUIAPI UnlockSharedSurface(HSURF surf, BOOL clear_dirty)
         goto failed;
     }
 
-    if (!(surf->flags & GAL_SSURF_LOCKED)) {
-        _WRN_PRINTF("INVALID_CALL: surface not locked: %p\n", surf);
-        goto failed;
-    }
-
-    UNLOCK_SURFACE_SEM(surf->shared_header->sem_num);
-    surf->flags &= ~GAL_SSURF_LOCKED;
+    __mg_unlock_file_for_read(surf->fd);
 
     if (clear_dirty) {
         surf->dirty_info->nr_dirty_rcs = 0;

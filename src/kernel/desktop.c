@@ -1535,10 +1535,6 @@ static int srvForceCloseMenu (int cli)
     for (i = (zi->nr_popupmenus - 1); i >= 0; i--) {
         DO_COMPSOR_OP_ARGS (on_hiding_ppp, i);
         DeleteMemDC (menu_nodes[i].mem_dc);
-        /* Since 5.2.0 */
-        assert (menu_nodes[i].fd >= 0);
-        close (menu_nodes[i].fd);
-        menu_nodes[i].fd = -1;
     }
 #endif  /* defined _MGSCHEMA_COMPOSITING */
 
@@ -1653,7 +1649,6 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
     menu_nodes [zi->nr_popupmenus].rc = *rc;
     menu_nodes [zi->nr_popupmenus].hwnd = ptmi;
 #ifdef _MGSCHEMA_COMPOSITING
-    menu_nodes [zi->nr_popupmenus].fd = fd;
     menu_nodes [zi->nr_popupmenus].changes = 0;
     menu_nodes [zi->nr_popupmenus].ct = CT_OPAQUE;
     menu_nodes [zi->nr_popupmenus].ct_arg = 0;
@@ -1699,8 +1694,6 @@ static int srvEndTrackPopupMenu (int cli, int idx_znode)
 
 #ifdef _MGSCHEMA_COMPOSITING
     DO_COMPSOR_OP_ARGS (on_hiding_ppp, idx_znode);
-    close(menu_nodes [idx_znode].fd);
-    menu_nodes [idx_znode].fd = -1;
     DeleteMemDC (menu_nodes [idx_znode].mem_dc);
 #else   /* not defined _MGSCHEMA_COMPOSITING */
     rc = menu_nodes [idx_znode].rc;
@@ -2361,7 +2354,6 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
     nodes [free_slot].main_win = main_win;
     nodes [free_slot].lock_count = 0;
 #ifdef _MGSCHEMA_COMPOSITING
-    nodes [free_slot].fd = fd;
     nodes [free_slot].changes = 0;
     nodes [free_slot].ct = validate_compositing_type (flags, ct);
     nodes [free_slot].ct_arg = ct_arg;
@@ -2576,14 +2568,6 @@ static int FreeZOrderNodeEx (ZORDERINFO* zi, int idx_znode, HDC* memdc)
         free (nodes[idx_znode].caption);
         nodes[idx_znode].caption = NULL;
     }
-
-#ifdef _MGSCHEMA_COMPOSITING
-    /* Since 5.2.0 */
-    if (nodes[idx_znode].fd >= 0) {
-        close(nodes[idx_znode].fd);
-        nodes[idx_znode].fd = -1;
-    }
-#endif
 
     /* Free mask rects */
     if (nodes[idx_znode].idx_mask_rect) {
@@ -3728,10 +3712,6 @@ static int dskMoveWindow (int cli, int idx_znode, HDC memdc, int fd,
         if (memdc != HDC_INVALID) {
             DeleteMemDC (nodes [idx_znode].mem_dc);
             nodes [idx_znode].mem_dc = memdc;
-            /* Since 5.2.0 */
-            assert (nodes [idx_znode].fd >= 0);
-            close (nodes [idx_znode].fd);
-            nodes [idx_znode].fd = fd;
         }
 
         unlock_zi_for_change (zi);

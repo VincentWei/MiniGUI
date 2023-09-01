@@ -56,7 +56,6 @@
 #include <string.h>
 #include <errno.h>
 
-#define _DEBUG
 #include "common.h"
 
 #if defined(_MGRM_PROCESSES) && defined(_MGSCHEMA_COMPOSITING)
@@ -131,9 +130,10 @@ static const CompositorOps* load_default_compositor (void)
 
 static void lock_znode_surface (PDC pdc, ZORDERNODE* node)
 {
+    _DBG_PRINTF("lock count for node %p: %d\n", node, node->lock_count);
     if (node->lock_count == 0) {
         if (pdc->surface->shared_header) {
-            LOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+            __mg_lock_file_for_read(pdc->surface->fd);
         }
 
         node->dirty_age = pdc->surface->dirty_info->dirty_age;
@@ -147,11 +147,13 @@ static void lock_znode_surface (PDC pdc, ZORDERNODE* node)
 
 static void unlock_znode_surface (PDC pdc, ZORDERNODE* node)
 {
+    _DBG_PRINTF("lock count for node %p: %d\n", node, node->lock_count);
     if (node->lock_count > 0) {
         node->lock_count--;
         if (node->lock_count == 0) {
-            if (pdc->surface->shared_header)
-                UNLOCK_SURFACE_SEM (pdc->surface->shared_header->sem_num);
+            if (pdc->surface->shared_header) {
+                __mg_unlock_file_for_read(pdc->surface->fd);
+            }
 
             node->dirty_age = 0;
             node->nr_dirty_rcs = 0;

@@ -365,7 +365,7 @@ static intptr_t cliAllocZOrderNode (PMAINWIN pWin, const COMPOSITINGINFO* ct_inf
     }
 
     if (ClientRequestEx2 (&req, caption, strlen(caption) + 1,
-            pWin->surf->shared_header->fd,
+            pWin->surf->fd,
             &ret, sizeof (intptr_t), NULL) < 0)
         return -1;
 #else   /* ndef _MGSCHEMA_COMPOSITING */
@@ -524,7 +524,7 @@ static intptr_t cliStartTrackPopupMenu (PTRACKMENUINFO ptmi)
 
         info.surf_flags = surf->flags;
         info.surf_size = surf->shared_header->map_size;
-        if (ClientRequestEx2 (&req, NULL, 0, surf->shared_header->fd,
+        if (ClientRequestEx2 (&req, NULL, 0, surf->fd,
                 &ret, sizeof (intptr_t), NULL) < 0)
             return -1;
     }
@@ -2211,7 +2211,7 @@ static int resize_window_surface (PMAINWIN pWin, const RECT* prcResult)
 
         pWin->surf = new_surf;
         if (pWin->surf->shared_header)
-            return pWin->surf->shared_header->fd;
+            return pWin->surf->fd;
         else
             return 0;
     }
@@ -2257,9 +2257,9 @@ static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
 
 #ifdef _MGSCHEMA_COMPOSITING
     /* Since 5.2.0: keep fd available. */
-    if (0 && pCtrl->surf->shared_header && pCtrl->surf->shared_header->fd >= 0) {
-        close (pCtrl->surf->shared_header->fd);
-        pCtrl->surf->shared_header->fd = -1;
+    if (0 && pCtrl->surf->shared_header && pCtrl->surf->fd >= 0) {
+        close (pCtrl->surf->fd);
+        pCtrl->surf->fd = -1;
     }
 #endif
 
@@ -2289,9 +2289,9 @@ static int dskMoveMainWindow (PMAINWIN pWin, RECT* prcExpect)
     }
 
     /* Since 5.2.0: keep fd available. */
-    if (0 && pWin->surf->shared_header && pWin->surf->shared_header->fd >= 0) {
-        close (pWin->surf->shared_header->fd);
-        pWin->surf->shared_header->fd = -1;
+    if (0 && pWin->surf->shared_header && pWin->surf->fd >= 0) {
+        close (pWin->surf->fd);
+        pWin->surf->fd = -1;
     }
 #endif
 
