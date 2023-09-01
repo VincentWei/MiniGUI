@@ -1648,6 +1648,7 @@ static int srvStartTrackPopupMenu (int cli, const RECT* rc, HWND ptmi,
     menu_nodes [zi->nr_popupmenus].flags = ZOF_TYPE_POPUPMENU;
     menu_nodes [zi->nr_popupmenus].rc = *rc;
     menu_nodes [zi->nr_popupmenus].hwnd = ptmi;
+    menu_nodes [zi->nr_popupmenus].cli = 0;
 #ifdef _MGSCHEMA_COMPOSITING
     menu_nodes [zi->nr_popupmenus].changes = 0;
     menu_nodes [zi->nr_popupmenus].ct = CT_OPAQUE;
@@ -2149,7 +2150,7 @@ static void update_on_new_visible_znode (void* layer, ZORDERINFO* zi,
 
 static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption,
-                HDC mem_dc, int fd, int ct, DWORD ct_arg)
+                HDC mem_dc, int ct, DWORD ct_arg)
 {
     DWORD type = flags & ZOF_TYPE_MASK;
     int *first = NULL, *nr_nodes = NULL;
@@ -2419,10 +2420,10 @@ static int AllocZOrderNodeEx (ZORDERINFO* zi, int cli, HWND hwnd, HWND main_win,
 
 static inline int AllocZOrderNode (int cli, HWND hwnd, HWND main_win,
                 DWORD flags, const RECT *rc, const char *caption,
-                HDC mem_dc, int fd, int ct, DWORD ct_arg)
+                HDC mem_dc, int ct, DWORD ct_arg)
 {
     return AllocZOrderNodeEx (get_zorder_info(cli), cli, hwnd, main_win,
-            flags, rc, caption, mem_dc, fd, ct, ct_arg);
+            flags, rc, caption, mem_dc, ct, ct_arg);
 }
 
 static void prepare_to_delete_visible_znode (void* layer, ZORDERINFO* zi,
@@ -3362,8 +3363,7 @@ static int dskHideWindow (int cli, int idx_znode)
     return 0;
 }
 
-static int dskMoveWindow (int cli, int idx_znode, HDC memdc, int fd,
-        const RECT* rcWin)
+static int dskMoveWindow (int cli, int idx_znode, HDC memdc, const RECT* rcWin)
 {
     DWORD type;
     int level, *first = NULL;

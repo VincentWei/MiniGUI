@@ -396,10 +396,10 @@ char * __mg_msgstr3 [] =
     "MSG_SRVNOTIFY",          // 0x0147
     "MSG_UPDATECLIWIN",       // 0x0148
     "MSG_LAYERCHANGED",       // 0x0149
-    "MSG_MANAGE_MSGTHREAD",   // 0x014A
-    "MSG_CALC_POSITION",      // 0x014B
-    "",                       // 0x014C
-    "",                       // 0x014D
+    "MSG_WINCOMPOSITED",      // 0x014A
+    "MSG_MANAGE_MSGTHREAD",   // 0x014B
+    "MSG_CALC_POSITION",      // 0x014C
+    "MSG_WAKEUP_CLIENT",      // 0x014D
     "",                       // 0x014E
     "",                       // 0x014F
 

@@ -2990,18 +2990,22 @@ typedef struct _WINMASKINFO {
    if the client moved to a new layer */
 #define MSG_LAYERCHANGED    0x0149
 
+/* Since 5.2.0; the server send this message to the client
+   if a window has been composited to the screen.  */
+#define MSG_WINCOMPOSITED   0x014A
+
 #endif /* defined _MGRM_PROCESSES */
 
 /* Since 5.0.0: for managing message thread */
-#define MSG_MANAGE_MSGTHREAD    0x014A
+#define MSG_MANAGE_MSGTHREAD    0x014B
     #define MSGTHREAD_SIGNIN        0x00
     #define MSGTHREAD_SIGNOUT       0x01
 
 /* Since 5.0.0: for calculating the default position */
-#define MSG_CALC_POSITION       0x014B
+#define MSG_CALC_POSITION       0x014C
 
 /* Since 5.0.6: for waking up the client */
-#define MSG_WAKEUP_CLIENT       0x014C
+#define MSG_WAKEUP_CLIENT       0x014D
 
 /**
  * \def MSG_DOESNEEDIME

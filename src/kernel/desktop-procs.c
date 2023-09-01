@@ -865,7 +865,7 @@ static int srvAllocZOrderNode (int cli, HWND hwnd, HWND main_win,
 #endif /* def _MGSCHEMA_COMPOSITING */
 
     free_slot = AllocZOrderNode (cli, hwnd,
-                    main_win, flags, rc, caption, memdc, fd, ct, ct_arg);
+                    main_win, flags, rc, caption, memdc, ct, ct_arg);
 
     if ((free_slot != -1) && OnZNodeOperation)
         OnZNodeOperation (ZNOP_ALLOCATE, cli, free_slot);
@@ -1020,7 +1020,7 @@ static int srvMoveWindow (int cli, int idx_znode, const RECT* rcWin,
     }
 #endif /* def _MGSCHEMA_COMPOSITING */
 
-    ret = dskMoveWindow (cli, idx_znode, memdc, fd, rcWin);
+    ret = dskMoveWindow (cli, idx_znode, memdc, rcWin);
     if (ret == 0 && OnZNodeOperation)
         OnZNodeOperation (ZNOP_MOVEWIN, cli, idx_znode);
 
@@ -2906,6 +2906,21 @@ int __mg_handle_mouse_hook (int message, WPARAM wParam, LPARAM lParam)
     return mousehook.flag;
 }
 #endif  /* deprecated code */
+
+/* used by client to check the validation of a hwnd in the given znode slot. */
+BOOL __mg_client_check_znode_hwnd (int slot, HWND hwnd, int cli)
+{
+    BOOL ret = FALSE;
+    ZORDERINFO* zi = __mg_zorder_info;
+    ZORDERNODE* nodes;
+
+    nodes = GET_ZORDERNODE(zi);
+    lock_zi_for_read (zi);
+    if (nodes[slot].hwnd == hwnd && nodes[slot].cli == cli)
+        ret = TRUE;
+    unlock_zi_for_read (zi);
+    return ret;
+}
 
 /* used by client to check the validation of a hwnd */
 BOOL __mg_client_check_hwnd (HWND hwnd, int cli)

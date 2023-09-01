@@ -130,7 +130,6 @@ static const CompositorOps* load_default_compositor (void)
 
 static void lock_znode_surface (PDC pdc, ZORDERNODE* node)
 {
-    _DBG_PRINTF("lock count for node %p: %d\n", node, node->lock_count);
     if (node->lock_count == 0) {
         if (pdc->surface->shared_header) {
             __mg_lock_file_for_read(pdc->surface->fd);
@@ -145,12 +144,17 @@ static void lock_znode_surface (PDC pdc, ZORDERNODE* node)
     node->lock_count++;
 }
 
-static void unlock_znode_surface (PDC pdc, ZORDERNODE* node)
+static BOOL unlock_znode_surface (PDC pdc, ZORDERNODE* node)
 {
-    _DBG_PRINTF("lock count for node %p: %d\n", node, node->lock_count);
+    BOOL need_reset = FALSE;
     if (node->lock_count > 0) {
         node->lock_count--;
         if (node->lock_count == 0) {
+            if (node->changes != pdc->surface->dirty_info->dirty_age) {
+                node->changes = pdc->surface->dirty_info->dirty_age;
+                need_reset = TRUE;
+            }
+
             if (pdc->surface->shared_header) {
                 __mg_unlock_file_for_read(pdc->surface->fd);
             }
@@ -159,6 +163,19 @@ static void unlock_znode_surface (PDC pdc, ZORDERNODE* node)
             node->nr_dirty_rcs = 0;
             node->dirty_rcs = NULL;
         }
+    }
+
+    return need_reset;
+}
+
+static void reset_znode_surface_dirty (PDC pdc, ZORDERNODE* node, int slot)
+{
+    if (node->cli == 0 || slot == 0) {
+        pdc->surface->dirty_info->nr_dirty_rcs = 0;
+    }
+    else if (node->hwnd) {
+        MSG msg = { HWND_NULL, MSG_WINCOMPOSITED, slot, (LPARAM)node->hwnd };
+        __mg_send2client(&msg, node);
     }
 }
 
@@ -324,10 +341,8 @@ static void composite_layer (MG_Layer* layer, CompositorCtxt* ctxt,
         nodes = GET_MENUNODE(zi);
         for (i = 0; i < zi->nr_popupmenus; i++) {
             pdc = dc_HDC2PDC (nodes[i].mem_dc);
-
-            nodes[i].changes = pdc->surface->dirty_info->dirty_age;
-            pdc->surface->dirty_info->nr_dirty_rcs = 0;
-            unlock_znode_surface (pdc, nodes + i);
+            if (unlock_znode_surface (pdc, nodes + i))
+                reset_znode_surface_dirty (pdc, nodes + i, i);
         }
     }
 
@@ -337,9 +352,8 @@ static void composite_layer (MG_Layer* layer, CompositorCtxt* ctxt,
     while ((next = __kernel_get_next_znode (zi, next)) > 0) {
         if (nodes [next].flags & ZOF_VISIBLE) {
             pdc = dc_HDC2PDC (nodes[next].mem_dc);
-            nodes[next].changes = pdc->surface->dirty_info->dirty_age;
-            pdc->surface->dirty_info->nr_dirty_rcs = 0;
-            unlock_znode_surface (pdc, nodes + next);
+            if (unlock_znode_surface (pdc, nodes + next))
+                reset_znode_surface_dirty (pdc, nodes + next, next);
         }
     }
 
@@ -348,9 +362,8 @@ static void composite_layer (MG_Layer* layer, CompositorCtxt* ctxt,
     if (layer == mgTopmostLayer) {
         pdc = dc_HDC2PDC (HDC_SCREEN);
         if (pdc->surface->w > 0 && pdc->surface->h > 0) {
-            nodes[0].changes = pdc->surface->dirty_info->dirty_age;
-            pdc->surface->dirty_info->nr_dirty_rcs = 0;
-            unlock_znode_surface (pdc, nodes);
+            if (unlock_znode_surface (pdc, nodes))
+                reset_znode_surface_dirty (pdc, nodes, 0);
         }
     }
 }

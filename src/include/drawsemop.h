@@ -82,21 +82,6 @@ again:
 
 extern int __mg_client_id;
 
-#if 0
-#ifdef _MGSCHEMA_COMPOSITING
-#   define LOCK_SURFACE_SEM(num)    \
-    do {  \
-        printf("Locking semaphor %d for client: %d\n", num, __mg_client_id);   \
-        my_sem_op(SHAREDRES_SEMID_SHARED_SURF, num, -1); \
-    } while (0)
-#   define UNLOCK_SURFACE_SEM(num)  \
-    do { \
-        my_sem_op(SHAREDRES_SEMID_SHARED_SURF, num, 1); \
-        printf("Unlocked semaphor %d for client: %d\n", num, __mg_client_id);   \
-    } while (0)
-#endif
-#endif
-
 #ifdef _MGHAVE_CURSOR
 
 #define LOCK_CURSOR_SEM()   my_sem_op(SHAREDRES_SEMID, _IDX_SEM_CURSOR, -1)

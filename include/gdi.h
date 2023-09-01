@@ -1886,7 +1886,7 @@ MG_EXPORT const char *GUIAPI GetSharedSurfaceInfo (HSURF surf, int *fd,
 /**
  * \fn BOOL GUIAPI LockSharedSurface (HSURF surf,
  *      unsigned *dirty_age, int *nr_dirty_rects, const RECT **dirty_rects)
- * \brief Locks the shared surface.
+ * \brief Locks the shared surface for read.
  *
  * This function lock the given shared surface \a surf and returns
  * the dirty age.
@@ -1911,25 +1911,22 @@ MG_EXPORT BOOL GUIAPI LockSharedSurface (HSURF surf,
         unsigned *dirty_age, int *nr_dirty_rects, const RECT **dirty_rects);
 
 /**
- * \fn BOOL GUIAPI UnlockSharedSurface (HSURF surf, BOOL clear_dirty)
- * \brief Unlocks the shared surface and clears the dirty information.
+ * \fn BOOL GUIAPI UnlockSharedSurface (HSURF surf)
+ * \brief Unlocks the shared surface.
  *
- * This function unlocks the shared surface \a surf, and clears its dirty
- * information if \a clear_dirty is TRUE.
+ * This function unlocks the given shared surface \a surf.
  *
  * \param surf The handle to the shared surface.
- * \param clear_dirty A boolean value indicates whether to clear the dirty
- *      information of the shared surface.
  *
  * \return TRUE on success; otherwise failure.
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
  *
- * \sa LockSharedSurfaceIfDirty
+ * \sa LockSharedSurface
  *
  * Since 5.2.0
  */
-MG_EXPORT BOOL GUIAPI UnlockSharedSurface (HSURF surf, BOOL clear_dirty);
+MG_EXPORT BOOL GUIAPI UnlockSharedSurface (HSURF surf);
 
 /**
  * \fn BOOL GUIAPI DetachFromSharedSurface (HSURF surf)

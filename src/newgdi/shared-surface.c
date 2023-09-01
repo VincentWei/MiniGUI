@@ -355,7 +355,7 @@ failed:
     return FALSE;
 }
 
-BOOL GUIAPI UnlockSharedSurface(HSURF surf, BOOL clear_dirty)
+BOOL GUIAPI UnlockSharedSurface(HSURF surf)
 {
     if (surf->shared_header == NULL) {
         _WRN_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
@@ -363,11 +363,6 @@ BOOL GUIAPI UnlockSharedSurface(HSURF surf, BOOL clear_dirty)
     }
 
     __mg_unlock_file_for_read(surf->fd);
-
-    if (clear_dirty) {
-        surf->dirty_info->nr_dirty_rcs = 0;
-    }
-
     return TRUE;
 
 failed:

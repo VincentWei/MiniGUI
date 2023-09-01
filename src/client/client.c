@@ -184,6 +184,21 @@ static void process_socket_message (MSG *msg)
                 LOSWORD(msg->wParam), HISWORD(msg->wParam),
                 LOSWORD(msg->lParam), HISWORD(msg->lParam));
     }
+#ifdef _MGSCHEMA_COMPOSITING
+    else if (msg->message == MSG_WINCOMPOSITED) {
+        /* Since 5.2.0 */
+        int slot = (int)msg->wParam;
+        HWND hwnd = (HWND)msg->lParam;
+        if (__mg_client_check_znode_hwnd(slot, hwnd, __mg_client_id)) {
+            GAL_Surface *ssurf = ((PMAINWIN)hwnd)->surf;
+            assert(ssurf->shared_header);
+            __mg_lock_file_for_write(ssurf->fd);
+            ssurf->dirty_info->nr_dirty_rcs = 0;
+            ssurf->dirty_info->dirty_age++;
+            __mg_unlock_file_for_write(ssurf->fd);
+        }
+    }
+#endif
     else {
         if (msg->hwnd == HWND_NULL) {
             msg->hwnd = HWND_DESKTOP;

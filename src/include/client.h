@@ -378,6 +378,7 @@ void __mg_start_client_desktop (void);
 
 void __mg_update_window (HWND hwnd, int left, int top, int right, int bottom);
 
+BOOL __mg_client_check_znode_hwnd (int slot, HWND hwnd, int cli);
 BOOL __mg_client_check_hwnd (HWND hwnd, int cli);
 BOOL __mg_client_on_layer_changed (GHANDLE layer_handle, int zi_shmid);
 
