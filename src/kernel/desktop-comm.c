@@ -588,7 +588,7 @@ static int dskMoveMainWindow (PMAINWIN pWin, const RECT* prcExpect)
     SendAsyncMessage ((HWND)pWin, MSG_CHANGESIZE,
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
 
-    return dskMoveWindow (0, pWin->idx_znode, HDC_INVALID, -1, &rcResult);
+    return dskMoveWindow (0, pWin->idx_znode, HDC_INVALID, &rcResult);
 }
 
 static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
@@ -600,7 +600,7 @@ static int dskMoveGlobalControl (PMAINWIN pCtrl, RECT* prcExpect)
                     (WPARAM)(prcExpect), (LPARAM)(&rcResult));
     dskClientToScreen ((PMAINWIN)(pCtrl->hParent), prcExpect, &newWinRect);
 
-    ret = dskMoveWindow (0, pCtrl->idx_znode, HDC_INVALID, -1, &newWinRect);
+    ret = dskMoveWindow (0, pCtrl->idx_znode, HDC_INVALID, &newWinRect);
 
     if (ret == 0 && pCtrl->dwStyle & WS_VISIBLE) {
         SendAsyncMessage ((HWND)pCtrl, MSG_NCPAINT, 0, 0);
