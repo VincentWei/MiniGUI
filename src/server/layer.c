@@ -309,7 +309,7 @@ BOOL GUIAPI ServerDeleteLayer (MG_Layer* layer)
     return TRUE;
 }
 
-#ifdef _MGSCHEMA_COMPOSITING
+#if 0 // Deprecated since 5.2.0 def _MGSCHEMA_COMPOSITING
 
 static SemSetManager* _ssm_shared_surf;
 
@@ -395,6 +395,7 @@ int __mg_init_layers ()
 
     memset (sem_usage, 0xFF, sizeof (sem_usage));
 
+#if 0   // Deprecated since 5.2.0 
 #ifdef _MGSCHEMA_COMPOSITING
     if ((sem_key = get_sem_key_for_shared_surf ()) == -1) {
         return -1;
@@ -415,6 +416,7 @@ int __mg_init_layers ()
     __mg_alloc_mutual_sem (_ssm_shared_surf, NULL);
 
     on_exit (__mg_delete_sem_set_manager, _ssm_shared_surf);
+#endif
 #endif
 
     if ((sem_key = get_sem_key_for_layers ()) == -1) {

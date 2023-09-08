@@ -117,10 +117,22 @@
 #define REQID_LOADCURSOR_PNG        0x001D
 // Load cursor from in-memory PNG
 #define REQID_LOADCURSOR_PNG_MEM    0x001E
+
+#if 0 // Deprecated since 5.2.0
 // allocate semaphore for shared surface
 #define REQID_ALLOC_SURF_SEM        0x001F
 // free semaphore of shared surface
 #define REQID_FREE_SURF_SEM         0x0020
+#endif
+
+/* Since 5.2.0 */
+// Operate a shared surface to register/revoke the name and set the fd
+#define REQID_OPERATENAMEDSSURF     0x001F
+    #define ID_NAMEDSSURFOP_REGISTER    1
+    #define ID_NAMEDSSURFOP_SET         2
+    #define ID_NAMEDSSURFOP_REVOKE      3
+
+#define REQID_RESERVED              0x0020
 
 // Move the current client to another layer
 #define REQID_MOVETOLAYER           0x0021
@@ -130,14 +142,7 @@
 // Authenticate client
 #define REQID_AUTHCLIENT            0x0023
 
-/* Since 5.2.0 */
-// Operate a shared surface to register/revoke the name and set the fd
-#define REQID_OPERATENAMEDSSURF     0x0024
-    #define ID_NAMEDSSURFOP_REGISTER    1
-    #define ID_NAMEDSSURFOP_SET         2
-    #define ID_NAMEDSSURFOP_REVOKE      3
-
-#define REQID_SYS_LAST              REQID_OPERATENAMEDSSURF
+#define REQID_SYS_LAST              REQID_AUTHCLIENT
 
 /*
  * XXX: To fellows who need to add a new REQID,

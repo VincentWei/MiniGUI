@@ -120,10 +120,11 @@ void mg_TerminateMisc (void);
 BOOL mg_InitSystemRes (void);
 void mg_TerminateSystemRes (void);
 
+/* Deprecated since 5.2.0
 #ifdef _MGSCHEMA_COMPOSITING
 int __mg_alloc_sem_for_shared_surf (void);
 int __mg_free_sem_for_shared_surf (int sem_num);
-#endif /* _MGSCHEMA_COMPOSITING */
+#endif _MGSCHEMA_COMPOSITING */
 
 size_t __mg_lookfor_unused_slot (unsigned char* bitmap, size_t len_bmp, int set);
 

@@ -112,7 +112,7 @@ typedef struct tagG_RES {
 
     int nr_layers;
     int semid_layer;
-#ifdef _MGSCHEMA_COMPOSITING
+#if 0 && defined(_MGSCHEMA_COMPOSITING) // deprecated since 5.2.0
     int semid_shared_surf;  /* the id of semaphore set for shared surfaces */
 #endif
 
@@ -208,7 +208,7 @@ typedef G_RES* PG_RES;
 #define SHAREDRES_NR_LAYSERS    (((PG_RES)mgSharedRes)->nr_layers)
 #define SHAREDRES_SEMID_LAYER   (((PG_RES)mgSharedRes)->semid_layer)
 
-#ifdef _MGSCHEMA_COMPOSITING
+#if 0 && defined(_MGSCHEMA_COMPOSITING) // Deprecated since 5.2.0
 # define SHAREDRES_SEMID_SHARED_SURF (((PG_RES)mgSharedRes)->semid_shared_surf)
 #endif
 

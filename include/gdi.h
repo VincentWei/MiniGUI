@@ -1889,7 +1889,7 @@ MG_EXPORT const char *GUIAPI GetSharedSurfaceInfo (HSURF surf, int *fd,
  * \brief Locks the shared surface for read.
  *
  * This function lock the given shared surface \a surf and returns
- * the dirty age.
+ * the dirty information.
  *
  * \param surf The handle to the shared surface.
  * \param dirty_age The pointer to a buffer of unsigned integer to
@@ -1899,7 +1899,7 @@ MG_EXPORT const char *GUIAPI GetSharedSurfaceInfo (HSURF surf, int *fd,
  * \param dirty_rects The pointer to a buffer of (const RECT *) for the array
  *      of dirty rectangles; nullable.
  *
- * \return 1 for locked; 0 for not locked; -1 for failure.
+ * \return TRUE for locked; FALSE for failure.
  *
  * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
  *

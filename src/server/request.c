@@ -277,6 +277,7 @@ ret:
     return ServerSendReply (clifd, &hcsr, sizeof (HCURSOR));
 }
 
+#if 0 // Deprecated since 5.2.0
 static void my_release_sem_for_shared_surf (void* res)
 {
     int sem_num = (int)(intptr_t)res;
@@ -312,6 +313,7 @@ static int free_sem_for_shared_surf (int cli, int clifd, void* buff, size_t len)
 
     return ServerSendReply (clifd, &ret_value, sizeof (int));
 }
+#endif
 
 #endif /* IS_COMPOSITING_SCHEMA */
 
@@ -1053,8 +1055,12 @@ static struct req_request {
 #if IS_COMPOSITING_SCHEMA
     { load_cursor_png_file, 0 },        // REQID_LOADCURSOR_PNG
     { load_cursor_png_mem, 0 },         // REQID_LOADCURSOR_PNG_MEM
+    { operate_nssurface, 1 },           // REQID_OPERATENSSURF
+    { NULL, 0 },
+#if 0 // Deprecated since 5.2.0
     { alloc_sem_for_shared_surf, 0 },   // REQID_ALLOC_SURF_SEM
     { free_sem_for_shared_surf, 0 },    // REQID_FREE_SURF_SEM
+#endif
 #else
     { NULL, 0 },
     { NULL, 0 },
@@ -1064,11 +1070,6 @@ static struct req_request {
     { move_to_layer, 0 },       // REQID_MOVETOLAYER
     { calc_position, 0 },       // REQID_CALCPOSITION
     { authenticate_client, 0 }, // REQID_AUTHCLIENT
-#if IS_COMPOSITING_SCHEMA
-    { operate_nssurface, 1 },   // REQID_OPERATENSSURF
-#else
-    { NULL, 0 },
-#endif
 };
 
 BOOL GUIAPI RegisterRequestHandler (int req_id, REQ_HANDLER your_handler)
