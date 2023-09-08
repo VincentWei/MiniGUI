@@ -46,6 +46,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "common.h"
 
@@ -65,14 +66,18 @@
 
 #define LEN_TOUCH_DEV     127
 
+#define AUTO_MOUSE_UP_TICKCOUNT 20
+
 static int sg_tp_event_fd = -1, sg_key_event_fd = -1;
 static short MOUSEX = 0, MOUSEY = 0, MOUSEBUTTON = 0;
+static DWORD g_last_tickcount = 0;
+static bool g_has_auto_event = false;
 
 static int get_touch_data (short *x, short *y, short *button)
 {
     struct input_event data;
 
-    while (read (sg_tp_event_fd, &data, sizeof (data)) == sizeof (data)) {
+    if (read (sg_tp_event_fd, &data, sizeof (data)) == sizeof (data)) {
 
         /* do nothing for EV_SYN due to non-blocking read.
         if (data.type == EV_SYN) {
@@ -91,10 +96,12 @@ static int get_touch_data (short *x, short *y, short *button)
         if (data.type == EV_KEY) {
             switch (data.code) {
             case BTN_TOUCH:
-                if (data.value > 0)
-                    *button = IAL_MOUSE_LEFTBUTTON;
-                else
+                if (data.value == 0) {
                     *button = 0;
+                    g_last_tickcount = 0;
+                    return 0;
+                }
+                g_last_tickcount = GetTickCount();
                 break;
 
             default:
@@ -103,6 +110,7 @@ static int get_touch_data (short *x, short *y, short *button)
             }
         }
         else if (data.type == EV_ABS) {
+            g_last_tickcount = GetTickCount();
             switch (data.code) {
             case ABS_X:
                 *x = data.value;
@@ -110,7 +118,8 @@ static int get_touch_data (short *x, short *y, short *button)
 
             case ABS_Y:
                 *y = data.value;
-                break;
+                *button = IAL_MOUSE_LEFTBUTTON;
+                return 0;
 
             case ABS_MT_POSITION_X:
                 *x = data.value;
@@ -118,7 +127,8 @@ static int get_touch_data (short *x, short *y, short *button)
 
             case ABS_MT_POSITION_Y:
                 *y = data.value;
-                break;
+                *button = IAL_MOUSE_LEFTBUTTON;
+                return 0;
 
             case ABS_MT_TOUCH_MAJOR:
                 break;
@@ -136,13 +146,20 @@ static int get_touch_data (short *x, short *y, short *button)
         }
     }
 
-    return 0;
+    if (g_has_auto_event) {
+        g_has_auto_event = false;
+        return 0;
+    }
+
+    return -1;
 }
 
 static int mouse_update (void)
 {
-    if (get_touch_data (&MOUSEX, &MOUSEY, &MOUSEBUTTON) == 0)
+    static int idx = 0;
+    if (get_touch_data (&MOUSEX, &MOUSEY, &MOUSEBUTTON) == 0) {
         return 1;
+    }
 
     return 0;
 }
@@ -193,10 +210,32 @@ static int wait_event (int which, int maxfd, fd_set *in, fd_set *out, fd_set *ex
         }
     }
     else if (e < 0) {
-        retvalue = -1;
+        if (g_last_tickcount > 0) {
+            DWORD tickcount = GetTickCount();
+            if (tickcount - g_last_tickcount >= AUTO_MOUSE_UP_TICKCOUNT) {
+                MOUSEBUTTON = 0;
+                retvalue |= IAL_MOUSEEVENT;
+                g_last_tickcount = 0;
+                g_has_auto_event = true;
+            }
+        }
+        else {
+            retvalue = -1;
+        }
     }
     else {
-        retvalue = 0;
+        if (g_last_tickcount > 0) {
+            DWORD tickcount = GetTickCount();
+            if (tickcount - g_last_tickcount >= AUTO_MOUSE_UP_TICKCOUNT) {
+                MOUSEBUTTON = 0;
+                retvalue |= IAL_MOUSEEVENT;
+                g_last_tickcount = 0;
+                g_has_auto_event = true;
+            }
+        }
+        else {
+            retvalue = 0;
+        }
     }
 
     return retvalue;
@@ -214,7 +253,7 @@ BOOL ial_InitSingleTouchKey (INPUT* input, const char* mdev, const char* mtype)
         return FALSE;
     }
 
-    sg_tp_event_fd = open (touch_dev, O_RDONLY | O_NONBLOCK);
+    sg_tp_event_fd = open (touch_dev, O_RDONLY);
     if (sg_tp_event_fd < 0) {
         _WRN_PRINTF ("failed when opening touch event device: %s\n", touch_dev);
         return FALSE;
