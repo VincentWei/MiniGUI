@@ -5585,11 +5585,13 @@ BOOL GUIAPI ValidateRegion (HWND hWnd, const CLIPRGN* pRgn)
 BOOL GUIAPI GetUpdateRect (HWND hWnd, RECT* update_rect)
 {
     PMAINWIN pWin;
+    RECT rcClient;
 
     MG_CHECK_RET (MG_IS_NORMAL_WINDOW(hWnd), FALSE);
     pWin = MG_GET_WINDOW_PTR (hWnd);
 
-    *update_rect = pWin->InvRgn.rgn.rcBound;
+    GetClientRect(hWnd, &rcClient);
+    IntersectRect(update_rect, &pWin->InvRgn.rgn.rcBound, &rcClient);
     return TRUE;
 }
 
