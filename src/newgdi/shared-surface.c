@@ -327,6 +327,21 @@ failed:
     return NULL;
 }
 
+BOOL GUIAPI TestIfSharedSurfaceChanged(HSURF surf, unsigned dirty_age)
+{
+    if (surf->shared_header == NULL) {
+        _WRN_PRINTF("INVALID_ARG: surface handle: %p\n", surf);
+        goto failed;
+    }
+
+    /* TODO: use atomic comparison */
+    if (dirty_age != surf->shared_header->dirty_info.dirty_age)
+        return TRUE;
+
+failed:
+    return FALSE;
+}
+
 BOOL GUIAPI LockSharedSurface(HSURF surf, unsigned *dirty_age,
         int *nr_dirty_rcs, const RECT **dirty_rcs)
 {

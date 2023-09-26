@@ -1884,11 +1884,33 @@ MG_EXPORT const char *GUIAPI GetSharedSurfaceInfo (HSURF surf, int *fd,
         SIZE *size, int *pitch, size_t *map_size, off_t *pixels_off);
 
 /**
+ * \fn BOOL GUIAPI TestIfSharedSurfaceChanged (HSURF surf,
+ *      unsigned dirty_age)
+ * \brief Tests if a shared surface changed.
+ *
+ * This function tests if the given shared surface \a surf had changed, i.e.,
+ * it has a different dirty age value against the specified value \a dirty_age.
+ *
+ * \param surf The handle to the shared surface.
+ * \param dirty_age The dirty age to compare.
+ *
+ * \return TRUE for changed; FALSE for no change or failure.
+ *
+ * \note This function only available when _MGSCHEMA_COMPOSITING is defined.
+ *
+ * \sa LockSharedSurface
+ *
+ * Since 5.2.0
+ */
+MG_EXPORT BOOL GUIAPI TestIfSharedSurfaceChanged (HSURF surf,
+        unsigned dirty_age);
+
+/**
  * \fn BOOL GUIAPI LockSharedSurface (HSURF surf,
  *      unsigned *dirty_age, int *nr_dirty_rects, const RECT **dirty_rects)
  * \brief Locks the shared surface for read.
  *
- * This function lock the given shared surface \a surf and returns
+ * This function locks the given shared surface \a surf and returns
  * the dirty information.
  *
  * \param surf The handle to the shared surface.
