@@ -96,7 +96,11 @@ static BITMAP_TYPE_INFO bitmap_types [MAX_BITMAP_TYPES] =
    { "jpeg", __mg_init_jpg, __mg_load_jpg, __mg_cleanup_jpg, __mg_save_jpg, __mg_check_jpg },
 #endif
 #ifdef _MGIMAGE_PNG
+#if _MGLIBPNG_VER == 16
+   { "png", __mg_init_png, __mg_load_png, __mg_cleanup_png, __mg_save_png, __mg_check_png },
+#else
    { "png", __mg_init_png, __mg_load_png, __mg_cleanup_png, NULL, __mg_check_png },
+#endif
 #endif
 #ifdef _MGIMAGE_WEBP
    { "webp", __mg_init_webp, __mg_load_webp, __mg_cleanup_webp, NULL, __mg_check_webp },

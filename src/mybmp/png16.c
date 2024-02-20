@@ -381,6 +381,287 @@ BOOL __mg_check_png (MG_RWops* fp)
     return png_check_sig (sig, 8);
 }
 
+static void png_error_callback (png_structp png, png_const_charp error_msg)
+{
+    int *error = png_get_error_ptr (png);
+
+    *error = ERR_BMP_CANT_SAVE;
+
+#ifdef PNG_SETJMP_SUPPORTED
+    longjmp (png_jmpbuf (png), 1);
+#endif
+}
+
+static void png_warning_callback (png_structp png, png_const_charp error_msg)
+{
+}
+
+static void png_output_flush_fn (png_structp png_ptr)
+{
+}
+
+static void my_write_data_fn (png_structp png_ptr, png_bytep data,
+                png_size_t length)
+{
+    png_size_t check;
+    png_voidp io_ptr = png_get_io_ptr(png_ptr);
+
+    if (MGUI_RWwrite((MG_RWops*)io_ptr, data, 1, length) !=
+            (size_t) length) {
+        png_error(png_ptr, "Write Error");
+    }
+}
+
+typedef BYTE* (*MYBITMAP_get_pixel_row)(unsigned int cinfo,
+        MYBITMAP* mybmp,RGB* pal);
+
+static BYTE* MYBITMAP_get_pixel_row_pal16(unsigned int next_scanline,
+                       MYBITMAP* mybmp, RGB* pal)
+{
+    RGB rgb0, rgb1;
+
+    BYTE *bits = mybmp->bits + next_scanline * mybmp->pitch;
+    int nr_data = mybmp->w * 4;
+    BYTE *data = (BYTE *)malloc(nr_data);
+    uint8_t alpha = 0xFF;
+
+    for (int i = 0, j = 0, end_i = (mybmp->w + 1) >> 1; i < end_i; ++i) {
+
+        rgb0 = pal[ (bits[ i ] & 0XF0) >> 4 ];
+        rgb1 = pal[  bits[ i ] & 0X0F ];
+
+        data[ j ++ ] = rgb0.r;
+        data[ j ++ ] = rgb0.g;
+        data[ j ++ ] = rgb0.b;
+        data[ j ++ ] = alpha;
+
+        data[ j ++ ] = rgb1.r;
+        data[ j ++ ] = rgb1.g;
+        data[ j ++ ] = rgb1.b;
+        data[ j ++ ] = alpha;
+    }
+
+    return data;
+}
+
+static BYTE* MYBITMAP_get_pixel_row_pal256(unsigned int next_scanline,
+                       MYBITMAP* mybmp, RGB* pal)
+{
+    RGB rgb;
+    BYTE *bits = mybmp->bits + next_scanline * mybmp->pitch;
+
+    int nr_data = mybmp->w * 4;
+    BYTE *data = (BYTE *)malloc(nr_data);
+    uint8_t alpha = 0xFF;
+
+    for (int i = 0, j = 0; i < mybmp->w; i++, j += 4) {
+        rgb = pal [bits[i] ];
+
+        data[0] = rgb.r;
+        data[1] = rgb.g;
+        data[2] = rgb.b;
+        data[3] = alpha;
+    }
+
+    return data;
+}
+
+#define RGB_FROM_RGB565(pixel, r, g, b)                         \
+{                                                               \
+    r = (((pixel&0xF800)>>11)<<3);                              \
+    g = (((pixel&0x07E0)>>5)<<2);                               \
+    b = ((pixel&0x001F)<<3);                                    \
+}
+
+static BYTE* MYBITMAP_get_pixel_row_RGB565(unsigned int next_scanline,
+                       MYBITMAP* mybmp, RGB* pal)
+{
+    Uint16* bits = (Uint16*)(mybmp->bits + next_scanline * mybmp->pitch);
+
+    int nr_data = mybmp->w * 4;
+    BYTE* data = (BYTE *)malloc(nr_data);
+    uint8_t alpha = 0xFF;
+    for (int i = 0, j = 0; i < nr_data; i += 4, j++) {
+        uint8_t *b = data + i;
+        Uint16 *pixel = bits + j;
+        RGB_FROM_RGB565(pixel[j], b[0], b[1], b[2])
+        b[3] = alpha;
+    }
+
+    return data;
+}
+
+static BYTE* MYBITMAP_get_pixel_row_RGB(unsigned int next_scanline,
+                       MYBITMAP* mybmp, RGB* pal)
+{
+    BYTE *bits = mybmp->bits + next_scanline * mybmp->pitch;
+
+    int nr_data = mybmp->w * 4;
+    BYTE *data = (BYTE *)malloc(nr_data);
+    uint8_t alpha = 0xFF;
+
+    for (int i = 0, j = 0; i < nr_data; i += 4, j += 3) {
+        uint8_t *b = data + i;
+        BYTE *pixel = bits + j;
+        b[0] = pixel[2];
+        b[1] = pixel[1];
+        b[2] = pixel[0];
+        b[3] = alpha;
+    }
+
+    return data;
+}
+
+static BYTE* MYBITMAP_get_pixel_row_BGR(unsigned int next_scanline,
+                       MYBITMAP* mybmp, RGB* pal)
+{
+    BYTE *bits = mybmp->bits + next_scanline * mybmp->pitch;
+
+    int nr_data = mybmp->w * 4;
+    BYTE *data = (BYTE *)malloc(nr_data);
+    uint8_t alpha = 0xFF;
+
+    for (int i = 0, j = 0; i < nr_data; i += 4, j += 3) {
+        uint8_t *b = data + i;
+        BYTE *pixel = bits + j;
+        b[0] = pixel[0];
+        b[1] = pixel[1];
+        b[2] = pixel[2];
+        b[3] = alpha;
+    }
+
+    return data;
+}
+
+static BYTE* MYBITMAP_get_pixel_row_RGBA(unsigned int next_scanline,
+                       MYBITMAP* mybmp, RGB* pal)
+{
+    BYTE *bits = mybmp->bits + next_scanline * mybmp->pitch;
+
+    int nr_data = mybmp->w * 4;
+    BYTE *data = (BYTE *)malloc(nr_data);
+
+    for (int i = 0; i < nr_data; i += 4) {
+        uint8_t *b = data + i;
+        BYTE *pixel = bits + i;
+
+        uint8_t alpha = pixel[3];
+        if (alpha == 0) {
+            b[0] = b[1] = b[2] = b[3] = 0;
+        } else {
+            b[0] = (pixel[2] * 255 + alpha / 2) / alpha; /* red */
+            b[1] = (pixel[1] * 255 + alpha / 2) / alpha; /* green */
+            b[2] = (pixel[0] * 255 + alpha / 2) / alpha; /* blue */
+            b[3] = alpha;
+        }
+    }
+
+    return data;
+}
+
+int __mg_save_png (MG_RWops* fp, MYBITMAP* bmp, RGB* pal)
+{
+    png_struct *png;
+    png_info *info;
+    png_byte **volatile rows = NULL;
+    MYBITMAP_get_pixel_row get_row;
+    png_color_16 white;
+    int png_color_type;
+    int retcode = ERR_BMP_CANT_SAVE;
+    int bpc;
+    int bmp_type;
+
+    rows = calloc(bmp->h, sizeof(png_byte*));
+    if (rows == NULL) {
+        retcode = ERR_BMP_CANT_SAVE;
+        goto failed;
+    }
+
+    png = png_create_write_struct (PNG_LIBPNG_VER_STRING, &retcode,
+            png_error_callback, png_warning_callback);
+    if (png == NULL) {
+        retcode = ERR_BMP_MEM;
+        goto failed_clear_rows;
+    }
+
+    info = png_create_info_struct (png);
+    if (info == NULL) {
+        retcode = ERR_BMP_MEM;
+        goto failed_clear_struct;
+    }
+
+#ifdef PNG_SETJMP_SUPPORTED
+    if (setjmp (png_jmpbuf (png))) {
+        goto failed_clear_struct;
+    }
+#endif
+
+    png_set_write_fn (png, fp, my_write_data_fn, png_output_flush_fn);
+
+    bmp_type = bmp->flags & MYBMP_TYPE_MASK;
+
+    switch(bmp->depth) {
+    case 4:
+        get_row = MYBITMAP_get_pixel_row_pal16;
+        break;
+    case 8:
+        get_row = MYBITMAP_get_pixel_row_pal256;
+        break;
+    case 16:
+        get_row = MYBITMAP_get_pixel_row_RGB565;
+        break;
+    case 24:
+        if(MYBMP_TYPE_RGB == bmp_type)
+            get_row = MYBITMAP_get_pixel_row_RGB;
+        else
+            get_row = MYBITMAP_get_pixel_row_BGR;
+        break;
+    case 32:
+        get_row = MYBITMAP_get_pixel_row_RGBA;
+        break;
+    default:
+        _ERR_PRINTF("MYBMP>PNG: invalid MYBITMAP.depth = %d\n", bmp->depth);
+        goto failed_clear_struct;
+    }
+
+    for (int i = 0; i < bmp->h; i++) {
+        rows[i] = get_row(i, bmp, pal);
+    }
+    bpc = 8;
+    png_color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+
+    png_set_IHDR (png, info,
+            bmp->w,
+            bmp->h, bpc,
+            png_color_type,
+            PNG_INTERLACE_NONE,
+            PNG_COMPRESSION_TYPE_DEFAULT,
+            PNG_FILTER_TYPE_DEFAULT);
+
+    white.gray = (1 << bpc) - 1;
+    white.red = white.blue = white.green = white.gray;
+    png_set_bKGD (png, info, &white);
+
+    png_write_info (png, info);
+
+    png_write_image (png, rows);
+    png_write_end (png, info);
+
+    retcode = ERR_BMP_OK;
+
+failed_clear_struct:
+    png_destroy_write_struct (&png, &info);
+failed_clear_rows:
+    for (int i = 0; i < bmp->h; i++) {
+        if (rows[i]) {
+            free(rows[i]);
+        }
+    }
+    free (rows);
+failed:
+    return retcode;
+}
+
 #endif /* _MGLIBPNG_VER == 16 */
 #endif /* _MGIMAGE_PNG */
 
