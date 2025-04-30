@@ -577,7 +577,7 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     /* init timer for tick counter */
     step++;
-    if (!mg_InitTimer (FALSE)) {
+    if (!mg_InitTimer()) {
         _ERR_PRINTF ("KERNEL>InitGUI: failed to start time counter\n");
         goto failure;
     }
@@ -602,7 +602,7 @@ failure1:
 
 void GUIAPI TerminateGUI (int not_used)
 {
-    mg_TerminateTimer (FALSE);
+    mg_TerminateTimer ();
 
     mg_FreeMsgQueueForThisThread (TRUE);
 

@@ -117,26 +117,83 @@ DWORD __mg_update_tick_count (MSGQUEUE* msg_queue)
     return ticks;
 }
 
-BOOL mg_InitTimer (BOOL use_sys_timer)
+#if defined(_MGRM_PROCESSES)
+
+#include <signal.h>
+#include <unistd.h>
+#include <sys/time.h>
+
+static struct sigaction old_alarm_handler;
+static struct itimerval old_timer;
+
+static void timer_handler(int sig)
 {
-    __mg_tick_counter = 0;
+    (void)sig;
+    __mg_update_tick_count(NULL);
+}
 
-    __mg_os_start_time();
+static BOOL install_system_timer (void)
+{
+    struct itimerval timerv;
+    struct sigaction siga;
 
-    if (use_sys_timer) {
-        // Since 5.0.14, do nothing.
-        // install_system_timer ();
+    sigaction (SIGALRM, NULL, &old_alarm_handler);
+
+    siga = old_alarm_handler;
+    siga.sa_handler = timer_handler;
+    siga.sa_flags = 0;
+    sigaction (SIGALRM, &siga, NULL);
+
+    timerv.it_interval.tv_sec = 0;
+    timerv.it_interval.tv_usec = 10000;         /* 10 ms */
+    timerv.it_value = timerv.it_interval;
+
+    if (setitimer (ITIMER_REAL, &timerv, &old_timer) == -1) {
+        TIMER_ERR_SYS ("setitimer call failed!\n");
+        return FALSE;
     }
 
     return TRUE;
 }
 
-void mg_TerminateTimer (BOOL use_sys_timer)
+static BOOL unintall_system_timer (void)
 {
-    if (use_sys_timer) {
-        // Since 5.0.14, do nothing.
-        // unintall_system_timer ();
+    if (setitimer (ITIMER_REAL, &old_timer, 0) == -1) {
+        TIMER_ERR_SYS ("setitimer call failed!\n");
+        return FALSE;
     }
+
+    if (sigaction (SIGALRM, &old_alarm_handler, NULL) == -1) {
+        TIMER_ERR_SYS ("sigaction call failed!\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+#endif /* defined(_MGRM_PROCESSES) */
+
+BOOL mg_InitTimer ()
+{
+    __mg_tick_counter = 0;
+
+    __mg_os_start_time();
+
+#if defined(_MGRM_PROCESSES)
+    if (mgIsServer) {
+        install_system_timer ();
+    }
+#endif
+
+    return TRUE;
+}
+
+void mg_TerminateTimer (void)
+{
+#if defined(_MGRM_PROCESSES)
+    if (mgIsServer) {
+        unintall_system_timer ();
+    }
+#endif
 }
 
 /************************* Functions run in message thread *******************/
