@@ -164,9 +164,7 @@ int __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter)
                        msgq, or else we may encounter dead lock here */
                     msg_queue->expired_timer_mask |= (0x01UL << i);
                     POST_MSGQ (msg_queue);
-
-                    timer_slots[i]->ticks_expected =
-                        msg_queue->last_ticks + timer_slots[i]->interv;
+                    timer_slots[i]->ticks_expected += timer_slots[i]->interv;
                     timer_slots[i]->ticks_fired = msg_queue->last_ticks;
                     nr++;
                 }
