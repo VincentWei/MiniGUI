@@ -145,7 +145,7 @@ static IDLEHANDLER std_idle_handler;
 
 static BOOL idle_handler_for_desktop_thread (MSGQUEUE *msg_queue, BOOL wait)
 {
-    __mg_update_tick_count (NULL);
+    __mg_update_tick_count (msg_queue);
     return std_idle_handler (msg_queue, wait);
 }
 

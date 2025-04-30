@@ -258,7 +258,7 @@ struct _MSGQUEUE
     int loop_depth;             // message loop depth, for dialog boxes
 
     int idle_counter;           // the idle connter for MSG_IDLE
-    DWORD last_ticks_desktop;   // the last tick count for desktop timer
+    DWORD last_ticks;           // the last tick count saved; since 5.0.14
 
     /* Since 5.0.0, MiniGUI provides support for timers per message thread */
     int nr_timers;              // the number of active timers
