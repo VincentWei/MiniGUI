@@ -190,14 +190,14 @@ static void ParseEvent (PMSGQUEUE msg_que, int event)
 BOOL GUIAPI salone_StandAloneStartup (void)
 {
     /* VW: do not use signal based interval timer; since 4.0 */
-    mg_InitTimer (FALSE);
+    mg_InitTimer ();
     return TRUE;
 }
 
 void salone_StandAloneCleanup (void)
 {
     /* VW: do not use signal based interval timer; since 4.0 */
-    mg_TerminateTimer (FALSE);
+    mg_TerminateTimer ();
 }
 
 BOOL salone_IdleHandler4StandAlone (PMSGQUEUE msg_queue, BOOL wait)

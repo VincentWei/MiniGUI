@@ -258,7 +258,7 @@ struct _MSGQUEUE
     int loop_depth;             // message loop depth, for dialog boxes
 
     int idle_counter;           // the idle connter for MSG_IDLE
-    DWORD last_ticks_desktop;   // the last tick count for desktop timer
+    DWORD last_ticks;           // the last tick count saved; since 5.0.14
 
     /* Since 5.0.0, MiniGUI provides support for timers per message thread */
     int nr_timers;              // the number of active timers
@@ -911,40 +911,9 @@ static inline MSGQUEUE* getMsgQueueIfMainWindowInThisThread (PMAINWIN pMainWin)
 
 #endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
 
-#if 0   /* deprecated code */
-/* since 5.0.0, we always use QS_DESKTIMER for desktop timer */
-/* since 5.0.0, we no longer use the timer thread */
-static inline void AlertDesktopTimerEvent (void)
-{
-    if (__mg_dsk_msg_queue) {
-        __mg_dsk_msg_queue->expired_timer_mask = 1;
-        POST_MSGQ (__mg_dsk_msg_queue);
-    }
-}
-
-static inline void AlertDesktopTimerEvent (void)
-{
-    __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
-#ifdef _MGHAVE_VIRTUAL_WINDOW
-    if (getMsgQueueForThisThread() != __mg_dsk_msg_queue)
-        POST_MSGQ (__mg_dsk_msg_queue);
-#endif  /* defined _MGHAVE_VIRTUAL_WINDOW */
-}
-
-static inline void setMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
-{
-    pMsgQueue->expired_timer_mask |= (0x01UL << slot);
-    POST_MSGQ (pMsgQueue);
-}
-
-static inline void removeMsgQueueTimerFlag (PMSGQUEUE pMsgQueue, int slot)
-{
-    pMsgQueue->expired_timer_mask &= ~(0x01UL << slot);
-}
-#endif /* deprecated code */
-
-BOOL mg_InitTimer (BOOL use_sys_timer);
-void mg_TerminateTimer (BOOL use_sys_timer);
+/* Since 5.0.14, remove arg use_sys_timer */
+BOOL mg_InitTimer (void);
+void mg_TerminateTimer (void);
 
 /*window element renderer manager interface*/
 extern WINDOW_ELEMENT_RENDERER * __mg_def_renderer;

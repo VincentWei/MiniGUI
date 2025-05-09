@@ -84,20 +84,6 @@ extern DWORD __mg_tick_counter;
 
 ON_NEW_DEL_CLIENT OnNewDelClient = NULL;
 
-#if 0
-/* Since 5.0.0, use RegisterEventHookFunc to implement SetServerEventHook */
-static SRVEVTHOOK srv_evt_hook = NULL;
-
-SRVEVTHOOK GUIAPI SetServerEventHook (SRVEVTHOOK SrvEvtHook)
-{
-    SRVEVTHOOK old_hook = srv_evt_hook;
-
-    srv_evt_hook = SrvEvtHook;
-
-    return old_hook;
-}
-#endif /* deprecated code; moved to window.c */
-
 static void ParseEvent (PMSGQUEUE msg_que, int event)
 {
     LWEVENT lwe;
@@ -331,7 +317,7 @@ BOOL GUIAPI ServerStartup (int nr_globals,
     __mg_dsk_msg_queue->maxfd = listenfd;
     maxi = -1;
 
-    mg_InitTimer (TRUE);
+    mg_InitTimer ();
 
     __mg_start_server_desktop ();
 
@@ -363,7 +349,7 @@ void server_ServerCleanup (void)
    __mg_nssurf_map_delete ();
 #endif
 
-    mg_TerminateTimer (TRUE);
+    mg_TerminateTimer ();
 
     unlink (CS_PATH);
 }
@@ -380,14 +366,6 @@ BOOL server_IdleHandler4Server (PMSGQUEUE msg_queue, BOOL wait)
     fd_set* esetptr = NULL;
     EXTRA_INPUT_EVENT extra;    // Since 4.0.0; for extra input events
     int nevts = 0;              // Since 5.0.0; for timer and fd events
-
-#if 0   /* deprecated code */
-    /* since 5.0.0, use __mg_update_tick_count instead */
-    if (__mg_tick_counter != SHAREDRES_TIMER_COUNTER) {
-        __mg_tick_counter = SHAREDRES_TIMER_COUNTER;
-        AlertDesktopTimerEvent ();
-    }
-#endif  /* deprecated code */
 
     /* rset gets modified each time around */
     rset = __mg_dsk_msg_queue->rfdset;

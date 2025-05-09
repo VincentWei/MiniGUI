@@ -74,7 +74,7 @@ typedef struct _MSGQUEUE MSGQUEUE;
 extern "C" {
 #endif  /* __cplusplus */
 
-void __mg_update_tick_count (void* data);
+DWORD __mg_update_tick_count (MSGQUEUE* msg_queue);
 int  __mg_check_expired_timers (MSGQUEUE* msg_queue, DWORD inter);
 void __mg_remove_timers_by_msg_queue (MSGQUEUE* msg_queue);
 void __mg_remove_timer (MSGQUEUE* msg_queue, int slot);
