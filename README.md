@@ -460,7 +460,7 @@ for examples:
 
 ## HISTORY
 
-21 years have pasted since MiniGUI was initially created at
+27 years have pasted since MiniGUI was initially created at
 the end of 1998, and now it becomes much reliable and stable.
 During the past years, many remarkable changes have taken place in
 the MiniGUI project.
@@ -566,13 +566,14 @@ A brief history description of the development progress is listed as follow:
 1. Jan., 2022:     FMSoft released MiniGUI version 5.0.9.
 1. Sep., 2022:     FMSoft released MiniGUI version 5.0.10.
 1. Aug., 2023:     FMSoft released MiniGUI version 5.0.13.
+1. May., 2025:     FMSoft released MiniGUI version 5.0.15.
 
 ## AUTHORS AND COPYING
 
 The original author of MiniGUI is Vincent Wei, and now MiniGUI is maintained by FMSoft.
 For more information, please refer to <http://www.fmsoft.cn>.
 
-Copyright (C) 2002 ~ 2023, Beijing FMSoft Technologies Co., Ltd.  
+Copyright (C) 2002 ~ 2025, Beijing FMSoft Technologies Co., Ltd.  
 Copyright (C) 1998 ~ 2002, Vincent Wei
 
 This program is free software: you can redistribute it and/or modify

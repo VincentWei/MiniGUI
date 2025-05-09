@@ -1,7 +1,7 @@
 # Release Notes
 
-- [Version 5.2.0](#version-520)
-   + [What's new in version 5.2.0](#whats-new-in-version-520)
+- [Version 5.0.15](#version-5015)
+   + [What's new in version 5.0.15](#whats-new-in-version-5015)
 - [Version 5.0.13](#version-5013)
    + [What's new in version 5.0.13](#whats-new-in-version-5013)
 - [Version 5.0.12](#version-5012)
@@ -34,10 +34,11 @@
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
 
-## Version 5.2.0
+## Version 5.0.15
 
-On Nov. 30, 2023, FMSoft announces the availability of MiniGUI 5.2.0,
-which is an mainline release with some major enhancements:
+On May 09, 2025, FMSoft announces the availability of MiniGUI 5.0.15,
+which is an enhancement release with some minor enhancements
+of MiniGUI 5.0.x.
 
 * ENHANCEMENTS:
    - Optimize NEWGAL engines: `shadow`, `drm`, and `fbcon` for large resolution.
