@@ -142,28 +142,28 @@ BOOL mg_InitDesktop (void)
 
 #include "debug.h"
 
-static IDLEHANDLER std_idle_handler;
-
+/* According to a bug report, we use sem_timedwait() instead of
+   calling std_idle_handler for desktop thread.
+   Otherwise, the desktop might not handle the request from other GUI threads
+   as soon as possible. */
 static BOOL idle_handler_for_desktop_thread (MSGQUEUE *msg_queue, BOOL wait)
 {
     int retv, n = 0;
 
     __mg_update_tick_count (msg_queue);
 
-    n += __mg_check_expired_timers (msg_queue,
-            __mg_tick_counter - msg_queue->old_tick_count);
-    msg_queue->old_tick_count = __mg_tick_counter;
+    if (wait) {
+        struct timespec ts;
+        if (clock_gettime (CLOCK_REALTIME, &ts) != -1) {
+            ts.tv_nsec += 10 * 1000 * 1000L; // 10ms
+            if (ts.tv_nsec >= 1000 * 1000 * 1000L) {
+                ts.tv_sec += 1;
+                ts.tv_nsec -= 1000 * 1000 * 1000L;
+            }
 
-    struct timespec ts;
-    if (clock_gettime(CLOCK_REALTIME, &ts) != -1) {
-        ts.tv_nsec += 10 * 1000 * 1000L; // 10ms
-        if (ts.tv_nsec >= 1000 * 1000 * 1000L) {
-            ts.tv_sec += 1;
-            ts.tv_nsec -= 1000 * 1000 * 1000L;
+            if (sem_timedwait (&msg_queue->wait, &ts) == 0)
+                return TRUE;
         }
-
-        if (sem_timedwait(&msg_queue->wait, &ts) == 0)
-            return TRUE;
     }
 
     return n > 0;
@@ -182,7 +182,6 @@ void* __kernel_desktop_main (void* data)
 
     /* For bug reported in Issue #116, under threads mode, the idle handler
        for the desktop thread should call __mg_update_tick_count () */
-    std_idle_handler = __mg_dsk_msg_queue->OnIdle;
     __mg_dsk_msg_queue->OnIdle = idle_handler_for_desktop_thread;
 
     /* init desktop window */

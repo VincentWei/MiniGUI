@@ -100,14 +100,14 @@ DWORD __mg_update_tick_count (MSGQUEUE* msg_queue)
         /* Since 5.0.0, the desktop only handles caret blinking in MSG_TIMEOUT
            message, and the interval for the timer of desktop changes to 0.05s.
          */
-        if (msg_queue == __mg_dsk_msg_queue) {
-            if (ticks > __mg_dsk_msg_queue->last_ticks +
+        if (msg_queue == __mg_dsk_msg_queue &&
+                ticks > __mg_dsk_msg_queue->old_tick_count +
                     DESKTOP_TIMER_INERTVAL) {
-                __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+            __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
 #ifdef _MGRM_THREADS    /* only wake up desktop for threads mode */
-                POST_MSGQ (__mg_dsk_msg_queue);
+            POST_MSGQ (__mg_dsk_msg_queue);
 #endif
-            }
+            __mg_dsk_msg_queue->old_tick_count = ticks;
         }
 
         msg_queue->last_ticks = ticks;
