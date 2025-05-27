@@ -55,6 +55,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include "common.h"
 
@@ -145,8 +146,27 @@ static IDLEHANDLER std_idle_handler;
 
 static BOOL idle_handler_for_desktop_thread (MSGQUEUE *msg_queue, BOOL wait)
 {
+    int retv, n = 0;
+
     __mg_update_tick_count (msg_queue);
-    return std_idle_handler (msg_queue, wait);
+
+    n += __mg_check_expired_timers (msg_queue,
+            __mg_tick_counter - msg_queue->old_tick_count);
+    msg_queue->old_tick_count = __mg_tick_counter;
+
+    struct timespec ts;
+    if (clock_gettime(CLOCK_REALTIME, &ts) != -1) {
+        ts.tv_nsec += 10 * 1000 * 1000L; // 10ms
+        if (ts.tv_nsec >= 1000 * 1000 * 1000L) {
+            ts.tv_sec += 1;
+            ts.tv_nsec -= 1000 * 1000 * 1000L;
+        }
+
+        if (sem_timedwait(&msg_queue->wait, &ts) == 0)
+            return TRUE;
+    }
+
+    return n > 0;
 }
 
 void* __kernel_desktop_main (void* data)
