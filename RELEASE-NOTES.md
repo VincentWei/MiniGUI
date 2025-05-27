@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.16](#version-5016)
+   + [What's new in version 5.0.16](#whats-new-in-version-5016)
 - [Version 5.0.15](#version-5015)
    + [What's new in version 5.0.15](#whats-new-in-version-5015)
 - [Version 5.0.13](#version-5013)
@@ -33,6 +35,15 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.16
+
+On May 27, 2025, FMSoft announces the availability of MiniGUI 5.0.16,
+which is a bugfix release with some minor enhancements of MiniGUI 5.0.x.
+
+* BUGFIXING:
+   - The desktop thread can not handle the request from other threads as soon as possible.
+   - The `MSG_TIMEOUT` message can not be fired correctly under MiniGUI-Threads mode.
 
 ## Version 5.0.15
 
