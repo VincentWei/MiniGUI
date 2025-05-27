@@ -495,28 +495,6 @@ DWORD __mg_os_get_time_ticks (void)
     return (current - startup_time_win32) / 10;
 }
 
-#if 0   /* deprecated code */
-DWORD __mg_os_get_elapsed_ms (void)
-{
-    static DWORD last;
-    DWORD current = timeGetTime();
-    DWORD elapsed;
-
-    if (current >= last) {
-        elapsed = current - last;
-        return elapsed;
-    }
-    else {
-        /* overflowed */
-        elapsed = BITMASK_DWORD - last;
-        elapsed += current;
-    }
-
-    last = current;
-    return elapsed;
-}
-#endif  /* deprecated code */
-
 #elif defined (HAVE_CLOCK_GETTIME)
 
 static struct timespec timeval_startup;
@@ -572,68 +550,6 @@ DWORD __mg_os_get_time_ticks (void)
 
     return ds * 100 + dms;
 }
-
-#if 0   /* deprecated code */
-DWORD __mg_os_get_elapsed_ms (void)
-{
-    static struct timespec last;
-    DWORD ds, dms;
-    struct timespec current;
-
-    clock_gettime (CLOCK_MONOTONIC, &current);
-    ds = (current.tv_sec - last.tv_sec);
-
-    if (current.tv_sec == last.tv_sec) {
-        dms = (current.tv_nsec - last.tv_nsec) / 1000000L;
-    }
-    else if (current.tv_nsec >= last.tv_nsec) {
-        dms = (current.tv_nsec - last.tv_nsec) / 1000000L;
-    }
-    else {
-        assert (ds > 0);
-
-        ds--;
-        dms = 1000L - (last.tv_nsec - current.tv_nsec) / 1000000L;
-    }
-
-    last = current;
-    return ds * 1000 + dms;
-}
-
-#include <unistd.h>
-#include <poll.h>
-#include <sys/time.h>
-
-static struct timeval timeval_startup;
-void __mg_os_start_time(void)
-{
-    gettimeofday(&timeval_startup, NULL);
-}
-
-DWORD __mg_os_get_time_ms(void)
-{
-    DWORD ds, dms;
-    struct timeval current;
-
-    gettimeofday(&current, NULL);
-    ds = (current.tv_sec - timeval_startup.tv_sec);
-
-    if (current.tv_sec == timeval_startup.tv_sec) {
-        dms = (current.tv_usec - timeval_startup.tv_usec) / 1000L;
-    }
-    else if (current.tv_usec >= timeval_startup.tv_usec) {
-        dms = (current.tv_usec - timeval_startup.tv_usec) / 1000L;
-    }
-    else {
-        assert(ds > 0);
-
-        ds--;
-        dms = 1000L - (timeval_startup.tv_usec - current.tv_usec) / 1000L;
-    }
-
-    return ds * 1000 + dms;
-}
-#endif  /* deprecated code */
 
 #else   /* defined HAVE_CLOCK_GETTIME */
 
