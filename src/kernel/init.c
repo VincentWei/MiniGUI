@@ -562,6 +562,13 @@ int GUIAPI InitGUI (int args, const char *agr[])
 
     _is_minigui_running = 1;
 
+    /* init timer for tick counter */
+    step++;
+    if (!mg_InitTimer()) {
+        _ERR_PRINTF ("KERNEL>InitGUI: failed to start time counter\n");
+        goto failure;
+    }
+
     step++;
     if (!SystemThreads()) {
         _ERR_PRINTF ("KERNEL>InitGUI: failed to init system threads!\n");
@@ -572,13 +579,6 @@ int GUIAPI InitGUI (int args, const char *agr[])
     step++;
     if (!(msg_queue = mg_AllocMsgQueueForThisThread (TRUE))) {
         _ERR_PRINTF ("KERNEL>InitGUI: failed to allocate message queue!\n");
-        goto failure;
-    }
-
-    /* init timer for tick counter */
-    step++;
-    if (!mg_InitTimer()) {
-        _ERR_PRINTF ("KERNEL>InitGUI: failed to start time counter\n");
         goto failure;
     }
 
