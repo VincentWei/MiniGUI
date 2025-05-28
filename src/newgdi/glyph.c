@@ -1092,6 +1092,67 @@ nodraw_ret:
 }
 
 #ifdef _MGFONT_FT2
+
+static RGB blend_pixel(RGB font_pixel, RGB fg_color, RGB bg_color)
+{
+    RGB result;
+
+    Uint8 src_pre_r, src_pre_g, src_pre_b;
+    Uint8 bg_pre_r, bg_pre_g, bg_pre_b, alpha_bg;
+    Uint8 out_r, out_g, out_b, alpha_out;
+
+    uint8_t alpha_font = 0.299 * font_pixel.r + 0.587 * font_pixel.g +
+        0.114 * font_pixel.b;
+
+    uint16_t alpha_src = (fg_color.a * alpha_font + 127) / 255;
+
+    if (alpha_src == 0) {
+        result = bg_color;
+        goto out;
+    }
+
+    src_pre_r = (fg_color.r * alpha_src + 127) / 255;
+    src_pre_g = (fg_color.g * alpha_src + 127) / 255;
+    src_pre_b = (fg_color.b * alpha_src + 127) / 255;
+
+    bg_pre_r = (bg_color.r * bg_color.a + 127) / 255;
+    bg_pre_g = (bg_color.g * bg_color.a + 127) / 255;
+    bg_pre_b = (bg_color.b * bg_color.a + 127) / 255;
+    alpha_bg = bg_color.a;
+
+    out_r = src_pre_r + (bg_pre_r * (255 - alpha_src)) / 255;
+    out_g = src_pre_g + (bg_pre_g * (255 - alpha_src)) / 255;
+    out_b = src_pre_b + (bg_pre_b * (255 - alpha_src)) / 255;
+    alpha_out = alpha_src + (alpha_bg * (255 - alpha_src)) / 255;
+
+    if (out_r > 255) {
+        out_r = 255;
+    }
+
+    if (out_g > 255) {
+        out_g = 255;
+    }
+
+    if (out_b > 255) {
+        out_b = 255;
+    }
+
+    if (alpha_out > 0) {
+        result.r = (out_r * 255 + alpha_out / 2) / alpha_out;
+        result.g = (out_g * 255 + alpha_out / 2) / alpha_out;
+        result.b = (out_b * 255 + alpha_out / 2) / alpha_out;
+        result.a = (uint8_t) alpha_out;
+    } else {
+        result.r = 0;
+        result.g = 0;
+        result.b = 0;
+        result.a = 0;
+    }
+
+out:
+    return result;
+}
+
 static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
         SCANLINE_CTXT* ctxt)
 {
@@ -1112,8 +1173,8 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
                     ctxt->glyph_ascent, ctxt->glyph_line,
                     ctxt->glyph_advance);
 
-    GAL_GetRGB (pdc->textcolor, pdc->surface->format, &rgba_fg.r,
-            &rgba_fg.g, &rgba_fg.b);
+    GAL_GetRGBA (pdc->textcolor, pdc->surface->format, &rgba_fg.r,
+            &rgba_fg.g, &rgba_fg.b, &rgba_fg.a);
 
     for (x = 0; x < ctxt->bmp_w; x++) {
         if (!PtInRect (&pdc->rc_output, x+xpos, ypos)) {
@@ -1130,8 +1191,8 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
         _glyph_move_to_pixel (pdc, x+xpos, ypos);
         pixel = _mem_get_pixel(pdc->cur_dst, GAL_BytesPerPixel (pdc->surface));
 
-        GAL_GetRGB (pixel, pdc->surface->format, &rgba_cur.r,
-                    &rgba_cur.g, &rgba_cur.b);
+        GAL_GetRGBA (pixel, pdc->surface->format, &rgba_cur.r,
+                    &rgba_cur.g, &rgba_cur.b, &rgba_cur.a);
 
 #define C_ALPHA(p, Cs, Cd)              \
             if (*p++) {                 \
@@ -1140,14 +1201,25 @@ static void _dc_ft2subpixel_scan_line(PDC pdc, int xpos, int ypos,
                 Cd = sub_val >> 8;      \
             }
 
-        C_ALPHA(bits, rgba_fg.r, rgba_cur.r);
-        C_ALPHA(bits, rgba_fg.g, rgba_cur.g);
-        C_ALPHA(bits, rgba_fg.b, rgba_cur.b);
+        if (rgba_cur.r == 0 && rgba_cur.g == 0 && rgba_cur.b == 0 &&
+                rgba_cur.a == 0) {
+            RGB font_pixel = {bits[0], bits[1], bits[2], 255};
+            RGB ret = blend_pixel(font_pixel, rgba_fg, rgba_cur);
+            rgba_cur = ret;
+            bits += 3;
+        }
+        else {
+            C_ALPHA(bits, rgba_fg.r, rgba_cur.r);
+            C_ALPHA(bits, rgba_fg.g, rgba_cur.g);
+            C_ALPHA(bits, rgba_fg.b, rgba_cur.b);
+            rgba_cur.a = 255.0;
+        }
+
 
 #undef C_ALPHA
 
-        pdc->cur_pixel = GAL_MapRGB (pdc->surface->format, rgba_cur.r,
-                    rgba_cur.g, rgba_cur.b);
+        pdc->cur_pixel = GAL_MapRGBA (pdc->surface->format, rgba_cur.r,
+                    rgba_cur.g, rgba_cur.b, rgba_cur.a);
 
         if (pdc->cur_pixel != pixel) {
             _glyph_draw_pixel (pdc, x+xpos, ypos, pdc->cur_pixel);
