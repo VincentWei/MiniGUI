@@ -1,7 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.60)
-AC_INIT(libminigui, 5.0.16)
+AC_PREREQ([2.71])
+AC_INIT([libminigui],[5.0.16])
 AC_CONFIG_SRCDIR(src/main/main.c)
+AC_CONFIG_MACRO_DIRS([m4])
 
 dnl Set various version strings - taken gratefully from the SDL sources
 #
@@ -40,27 +41,24 @@ AC_SUBST(LT_CURRENT)
 AC_SUBST(LT_REVISION)
 AC_SUBST(LT_AGE)
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 
 dnl ========================================================================
 dnl Init automake
 AM_INIT_AUTOMAKE
 
-AC_CONFIG_HEADER(mgconfig.h)
+AC_CONFIG_HEADERS([mgconfig.h])
 
 dnl ========================================================================
 dnl Check for tools
-AC_PROG_LIBTOOL
 AC_PROG_CC
-AC_PROG_LD
-AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
+LT_INIT
 
 dnl ========================================================================
 dnl Checks for header files.
-AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_CHECK_HEADERS(limits.h math.h stdatomic.h locale.h unistd.h termio.h sys/types.h sys/time.h sys/select.h sys/memfd.h)
 
@@ -68,7 +66,6 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
 AC_STRUCT_TM
 
 dnl Checks for library functions.
@@ -884,14 +881,14 @@ CheckFBCON()
     if test "x$enable_video_fbcon" = "xyes"; then
         AC_MSG_CHECKING(for FrameBuffer console support)
         video_fbcon=no
-        AC_TRY_COMPILE([
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
          #include <linux/fb.h>
          #include <linux/kd.h>
          #include <linux/keyboard.h>
-        ],[
-        ],[
+        ]], [[
+        ]])],[
         video_fbcon=yes
-        ])
+        ],[])
         AC_MSG_RESULT($video_fbcon)
         if test "x$video_fbcon" = "xyes"; then
             AC_DEFINE(_MGGAL_FBCON, 1,
@@ -1170,12 +1167,12 @@ CheckDirectFBVideo()
     if test "x$enable_video_dfb" = "xyes"; then
         AC_MSG_CHECKING(for DirectFB support)
         video_dfb=no
-        AC_TRY_COMPILE([
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
          #include <directfb.h>
-        ],[
-        ],[
+        ]], [[
+        ]])],[
         video_dfb=yes
-        ])
+        ],[])
         AC_MSG_RESULT($video_dfb)
         if test "x$video_dfb" = "xyes"; then
             AC_DEFINE(_MGGAL_DFB, 1,
@@ -2641,7 +2638,7 @@ if test "x$devel_mode" = "xyes"; then
         CPPFLAGS="$CPPFLAGS -D_DEBUG"
     fi
 
-    if test "$ac_cv_prog_gcc" = "yes"; then
+    if test "$ac_cv_c_compiler_gnu" = "yes"; then
         CFLAGS="$CFLAGS -Wall -Werror"
     fi
 
@@ -2651,7 +2648,7 @@ else
     CPPFLAGS="$CPPFLAGS -DNDEBUG"
 fi
 
-if test "$ac_cv_prog_gcc" = "yes"; then
+if test "$ac_cv_c_compiler_gnu" = "yes"; then
     CFLAGS="$CFLAGS -fmax-errors=10 -Wstrict-prototypes -pipe"
 fi
 
@@ -2688,8 +2685,7 @@ AM_CONDITIONAL(MGLIB_MVFB, test "x$with_libsuffix" = "xmvfb")
 AM_CONDITIONAL(MG_ENABLE_SPLASH, test "x$build_splash" = "xyes")
 AM_CONDITIONAL(MG_ENABLE_SCREENSAVER, test "x$build_screensaver" = "xyes")
 
-AC_OUTPUT(
-minigui.pc
+AC_CONFIG_FILES([minigui.pc
 Makefile
 cmake/Makefile
 src/Makefile
@@ -2756,7 +2752,8 @@ etc/Makefile
 3rd-party/scripteasy/Makefile
 m4/Makefile
 build/Makefile
-)
+])
+AC_OUTPUT
 
 CCVERSION=`$CC --version | head -n 1`
 

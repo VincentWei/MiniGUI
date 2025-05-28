@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = src 3rd-party include rtos etc m4 cmake build
 
 EXTRA_DIST = minigui.pc.in \
