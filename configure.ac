@@ -896,9 +896,13 @@ CheckFBCON()
             VIDEO_SUBDIRS="$VIDEO_SUBDIRS fbcon"
             VIDEO_DRIVERS="$VIDEO_DRIVERS fbcon/libvideo_fbcon.la"
 
-            have_pciaccess="yes"
-            AC_CHECK_LIB(pciaccess, pci_system_init,
-                DEP_LIBS="$DEP_LIBS -lpciaccess", have_pciaccess="no")
+            if test "x$target_cpu" = "xi386"; then
+                have_pciaccess="yes"
+                AC_CHECK_LIB(pciaccess, pci_system_init,
+                    DEP_LIBS="$DEP_LIBS -lpciaccess", have_pciaccess="no")
+            else
+                have_pciaccess="no"
+            fi
 
             if test "x$have_pciaccess" = "xyes"; then
                 AC_DEFINE(_MGHAVE_PCIACCESS, 1,
@@ -2762,6 +2766,7 @@ AC_MSG_NOTICE([
 # Main building configuration:
 
 ## Global Features:
+  * Architecture:       ${target_cpu}
   * Operating system:   ${osname}
   * Runtime mode:       ${runtime_mode}
   * Virtual Window:     ${virtual_window}

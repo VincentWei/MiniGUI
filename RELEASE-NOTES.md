@@ -44,6 +44,10 @@ which is a bugfix release with some minor enhancements of MiniGUI 5.0.x.
 * BUGFIXING:
    - The desktop thread can not handle the request from other threads as soon as possible.
    - The `MSG_TIMEOUT` message can not be fired correctly under MiniGUI-Threads mode.
+   - Bad subpixel rendering when background color is RGBA0000.
+* TUNING:
+   - Tune `configure.ac` and `Makefile.am` to use the system libtool scripts.
+   - Do not check `pciaccess` if the target architecture is not `i386`.
 
 ## Version 5.0.15
 
