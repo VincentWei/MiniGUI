@@ -2540,40 +2540,41 @@ static void *neon_memcpy(void *dst, const void *src, size_t n)
 
 static void update_real_screen_memcpy(_THIS, const GAL_Rect *dirty_rect)
 {
-    DrmSurfaceBuffer *real_buff, *shadow_buff;
-    real_buff = (DrmSurfaceBuffer *)this->hidden->real_screen->hwdata;
-    shadow_buff = (DrmSurfaceBuffer *)this->hidden->shadow_screen->hwdata;
+    DrmSurfaceBuffer *target_buff, *shadow_buff;
 
-    uint32_t i;
-    uint8_t *src, *dst;
-    int cpp = real_buff->cpp;
-    int shadow_pitch = this->hidden->shadow_screen->pitch;
-    int real_pitch = real_buff->pitch;
-    size_t count = cpp * dirty_rect->w;
-
-    if (shadow_buff) {
-        src = shadow_buff->vaddr;
-        src += shadow_buff->offset;
+    DrmVideoData* vdata = this->hidden;
+    if (vdata->curr_buff == vdata->flip_buff) {
+        target_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
     }
     else {
-        src = this->hidden->shadow_screen->pixels;
-        src += this->hidden->shadow_screen->pixels_off;
+        target_buff = vdata->flip_buff;
     }
+    shadow_buff = (DrmSurfaceBuffer *)vdata->shadow_screen->hwdata;
 
-    src += shadow_pitch * dirty_rect->y + cpp * dirty_rect->x;
+    /* Full screen memcpy, regardless of dirty_rect */
+    uint8_t *src_pixels, *dst_pixels;
+    int src_pitch, dst_pitch;
+    int i, rows;
+    size_t columns;
 
-    dst = real_buff->vaddr;
-    dst += real_pitch * dirty_rect->y + cpp * dirty_rect->x;
-    dst += real_buff->offset;
+    src_pixels = (uint8_t *)shadow_buff->vaddr + shadow_buff->offset;
+    dst_pixels = (uint8_t *)target_buff->vaddr + target_buff->offset;
 
-    for (i = 0; i < dirty_rect->h; i++) {
+    src_pitch = vdata->shadow_screen->pitch;
+    dst_pitch = target_buff->pitch;
+
+    /* Use full screen dimensions */
+    rows = vdata->shadow_screen->h;
+    columns = vdata->shadow_screen->pitch;
+
+    for (i = 0; i < rows; i++) {
 #if defined(__arm__) && defined(__linux__)
-        neon_memcpy(dst, src, count);
+        neon_memcpy(dst_pixels, src_pixels, columns);
 #else
-        memcpy(dst, src, count);
+        memcpy(dst_pixels, src_pixels, columns);
 #endif /* defined(__arm__) && defined(__linux__) */
-        src += shadow_pitch;
-        dst += real_pitch;
+        src_pixels += src_pitch;
+        dst_pixels += dst_pitch;
     }
 }
 
@@ -2667,18 +2668,64 @@ static inline void refresh_cursor(_THIS, const GAL_Rect *dirty_rect) {
 }
 #endif  /* _MGSCHEMA_COMPOSITING */
 
+/* Perform page flip between flip_buffer and real_screen->hwdata using curr_buff */
+static int drm_page_flip(DrmVideoData* vdata)
+{
+    int ret;
+
+    /* Perform the page flip */
+    if (!vdata->flip_buff || !vdata->flip_buff->fb_id) {
+        _ERR_PRINTF("NEWGAL>DRM: No valid flip buffer for page flipping\n");
+        return -1;
+    }
+
+    /* Get the next buffer to display */
+    DrmSurfaceBuffer *next_buffer;
+    if (vdata->curr_buff == vdata->flip_buff) {
+        next_buffer = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
+    } else {
+        next_buffer = vdata->flip_buff;
+    }
+
+    uint32_t next_fb_id = next_buffer->fb_id;
+
+    /* drmModePageFlip will wait for vertical sync signal internally */
+    ret = drmModePageFlip(vdata->dev_fd, vdata->saved_crtc->crtc_id,
+                          next_fb_id, DRM_MODE_PAGE_FLIP_EVENT, NULL);
+    if (ret) {
+        _ERR_PRINTF("NEWGAL>DRM: Failed to perform page flip: %m\n");
+        return -1;
+    }
+
+    /* Update scanout buffer ID */
+    vdata->scanout_buff_id = next_fb_id;
+
+    /* Update current buffer pointer */
+    vdata->curr_buff = next_buffer;
+
+    return 0;
+}
+
 static void update_real_screen_helper(_THIS, const GAL_Rect *dirty_rect)
 {
     DrmVideoData* vdata = this->hidden;
-    DrmSurfaceBuffer *real_buff, *shadow_buff;
+    DrmSurfaceBuffer *target_buff, *shadow_buff;
 
-    real_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
+    /* Initialize curr_buff if not set */
+    if (!vdata->curr_buff) {
+        vdata->curr_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
+    }
+
+    /* Use the buffer that is not currently displayed as the target buffer */
+    target_buff = (vdata->curr_buff == vdata->flip_buff) ?
+                 (DrmSurfaceBuffer *)vdata->real_screen->hwdata : vdata->flip_buff;
+
     shadow_buff = (DrmSurfaceBuffer *)vdata->shadow_screen->hwdata;
 
 #if 0 // def _DEBUG
-    _DBG_PRINTF("Copy pixels to real screen (pitch: %u, count: %u, %d x %d)\n",
-            (unsigned)real_buff->pitch, (unsigned)count,
-            RECTWP(update_rect), RECTHP(update_rect));
+    _DBG_PRINTF("Copy pixels to target buffer (pitch: %u, %d x %d)\n",
+            (unsigned)target_buff->pitch,
+            dirty_rect->w, dirty_rect->h);
 
     struct timespec ts_start;
     clock_gettime(CLOCK_REALTIME, &ts_start);
@@ -2688,7 +2735,7 @@ static void update_real_screen_helper(_THIS, const GAL_Rect *dirty_rect)
     if (shadow_buff && vdata->driver && vdata->driver_ops->copy_buff) {
         if ((dirty_rect->w * dirty_rect->h) >= vdata->min_pixels_using_hwaccl) {
             if (vdata->driver_ops->copy_buff(vdata->driver, shadow_buff,
-                        dirty_rect, real_buff, dirty_rect,
+                        dirty_rect, target_buff, dirty_rect,
                         BLIT_COPY_TRANSLATE) == 0) {
                 hw_ok = TRUE;
             }
@@ -2776,20 +2823,15 @@ static void* task_do_update(void *data)
                 RECTH(vdata->update_rect) };
             update_real_screen_helper(this, &dirty_rect);
 
-            if (vdata->driver && vdata->driver_ops->flush) {
-                DrmSurfaceBuffer *real_buff;
-                real_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
-                vdata->driver_ops->flush(vdata->driver,
-                        real_buff, &dirty_rect);
+
+            /* Perform page flip */
+            if (vdata->flip_buff) {
+                drm_page_flip(vdata);
             }
-            else if (vdata->dirty_fb_ok) {
-                drmModeClip clip = {
-                    vdata->update_rect.left,
-                    vdata->update_rect.top,
-                    vdata->update_rect.right,
-                    vdata->update_rect.bottom };
-                drmModeDirtyFB(vdata->dev_fd,
-                        vdata->scanout_buff_id, &clip, 1);
+            /* Flush driver buffer if needed */
+            if (vdata->driver && vdata->driver_ops->flush) {
+                vdata->driver_ops->flush(vdata->driver,
+                        vdata->curr_buff, &dirty_rect);
             }
 
             SetRectEmpty(&vdata->update_rect);
@@ -2945,6 +2987,9 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         _ERR_PRINTF("NEWGAL>DRM: failed to create flip buffer\n");
         goto error;
     }
+
+    /* Initialize curr_buff to point to real_screen buffer */
+    vdata->curr_buff = real_buffer;
 
     if (vdata->crtc_idx >= 0)
         this->WaitVBlank = DRM_WaitVBlank;
@@ -3992,21 +4037,17 @@ static BOOL DRM_SyncUpdate(_THIS)
 
     if (vdata->shadow_screen) {
         update_real_screen_helper(this, &dirty_rect);
+
+        /* Perform page flip */
+        if (vdata->flip_buff) {
+            drm_page_flip(vdata);
+        }
     }
 
     refresh_cursor(this, &dirty_rect);
 
     if (vdata->driver && vdata->driver_ops->flush) {
-        DrmSurfaceBuffer *real_buff;
-        real_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
-        vdata->driver_ops->flush(vdata->driver,
-                real_buff, &dirty_rect);
-    }
-    else if (vdata->dirty_fb_ok) {
-        drmModeClip clip = { clipped.left, clipped.top,
-            clipped.right, clipped.bottom };
-        drmModeDirtyFB(vdata->dev_fd,
-                vdata->scanout_buff_id, &clip, 1);
+        vdata->driver_ops->flush(vdata->driver, vdata->curr_buff, &dirty_rect);
     }
 
 ret:

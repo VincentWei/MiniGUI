@@ -92,6 +92,9 @@ typedef struct GAL_PrivateVideoData {
     /* flip buffer used for page flipping */
     DrmSurfaceBuffer *flip_buff;
 
+    /* current buffer pointer for managing buffer switching */
+    DrmSurfaceBuffer *curr_buff;
+
     sem_t *update_lock;
 
 #if !IS_SHAREDFB_SCHEMA_PROCS
