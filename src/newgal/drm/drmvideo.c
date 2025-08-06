@@ -2393,6 +2393,54 @@ static double get_elapsed_seconds(const struct timespec *ts_from,
 }
 #endif
 
+#if defined(__arm__) && defined(__linux__)
+// ARM64 NEON accelerated memcpy implementation
+static void *neon_memcpy(void *dst, const void *src, size_t n)
+{
+    // Backup original pointer for return
+    void *ret = dst;
+
+    // Handle unaligned portion
+    uintptr_t dst_addr = (uintptr_t)dst;
+    size_t pre_align = (16 - (dst_addr & 15)) & 15;
+    if (pre_align > 0) {
+        if (pre_align > n) {
+            pre_align = n;
+        }
+        memcpy(dst, src, pre_align);
+        dst = (char *)dst + pre_align;
+        src = (char *)src + pre_align;
+        n -= pre_align;
+    }
+
+    // NEON vector copy main loop, copy 128 bytes each time
+    if (n >= 128) {
+        size_t count = n >> 7;
+        asm volatile("1:\n"
+                     // Load 128 bytes into v0-v7 registers
+                     "ld1 {v0.2d, v1.2d, v2.2d, v3.2d}, [%1], #64\n"
+                     "ld1 {v4.2d, v5.2d, v6.2d, v7.2d}, [%1], #64\n"
+                     // Store 128 bytes
+                     "st1 {v0.2d, v1.2d, v2.2d, v3.2d}, [%0], #64\n"
+                     "st1 {v4.2d, v5.2d, v6.2d, v7.2d}, [%0], #64\n"
+                     "subs %2, %2, #1\n"
+                     "b.ne 1b\n"
+                     : "+r"(dst), "+r"(src), "+r"(count)
+                     :
+                     : "memory", "v0", "v1", "v2", "v3", "v4", "v5", "v6",
+                       "v7");
+        n &= 127;
+    }
+
+    // Handle remaining bytes
+    if (n > 0) {
+        memcpy(dst, src, n);
+    }
+
+    return ret;
+}
+#endif /* defined(__arm__) && defined(__linux__) */
+
 static void update_real_screen_memcpy(_THIS, const GAL_Rect *dirty_rect)
 {
     DrmSurfaceBuffer *real_buff, *shadow_buff;
@@ -2422,7 +2470,11 @@ static void update_real_screen_memcpy(_THIS, const GAL_Rect *dirty_rect)
     dst += real_buff->offset;
 
     for (i = 0; i < dirty_rect->h; i++) {
+#if defined(__arm__) && defined(__linux__)
+        neon_memcpy(dst, src, count);
+#else
         memcpy(dst, src, count);
+#endif /* defined(__arm__) && defined(__linux__) */
         src += shadow_pitch;
         dst += real_pitch;
     }
