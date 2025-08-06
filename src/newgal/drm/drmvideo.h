@@ -89,6 +89,9 @@ typedef struct GAL_PrivateVideoData {
     uint32_t        real_name, shadow_name;
 #endif  /* not defined _MGSCHEMA_COMPOSITING */
 
+    /* flip buffer used for page flipping */
+    DrmSurfaceBuffer *flip_buff;
+
     sem_t *update_lock;
 
 #if !IS_SHAREDFB_SCHEMA_PROCS

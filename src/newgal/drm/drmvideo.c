@@ -837,6 +837,9 @@ static DrmSurfaceBuffer *drm_create_dumb_buffer(DrmVideoData* vdata,
 
 static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
         DrmSurfaceBuffer *surface_buffer);
+
+static void drm_destroy_flip_buffer(DrmVideoData* vdata,
+        DrmSurfaceBuffer *flip_buffer);
 /*
  * The following helpers derived from DRM HOWTO by David Herrmann.
  *
@@ -908,6 +911,12 @@ static void drm_cleanup(DrmVideoData* vdata)
         vdata->cursor_buff = NULL;
     }
 #endif  /* _MGSCHEMA_COMPOSITING */
+
+    /* Clean up flip buffer used for page flipping */
+    if (vdata->flip_buff) {
+        drm_destroy_flip_buffer(vdata, vdata->flip_buff);
+        vdata->flip_buff = NULL;
+    }
 
     if (vdata->scanout_buff_id) {
         /* remove frame buffer */
@@ -1663,6 +1672,9 @@ static int DRM_VideoInit(_THIS, GAL_PixelFormat *vformat)
     }
 #endif
 
+    /* Initialize page flipping capability */
+    this->hidden->flip_buff = NULL;
+
     if (this->hidden->driver) {
         if (this->hidden->driver_ops->fill_rect) {
             this->info.blit_fill = 1;
@@ -2169,6 +2181,72 @@ err_destroy:
     return NULL;
 }
 
+/* Create flip buffer for page flipping */
+static DrmSurfaceBuffer *drm_create_flip_buffer(DrmVideoData *vdata,
+        uint32_t drm_format, int width, int height)
+{
+    DrmSurfaceBuffer *flip_buffer = NULL;
+    int ret;
+    uint32_t handles[4] = {0}, pitches[4] = {0}, offsets[4] = {0};
+
+    /* Create flip buffer using driver if available */
+    if (vdata->driver) {
+        assert(vdata->driver_ops->create_buffer);
+        flip_buffer = vdata->driver_ops->create_buffer(
+            vdata->driver, drm_format, 0, width, height,
+            DRM_SURBUF_TYPE_SCANOUT);
+        if (flip_buffer) {
+            vdata->driver_ops->map_buffer(vdata->driver, flip_buffer);
+        }
+    }
+
+    /* Fallback to dumb buffer if driver buffer creation failed */
+    if (flip_buffer == NULL) {
+        flip_buffer =
+            drm_create_dumb_buffer(vdata, drm_format, 0, width, height);
+        if (flip_buffer == NULL) {
+            _ERR_PRINTF("NEWGAL>DRM: Failed to create flip buffer\n");
+            goto error_exit;
+        }
+    }
+
+    /* Add framebuffer */
+    if (flip_buffer->fb_id == 0) {
+        /* Setup handles, pitches and offsets for FB2 */
+        handles[0] = flip_buffer->handle;
+        pitches[0] = flip_buffer->pitch;
+        offsets[0] = flip_buffer->offset;
+
+        /* Use drmModeAddFB2 for better format support */
+        ret = drmModeAddFB2(vdata->dev_fd, flip_buffer->width,
+                            flip_buffer->height, flip_buffer->drm_format,
+                            handles, pitches, offsets, &flip_buffer->fb_id, 0);
+
+        if (ret) {
+            _ERR_PRINTF(
+                "NEWGAL>DRM: Failed to add framebuffer for flip buffer: %m\n");
+            goto error_cleanup;
+        }
+    }
+
+    _DBG_PRINTF("NEWGAL>DRM: Created flip buffer: fb_id(%u)\n",
+                flip_buffer->fb_id);
+    return flip_buffer;
+
+error_cleanup:
+    if (vdata->driver) {
+        if (flip_buffer->vaddr) {
+            vdata->driver_ops->unmap_buffer(vdata->driver, flip_buffer);
+        }
+        vdata->driver_ops->destroy_buffer(vdata->driver, flip_buffer);
+    } else {
+        drm_destroy_dumb_buffer(vdata, flip_buffer);
+    }
+
+error_exit:
+    return NULL;
+}
+
 static DrmSurfaceBuffer *drm_create_dumb_buffer_from_handle(DrmVideoData* vdata,
         uint32_t handle, size_t size)
 {
@@ -2360,6 +2438,25 @@ static void drm_destroy_dumb_buffer(DrmVideoData* vdata,
     }
 
     free (surface_buffer);
+}
+
+/* Destroy flip buffer used for page flipping */
+static void drm_destroy_flip_buffer(DrmVideoData* vdata,
+        DrmSurfaceBuffer *flip_buffer)
+{
+    if (flip_buffer == NULL) {
+        return;
+    }
+
+    if (vdata->driver) {
+        if (flip_buffer->vaddr) {
+            vdata->driver_ops->unmap_buffer(vdata->driver, flip_buffer);
+        }
+        vdata->driver_ops->destroy_buffer(vdata->driver, flip_buffer);
+    }
+    else {
+        drm_destroy_dumb_buffer(vdata, flip_buffer);
+    }
 }
 
 static DrmModeInfo* find_mode(DrmVideoData* vdata, int width, int height)
@@ -2841,6 +2938,14 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         goto error;
     }
 
+    /* Create flip buffer for page flipping */
+    vdata->flip_buff =
+        drm_create_flip_buffer(vdata, drm_format, info->width, info->height);
+    if (vdata->flip_buff == NULL) {
+        _ERR_PRINTF("NEWGAL>DRM: failed to create flip buffer\n");
+        goto error;
+    }
+
     if (vdata->crtc_idx >= 0)
         this->WaitVBlank = DRM_WaitVBlank;
 
@@ -2974,6 +3079,12 @@ error:
         else {
             drm_destroy_dumb_buffer (vdata, shadow_buffer);
         }
+    }
+
+    /* Clean up flip buffer if created */
+    if (vdata->flip_buff) {
+        drm_destroy_flip_buffer(vdata, vdata->flip_buff);
+        vdata->flip_buff = NULL;
     }
 
     if (vdata->real_screen) {
