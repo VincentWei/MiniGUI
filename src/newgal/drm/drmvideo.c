@@ -949,11 +949,21 @@ static void drm_cleanup(DrmVideoData* vdata)
 
 static void DRM_DeleteDevice(GAL_VideoDevice *device)
 {
+
     if (device->hidden->real_screen) {
+        /* FIXME */
+        DrmSurfaceBuffer *surface_buffer =
+            (DrmSurfaceBuffer *)device->hidden->real_screen->hwdata;
+        if (surface_buffer && !device->hidden->driver) {
+            drm_destroy_dumb_buffer(device->hidden, surface_buffer);
+            device->hidden->real_screen->hwdata = NULL;
+        }
         GAL_FreeSurface(device->hidden->real_screen);
+        device->hidden->real_screen = NULL;
     }
 
     drm_cleanup(device->hidden);
+
 
     if (device->hidden->dev_name)
         free (device->hidden->dev_name);
@@ -2748,8 +2758,14 @@ static void update_real_screen_helper(_THIS, const GAL_Rect *dirty_rect)
     }
 
     /* Use the buffer that is not currently displayed as the target buffer */
-    target_buff = (vdata->curr_buff == vdata->flip_buff) ?
-                 (DrmSurfaceBuffer *)vdata->real_screen->hwdata : vdata->flip_buff;
+    if (vdata->flip_buff) {
+        target_buff = (vdata->curr_buff == vdata->flip_buff)
+                          ? (DrmSurfaceBuffer *)vdata->real_screen->hwdata
+                          : vdata->flip_buff;
+    }
+    else {
+        target_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
+    }
 
     shadow_buff = (DrmSurfaceBuffer *)vdata->shadow_screen->hwdata;
 
@@ -2857,17 +2873,17 @@ static void* task_do_update(void *data)
             update_real_screen_helper(this, &dirty_rect);
 
 
-            /* Perform page flip */
-            if (vdata->flip_buff) {
-                drm_page_flip(vdata);
-                if (1 == is_fd_readable(vdata->dev_fd)) {
-                    drmHandleEvent(vdata->dev_fd, &ev);
-                }
-            }
             /* Flush driver buffer if needed */
             if (vdata->driver && vdata->driver_ops->flush) {
                 vdata->driver_ops->flush(vdata->driver,
                         vdata->curr_buff, &dirty_rect);
+            }
+            /* Perform page flip */
+            else if (vdata->flip_buff) {
+                drm_page_flip(vdata);
+                if (1 == is_fd_readable(vdata->dev_fd)) {
+                    drmHandleEvent(vdata->dev_fd, &ev);
+                }
             }
 
             SetRectEmpty(&vdata->update_rect);
@@ -4074,22 +4090,21 @@ static BOOL DRM_SyncUpdate(_THIS)
 
     if (vdata->shadow_screen) {
         update_real_screen_helper(this, &dirty_rect);
-
-        /* Perform page flip */
-        if (vdata->flip_buff) {
-            drm_page_flip(vdata);
-            if (1 == is_fd_readable(vdata->dev_fd)) {
-                drmEventContext ev = {};
-                ev.version = DRM_EVENT_CONTEXT_VERSION;
-                drmHandleEvent(vdata->dev_fd, &ev);
-            }
-        }
     }
 
     refresh_cursor(this, &dirty_rect);
 
     if (vdata->driver && vdata->driver_ops->flush) {
         vdata->driver_ops->flush(vdata->driver, vdata->curr_buff, &dirty_rect);
+    }
+    else if (vdata->dirty_fb_ok && vdata->flip_buff) {
+        /* Perform page flip */
+        drm_page_flip(vdata);
+        if (1 == is_fd_readable(vdata->dev_fd)) {
+            drmEventContext ev = {};
+            ev.version = DRM_EVENT_CONTEXT_VERSION;
+            drmHandleEvent(vdata->dev_fd, &ev);
+        }
     }
 
 ret:
