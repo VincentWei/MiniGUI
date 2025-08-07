@@ -2670,6 +2670,35 @@ static inline void refresh_cursor(_THIS, const GAL_Rect *dirty_rect) {
 }
 #endif  /* _MGSCHEMA_COMPOSITING */
 
+static int is_fd_readable(int fd)
+{
+    fd_set rfds;
+    struct timeval tv;
+    int retval;
+
+    /* Initialize the file descriptor set */
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+
+    /* Set timeout to 0 to return immediately */
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    /* Call select to check if fd is readable */
+    retval = select(fd + 1, &rfds, NULL, NULL, &tv);
+
+    if (retval == -1) {
+        /* Error occurred */
+        return -1;
+    } else if (retval) {
+        /* File descriptor is readable */
+        return 1;
+    } else {
+        /* Timeout occurred, file descriptor is not readable */
+        return 0;
+    }
+}
+
 /* Perform page flip between flip_buffer and real_screen->hwdata using curr_buff */
 static int drm_page_flip(DrmVideoData* vdata)
 {
@@ -2831,7 +2860,9 @@ static void* task_do_update(void *data)
             /* Perform page flip */
             if (vdata->flip_buff) {
                 drm_page_flip(vdata);
-                drmHandleEvent(vdata->dev_fd, &ev);
+                if (1 == is_fd_readable(vdata->dev_fd)) {
+                    drmHandleEvent(vdata->dev_fd, &ev);
+                }
             }
             /* Flush driver buffer if needed */
             if (vdata->driver && vdata->driver_ops->flush) {
@@ -4047,6 +4078,11 @@ static BOOL DRM_SyncUpdate(_THIS)
         /* Perform page flip */
         if (vdata->flip_buff) {
             drm_page_flip(vdata);
+            if (1 == is_fd_readable(vdata->dev_fd)) {
+                drmEventContext ev = {};
+                ev.version = DRM_EVENT_CONTEXT_VERSION;
+                drmHandleEvent(vdata->dev_fd, &ev);
+            }
         }
     }
 
