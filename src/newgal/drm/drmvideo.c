@@ -2542,39 +2542,41 @@ static void update_real_screen_memcpy(_THIS, const GAL_Rect *dirty_rect)
 {
     DrmSurfaceBuffer *target_buff, *shadow_buff;
 
-    DrmVideoData* vdata = this->hidden;
+    DrmVideoData *vdata = this->hidden;
+
+    shadow_buff = (DrmSurfaceBuffer *)vdata->shadow_screen->hwdata;
     if (vdata->curr_buff == vdata->flip_buff) {
         target_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
     }
     else {
-        target_buff = vdata->flip_buff;
+        target_buff = (DrmSurfaceBuffer *)vdata->flip_buff;
     }
-    shadow_buff = (DrmSurfaceBuffer *)vdata->shadow_screen->hwdata;
 
-    /* Full screen memcpy, regardless of dirty_rect */
-    uint8_t *src_pixels, *dst_pixels;
-    int src_pitch, dst_pitch;
-    int i, rows;
-    size_t columns;
+    uint8_t *src, *dst;
+    int shadow_pitch = vdata->shadow_screen->pitch;
+    int target_pitch = target_buff->pitch;
 
-    src_pixels = (uint8_t *)shadow_buff->vaddr + shadow_buff->offset;
-    dst_pixels = (uint8_t *)target_buff->vaddr + target_buff->offset;
+    if (shadow_buff) {
+        src = shadow_buff->vaddr;
+        src += shadow_buff->offset;
+    }
+    else {
+        src = this->hidden->shadow_screen->pixels;
+        src += this->hidden->shadow_screen->pixels_off;
+    }
 
-    src_pitch = vdata->shadow_screen->pitch;
-    dst_pitch = target_buff->pitch;
+    dst = target_buff->vaddr;
+    dst += target_buff->offset;
 
-    /* Use full screen dimensions */
-    rows = vdata->shadow_screen->h;
-    columns = vdata->shadow_screen->pitch;
 
-    for (i = 0; i < rows; i++) {
+    for (uint32_t i = 0; i < target_buff->height; i++) {
 #if defined(__arm__) && defined(__linux__)
-        neon_memcpy(dst_pixels, src_pixels, columns);
+        neon_memcpy(dst, src, target_pitch);
 #else
-        memcpy(dst_pixels, src_pixels, columns);
+        memcpy(dst, src, target_pitch);
 #endif /* defined(__arm__) && defined(__linux__) */
-        src_pixels += src_pitch;
-        dst_pixels += dst_pitch;
+        src += shadow_pitch;
+        dst += target_pitch;
     }
 }
 
@@ -2765,6 +2767,8 @@ static void* task_do_update(void *data)
 {
     _THIS = data;
     DrmVideoData* vdata = this->hidden;
+    drmEventContext ev = {};
+    ev.version = DRM_EVENT_CONTEXT_VERSION;
 
     if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)) {
         goto error;
@@ -2827,6 +2831,7 @@ static void* task_do_update(void *data)
             /* Perform page flip */
             if (vdata->flip_buff) {
                 drm_page_flip(vdata);
+                drmHandleEvent(vdata->dev_fd, &ev);
             }
             /* Flush driver buffer if needed */
             if (vdata->driver && vdata->driver_ops->flush) {
@@ -2979,6 +2984,7 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
         _ERR_PRINTF("NEWGAL>DRM: cannot setup scanout buffer\n");
         goto error;
     }
+    real_buffer->fb_id = vdata->scanout_buff_id;
 
     /* Create flip buffer for page flipping */
     vdata->flip_buff =
