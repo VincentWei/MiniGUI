@@ -286,7 +286,7 @@ static TYPERUN* get_runtype_link (const CHARSETOPS* charset_ops, Achar32* achars
     last = list;
 
     for (i = 0; i < len; i++){
-        if ((type = charset_ops->bidi_char_type (achars[i])) != last->type){
+        if ((type = charset_ops->bidi_char_type (REAL_ACHAR(achars[i]))) != last->type){
             link = calloc(1, sizeof(TYPERUN));
             link->type = type;
             link->pos = i;
@@ -456,7 +456,7 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir)
             prev_type_org = TYPE(pp);
     }
 
-    compact_neutrals (type_rl_list);
+    compact_list (type_rl_list);
 
 #ifdef BIDI_DEBUG
     print_run_types(type_rl_list);
@@ -469,19 +469,115 @@ static void bidi_resolveWeak(TYPERUN **ptype_rl_list, Uint32 base_dir)
 #define BIDI_EMBEDDING_DIR(list) BIDI_LEVEL_TO_DIR(LEVEL(list))
 
 /* 4.Resolving Neutral Types */
-static void bidi_resolveNeutrals(TYPERUN **ptype_rl_list, Uint32 base_bir)
+static void bidi_resolveNeutrals(const CHARSETOPS* charset_ops, Achar32* achars, int len,
+        TYPERUN **ptype_rl_list, Uint32 base_bir)
 {
     TYPERUN *type_rl_list = *ptype_rl_list, *pp = NULL;
+    Uint32* bracket_types = NULL;
+    int i;
+
+    if (charset_ops->bidi_mirror_char && achars && len > 0) {
+        typedef struct {
+            int pos;
+            Achar32 mirror;
+        } BRSTACK;
+
+        BRSTACK* stack = NULL;
+        int top = 0;
+
+        bracket_types = calloc(len, sizeof(Uint32));
+        stack = calloc(len, sizeof(BRSTACK));
+
+        if (bracket_types && stack) {
+            for (i = 0; i < len; i++) {
+                Achar32 ch = REAL_ACHAR(achars[i]);
+                Achar32 mirrored;
+                if (!charset_ops->bidi_mirror_char(ch, &mirrored))
+                    continue;
+
+                if (ch < mirrored) {
+                    stack[top].pos = i;
+                    stack[top].mirror = mirrored;
+                    top++;
+                }
+                else {
+                    if (top > 0 && stack[top - 1].mirror == ch) {
+                        int open_pos = stack[top - 1].pos;
+                        int close_pos = i;
+                        Uint32 found_dir = BIDI_TYPE_ON;
+                        int k;
+
+                        for (k = open_pos + 1; k < close_pos; k++) {
+                            Uint32 t = charset_ops->bidi_char_type(REAL_ACHAR(achars[k]));
+                            if (t == BIDI_TYPE_AL)
+                                t = BIDI_TYPE_RTL;
+                            if (BIDI_IS_LETTER(t)) {
+                                found_dir = BIDI_IS_RTL(t) ? BIDI_TYPE_RTL : BIDI_TYPE_LTR;
+                                break;
+                            }
+                        }
+
+                        if (found_dir != BIDI_TYPE_ON) {
+                            bracket_types[open_pos] = found_dir;
+                            bracket_types[close_pos] = found_dir;
+                        }
+
+                        top--;
+                    }
+                }
+            }
+        }
+
+        if (stack)
+            free(stack);
+    }
+
+    if (bracket_types) {
+        for (pp = type_rl_list->next; pp->next; pp = pp->next) {
+            if (BIDI_IS_NEUTRAL(TYPE(pp))) {
+                int start = POS(pp);
+                int end = start + LEN(pp);
+                Uint32 forced = BIDI_TYPE_ON;
+
+                if (end > len)
+                    end = len;
+
+                for (i = start; i < end; i++) {
+                    if (bracket_types[i] == BIDI_TYPE_RTL) {
+                        forced = BIDI_TYPE_RTL;
+                        break;
+                    }
+                    if (bracket_types[i] == BIDI_TYPE_LTR) {
+                        forced = BIDI_TYPE_LTR;
+                    }
+                }
+
+                if (forced != BIDI_TYPE_ON) {
+                    TYPE(pp) = forced;
+                }
+            }
+        }
+        compact_list (type_rl_list);
+    }
 
     DBGLOG ("\n4.Resolving neutral types\n");
 
     for (pp = type_rl_list->next; pp->next; pp = pp->next)
     {
         Uint32 prev_type, this_type, next_type;
+        TYPERUN* prev = NULL;
+        TYPERUN* next = NULL;
 
-        prev_type = TYPE(pp->prev);
+        prev = pp->prev;
+        while (prev && BIDI_IS_NEUTRAL(TYPE(prev)) && !BIDI_IS_SENTINEL(TYPE(prev)))
+            prev = prev->prev;
+        prev_type = (!prev || BIDI_IS_SENTINEL(TYPE(prev))) ? base_bir : TYPE(prev);
+
         this_type = TYPE(pp);
-        next_type = (pp->next) ? TYPE(pp->next) : this_type;
+        next = pp->next;
+        while (next && BIDI_IS_NEUTRAL(TYPE(next)) && !BIDI_IS_SENTINEL(TYPE(next)))
+            next = next->next;
+        next_type = (!next || BIDI_IS_SENTINEL(TYPE(next))) ? base_bir : TYPE(next);
         /* "European and arabic numbers are treated as though they were R, NUMBER_TO_RTL does this. */
         this_type = BIDI_NUMBER_TO_RTL(this_type);
         prev_type = BIDI_NUMBER_TO_RTL(prev_type);
@@ -498,6 +594,9 @@ static void bidi_resolveNeutrals(TYPERUN **ptype_rl_list, Uint32 base_bir)
     print_resolved_levels (type_rl_list);
     print_resolved_types (type_rl_list);
 #endif
+
+    if (bracket_types)
+        free(bracket_types);
 }
 
 /* 5.Resolving implicit levels. */
@@ -549,10 +648,13 @@ bidi_resolveMirrorChar (const CHARSETOPS* charset_ops, Achar32* achars, int len,
             int i;
             for (i = POS (pp); i < POS (pp) + LEN (pp); i++)
             {
+                Achar32 ch = achars[i];
+                Achar32 real_ch = REAL_ACHAR(ch);
                 Achar32 mirrored_ch;
                 if (charset_ops->bidi_mirror_char &&
-                        charset_ops->bidi_mirror_char (achars[i], &mirrored_ch))
-                    achars[i] = mirrored_ch;
+                        charset_ops->bidi_mirror_char (real_ch, &mirrored_ch)) {
+                    achars[i] = IS_MBCHV(ch) ? SET_MBCHV(mirrored_ch) : mirrored_ch;
+                }
             }
         }
     }
@@ -593,7 +695,7 @@ static void bidi_resolve_string (const CHARSETOPS* charset_ops,
     bidi_resolveWeak(&type_rl_list, base_dir);
 
     /* 4.Resolving Neutral Types */
-    bidi_resolveNeutrals(&type_rl_list, base_dir);
+    bidi_resolveNeutrals(charset_ops, achars, len, &type_rl_list, base_dir);
 
     /* 5.Resolving implicit levels. */
     *pmax_level = bidi_resolveImplicit(&type_rl_list, base_level);
@@ -826,4 +928,3 @@ Uint32 __mg_legacy_bidi_str_base_dir (const CHARSETOPS* charset_ops,
 
     return base_dir;
 }
-
