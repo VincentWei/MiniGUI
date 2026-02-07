@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.17](#version-5017)
+   + [What's new in version 5.0.17](#whats-new-in-version-5017)
 - [Version 5.0.16](#version-5016)
    + [What's new in version 5.0.16](#whats-new-in-version-5016)
 - [Version 5.0.15](#version-5015)
@@ -35,6 +37,19 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.17
+
+On Feb. 07, 2026, FMSoft announces the availability of MiniGUI 5.0.17,
+which is a bugfix release with some minor enhancements of MiniGUI 5.0.x.
+
+* BUGFIXING:
+   - Fix legacy BIDI bracket reordering/mirroring for MBC Achar32.
+   - Fix wrong BIDI type mapping for ISO8859-6 0xEF.
+   - Fix a compilation error about bool type
+   - Fix Arabic letter 'ي' incorrectly using medial form at word start.
+* OPTIMIZATION:
+   - Use drmModePageFlip for drmVideo to fix screen tearing.
 
 ## Version 5.0.16
 

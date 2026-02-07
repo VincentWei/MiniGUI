@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.71])
-AC_INIT([libminigui],[5.0.16])
+AC_INIT([libminigui],[5.0.17])
 AC_CONFIG_SRCDIR(src/main/main.c)
 AC_CONFIG_MACRO_DIRS([m4])
 
