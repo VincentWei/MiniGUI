@@ -15,7 +15,7 @@
  *   and Graphics User Interface (GUI) support system for embedded systems
  *   and smart IoT devices.
  *
- *   Copyright (C) 2002~2018, Beijing FMSoft Technologies Co., Ltd.
+ *   Copyright (C) 2002~2026, Beijing FMSoft Technologies Co., Ltd.
  *   Copyright (C) 1998~2002, WEI Yongming
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -57,6 +57,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "common.h"
 #include "minigui.h"
@@ -215,8 +216,6 @@ static unsigned char emojiSegmentationCategory (Uchar32 codepoint)
 }
 
 
-typedef BOOL bool;
-enum { false = FALSE, true = TRUE };
 typedef unsigned char *emoji_text_iter_t;
 
 #include "emoji_presentation_scanner.inc"
@@ -251,7 +250,7 @@ EmojiIterator * __mg_emoji_iterator_init (EmojiIterator *iter,
 BOOL __mg_emoji_iterator_next (EmojiIterator *iter)
 {
     unsigned int old_cursor, cursor;
-    BOOL is_emoji;
+    bool is_emoji;
 
     if (iter->end >= iter->text_end)
         return FALSE;
