@@ -14935,6 +14935,32 @@ typedef struct _DrmSurfaceInfo {
     off_t offset;
 } DrmSurfaceInfo;
 
+#define MG_DRM_SURFACE_LEASE_VERSION 1u
+#define MG_DRM_MAX_PLANES 4u
+
+/* Versioned lease for a DRM-backed DC. The caller owns each returned DMA-BUF
+ * and acquire-fence fd and must close them. The lease must be released before
+ * destroying/replacing its DC or terminating its video device. private_token
+ * is opaque: callers must not modify it or use it outside these APIs. */
+typedef struct _MGDRMSurfaceLease {
+    uint32_t struct_size;
+    uint32_t version;
+    uint64_t generation;
+    uint32_t width;
+    uint32_t height;
+    uint32_t fourcc;
+    uint32_t plane_count;
+    uint64_t modifier;
+    int dma_buf_fds[MG_DRM_MAX_PLANES];
+    uint32_t pitches[MG_DRM_MAX_PLANES];
+    uint32_t offsets[MG_DRM_MAX_PLANES];
+    int surface_origin_x;
+    int surface_origin_y;
+    RECT clip_bounds;
+    int acquire_fence_fd;
+    void *private_token;
+} MGDRMSurfaceLease;
+
 /**
  * This function gets the DRM surface information from specified device context.
  *
@@ -14946,6 +14972,21 @@ typedef struct _DrmSurfaceInfo {
  * \return TRUE for success, FALSE for failure.
  */
 MG_EXPORT BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info);
+
+/* A successful lease is a drawing critical section, like LockDC: release
+ * it on the acquiring thread before calling any other MiniGUI/GDI function.
+ * Nested leases are not supported. GPU work and release-fence waits must not
+ * depend on a MiniGUI callback. The cursor is restored on release. */
+MG_EXPORT BOOL drmAcquireDCSurface (GHANDLE video, HDC hdc,
+        MGDRMSurfaceLease *lease);
+/* dirty is in surface-buffer coordinates. release_fence_fd may be -1; its
+ * ownership transfers on entry and it is always closed. For a valid lease it
+ * is waited before submitting damage. A valid lease is consumed exactly once,
+ * even if fence wait or presentation update fails. A rejected lease leaves
+ * its token active for a correct retry; its supplied fence is closed without
+ * waiting. */
+MG_EXPORT BOOL drmReleaseDCSurface (GHANDLE video, HDC hdc,
+        MGDRMSurfaceLease *lease, int release_fence_fd, const RECT *dirty);
 
 /**
  * This function creates a memory DC with a DRM surface which is created by
@@ -15054,5 +15095,3 @@ MG_EXPORT int hi3560SetScreenAttr (Uint8 siAttr, void* pValue);
 #endif  /* __cplusplus */
 
 #endif  /* _MGUI_GDI_H */
-
-

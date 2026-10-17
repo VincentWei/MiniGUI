@@ -72,21 +72,22 @@ static int get_touch_data (short *x, short *y, short *button)
 {
     struct input_event data;
 
+    /* Consume exactly one kernel input frame per call and stop at its
+     * SYN_REPORT. mouse_update() is called once per event-loop poll, so
+     * draining the whole buffer here would keep only the last position of a
+     * burst: a fast swipe would reach the gesture layer as a handful of
+     * coincident samples. Returning at each frame boundary lets successive
+     * polls recover successive positions, and keeps a press and its release
+     * that arrived in the same burst as two separate events. */
     while (read (sg_tp_event_fd, &data, sizeof (data)) == sizeof (data)) {
 
-        /* do nothing for EV_SYN due to non-blocking read.
         if (data.type == EV_SYN) {
-            if (data.code == SYN_REPORT) {
+            if (data.code == SYN_REPORT)
                 return 0;
-            }
-            else if (data.code == SYN_MT_REPORT) {
-                continue;
-            }
-            else {
-                return -1;
-            }
+            /* Any other sync code ends a sub-frame, not the frame itself;
+             * keep accumulating until the terminating SYN_REPORT. */
+            continue;
         }
-        */
 
         if (data.type == EV_KEY) {
             switch (data.code) {
@@ -99,7 +100,7 @@ static int get_touch_data (short *x, short *y, short *button)
 
             default:
                 _WRN_PRINTF ("unknow event code for EV_KEY event: 0x%x, 0x%x\n", data.code, data.value);
-                return -1;
+                break;
             }
         }
         else if (data.type == EV_ABS) {
@@ -136,7 +137,10 @@ static int get_touch_data (short *x, short *y, short *button)
         }
     }
 
-    return 0;
+    /* No terminating SYN_REPORT was read: nothing to report yet. A partial
+     * frame stays in MOUSEX/MOUSEY/MOUSEBUTTON and is completed on the poll
+     * that drains the rest of the frame. */
+    return 1;
 }
 
 static int mouse_update (void)

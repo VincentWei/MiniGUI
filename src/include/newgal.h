@@ -1096,4 +1096,3 @@ GAL_Surface* __drm_create_surface_from_prime_fd (GHANDLE video,
 #endif  /* __cplusplus */
 
 #endif  /* GUI_NEWGAL_H */
-
