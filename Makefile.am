@@ -6,7 +6,9 @@ EXTRA_DIST = minigui.pc.in \
             GNUmakefile makefile.ng makefile.msvc rules.make \
             INSTALL LICENSE \
             Version.md README.md RELEASE-NOTES.md \
-            LICENSE-POLICY-en.md LICENSE-POLICY-zh.md
+            LICENSE-POLICY-en.md LICENSE-POLICY-zh.md \
+            doc/drm-damage-updates.md \
+            scripts/test-drm-damage.py scripts/test-drm-lease-lock.py
 
 # The directory where the include files will be installed
 libminiguiincludedir = $(includedir)/minigui

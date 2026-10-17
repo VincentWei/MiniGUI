@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.18](#version-5018)
+   + [What's new in version 5.0.18](#whats-new-in-version-5018)
 - [Version 5.0.17](#version-5017)
    + [What's new in version 5.0.17](#whats-new-in-version-5017)
 - [Version 5.0.16](#version-5016)
@@ -37,6 +39,61 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.18
+
+On Oct. 17, 2026, FMSoft announces the availability of MiniGUI 5.0.18,
+which is an enhancement and bugfix release of MiniGUI 5.0.x, focusing on
+DRM rendering synchronization, native GPU rendering integration, and touch input.
+
+### What's new in version 5.0.18
+
+* ENHANCEMENTS:
+   - Add `MGDRMSurfaceLease`, `drmAcquireDCSurface()`, and
+     `drmReleaseDCSurface()` for native rendering into DRM-backed device contexts.
+     A lease exposes DMA-BUF and surface metadata, retains drawing protection,
+     and can wait for a release fence before publishing damage. Release the
+     lease on the acquiring thread before making other MiniGUI/GDI calls;
+     nested leases are not supported.
+   - Support dumb-buffer hardware surface allocation and PRIME export in the
+     built-in DRM path, including an exportable shadow surface for double
+     buffering without an external acceleration driver.
+* OPTIMIZATIONS:
+   - Copy the accumulated damage bounding rectangle instead of the full frame
+     in the built-in DRM shadow-to-scanout path under non-compositing schemas.
+     Track pending damage separately for both scanout buffers so alternating
+     frames retain all intervening updates.
+   - Respect independent source/destination pitches, offsets, and bounds when
+     copying pixels, omit row padding, and add DMA-BUF CPU read synchronization.
+     External-driver and compositing-schema copies retain conservative ranges.
+* BUGFIXING:
+   - Open the configured DRM device node directly and query its DRM driver
+     name, avoiding platform-driver name mismatches on Rockchip and similar SoCs.
+   - Change scanout buffer ownership only after the page-flip completion event;
+     avoid copying into buffers while a flip is pending and preserve dirty work
+     when submission fails or completion is not available.
+   - Allow synchronous page flips independently of DirtyFB support, but only
+     when double buffering has a shadow surface to populate the target buffer.
+     Do not flip a single-buffer screen to untouched alternate storage.
+   - Compose the DRM software cursor into the actual target scanout buffer and
+     coordinate native drawing with GDI cursor handling and shared-surface
+     drawing exclusion.
+   - Read `singletouchkey` input one `SYN_REPORT` frame at a time, preserving
+     successive positions and separate press/release events in buffered bursts.
+     Do not report an update before a complete frame has been read.
+   - Stop querying touch slot information for libinput `TOUCH_FRAME` events,
+     which do not carry a slot, eliminating the associated client-bug reports.
+* TESTS AND DOCUMENTATION:
+   - Add `scripts/test-drm-damage.py` for buffer contents, alternating damage,
+     pitch/offset/clipping, flip ownership/failure, single-buffer updates, and
+     mocked DMA-BUF synchronization.
+   - Add `scripts/test-drm-lease-lock.py` for lease lock ordering and
+     cross-process shared-surface read/write exclusion.
+   - Document the scope of DRM damage updates and RK3566 acceptance checks in
+     [DRM damage updates](doc/drm-damage-updates.md). Both host tests passed with
+     AddressSanitizer and UndefinedBehaviorSanitizer on macOS; a complete Linux
+     build and actual GPU fence, compositor, and RK3566 device validation remain
+     outside those tests.
 
 ## Version 5.0.17
 
