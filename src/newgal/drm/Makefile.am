@@ -9,7 +9,8 @@ SRC_FILES = \
     drmvideo.c
 
 HDR_FILES= \
-    drmvideo.h
+    drmvideo.h \
+    linux-dma-buf.h
 
 libvideo_drm_la_SOURCES = $(SRC_FILES) $(HDR_FILES)
 
