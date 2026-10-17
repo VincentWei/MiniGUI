@@ -54,6 +54,8 @@
 #ifdef _MGGAL_DRM
 
 #include <time.h>
+#include <poll.h>
+#include <errno.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
 #include <sys/sysmacros.h>
@@ -906,6 +908,13 @@ static void drm_cleanup(DrmVideoData* vdata)
     }
 
 #ifdef _MGSCHEMA_COMPOSITING
+    if (vdata->flip_screen) {
+        GAL_FreeSurface(vdata->flip_screen);
+        vdata->flip_screen = NULL;
+    }
+#endif
+
+#ifdef _MGSCHEMA_COMPOSITING
     if (vdata->cursor_buff) {
         drm_destroy_dumb_buffer (vdata, vdata->cursor_buff);
         vdata->cursor_buff = NULL;
@@ -1124,19 +1133,34 @@ int __drm_auth_client (int cli, uint32_t magic)
 static int open_drm_device(GAL_VideoDevice *device)
 {
     char *driver_name;
+    drmVersionPtr version;
     int fd;
 
-    driver_name = find_driver_for_device(device->hidden->dev_name);
-
-    _DBG_PRINTF("Try to load DRM driver: %s\n", driver_name);
-
-    fd = drmOpen(driver_name, NULL);
-
+    /* NOTE: find_driver_for_device() returns the kernel *platform* driver
+     * name read from sysfs (e.g. "rockchip-drm"), whereas drmOpen() matches
+     * this name against the *DRM* driver name reported by drmGetVersion()
+     * (e.g. "rockchip").  So calling drmOpen() with that name would fail to
+     * find the device on Rockchip and similar SoCs.  Open the configured
+     * device node directly instead. */
+    fd = open(device->hidden->dev_name, O_RDWR | O_CLOEXEC, 0);
     if (fd < 0) {
-        _ERR_PRINTF("NEWGAL>DRM: drmOpen failed: %s\n", strerror(errno));
-        free(driver_name);
+        _ERR_PRINTF("NEWGAL>DRM: failed to open %s: %s\n",
+                device->hidden->dev_name, strerror(errno));
         return -errno;
     }
+
+    /* Determine the real DRM driver name (e.g. "rockchip") for the external
+     * driver; fall back to the platform driver name if the query fails. */
+    driver_name = NULL;
+    version = drmGetVersion(fd);
+    if (version && version->name)
+        driver_name = strdup(version->name);
+    if (version)
+        drmFreeVersion(version);
+    if (driver_name == NULL)
+        driver_name = find_driver_for_device(device->hidden->dev_name);
+
+    _DBG_PRINTF("Try to load DRM driver: %s\n", driver_name);
 
 #ifdef _MGRM_PROCESSES
     if (mgIsServer) {
@@ -2549,14 +2573,70 @@ static void update_real_screen_memcpy(_THIS, const GAL_Rect *dirty_rect)
     dst += target_buff->offset;
 
 
-    for (uint32_t i = 0; i < target_buff->height; i++) {
+    /* Copy pixels, not pitch padding: source and destination may differ. */
+    int bytes = vdata->shadow_screen->format->BytesPerPixel;
+    RECT requested = { dirty_rect->x, dirty_rect->y,
+        dirty_rect->x + dirty_rect->w, dirty_rect->y + dirty_rect->h };
+    RECT bounds = { 0, 0, vdata->shadow_screen->w,
+        vdata->shadow_screen->h };
+    RECT clipped;
+    if (bounds.right > (int)target_buff->width)
+        bounds.right = target_buff->width;
+    if (bounds.bottom > (int)target_buff->height)
+        bounds.bottom = target_buff->height;
+    if (bytes <= 0 || shadow_pitch <= 0 || target_pitch <= 0)
+        return;
+    if (bounds.right > shadow_pitch / bytes)
+        bounds.right = shadow_pitch / bytes;
+    if (bounds.right > target_pitch / bytes)
+        bounds.right = target_pitch / bytes;
+    if (!IntersectRect(&clipped, &requested, &bounds))
+        return;
+    src += (size_t)clipped.top * shadow_pitch + (size_t)clipped.left * bytes;
+    dst += (size_t)clipped.top * target_pitch + (size_t)clipped.left * bytes;
+    size_t row_bytes = (size_t)RECTW(clipped) * bytes;
+    BOOL dma_read_started = FALSE;
+    if (shadow_buff && shadow_buff->prime_fd >= 0) {
+        struct dma_buf_sync sync = { DMA_BUF_SYNC_READ | DMA_BUF_SYNC_START };
+        int sync_result;
+        do {
+            sync_result = ioctl(shadow_buff->prime_fd,
+                    DMA_BUF_IOCTL_SYNC, &sync);
+        } while (sync_result < 0 && errno == EINTR);
+        dma_read_started = sync_result == 0;
+        if (!dma_read_started) {
+            static BOOL reported_sync_start_failure;
+            if (!reported_sync_start_failure) {
+                reported_sync_start_failure = TRUE;
+                _WRN_PRINTF("Failed DMA-BUF CPU read START sync: %m\n");
+            }
+        }
+    }
+
+    for (int y = clipped.top; y < clipped.bottom; ++y) {
 #if defined(__arm__) && defined(__linux__)
-        neon_memcpy(dst, src, target_pitch);
+        neon_memcpy(dst, src, row_bytes);
 #else
-        memcpy(dst, src, target_pitch);
-#endif /* defined(__arm__) && defined(__linux__) */
+        memcpy(dst, src, row_bytes);
+#endif
         src += shadow_pitch;
         dst += target_pitch;
+    }
+
+    if (dma_read_started) {
+        struct dma_buf_sync sync = { DMA_BUF_SYNC_READ | DMA_BUF_SYNC_END };
+        int sync_result;
+        do {
+            sync_result = ioctl(shadow_buff->prime_fd,
+                    DMA_BUF_IOCTL_SYNC, &sync);
+        } while (sync_result < 0 && errno == EINTR);
+        if (sync_result < 0) {
+            static BOOL reported_sync_end_failure;
+            if (!reported_sync_end_failure) {
+                reported_sync_end_failure = TRUE;
+                _WRN_PRINTF("Failed DMA-BUF CPU read END sync: %m\n");
+            }
+        }
     }
 }
 
@@ -2610,10 +2690,11 @@ static inline int boxtop (_THIS)
     return this->hidden->csr_y - this->hidden->hot_y;
 }
 
-static void refresh_cursor(_THIS, const GAL_Rect *dirty_rect)
+static void refresh_cursor(_THIS, const GAL_Rect *dirty_rect,
+        GAL_Surface *target_surface)
 {
     if (this->hidden->cursor && this->hidden->cursor->pixels &&
-            !this->hidden->cursor_buff) {
+            !this->hidden->cursor_buff && target_surface) {
         RECT csr_rc, eff_rc;
         csr_rc.left = boxleft(this);
         csr_rc.top = boxtop(this);
@@ -2635,48 +2716,52 @@ static void refresh_cursor(_THIS, const GAL_Rect *dirty_rect)
             dst_rect.w = src_rect.w;
             dst_rect.h = src_rect.h;
             GAL_SetupBlitting(this->hidden->cursor,
-                    this->hidden->real_screen, 0);
+                    target_surface, 0);
             GAL_BlitSurface(this->hidden->cursor, &src_rect,
-                    this->hidden->real_screen, &dst_rect);
+                    target_surface, &dst_rect);
             GAL_CleanupBlitting(this->hidden->cursor,
-                    this->hidden->real_screen);
+                    target_surface);
         }
     }
 }
 #else
-static inline void refresh_cursor(_THIS, const GAL_Rect *dirty_rect) {
+static inline void refresh_cursor(_THIS, const GAL_Rect *dirty_rect,
+        GAL_Surface *target_surface) {
     (void)this;
     (void)dirty_rect;
+    (void)target_surface;
 }
 #endif  /* _MGSCHEMA_COMPOSITING */
 
-static int is_fd_readable(int fd)
+static void flip_complete(int fd, unsigned sequence, unsigned sec,
+        unsigned usec, void *data)
 {
-    fd_set rfds;
-    struct timeval tv;
-    int retval;
-
-    /* Initialize the file descriptor set */
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-
-    /* Set timeout to 0 to return immediately */
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
-
-    /* Call select to check if fd is readable */
-    retval = select(fd + 1, &rfds, NULL, NULL, &tv);
-
-    if (retval == -1) {
-        /* Error occurred */
-        return -1;
-    } else if (retval) {
-        /* File descriptor is readable */
-        return 1;
-    } else {
-        /* Timeout occurred, file descriptor is not readable */
-        return 0;
+    DrmVideoData *vdata = data;
+    (void)fd; (void)sequence; (void)sec; (void)usec;
+    if (vdata->pending_flip) {
+        vdata->curr_buff = vdata->pending_flip;
+        vdata->scanout_buff_id = vdata->curr_buff->fb_id;
+        vdata->pending_flip = NULL;
     }
+}
+
+/* Retain dirty work while a submitted flip owns both buffers. The async
+ * updater polls; synchronous updates wait for completion before copying. */
+static BOOL finish_pending_flip(DrmVideoData *vdata, int timeout_ms)
+{
+    if (!vdata->pending_flip)
+        return TRUE;
+    struct pollfd pfd = { vdata->dev_fd, POLLIN, 0 };
+    int ready;
+    do { ready = poll(&pfd, 1, timeout_ms); } while (ready < 0 && errno == EINTR);
+    if (ready > 0 && (pfd.revents & POLLIN)) {
+        drmEventContext ev = {0};
+        ev.version = 2;
+        ev.page_flip_handler = flip_complete;
+        if (drmHandleEvent(vdata->dev_fd, &ev) != 0)
+            return FALSE;
+    }
+    return vdata->pending_flip == NULL;
 }
 
 /* Perform page flip between flip_buffer and real_screen->hwdata using curr_buff */
@@ -2700,19 +2785,15 @@ static int drm_page_flip(DrmVideoData* vdata)
 
     uint32_t next_fb_id = next_buffer->fb_id;
 
-    /* drmModePageFlip will wait for vertical sync signal internally */
+    /* Submission is asynchronous; ownership changes only in flip_complete. */
     ret = drmModePageFlip(vdata->dev_fd, vdata->saved_crtc->crtc_id,
-                          next_fb_id, DRM_MODE_PAGE_FLIP_EVENT, NULL);
+                          next_fb_id, DRM_MODE_PAGE_FLIP_EVENT, vdata);
     if (ret) {
         _ERR_PRINTF("NEWGAL>DRM: Failed to perform page flip: %m\n");
         return -1;
     }
 
-    /* Update scanout buffer ID */
-    vdata->scanout_buff_id = next_fb_id;
-
-    /* Update current buffer pointer */
-    vdata->curr_buff = next_buffer;
+    vdata->pending_flip = next_buffer;
 
     return 0;
 }
@@ -2737,6 +2818,29 @@ static void update_real_screen_helper(_THIS, const GAL_Rect *dirty_rect)
         target_buff = (DrmSurfaceBuffer *)vdata->real_screen->hwdata;
     }
 
+    GAL_Rect copy_rect = *dirty_rect;
+#ifndef _MGSCHEMA_COMPOSITING
+    if (!vdata->driver) {
+        RECT incoming = { dirty_rect->x, dirty_rect->y,
+            dirty_rect->x + dirty_rect->w, dirty_rect->y + dirty_rect->h };
+        for (int i = 0; i < 2; ++i) {
+            if (IsRectEmpty(&vdata->buffer_damage[i]))
+                vdata->buffer_damage[i] = incoming;
+            else
+                GetBoundRect(&vdata->buffer_damage[i],
+                        &vdata->buffer_damage[i], &incoming);
+        }
+        int index = target_buff == vdata->flip_buff ? 1 : 0;
+        RECT *rc = &vdata->buffer_damage[index];
+        copy_rect = (GAL_Rect){ rc->left, rc->top, RECTW(*rc), RECTH(*rc) };
+    }
+    else
+#endif
+    {
+        /* Preserve conservative behavior for driver/cursor composition. */
+        copy_rect = (GAL_Rect){ 0, 0, vdata->shadow_screen->w,
+            vdata->shadow_screen->h };
+    }
     shadow_buff = (DrmSurfaceBuffer *)vdata->shadow_screen->hwdata;
 
 #if 0 // def _DEBUG
@@ -2760,10 +2864,25 @@ static void update_real_screen_helper(_THIS, const GAL_Rect *dirty_rect)
     }
 
     if (!hw_ok) {
-        update_real_screen_memcpy(this, dirty_rect);
+        update_real_screen_memcpy(this, &copy_rect);
     }
 
-    refresh_cursor(this, dirty_rect);
+#ifndef _MGSCHEMA_COMPOSITING
+    if (!vdata->driver)
+        SetRectEmpty(&vdata->buffer_damage[target_buff == vdata->flip_buff ? 1 : 0]);
+#endif
+    /* The cursor is composed into the same target buffer after its background
+     * is copied. Use the effective copy region (which may be wider than the
+     * current damage for double-buffer history or compositing), so the cursor
+     * is restored exactly once and is never partially blended into a stale
+     * buffer region. */
+#ifdef _MGSCHEMA_COMPOSITING
+    GAL_Surface *target_surface = target_buff == vdata->flip_buff
+        ? vdata->flip_screen : vdata->real_screen;
+#else
+    GAL_Surface *target_surface = vdata->real_screen;
+#endif
+    refresh_cursor(this, &copy_rect, target_surface);
 
 #if 0 // def _DEBUG
     double elapsed = get_elapsed_seconds(&ts_start, NULL);
@@ -2782,8 +2901,6 @@ static void* task_do_update(void *data)
 {
     _THIS = data;
     DrmVideoData* vdata = this->hidden;
-    drmEventContext ev = {};
-    ev.version = DRM_EVENT_CONTEXT_VERSION;
 
     if (pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL)) {
         goto error;
@@ -2834,7 +2951,7 @@ static void* task_do_update(void *data)
 #endif
 
         retry_syscall_for_eintr(sem_wait(vdata->update_lock));
-        if (RECTH(vdata->update_rect)) {
+        if (RECTH(vdata->update_rect) && finish_pending_flip(vdata, 0)) {
             GAL_Rect dirty_rect = {
                 vdata->update_rect.left,
                 vdata->update_rect.top,
@@ -2850,9 +2967,9 @@ static void* task_do_update(void *data)
             }
             /* Perform page flip */
             else if (vdata->flip_buff) {
-                drm_page_flip(vdata);
-                if (1 == is_fd_readable(vdata->dev_fd)) {
-                    drmHandleEvent(vdata->dev_fd, &ev);
+                if (drm_page_flip(vdata) != 0) {
+                    sem_post(vdata->update_lock);
+                    continue; /* Keep update_rect for retry. */
                 }
             }
 
@@ -3015,6 +3132,9 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
 
     /* Initialize curr_buff to point to real_screen buffer */
     vdata->curr_buff = real_buffer;
+    vdata->pending_flip = NULL;
+    SetRect(&vdata->buffer_damage[0], 0, 0, info->width, info->height);
+    vdata->buffer_damage[1] = vdata->buffer_damage[0];
 
     if (vdata->crtc_idx >= 0)
         this->WaitVBlank = DRM_WaitVBlank;
@@ -3023,6 +3143,21 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
             bpp, RGBAmasks);
     if (vdata->real_screen == NULL)
         goto error;
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (vdata->flip_buff) {
+        vdata->flip_screen = GAL_CreateRGBSurfaceFrom(
+                (uint8_t *)vdata->flip_buff->vaddr +
+                    vdata->flip_buff->offset,
+                vdata->flip_buff->width, vdata->flip_buff->height, bpp,
+                vdata->flip_buff->pitch, RGBAmasks[0], RGBAmasks[1],
+                RGBAmasks[2], RGBAmasks[3]);
+        if (!vdata->flip_screen) {
+            _ERR_PRINTF("NEWGAL>DRM: failed to create flip cursor surface\n");
+            goto error;
+        }
+    }
+#endif
 
     if (vdata->dbl_buff) {
         uint32_t hdr_size = sizeof (GAL_ShadowSurfaceHeader);
@@ -3050,9 +3185,35 @@ static GAL_Surface *DRM_SetVideoMode(_THIS, GAL_Surface *current,
                  vdata->shadow_screen->pixels_off);
             SetRectEmpty (&hdr->dirty_rc);
 #else
-            vdata->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
-                    real_buffer->width, real_buffer->height, real_buffer->bpp,
-                    RGBAmasks[0], RGBAmasks[1], RGBAmasks[2], RGBAmasks[3]);
+            if (!vdata->driver) {
+                /* In the built-in DRM path GAL_CreateRGBSurface may clear
+                 * GAL_HWSURFACE before invoking AllocHWSurface when the
+                 * current public surface is software-backed. Construct the
+                 * shadow screen from an exportable dumb buffer directly. */
+                shadow_buffer = drm_create_dumb_buffer(vdata, drm_format, 0,
+                        real_buffer->width, real_buffer->height);
+                if (shadow_buffer && drmPrimeHandleToFD(vdata->dev_fd,
+                            shadow_buffer->handle, DRM_RDWR | DRM_CLOEXEC,
+                            &shadow_buffer->prime_fd)) {
+                    _ERR_PRINTF("NEWGAL>DRM: cannot export dumb shadow surface: %m\n");
+                    drm_destroy_dumb_buffer(vdata, shadow_buffer);
+                    shadow_buffer = NULL;
+                }
+                if (shadow_buffer) {
+                    vdata->shadow_screen = create_surface_from_buffer(this,
+                            shadow_buffer, bpp, RGBAmasks);
+                    if (!vdata->shadow_screen) {
+                        drm_destroy_dumb_buffer(vdata, shadow_buffer);
+                        shadow_buffer = NULL;
+                    }
+                }
+            }
+            else {
+                vdata->shadow_screen = GAL_CreateRGBSurface (GAL_HWSURFACE,
+                        real_buffer->width, real_buffer->height,
+                        real_buffer->bpp, RGBAmasks[0], RGBAmasks[1],
+                        RGBAmasks[2], RGBAmasks[3]);
+            }
 
             SetRectEmpty (&vdata->dirty_rc);
 #endif
@@ -3150,6 +3311,13 @@ error:
             drm_destroy_dumb_buffer (vdata, shadow_buffer);
         }
     }
+
+#ifdef _MGSCHEMA_COMPOSITING
+    if (vdata->flip_screen) {
+        GAL_FreeSurface(vdata->flip_screen);
+        vdata->flip_screen = NULL;
+    }
+#endif
 
     /* Clean up flip buffer if created */
     if (vdata->flip_buff) {
@@ -3783,9 +3951,6 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
     uint32_t drm_format;
     DrmSurfaceBuffer* surface_buffer;
 
-    if (!vdata->driver)
-        return -1;
-
     drm_format = translate_gal_format(surface->format);
     if (drm_format == 0) {
         _ERR_PRINTF("NEWGAL>DRM: not supported pixel format, "
@@ -3795,15 +3960,34 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
         return -1;
     }
 
-    surface_buffer = vdata->driver_ops->create_buffer(vdata->driver, drm_format,
-            0, surface->w, surface->h, DRM_SURBUF_TYPE_OFFSCREEN);
-    if (surface_buffer == NULL) {
-        return -1;
-    }
+    if (vdata->driver) {
+        surface_buffer = vdata->driver_ops->create_buffer(vdata->driver,
+                drm_format, 0, surface->w, surface->h,
+                DRM_SURBUF_TYPE_OFFSCREEN);
+        if (surface_buffer == NULL) {
+            return -1;
+        }
 
-    if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer)) {
-        _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
-        goto error;
+        if (!vdata->driver_ops->map_buffer(vdata->driver, surface_buffer)) {
+            _ERR_PRINTF ("NEWGAL>DRM: cannot map hardware buffer: %m\n");
+            goto error_driver;
+        }
+    }
+    else {
+        /* The built-in DRM path has no accelerated surface allocator. Use a
+         * dumb buffer so HWSURFACE allocations remain mappable and can be
+         * exported as PRIME for clients such as Skia's EGL backend. */
+        surface_buffer = drm_create_dumb_buffer(vdata, drm_format, 0,
+                surface->w, surface->h);
+        if (surface_buffer == NULL) {
+            return -1;
+        }
+
+        if (drmPrimeHandleToFD(vdata->dev_fd, surface_buffer->handle,
+                    DRM_RDWR | DRM_CLOEXEC, &surface_buffer->prime_fd)) {
+            _ERR_PRINTF("NEWGAL>DRM: cannot export dumb hardware surface: %m\n");
+            goto error_dumb;
+        }
     }
 
     surface->pitch = surface_buffer->pitch;
@@ -3819,9 +4003,15 @@ static int DRM_AllocHWSurface_Accl(_THIS, GAL_Surface *surface)
             surface->pixels);
     return 0;
 
-error:
-    if (surface_buffer)
+error_driver:
+    if (surface_buffer) {
         vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
+    }
+    return -1;
+
+error_dumb:
+    if (surface_buffer)
+        drm_destroy_dumb_buffer(vdata, surface_buffer);
 
     return -1;
 }
@@ -3831,12 +4021,15 @@ static void DRM_FreeHWSurface_Accl(_THIS, GAL_Surface *surface)
     DrmVideoData* vdata = this->hidden;
     DrmSurfaceBuffer* surface_buffer;
 
-    if (vdata->driver) {
-        surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
-        if (surface_buffer) {
+    surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
+    if (surface_buffer) {
+        if (vdata->driver) {
             if (surface_buffer->vaddr)
                 vdata->driver_ops->unmap_buffer(vdata->driver, surface_buffer);
             vdata->driver_ops->destroy_buffer(vdata->driver, surface_buffer);
+        }
+        else {
+            drm_destroy_dumb_buffer(vdata, surface_buffer);
         }
     }
 
@@ -4047,7 +4240,7 @@ static BOOL DRM_SyncUpdate(_THIS)
     dirty_rc = &vdata->dirty_rc;
 #endif
 
-    if (IsRectEmpty(dirty_rc))
+    if (IsRectEmpty(dirty_rc) || !finish_pending_flip(vdata, 1000))
         goto ret;
 
     RECT real_scrrc = { 0, 0, this->hidden->real_screen->w,
@@ -4064,21 +4257,19 @@ static BOOL DRM_SyncUpdate(_THIS)
         update_real_screen_helper(this, &dirty_rect);
     }
 
-    refresh_cursor(this, &dirty_rect);
-
     if (vdata->driver && vdata->driver_ops->flush) {
         vdata->driver_ops->flush(vdata->driver, vdata->curr_buff, &dirty_rect);
     }
-    else if (vdata->dirty_fb_ok && vdata->flip_buff) {
-        /* Perform page flip */
-        drm_page_flip(vdata);
-        if (1 == is_fd_readable(vdata->dev_fd)) {
-            drmEventContext ev = {};
-            ev.version = DRM_EVENT_CONTEXT_VERSION;
-            drmHandleEvent(vdata->dev_fd, &ev);
+    else if (vdata->dbl_buff && vdata->shadow_screen && vdata->flip_buff) {
+        /* DirtyFB support is independent of page-flip capability, but a
+         * single-buffer screen has no shadow copy to populate flip_buff. */
+        if (drm_page_flip(vdata) != 0) {
+            *dirty_rc = clipped;
+            goto ret;
         }
     }
 
+    retval = TRUE;
 ret:
     if (vdata->dbl_buff && vdata->update_lock != SEM_FAILED) {
         sem_post(vdata->update_lock);
@@ -4153,6 +4344,10 @@ BOOL __drm_get_surface_info (GAL_Surface *surface, DrmSurfaceInfo* info)
         DrmSurfaceBuffer* surface_buffer = (DrmSurfaceBuffer*)surface->hwdata;
 
         if (surface_buffer) {
+            if (surface_buffer->prime_fd < 0 &&
+                    drmPrimeHandleToFD(this->hidden->dev_fd, surface_buffer->handle,
+                        DRM_RDWR | DRM_CLOEXEC, &surface_buffer->prime_fd))
+                return FALSE;
             info->handle = surface_buffer->handle;
             info->prime_fd = surface_buffer->prime_fd;
             info->name = surface_buffer->name;
@@ -4464,4 +4659,3 @@ error:
 }
 
 #endif
-

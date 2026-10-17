@@ -71,6 +71,8 @@ typedef struct GAL_PrivateVideoData {
     /* For compositing schema, we force to use double buffering */
 #ifdef _MGSCHEMA_COMPOSITING
     GAL_Surface *real_screen, *shadow_screen;
+    /* Software-cursor adapter for the flip buffer; it aliases DRM memory. */
+    GAL_Surface *flip_screen;
 
     DrmSurfaceBuffer *cursor_buff;
     uint32_t cursor_plane_id;
@@ -94,6 +96,9 @@ typedef struct GAL_PrivateVideoData {
 
     /* current buffer pointer for managing buffer switching */
     DrmSurfaceBuffer *curr_buff;
+    /* A submitted flip still owns both buffers until its event arrives. */
+    DrmSurfaceBuffer *pending_flip;
+    RECT buffer_damage[2]; /* real, flip: changes not copied into each buffer */
 
     sem_t *update_lock;
 
@@ -142,4 +147,3 @@ typedef struct GAL_PrivateVideoData {
 } DrmVideoData;
 
 #endif /* _NEWGAL_DRIVIDEO_H */
-

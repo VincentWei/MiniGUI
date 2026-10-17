@@ -825,13 +825,12 @@ static int wait_event_ex (int maxfd, fd_set *in, fd_set *out, fd_set *except,
     }
 
     case LIBINPUT_EVENT_TOUCH_FRAME: {
-        struct libinput_event_touch* tch_event;
-
-        tch_event = libinput_event_get_touch_event(event);
-
+        /* TOUCH_FRAME is a frame delimiter event; it does not carry a slot,
+         * so calling libinput_event_touch_get_slot()/get_seat_slot() here is
+         * invalid and would make libinput complain about a "client bug". */
         extra->event = IAL_EVENT_TOUCH_FRAME;
-        extra->wparam = libinput_event_touch_get_slot(tch_event);
-        extra->lparam = libinput_event_touch_get_seat_slot(tch_event);
+        extra->wparam = 0;
+        extra->lparam = 0;
         retval = IAL_EVENT_EXTRA;
         break;
     }

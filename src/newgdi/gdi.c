@@ -54,6 +54,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "minigui.h"
@@ -71,12 +74,38 @@
 #include "devfont.h"
 #include "drawtext.h"
 #include "debug.h"
+#ifdef _MGGAL_DRM
+#include <poll.h>
+#endif
 
 /************************* global data define ********************************/
 DC __mg_screen_dc;
 DC __mg_screen_sys_dc;
 
 gal_pixel SysPixelIndex [17];
+
+#ifdef _MGGAL_DRM
+typedef struct _DRM_DC_LEASE_TOKEN {
+    struct _DRM_DC_LEASE_TOKEN *next;
+    GHANDLE video;
+    HDC hdc;
+    GAL_Surface *surface;
+    uint64_t generation;
+    DC drawing_dc;
+#ifdef _MGRM_THREADS
+    pthread_t owner;
+#endif
+    BOOL releasing;
+} DRM_DC_LEASE_TOKEN;
+
+/* Registry has its own lock: the drawing thread retains __mg_gdilock until
+ * release. Invalid/cross-thread releases must not wait for that drawing lock. */
+#ifdef _MGRM_THREADS
+static pthread_mutex_t drm_lease_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif
+static DRM_DC_LEASE_TOKEN *drm_dc_leases;
+static uint64_t drm_dc_lease_generation;
+#endif
 
 /* This should be the standard EGA palette. */
 const RGB SysPixelColor [] = {
@@ -4139,6 +4168,223 @@ BOOL drmGetSurfaceInfo (GHANDLE video, HDC hdc, DrmSurfaceInfo* info)
     return __drm_get_surface_info(pdc->surface, info);
 }
 
+BOOL drmAcquireDCSurface (GHANDLE video, HDC hdc, MGDRMSurfaceLease *lease)
+{
+    DrmSurfaceInfo info;
+    PDC pdc;
+    GAL_Surface *surface;
+    DRM_DC_LEASE_TOKEN *token = NULL;
+    RECT clip_bounds;
+    int origin_x, origin_y;
+    int fd;
+    const char *failure_stage = NULL;
+    int failure_errno = 0;
+    static BOOL reported_lease_failure = FALSE;
+
+    if (!lease || lease->struct_size < sizeof(*lease) ||
+            lease->version != MG_DRM_SURFACE_LEASE_VERSION)
+        return FALSE;
+    memset(lease, 0, sizeof(*lease));
+    lease->struct_size = sizeof(*lease);
+    lease->version = MG_DRM_SURFACE_LEASE_VERSION;
+    lease->acquire_fence_fd = -1;
+    for (unsigned i = 0; i < MG_DRM_MAX_PLANES; ++i)
+        lease->dma_buf_fds[i] = -1;
+
+    token = calloc(1, sizeof(*token));
+    if (!token)
+        return FALSE;
+
+    pdc = dc_HDC2PDC(hdc);
+    if (!pdc || !pdc->surface) {
+        free(token);
+        return FALSE;
+    }
+    /* Match LockDC's order: shared drawing exclusion precedes the GDI
+     * mutex. Keep a surface snapshot so release need not dereference PDC. */
+    token->drawing_dc.surface = pdc->surface;
+    BLOCK_DRAW_SEM((&token->drawing_dc));
+    LOCK(&__mg_gdilock);
+    pdc = dc_HDC2PDC(hdc);
+    if (!pdc || !pdc->surface) {
+        failure_stage = "DC has no surface";
+        goto failed;
+    }
+    surface = pdc->surface;
+    if (surface->video != video) {
+        failure_stage = "DC surface belongs to a different video device";
+        goto failed;
+    }
+    if (!(surface->flags & GAL_HWSURFACE) || !surface->hwdata) {
+        failure_stage = "DC surface is not DRM-backed hardware storage";
+        goto failed;
+    }
+    if (!__drm_get_surface_info(surface, &info)) {
+        failure_stage = "DRM surface info / PRIME export failed";
+        failure_errno = errno;
+        goto failed;
+    }
+    if (info.prime_fd < 0) {
+        failure_stage = "DRM surface has no PRIME fd";
+        goto failed;
+    }
+    fd = dup(info.prime_fd);
+    if (fd < 0) {
+        failure_stage = "duplicating PRIME fd failed";
+        failure_errno = errno;
+        goto failed;
+    }
+    if (fcntl(fd, F_SETFD, FD_CLOEXEC) < 0) {
+        failure_stage = "setting CLOEXEC on PRIME fd failed";
+        failure_errno = errno;
+        close(fd);
+        goto failed;
+    }
+    /* PDC/DC metadata is protected only by __mg_gdilock. Snapshot it before
+     * dropping the lock; the GAL surface reference below does not pin PDC. */
+    clip_bounds = pdc->DevRC;
+    origin_x = clip_bounds.left;
+    origin_y = clip_bounds.top;
+    ++surface->refcount;
+    token->video = video;
+    token->hdc = hdc;
+    token->surface = surface;
+    token->generation = ++drm_dc_lease_generation;
+    if (token->generation == 0)
+        token->generation = ++drm_dc_lease_generation;
+    /* Use the same cursor/background and surface exclusion as normal GDI.
+     * Retain GDI ownership through GPU completion; otherwise cursor movement
+     * can restore a stale saved background into the newly rendered image.
+     * The snapshot avoids retaining a caller-owned PDC pointer. */
+    token->drawing_dc.surface = surface;
+    token->drawing_dc.rc_output = clip_bounds;
+#ifdef _MGRM_THREADS
+    token->owner = pthread_self();
+#endif
+    kernel_ShowCursorForGDI(FALSE, &token->drawing_dc);
+    LOCK(&drm_lease_lock);
+    token->next = drm_dc_leases;
+    drm_dc_leases = token;
+    UNLOCK(&drm_lease_lock);
+    lease->generation = token->generation;
+    lease->width = info.width;
+    lease->height = info.height;
+    lease->fourcc = info.drm_format;
+    lease->plane_count = 1;
+    lease->dma_buf_fds[0] = fd;
+    lease->pitches[0] = info.pitch;
+    lease->offsets[0] = info.offset;
+    lease->surface_origin_x = origin_x;
+    lease->surface_origin_y = origin_y;
+    lease->clip_bounds = clip_bounds;
+    lease->private_token = token;
+    return TRUE;
+
+failed:
+    if (!reported_lease_failure) {
+        reported_lease_failure = TRUE;
+        if (failure_errno) {
+            _WRN_PRINTF ("drmAcquireDCSurface failed: %s (errno=%d: %s)\n",
+                    failure_stage ? failure_stage : "invalid lease request",
+                    failure_errno, strerror (failure_errno));
+        }
+        else {
+            _WRN_PRINTF ("drmAcquireDCSurface failed: %s\n",
+                    failure_stage ? failure_stage : "invalid lease request");
+        }
+    }
+    UNLOCK(&__mg_gdilock);
+    UNBLOCK_DRAW_SEM((&token->drawing_dc));
+    free(token);
+    return FALSE;
+}
+
+BOOL drmReleaseDCSurface (GHANDLE video, HDC hdc,
+        MGDRMSurfaceLease *lease, int release_fence_fd, const RECT *dirty)
+{
+    DRM_DC_LEASE_TOKEN **link;
+    DRM_DC_LEASE_TOKEN *token;
+    GAL_Surface *surface;
+    BOOL has_dirty = FALSE;
+    BOOL update_ok = TRUE;
+    BOOL release_fence_ready = TRUE;
+    if (!lease || lease->struct_size < sizeof(*lease) ||
+            lease->version != MG_DRM_SURFACE_LEASE_VERSION ||
+            !lease->private_token) {
+        if (release_fence_fd >= 0)
+            close(release_fence_fd);
+        return FALSE;
+    }
+    LOCK(&drm_lease_lock);
+    link = &drm_dc_leases;
+    while (*link && *link != lease->private_token)
+        link = &(*link)->next;
+    token = *link;
+    if (!token || token->video != video || token->hdc != hdc ||
+            token->generation != lease->generation || token->releasing
+#ifdef _MGRM_THREADS
+            || !pthread_equal(token->owner, pthread_self())
+#endif
+            ) {
+        UNLOCK(&drm_lease_lock);
+        if (release_fence_fd >= 0)
+            close(release_fence_fd);
+        return FALSE;
+    }
+    /* Keep the drawing guard held until GPU completion. */
+    token->releasing = TRUE;
+    UNLOCK(&drm_lease_lock);
+
+    if (release_fence_fd >= 0) {
+        struct pollfd fence = { release_fence_fd, POLLIN, 0 };
+        int poll_result;
+        do {
+            poll_result = poll(&fence, 1, -1);
+        } while (poll_result < 0 && errno == EINTR);
+        release_fence_ready = poll_result > 0 &&
+            (fence.revents & POLLIN) &&
+            !(fence.revents & (POLLERR | POLLNVAL));
+        close(release_fence_fd);
+    }
+
+    LOCK(&drm_lease_lock);
+    /* The reserved entry cannot be removed by another release call. */
+    link = &drm_dc_leases;
+    while (*link && *link != token)
+        link = &(*link)->next;
+    if (*link != token) {
+        UNLOCK(&drm_lease_lock);
+        return FALSE;
+    }
+    *link = token->next;
+    lease->private_token = NULL;
+    surface = token->surface;
+    RECT clipped_dirty;
+    if (dirty && release_fence_ready) {
+        RECT bounds = { 0, 0, surface->w, surface->h };
+        has_dirty = IntersectRect(&clipped_dirty, dirty, &bounds);
+    }
+    UNLOCK(&drm_lease_lock);
+
+    /* Refresh the cursor's saved background only after GPU writes finish.
+     * This also releases the surface/updater lock, in normal GDI lock order. */
+    kernel_ShowCursorForGDI(TRUE, &token->drawing_dc);
+    if (has_dirty) {
+        GAL_Rect rect = { clipped_dirty.left, clipped_dirty.top,
+            RECTW(clipped_dirty), RECTH(clipped_dirty) };
+        GAL_UpdateRects(surface, 1, &rect);
+        update_ok = GAL_SyncUpdate(surface);
+    }
+    UNLOCK(&__mg_gdilock);
+    UNBLOCK_DRAW_SEM((&token->drawing_dc));
+    /* The shared lock uses surface->fd; keep the reference until unlocked. */
+    LOCK(&__mg_gdilock);
+    GAL_FreeSurface(surface);
+    UNLOCK(&__mg_gdilock);
+    free(token);
+    return release_fence_ready && update_ok;
+}
+
 HDC drmCreateDCFromNameEx (GHANDLE video, uint32_t name, uint32_t drm_format,
         off_t offset, uint32_t width, uint32_t height, uint32_t pitch)
 {
@@ -4518,4 +4764,3 @@ void __mg_update_dc_on_secondary_dc_changed (PMAINWIN pMainWin)
 
     travel_children_with_priv_cdc (&ctxt);
 }
-
