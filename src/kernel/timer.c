@@ -103,7 +103,9 @@ DWORD __mg_update_tick_count (MSGQUEUE* msg_queue)
         if (msg_queue == __mg_dsk_msg_queue &&
                 ticks > __mg_dsk_msg_queue->old_tick_count +
                     DESKTOP_TIMER_INERTVAL) {
+            LOCK_MSGQ(__mg_dsk_msg_queue);
             __mg_dsk_msg_queue->dwState |= QS_DESKTIMER;
+            UNLOCK_MSGQ(__mg_dsk_msg_queue);
 #ifdef _MGRM_THREADS    /* only wake up desktop for threads mode */
             POST_MSGQ (__mg_dsk_msg_queue);
 #endif
