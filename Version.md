@@ -1,6 +1,6 @@
-Version 5.0.18 (2026/10/17)
+Version 5.0.19 (2026/11/25)
 
-This is a minor enhancement and bugfix release of MiniGUI 5.0.x, the stable version.
+This is a bugfix release of MiniGUI 5.0.x, the stable version.
 
 Other packages for MiniGUI resource, tools, components, and samples:
 
