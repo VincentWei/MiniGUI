@@ -1,5 +1,7 @@
 # Release Notes
 
+- [Version 5.0.19](#version-5019)
+   + [What's new in version 5.0.19](#whats-new-in-version-5019)
 - [Version 5.0.18](#version-5018)
    + [What's new in version 5.0.18](#whats-new-in-version-5018)
 - [Version 5.0.17](#version-5017)
@@ -39,6 +41,23 @@
    + [Other new APIs](#other-new-apis)
    + [Changes leading to incompatibility](#changes-leading-to-incompatibility)
    + [Deprecated APIs](#deprecated-apis)
+
+## Version 5.0.19
+
+On Nov. 25, 2026, FMSoft announces the availability of MiniGUI 5.0.19,
+which is a bugfix release of MiniGUI 5.0.x, focusing on desktop timer
+message queue synchronization.
+
+### What's new in version 5.0.19
+
+* BUGFIXING:
+   - Protect the desktop message queue's `dwState` update with the queue lock
+     when setting `QS_DESKTIMER`. This fixes inconsistent message queue state
+     caused by concurrent modifications to `dwState` from multiple threads,
+     particularly the loss of `NotifyMessage` notifications. Release the lock
+     before waking the desktop thread.
+* COMPATIBILITY:
+   - No public API changes. Preserve binary compatibility with MiniGUI 5.0.18.
 
 ## Version 5.0.18
 
